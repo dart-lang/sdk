@@ -17,5 +17,5 @@ main() {
   // Make sure the exception is thrown out to the event handler from C++ code.
   // The harness expects the string "ball" to be thrown and the process to
   // end with an unhandled exception.
-  new Timer(0, (_) => Cat.throwMeTheBall("ball"));
+  Timer.run(() => Cat.throwMeTheBall("ball"));
 }

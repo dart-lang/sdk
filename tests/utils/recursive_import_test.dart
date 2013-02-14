@@ -23,6 +23,7 @@ class Closure {}
 class Dynamic_ {}
 class Type {}
 class Null {}
+class LinkedHashMap {}
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}
 eqNull(a) {}

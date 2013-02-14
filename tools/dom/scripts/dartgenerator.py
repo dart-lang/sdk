@@ -217,7 +217,7 @@ class DartGenerator(object):
     for interface in database.GetInterfaces():
       # Create fake EventTarget parent interface for interfaces that have
       # 'EventTarget' extended attribute.
-      if 'EventTarget' in interface.ext_attrs:
+      if 'EventTarget' in interface.ext_attrs and interface.id != 'EventTarget':
         ast = [('Annotation', [('Id', 'WebKit')]),
                ('InterfaceType', ('ScopedName', 'EventTarget'))]
         interface.parents.append(idlnode.IDLParentInterface(ast))

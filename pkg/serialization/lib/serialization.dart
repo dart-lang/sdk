@@ -21,8 +21,8 @@
  * This creates a new serialization and adds a rule for address objects. Right
  * now it has to be passed an address instance because of limitations using
  * Address as a literal. Then we ask the Serialization to write the address
- * and we get back a String which is a [JSON] representation of the state of
- * it and related objects.
+ * and we get back a Map which is a [json]able representation of the state of
+ * the address and related objects.
  *
  * The version above used reflection to automatically identify the public
  * fields of the address object. We can also specify those fields explicitly.
@@ -105,7 +105,8 @@
  * There are cases where the constructor needs values that we can't easily get
  * from the serialized object. For example, we may just want to pass null, or a
  * constant value. To support this, we can specify as constructor fields
- * values that aren't field names. If any value isn't a String, it will be
+ * values that aren't field names. If any value isn't a String, or is a string
+ * that doesn't correspond to a field name, it will be
  * treated as a constant and passed unaltered to the constructor.
  *
  * In some cases a non-constructor field should not be set using field
@@ -125,7 +126,9 @@
  *
  * By default this uses a representation in which objects are represented as
  * maps keyed by field name, but in which references between objects have been
- * converted into Reference objects. This is then encoded as a [json] string.
+ * converted into Reference objects. This is then typically encoded as
+ * a [json] string, but can also be used in other ways, e.g. sent to another
+ * isolate.
  *
  * We can write objects in different formats by passing a [Format] object to
  * the [write] method or by getting a [Writer] object. The available formats
@@ -133,12 +136,12 @@
  * and a simple JSON format that produces output more suitable for talking to
  * services that expect JSON in a predefined format. Examples of these are
  *
- *      String output = serialization.write(address, new SimpleMapFormat());
+ *      Map output = serialization.write(address, new SimpleMapFormat());
  *      List output = serialization.write(address, new SimpleFlatFormat());
- *      Map output = serialization.write(address, new SimpleJsonFormat());
+ *      var output = serialization.write(address, new SimpleJsonFormat());
  * Or, using a [Writer] explicitly
  *      var writer = serialization.newWriter(new SimpleFlatFormat());
- *      var output = writer.write(address);
+ *      List output = writer.write(address);
  *
  * These representations are not yet considered stable.
  *
@@ -146,7 +149,7 @@
  * =======
  * To read objects, the corresponding [read] method can be used.
  *
- *       Address input = serialization.read(aString);
+ *       Address input = serialization.read(input);
  *
  * When reading, the serialization instance doing the reading must be configured
  * with compatible rules to the one doing the writing. It's possible for the
@@ -235,6 +238,8 @@ class Serialization {
    * is off by default.
    */
   bool get selfDescribing {
+    // TODO(alanknight): Should this be moved to the format?
+    // TODO(alanknight): Allow self-describing in the presence of CustomRule.
     if (_selfDescribing != null) return _selfDescribing;
     return !_rules.any((x) => x is CustomRule);
   }
@@ -344,14 +349,16 @@ class Serialization {
 
   /**
    * Read the serialized data from [input] and return the root object
-   * from the result. If there are objects that need to be resolved
+   * from the result. The [input] can be of any type that the [Format]
+   * reads/writes, but normally will be a [List], [Map], or a simple type.
+   * If there are objects that need to be resolved
    * in the current context, they should be provided in [externals] as a
    * Map from names to values. In particular, in the current implementation
    * any class mirrors needed should be provided in [externals] using the
    * class name as a key. In addition to the [externals] map provided here,
-   * values will be looked up in the [externalObjects] map.
+   * values will be looked up in the [namedObjects] map.
    */
-  read(String input, [Map externals = const {}]) {
+  read(input, [Map externals = const {}]) {
     return newReader().read(input, externals);
   }
 

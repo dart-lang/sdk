@@ -4,6 +4,7 @@
 //
 // Directory listing test.
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
@@ -19,6 +20,7 @@ class DirectoryTest {
     subDirectory.createSync();
     Expect.isTrue(subDirectory.existsSync());
     File f = new File('${subDirectory.path}/file.txt');
+    File fLong = new File('${directory.path}/subdir/../subdir/file.txt');
     Expect.isFalse(f.existsSync());
     f.createSync();
 
@@ -46,6 +48,7 @@ class DirectoryTest {
 
     testSyncListing(true);
     testSyncListing(false);
+    Expect.equals(f.fullPathSync(), fLong.fullPathSync());
 
     var lister = directory.list(recursive: true);
 
@@ -288,71 +291,24 @@ class DirectoryTest {
     Expect.isFalse(d.existsSync());
   }
 
-  static void testCreateTemp() {
-    Directory tempDir1;
-    Directory tempDir2;
-    bool stage1aDone = false;
-    bool stage1bDone = false;
-    bool emptyTemplateTestRunning = false;
+  static void testCreateTemp([String template = ""]) {
+    var port = new ReceivePort();
+    Directory dir = new Directory(template);
+    Future.wait([dir.createTemp(), dir.createTemp()])
+      .then((tempDirs) {
+        Expect.notEquals(tempDirs[0].path, tempDirs[1].path);
+        for (Directory t in tempDirs) {
+          Expect.isTrue(t.existsSync());
+          t.deleteSync();
+          Expect.isFalse(t.existsSync());
+        }
+        port.close();
+      });
+  }
 
-    // Stages 0 through 2 run twice, the second time with an empty path.
-    Function stage0;
-    Function stage1a;
-    Function stage1b;
-    Function stage2;
-    Function stage3;  // Loops to stage 0.
-
-    stage0 = () {
-      var dir = new Directory("/tmp/dart_temp_dir_");
-      dir.createTemp().then(stage1a);
-      dir.createTemp().then(stage1b);
-    };
-
-    stage1a = (temp) {
-      tempDir1 = temp;
-      stage1aDone = true;
-      Expect.isTrue(tempDir1.existsSync());
-      if (stage1bDone) {
-        stage2();
-      }
-    };
-
-    stage1b = (temp) {
-      tempDir2 = temp;
-      stage1bDone = true;
-      Expect.isTrue(tempDir2.existsSync());
-      if (stage1aDone) {
-        stage2();
-      }
-    };
-
-    stage2 = () {
-      Expect.notEquals(tempDir1.path, tempDir2.path);
-      tempDir1.deleteSync();
-      tempDir2.deleteSync();
-      Expect.isFalse(tempDir1.existsSync());
-      Expect.isFalse(tempDir2.existsSync());
-      if (!emptyTemplateTestRunning) {
-        emptyTemplateTestRunning = true;
-        stage3();
-      } else {
-        // Done with test.
-      }
-    };
-
-    stage3 = () {
-      tempDir1 = new Directory("");
-      tempDir2 = new Directory("");
-      stage1aDone = false;
-      stage1bDone = false;
-      stage0();
-    };
-
+  static void testCreateTempTemplate() {
     if (new Directory("/tmp").existsSync()) {
-      stage0();
-    } else {
-      emptyTemplateTestRunning = true;
-      stage3();
+      testCreateTemp("/tmp/dart_temp_dir_");
     }
   }
 

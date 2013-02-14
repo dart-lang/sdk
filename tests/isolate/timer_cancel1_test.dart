@@ -12,15 +12,17 @@ main() {
     var canceleeTimer;
     var cancelerTimer;
 
-    void unreachable(Timer timer) {
+    void unreachable() {
       fail("A canceled timeout handler should be unreachable.");
     }
 
-    void handler(Timer timer) {
+    void handler() {
       canceleeTimer.cancel();
     }
 
-    cancelerTimer = new Timer(1, expectAsync1(handler));
-    canceleeTimer = new Timer(1000, expectAsync1(unreachable, count: 0));
+    cancelerTimer = new Timer(const Duration(milliseconds: 1),
+                              expectAsync0(handler));
+    canceleeTimer = new Timer(const Duration(milliseconds: 1000),
+                              expectAsync0(unreachable, count: 0));
   });
 }

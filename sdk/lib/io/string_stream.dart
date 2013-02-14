@@ -525,7 +525,7 @@ class _StringInputStream implements StringInputStream {
   // TODO(sgjesse): Find a better way of scheduling callbacks from
   // the event loop.
   void _checkScheduleCallback() {
-    void issueDataCallback(Timer timer) {
+    void issueDataCallback() {
       _scheduledDataCallback = null;
       if (_clientDataHandler != null) {
         _clientDataHandler();
@@ -533,7 +533,7 @@ class _StringInputStream implements StringInputStream {
       }
     }
 
-    void issueLineCallback(Timer timer) {
+    void issueLineCallback() {
       _scheduledLineCallback = null;
       if (_clientLineHandler != null) {
         _clientLineHandler();
@@ -541,7 +541,7 @@ class _StringInputStream implements StringInputStream {
       }
     }
 
-    void issueCloseCallback(Timer timer) {
+    void issueCloseCallback() {
       _scheduledCloseCallback = null;
       if (!_closed) {
         if (_clientCloseHandler != null) _clientCloseHandler();
@@ -557,7 +557,7 @@ class _StringInputStream implements StringInputStream {
         if (_scheduledLineCallback != null) {
           _scheduledLineCallback.cancel();
         }
-        _scheduledDataCallback = new Timer(0, issueDataCallback);
+        _scheduledDataCallback = Timer.run(issueDataCallback);
       }
 
       // Schedule line callback if a line is available.
@@ -567,14 +567,14 @@ class _StringInputStream implements StringInputStream {
         if (_scheduledDataCallback != null) {
           _scheduledDataCallback.cancel();
         }
-        _scheduledLineCallback = new Timer(0, issueLineCallback);
+        _scheduledLineCallback = Timer.run(issueLineCallback);
       }
 
       // Schedule close callback if no more data and input is closed.
       if (_decoder.isEmpty &&
           _inputClosed &&
           _scheduledCloseCallback == null) {
-        _scheduledCloseCallback = new Timer(0, issueCloseCallback);
+        _scheduledCloseCallback = Timer.run(issueCloseCallback);
       }
     }
   }

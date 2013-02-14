@@ -18,6 +18,9 @@ main() {
   a1.street = 'N 34th';
   a1.city = 'Seattle';
 
+  var formats = [new SimpleFlatFormat(), new SimpleMapFormat(),
+                 new SimpleJsonFormat(storeRoundTripInfo: true)];
+
   test('Basic extraction of a simple object', () {
     // TODO(alanknight): Switch these to use literal types. Issue
     var s = new Serialization()
@@ -37,8 +40,6 @@ main() {
   });
 
   test('Slightly further with a simple object', () {
-    // TODO(alanknight): Tests that rely on what index rules are going to be
-    // at are very fragile. At least abstract it to something calculated.
     var p1 = new Person()..name = 'Alice'..address = a1;
     var s = new Serialization()
         ..addRuleFor(p1).configureForMaps()
@@ -259,14 +260,23 @@ main() {
     // Create a meta-serializer, that serializes serializations, then
     // use it to serialize a basic serialization, then run a test on the
     // the result.
-    var s = new Serialization()
+    var s = new Serialization.blank()
+      // Add the rules in a deliberately unusual order.
       ..addRuleFor(new Node(''), constructorFields: ['name'])
+      ..addRule(new ListRule())
+      ..addRule(new PrimitiveRule())
       ..selfDescribing = false;
     var meta = metaSerialization();
-    var serialized = meta.write(s);
-    var s2 = new Reader(meta)
-        .read(serialized, {"Node" : reflect(new Node('')).type});
-    runRoundTripTest((x) => s2);
+    var metaWithMaps = metaSerializationUsingMaps();
+    for (var eachFormat in formats) {
+      for (var eachMeta in [meta, metaWithMaps]) {
+        var serialized = eachMeta.write(s, eachFormat);
+        var reader = new Reader(eachMeta, eachFormat);
+        var newSerialization = reader.read(serialized,
+           {"serialization_test.Node" : reflect(new Node('')).type});
+        runRoundTripTest((x) => newSerialization);
+      }
+    }
   });
 
   test("Verify we're not serializing lists twice if they're essential", () {
@@ -320,7 +330,7 @@ main() {
           constructor: 'withData',
           constructorFields: ["street", "Kirkland", "WA", "98103"],
           fields: []);
-    String out = s.write(a1);
+    var out = s.write(a1);
     var newAddress = s.read(out);
     expect(newAddress.street, a1.street);
     expect(newAddress.city, "Kirkland");
@@ -331,7 +341,7 @@ main() {
   test("Straight JSON format", () {
     var s = new Serialization();
     var writer = s.newWriter(new SimpleJsonFormat());
-    var out = writer.write(a1);
+    var out = json.stringify(writer.write(a1));
     var reconstituted = json.parse(out);
     expect(reconstituted.length, 4);
     expect(reconstituted[0], "Seattle");
@@ -339,23 +349,23 @@ main() {
 
   test("Straight JSON format, nested objects", () {
     var p1 = new Person()..name = 'Alice'..address = a1;
-    var s = new Serialization();
+    var s = new Serialization()..selfDescribing = false;
     var addressRule = s.addRuleFor(a1)..configureForMaps();
     var personRule = s.addRuleFor(p1)..configureForMaps();
     var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
-    var out = writer.write(p1);
+    var out = json.stringify(writer.write(p1));
     var reconstituted = json.parse(out);
     var expected = {
       "name" : "Alice",
       "rank" : null,
       "serialNumber" : null,
-      "__rule" : personRule.number,
+      "_rule" : personRule.number,
       "address" : {
         "street" : "N 34th",
         "city" : "Seattle",
         "state" : null,
         "zip" : null,
-        "__rule" : addressRule.number
+        "_rule" : addressRule.number
       }
     };
     expect(expected, reconstituted);
@@ -368,40 +378,65 @@ main() {
     var s = new Serialization()
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps();
-    var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
-    var out = writer.write(p1);
-    var reader = s.newReader(new SimpleJsonFormat(storeRoundTripInfo: true));
-    var p2 = reader.read(out);
+    var p2 = writeAndReadBack(s,
+        new SimpleJsonFormat(storeRoundTripInfo: true), p1);
     expect(p2.name, "Alice");
     var a2 = p2.address;
     expect(a2.street, "N 34th");
     expect(a2.city, "Seattle");
   });
 
-  test("Straight JSON format, root is a Map", () {
+  test("Root is a Map", () {
     // Note that we can't use the usual round-trip test because it has cycles.
     var p1 = new Person()..name = 'Alice'..address = a1;
     // Use maps for one rule, lists for the other.
     var s = new Serialization()
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps();
-    var format = new SimpleJsonFormat(storeRoundTripInfo: true);
-    var writer = s.newWriter(format);
-    var out = writer.write({"stuff" : p1});
-    var reader = s.newReader(format);
-    var p2 = reader.read(out)["stuff"];
-    expect(p2.name, "Alice");
-    var a2 = p2.address;
-    expect(a2.street, "N 34th");
-    expect(a2.city, "Seattle");
+    for (var eachFormat in formats) {
+      var w = s.newWriter(eachFormat);
+      var output = w.write({"stuff" : p1});
+      var r = s.newReader(w.format);
+      var result = r.read(output);
+      var p2 = result["stuff"];
+      expect(p2.name, "Alice");
+      var a2 = p2.address;
+      expect(a2.street, "N 34th");
+      expect(a2.city, "Seattle");
+    }
   });
 
+  test("Root is a List", () {
+    var s = new Serialization();
+    for (var eachFormat in formats) {
+      var result = writeAndReadBack(s, eachFormat, [a1]);
+    var a2 = result.first;
+    expect(a2.street, "N 34th");
+    expect(a2.city, "Seattle");
+    }
+  });
 
-  test("Straight JSON format, round-trip with named objects", () {
+  test("Root is a simple object", () {
+    var s = new Serialization();
+    for (var eachFormat in formats) {
+      expect(writeAndReadBack(s, eachFormat, null), null);
+      expect(writeAndReadBack(s, eachFormat, [null]), [null]);
+      expect(writeAndReadBack(s, eachFormat, 3), 3);
+      expect(writeAndReadBack(s, eachFormat, [3]), [3]);
+      expect(writeAndReadBack(s, eachFormat, "hello"), "hello");
+      expect(writeAndReadBack(s, eachFormat, [3]), [3]);
+      expect(writeAndReadBack(s, eachFormat, {"hello" : "world"}),
+          {"hello" : "world"});
+      expect(writeAndReadBack(s, eachFormat, true), true);
+    }
+  });
+
+  test("Simple JSON format, round-trip with named objects", () {
     // Note that we can't use the usual round-trip test because it has cycles.
     var p1 = new Person()..name = 'Alice'..address = a1;
     // Use maps for one rule, lists for the other.
     var s = new Serialization()
+      ..selfDescribing = false
       ..addRule(new NamedObjectRule())
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps()
@@ -415,15 +450,13 @@ main() {
     expect(a2, 12);
   });
 
-  test("Maps", () {
+  test("More complicated Maps", () {
     var s = new Serialization()..selfDescribing = false;
     var p1 = new Person()..name = 'Alice'..address = a1;
     var data = new Map();
     data["simple data"] = 1;
     data[p1] = a1;
     data[a1] = p1;
-    var formats = [new SimpleFlatFormat(), new SimpleMapFormat(),
-        new SimpleJsonFormat(storeRoundTripInfo: true)];
     for (var eachFormat in formats) {
       var output = s.write(data, eachFormat);
       var reader = s.newReader(eachFormat);
@@ -456,18 +489,26 @@ main() {
     data["person"] = new Person()..name = "Foo";
     var output = s.write(data, new SimpleMapFormat());
     var mapRule = s.rules.firstMatching((x) => x is MapRule);
-    var map = json.parse(output)["data"][mapRule.number][0];
+    var map = output["data"][mapRule.number][0];
     expect(map is Map, isTrue);
     expect(map["abc"], 1);
     expect(map["def"], "ghi");
     expect(new Reader(s).asReference(map["person"]) is Reference, isTrue);
   });
+
 }
 
 /******************************************************************************
  * The end of the tests and the beginning of various helper functions to make
  * it easier to write the repetitive sections.
  ******************************************************************************/
+
+writeAndReadBack(Serialization s, Format format, object) {
+  var w = s.newWriter(format);
+  var output = w.write(object);
+  var r = s.newReader(w.format);
+  return r.read(output);
+}
 
 /** Create a Serialization for serializing Serializations. */
 Serialization metaSerialization() {
@@ -492,7 +533,15 @@ Serialization metaSerialization() {
              rules.forEach((x) => s.reflectee.addRule(x));
            })
     ..addRule(new NamedObjectRule())
-    ..addRule(new MirrorRule());
+    ..addRule(new MirrorRule())
+    ..addRule(new MapRule());
+  return meta;
+}
+
+Serialization metaSerializationUsingMaps() {
+  var meta = metaSerialization();
+  meta.rules.where((each) => each is BasicRule)
+      .forEach((x) => x.configureForMaps());
   return meta;
 }
 
@@ -515,6 +564,7 @@ Reader setUpReader(aSerialization, sampleData) {
   var reader = new Reader(aSerialization);
   // We're not sure which rule needs the sample data, so put it everywhere
   // and trust that the extra will just be ignored.
+
   var fillValue = [sampleData];
   var data = [];
   for (int i = 0; i < 10; i++) {
@@ -641,7 +691,7 @@ runRoundTripTestFlat(serializerSetUp) {
 /** Extract the state from [object] using the rules in [s] and return it. */
 states(object, Serialization s) {
   var rules = s.rulesFor(object, null);
-  return rules.map((x) => x.extractState(object, doNothing)).toList();
+  return rules.map((x) => x.extractState(object, doNothing, null)).toList();
 }
 
 /** A hard-coded rule for serializing Node instances. */

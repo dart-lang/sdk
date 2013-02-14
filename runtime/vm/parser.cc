@@ -260,13 +260,11 @@ Parser::Parser(const Script& script, const Library& library)
       is_top_level_(false),
       current_member_(NULL),
       allow_function_literals_(true),
-      current_function_(Function::Handle()),
+      parsed_function_(NULL),
       innermost_function_(Function::Handle()),
       current_class_(Class::Handle()),
       library_(library),
-      try_blocks_list_(NULL),
-      expression_temp_(NULL),
-      saved_current_context_(NULL) {
+      try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -274,7 +272,7 @@ Parser::Parser(const Script& script, const Library& library)
 
 // For parsing a function.
 Parser::Parser(const Script& script,
-               const Function& function,
+               ParsedFunction* parsed_function,
                intptr_t token_position)
     : script_(script),
       tokens_iterator_(TokenStream::Handle(script.tokens()), token_position),
@@ -283,15 +281,13 @@ Parser::Parser(const Script& script,
       is_top_level_(false),
       current_member_(NULL),
       allow_function_literals_(true),
-      current_function_(function),
-      innermost_function_(Function::Handle(function.raw())),
-      current_class_(Class::Handle(current_function_.Owner())),
+      parsed_function_(parsed_function),
+      innermost_function_(Function::Handle(parsed_function->function().raw())),
+      current_class_(Class::Handle(parsed_function->function().Owner())),
       library_(Library::Handle(current_class_.library())),
-      try_blocks_list_(NULL),
-      expression_temp_(NULL),
-      saved_current_context_(NULL) {
+      try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
-  ASSERT(!function.IsNull());
+  ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
     EnsureExpressionTemp();
   }
@@ -306,7 +302,8 @@ bool Parser::SetAllowFunctionLiterals(bool value) {
 
 
 const Function& Parser::current_function() const {
-  return current_function_;
+  ASSERT(parsed_function() != NULL);
+  return parsed_function()->function();
 }
 
 
@@ -730,7 +727,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(isolate, func.script());
-  Parser parser(script, func, func.token_pos());
+  Parser parser(script, parsed_function, func.token_pos());
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::ZoneHandle(isolate, Array::null());
   switch (func.kind()) {
@@ -765,15 +762,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(func.end_token_pos()));
   }
-  if (parser.expression_temp_ != NULL) {
-    parsed_function->set_expression_temp_var(parser.expression_temp_);
-  }
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
   }
-  if (parser.saved_current_context_ != NULL) {
-    parsed_function->set_saved_current_context_var(
-        parser.saved_current_context_);
+  if (parsed_function->has_saved_current_context_var()) {
     node_sequence->scope()->AddVariable(
         parsed_function->saved_current_context_var());
   }
@@ -6783,12 +6775,14 @@ AstNode* Parser::ParseExprList() {
 
 
 const LocalVariable* Parser::GetIncrementTempLocal() {
-  if (expression_temp_ == NULL) {
-    expression_temp_ = ParsedFunction::CreateExpressionTempVar(
+  if (!parsed_function()->has_expression_temp_var()) {
+    LocalVariable* temp = ParsedFunction::CreateExpressionTempVar(
         current_function().token_pos());
-    ASSERT(expression_temp_ != NULL);
+    ASSERT(temp != NULL);
+    parsed_function()->set_expression_temp_var(temp);
   }
-  return expression_temp_;
+  ASSERT(parsed_function()->has_expression_temp_var());
+  return parsed_function()->expression_temp_var();
 }
 
 
@@ -6800,13 +6794,13 @@ void Parser::EnsureExpressionTemp() {
 
 void Parser::EnsureSavedCurrentContext() {
   // Used later by the flow_graph_builder to save current context.
-  if (saved_current_context_ == NULL) {
-    // Allocate a local variable to save the current context when we call into
-    // any closure function as the call will destroy the current context.
-    saved_current_context_ =
+  if (!parsed_function()->has_saved_current_context_var()) {
+    LocalVariable* temp =
         new LocalVariable(current_function().token_pos(),
                           Symbols::SavedCurrentContextVar(),
                           Type::ZoneHandle(Type::DynamicType()));
+    ASSERT(temp != NULL);
+    parsed_function()->set_saved_current_context_var(temp);
   }
 }
 
@@ -8223,7 +8217,10 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
       imported_obj = LookupNameInImport(import, name);
       if (!imported_obj.IsNull()) {
         const Library& lib = Library::Handle(import.library());
-        if (!first_lib_url.IsNull()) {
+        // TODO(8474): Remove the "Expect" special casing.
+        if (!first_lib_url.IsNull()
+            && (strcmp(name.ToCString(), "Expect") != 0)
+            && (strcmp(name.ToCString(), "ExpectException") != 0)) {
           // Found duplicate definition.
           Error& ambiguous_ref_error = Error::Handle();
           if (first_lib_url.raw() == lib.url()) {
@@ -8597,8 +8594,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
       current_class(), type, ClassFinalizer::kCanonicalize);
-  ArrayNode* list = new ArrayNode(TokenPos(), type);
-
+  GrowableArray<AstNode*> element_list;
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
   if (!is_empty_literal) {
@@ -8614,7 +8610,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                                      element_type,
                                      Symbols::ListLiteralElement());
       }
-      list->AddElement(element);
+      element_list.Add(element);
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
       } else if (CurrentToken() != Token::kRBRACK) {
@@ -8628,12 +8624,12 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   if (is_const) {
     // Allocate and initialize the const list at compile time.
     Array& const_list =
-        Array::ZoneHandle(Array::New(list->length(), Heap::kOld));
+        Array::ZoneHandle(Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(
         AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
     Error& malformed_error = Error::Handle();
-    for (int i = 0; i < list->length(); i++) {
-      AstNode* elem = list->ElementAt(i);
+    for (int i = 0; i < element_list.length(); i++) {
+      AstNode* elem = element_list[i];
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
       if (FLAG_enable_type_checks &&
@@ -8687,6 +8683,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    ArrayNode* list = new ArrayNode(TokenPos(), type, element_list);
     factory_param->Add(list);
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
@@ -8714,7 +8711,7 @@ ConstructorCallNode* Parser::CreateConstructorCallNode(
 }
 
 
-static void AddKeyValuePair(ArrayNode* pairs,
+static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
                             bool is_const,
                             AstNode* key,
                             AstNode* value) {
@@ -8724,18 +8721,18 @@ static void AddKeyValuePair(ArrayNode* pairs,
     const Instance& new_key = key->AsLiteralNode()->literal();
     for (int i = 0; i < pairs->length(); i += 2) {
       const Instance& key_i =
-          pairs->ElementAt(i)->AsLiteralNode()->literal();
+          (*pairs)[i]->AsLiteralNode()->literal();
       ASSERT(key_i.IsString());
       if (new_key.Equals(key_i)) {
         // Duplicate key found. The new value replaces the previously
         // defined value.
-        pairs->SetElementAt(i + 1, value);
+        (*pairs)[i + 1] = value;
         return;
       }
     }
   }
-  pairs->AddElement(key);
-  pairs->AddElement(value);
+  pairs->Add(key);
+  pairs->Add(value);
 }
 
 
@@ -8778,9 +8775,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
   // The kv_pair array is temporary and of element type dynamic. It is passed
   // to the factory to initialize a properly typed map.
-  ArrayNode* kv_pairs = new ArrayNode(
-      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
-
+  GrowableArray<AstNode*> kv_pairs_list;
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
   while (CurrentToken() != Token::kRBRACE) {
@@ -8806,7 +8801,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                  value_type,
                                  Symbols::ListLiteralElement());
     }
-    AddKeyValuePair(kv_pairs, is_const, key, value);
+    AddKeyValuePair(&kv_pairs_list, is_const, key, value);
 
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
@@ -8814,7 +8809,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       ErrorMsg("comma or '}' expected");
     }
   }
-  ASSERT(kv_pairs->length() % 2 == 0);
+  ASSERT(kv_pairs_list.length() % 2 == 0);
   ExpectToken(Token::kRBRACE);
 
   if (is_const) {
@@ -8824,10 +8819,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
     // First, create the canonicalized key-value pair array.
     Array& key_value_array =
-        Array::ZoneHandle(Array::New(kv_pairs->length(), Heap::kOld));
+        Array::ZoneHandle(Array::New(kv_pairs_list.length(), Heap::kOld));
     Error& malformed_error = Error::Handle();
-    for (int i = 0; i < kv_pairs->length(); i++) {
-      AstNode* arg = kv_pairs->ElementAt(i);
+    for (int i = 0; i < kv_pairs_list.length(); i++) {
+      AstNode* arg = kv_pairs_list[i];
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       if (FLAG_enable_type_checks &&
@@ -8907,6 +8902,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    ArrayNode* kv_pairs = new ArrayNode(
+        TokenPos(), Type::ZoneHandle(Type::ArrayType()), kv_pairs_list);
     factory_param->Add(kv_pairs);
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
@@ -9188,7 +9185,7 @@ AstNode* Parser::ParseNewOperator() {
 }
 
 
-String& Parser::Interpolate(ArrayNode* values) {
+String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   const Class& cls = Class::Handle(LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
   const Function& func =
@@ -9197,10 +9194,10 @@ String& Parser::Interpolate(ArrayNode* values) {
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Array::New(values->length()));
-  for (int i = 0; i < values->length(); i++) {
-    ASSERT(values->ElementAt(i)->IsLiteralNode());
-    value_arr.SetAt(i, values->ElementAt(i)->AsLiteralNode()->literal());
+  const Array& value_arr = Array::Handle(Array::New(values.length()));
+  for (int i = 0; i < values.length(); i++) {
+    ASSERT(values[i]->IsLiteralNode());
+    value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
@@ -9240,10 +9237,9 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
-  ArrayNode* values = new ArrayNode(
-      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
+  GrowableArray<AstNode*> values_list;
   while (CurrentToken() == Token::kSTRING) {
-    values->AddElement(new LiteralNode(TokenPos(), *CurrentLiteral()));
+    values_list.Add(new LiteralNode(TokenPos(), *CurrentLiteral()));
     ConsumeToken();
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
@@ -9275,14 +9271,15 @@ AstNode* Parser::ParseStringLiteral() {
           is_compiletime_const = false;
         }
       }
-      values->AddElement(expr);
+      values_list.Add(expr);
     }
   }
   if (is_compiletime_const) {
-    primary = new LiteralNode(literal_start, Interpolate(values));
+    primary = new LiteralNode(literal_start, Interpolate(values_list));
   } else {
-    ArgumentListNode* interpolate_arg =
-        new ArgumentListNode(values->token_pos());
+    ArgumentListNode* interpolate_arg = new ArgumentListNode(TokenPos());
+    ArrayNode* values = new ArrayNode(
+        TokenPos(), Type::ZoneHandle(Type::ArrayType()), values_list);
     interpolate_arg->Add(values);
     primary = MakeStaticCall(Symbols::StringBase(),
                              PrivateCoreLibName(Symbols::Interpolate()),

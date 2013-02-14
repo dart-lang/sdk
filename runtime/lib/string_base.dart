@@ -437,9 +437,7 @@ class _StringBase {
     throw new UnimplementedError("String.codeUnits");
   }
 
-  Iterable<int> get runes {
-    throw new UnimplementedError("String.runes");
-  }
+  Runes get runes => new Runes(this);
 
   String toUpperCase() native "String_toUpperCase";
 

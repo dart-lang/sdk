@@ -209,7 +209,7 @@ char* File::GetCanonicalPath(const char* pathname) {
       static_cast<wchar_t*>(malloc(required_size * sizeof(wchar_t)));
   int written = GetFullPathNameW(system_name, required_size, path, NULL);
   free(const_cast<wchar_t*>(system_name));
-  ASSERT(written == (required_size - 1));
+  ASSERT(written <= (required_size - 1));
   char* result = StringUtils::WideToUtf8(path);
   free(path);
   return result;

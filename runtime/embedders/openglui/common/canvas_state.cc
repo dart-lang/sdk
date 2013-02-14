@@ -140,36 +140,35 @@ const char* CanvasState::setTextDirection(const char* direction) {
 
 void CanvasState::setGlobalCompositeOperation(const char* op) {
   SkXfermode::Mode mode;
-  if (strcmp(op, "source-atop") == 0) {
-    mode = SkXfermode::kSrcATop_Mode;
-  } else if (strcmp(op, "source-in") == 0) {
-    mode = SkXfermode::kSrcIn_Mode;
-  } else if (strcmp(op, "source-out") == 0) {
-    mode = SkXfermode::kSrcOut_Mode;
-  } else if (strcmp(op, "source-over") == 0) {
-    mode = SkXfermode::kSrcOver_Mode;  // Default.
-  } else if (strcmp(op, "destination-atop") == 0) {
-    mode = SkXfermode::kDstATop_Mode;
-  } else if (strcmp(op, "destination-in") == 0) {
-    mode = SkXfermode::kDstIn_Mode;
-  } else if (strcmp(op, "destination-out") == 0) {
-    mode = SkXfermode::kDstOut_Mode;
-  } else if (strcmp(op, "destination-over") == 0) {
-    mode = SkXfermode::kDstOver_Mode;
-  } else if (strcmp(op, "lighter") == 0) {
-    mode = SkXfermode::kLighten_Mode;
-  } else if (strcmp(op, "darker") == 0) {
-    mode = SkXfermode::kDarken_Mode;
-  } else if (strcmp(op, "xor") == 0) {
-    mode = SkXfermode::kXor_Mode;
-  } else if (strcmp(op, "copy") == 0) {
-    mode = SkXfermode::kSrc_Mode;
+  static const struct CompositOpToXfermodeMode {
+    const char* mCompositOp;
+    uint8_t m_xfermodeMode;
+  } gMapCompositOpsToXfermodeModes[] = {
+     { "clear",            SkXfermode::kClear_Mode },
+     { "copy",             SkXfermode::kSrc_Mode },
+     { "source-over",      SkXfermode::kSrcOver_Mode },
+     { "source-in",        SkXfermode::kSrcIn_Mode },
+     { "source-out",       SkXfermode::kSrcOut_Mode },
+     { "source-atop",      SkXfermode::kSrcATop_Mode },
+     { "destination-over", SkXfermode::kDstOver_Mode },
+     { "destination-in",   SkXfermode::kDstIn_Mode },
+     { "destination-out",  SkXfermode::kDstOut_Mode },
+     { "destination-atop", SkXfermode::kDstATop_Mode },
+     { "xor",              SkXfermode::kXor_Mode },
+     { "darker",           SkXfermode::kDarken_Mode },
+     { "lighter",          SkXfermode::kPlus_Mode }
+  };
+  for (unsigned i = 0;
+       i < SK_ARRAY_COUNT(gMapCompositOpsToXfermodeModes);
+       i++) {
+    if (strcmp(op, gMapCompositOpsToXfermodeModes[i].mCompositOp) == 0) {
+      mode = (SkXfermode::Mode)gMapCompositOpsToXfermodeModes[i].m_xfermodeMode;
+      paint_.setXfermodeMode(mode);
+      return;
+    }
   }
-  SkXfermode* m = SkXfermode::Create(mode);
-  // It seems we don't need unref() here. Including it causes
-  // a crash. Maybe Skia has a preallocated long-lived set of
-  // instances.
-  paint_.setXfermode(m);
+  LOGE("Unknown CompositeOperator %s\n", op);
+  paint_.setXfermodeMode(SkXfermode::kSrcOver_Mode);  // fall-back
 }
 
 void CanvasState::Arc(float x, float y, float radius,
@@ -215,10 +214,11 @@ int hexDigit(char c) {
 // See http://www.w3.org/TR/CSS21/syndata.html#color-units.
 // There is also another format: hsl(240,100%,100%) (and hsla)
 // TODO(gram): We probably eventually want to use a table rather
-// than a big if statement.
+// than a big if statement; see setGlobalCompositeOperation for
+// an example.
 ColorRGBA CanvasState::GetColor(const char* color) {
   if (color[0] == '#') {
-    int r, g, b;
+    int r = 0, g = 0, b = 0;
     if (strlen(color) == 7) {
       r = hexDigit(color[1]) * 16 + hexDigit(color[2]);
       g = hexDigit(color[3]) * 16 + hexDigit(color[4]);

@@ -1036,6 +1036,8 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
   @DocsEditable
   int width;
 
+  @DomName('HTMLCanvasElement.getContext')
+  @DocsEditable
   CanvasRenderingContext getContext(String contextId, [Map attrs]) {
     if (?attrs) {
       var attrs_1 = convertDartToNative_Dictionary(attrs);
@@ -1257,10 +1259,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   String lineCap;
 
-  @DomName('CanvasRenderingContext2D.lineDashOffset')
-  @DocsEditable
-  num lineDashOffset;
-
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable
   String lineJoin;
@@ -1303,21 +1301,29 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   String textBaseline;
 
+  @JSName('webkitBackingStorePixelRatio')
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   @DocsEditable
-  final num webkitBackingStorePixelRatio;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final num backingStorePixelRatio;
 
+  @JSName('webkitImageSmoothingEnabled')
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   @DocsEditable
-  bool webkitImageSmoothingEnabled;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool imageSmoothingEnabled;
 
+  @JSName('webkitLineDash')
   @DomName('CanvasRenderingContext2D.webkitLineDash')
   @DocsEditable
-  List webkitLineDash;
-
-  @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
-  @DocsEditable
-  num webkitLineDashOffset;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  List lineDash;
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
@@ -1347,6 +1353,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void closePath() native;
 
+  @DomName('CanvasRenderingContext2D.createImageData')
+  @DocsEditable
+  @Creates('ImageData|=Object')
   ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
@@ -1396,6 +1405,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
+  @DomName('CanvasRenderingContext2D.getImageData')
+  @DocsEditable
+  @Creates('ImageData|=Object')
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
@@ -1429,6 +1441,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void moveTo(num x, num y) native;
 
+  @DomName('CanvasRenderingContext2D.putImageData')
+  @DocsEditable
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata);
@@ -1501,34 +1515,54 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void translate(num tx, num ty) native;
 
-  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
-    return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
+  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  @Creates('ImageData|=Object')
+  ImageData getImageDataHD(num sx, num sy, num sw, num sh) {
+    return _convertNativeToDart_ImageData(_getImageDataHD_1(sx, sy, sw, sh));
   }
   @JSName('webkitGetImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Creates('ImageData|=Object')
-  _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
+  _getImageDataHD_1(sx, sy, sw, sh) native;
 
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata);
-      _webkitPutImageDataHD_1(imagedata_1, dx, dy);
+      _putImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
     var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-    _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     return;
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('webkitPutImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
   @DocsEditable
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void _putImageDataHD_1(imagedata, dx, dy) native;
   @JSName('webkitPutImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
   @DocsEditable
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void _putImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
   /**
@@ -1566,6 +1600,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
+
+  @DomName('CanvasRenderingContext2D.lineDashOffset')
+  num get lineDashOffset => JS('num',
+      '#.lineDashOffset || #.webkitLineDashOffset', this, this);
+
+  @DomName('CanvasRenderingContext2D.lineDashOffset')
+  void set lineDashOffset(num value) => JS('void', 
+      'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+      '#.webkitLineDashOffset = #', this, this, value, this, value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2386,6 +2429,24 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+String _cachedBrowserPropertyPrefix;
+
+/// Prefix as used for JS property names.
+String get _browserPropertyPrefix {
+  if (_cachedBrowserPropertyPrefix == null) {
+    if (_Device.isFirefox) {
+      _cachedBrowserPropertyPrefix = 'moz';
+    } else if (_Device.isIE) {
+      _cachedBrowserPropertyPrefix = 'ms';
+    } else if (_Device.isOpera) {
+      _cachedBrowserPropertyPrefix = 'o';
+    } else {
+      _cachedBrowserPropertyPrefix = 'webkit';
+    }
+  }
+  return _cachedBrowserPropertyPrefix;
+}
+
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration native "*CSSStyleDeclaration" {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
@@ -2447,6 +2508,17 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
     if (JS('bool', '!!#.setAttribute', this)) {
       JS('void', '#.setAttribute(#, #)', this, propertyName, value);
     }
+  }
+
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions {
+    if (JS('bool', '"transition" in document.body.style')) {
+      return true;
+    }
+    var propertyName = '${_browserPropertyPrefix}Transition';
+    return JS('bool', '# in document.body.style', propertyName);
   }
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -5376,10 +5448,18 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   }
 
   /** Gets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
     setProperty('${_browserPrefix}transition', value, '');
   }
@@ -5884,9 +5964,13 @@ class DataTransferItem native "*DataTransferItem" {
   @DocsEditable
   void getAsString([StringCallback callback]) native;
 
+  @JSName('webkitGetAsEntry')
   @DomName('DataTransferItem.webkitGetAsEntry')
   @DocsEditable
-  Entry webkitGetAsEntry() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Entry getAsEntry() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6091,6 +6175,8 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
+  @DomName('DedicatedWorkerContext.postMessage')
+  @DocsEditable
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -6213,6 +6299,8 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   @DocsEditable
   DirectoryReader createReader() native;
 
+  @DomName('DirectoryEntry.getDirectory')
+  @DocsEditable
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -6249,6 +6337,8 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   @DocsEditable
   void _getDirectory_4(path) native;
 
+  @DomName('DirectoryEntry.getFile')
+  @DocsEditable
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -6302,6 +6392,8 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
   @DocsEditable
   DirectoryReaderSync createReader() native;
 
+  @DomName('DirectoryEntrySync.getDirectory')
+  @DocsEditable
   DirectoryEntrySync getDirectory(String path, Map flags) {
     var flags_1 = convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
@@ -6311,6 +6403,8 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
   @DocsEditable
   DirectoryEntrySync _getDirectory_1(path, flags) native;
 
+  @DomName('DirectoryEntrySync.getFile')
+  @DocsEditable
   FileEntrySync getFile(String path, Map flags) {
     var flags_1 = convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
@@ -6415,10 +6509,16 @@ class Document extends Node  native "*Document"
 
   @DomName('Document.webkitpointerlockchangeEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
   @DomName('Document.webkitpointerlockerrorEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   @DocsEditable
@@ -6511,35 +6611,53 @@ class Document extends Node  native "*Document"
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final Element $dom_webkitFullscreenElement;
 
   @JSName('webkitFullscreenEnabled')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final bool $dom_webkitFullscreenEnabled;
 
   @JSName('webkitHidden')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final bool $dom_webkitHidden;
 
   @JSName('webkitIsFullScreen')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final bool $dom_webkitIsFullScreen;
 
   @JSName('webkitPointerLockElement')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final Element $dom_webkitPointerLockElement;
 
   @JSName('webkitVisibilityState')
   @DomName('Document.webkitVisibilityState')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final String $dom_webkitVisibilityState;
 
   @JSName('caretRangeFromPoint')
@@ -6583,6 +6701,8 @@ class Document extends Node  native "*Document"
   @DocsEditable
   Text $dom_createTextNode(String data) native;
 
+  @DomName('Document.createTouch')
+  @DocsEditable
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
@@ -6678,18 +6798,27 @@ class Document extends Node  native "*Document"
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   void $dom_webkitCancelFullScreen() native;
 
   @JSName('webkitExitFullscreen')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   void $dom_webkitExitFullscreen() native;
 
   @JSName('webkitExitPointerLock')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   void $dom_webkitExitPointerLock() native;
 
   @DomName('Document.onabort')
@@ -8818,6 +8947,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     return e is Element && !(e is UnknownElement);
   }
 
+  /**
+   * Called by the DOM when this element has been instantiated.
+   */
+  @Experimental
+  void onCreated() {}
+
   // Hooks to support custom WebComponents.
   /**
    * Experimental support for [web components][wc]. This field stores a
@@ -8832,6 +8967,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
+  @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
         Element._determineMouseWheelEventType);
@@ -8849,6 +8985,20 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
+  @DomName('Element.webkitTransitionEndEvent')
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent =
+      const _CustomEventStreamProvider<TransitionEvent>(
+        Element._determineTransitionEventType);
+
+  static String _determineTransitionEventType(EventTarget e) {
+    // Unfortunately the normal 'ontransitionend' style checks don't work here.
+    if (_Device.isWebKit) {
+      return 'webkitTransitionEnd';
+    } else if (_Device.isOpera) {
+      return 'oTransitionEnd';
+    }
+    return 'transitionend';
+  }
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *
@@ -9139,16 +9289,18 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
-  @DomName('Element.webkitTransitionEndEvent')
-  @DocsEditable
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
-
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
   @DomName('Element.webkitfullscreenerrorEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   @DocsEditable
@@ -9216,9 +9368,13 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   bool translate;
 
+  @JSName('webkitdropzone')
   @DomName('Element.webkitdropzone')
   @DocsEditable
-  String webkitdropzone;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String dropzone;
 
   @DomName('Element.click')
   @DocsEditable
@@ -9318,13 +9474,21 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   final String tagName;
 
+  @JSName('webkitPseudo')
   @DomName('Element.webkitPseudo')
   @DocsEditable
-  String webkitPseudo;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String pseudo;
 
+  @JSName('webkitShadowRoot')
   @DomName('Element.webkitShadowRoot')
   @DocsEditable
-  final ShadowRoot webkitShadowRoot;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final ShadowRoot shadowRoot;
 
   @DomName('Element.blur')
   @DocsEditable
@@ -9430,17 +9594,29 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Experimental
   ShadowRoot createShadowRoot() native;
 
+  @JSName('webkitRequestFullScreen')
   @DomName('Element.webkitRequestFullScreen')
   @DocsEditable
-  void webkitRequestFullScreen(int flags) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void requestFullScreen(int flags) native;
 
+  @JSName('webkitRequestFullscreen')
   @DomName('Element.webkitRequestFullscreen')
   @DocsEditable
-  void webkitRequestFullscreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void requestFullscreen() native;
 
+  @JSName('webkitRequestPointerLock')
   @DomName('Element.webkitRequestPointerLock')
   @DocsEditable
-  void webkitRequestPointerLock() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void requestPointerLock() native;
 
   @DomName('Element.onabort')
   @DocsEditable
@@ -9624,6 +9800,10 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   @DomName('Element.onwebkitTransitionEnd')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
@@ -9909,9 +10089,6 @@ class ElementEvents extends Events {
 
   @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
-
-  @DocsEditable
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
   @DocsEditable
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
@@ -10622,9 +10799,13 @@ class File extends Blob native "*File" {
   @DocsEditable
   final String name;
 
+  @JSName('webkitRelativePath')
   @DomName('File.webkitRelativePath')
   @DocsEditable
-  final String webkitRelativePath;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final String relativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11958,6 +12139,9 @@ class Geoposition native "*Geoposition" {
 
 
 @DocsEditable
+/**
+ * An `<hr>` tag.
+ */
 @DomName('HTMLHRElement')
 class HRElement extends Element native "*HTMLHRElement" {
 
@@ -12543,6 +12727,17 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
+  }
+
+  /**
+   * Registers a custom Element subclass as an available HTML tag.
+   *
+   * Not yet implemented.
+   */
+  @Experimental
+  void register(String tagName, Type elementClass) {
+    // TODO: tagName validation
+    throw new Exception('Not yet implemented');
   }
 
   @DomName('Document.caretRangeFromPoint')
@@ -13515,6 +13710,9 @@ class InputElement extends Element implements
 
   @DomName('HTMLInputElement.webkitSpeechChangeEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
   @DocsEditable
@@ -13699,23 +13897,39 @@ class InputElement extends Element implements
   @DocsEditable
   num valueAsNumber;
 
+  @JSName('webkitEntries')
   @DomName('HTMLInputElement.webkitEntries')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Returns('_EntryArray')
   @Creates('_EntryArray')
-  final List<Entry> webkitEntries;
+  final List<Entry> entries;
 
+  @JSName('webkitGrammar')
   @DomName('HTMLInputElement.webkitGrammar')
   @DocsEditable
-  bool webkitGrammar;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool grammar;
 
+  @JSName('webkitSpeech')
   @DomName('HTMLInputElement.webkitSpeech')
   @DocsEditable
-  bool webkitSpeech;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool speech;
 
+  @JSName('webkitdirectory')
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable
-  bool webkitdirectory;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool directory;
 
   @DomName('HTMLInputElement.width')
   @DocsEditable
@@ -15336,6 +15550,8 @@ class LinkElement extends Element native "*HTMLLinkElement" {
 
 @DocsEditable
 @DomName('LocalMediaStream')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
   @DomName('LocalMediaStream.stop')
@@ -15611,18 +15827,30 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.webkitkeyaddedEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
   @DomName('HTMLMediaElement.webkitkeyerrorEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
   @DomName('HTMLMediaElement.webkitkeymessageEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
   @DomName('HTMLMediaElement.webkitneedkeyEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   @DocsEditable
@@ -15757,25 +15985,45 @@ class MediaElement extends Element native "*HTMLMediaElement" {
   @DocsEditable
   num volume;
 
+  @JSName('webkitAudioDecodedByteCount')
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   @DocsEditable
-  final int webkitAudioDecodedByteCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int audioDecodedByteCount;
 
+  @JSName('webkitClosedCaptionsVisible')
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   @DocsEditable
-  bool webkitClosedCaptionsVisible;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool closedCaptionsVisible;
 
+  @JSName('webkitHasClosedCaptions')
   @DomName('HTMLMediaElement.webkitHasClosedCaptions')
   @DocsEditable
-  final bool webkitHasClosedCaptions;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool hasClosedCaptions;
 
+  @JSName('webkitPreservesPitch')
   @DomName('HTMLMediaElement.webkitPreservesPitch')
   @DocsEditable
-  bool webkitPreservesPitch;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool preservesPitch;
 
+  @JSName('webkitVideoDecodedByteCount')
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   @DocsEditable
-  final int webkitVideoDecodedByteCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int videoDecodedByteCount;
 
   @DomName('HTMLMediaElement.addTextTrack')
   @DocsEditable
@@ -15797,17 +16045,29 @@ class MediaElement extends Element native "*HTMLMediaElement" {
   @DocsEditable
   void play() native;
 
+  @JSName('webkitAddKey')
   @DomName('HTMLMediaElement.webkitAddKey')
   @DocsEditable
-  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void addKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
 
+  @JSName('webkitCancelKeyRequest')
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable
-  void webkitCancelKeyRequest(String keySystem, String sessionId) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void cancelKeyRequest(String keySystem, String sessionId) native;
 
+  @JSName('webkitGenerateKeyRequest')
   @DomName('HTMLMediaElement.webkitGenerateKeyRequest')
   @DocsEditable
-  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void generateKeyRequest(String keySystem, [Uint8Array initData]) native;
 
   @DomName('HTMLMediaElement.oncanplay')
   @DocsEditable
@@ -16205,6 +16465,8 @@ class MediaSource extends EventTarget native "*MediaSource" {
 
 
 @DomName('MediaStream')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStream extends EventTarget native "*MediaStream" {
 
   @DomName('MediaStream.endedEvent')
@@ -16324,6 +16586,8 @@ class MediaStreamEvents extends Events {
 
 @DocsEditable
 @DomName('MediaStreamEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
   /// Checks if this type is supported on the current platform.
@@ -16340,6 +16604,8 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
 @DocsEditable
 @DomName('MediaStreamTrack')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   @DomName('MediaStreamTrack.endedEvent')
@@ -16429,6 +16695,8 @@ class MediaStreamTrackEvents extends Events {
 
 @DocsEditable
 @DomName('MediaStreamTrackEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
   /// Checks if this type is supported on the current platform.
@@ -16595,6 +16863,8 @@ class MessagePort extends EventTarget native "*MessagePort" {
   @DocsEditable
   bool dispatchEvent(Event evt) native;
 
+  @DomName('MessagePort.postMessage')
+  @DocsEditable
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -16828,22 +17098,24 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   @DocsEditable
   final Node toElement;
 
+  @JSName('webkitMovementX')
   @DomName('MouseEvent.webkitMovementX')
   @DocsEditable
-  final int webkitMovementX;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int movementX;
 
+  @JSName('webkitMovementY')
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable
-  final int webkitMovementY;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int movementY;
 
-  @DomName('MouseEvent.x')
+  @DomName('MouseEvent.initMouseEvent')
   @DocsEditable
-  final int x;
-
-  @DomName('MouseEvent.y')
-  @DocsEditable
-  final int y;
-
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
@@ -16975,6 +17247,8 @@ class MutationObserver native "*MutationObserver" {
   @DocsEditable
   void disconnect() native;
 
+  @DomName('MutationObserver.observe')
+  @DocsEditable
   void _observe(Node target, Map options) {
     var options_1 = convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
@@ -17124,230 +17398,6 @@ class MutationRecord native "*MutationRecord" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
-@DomName('NamedNodeMap')
-class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
-
-  @DomName('NamedNodeMap.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
-  Iterable<Node> where(bool f(Node element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Node element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Node> toList() => new List<Node>.from(this);
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
-  }
-
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
-  }
-
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Node>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  List<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  Node min([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
-  Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeMatching(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainMatching(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-  @DomName('NamedNodeMap.getNamedItem')
-  @DocsEditable
-  Node getNamedItem(String name) native;
-
-  @DomName('NamedNodeMap.getNamedItemNS')
-  @DocsEditable
-  Node getNamedItemNS(String namespaceURI, String localName) native;
-
-  @DomName('NamedNodeMap.item')
-  @DocsEditable
-  Node item(int index) native;
-
-  @DomName('NamedNodeMap.removeNamedItem')
-  @DocsEditable
-  Node removeNamedItem(String name) native;
-
-  @DomName('NamedNodeMap.removeNamedItemNS')
-  @DocsEditable
-  Node removeNamedItemNS(String namespaceURI, String localName) native;
-
-  @DomName('NamedNodeMap.setNamedItem')
-  @DocsEditable
-  Node setNamedItem(Node node) native;
-
-  @DomName('NamedNodeMap.setNamedItemNS')
-  @DocsEditable
-  Node setNamedItemNS(Node node) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DomName('Navigator')
 class Navigator native "*Navigator" {
 
@@ -17463,9 +17513,13 @@ class Navigator native "*Navigator" {
   @DocsEditable
   final String vendorSub;
 
+  @JSName('webkitBattery')
   @DomName('Navigator.webkitBattery')
   @DocsEditable
-  final BatteryManager webkitBattery;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final BatteryManager battery;
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
@@ -17475,11 +17529,15 @@ class Navigator native "*Navigator" {
   @DocsEditable
   bool javaEnabled() native;
 
+  @JSName('webkitGetGamepads')
   @DomName('Navigator.webkitGetGamepads')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Returns('_GamepadList')
   @Creates('_GamepadList')
-  List<Gamepad> webkitGetGamepads() native;
+  List<Gamepad> getGamepads() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17588,7 +17646,7 @@ class _ChildNodeListLazy implements List {
   void remove(Object object) {
     if (object is! Node) return;
     Node node = object;
-    if (!identical(this, node.parentNode)) return;
+    if (!identical(_this, node.parentNode)) return;
     _this.$dom_removeChild(node);
   }
 
@@ -17785,7 +17843,7 @@ class Node extends EventTarget native "*Node" {
   @JSName('attributes')
   @DomName('Node.attributes')
   @DocsEditable
-  final NamedNodeMap $dom_attributes;
+  final _NamedNodeMap $dom_attributes;
 
   @JSName('childNodes')
   @DomName('Node.childNodes')
@@ -18206,14 +18264,21 @@ class Notation extends Node native "*Notation" {
   @DocsEditable
   final String systemId;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
+  factory Notification(String title, [Map options]) {
+    if (?options) {
+      return JS('Notification', 'new Notification(#,#)', title,
+          convertDartToNative_SerializedScriptValue(options));
+    } else {
+      return JS('Notification', 'new Notification(#)', title);
+    }
+  }
 
   @DomName('Notification.clickEvent')
   @DocsEditable
@@ -18234,17 +18299,6 @@ class Notification extends EventTarget native "*Notification" {
   @DomName('Notification.showEvent')
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
-
-  @DomName('Notification.Notification')
-  @DocsEditable
-  factory Notification(String title, [Map options]) {
-    if (?options) {
-      return Notification._create_1(title, options);
-    }
-    return Notification._create_2(title);
-  }
-  static Notification _create_1(title, options) => JS('Notification', 'new Notification(#,#)', title, options);
-  static Notification _create_2(title) => JS('Notification', 'new Notification(#)', title);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -18317,6 +18371,7 @@ class Notification extends EventTarget native "*Notification" {
   @DomName('Notification.onshow')
   @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
+
 }
 
 @DocsEditable
@@ -19500,21 +19555,19 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
   @DocsEditable
   final RtcDataChannel channel;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('RTCIceCandidate')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcIceCandidate native "*RTCIceCandidate" {
-
-  @DomName('RTCIceCandidate.RTCIceCandidate')
-  @DocsEditable
   factory RtcIceCandidate(Map dictionary) {
-    return RtcIceCandidate._create_1(dictionary);
+    return JS('RtcIceCandidate', 'new RTCIceCandidate(#)',
+        convertDartToNative_SerializedScriptValue(dictionary));
   }
-  static RtcIceCandidate _create_1(dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable
@@ -19527,6 +19580,7 @@ class RtcIceCandidate native "*RTCIceCandidate" {
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable
   final String sdpMid;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19541,14 +19595,43 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
   @DocsEditable
   final RtcIceCandidate candidate;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('RTCPeerConnection')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    var constructorName = JS('RtcPeerConnection', 'window[#]',
+        '${_browserPropertyPrefix}RTCPeerConnection');
+    if (?mediaConstraints) {
+      return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers),
+          convertDartToNative_SerializedScriptValue(mediaConstraints));
+    } else {
+      return JS('RtcPeerConnection', 'new #(#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers));
+    }
+  }
+
+  /**
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * the current platform.
+   */
+  static bool get supported {
+    // Currently in Firefox some of the RTC elements are defined but throw an
+    // error unless the user has specifically enabled them in their 
+    // about:config. So we have to construct an element to actually test if RTC
+    // is supported at at the given time.
+    try {
+      var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
+      return c is RtcPeerConnection; 
+    } catch (_) {}
+    return false;
+  }
 
   @DomName('RTCPeerConnection.addstreamEvent')
   @DocsEditable
@@ -19577,17 +19660,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.statechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
-
-  @DomName('RTCPeerConnection.RTCPeerConnection')
-  @DocsEditable
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (?mediaConstraints) {
-      return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
-    }
-    return RtcPeerConnection._create_2(rtcIceServers);
-  }
-  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) => JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
-  static RtcPeerConnection _create_2(rtcIceServers) => JS('RtcPeerConnection', 'new RTCPeerConnection(#)', rtcIceServers);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -19640,6 +19712,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void addIceCandidate(RtcIceCandidate candidate) native;
 
+  @DomName('RTCPeerConnection.addStream')
+  @DocsEditable
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -19662,6 +19736,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void close() native;
 
+  @DomName('RTCPeerConnection.createAnswer')
+  @DocsEditable
   void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -19680,6 +19756,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
+  @DomName('RTCPeerConnection.createDataChannel')
+  @DocsEditable
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -19696,6 +19774,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   RtcDataChannel _createDataChannel_2(label) native;
 
+  @DomName('RTCPeerConnection.createOffer')
+  @DocsEditable
   void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -19739,6 +19819,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
+  @DomName('RTCPeerConnection.updateIce')
+  @DocsEditable
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = convertDartToNative_Dictionary(configuration);
@@ -19794,7 +19876,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.onstatechange')
   @DocsEditable
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
+
 }
+
+
 
 @DocsEditable
 @deprecated
@@ -19820,21 +19905,19 @@ class RtcPeerConnectionEvents extends Events {
   @DocsEditable
   EventListenerList get stateChange => this['statechange'];
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('RTCSessionDescription')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcSessionDescription native "*RTCSessionDescription" {
-
-  @DomName('RTCSessionDescription.RTCSessionDescription')
-  @DocsEditable
   factory RtcSessionDescription(Map dictionary) {
-    return RtcSessionDescription._create_1(dictionary);
+    return JS('RtcSessionDescription', 'new RTCSessionDescription(#)',
+        convertDartToNative_SerializedScriptValue(dictionary));
   }
-  static RtcSessionDescription _create_1(dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable
@@ -19843,6 +19926,7 @@ class RtcSessionDescription native "*RTCSessionDescription" {
   @DomName('RTCSessionDescription.type')
   @DocsEditable
   String type;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21470,6 +21554,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   // -- end List<Map> mixins.
 
+  @DomName('SQLResultSetRowList.item')
+  @DocsEditable
+  @Creates('=Object')
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
@@ -22921,21 +23008,37 @@ class Touch native "*Touch" {
   @Returns('Element|Document')
   final dynamic _target;
 
+  @JSName('webkitForce')
   @DomName('Touch.webkitForce')
   @DocsEditable
-  final num webkitForce;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final num force;
 
+  @JSName('webkitRadiusX')
   @DomName('Touch.webkitRadiusX')
   @DocsEditable
-  final int webkitRadiusX;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int radiusX;
 
+  @JSName('webkitRadiusY')
   @DomName('Touch.webkitRadiusY')
   @DocsEditable
-  final int webkitRadiusY;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int radiusY;
 
+  @JSName('webkitRotationAngle')
   @DomName('Touch.webkitRotationAngle')
   @DocsEditable
-  final num webkitRotationAngle;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final num rotationAngle;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24428,41 +24531,73 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
   @DocsEditable
   final int videoWidth;
 
+  @JSName('webkitDecodedFrameCount')
   @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   @DocsEditable
-  final int webkitDecodedFrameCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int decodedFrameCount;
 
+  @JSName('webkitDisplayingFullscreen')
   @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
   @DocsEditable
-  final bool webkitDisplayingFullscreen;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool displayingFullscreen;
 
+  @JSName('webkitDroppedFrameCount')
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   @DocsEditable
-  final int webkitDroppedFrameCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int droppedFrameCount;
 
+  @JSName('webkitSupportsFullscreen')
   @DomName('HTMLVideoElement.webkitSupportsFullscreen')
   @DocsEditable
-  final bool webkitSupportsFullscreen;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool supportsFullscreen;
 
   @DomName('HTMLVideoElement.width')
   @DocsEditable
   int width;
 
+  @JSName('webkitEnterFullScreen')
   @DomName('HTMLVideoElement.webkitEnterFullScreen')
   @DocsEditable
-  void webkitEnterFullScreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void enterFullScreen() native;
 
+  @JSName('webkitEnterFullscreen')
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
   @DocsEditable
-  void webkitEnterFullscreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void enterFullscreen() native;
 
+  @JSName('webkitExitFullScreen')
   @DomName('HTMLVideoElement.webkitExitFullScreen')
   @DocsEditable
-  void webkitExitFullScreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitFullScreen() native;
 
+  @JSName('webkitExitFullscreen')
   @DomName('HTMLVideoElement.webkitExitFullscreen')
   @DocsEditable
-  void webkitExitFullscreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitFullscreen() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25667,6 +25802,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   @DocsEditable
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
@@ -25720,6 +25857,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   @DocsEditable
   void texParameteri(int target, int pname, int param) native;
 
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
@@ -26064,27 +26203,6 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 @DocsEditable
-@DomName('WebKitTransitionEvent')
-class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
-
-  @DomName('WebKitTransitionEvent.elapsedTime')
-  @DocsEditable
-  final num elapsedTime;
-
-  @DomName('WebKitTransitionEvent.propertyName')
-  @DocsEditable
-  final String propertyName;
-
-  @DomName('WebKitTransitionEvent.pseudoElement')
-  @DocsEditable
-  final String pseudoElement;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -26335,9 +26453,13 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   }
 
 
+  @JSName('webkitDirectionInvertedFromDevice')
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable
-  final bool webkitDirectionInvertedFromDevice;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool directionInvertedFromDevice;
 
   @JSName('initWebKitWheelEvent')
   @DomName('WheelEvent.initWebKitWheelEvent')
@@ -26692,14 +26814,23 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   @DomName('DOMWindow.webkitAnimationEndEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   @DomName('DOMWindow.webkitAnimationIterationEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   @DomName('DOMWindow.webkitAnimationStartEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DocsEditable
@@ -26899,9 +27030,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Experimental
   final NotificationCenter notifications;
 
+  @JSName('webkitStorageInfo')
   @DomName('DOMWindow.webkitStorageInfo')
   @DocsEditable
-  final StorageInfo webkitStorageInfo;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final StorageInfo storageInfo;
 
   WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('window')
@@ -26993,6 +27128,8 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
+  @DomName('DOMWindow.postMessage')
+  @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message && !?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -27560,6 +27697,8 @@ class Worker extends AbstractWorker native "*Worker" {
   WorkerEvents get on =>
     new WorkerEvents(this);
 
+  @DomName('Worker.postMessage')
+  @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -27631,9 +27770,13 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   final WorkerContext self;
 
+  @JSName('webkitNotifications')
   @DomName('WorkerContext.webkitNotifications')
   @DocsEditable
-  final NotificationCenter webkitNotifications;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final NotificationCenter notifications;
 
   @JSName('addEventListener')
   @DomName('WorkerContext.addEventListener')
@@ -29563,6 +29706,230 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
 
 @DocsEditable
+@DomName('NamedNodeMap')
+class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
+
+  @DomName('NamedNodeMap.length')
+  @DocsEditable
+  int get length => JS("int", "#.length", this);
+
+  Node operator[](int index) => JS("Node", "#[#]", this, index);
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
+
+  Iterable<Node> where(bool f(Node element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return IterableMixinWorkaround.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(Node a, Node b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.min(this, compare);
+
+  Node max([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.max(this, compare);
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+  @DomName('NamedNodeMap.getNamedItem')
+  @DocsEditable
+  Node getNamedItem(String name) native;
+
+  @DomName('NamedNodeMap.getNamedItemNS')
+  @DocsEditable
+  Node getNamedItemNS(String namespaceURI, String localName) native;
+
+  @DomName('NamedNodeMap.item')
+  @DocsEditable
+  Node item(int index) native;
+
+  @DomName('NamedNodeMap.removeNamedItem')
+  @DocsEditable
+  Node removeNamedItem(String name) native;
+
+  @DomName('NamedNodeMap.removeNamedItemNS')
+  @DocsEditable
+  Node removeNamedItemNS(String namespaceURI, String localName) native;
+
+  @DomName('NamedNodeMap.setNamedItem')
+  @DocsEditable
+  Node setNamedItem(Node node) native;
+
+  @DomName('NamedNodeMap.setNamedItemNS')
+  @DocsEditable
+  Node setNamedItemNS(Node node) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('SpeechInputResultList')
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
@@ -30156,6 +30523,28 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   @DomName('StyleSheetList.item')
   @DocsEditable
   StyleSheet item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
+// browser versions.
+@DomName('WebKitTransitionEvent')
+class _WebKitTransitionEvent extends Event implements TransitionEvent  native "*WebKitTransitionEvent" {
+
+  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
+  final num elapsedTime;
+
+  @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
+  final String propertyName;
+
+  @DomName('WebKitTransitionEvent.pseudoElement')
+  @DocsEditable
+  final String pseudoElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30855,6 +31244,17 @@ class EventStreamProvider<T extends Event> {
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventType, useCapture);
   }
+
+  /**
+   * Gets the type of the event which this would listen for on the specified
+   * event target.
+   *
+   * The target is necessary because some browsers may use different event names
+   * for the same purpose and the target allows differentiating browser support.
+   */
+  String getEventType(EventTarget target) {
+    return _eventType;
+  }
 }
 
 /**
@@ -30869,6 +31269,10 @@ class _CustomEventStreamProvider<T extends Event>
 
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventTypeGetter(e), useCapture);
+  }
+
+  String getEventType(EventTarget target) {
+    return _eventTypeGetter(target);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

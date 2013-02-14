@@ -60,6 +60,8 @@ class TestCase {
 
   bool _doneTeardown = false;
 
+  Completer _testComplete;
+
   TestCase(this.id, this.description, this.test,
            this.callbackFunctionsOutstanding)
   : currentGroup = _currentGroup,
@@ -68,18 +70,59 @@ class TestCase {
 
   bool get isComplete => !enabled || result != null;
 
-  void run() {
-    if (enabled) {
-      result = stackTrace = null;
-      message = '';
-      _doneTeardown = false;
-      if (_setUp != null) {
-        _setUp();
-      }
-      _config.onTestStart(this);
-      startTime = new DateTime.now();
-      runningTime = null;
-      test();
+  void _prepTest() {
+    _config.onTestStart(this);
+    startTime = new DateTime.now();
+    runningTime = null;
+  }
+
+  void _runTest() {
+    _prepTest();
+    test();
+    if (result == null && callbackFunctionsOutstanding == 0) {
+      pass();
+    }
+  }
+
+  /**
+   * Perform any associated [setUp] function and run the test. Returns
+   * a [Future] that can be used to schedule the next test. If the test runs
+   * to completion synchronously, or is disabled, we return null, to
+   * tell unittest to schedule the next test immediately.
+   */
+  Future run() {
+    if (!enabled) return null;
+
+    result = stackTrace = null;
+    message = '';
+    _doneTeardown = false;
+    var rtn = _setUp == null ? null : _setUp();
+    if (rtn is Future) {
+      rtn.then(expectAsync1((_) =>_runTest(),
+          id: '[Async setUp completion handler]'))
+      .catchError((e) {
+        _prepTest();
+        // Calling error() will result in the tearDown being done.
+        // One could debate whether tearDown should be done after
+        // a failed setUp. There is no right answer, but doing it
+        // seems to be the more conservative approach, because 
+        // unittest will not stop at a test failure.
+        error("$description: Test setup failed: ${e.error}");
+      });
+    } else {
+      _runTest();
+    }
+    if (result == null) { // Not complete.
+      _testComplete = new Completer();
+      return _testComplete.future;
+    }
+    return null;
+  }
+
+  void _notifyComplete() {
+    if (_testComplete != null) {
+      _testComplete.complete(this);
+      _testComplete = null;
     }
   }
 
@@ -91,12 +134,37 @@ class TestCase {
       runningTime = new Duration(milliseconds: 0);
     }
     if (!_doneTeardown) {
-      if (_tearDown != null) {
-        _tearDown();
-      }
       _doneTeardown = true;
+      if (_tearDown != null) {
+        var rtn = _tearDown();
+        if (rtn is Future) {
+          rtn.then((_) {
+            if (result == null) {
+              // The test passed. In some cases we will already
+              // have set this result (e.g. if the test was async
+              // and all callbacks completed). If not, we do it here.
+              pass();
+            } else {
+              // The test has already been marked as pass/fail.
+              // Just report the updated result.
+              _config.onTestResult(this);
+            }
+            _notifyComplete();
+          })
+          .catchError((e) {
+            // We don't call fail() as that will potentially result in
+            // spurious messages like 'test failed more than once'.
+            result = ERROR;
+            message = "$description: Test teardown failed: ${e.error}";
+            _config.onTestResult(this);
+            _notifyComplete();
+          });
+          return;
+        }
+      }
     }
     _config.onTestResult(this);
+    _notifyComplete();
   }
 
   void pass() {

@@ -7,16 +7,17 @@ import 'dart:isolate';
 import 'async_helper.dart';
 
 void test(void onDone(bool success)) {
+  Duration ms = const Duration(milliseconds: 1);
   int expected = 4;
 
-  void timerCallback(timer) {
+  void timerCallback() {
     if (--expected == 0) onDone(false);
   }
 
-  new Timer(0, timerCallback);
-  new Timer(10, timerCallback);
-  new Timer(100, timerCallback);
-  new Timer(1000, timerCallback);
+  new Timer(ms * 0, timerCallback);
+  new Timer(ms * 10, timerCallback);
+  new Timer(ms * 100, timerCallback);
+  new Timer(ms * 1000, timerCallback);
 }
 
 main() {

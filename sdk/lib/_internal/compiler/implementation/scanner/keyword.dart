@@ -126,9 +126,11 @@ class Keyword extends Iterable<int> implements SourceString {
  * Abstract state in a state machine for scanning keywords.
  */
 abstract class KeywordState {
+  KeywordState(this.keyword);
+
   bool isLeaf();
   KeywordState next(int c);
-  Keyword get keyword;
+  final Keyword keyword;
 
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {
@@ -156,7 +158,7 @@ abstract class KeywordState {
         isLeaf = true;
       }
       if (strings[i].length > start) {
-        int c = strings[i].charCodeAt(start);
+        int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
             assert(result[chunk - $a] == null);
@@ -191,10 +193,9 @@ abstract class KeywordState {
  */
 class ArrayKeywordState extends KeywordState {
   final List<KeywordState> table;
-  final Keyword keyword;
 
   ArrayKeywordState(List<KeywordState> this.table, String syntax)
-    : keyword = (syntax == null) ? null : Keyword.keywords[syntax];
+    : super((syntax == null) ? null : Keyword.keywords[syntax]);
 
   bool isLeaf() => false;
 
@@ -223,9 +224,7 @@ class ArrayKeywordState extends KeywordState {
  * A state that has no outgoing transitions.
  */
 class LeafKeywordState extends KeywordState {
-  final Keyword keyword;
-
-  LeafKeywordState(String syntax) : keyword = Keyword.keywords[syntax];
+  LeafKeywordState(String syntax) : super(Keyword.keywords[syntax]);
 
   bool isLeaf() => true;
 

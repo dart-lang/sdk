@@ -114,7 +114,7 @@ void main() {
         break;
       case 'timeout':
         // Run for 10 seconds, then exit.  This tests a 2 second timeout.
-        new Timer(10 * 1000, (t){ });
+        new Timer(new Duration(seconds: 10), (){ });
         break;
       default:
         throw "Unknown option ${arguments[0]} passed to test_runner_test";

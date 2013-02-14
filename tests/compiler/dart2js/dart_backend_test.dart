@@ -28,6 +28,7 @@ interface Dynamic_ {}
 interface Null {}
 interface TypeError {}
 class Type {}
+class LinkedHashMap {}
 class Math {
   static double parseDouble(String s) => 1.0;
 }

@@ -126,11 +126,11 @@ void testListOutputStream4() {
   stream.onData = onData;
   stream.onClosed = onClosed;
 
-  new Timer(0, (_) {
+  Timer.run(() {
     result.add(1);
     stream.write([2]);
 
-    new Timer(0, (_) {
+    Timer.run(() {
       result.add(3);
       stream.write([4]);
       stream.close();

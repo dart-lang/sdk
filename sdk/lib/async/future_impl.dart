@@ -179,14 +179,14 @@ class _FutureImpl<T> implements Future<T> {
       _addListener(whenFuture);
     } else if (_hasValue) {
       T value = _resultOrListeners;
-      new Timer(0, (_) {
+      Timer.run(() {
         whenFuture._sendValue(value);
       });
     } else {
       assert(_hasError);
       _clearUnhandledError();
       AsyncError error = _resultOrListeners;
-      new Timer(0, (_) {
+      Timer.run(() {
         whenFuture._sendError(error);
       });
     }
@@ -198,7 +198,7 @@ class _FutureImpl<T> implements Future<T> {
     assert(_hasValue);
     _ThenFuture thenFuture = new _ThenFuture(onValue);
     T value = _resultOrListeners;
-    new Timer(0, (_) { thenFuture._sendValue(value); });
+    Timer.run(() { thenFuture._sendValue(value); });
     return thenFuture;
   }
 
@@ -208,7 +208,7 @@ class _FutureImpl<T> implements Future<T> {
     _clearUnhandledError();
     AsyncError error = _resultOrListeners;
     _CatchErrorFuture errorFuture = new _CatchErrorFuture(onError, test);
-    new Timer(0, (_) { errorFuture._sendError(error); });
+    Timer.run(() { errorFuture._sendError(error); });
     return errorFuture;
   }
 
@@ -248,7 +248,7 @@ class _FutureImpl<T> implements Future<T> {
     _state |= _UNHANDLED_ERROR;
     // Wait for the rest of the current event's duration to see
     // if a subscriber is added to handle the error.
-    new Timer(0, (_) {
+    Timer.run(() {
       if (_hasUnhandledError) {
         // No error handler has been added since the error was set.
         _clearUnhandledError();

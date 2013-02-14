@@ -41,12 +41,12 @@ class Universe {
    * information. The resolver is too conservative when seeing a
    * getter and only registers an invoked getter.
    */
-  final Map<SourceString, Set<Selector>> fieldGetters;
+  final Set<Element> fieldGetters;
 
   /**
    * Fields set. See comment in [fieldGetters].
    */
-  final Map<SourceString, Set<Selector>> fieldSetters;
+  final Set<Element> fieldSetters;
   final Set<DartType> isChecks;
 
   Universe() : instantiatedClasses = new Set<ClassElement>(),
@@ -54,9 +54,9 @@ class Universe {
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
-               fieldGetters = new Map<SourceString, Set<Selector>>(),
-               fieldSetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
+               fieldGetters = new Set<Element>(),
+               fieldSetters = new Set<Element>(),
                isChecks = new Set<DartType>();
 
   bool hasMatchingSelector(Set<Selector> selectors,
@@ -82,11 +82,11 @@ class Universe {
   }
 
   bool hasFieldGetter(Element member, Compiler compiler) {
-    return hasMatchingSelector(fieldGetters[member.name], member, compiler);
+    return fieldGetters.contains(member);
   }
 
   bool hasFieldSetter(Element member, Compiler compiler) {
-    return hasMatchingSelector(fieldSetters[member.name], member, compiler);
+    return fieldSetters.contains(member);
   }
 }
 
@@ -100,7 +100,31 @@ class SelectorKind {
   static const SelectorKind OPERATOR = const SelectorKind('operator');
   static const SelectorKind INDEX = const SelectorKind('index');
 
-  toString() => name;
+  String toString() => name;
+}
+
+class TypedSelectorKind {
+  final String name;
+  const TypedSelectorKind(this.name);
+
+  /// Unknown type: used for untyped selector.
+  static const TypedSelectorKind UNKNOWN = const TypedSelectorKind('unknown');
+
+  // Exact type: the selector knows the exact type of the receiver.
+  // For example [:new Map():].
+  static const TypedSelectorKind EXACT = const TypedSelectorKind('exact');
+
+  // Subclass type: the receiver type is in a subclass hierarchy.
+  // For example [:this:].
+  static const TypedSelectorKind SUBCLASS = const TypedSelectorKind('subclass');
+
+  // Interface type: any type that implements the receiver type.
+  // For example [(foo as Foo).bar()], or any type annotation in
+  // checked mode.
+  static const TypedSelectorKind INTERFACE =
+      const TypedSelectorKind('interface');
+
+  String toString() => name;
 }
 
 class Selector {
@@ -112,6 +136,7 @@ class Selector {
   final int argumentCount;
   final List<SourceString> namedArguments;
   final List<SourceString> orderedNamedArguments;
+  TypedSelectorKind get typeKind => TypedSelectorKind.UNKNOWN;
 
   Selector(
       this.kind,
@@ -368,6 +393,7 @@ class Selector {
   bool equalsUntyped(Selector other) {
     return name == other.name
            && kind == other.kind
+           && typeKind == other.typeKind
            && identical(library, other.library)
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
@@ -401,7 +427,7 @@ class Selector {
     String named = '';
     String type = '';
     if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
-    if (receiverType != null) type = ', type=$receiverType';
+    if (receiverType != null) type = ', type=$typeKind $receiverType';
     return 'Selector($kind, ${name.slowToString()}, '
            'arity=$argumentCount$named$type)';
   }
@@ -409,14 +435,14 @@ class Selector {
 
 class TypedSelector extends Selector {
   /**
-   * The type of the receiver. Any subtype of that type can be the
-   * target of the invocation.
+   * The type of the receiver.
    */
   final DartType receiverType;
+  final TypedSelectorKind typeKind;
 
   final Selector asUntyped;
 
-  TypedSelector(DartType this.receiverType, Selector selector)
+  TypedSelector(DartType this.receiverType, this.typeKind, Selector selector)
       : asUntyped = selector.asUntyped,
         super(selector.kind,
               selector.name,
@@ -426,7 +452,17 @@ class TypedSelector extends Selector {
     // Invariant: Typed selector can not be based on a malformed type.
     assert(!identical(receiverType.kind, TypeKind.MALFORMED_TYPE));
     assert(asUntyped.receiverType == null);
+    assert(typeKind != TypedSelectorKind.UNKNOWN);
   }
+
+  TypedSelector.subclass(DartType receiverType, Selector selector)
+      : this(receiverType, TypedSelectorKind.SUBCLASS, selector);
+
+  TypedSelector.exact(DartType receiverType, Selector selector)
+      : this(receiverType, TypedSelectorKind.EXACT, selector);
+
+  TypedSelector.subtype(DartType receiverType, Selector selector)
+      : this(receiverType, TypedSelectorKind.INTERFACE, selector);
 
   /**
    * Check if [element] will be the one used at runtime when being
@@ -443,10 +479,11 @@ class TypedSelector extends Selector {
       if (element == field.getter || element == field.setter) {
         return true;
       } else {
-        ClassElement otherCls = field.getEnclosingClass();
         // We have not found a match, but another class higher in the
         // hierarchy may define the getter or the setter.
-        return hasElementIn(otherCls.superclass, element);
+        ClassElement otherCls = field.getEnclosingClass().superclass;
+        if (otherCls == null) return false;
+        return hasElementIn(otherCls, element);
       }
     }
     return false;
@@ -475,19 +512,27 @@ class TypedSelector extends Selector {
       return false;
     }
 
-    if (other.implementsInterface(self)
-        || other.isSubclassOf(self)
-        || compiler.world.hasAnySubclassThatImplements(other, receiverType)) {
-      return appliesUntyped(element, compiler);
-    }
-
-    // If [self] is a subclass of [other], it inherits the
-    // implementation of [element].
-    ClassElement cls = self;
-    if (cls.isSubclassOf(other)) {
-      // Resolve an invocation of [element.name] on [self]. If it
-      // is found, this selector is a candidate.
+    if (typeKind == TypedSelectorKind.EXACT) {
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
+    } else if (typeKind == TypedSelectorKind.SUBCLASS) {
+      return (hasElementIn(self, element) || other.isSubclassOf(self))
+          && appliesUntyped(element, compiler);
+    } else {
+      assert(typeKind == TypedSelectorKind.INTERFACE);
+      if (other.implementsInterface(self)
+          || other.isSubclassOf(self)
+          || compiler.world.hasAnySubclassThatImplements(other, receiverType)) {
+        return appliesUntyped(element, compiler);
+      }
+
+      // If [self] is a subclass of [other], it inherits the
+      // implementation of [element].
+      ClassElement cls = self;
+      if (cls.isSubclassOf(other)) {
+        // Resolve an invocation of [element.name] on [self]. If it
+        // is found, this selector is a candidate.
+        return hasElementIn(self, element) && appliesUntyped(element, compiler);
+      }
     }
 
     return false;

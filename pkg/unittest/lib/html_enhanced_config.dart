@@ -10,6 +10,7 @@
  */
 library unittest_html_enhanced_config;
 
+import 'dart:async';
 import 'dart:collection' show LinkedHashMap;
 import 'dart:html';
 import 'unittest.dart';
@@ -19,32 +20,38 @@ class HtmlEnhancedConfiguration extends Configuration {
   final bool _isLayoutTest;
   HtmlEnhancedConfiguration(this._isLayoutTest);
 
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
-  EventListener _onMessageClosure;
+  var _onErrorSubscription = null;
+  var _onMessageSubscription = null;
 
-  void _installHandlers() {
-    if (_onErrorClosure == null) {
-      _onErrorClosure =
-          (e) => handleExternalError(e, '(DOM callback has errors)');
+  void _installOnErrorHandler() {
+    if (_onErrorSubscription == null) {
       // Listen for uncaught errors.
-      window.on.error.add(_onErrorClosure);
-    }
-    if (_onMessageClosure == null) {
-      _onMessageClosure = (e) => processMessage(e);
-      // Listen for errors from JS.
-      window.on.message.add(_onMessageClosure);
+      _onErrorSubscription = window.onError.listen(
+          (e) => handleExternalError(e, '(DOM callback has errors)'));
     }
   }
 
-  void _uninstallHandlers() {
-    if (_onErrorClosure != null) {
-      window.on.error.remove(_onErrorClosure);
-      _onErrorClosure = null;
+  void _installOnMessageHandler() {
+    if (_onMessageSubscription == null) {
+      // Listen for errors from JS.
+      _onMessageSubscription = window.onMessage.listen(
+          (e) => processMessage(e));
     }
-    if (_onMessageClosure != null) {
-      window.on.message.remove(_onMessageClosure);
-      _onMessageClosure = null;
+  }
+
+  void _installHandlers() {
+    _installOnErrorHandler();
+    _installOnMessageHandler();
+  }
+
+  void _uninstallHandlers() {
+    if (_onErrorSubscription != null) {
+      _onErrorSubscription.cancel();
+      _onErrorSubscription = null;
+    }
+    if (_onMessageSubscription != null) {
+      _onMessageSubscription.cancel();
+      _onMessageSubscription = null;
     }
   }
 
@@ -61,7 +68,7 @@ class HtmlEnhancedConfiguration extends Configuration {
 
     var cssElement = document.head.query('#${_CSSID}');
     if (cssElement == null){
-      document.head.elements.add(new Element.html(
+      document.head.children.add(new Element.html(
           '<style id="${_CSSID}"></style>'));
       cssElement = document.head.query('#${_CSSID}');
     }
@@ -72,7 +79,7 @@ class HtmlEnhancedConfiguration extends Configuration {
 
   void onStart() {
     // Listen for uncaught errors.
-    window.on.error.add(_onErrorClosure);
+    _installOnErrorHandler();
   }
 
   void onTestResult(TestCase testCase) {}
@@ -96,25 +103,25 @@ class HtmlEnhancedConfiguration extends Configuration {
       // changed the StringBuffer to an Element fragment
       Element te = new Element.html('<div class="unittest-table"></div>');
 
-      te.elements.add(new Element.html(passed == results.length
+      te.children.add(new Element.html(passed == results.length
           ? "<div class='unittest-overall unittest-pass'>PASS</div>"
           : "<div class='unittest-overall unittest-fail'>FAIL</div>"));
 
       // moved summary to the top since web browsers
       // don't auto-scroll to the bottom like consoles typically do.
       if (passed == results.length && uncaughtError == null) {
-        te.elements.add(new Element.html("""
+        te.children.add(new Element.html("""
           <div class='unittest-pass'>All ${passed} tests passed</div>"""));
       } else {
 
         if (uncaughtError != null) {
-          te.elements.add(new Element.html("""
+          te.children.add(new Element.html("""
             <div class='unittest-summary'>
               <span class='unittest-error'>Uncaught error: $uncaughtError</span>
             </div>"""));
         }
 
-        te.elements.add(new Element.html("""
+        te.children.add(new Element.html("""
           <div class='unittest-summary'>
             <span class='unittest-pass'>Total ${passed} passed</span>,
             <span class='unittest-fail'>${failed} failed</span>,
@@ -123,12 +130,12 @@ class HtmlEnhancedConfiguration extends Configuration {
           </div>"""));
       }
 
-      te.elements.add(new Element.html("""
+      te.children.add(new Element.html("""
         <div><button id='btnCollapseAll'>Collapse All</button></div>
        """));
 
       // handle the click event for the collapse all button
-      te.query('#btnCollapseAll').on.click.add((_){
+      te.query('#btnCollapseAll').onClick.listen((_){
         document
           .queryAll('.unittest-row')
           .forEach((el) => el.attributes['class'] = el.attributes['class']
@@ -184,7 +191,7 @@ class HtmlEnhancedConfiguration extends Configuration {
           var passFailClass = "unittest-group-status unittest-group-"
               "status-${groupPassFail ? 'pass' : 'fail'}";
 
-          te.elements.add(new Element.html("""
+          te.children.add(new Element.html("""
             <div>
               <div id='${safeGroup}'
                    class='unittest-group ${safeGroup} test${safeGroup}'>
@@ -203,7 +210,7 @@ class HtmlEnhancedConfiguration extends Configuration {
           // 'safeGroup' could be empty
           var grp = (safeGroup == '') ? null : te.query('#${safeGroup}');
           if (grp != null){
-            grp.on.click.add((_){
+            grp.onClick.listen((_){
               var row = document.query('.unittest-row-${safeGroup}');
               if (row.attributes['class'].contains('unittest-row ')){
                 document.queryAll('.unittest-row-${safeGroup}').forEach(
@@ -221,8 +228,8 @@ class HtmlEnhancedConfiguration extends Configuration {
         _buildRow(test_, te, safeGroup, !groupPassFail);
       }
 
-      document.body.elements.clear();
-      document.body.elements.add(te);
+      document.body.children.clear();
+      document.body.children.add(te);
     }
   }
 
@@ -239,7 +246,7 @@ class HtmlEnhancedConfiguration extends Configuration {
     }
 
     addRowElement(id, status, description){
-      te.elements.add(
+      te.children.add(
         new Element.html(
           ''' <div>
                 <div class='$display unittest-row-${groupID} $background'>
@@ -270,7 +277,7 @@ class HtmlEnhancedConfiguration extends Configuration {
   }
 
 
-  static bool get _isIE => document.window.navigator.userAgent.contains('MSIE');
+  static bool get _isIE => window.navigator.userAgent.contains('MSIE');
 
   String get _htmlTestCSS =>
   '''

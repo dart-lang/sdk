@@ -102,7 +102,7 @@ class _SocketOutputStream
       _socket._closeWrite();
       _closed = true;
       // Invoke the callback asynchronously.
-      new Timer(0, (t) {
+      Timer.run(() {
         if (_onClosed != null) _onClosed();
       });
     }

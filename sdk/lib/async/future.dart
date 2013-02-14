@@ -42,7 +42,7 @@ part of dart.async;
  * this potential bug:
  *
  *     var future = getFuture();
- *     new Timer(5, (_) {
+ *     new Timer(new Duration(milliseconds: 5), () {
  *       // The error-handler is only attached 5ms after the future has been
  *       // received. If the future fails in the mean-time it will forward the
  *       // error to the global error-handler, even though there is code (just

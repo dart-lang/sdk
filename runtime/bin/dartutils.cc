@@ -159,6 +159,11 @@ bool DartUtils::IsDartIOLibURL(const char* url_name) {
 }
 
 
+bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
+  return (strcmp(url_name, kBuiltinLibURL) == 0);
+}
+
+
 bool DartUtils::IsDartJsonLibURL(const char* url_name) {
   return (strcmp(url_name, kJsonLibURL) == 0);
 }

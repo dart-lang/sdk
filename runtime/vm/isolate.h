@@ -204,7 +204,7 @@ class Isolate : public BaseIsolate {
 
   static uword GetSpecifiedStackSize();
 
-  static const intptr_t kStackSizeBuffer = (16 * KB);
+  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
   enum {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.

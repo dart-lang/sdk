@@ -52,23 +52,22 @@ class SimpleMapFormat extends Format {
    * This effectively defines a custom JSON serialization format, although
    * the details of the format vary depending which rules were used.
    */
-  String generateOutput(Writer w) {
+  Map<String, dynamic> generateOutput(Writer w) {
     var result = {
       "rules" : w.serializedRules(),
       "data" : w.states,
       "roots" : w._rootReferences()
     };
-    return json.stringify(result);
+    return result;
   }
 
   /**
-   * Read a [json] encoded string representing serialized data in this format
+   * Read a [json] compatible representation of serialized data in this format
    * and return the nested Map representation described in [generateOutput]. If
    * the data also includes rule definitions, then these will replace the rules
    * in the [Serialization] for [reader].
    */
-  Map<String, dynamic> read(String input, Reader reader) {
-    var topLevel = json.parse(input);
+  Map<String, dynamic> read(topLevel, Reader reader) {
     var ruleString = topLevel["rules"];
     reader.readRules(ruleString);
     return topLevel;
@@ -76,12 +75,13 @@ class SimpleMapFormat extends Format {
 }
 
 /**
- * A format for "normal" JSON representation of objects. It stores
+ * A format for "normal" [json] representation of objects. It stores
  * the fields of the objects as nested maps, and doesn't allow cycles. This can
- * be useful in talking to existing APIs that expect JSON format data. However,
- * note that since the classes of objects aren't stored, this isn't enough
- * information to read back the objects. This format also doesn't support the
- * [selfDescriptive] option on the [Serialization], as storing the rules.
+ * be useful in talking to existing APIs that expect [json] format data. The
+ * output will be either a simple object (string, num, bool), a List, or a Map,
+ * with nesting of those.
+ * Note that since the classes of objects aren't normally stored, this isn't
+ * enough information to read back the objects. However, if the
  * If the [storeRoundTripData] field of the format is set to true, then this
  * will store the rule number along with the data, allowing reconstruction.
  */
@@ -98,17 +98,27 @@ class SimpleJsonFormat extends Format {
   /**
    * If we store the rule numbers, what key should we use to store them.
    */
-  String ruleIdentifier = "__rule";
+  static final String RULE = "_rule";
+  static final String RULES = "_rules";
+  static final String DATA = "_data";
+  static final String ROOTS = "_root";
 
   SimpleJsonFormat({this.storeRoundTripInfo : false});
 
   /**
-   * Generate output for this format from [w] and return it as a String which
-   * is the [json] representation of a nested Map structure.
+   * Generate output for this format from [w] and return it as
+   * the [json] representation of a nested Map structure.
    */
-  String generateOutput(Writer w) {
+  generateOutput(Writer w) {
     jsonify(w);
-    return json.stringify(w.stateForReference(w._rootReferences().first));
+    var root = w._rootReferences().first;
+    if (root is Reference) root = w.stateForReference(root);
+    if (w.selfDescribing && storeRoundTripInfo) {
+      root = new Map()
+          ..[RULES] = w.serializedRules()
+          ..[DATA] = root;
+    }
+    return root;
   }
 
   /**
@@ -134,7 +144,7 @@ class SimpleJsonFormat extends Format {
         if (storeRoundTripInfo) ruleData[i].add(rule.number);
       } else if (each is Map) {
         jsonifyEntry(each, w);
-        if (storeRoundTripInfo) each[ruleIdentifier] = rule.number;
+        if (storeRoundTripInfo) each[RULE] = rule.number;
       }
     }
   }
@@ -150,19 +160,29 @@ class SimpleJsonFormat extends Format {
   }
 
   /**
-   * Read a [json] encoded string representing serialized data in this format
-   * and return the Map representation that the reader expects, with top-level
+   * Read serialized data saved in this format, which should look like
+   * either a simple type, a List or a Map and return the Map
+   * representation that the reader expects, with top-level
    * entries for "rules", "data", and "roots". Nested lists/maps will be
    * converted into Reference objects. Note that if the data was not written
    * with [storeRoundTripInfo] true this will fail.
    */
-  Map<String, dynamic> read(String input, Reader r) {
-    var data = json.parse(input);
-    var result = {};
-    result["rules"] = null;
-    var ruleData =
-        new List(r.serialization.rules.length).map((x) => []).toList();
-    var top = recursivelyFixUp(data, r, ruleData);
+  Map<String, dynamic> read(data, Reader reader) {
+    var result = new Map();
+    // Check the case of having been written without additional data and
+    // read as if it had been written with storeRoundTripData set.
+    if (reader.selfDescribing && !(data.containsKey(DATA))) {
+      throw new SerializationException("Missing $DATA entry, "
+          "may mean this was written and read with different values "
+          "of selfDescribing.");
+    }
+    // If we are self-describing, we should have separate rule and data
+    // sections. If not, we assume that we have just the data at the top level.
+    var rules = reader.selfDescribing ? data[RULES] : null;
+    var actualData = reader.selfDescribing ? data[DATA] : data;
+    reader.readRules(rules);
+    var ruleData = new List(reader.rules.length).map((x) => []).toList();
+    var top = recursivelyFixUp(actualData, reader, ruleData);
     result["data"] = ruleData;
     result["roots"] = [top];
     return result;
@@ -171,20 +191,28 @@ class SimpleJsonFormat extends Format {
   /**
    * Convert nested references in [data] into [Reference] objects.
    */
-  recursivelyFixUp(data, Reader r, List result) {
+  recursivelyFixUp(input, Reader r, List result) {
+    var data = input;
     if (isPrimitive(data)) {
       result[r._primitiveRule().number].add(data);
       return data;
     }
     var ruleNumber;
+    // If we've added the rule number on as the last item in a list we have
+    // to get rid of it or it will be interpreted as extra data. For a map
+    // the library will be ok, but we need to get rid of the extra key before
+    // the data is shown to the user, so we destructively modify.
     if (data is List) {
-      ruleNumber = data.removeLast();
+      ruleNumber = data.last;
+      data = data.take(data.length -1);
     } else if (data is Map) {
-      ruleNumber = data.remove(ruleIdentifier);
+      ruleNumber = data.remove(RULE);
     } else {
       throw new SerializationException("Invalid data format");
     }
-    var newData = mapValues(data, (x) => recursivelyFixUp(x, r, result));
+    // Do not use mappedBy or other lazy operations for this. They do not play
+    // well with a function that destructively modifies its arguments.
+    var newData = mapValues(data, (each) => recursivelyFixUp(each, r, result));
     result[ruleNumber].add(newData);
     return new Reference(r, ruleNumber, result[ruleNumber].length - 1);
   }

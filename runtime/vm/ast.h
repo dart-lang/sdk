@@ -269,12 +269,18 @@ class ArrayNode : public AstNode {
       : AstNode(token_pos),
         type_(type),
         elements_() {
-    ASSERT(type_.IsZoneHandle());
-    ASSERT(!type_.IsNull());
-    ASSERT(type_.IsFinalized());
-    // Type may be uninstantiated when creating a generic list literal.
-    ASSERT((type.arguments() == AbstractTypeArguments::null()) ||
-           ((AbstractTypeArguments::Handle(type.arguments()).Length() == 1)));
+    CheckFields();
+  }
+  ArrayNode(intptr_t token_pos,
+            const AbstractType& type,
+            const GrowableArray<AstNode*>& elements)
+      : AstNode(token_pos),
+        type_(type),
+        elements_(elements.length()) {
+    CheckFields();
+    for (intptr_t i = 0; i < elements.length(); i++) {
+      elements_.Add(elements[i]);
+    }
   }
 
   void VisitChildren(AstNodeVisitor* visitor) const;
@@ -294,6 +300,15 @@ class ArrayNode : public AstNode {
  private:
   const AbstractType& type_;
   GrowableArray<AstNode*> elements_;
+
+  void CheckFields() {
+    ASSERT(type_.IsZoneHandle());
+    ASSERT(!type_.IsNull());
+    ASSERT(type_.IsFinalized());
+    // Type may be uninstantiated when creating a generic list literal.
+    ASSERT((type_.arguments() == AbstractTypeArguments::null()) ||
+           ((AbstractTypeArguments::Handle(type_.arguments()).Length() == 1)));
+  }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ArrayNode);
 };

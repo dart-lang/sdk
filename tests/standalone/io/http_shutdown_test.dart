@@ -116,7 +116,7 @@ void test4() {
   server.listen("127.0.0.1", 0);
   server.defaultRequestHandler = (var request, var response) {
     request.inputStream.onClosed = () {
-      new Timer.repeating(100, (timer) {
+      new Timer.repeating(new Duration(milliseconds: 100), (timer) {
         if (server.connectionsInfo().total == 0) {
           server.close();
           timer.cancel();
@@ -157,7 +157,7 @@ void test5(int totalConnections) {
     conn.onError = (e) => Expect.isTrue(e is HttpException);
   }
   bool clientClosed = false;
-  new Timer.repeating(100, (timer) {
+  new Timer.repeating(new Duration(milliseconds: 100), (timer) {
     if (!clientClosed) {
       if (server.connectionsInfo().total == totalConnections) {
         clientClosed = true;

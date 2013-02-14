@@ -250,6 +250,13 @@
         " */"
       ]
     },
+    "HTMLHRElement": {
+      "comment": [
+        "/**",
+        " * An `<hr>` tag.",
+        " */"
+      ]
+    },
     "HTMLMenuElement": {
       "comment": [
         "/**",

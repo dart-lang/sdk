@@ -233,6 +233,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement listClass;
   ClassElement typeClass;
   ClassElement mapClass;
+  ClassElement mapLiteralClass;
   ClassElement jsInvocationMirrorClass;
   /// Document class from dart:mirrors.
   ClassElement documentClass;
@@ -520,6 +521,8 @@ abstract class Compiler implements DiagnosticListener {
     listClass = lookupCoreClass('List');
     typeClass = lookupCoreClass('Type');
     mapClass = lookupCoreClass('Map');
+    // TODO: find a proper way to get to the implementation class.
+    mapLiteralClass = lookupCoreClass('LinkedHashMap');
     if (!missingCoreClasses.isEmpty) {
       internalErrorOnElement(coreLibrary,
           'dart:core library does not contain required classes: '

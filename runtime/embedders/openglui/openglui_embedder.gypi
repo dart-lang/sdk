@@ -141,8 +141,14 @@
                   'build_skia.sh'
                 ],
                 'outputs': [
-                  '../../../third_party/skia/trunk/out/config/android-x86/Debug/libskia_core.a'
+                  'dummy' # To force re-execution every time.
                 ],
+                # For now we drive the build from a shell
+                # script, to get us going. Eventually we will
+                # want to either fork Skia or incorporate its 
+                # gclient settings into ours, and include its 
+                # gyp files within ours, so that it gets built
+                # as part of our tree.
                 'action': [
                   'embedders/openglui/build_skia.sh',
                   '--android',
@@ -267,7 +273,7 @@
                   'build_skia.sh'
                 ],
                 'outputs': [
-                  '../../../third_party/skia/trunk/out/Debug/libskia_core.a'
+                  'dummy' # To force re-execution every time.
                 ],
                 'action': [
                   'embedders/openglui/build_skia.sh',

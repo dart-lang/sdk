@@ -34,6 +34,45 @@ class HasPrice extends CustomMatcher {
   featureValueOf(actual) => actual.price;
 }
 
+class SimpleIterable extends Iterable {
+  int count;
+  SimpleIterable(this.count);
+  
+  bool contains(int val) => count < val ? false : true;
+  
+  bool any(bool f(element)) {
+    for(var i = 0; i <= count; i++) {
+      if(f(i)) return true;
+    }
+    return false;
+  }
+  
+  String toString() => "<[$count]>";
+
+  Iterator get iterator {
+    return new SimpleIterator(count);
+  }
+}
+
+class SimpleIterator implements Iterator {
+  int _count;
+  int _current;
+
+  SimpleIterator(this._count);
+
+  bool moveNext() {
+    if (_count > 0) {
+      _current = _count;
+      _count--;
+      return true;
+    }
+    _current = null;
+    return false;
+  }
+
+  get current => _current;
+}
+
 void main() {
 
   initUtils();
@@ -89,6 +128,8 @@ void main() {
       shouldFail(doesNotThrow, throws,
         "Expected: throws an exception but: no exception.");
       shouldPass(doesThrow, throws);
+      shouldFail(true, throws,
+          "Expected: throws an exception but: not a Function or Future.");
     });
 
     test('throwsA', () {
@@ -165,6 +206,16 @@ void main() {
         "but:  exception <Exception> does not match "
             "UnsupportedError.");
     });
+    
+    test('throwsStateError', () {
+      shouldPass(() { throw new StateError(''); },
+          throwsStateError);
+      shouldFail(() { throw new Exception(); },
+          throwsStateError,
+        "Expected: throws an exception which matches StateError "
+        "but:  exception <Exception> does not match "
+            "StateError.");
+    });
 
     test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
@@ -193,6 +244,22 @@ void main() {
         "Expected: an object with length of <1> "
         "but: was <[0, 0]> with length of <2>.");
       shouldPass(b, hasLength(2));
+    });
+
+    test('type mismatch', () {
+      var a = new DateTime.utc(2000);
+      var b = a.toString();
+      // We should get something like:
+      //    Expected: '2000-01-01 00:00:00.000Z'
+      //    but: expected String:'2000-01-01 00:00:00.000Z'
+      //    but was DateTime:<2000-01-01 00:00:00.000Z>.
+      // However, if minification is applied, then the type names
+      // will be shortened to two letters. The key thing is that
+      // there will be a "but: expected" part in the middle;
+      // this only happens with type mismatches or mismatches
+      // inside container types.
+      shouldFail(a, equals(b),
+          matches(new RegExp("^Expected.*but: expected .*but was.*\$")));
     });
   });
 
@@ -388,6 +455,21 @@ void main() {
     });
   });
 
+  group('Iterable Matchers', () {
+    test('isEmpty', () {
+      var d = new SimpleIterable(0);
+      var e = new SimpleIterable(1);
+      shouldPass(d, isEmpty);
+      shouldFail(e, isEmpty, "Expected: empty but: was <[1]>.");
+    });
+    
+    test('contains', () {
+      var d = new SimpleIterable(3);
+      shouldPass(d, contains(2));
+      shouldFail(d, contains(5), "Expected: contains <5> but: was <[3]>.");
+    });
+  });
+  
   group('Collection Matchers', () {
 
     test('isEmpty', () {
@@ -455,6 +537,47 @@ void main() {
       shouldPass(a, isEmpty);
       a['foo'] = 'bar';
       shouldFail(a, isEmpty, "Expected: empty but: was <{foo: bar}>.");
+    });
+
+    test('equals', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      var b = new Map();
+      b['foo'] = 'bar';
+      var c = new Map();
+      c['bar'] = 'foo';
+      shouldPass(a, equals(b));
+      shouldFail(b, equals(c),
+          "Expected: <{bar: foo}> but: missing map key 'bar'.");
+    });
+
+    test('equals with different lengths', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      var b = new Map();
+      b['foo'] = 'bar';
+      b['bar'] = 'foo';
+      var c = new Map();
+      c['bar'] = 'foo';
+      c['barrista'] = 'caffeine';
+      shouldFail(a, equals(b),
+          "Expected: <{bar: foo, foo: bar}> "
+          "but: different map lengths; missing map key 'bar'.");
+      shouldFail(b, equals(a),
+          "Expected: <{foo: bar}> "
+          "but: different map lengths; extra map key 'bar'.");
+      shouldFail(b, equals(c),
+          "Expected: <{bar: foo, barrista: caffeine}> "
+          "but: missing map key 'barrista'.");
+      shouldFail(c, equals(b),
+          "Expected: <{bar: foo, foo: bar}> "
+          "but: missing map key 'foo'.");
+      shouldFail(a, equals(c),
+          "Expected: <{bar: foo, barrista: caffeine}> "
+          "but: different map lengths; missing map key 'bar'.");
+      shouldFail(c, equals(a),
+          "Expected: <{foo: bar}> "
+          "but: different map lengths; missing map key 'foo'.");
     });
 
     test('contains', () {

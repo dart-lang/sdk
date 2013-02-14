@@ -874,7 +874,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       arguments.add('#');
     });
 
-    String foreignParameters = Strings.join(arguments, ',');
+    String foreignParameters = arguments.join(',');
     String nativeMethodCall;
     if (element.kind == ElementKind.FUNCTION) {
       nativeMethodCall = '$receiver$nativeMethodName($foreignParameters)';

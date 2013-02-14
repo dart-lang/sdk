@@ -35,7 +35,8 @@ class SlowConsumer extends StreamConsumer {
           subscription.pause();
           usedBufferSize = 0;
           int ms = data.length * 1000 ~/ bytesPerSecond;
-          new Timer(ms, (_) {
+          Duration duration = new Duration(milliseconds: ms);
+          new Timer(duration, () {
             for (int i = 0; i < currentBufferedDataLength; i++) {
               bufferedData[i] = null;
             }
@@ -57,7 +58,7 @@ class DataProvider {
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
     controller = new StreamController(onPauseStateChange: onPauseStateChange);
-    new Timer(0, (_) => send());
+    Timer.run(send);
   }
 
   Stream get stream => controller.stream;
@@ -76,7 +77,8 @@ class DataProvider {
     }
     controller.add(new List.fixedLength(listSize));
     int ms = listSize * 1000 ~/ bytesPerSecond;
-    if (!controller.isPaused) new Timer(ms, (_) => send());
+    Duration duration = new Duration(milliseconds: ms);
+    if (!controller.isPaused) new Timer(duration, send);
   }
 
   onPauseStateChange() {

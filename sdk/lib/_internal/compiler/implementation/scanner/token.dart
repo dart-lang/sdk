@@ -236,7 +236,7 @@ class StringWrapper extends Iterable<int> implements SourceString {
 
   bool get isEmpty => stringValue.isEmpty;
 
-  bool isPrivate() => !isEmpty && identical(stringValue.charCodeAt(0), $_);
+  bool isPrivate() => !isEmpty && stringValue.codeUnitAt(0) == $_;
 }
 
 class StringCodeIterator implements Iterator<int> {
@@ -259,7 +259,7 @@ class StringCodeIterator implements Iterator<int> {
   bool moveNext() {
     _current = null;
     if (index >= end) return false;
-    _current = string.charCodeAt(index++);
+    _current = string.codeUnitAt(index++);
     return true;
   }
 }

@@ -589,7 +589,7 @@ class _SecureSocket implements SecureSocket {
         scheduledDataEvent = null;
       }
     } else if (scheduledDataEvent == null) {
-      scheduledDataEvent = new Timer(0, (_) => _secureDataHandler());
+      scheduledDataEvent = Timer.run(_secureDataHandler);
     }
 
     if (_socketClosedRead) {  // An onClose event is pending.
@@ -603,7 +603,7 @@ class _SecureSocket implements SecureSocket {
       if (_filterReadEmpty) {
         // This can't be an else clause: the value of _filterReadEmpty changes.
         // This must be asynchronous, because we are in a read or readList call.
-        new Timer(0, (_) => _secureCloseHandler());
+        Timer.run(_secureCloseHandler);
       }
     }
   }

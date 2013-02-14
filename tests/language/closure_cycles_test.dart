@@ -10,7 +10,7 @@ import "dart:async";
 
 class X {
   Function onX;
-  X() { new Timer(0, (_) => onX(new Y())); }
+  X() { Timer.run(() => onX(new Y())); }
 }
 
 class Y {
@@ -22,7 +22,7 @@ class Y {
     heavyMemory = new List(10*1024*1024);
     // Terminate the test if we allocated enough memory without running out.
     if (count++ > 100) return;
-    new Timer(0, (_) => onY());
+    Timer.run(() => onY());
   }
 }
 

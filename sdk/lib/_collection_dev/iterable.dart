@@ -279,7 +279,9 @@ class MappedListIterable<S, T> extends Iterable<T> {
       throw new ConcurrentModificationError(_list);
     }
     for (int i = start + 1; i < end; i++) {
-      buffer.add(separator);
+      if (separator != null && separator != "") {
+        buffer.add(separator);
+      }
       buffer.add("${_f(_list[i])}");
       if (_list.length != length) {
         throw new ConcurrentModificationError(_list);
@@ -680,4 +682,9 @@ class EmptyIterator<E> implements Iterator<E> {
   const EmptyIterator();
   bool moveNext() => false;
   E get current => null;
+}
+
+/** An [Iterator] that can move in both directions. */
+abstract class BiDirectionalIterator<T> implements Iterator<T> {
+  bool movePrevious();
 }

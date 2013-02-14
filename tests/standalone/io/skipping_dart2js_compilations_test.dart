@@ -200,7 +200,7 @@ void main() {
                                   createDart: true,
                                   createSnapshot: true);
 
-  void touchFilesAndRunTests(Timer unused) {
+  void touchFilesAndRunTests() {
     fs_notUpToDate_snapshot.touchFile(fs_notUpToDate_snapshot.testSnapshot);
     fs_notUpToDate_dart.touchFile(fs_notUpToDate_dart.testDart);
     fs_upToDate.touchFile(fs_upToDate.testJs);
@@ -222,5 +222,5 @@ void main() {
   }
   // We need to wait some time to make sure that the files we 'touch' get a
   // bigger timestamp than the old ones
-  new Timer(1000, touchFilesAndRunTests);
+  new Timer(new Duration(seconds: 1), touchFilesAndRunTests);
 }

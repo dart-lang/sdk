@@ -50,6 +50,7 @@ const String DEFAULT_HELPERLIB = r'''
   class Closure {}
   class Null {}
   class Dynamic_ {}
+  class LinkedHashMap {}
   S() {}
   assertHelper(a){}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}

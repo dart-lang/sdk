@@ -36,7 +36,7 @@ void main() {
   List<String> excludedLibraries = <String>[];
   List<String> includedLibraries = <String>[];
   var pkgPath;
-
+  String version;
 
   // Parse the command-line arguments.
   for (int i = 0; i < args.length; i++) {
@@ -63,7 +63,9 @@ void main() {
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--pkg=')) {
-          pkgPath = new Path(arg.substring('--pkg='.length));
+          pkgPath = arg.substring('--pkg='.length);
+        } else if (arg.startsWith('--version=')) {
+          version = arg.substring('--version='.length);
         } else {
           print('Unknown option: $arg');
           return;
@@ -131,7 +133,7 @@ void main() {
   lister.onDone = (success) {
     print('Generating docs...');
     final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
-        excludedLibraries);
+        excludedLibraries, version);
     apidoc.dartdocPath =
         doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/');
     // Select the libraries to include in the produced documentation:
@@ -169,11 +171,11 @@ class Apidoc extends doc.Dartdoc {
   String mdnUrl = null;
 
   Apidoc(this.mdn, Path outputDir, int mode,
-         bool generateAppCache, [excludedLibraries]) {
+         bool generateAppCache, [excludedLibraries, String version]) {
     if (?excludedLibraries) {
       this.excludedLibraries = excludedLibraries;
     }
-
+    this.version = version;
     this.outputDir = outputDir;
     this.mode = mode;
     this.generateAppCache = generateAppCache;

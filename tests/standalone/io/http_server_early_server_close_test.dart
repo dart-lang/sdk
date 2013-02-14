@@ -13,7 +13,7 @@ class Server {
     port = server.port;
     server.defaultRequestHandler =
         (HttpRequest request, HttpResponse response) {
-          new Timer(0, (timer) => server.close());
+          Timer.run(server.close);
         };
     server.onError = (e) {
       Expect.fail("No server errors expected: $e");

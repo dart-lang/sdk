@@ -16,6 +16,17 @@ $!MEMBERS
     document.$dom_body = value;
   }
 
+  /**
+   * Registers a custom Element subclass as an available HTML tag.
+   *
+   * Not yet implemented.
+   */
+  @Experimental
+  void register(String tagName, Type elementClass) {
+    // TODO: tagName validation
+    throw new Exception('Not yet implemented');
+  }
+
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
     return document.$dom_caretRangeFromPoint(x, y);

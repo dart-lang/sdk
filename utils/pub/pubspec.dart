@@ -132,19 +132,10 @@ class Pubspec {
     //    and also expose it to the editor in some way.
 
     if (parsedPubspec.containsKey('homepage')) {
-      var homepage = parsedPubspec['homepage'];
-
-      if (homepage is! String) {
-        throw new FormatException(
-            'The "homepage" field should be a string, but was "$homepage".');
-      }
-
-      var goodScheme = new RegExp(r'^https?:');
-      if (!goodScheme.hasMatch(homepage)) {
-        throw new FormatException(
-            'The "homepage" field should be an "http:" or "https:" URL, but '
-            'was "$homepage".');
-      }
+      _validateFieldUrl(parsedPubspec['homepage'], 'homepage');
+    }
+    if (parsedPubspec.containsKey('documentation')) {
+      _validateFieldUrl(parsedPubspec['documentation'], 'documentation');
     }
 
     if (parsedPubspec.containsKey('author') &&
@@ -174,6 +165,25 @@ class Pubspec {
     }
 
     return new Pubspec(name, version, dependencies, environment, parsedPubspec);
+  }
+}
+
+/**
+ * Evaluates whether the given [url] for [field] is valid.
+ *
+ * Throws [FormatException] on an invalid url.
+ */
+void _validateFieldUrl(url, String field) {
+  if (url is! String) {
+    throw new FormatException(
+        'The "$field" field should be a string, but was "$url".');
+  }
+
+  var goodScheme = new RegExp(r'^https?:');
+  if (!goodScheme.hasMatch(url)) {
+    throw new FormatException(
+        'The "$field" field should be an "http:" or "https:" URL, but '
+        'was "$url".');
   }
 }
 

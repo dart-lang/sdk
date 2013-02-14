@@ -10,6 +10,12 @@ class A<X, Y, Z> {
   wrap() => new A<A<X, X, X>, A<Y, Y, Y>, A<Z, Z, Z>>();
 }
 
+class B extends A<U, V, W> {}
+
+class C<T> extends A<U, T, W> {}
+
+class D<X, Y, Z> extends A<Y, Z, X> {}
+
 class U {}
 class V {}
 class W {}
@@ -23,4 +29,10 @@ main() {
   sameType(new A<U, U, U>(), a.first());
   sameType(new A<W, W, W>(), a.last());
   sameType(new A<A<U, U, U>, A<V, V, V>, A<W, W, W>>(), a.wrap());
+  B b = new B();
+  sameType(new A<A<U, U, U>, A<V, V, V>, A<W, W, W>>(), b.wrap());
+  C c = new C<V>();
+  sameType(new A<A<U, U, U>, A<V, V, V>, A<W, W, W>>(), c.wrap());
+  D d = new D<U, V, W>();
+  sameType(new A<A<V, V, V>, A<W, W, W>, A<U, U, U>>(), d.wrap());
 }

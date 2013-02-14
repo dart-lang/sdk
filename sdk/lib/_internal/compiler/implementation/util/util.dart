@@ -58,7 +58,7 @@ void writeJsonEscapedCharsOn(String string, buffer) {
 
   void writeEscapedOn(String string, var buffer) {
     for (int i = 0; i < string.length; i++) {
-      int code = string.charCodeAt(i);
+      int code = string.codeUnitAt(i);
       if (code == $DQ) {
         buffer.add(r'\"');
       } else if (code == $TAB) {
@@ -98,7 +98,7 @@ void writeJsonEscapedCharsOn(String string, buffer) {
   }
 
   for (int i = 0; i < string.length; i++) {
-    int code = string.charCodeAt(i);
+    int code = string.codeUnitAt(i);
     if (code < 0x20 || code == $DEL || code == $DQ || code == $LS ||
         code == $PS || code == $BACKSLASH || code >= 0x80) {
       writeEscapedOn(string, buffer);

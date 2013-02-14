@@ -288,10 +288,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void onError(SourceInfo errorTarget, ErrorCode errorCode, Object... arguments) {
-      if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
-        Source source = errorTarget.getSource();
-        if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
-          return;
+      if (suppressSdkWarnings) {
+        ErrorSeverity errorSeverity = errorCode.getErrorSeverity();
+        if (errorSeverity == ErrorSeverity.WARNING || errorSeverity == ErrorSeverity.INFO) {
+          Source source = errorTarget.getSource();
+          if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
+            return;
+          }
         }
       }
       context.onError(new DartCompilationError(errorTarget, errorCode, arguments));
@@ -3449,13 +3452,43 @@ public class TypeAnalyzer implements DartCompilationPhase {
                         superMember);
             }
           }
-        } else if (!types.isAssignable(superMember, member.getType())) {
-          typeError(errorTarget,
-                    TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
-                    name,
-                    superElement.getEnclosingElement().getName(),
-                    member.getType(),
-                    superMember);
+        } else {
+          if (ElementKind.of(member) == ElementKind.FIELD
+              && ElementKind.of(superElement) == ElementKind.FIELD) {
+            FieldElement field = (FieldElement) member;
+            FieldElement superField = (FieldElement) superElement;
+            //
+            MethodElement fGetter = field.getGetter();
+            MethodElement sGetter = superField.getGetter();
+            if (fGetter != null && sGetter != null) {
+              checkOverride(errorTarget, fGetter, sGetter);
+            } else if (fGetter != null && sGetter == null || fGetter == null && sGetter != null) {
+            } else {
+              if (!types.isAssignable(superMember, member.getType())) {
+                typeError(errorTarget, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, name,
+                    superElement.getEnclosingElement().getName(), member.getType(), superMember);
+                return;
+              }
+            }
+            //
+            MethodElement fSetter = field.getSetter();
+            MethodElement sSetter = superField.getSetter();
+            if (fSetter != null && sSetter != null) {
+              checkOverride(errorTarget, fSetter, sSetter);
+            } else if (fSetter != null && sSetter == null || fSetter == null && sSetter != null) {
+            } else {
+              if (!types.isAssignable(superMember, member.getType())) {
+                typeError(errorTarget, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, name,
+                    superElement.getEnclosingElement().getName(), member.getType(), superMember);
+                return;
+              }
+            }
+            return;
+          }
+          if (!types.isAssignable(superMember, member.getType())) {
+            typeError(errorTarget, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, name,
+                superElement.getEnclosingElement().getName(), member.getType(), superMember);
+          }
         }
       }
 

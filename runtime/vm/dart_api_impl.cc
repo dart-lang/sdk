@@ -2338,7 +2338,8 @@ DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
                                                    intptr_t* len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (!RawObject::IsByteArrayClassId(Api::ClassId(array))) {
+  intptr_t class_id = Api::ClassId(array);
+  if (!RawObject::IsByteArrayClassId(class_id)) {
     RETURN_TYPE_ERROR(isolate, array, 'scalar list');
   }
   if (type == NULL) {
@@ -2350,10 +2351,68 @@ DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
   if (len == NULL) {
     RETURN_NULL_ERROR(len);
   }
-  isolate->IncrementNoGCScopeDepth();
-  START_NO_CALLBACK_SCOPE(isolate);
-
-  UNIMPLEMENTED();
+  // Get the type of typed array.
+  switch (class_id) {
+    case kByteArrayCid :
+      *type = kByteArray;
+      break;
+    case kInt8ArrayCid :
+    case kExternalInt8ArrayCid :
+      *type = kInt8;
+      break;
+    case kUint8ArrayCid :
+    case kExternalUint8ArrayCid :
+      *type = kUint8;
+      break;
+    case kUint8ClampedArrayCid :
+    case kExternalUint8ClampedArrayCid :
+      *type = kUint8Clamped;
+      break;
+    case kInt16ArrayCid :
+    case kExternalInt16ArrayCid :
+      *type = kInt16;
+      break;
+    case kUint16ArrayCid :
+    case kExternalUint16ArrayCid :
+      *type = kUint16;
+      break;
+    case kInt32ArrayCid :
+    case kExternalInt32ArrayCid :
+      *type = kInt32;
+      break;
+    case kUint32ArrayCid :
+    case kExternalUint32ArrayCid :
+      *type = kUint32;
+      break;
+    case kInt64ArrayCid :
+    case kExternalInt64ArrayCid :
+      *type = kInt64;
+      break;
+    case kUint64ArrayCid :
+    case kExternalUint64ArrayCid :
+      *type = kUint64;
+      break;
+    case kFloat32ArrayCid :
+    case kExternalFloat32ArrayCid :
+      *type = kFloat32;
+      break;
+    case kFloat64ArrayCid :
+    case kExternalFloat64ArrayCid :
+      *type = kFloat64;
+      break;
+  }
+  const ByteArray& obj = Api::UnwrapByteArrayHandle(isolate, array);
+  ASSERT(!obj.IsNull());
+  *len = obj.Length();
+  // If it is an external typed array object just return the data field.
+  if (RawObject::IsExternalByteArrayClassId(class_id)) {
+    *data = reinterpret_cast<void*>(obj.ByteAddr(0));
+  } else {
+    // Regular typed array object, set up some GC and API callback guards.
+    isolate->IncrementNoGCScopeDepth();
+    START_NO_CALLBACK_SCOPE(isolate);
+    *data = reinterpret_cast<void*>(obj.ByteAddr(0));
+  }
   return Api::Success(isolate);
 }
 
@@ -2361,13 +2420,14 @@ DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
 DART_EXPORT Dart_Handle Dart_ScalarListReleaseData(Dart_Handle array) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (!RawObject::IsByteArrayClassId(Api::ClassId(array))) {
+  intptr_t class_id = Api::ClassId(array);
+  if (!RawObject::IsByteArrayClassId(class_id)) {
     RETURN_TYPE_ERROR(isolate, array, 'scalar list');
   }
-
-  UNIMPLEMENTED();
-  isolate->DecrementNoGCScopeDepth();
-  END_NO_CALLBACK_SCOPE(isolate);
+  if (!RawObject::IsExternalByteArrayClassId(class_id)) {
+    isolate->DecrementNoGCScopeDepth();
+    END_NO_CALLBACK_SCOPE(isolate);
+  }
   return Api::Success(isolate);
 }
 

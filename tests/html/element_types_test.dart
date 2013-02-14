@@ -286,6 +286,9 @@ main() {
     });
     test('ul', () {
       expect((new UListElement()) is UListElement, true);
+      var ul = new UListElement();
+      var li = new LIElement();
+      ul.append(li);
     });
     test('video', () {
       expect((new VideoElement()) is VideoElement, true);

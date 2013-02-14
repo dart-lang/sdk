@@ -5,14 +5,15 @@
 part of matcher;
 
 /**
- * Returns a matcher that matches empty strings, maps or collections.
+ * Returns a matcher that matches empty strings, maps or iterables
+ * (including collections).
  */
 const Matcher isEmpty = const _Empty();
 
 class _Empty extends BaseMatcher {
   const _Empty();
   bool matches(item, MatchState matchState) {
-    if (item is Map || item is Collection) {
+    if (item is Map || item is Iterable) {
       return item.isEmpty;
     } else if (item is String) {
       return item.length == 0;
@@ -134,43 +135,79 @@ class _DeepMatcher extends BaseMatcher {
     } else {
       if (expected is Iterable && canRecurse) {
         String r = _compareIterables(expected, actual,
-          _recursiveMatch, depth+1);
+            _recursiveMatch, depth+1);
         if (r != null) reason = new StringDescription(r);
       } else if (expected is Map && canRecurse) {
         if (actual is !Map) {
           reason = new StringDescription('expected a map');
-        } else if (expected.length != actual.length) {
-          reason = new StringDescription('different map lengths');
         } else {
+          var err = (expected.length == actual.length) ? '' :
+                    'different map lengths; ';
           for (var key in expected.keys) {
             if (!actual.containsKey(key)) {
-              reason = new StringDescription('missing map key ');
+              reason = new StringDescription(err);
+              reason.add('missing map key ');
               reason.addDescriptionOf(key);
               break;
             }
-            reason = _recursiveMatch(expected[key], actual[key],
-                'with key <${key}> ${location}', depth+1);
-            if (reason != null) {
-              break;
+          }
+          if (reason == null) {
+            for (var key in actual.keys) {
+              if (!expected.containsKey(key)) {
+                reason = new StringDescription(err);
+                reason.add('extra map key ');
+                reason.addDescriptionOf(key);
+                break;
+              }
+            }
+            if (reason == null) {
+              for (var key in expected.keys) {
+                reason = _recursiveMatch(expected[key], actual[key],
+                    'with key <${key}> ${location}', depth+1);
+                if (reason != null) {
+                  break;
+                }
+              }
             }
           }
         }
       } else {
-        // If we have recursed, show the expected value too; if not,
-        // expect() will show it for us.
         reason = new StringDescription();
-        if (depth > 1) {
-          reason.add('expected ').addDescriptionOf(expected).add(' but was ').
-              addDescriptionOf(actual);
-        } else {
-          reason.add('was ').addDescriptionOf(actual);
+        var eType = typeName(expected);
+        var aType = typeName(actual);
+        var includeTypes = eType != aType;
+        // If we have recursed, show the expected value too; if not,
+        // expect() will show it for us. As expect will not show type
+        // mismatches at the top level we handle those here too.
+        if (includeTypes || depth > 1) {
+          reason.add('expected ');
+          if (includeTypes) {
+            reason.add(eType).add(':');
+          }
+          reason.addDescriptionOf(expected).add(' but ');
         }
+        reason.add('was ');
+        if (includeTypes) {
+          reason.add(aType).add(':');
+        }
+        reason.addDescriptionOf(actual);
       }
     }
     if (reason != null && location.length > 0) {
       reason.add(' ').add(location);
     }
     return reason;
+  }
+
+  String typeName(x) {
+    // dart2js blows up on some objects (e.g. window.navigator).
+    // So we play safe here.
+    try {
+      if (x == null) return "null";
+      return x.runtimeType.toString();
+    } catch (e) {
+      return "Unknown";
+    }
   }
 
   String _match(expected, actual) {
@@ -281,6 +318,7 @@ class Throws extends BaseMatcher {
     this._matcher = matcher;
 
   bool matches(item, MatchState matchState) {
+    if (item is! Function && item is! Future) return false;
     if (item is Future) {
       var done = wrapAsync((fn) => fn());
 
@@ -301,7 +339,6 @@ class Throws extends BaseMatcher {
           expect(e.error, _matcher, reason: reason);
         });
       });
-
       // It hasn't failed yet.
       return true;
     }
@@ -334,7 +371,9 @@ class Throws extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState,
                                bool verbose) {
-    if (_matcher == null ||  matchState.state == null) {
+    if (item is! Function && item is! Future) {
+      return mismatchDescription.add(' not a Function or Future');
+    } else if (_matcher == null ||  matchState.state == null) {
       return mismatchDescription.add(' no exception');
     } else {
       mismatchDescription.
@@ -572,9 +611,10 @@ class _HasLength extends BaseMatcher {
 /**
  * Returns a matcher that matches if the match argument contains
  * the expected value. For [String]s this means substring matching;
- * for [Map]s is means the map has the key, and for [Collection]s it
- * means the collection has a matching element. In the case of collections,
- * [expected] can itself be a matcher.
+ * for [Map]s it means the map has the key, and for [Iterable]s
+ * (including [Collection]s) it means the iterable has a matching
+ * element. In the case of iterables, [expected] can itself be a
+ * matcher.
  */
 Matcher contains(expected) => new _Contains(expected);
 
@@ -587,11 +627,11 @@ class _Contains extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is String) {
       return item.indexOf(_expected) >= 0;
-    } else if (item is Collection) {
+    } else if (item is Iterable) {
       if (_expected is Matcher) {
         return item.any((e) => _expected.matches(e, matchState));
       } else {
-        return item.any((e) => e == _expected);
+        return item.contains(_expected);
       }
     } else if (item is Map) {
       return item.containsKey(_expected);

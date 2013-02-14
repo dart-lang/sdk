@@ -9,6 +9,9 @@
 # arithmetic natively, i.e., the VM.
 fixnum/test/int_64_vm_test: Skip
 
+# Skip non-test files ending with "_test".
+scheduled_test/lib/*: Skip
+
 [$compiler == dart2dart]
 *: Skip
 
@@ -17,6 +20,10 @@ fixnum/test/int_64_vm_test: Skip
 http/test/*: Skip
 oauth2/test/*: Skip
 path/test/*: Skip
+
+# Issue 8440 forces us to use path in the scheduled_test tests, which would
+# otherwise be dart2js-compatible.
+scheduled_test/test/*: Skip
 
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
@@ -30,6 +37,10 @@ analyzer-experimental/test/options_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/parser_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
 
+# Issue 8440 forces us to use path in the scheduled_test tests, which would
+# otherwise be dart2js-compatible.
+scheduled_test/test/*: Skip
+
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
@@ -38,6 +49,7 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
+serialization/test/serialization_test: Pass, Fail # Temporary workaround for flakiness
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110

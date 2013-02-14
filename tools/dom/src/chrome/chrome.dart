@@ -14,8 +14,8 @@ class API_ChromeApp {
   /*
    * Members
    */
-  API_ChromeAppWindow window;
-  API_ChromeAppRuntime runtime;
+  API_app_window window;
+  API_app_runtime runtime;
 
   /*
    * Constructor
@@ -24,12 +24,12 @@ class API_ChromeApp {
     var window_object = JS('', '#.window', this._jsObject);
     if (window_object == null)
       throw new UnsupportedError('Not supported by current browser.');
-    window = new API_ChromeAppWindow(window_object);
+    window = new API_app_window(window_object);
 
     var runtime_object = JS('', '#.runtime', this._jsObject);
     if (runtime_object == null)
       throw new UnsupportedError('Not supported by current browser.');
-    runtime = new API_ChromeAppRuntime(runtime_object);
+    runtime = new API_app_runtime(runtime_object);
   }
 }
 

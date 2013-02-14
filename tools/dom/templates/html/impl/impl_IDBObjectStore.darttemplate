@@ -1,0 +1,109 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  @DomName('IDBObjectStore.put')
+  Future put(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = $dom_put(value, key);
+      } else {
+        request = $dom_put(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.getObject')
+  Future getObject(key) {
+    try {
+      var request = $dom_getObject(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * **The stream must be manually advanced by calling [Cursor.next] after
+   * each item or by specifying autoAdvance to be true.**
+   *
+   *     var cursors = objectStore.openCursor().listen(
+   *       (cursor) {
+   *         // ...some processing with the cursor
+   *         cursor.next(); // advance onto the next cursor.
+   *       },
+   *       onDone: () {
+   *         // called when there are no more cursors.
+   *         print('all done!');
+   *       });
+   *
+   * Asynchronous operations which are not related to the current transaction
+   * will cause the transaction to automatically be committed-- all processing
+   * must be done synchronously unless they are additional async requests to
+   * the current transaction.
+   */
+  @DomName('IDBObjectStore.openCursor')
+  Stream<Cursor> openCursor({key, KeyRange range, String direction,
+      bool autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+
+    // TODO: try/catch this and return a stream with an immediate error.
+    var request;
+    if (direction == null) {
+      request = $dom_openCursor(key_OR_range);
+    } else {
+      request = $dom_openCursor(key_OR_range, direction);
+    }
+    return _cursorStreamFromResult(request, autoAdvance);
+  }
+
+$!MEMBERS
+
+  /**
+   * Helper for iterating over cursors in a request.
+   */
+  static Stream<Cursor> _cursorStreamFromResult(Request request,
+      bool autoAdvance) {
+    // TODO: need to guarantee that the controller provides the values
+    // immediately as waiting until the next tick will cause the transaction to
+    // close.
+    var controller = new StreamController<Cursor>();
+
+    request.onError.listen((e) {
+      //TODO: Report stacktrace once issue 4061 is resolved.
+      controller.signalError(e);
+    });
+
+    request.onSuccess.listen((e) {
+      Cursor cursor = request.result;
+      if (cursor == null) {
+        controller.close();
+      } else {
+        controller.add(cursor);
+        if (autoAdvance == true) {
+          cursor.next();
+        }
+      }
+    });
+    return controller.stream;
+  }
+}

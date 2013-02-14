@@ -36,12 +36,8 @@ class GraphicsHandler : public ISized {
 
     void SetViewport(int left, int top, int width, int height);
 
-    SkCanvas* CreateCanvas();
-
-    void Flush() {
-      // TODO(gram): see if we really need this.
-      grcontext->flush();
-    }
+    SkCanvas* CreateDisplayCanvas();
+    SkCanvas* CreateBitmapCanvas(int width, int height);
 
     virtual ~GraphicsHandler() {
     }

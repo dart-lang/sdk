@@ -3,8 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 window_open_test: Skip # http://dartbug.com/5151
+async_window_test: Skip #TODO(gram): investigating
 
 event_test: Skip  # Issue 1996
+custom_elements_test: Skip # Not yet implemented.
 
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
@@ -81,6 +83,7 @@ microtask_test: Fail, Pass # Appears to be flaky
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
+rtc_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -117,6 +120,7 @@ element_types_test/supported_track: Fail
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
+transition_event_test/supported: Fail
 typed_arrays_1_test/supported: Fail
 localstorage_test: Fail
 webgl_1_test/supported: Fail
@@ -158,6 +162,7 @@ messageevent_test: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
+rtc_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -219,6 +224,7 @@ media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail # Issue: 7414
 performance_api_test/supported: Fail
+rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
@@ -298,6 +304,7 @@ input_element_test/supported_range: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail
+rtc_test/supported: Fail # Release build does not enable by default.
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail
@@ -328,6 +335,13 @@ request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
+
+[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || $runtime == drt)]
+element_test/queryAll: Fail # dartbug.com/8496: missing substitution on native classes
+node_test/_NodeList: Fail # dartbug.com/8496: missing substitution on native classes
+node_test/nodes: Fail # dartbug.com/8496: missing substitution on native classes
+typed_arrays_1_test/arrays: Fail # dartbug.com/8496: missing substitution on native classes
+typed_arrays_1_test/supported: Fail # dartbug.com/8496: missing substitution on native classes
 
 [ $compiler == dart2js && $runtime == ff ]
 inner_frame_test: Skip # Timeout

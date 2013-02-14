@@ -82,7 +82,7 @@ class _InstanceMirror extends InstanceMirror {
     var completer = new Completer<InstanceMirror>();
     // TODO(ahe): [Completer] or [Future] should have API to create a
     // delayed action.  Simulating with a [Timer].
-    new Timer(0, (timer) {
+    Timer.run(() {
       if (JS('String', 'typeof #', method) == 'function') {
         var result =
             JS('var', '#.apply(#, #)', method, reflectee, jsList);

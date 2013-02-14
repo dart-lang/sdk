@@ -54,7 +54,7 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
   for (OptionHandler handler in handlers) {
     patterns.add(handler.pattern);
   }
-  var pattern = new RegExp('^(${Strings.join(patterns, ")\$|(")})\$');
+  var pattern = new RegExp('^(${patterns.join(")\$|(")})\$');
   OUTER: for (String argument in argv) {
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount == handlers.length);
@@ -115,7 +115,7 @@ void compile(List<String> argv) {
   String getDepsOutput(Map<String, SourceFile> sourceFiles) {
     var filenames = new List.from(sourceFiles.keys);
     filenames.sort();
-    return Strings.join(filenames, "\n");
+    return filenames.join("\n");
   }
 
   setStrip(String argument) {
@@ -140,8 +140,7 @@ void compile(List<String> argv) {
     if (categories.contains('all')) {
       categories = allowedCategoriesList;
     } else {
-      String allowedCategoriesString =
-          Strings.join(allowedCategoriesList, ', ');
+      String allowedCategoriesString = allowedCategoriesList.join(', ');
       for (String category in categories) {
         if (!allowedCategories.contains(category)) {
           fail('Error: unsupported library category "$category", '
@@ -149,11 +148,11 @@ void compile(List<String> argv) {
         }
       }
     }
-    return passThrough('--categories=${Strings.join(categories, ",")}');
+    return passThrough('--categories=${categories.join(",")}');
   }
 
   handleShortOptions(String argument) {
-    var shortOptions = argument.substring(1).splitChars();
+    var shortOptions = argument.substring(1).split("");
     for (var shortOption in shortOptions) {
       switch (shortOption) {
         case 'v':
@@ -227,7 +226,7 @@ void compile(List<String> argv) {
   }
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
-    helpAndFail('Error: Extra arguments: ${Strings.join(extra, " ")}');
+    helpAndFail('Error: Extra arguments: ${extra.join(" ")}');
   }
 
   void handler(Uri uri, int begin, int end, String message,

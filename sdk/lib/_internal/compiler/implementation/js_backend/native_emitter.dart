@@ -366,7 +366,7 @@ function(cls, desc) {
       walk(classElement);
 
       if (!subtags.isEmpty) {
-        expressions.add(js.string(Strings.join(subtags, '|')));
+        expressions.add(js.string(subtags.join('|')));
       }
       js.Expression expression;
       if (expressions.length == 1) {

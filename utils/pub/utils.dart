@@ -158,7 +158,7 @@ Future defer(callback()) {
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(milliseconds, (_) => completer.complete());
+  new Timer(new Duration(milliseconds: milliseconds), completer.complete);
   return completer.future;
 }
 
@@ -173,15 +173,25 @@ void chainToCompleter(Future future, Completer completer) {
 /// Returns a [Future] that will complete to the first element of [stream].
 /// Unlike [Stream.first], this is safe to use with single-subscription streams.
 Future streamFirst(Stream stream) {
+  // TODO(nweiz): remove this when issue 8512 is fixed.
+  var cancelled = false;
   var completer = new Completer();
   var subscription;
   subscription = stream.listen((value) {
-    subscription.cancel();
-    completer.complete(value);
-  },
-      onError: (e) => completer.completeError(e.error, e.stackTrace),
-      onDone: () => completer.completeError(new StateError("No elements")),
-      unsubscribeOnError: true);
+    if (!cancelled) {
+      cancelled = true;
+      subscription.cancel();
+      completer.complete(value);
+    }
+  }, onError: (e) {
+    if (!cancelled) {
+      completer.completeError(e.error, e.stackTrace);
+    }
+  }, onDone: () {
+    if (!cancelled) {
+      completer.completeError(new StateError("No elements"));
+    }
+  }, unsubscribeOnError: true);
   return completer.future;
 }
 

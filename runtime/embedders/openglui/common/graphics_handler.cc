@@ -35,8 +35,7 @@ int32_t GraphicsHandler::Start() {
   GrGLInterface* fGL = const_cast<GrGLInterface*>(GrGLCreateNativeInterface());
   LOGI("Created native interface %s\n", fGL ? "succeeded" : "failed");
   fGL->fGetString = myGLGetString;
-  grcontext = GrContext::Create(kOpenGL_Shaders_GrEngine,
-                        (GrPlatform3DContext)fGL);
+  grcontext = GrContext::Create(kOpenGL_GrBackend, (GrBackendContext)fGL);
   LOGI("Created GrContext %s\n", grcontext ? "succeeded" : "failed");
   return 0;
 }
@@ -45,18 +44,34 @@ void GraphicsHandler::Stop() {
   SkGraphics::Term();
 }
 
-SkCanvas* GraphicsHandler::CreateCanvas() {
-  GrPlatformRenderTargetDesc desc;
+SkCanvas* GraphicsHandler::CreateDisplayCanvas() {
+  GrBackendRenderTargetDesc desc;
   desc.fWidth = width_;
   desc.fHeight = height_;
-  desc.fConfig = kSkia8888_PM_GrPixelConfig;
+  desc.fConfig = kSkia8888_GrPixelConfig;
+  desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
   glGetIntegerv(GL_SAMPLES, &desc.fSampleCnt);
   glGetIntegerv(GL_STENCIL_BITS, &desc.fStencilBits);
+  LOGI("Creating %dx%d display canvas, samples %d, stencil bits %d",
+    width_, height_, desc.fSampleCnt, desc.fStencilBits);
   GrGLint buffer;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
   desc.fRenderTargetHandle = buffer;
-  GrRenderTarget* fGrRenderTarget = grcontext->createPlatformRenderTarget(desc);
-  return new SkCanvas(new SkGpuDevice(grcontext, fGrRenderTarget));
+  GrRenderTarget* fGrRenderTarget = grcontext->wrapBackendRenderTarget(desc);
+  SkGpuDevice* device = new SkGpuDevice(grcontext, fGrRenderTarget);
+//  fGrRenderTarget->unref(); // TODO(gram):  determine if we need this.
+  SkCanvas* canvas = new SkCanvas(device);
+  device->unref();
+  return canvas;
+}
+
+SkCanvas* GraphicsHandler::CreateBitmapCanvas(int width, int height) {
+  LOGI("Creating %dx%d bitmap canvas", width, height);
+  SkDevice* rasterDevice =
+      new SkDevice(SkBitmap::kARGB_8888_Config, width, height);
+  SkCanvas* canvas = new SkCanvas(rasterDevice);
+  rasterDevice->unref();
+  return canvas;
 }
 
 void GraphicsHandler::SetViewport(int left, int top, int width, int height) {

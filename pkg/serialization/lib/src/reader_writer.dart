@@ -123,7 +123,7 @@ class Writer implements ReaderOrWriter {
     if (rule.shouldUseReferenceFor(object, this)) {
       references.putIfAbsent(object, () =>
           new Reference(this, rule.number, _nextObjectNumberFor(rule)));
-      var state = rule.extractState(object, trace.note);
+      var state = rule.extractState(object, trace.note, this);
       _addStateForRule(rule, state);
     }
   }
@@ -143,7 +143,7 @@ class Writer implements ReaderOrWriter {
   serializedRules() {
     if (!selfDescribing) return null;
     var meta = serialization.ruleSerialization();
-    var writer = new Writer(meta);
+    var writer = new Writer(meta, format);
     writer.selfDescribing = false;
     return writer.write(serialization._rules);
   }
@@ -309,13 +309,18 @@ class Reader implements ReaderOrWriter {
    * Look up the reference to an external object. This can be held either in
    * the reader-specific list of externals or in the serializer's
    */
-  objectNamed(key) {
+  objectNamed(key, [Function ifAbsent]) {
     var map = (namedObjects.containsKey(key))
         ? namedObjects : serialization.namedObjects;
     if (!map.containsKey(key)) {
-      throw 'Cannot find named object to link to: $key';
+      (ifAbsent == null ? keyNotFound : ifAbsent)(key);
     }
     return map[key];
+  }
+
+  void keyNotFound(key) {
+    throw new SerializationException(
+        'Cannot find named object to link to: $key');
   }
 
   /**
@@ -350,10 +355,11 @@ class Reader implements ReaderOrWriter {
    * If the data we are reading from has rules written to it, read them back
    * and set them as the rules we will use.
    */
-  void readRules(String newRules) {
+  void readRules(newRules) {
     // TODO(alanknight): Replacing the serialization is kind of confusing.
-    List rulesWeRead = (newRules == null) ?
-        null : serialization.ruleSerialization().read(newRules, namedObjects);
+    if (newRules == null) return;
+    var reader = serialization.ruleSerialization().newReader(format);
+    List rulesWeRead = reader.read(newRules, namedObjects);
     if (rulesWeRead != null && !rulesWeRead.isEmpty) {
       serialization = new Serialization.blank();
       rulesWeRead.forEach(serialization.addRule);

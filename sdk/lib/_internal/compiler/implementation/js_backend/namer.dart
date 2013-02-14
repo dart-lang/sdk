@@ -174,6 +174,9 @@ class Namer implements ClosureNamer {
 
   final String CURRENT_ISOLATE = r'$';
 
+  final String getterPrefix = r'get$';
+  final String setterPrefix = r'set$';
+
   /**
    * Map from top-level or static elements to their unique identifiers provided
    * by [getName].
@@ -344,10 +347,10 @@ class Namer implements ClosureNamer {
   String invocationName(Selector selector) {
     if (selector.isGetter()) {
       String proposedName = privateName(selector.library, selector.name);
-      return 'get\$${getMappedInstanceName(proposedName)}';
+      return '$getterPrefix${getMappedInstanceName(proposedName)}';
     } else if (selector.isSetter()) {
       String proposedName = privateName(selector.library, selector.name);
-      return 'set\$${getMappedInstanceName(proposedName)}';
+      return '$setterPrefix${getMappedInstanceName(proposedName)}';
     } else {
       SourceString name = selector.name;
       if (selector.kind == SelectorKind.OPERATOR
@@ -411,26 +414,26 @@ class Namer implements ClosureNamer {
     // therefore be derived from the instance field-name.
     LibraryElement library = element.getLibrary();
     String name = getMappedInstanceName(privateName(library, element.name));
-    return 'set\$$name';
+    return '$setterPrefix$name';
   }
 
   String setterNameFromAccessorName(String name) {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
-    return 'set\$$name';
+    return '$setterPrefix$name';
   }
 
   String publicGetterName(SourceString name) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
     String fieldName = getMappedInstanceName(name.slowToString());
-    return 'get\$$fieldName';
+    return '$getterPrefix$fieldName';
   }
 
   String getterNameFromAccessorName(String name) {
     // We dynamically create getters from the field-name. The getter name must
     // therefore be derived from the instance field-name.
-    return 'get\$$name';
+    return '$getterPrefix$name';
   }
 
   String getterName(Element element) {
@@ -438,7 +441,7 @@ class Namer implements ClosureNamer {
     // therefore be derived from the instance field-name.
     LibraryElement library = element.getLibrary();
     String name = getMappedInstanceName(privateName(library, element.name));
-    return 'get\$$name';
+    return '$getterPrefix$name';
   }
 
   String getMappedGlobalName(String proposedName) {
@@ -539,11 +542,13 @@ class Namer implements ClosureNamer {
     }
     // Use the unminified names here to construct the interceptor names.  This
     // helps ensure that they don't all suddenly change names due to a name
-    // clash in the minifier, which would affect the diff size.
+    // clash in the minifier, which would affect the diff size.  Sort the names
+    // of the classes to ensure name is stable and predicatble for the suggested
+    // names.
     StringBuffer buffer = new StringBuffer('${element.name.slowToString()}\$');
-    for (ClassElement cls in classes) {
-      buffer.add(cls.name.slowToString());
-    }
+    List<String> names = classes.map((cls) => cls.name.slowToString()).toList();
+    names.sort();
+    names.forEach(buffer.add);
     return getMappedGlobalName(buffer.toString());
   }
 
@@ -647,7 +652,7 @@ class Namer implements ClosureNamer {
 
   String getLazyInitializerName(Element element) {
     assert(Elements.isStaticOrTopLevelField(element));
-    return getMappedGlobalName("get\$${getName(element)}");
+    return getMappedGlobalName("$getterPrefix${getName(element)}");
   }
 
   String isolatePropertiesAccess(Element element) {
@@ -669,6 +674,8 @@ class Namer implements ClosureNamer {
 
   String operatorIsPrefix() => r'$is';
 
+  String operatorAsPrefix() => r'$as';
+
   String operatorIs(Element element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return '${operatorIsPrefix()}${getName(element)}';
@@ -684,6 +691,10 @@ class Namer implements ClosureNamer {
     }
     assert(!reserved.contains(name));
     return name;
+  }
+
+  String substitutionName(Element element) {
+    return '${operatorAsPrefix()}${getName(element)}';
   }
 
   String safeName(String name) => _safeName(name, jsReserved);

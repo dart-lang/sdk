@@ -126,6 +126,50 @@ class ElementKind {
   toString() => id;
 }
 
+/**
+ * A declared element of a program.
+ *
+ * The declared elements of a program include classes, methods,
+ * fields, variables, parameters, etc.
+ *
+ * Sometimes it makes sense to construct "synthetic" elements that
+ * have not been declared anywhere in a program, for example, there
+ * are elements corresponding to "dynamic", "null", and unresolved
+ * references.
+ *
+ * Elements are distinct from types ([DartType]). For example, there
+ * is one declaration of the class List, but several related types,
+ * for example, List, List<int>, List<String>, etc.
+ *
+ * Elements are distinct from AST nodes ([Node]), and there normally is a
+ * one-to-one correspondence between an AST node and an element
+ * (except that not all kinds of AST nodes have an associated
+ * element).
+ *
+ * AST nodes represent precisely what is written in source code, for
+ * example, when a user writes "class MyClass {}", the corresponding
+ * AST node does not have a superclass. On the other hand, the
+ * corresponding element (once fully resolved) will record the
+ * information about the implicit superclass as defined by the
+ * language semantics.
+ *
+ * Generally, the contents of a method are represented as AST nodes
+ * without additional elements, but things like local functions, local
+ * variables, and labels have a corresponding element.
+ *
+ * We generally say that scanning, parsing, resolution, and type
+ * checking comprise the "front-end" of the compiler. The "back-end"
+ * includes things like SSA graph construction, optimizations, and
+ * code generation.
+ *
+ * The front-end data structures are designed to be reusable by
+ * several back-ends.  For example, we may want to support emitting
+ * minified Dart and JavaScript code in one go.  Also, we're planning
+ * on adding an incremental compilation server that should be able to
+ * reuse elements between compilations.  So to keep things simple, it
+ * is best if the backends avoid setting state directly in elements.
+ * It is better to keep such state in a table on the side.
+ */
 abstract class Element implements Spannable {
   SourceString get name;
   ElementKind get kind;

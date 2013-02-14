@@ -1152,8 +1152,7 @@ abstract class HInstruction implements Spannable {
 
     // If the original can't be null, type conversion also can't produce null.
     bool canBeNull = this.guaranteedType.canBeNull();
-    HType convertedType =
-        new HType.fromBoundedType(type, compiler, canBeNull);
+    HType convertedType = new HType.subtype(type, compiler);
 
     // No need to convert if we know the instruction has
     // [convertedType] as a bound.
@@ -2282,10 +2281,9 @@ class HIs extends HInstruction {
   }
 
   HInstruction get expression => inputs[0];
-  HInstruction getCheck(int index) => inputs[index + 1];
-  int get checkCount => inputs.length - 1;
+  HInstruction get checkCall => inputs[1];
 
-  bool hasArgumentChecks() => inputs.length > 1;
+  bool hasArgumentsCheck() => inputs.length > 1;
 
   HType get guaranteedType => HType.BOOLEAN;
 
@@ -2302,7 +2300,7 @@ class HIs extends HInstruction {
 }
 
 class HTypeConversion extends HCheck {
-  HType type;
+  final HType type;
   final int kind;
 
   static const int NO_CHECK = 0;
@@ -2313,6 +2311,7 @@ class HTypeConversion extends HCheck {
 
   HTypeConversion(this.type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
+    assert(type != null);
     sourceElement = input.sourceElement;
   }
   HTypeConversion.checkedModeCheck(HType type, HInstruction input)

@@ -37,7 +37,6 @@ default_factory2_test/01: Pass # For the wrong reasons.
 type_variable_scope_test/none: Fail
 factory_implementation_test/00: Fail
 redirecting_factory_infinite_steps_test/01: Fail
-assert_with_type_test_or_cast_test: Fail # Issue 4929
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
@@ -166,7 +165,6 @@ function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
 function_type_parameter_test: Fail # Internal Error: expected optional parameters
 generic_instanceof_test: Fail # cannot resolve type T
-generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
@@ -226,9 +224,6 @@ external_test/31: Fail
 
 
 # Implementation errors (library or generated code).
-generic_inheritance_test: Fail # Expect.isTrue(false) fails.
-generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
-instanceof2_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 instanceof3_test: Fail # cannot resolve type UndeclaredType.
 instanceof4_test: Fail # Expect.isTrue(false) fails.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.

@@ -230,7 +230,7 @@ interface DataView {
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
 interface IDBCursor {
-  [DartName=continueFunction] void continue([Optional] in any key);
+  [DartName=next] void continue([Optional] in any key);
 };
 [Supplemental]
 interface IDBDatabase {
