@@ -449,7 +449,6 @@ class RuneIterator implements BiDirectionalIterator<int> {
     return string.substring(_position, _nextPosition);
   }
 
-
   bool moveNext() {
     _position = _nextPosition;
     if (_position == string.length) {
@@ -491,4 +490,17 @@ class RuneIterator implements BiDirectionalIterator<int> {
     _currentCodePoint = codeUnit;
     return true;
   }
+}
+
+/**
+ * An [Iterable] of the UTF-16 code units of a [String] in index order.
+ */
+class CodeUnits extends ListIterable<int> {
+  /** The string that this is the code units of. */
+  String string;
+
+  CodeUnits(this.string);
+
+  int get length => string.length;
+  int elementAt(int i) => string.codeUnitAt(i);
 }

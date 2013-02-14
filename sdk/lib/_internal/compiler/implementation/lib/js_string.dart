@@ -149,9 +149,7 @@ class JSString implements String {
     return result;
   }
 
-  Iterable<int> get codeUnits {
-    throw new UnimplementedError("String.codeUnits");
-  }
+  Iterable<int> get codeUnits => new CodeUnits(this);
 
   Runes get runes => new Runes(this);
 

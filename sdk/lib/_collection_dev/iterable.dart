@@ -4,6 +4,317 @@
 
 part of dart._collection.dev;
 
+
+/**
+ * An [Iterable] for classes that have efficient [length] and [elementAt].
+ *
+ * All other methods are implemented in terms of [length] and [elementAt],
+ * including [iterator].
+ */
+abstract class ListIterable<E> extends Iterable<E> {
+  int get length;
+  E elementAt(int i);
+
+  Iterator<E> get iterator => new ListIterableIterator<E>(this);
+
+  void forEach(void action(E element)) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      action(elementAt(i));
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+  }
+
+  bool get isEmpty => length != 0;
+
+  E get first {
+    if (length == 0) throw new StateError("No elements");
+    return elementAt(0);
+  }
+
+  E get last {
+    if (length == 0) throw new StateError("No elements");
+    return elementAt(length - 1);
+  }
+
+  E get single {
+    if (length == 0) throw new StateError("No elements");
+    if (length > 1) throw new StateError("Too many elements");
+    return elementAt(0);
+  }
+
+  bool contains(E element) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      if (elementAt(i) == element) return true;
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    return false;
+  }
+
+  bool every(bool test(E element)) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      if (!test(elementAt(i))) return false;
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    return true;
+  }
+
+  bool any(bool test(E element)) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      if (test(elementAt(i))) return true;
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    return false;
+  }
+
+  E firstMatching(bool test(E element), { E orElse() }) {
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      E element = elementAt(i);
+      if (test(element)) return element;
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  E lastMatching(bool test(E element), { E orElse() }) {
+    int length = this.length;
+    for (int i = length - 1; i >= 0; i++) {
+      E element = elementAt(i);
+      if (test(element)) return element;
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  E singleMatching(bool test(E element)) {
+    int length = this.length;
+    E match = null;
+    bool matchFound = false;
+    for (int i = 0; i < length; i++) {
+      E element = elementAt(i);
+      if (test(element)) {
+        if (matchFound) {
+          throw new StateError("More than one matching element");
+        }
+        matchFound = true;
+        match = element;
+      }
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    if (matchFound) return match;
+    throw new StateError("No matching element");
+  }
+
+  E min([int compare(E a, E b)]) {
+    if (length == 0) return null;
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
+    E min = elementAt(0);
+    int length = this.length;
+    for (int i = 1; i < length; i++) {
+      E element = elementAt(i);
+      if (compare(min, element) > 0) {
+        min = element;
+      }
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    return min;
+  }
+
+  E max([int compare(E a, E b)]) {
+    if (length == 0) return null;
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
+    E max = elementAt(0);
+    int length = this.length;
+    for (int i = 1; i < length; i++) {
+      E element = elementAt(i);
+      if (compare(max, element) < 0) {
+        max = element;
+      }
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    return max;
+  }
+
+  String join([String separator]) {
+    int length = this.length;
+    if (separator != null && !separator.isEmpty) {
+      if (length == 0) return "";
+      String first = "${elementAt(0)}";
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+      StringBuffer buffer = new StringBuffer(first);
+      for (int i = 1; i < length; i++) {
+        buffer.add(separator);
+        buffer.add("${elementAt(i)}");
+        if (length != this.length) {
+          throw new ConcurrentModificationError(this);
+        }
+      }
+      return buffer.toString();
+    } else {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < length; i++) {
+        buffer.add("${elementAt(i)}");
+        if (length != this.length) {
+          throw new ConcurrentModificationError(this);
+        }
+      }
+      return buffer.toString();
+    }
+  }
+
+  Iterable<E> where(bool test(E element)) => super.where(test);
+
+  Iterable map(f(E element)) => new MappedIterable(this, f);
+
+  Iterable mappedBy(f(E element)) => super.mappedBy(f);
+
+  reduce(var initialValue, combine(var previousValue, E element)) {
+    var value = initialValue;
+    int length = this.length;
+    for (int i = 0; i < length; i++) {
+      value = reduce(value, elementAt(i));
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+    return value;
+  }
+
+  Iterable<E> skip(int count) => new SubListIterable(this, count, null);
+
+  Iterable<E> skipWhile(bool test(E element)) => super.skipWhile(test);
+
+  Iterable<E> take(int count) => new SubListIterable(this, 0, count);
+
+  Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
+
+  List<E> toList() {
+    List<E> result = new List(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = elementAt(i);
+    }
+    return result;
+  }
+
+  Set<E> toSet() {
+    Set<E> result = new Set<E>();
+    for (int i = 0; i < length; i++) {
+      result.add(elementAt(i));
+    }
+    return result;
+  }
+}
+
+abstract class SubListIterable<E> extends ListIterable<E> {
+  final Iterable<E> _iterable;
+  final int _start;
+  /** If null, represents the length of the iterable. */
+  final int _endOrLength;
+
+  SubListIterable(this._iterable, this._start, this._endOrLength);
+
+  int get _endIndex {
+    int length = _iterable.length;
+    if (_endOrLength == null || _endOrLength > length) return length;
+    return _endOrLength;
+  }
+
+  int get _startIndex {
+    int length = _iterable.length;
+    if (_start > length) return length;
+    return _start;
+  }
+
+  int get length {
+    int length = _iterable.length;
+    if (_start >= length) return 0;
+    if (_endOrLength == null || _endOrLength >= length) {
+      return length - _start;
+    }
+    return _endOrLength - _start;
+  }
+
+  E elementAt(int index) {
+    int realIndex = _startIndex + index;
+    if (index < 0 || realIndex >= _endIndex) {
+      throw new RangeError.range(index, 0, length);
+    }
+    return _iterable.elementAt(realIndex);
+  }
+
+  Iterable<E> skip(int count) {
+    if (count < 0) throw new ArgumentError(count);
+    return new SubListIterable(_iterable, _start + count, _endOrLength);
+  }
+
+  Iterable<E> take(int count) {
+    if (count < 0) throw new ArgumentError(count);
+    if (_endOrLength == null) {
+      return new SubListIterable(_iterable, _start, _start + count);
+    } else {
+      newEnd = _start + count;
+      if (_endOrLength < newEnd) return this;
+      return new SubListIterable(_iterable, _start, newEnd);
+    }
+  }
+}
+
+class ListIterableIterator<E> implements Iterator<E> {
+  final Iterable<E> _iterable;
+  final int _length;
+  int _index;
+  E _current;
+  ListIterableIterator(Iterable<E> iterable)
+      : _iterable = iterable, _length = iterable.length, _index = 0;
+
+  E get current => _current;
+
+  bool moveNext() {
+    if (_length != _iterable.length) {
+      throw new ConcurrentModificationError(_iterable);
+    }
+    if (_index == _length) {
+      _current = null;
+      return false;
+    }
+    _current = _iterable.elementAt(_index);
+    _index++;
+    return true;
+  }
+}
+
 typedef T _Transformation<S, T>(S value);
 
 class MappedIterable<S, T> extends Iterable<T> {
