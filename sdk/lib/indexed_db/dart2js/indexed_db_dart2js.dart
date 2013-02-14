@@ -682,29 +682,31 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   Index createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) && !?options) {
-      return _createIndex_1(name, keyPath);
+      List keyPath_1 = convertDartToNative_StringArray(keyPath);
+      return _createIndex_1(name, keyPath_1);
     }
     if ((keyPath is List<String> || keyPath == null)) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath, options_1);
+      List keyPath_2 = convertDartToNative_StringArray(keyPath);
+      var options_3 = convertDartToNative_Dictionary(options);
+      return _createIndex_2(name, keyPath_2, options_3);
     }
     if ((keyPath is String || keyPath == null) && !?options) {
       return _createIndex_3(name, keyPath);
     }
     if ((keyPath is String || keyPath == null)) {
-      var options_2 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_2);
+      var options_4 = convertDartToNative_Dictionary(options);
+      return _createIndex_4(name, keyPath, options_4);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_1(name, List<String> keyPath) native;
+  Index _createIndex_1(name, List keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_2(name, List<String> keyPath, options) native;
+  Index _createIndex_2(name, List keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable

@@ -7,11 +7,12 @@
 Dart:html APIs from the IDL database."""
 
 import emitter
+import monitored
 import os
 from generator import *
 from htmldartgenerator import *
 
-_js_custom_members = set([
+_js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ArrayBuffer.slice',
     'AudioBufferSourceNode.start',
     'AudioBufferSourceNode.stop',
@@ -66,12 +67,10 @@ _js_custom_members = set([
     'Window.location',
     'Window.open',
     'Window.requestAnimationFrame',
-    'Window.webkitCancelAnimationFrame',
-    'Window.webkitRequestAnimationFrame',
     'WorkerContext.indexedDB',
     ])
 
-_js_custom_constructors = set([
+_js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'AudioContext',
     'Blob',
     'MutationObserver',
@@ -118,7 +117,8 @@ class ElementConstructorInfo(object):
     info.pure_dart_constructor = True
     return info
 
-_html_element_constructors = {
+_html_element_constructors = monitored.Dict(
+      'systemhtml._html_element_constructors', {
   'HTMLAnchorElement' :
     ElementConstructorInfo(tag='a', opt_params=[('DOMString', 'href')]),
   'HTMLAreaElement': 'area',
@@ -184,9 +184,10 @@ _html_element_constructors = {
   'HTMLTrackElement': 'track',
   'HTMLUListElement': 'ul',
   'HTMLVideoElement': 'video'
-}
+})
 
-_svg_element_constructors = {
+_svg_element_constructors = monitored.Dict(
+      'systemhtml._svg_element_constructors', {
   'SVGAElement': 'a',
   'SVGAltGlyphElement': 'altGlyph',
   'SVGAnimateElement': 'animate',
@@ -252,7 +253,7 @@ _svg_element_constructors = {
   'SVGUseElement': 'use',
   'SVGViewElement': 'view',
   'SVGVKernElement': 'vkern',
-}
+})
 
 _element_constructors = {
   'html': _html_element_constructors,

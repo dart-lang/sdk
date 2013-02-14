@@ -6,6 +6,7 @@
 """This module provides functionality to generate dart:html event classes."""
 
 import logging
+import monitored
 from generator import GetAnnotationsAndComments, FormatAnnotationsAndComments
 
 _logger = logging.getLogger('dartgenerator')
@@ -14,23 +15,24 @@ _logger = logging.getLogger('dartgenerator')
 # We can automatically extract most event names by checking for
 # onEventName methods in the IDL but some events aren't listed so we need
 # to manually add them here so that they are easy for users to find.
-_html_manual_events = {
+_html_manual_events = monitored.Dict('htmleventgenerator._html_manual_events', {
   'Element': ['touchleave', 'touchenter', 'webkitTransitionEnd'],
   'Window': ['DOMContentLoaded']
-}
+})
 
 # These event names must be camel case when attaching event listeners
 # using addEventListener even though the onEventName properties in the DOM for
 # them are not camel case.
-_on_attribute_to_event_name_mapping = {
+_on_attribute_to_event_name_mapping = monitored.Dict(
+    'htmleventgenerator._on_attribute_to_event_name_mapping', {
   'webkitanimationend': 'webkitAnimationEnd',
   'webkitanimationiteration': 'webkitAnimationIteration',
   'webkitanimationstart': 'webkitAnimationStart',
   'webkitspeechchange': 'webkitSpeechChange',
   'webkittransitionend': 'webkitTransitionEnd',
-}
+})
 
-_html_event_types = {
+_html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   '*.abort': ('abort', 'Event'),
   '*.beforecopy': ('beforeCopy', 'Event'),
   '*.beforecut': ('beforeCut', 'Event'),
@@ -122,12 +124,10 @@ _html_event_types = {
   'DOMApplicationCache.obsolete': ('obsolete', 'Event'),
   'DOMApplicationCache.progress': ('progress', 'Event'),
   'DOMApplicationCache.updateready': ('updateReady', 'Event'),
-  'Document.cuechange': ('cueChange', 'Event'),
   'Document.readystatechange': ('readyStateChange', 'Event'),
   'Document.selectionchange': ('selectionChange', 'Event'),
   'Document.webkitpointerlockchange': ('pointerLockChange', 'Event'),
   'Document.webkitpointerlockerror': ('pointerLockError', 'Event'),
-  'Element.cuechange': ('cueChange', 'Event'),
   'EventSource.open': ('open', 'Event'),
   'FileReader.abort': ('abort', 'ProgressEvent'),
   'FileReader.load': ('load', 'ProgressEvent'),
@@ -153,12 +153,10 @@ _html_event_types = {
   'IDBOpenDBRequest.upgradeneeded': ('upgradeNeeded', 'VersionChangeEvent'),
   'IDBRequest.success': ('success', 'Event'),
   'IDBTransaction.complete': ('complete', 'Event'),
-  'IDBVersionChangeRequest.blocked': ('blocked', 'Event'),
-  'MediaController.play': ('play', 'Event'),
+  'MediaStream.addtrack': ('addTrack', 'Event'),
+  'MediaStream.removetrack': ('removeTrack', 'Event'),
   'MediaStreamTrack.mute': ('mute', 'Event'),
   'MediaStreamTrack.unmute': ('unmute', 'Event'),
-  'MediaStreamTrackList.addtrack': ('addTrack', 'MediaStreamTrackEvent'),
-  'MediaStreamTrackList.removetrack': ('removeTrack', 'MediaStreamTrackEvent'),
   'Notification.click': ('click', 'Event'),
   'Notification.close': ('close', 'Event'),
   'Notification.display': ('display', 'Event'),
@@ -166,15 +164,13 @@ _html_event_types = {
   'RTCDataChannel.close': ('close', 'Event'),
   'RTCDataChannel.open': ('open', 'Event'),
   'RTCPeerConnection.addstream': ('addStream', 'MediaStreamEvent'),
-  'RTCPeerConnection.connecting': ('connecting', 'MediaStreamEvent'),
   'RTCPeerConnection.datachannel': ('dataChannel', 'RtcDataChannelEvent'),
   'RTCPeerConnection.icecandidate': ('iceCandidate', 'RtcIceCandidateEvent'),
   'RTCPeerConnection.icechange': ('iceChange', 'Event'),
+  'RTCPeerConnection.gatheringchange': ('gatheringChange', 'Event'),
   'RTCPeerConnection.negotiationneeded': ('negotiationNeeded', 'Event'),
-  'RTCPeerConnection.open': ('open', 'Event'),
   'RTCPeerConnection.removestream': ('removeStream', 'MediaStreamEvent'),
   'RTCPeerConnection.statechange': ('stateChange', 'Event'),
-  'ScriptProcessorNode.audioprocess': ('audioProcess', 'AudioProcessingEvent'),
   'SharedWorkerContext.connect': ('connect', 'Event'),
   'SpeechRecognition.audioend': ('audioEnd', 'Event'),
   'SpeechRecognition.audiostart': ('audioStart', 'Event'),
@@ -194,7 +190,6 @@ _html_event_types = {
   'WebSocket.close': ('close', 'CloseEvent'),
   'WebSocket.open': ('open', 'Event'), # should be OpenEvent, but not exposed.
   'Window.DOMContentLoaded': ('contentLoaded', 'Event'),
-  'Window.cuechange': ('cueChange', 'Event'),
   'Window.devicemotion': ('deviceMotion', 'DeviceMotionEvent'),
   'Window.deviceorientation': ('deviceOrientation', 'DeviceOrientationEvent'),
   'Window.loadstart': ('loadStart', 'Event'),
@@ -214,7 +209,7 @@ _html_event_types = {
   'XMLHttpRequestUpload.loadend': ('loadEnd', 'ProgressEvent'),
   'XMLHttpRequestUpload.loadstart': ('loadStart', 'ProgressEvent'),
   'XMLHttpRequestUpload.progress': ('progress', 'ProgressEvent'),
-}
+})
 
 # These classes require an explicit declaration for the "on" method even though
 # they don't declare any unique events, because the concrete class hierarchy

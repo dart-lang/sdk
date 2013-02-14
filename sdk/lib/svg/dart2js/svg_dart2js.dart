@@ -2193,6 +2193,10 @@ class FEMergeNodeElement extends SvgElement native "*SVGFEMergeNodeElement" {
 
 @DocsEditable
 @DomName('SVGFEMorphologyElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;

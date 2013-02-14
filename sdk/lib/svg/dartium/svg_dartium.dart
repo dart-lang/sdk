@@ -2377,6 +2377,10 @@ class FEMergeNodeElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFEMorphologyElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEMorphologyElement.internal() : super.internal();
 

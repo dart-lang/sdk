@@ -8,6 +8,7 @@ Dart APIs from the IDL database."""
 
 import copy
 import json
+import monitored
 import os
 import re
 from htmlrenamer import html_interface_renames, renamed_html_members
@@ -17,7 +18,7 @@ _current_dir = os.path.dirname(__file__)
 _json_path = os.path.join(_current_dir, '..', 'docs', 'docs.json')
 _dom_json = json.load(open(_json_path))
 
-_pure_interfaces = set([
+_pure_interfaces = monitored.Set('generator._pure_interfaces', [
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
     'DOMStringMap',
     'ElementTimeControl',
@@ -25,7 +26,6 @@ _pure_interfaces = set([
     'EventListener',
     'MediaQueryListListener',
     'MutationCallback',
-    'NodeSelector',
     'SVGExternalResourcesRequired',
     'SVGFilterPrimitiveStandardAttributes',
     'SVGFitToViewBox',
@@ -41,7 +41,8 @@ def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
 
-_methods_with_named_formals = set([
+_methods_with_named_formals = monitored.Set(
+    'generator._methods_with_named_formals', [
   'DataView.getFloat32',
   'DataView.getFloat64',
   'DataView.getInt16',
@@ -65,16 +66,15 @@ _methods_with_named_formals = set([
 #
 # Renames for attributes that have names that are not legal Dart names.
 #
-_dart_attribute_renames = {
+_dart_attribute_renames = monitored.Dict('generator._dart_attribute_renames', {
     'default': 'defaultValue',
-    'final': 'finalValue',
-}
+})
 
 #
 # Interface version of the DOM needs to delegate typed array constructors to a
 # factory provider.
 #
-interface_factories = {
+interface_factories = monitored.Dict('generator.interface_factories', {
     'Float32Array': '_TypedArrayFactoryProvider',
     'Float64Array': '_TypedArrayFactoryProvider',
     'Int8Array': '_TypedArrayFactoryProvider',
@@ -84,19 +84,20 @@ interface_factories = {
     'Uint8ClampedArray': '_TypedArrayFactoryProvider',
     'Uint16Array': '_TypedArrayFactoryProvider',
     'Uint32Array': '_TypedArrayFactoryProvider',
-}
+})
 
 #
 # Custom native specs for the dart2js dom.
 #
-_dart2js_dom_custom_native_specs = {
+_dart2js_dom_custom_native_specs = monitored.Dict(
+      'generator._dart2js_dom_custom_native_specs', {
     # Decorate the singleton Console object, if present (workers do not have a
     # console).
     'Console': "=(typeof console == 'undefined' ? {} : console)",
 
     # DOMWindow aliased with global scope.
-    'DOMWindow': '@*DOMWindow',
-}
+    'Window': '@*DOMWindow',
+})
 
 def IsRegisteredType(type_name):
   return type_name in _idl_type_registry
@@ -419,7 +420,7 @@ class Conversion(object):
 _serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
-dart2js_conversions = {
+dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
@@ -432,11 +433,6 @@ dart2js_conversions = {
       Conversion('_convertDartToNative_EventTarget', 'EventTarget',
                  'dynamic'),
 
-    'IDBKey get':
-      Conversion('_convertNativeToDart_IDBKey', 'dynamic', 'dynamic'),
-    'IDBKey set':
-      Conversion('_convertDartToNative_IDBKey', 'dynamic', 'dynamic'),
-
     'ImageData get':
       Conversion('_convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
     'ImageData set':
@@ -447,7 +443,7 @@ dart2js_conversions = {
     'Dictionary set':
       Conversion('convertDartToNative_Dictionary', 'Map', 'dynamic'),
 
-    'DOMString[] set':
+    'sequence<DOMString> set':
       Conversion('convertDartToNative_StringArray', 'List<String>', 'List'),
 
     'any set IDBObjectStore.add': _serialize_SSV,
@@ -492,7 +488,7 @@ dart2js_conversions = {
 
     # Should be either a DOMString, an Array of DOMStrings or null.
     'IDBAny get IDBObjectStore.keyPath': None,
-}
+})
 
 def FindConversion(idl_type, direction, interface, member):
   table = dart2js_conversions
@@ -513,7 +509,7 @@ def FindConversion(idl_type, direction, interface, member):
 #   -TYPE:            add annotations only if there are no member annotations.
 #   TYPE:             add regardless of member annotations.
 
-dart2js_annotations = {
+dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
     'CanvasRenderingContext2D.createImageData': [
       "@Creates('ImageData|=Object')",
@@ -547,12 +543,6 @@ dart2js_annotations = {
     'DOMWindow.openDatabase': [
       "@Creates('Database')",
       "@Creates('DatabaseSync')",
-    ],
-
-    # Cross-frame windows are EventTargets.
-    '-EventTarget': [
-      "@Creates('EventTarget|=Object')",
-      "@Returns('EventTarget|=Object')",
     ],
 
     # To be in callback with the browser-created Event, we had to have called
@@ -627,10 +617,6 @@ dart2js_annotations = {
       "@Returns('Request')",
       "@Creates('Request')",
     ],
-    '+IDBVersionChangeRequest': [
-      "@Returns('Request')",
-      "@Creates('Request')",
-    ],
 
     'MessageEvent.ports': ["@Creates('=List')"],
 
@@ -652,7 +638,7 @@ dart2js_annotations = {
     'XMLHttpRequest.response': [
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
     ],
-}
+})
 
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
@@ -721,7 +707,7 @@ _webkit_experimental_annotations = [
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
-dart_annotations = {
+dart_annotations = monitored.Dict('generator.dart_annotations', {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
   'Database': _web_sql_annotations,
@@ -733,8 +719,10 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.OPERA)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
-  'DOMWindow.convertPointFromNodeToPage': _webkit_experimental_annotations,
-  'DOMWindow.convertPointFromPageToNode': _webkit_experimental_annotations,
+  'DOMFileSystem': _file_system_annotations,
+  'DOMFileSystemSync': _file_system_annotations,
+  'DOMWindow.webkitConvertPointFromNodeToPage': _webkit_experimental_annotations,
+  'DOMWindow.webkitConvertPointFromPageToNode': _webkit_experimental_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'DOMWindow.openDatabase': _web_sql_annotations,
   'DOMWindow.performance': _performance_annotations,
@@ -749,8 +737,6 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental",
   ],
-  'FileSystem': _file_system_annotations,
-  'FileSystemSync': _file_system_annotations,
   'HashChangeEvent': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -791,11 +777,9 @@ dart_annotations = {
   'IDBDatabase': _indexed_db_annotations,
   'LocalMediaStream': _rtc_annotations,
   'MediaStream': _rtc_annotations,
-  'MediaStreamEvents': _rtc_annotations,
   'MediaStreamEvent': _rtc_annotations,
   'MediaStreamTrack': _rtc_annotations,
   'MediaStreamTrackEvent': _rtc_annotations,
-  'MediaStreamTrackEvents': _rtc_annotations,
   'MutationObserver': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -837,7 +821,7 @@ dart_annotations = {
   'SVGFEImageElement': _svg_annotations,
   'SVGFEMergeElement': _svg_annotations,
   'SVGFEMergeNodeElement': _svg_annotations,
-  'SVGFEMorphology': _svg_annotations,
+  'SVGFEMorphologyElement': _svg_annotations,
   'SVGFEOffsetElement': _svg_annotations,
   'SVGFEPointLightElement': _svg_annotations,
   'SVGFESpecularLightingElement': _svg_annotations,
@@ -866,7 +850,7 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
-}
+})
 
 def GetComments(library_name, interface_name, member_name=None):
   """ Finds all comments for the interface or member and returns a list. """
@@ -1306,7 +1290,7 @@ def TypedArrayTypeData(item_type):
   return TypeData(clazz='Interface', item_type=item_type, is_typed_array=True)
 
 
-_idl_type_registry = {
+_idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'boolean': TypeData(clazz='Primitive', dart_type='bool', native_type='bool',
                         webcore_getter_name='hasAttribute',
                         webcore_setter_name='setBooleanAttribute'),
@@ -1339,9 +1323,6 @@ _idl_type_registry = {
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
     'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
-    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
-    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
-    'Flags': TypeData(clazz='Primitive', dart_type='Object'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'ObjectArray': TypeData(clazz='Primitive', dart_type='List'),
@@ -1350,10 +1331,6 @@ _idl_type_registry = {
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.
     'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='dynamic'),
-    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
-    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
-    'WebKitFlags': TypeData(clazz='Primitive', dart_type='Object'),
-
     'sequence': TypeData(clazz='Primitive', dart_type='List'),
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
@@ -1368,7 +1345,6 @@ _idl_type_registry = {
     'HTMLElement': TypeData(clazz='Interface', merged_into='Element',
         custom_to_dart=True),
     'IDBAny': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),
-    'IDBKey': TypeData(clazz='Interface', dart_type='dynamic', custom_to_native=True),
     'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
         native_type='MutationRecordArray', dart_type='List<MutationRecord>'),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
@@ -1413,8 +1389,6 @@ _idl_type_registry = {
     'TextTrackCueList': TypeData(clazz='Interface', item_type='TextTrackCue'),
     'TextTrackList': TypeData(clazz='Interface', item_type='TextTrack'),
     'TouchList': TypeData(clazz='Interface', item_type='Touch'),
-    'WebKitAnimationList': TypeData(clazz='Interface',
-        item_type='WebKitAnimation', suppress_interface=True),
 
     'Float32Array': TypedArrayTypeData('double'),
     'Float64Array': TypedArrayTypeData('double'),
@@ -1443,7 +1417,7 @@ _idl_type_registry = {
     'SVGTransform': TypeData(clazz='SVGTearOff'),
     'SVGTransformList': TypeData(clazz='SVGTearOff', item_type='SVGTransform',
         native_type='SVGTransformListPropertyTearOff'),
-}
+})
 
 _svg_supplemental_includes = [
     '"SVGAnimatedPropertyTearOff.h"',

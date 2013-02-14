@@ -10974,6 +10974,8 @@ class FileReaderSync native "*FileReaderSync" {
 
 @DocsEditable
 @DomName('DOMFileSystem')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class FileSystem native "*DOMFileSystem" {
 
   /// Checks if this type is supported on the current platform.
@@ -11002,6 +11004,8 @@ typedef void FileSystemCallback(FileSystem fileSystem);
 
 @DocsEditable
 @DomName('DOMFileSystemSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class FileSystemSync native "*DOMFileSystemSync" {
 
   @DomName('DOMFileSystemSync.name')
@@ -15919,9 +15923,17 @@ class MediaSource extends EventTarget native "*MediaSource" {
 @Experimental
 class MediaStream extends EventTarget native "*MediaStream" {
 
+  @DomName('MediaStream.addtrackEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> addTrackEvent = const EventStreamProvider<Event>('addtrack');
+
   @DomName('MediaStream.endedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  @DomName('MediaStream.removetrackEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> removeTrackEvent = const EventStreamProvider<Event>('removetrack');
 
   @DomName('MediaStream.MediaStream')
   @DocsEditable
@@ -15987,9 +15999,17 @@ class MediaStream extends EventTarget native "*MediaStream" {
   @DocsEditable
   void removeTrack(MediaStreamTrack track) native;
 
+  @DomName('MediaStream.onaddtrack')
+  @DocsEditable
+  Stream<Event> get onAddTrack => addTrackEvent.forTarget(this);
+
   @DomName('MediaStream.onended')
   @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+  @DomName('MediaStream.onremovetrack')
+  @DocsEditable
+  Stream<Event> get onRemoveTrack => removeTrackEvent.forTarget(this);
 
 
   /**
@@ -18978,6 +18998,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
+  @DomName('RTCPeerConnection.gatheringchangeEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> gatheringChangeEvent = const EventStreamProvider<Event>('gatheringchange');
+
   @DomName('RTCPeerConnection.icecandidateEvent')
   @DocsEditable
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
@@ -19187,6 +19211,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.ondatachannel')
   @DocsEditable
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
+
+  @DomName('RTCPeerConnection.ongatheringchange')
+  @DocsEditable
+  Stream<Event> get onGatheringChange => gatheringChangeEvent.forTarget(this);
 
   @DomName('RTCPeerConnection.onicecandidate')
   @DocsEditable
@@ -26366,11 +26394,17 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @JSName('webkitConvertPointFromNodeToPage')
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   DomPoint convertPointFromNodeToPage(Node node, DomPoint p) native;
 
   @JSName('webkitConvertPointFromPageToNode')
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   DomPoint convertPointFromPageToNode(Node node, DomPoint p) native;
 
   @JSName('webkitRequestFileSystem')
