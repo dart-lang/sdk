@@ -258,10 +258,14 @@ class NumberFormat {
   }
 
   /** Returns the code point for the character '0'. */
-  int get _zero => '0'.charCodes[0];
+  int get _zero => '0'.codeUnits.first;
 
   /** Returns the code point for the locale's zero digit. */
-  int get _localeZero => symbols.ZERO_DIGIT.charCodeAt(0);
+  // Note that there is a slight risk of a locale's zero digit not fitting
+  // into a single code unit, but it seems very unlikely, and if it did,
+  // there's a pretty good chance that our assumptions about being able to do
+  // arithmetic on it would also be invalid.
+  int get _localeZero => symbols.ZERO_DIGIT.codeUnits.first;
 
   /**
    * Returns the prefix for [x] based on whether it's positive or negative.
