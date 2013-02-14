@@ -1175,13 +1175,17 @@ void FlowGraphOptimizer::InlineGrowableArrayCapacityGetter(
 
 
 static LoadFieldInstr* BuildLoadStringLength(Value* str) {
-  const bool is_immutable = true;  // String length is immutable.
+  // Treat length loads as mutable (i.e. affected by side effects) to avoid
+  // hoisting them since we can't hoist the preceding class-check. This
+  // is because of externalization of strings that affects their class-id.
+  const bool is_immutable = false;
   LoadFieldInstr* load = new LoadFieldInstr(
       str,
       String::length_offset(),
       Type::ZoneHandle(Type::SmiType()),
       is_immutable);
   load->set_result_cid(kSmiCid);
+  load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
   return load;
 }
 
@@ -1191,7 +1195,6 @@ void FlowGraphOptimizer::InlineStringLengthGetter(InstanceCallInstr* call) {
   AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
 
   LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0)->value());
-  load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
   call->ReplaceWith(load, current_iterator());
   RemovePushArguments(call);
 }
@@ -1325,14 +1328,7 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
   }
   if (!skip_check) {
     // Insert bounds check.
-    const bool is_immutable = true;
-    LoadFieldInstr* length = new LoadFieldInstr(
-        str->Copy(),
-        CheckArrayBoundInstr::LengthOffsetFor(cid),
-        Type::ZoneHandle(Type::SmiType()),
-        is_immutable);
-    length->set_result_cid(kSmiCid);
-    length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+    LoadFieldInstr* length = BuildLoadStringLength(str->Copy());
     InsertBefore(call, length, NULL, Definition::kValue);
     InsertBefore(call,
                  new CheckArrayBoundInstr(new Value(length),
