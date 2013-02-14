@@ -154,9 +154,15 @@ class SimpleJsonFormat extends Format {
    * to turn References into a nested List/Map.
    */
   jsonifyEntry(map, Writer w) {
+    // Note, if this is a Map, and the key might be a reference, we need to
+    // bend over backwards to avoid concurrent modifications. Non-string keys
+    // won't actually work if we try to write this to json, but might happen
+    // if e.g. sending between isolates.
+    var updates = new Map();
     keysAndValues(map).forEach((key, value) {
-      if (value is Reference) map[key] = w.stateForReference(value);
+      if (value is Reference) updates[key] = w.stateForReference(value);
     });
+    updates.forEach((k, v) => map[k] = v);
   }
 
   /**
