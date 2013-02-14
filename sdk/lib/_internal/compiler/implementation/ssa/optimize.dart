@@ -389,19 +389,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     if (node.isInterceptorCall) return handleInterceptorCall(node);
     HType receiverType = types[node.receiver];
-    if (receiverType.isExact()) {
-      Element element = receiverType.lookupMember(node.selector.name, compiler);
-      // TODO(ngeoffray): Also fold if it's a getter or variable.
-      if (element != null && element.isFunction()) {
-        if (node.selector.applies(element, compiler)) {
-          FunctionElement method = element;
-          FunctionSignature parameters = method.computeSignature(compiler);
-          if (parameters.optionalParameterCount == 0) {
-            node.element = element;
-          }
-          // TODO(ngeoffray): If the method has optional parameters,
-          // we should pass the default values here.
-        }
+    Element element = receiverType.lookupSingleTarget(node.selector, compiler);
+    // TODO(ngeoffray): Also fold if it's a getter or variable.
+    if (element != null && element.isFunction()) {
+      FunctionElement method = element;
+      FunctionSignature parameters = method.computeSignature(compiler);
+      // TODO(ngeoffray): If the method has optional parameters,
+      // we should pass the default values.
+      if (parameters.optionalParameterCount == 0
+          || parameters.parameterCount == node.selector.argumentCount) {
+        node.element = element;
       }
     }
     return node;
@@ -603,9 +600,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
                                             Selector selector) {
     HType receiverType = types[receiver];
     if (!receiverType.isUseful()) return null;
-    if (receiverType.canBeNull()) return null;
     DartType type = receiverType.computeType(compiler);
     if (type == null) return null;
+    if (Elements.isErroneousElement(type.element)) return null;
     return compiler.world.locateSingleField(type, selector);
   }
 
@@ -639,11 +636,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
     HFieldGet result = new HFieldGet(
         field, node.inputs[0], isAssignable: !isFinalOrConst);
-    HType type = backend.optimisticFieldType(field);
-    if (type != null) {
-      result.guaranteedType = type;
-      backend.registerFieldTypesOptimization(
-          work.element, field, result.guaranteedType);
+
+    if (field.getEnclosingClass().isNative()) {
+      result.guaranteedType =
+          new HType.subtype(field.computeType(compiler), compiler);
+    } else {
+      HType type = backend.optimisticFieldType(field);
+      if (type != null) {
+        backend.registerFieldTypesOptimization(
+            work.element, field, result.guaranteedType);
+        result.guaranteedType = type;
+      }
     }
     return result;
   }

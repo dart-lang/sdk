@@ -168,12 +168,23 @@ abstract class HType {
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
 
-  Element lookupMember(SourceString name, Compiler compiler) {
-    if (!isExact()) return null;
+  Element lookupSingleTarget(Selector selector, Compiler compiler) {
+    if (isInterfaceType()) return null;
     DartType type = computeType(compiler);
     if (type == null) return null;
     ClassElement cls = type.element;
-    return cls.lookupMember(name);
+    Element member = cls.lookupSelector(selector);
+    if (member == null) return null;
+    // [:ClassElement.lookupSelector:] may return an abstract field,
+    // and selctors don't work well with them.
+    // TODO(ngeoffray): Clean up lookupSelector and selectors to know
+    // if it's a getter or a setter that we're interested in.
+    if (!member.isFunction()) return null;
+    if (!selector.applies(member, compiler)) return null;
+    if (!isExact() && !compiler.world.hasNoOverridingMember(member)) {
+      return null;
+    }
+    return member;
   }
 
   DartType computeType(Compiler compiler);
