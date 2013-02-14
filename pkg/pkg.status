@@ -68,8 +68,8 @@ intl/test/intl_message_basic_example_test: Skip
 serialization/test/serialization_test: Skip
 analyzer-experimental/test/generated/parser_test: Skip
 analyzer-experimental/test/generated/scanner_test: Skip
-analyzer-experimental/test/generated/element_test.dart: Skip
-analyzer-experimental/test/generated/ast_test.dart: Skip
+analyzer-experimental/test/generated/element_test: Skip
+analyzer-experimental/test/generated/ast_test: Skip
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
