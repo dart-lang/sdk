@@ -86,7 +86,7 @@ abstract class ConcreteType {
    */
   factory ConcreteType.singleton(int maxConcreteTypeSize, BaseType baseType) {
     if (baseType.isUnknown() || maxConcreteTypeSize < 1) {
-      return new UnknownConcreteType();
+      return const UnknownConcreteType();
     }
     Set<BaseType> singletonSet = new Set<BaseType>();
     singletonSet.add(baseType);
