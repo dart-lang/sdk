@@ -1021,12 +1021,19 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged and tagged again at the end of the
-  // operation (element size == 1), or it is left smi tagged (for all element
-  // sizes > 1).
-  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                    ? Location::RegisterOrSmiConstant(index())
-                    : Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  if (index_scale() == 1) {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::WritableRegister());
+  } else {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::RequiresRegister());
+  }
   if (representation() == kUnboxedDouble) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
@@ -1057,9 +1064,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             FieldAddress(array, ExternalUint8Array::data_offset()));
     __ movzxb(result, element_address);
     __ SmiTag(result);
-    if (index.IsRegister()) {
-      __ SmiTag(index.reg());  // Re-tag.
-    }
     return;
   }
 
@@ -1084,10 +1088,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       ASSERT(class_id() == kFloat64ArrayCid);
       __ movsd(result, element_address);
-    }
-
-    if ((index_scale() == 1) && index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
     }
     return;
   }
@@ -1130,9 +1130,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(result, element_address);
       break;
   }
-  if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiTag(index.reg());  // Re-tag.
-  }
 }
 
 
@@ -1165,13 +1162,21 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  // The smi index is either untagged and tagged again at the end of the
-  // operation (element size == 1), or it is left smi tagged (for all element
-  // sizes > 1).
   locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                    ? Location::RegisterOrSmiConstant(index())
-                    : Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id());
+  if (index_scale == 1) {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::WritableRegister());
+  } else {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::RequiresRegister());
+  }
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
@@ -1248,9 +1253,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(RAX);
         __ movb(element_address, RAX);
       }
-      if (index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
-      }
       break;
     case kUint8ClampedArrayCid: {
       if (index.IsRegister()) {
@@ -1281,9 +1283,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movq(RAX, Immediate(0xFF));
         __ Bind(&store_value);
         __ movb(element_address, RAX);
-      }
-      if (index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
       }
       break;
     }
@@ -2209,11 +2208,13 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxDoubleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = CanDeoptimize() ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  if (CanDeoptimize()) summary->set_temp(0, Location::RequiresRegister());
+  const bool needs_writable_input = (value()->Type()->ToCid() != kDoubleCid);
+  summary->set_in(0, needs_writable_input
+                     ? Location::WritableRegister()
+                     : Location::RequiresRegister());
   summary->set_out(Location::RequiresFpuRegister());
   return summary;
 }
@@ -2229,13 +2230,19 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(value);  // Untag input before conversion.
     __ cvtsi2sd(result, value);
-    __ SmiTag(value);  // Restore input register.
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
-    compiler->LoadDoubleOrSmiToFpu(result,
-                                   value,
-                                   locs()->temp(0).reg(),
-                                   deopt);
+    Label is_smi, done;
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(ZERO, &is_smi);
+    __ CompareClassId(value, kDoubleCid);
+    __ j(NOT_EQUAL, deopt);
+    __ movsd(result, FieldAddress(value, Double::value_offset()));
+    __ jmp(&done);
+    __ Bind(&is_smi);
+    __ SmiUntag(value);
+    __ cvtsi2sd(result, value);
+    __ Bind(&done);
   }
 }
 
