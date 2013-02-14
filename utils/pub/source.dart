@@ -5,6 +5,9 @@
 library source;
 
 import 'dart:async';
+
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -105,26 +108,26 @@ abstract class Source {
   ///
   /// By default, this uses [systemCacheDirectory] and [install].
   Future<Package> installToSystemCache(PackageId id) {
-    var path;
+    var packageDir;
     return systemCacheDirectory(id).then((p) {
-      path = p;
+      packageDir = p;
 
       // See if it's already cached.
-      if (!dirExists(path)) return false;
+      if (!dirExists(packageDir)) return false;
 
-      return _isCachedPackageCorrupted(path).then((isCorrupted) {
+      return _isCachedPackageCorrupted(packageDir).then((isCorrupted) {
         if (!isCorrupted) return true;
 
         // Busted, so wipe out the package and reinstall.
-        return deleteDir(path).then((_) => false);
+        return deleteDir(packageDir).then((_) => false);
       });
     }).then((isInstalled) {
       if (isInstalled) return true;
-      ensureDir(dirname(path));
-      return install(id, path);
+      ensureDir(path.dirname(packageDir));
+      return install(id, packageDir);
     }).then((found) {
       if (!found) throw 'Package $id not found.';
-      return new Package.load(id.name, path, systemCache.sources);
+      return new Package.load(id.name, packageDir, systemCache.sources);
     });
   }
 

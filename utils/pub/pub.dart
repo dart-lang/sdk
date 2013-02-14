@@ -278,7 +278,7 @@ abstract class PubCommand {
           '${path.current}.';
       } else if (e is PubspecHasNoNameException && e.name == null) {
         e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
-          '${basename(path.current)}").';
+          '${path.basename(path.current)}").';
       }
 
       handleError(e, asyncError.stackTrace);

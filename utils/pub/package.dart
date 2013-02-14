@@ -5,6 +5,9 @@
 library package;
 
 import 'dart:async';
+
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'io.dart';
 import 'pubspec.dart';
 import 'source.dart';
@@ -21,7 +24,7 @@ class Package {
   /// The name of the package.
   String get name {
     if (pubspec.name != null) return pubspec.name;
-    if (dir != null) return basename(dir);
+    if (dir != null) return path.basename(dir);
     return null;
   }
 

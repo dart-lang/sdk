@@ -146,15 +146,15 @@ class LishCommand extends PubCommand {
       return listDir(rootDir, recursive: true).then((entries) {
         return entries
             .where(fileExists) // Skip directories.
-            .map((entry) => relativeTo(entry, rootDir));
+            .map((entry) => path.relative(entry, from: rootDir));
       });
     }).then((files) => files.where(_shouldPublish).toList());
   }
 
   /// Returns `true` if [file] should be published.
   bool _shouldPublish(String file) {
-    if (_BLACKLISTED_FILES.contains(basename(file))) return false;
-    return !splitPath(file).any(_BLACKLISTED_DIRS.contains);
+    if (_BLACKLISTED_FILES.contains(path.basename(file))) return false;
+    return !path.split(file).any(_BLACKLISTED_DIRS.contains);
   }
 
   /// Returns the value associated with [key] in [map]. Throws a user-friendly

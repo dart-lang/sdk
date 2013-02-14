@@ -6,6 +6,8 @@ library directory_validator;
 
 import 'dart:async';
 
+import '../../../pkg/path/lib/path.dart' as path;
+
 import '../entrypoint.dart';
 import '../io.dart';
 import '../utils.dart';
@@ -23,7 +25,7 @@ class DirectoryValidator extends Validator {
       for (var dir in dirs) {
         if (!dirExists(dir)) continue;
 
-        dir = basename(dir);
+        dir = path.basename(dir);
         if (_PLURAL_NAMES.contains(dir)) {
           // Cut off the "s"
           var singularName = dir.substring(0, dir.length - 1);

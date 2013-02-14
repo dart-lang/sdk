@@ -427,12 +427,14 @@ String _packageName(String sourceName, description) {
   switch (sourceName) {
   case "git":
     var url = description is String ? description : description['url'];
-    return basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
+    // TODO(rnystrom): Using path.basename on a URL is hacky. If we add URL
+    // support to pkg/path, should use an explicit builder for that.
+    return path.basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;
     return description['name'];
   case "path":
-    return basename(description);
+    return path.basename(description);
   case "sdk":
     return description;
   default:
@@ -441,8 +443,8 @@ String _packageName(String sourceName, description) {
 }
 
 /// The full path to the created sandbox directory for an integration test.
-String get sandboxDir => _sandboxDir.path;
-Directory _sandboxDir;
+String get sandboxDir => _sandboxDir;
+String _sandboxDir;
 
 /// The path of the package cache directory used for tests. Relative to the
 /// sandbox directory.
@@ -462,7 +464,7 @@ final String packagesPath = "$appPath/packages";
 
 /// The type for callbacks that will be fired during [schedulePub]. Takes the
 /// sandbox directory as a parameter.
-typedef Future _ScheduledEvent(Directory parentDir);
+typedef Future _ScheduledEvent(String parentDir);
 
 /// The list of events that are scheduled to run as part of the test case.
 List<_ScheduledEvent> _scheduled;
@@ -542,9 +544,9 @@ void _integration(String description, void body(), [Function testFn]) {
 /// tests.
 String get testDirectory {
   var dir = new Options().script;
-  while (basename(dir) != 'pub') dir = dirname(dir);
+  while (path.basename(dir) != 'pub') dir = path.dirname(dir);
 
-  return getFullPath(dir);
+  return path.absolute(dir);
 }
 
 /// Schedules renaming (moving) the directory at [from] to [to], both of which
@@ -629,7 +631,10 @@ void confirmPublish(ScheduledProcess pub) {
 /// should have the same signature as [startProcess], except that the returned
 /// [Future] may have a type other than [Process].
 Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
-  String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
+  String pathInSandbox(String relPath) {
+    return join(path.absolute(sandboxDir), relPath);
+  }
+
   return defer(() {
     ensureDir(pathInSandbox(appPath));
     return Future.wait([
@@ -837,7 +842,7 @@ abstract class Descriptor {
   /// Schedules the directory to be validated after Pub is run with
   /// [schedulePub]. The directory will be validated relative to the sandbox
   /// directory.
-  void scheduleValidate() => _schedule((parentDir) => validate(parentDir.path));
+  void scheduleValidate() => _schedule((parentDir) => validate(parentDir));
 
   /// Asserts that the name of the descriptor is a [String] and returns it.
   String get _stringName {

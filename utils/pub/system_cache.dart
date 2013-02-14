@@ -103,7 +103,7 @@ class SystemCache {
   /// packages into while installing. It uses this instead of the OS's system
   /// temp directory to ensure that it's on the same volume as the pub system
   /// cache so that it can move the directory from it.
-  Directory createTempDir() {
+  String createTempDir() {
     var temp = ensureDir(tempDir);
     return io.createTempDir(join(temp, 'dir'));
   }

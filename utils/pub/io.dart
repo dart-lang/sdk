@@ -33,26 +33,12 @@ String join(part1, [part2, part3, part4, part5, part6, part7, part8]) {
       parts[6], parts[7]);
 }
 
-/// Gets the basename, the file name without any leading directory path, for
-/// [file], which can either be a [String], [File], or [Directory].
-String basename(file) => path.basename(_getPath(file));
-
-/// Gets the the leading directory path for [file], which can either be a
-/// [String], [File], or [Directory].
-String dirname(file) => path.dirname(_getPath(file));
-
-/// Splits [entry] into its individual components.
-List<String> splitPath(entry) => path.split(_getPath(entry));
-
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
-bool isBeneath(entry, dir) {
-  var relative = relativeTo(entry, dir);
-  return !path.isAbsolute(relative) && splitPath(relative)[0] != '..';
+bool isBeneath(String entry, String dir) {
+  var relative = path.relative(entry, from: dir);
+  return !path.isAbsolute(relative) && path.split(relative)[0] != '..';
 }
-
-/// Returns the path to [target] from [base].
-String relativeTo(target, base) => path.relative(target, from: base);
 
 /// Determines if [path], which can be a [String] file path, a [File], or a
 /// [Directory] exists on the file system.
@@ -93,8 +79,7 @@ File writeTextFile(file, String contents, {dontLogContents: false}) {
   return file..writeAsStringSync(contents);
 }
 
-/// Deletes [file], which can be a [String] or a [File]. Returns a [Future]
-/// that completes when the deletion is done.
+/// Deletes [file], which can be a [String] or a [File].
 File deleteFile(file) => _getFile(file)..delete();
 
 /// Creates [file] (which can either be a [String] or a [File]), and writes
@@ -128,16 +113,16 @@ Future<File> createFileFromStream(Stream<List<int>> stream, path) {
 /// Creates a directory [dir].
 Directory createDir(dir) => _getDirectory(dir)..createSync();
 
-/// Ensures that [path] and all its parent directories exist. If they don't
+/// Ensures that [dirPath] and all its parent directories exist. If they don't
 /// exist, creates them.
-Directory ensureDir(path) {
-  path = _getPath(path);
+Directory ensureDir(dirPath) {
+  dirPath = _getPath(dirPath);
 
-  log.fine("Ensuring directory $path exists.");
-  var dir = new Directory(path);
-  if (path == '.' || dirExists(path)) return dir;
+  log.fine("Ensuring directory $dirPath exists.");
+  var dir = new Directory(dirPath);
+  if (dirPath == '.' || dirExists(dirPath)) return dir;
 
-  ensureDir(dirname(path));
+  ensureDir(path.dirname(dirPath));
 
   try {
     createDir(dir);
@@ -155,12 +140,12 @@ Directory ensureDir(path) {
 
 /// Creates a temp directory whose name will be based on [dir] with a unique
 /// suffix appended to it. If [dir] is not provided, a temp directory will be
-/// created in a platform-dependent temporary location. Returns a [Future] that
-/// completes when the directory is created.
-Directory createTempDir([dir = '']) {
+/// created in a platform-dependent temporary location. Returns the path of the
+/// created directory.
+String createTempDir([dir = '']) {
   var tempDir = _getDirectory(dir).createTempSync();
   log.io("Created temp directory ${tempDir.path}");
-  return tempDir;
+  return tempDir.path;
 }
 
 /// Asynchronously recursively deletes [dir], which can be a [String] or a
@@ -218,8 +203,8 @@ Future<List<String>> listDir(dir,
     var children = [];
     lister.onError = (error) => completer.completeError(error, stackTrace);
     lister.onDir = (file) {
-      if (!includeHiddenFiles && basename(file).startsWith('.')) return;
-      file = join(dir, basename(file));
+      if (!includeHiddenFiles && path.basename(file).startsWith('.')) return;
+      file = join(dir, path.basename(file));
       contents.add(file);
       // TODO(nweiz): don't manually recurse once issue 7358 is fixed. Note that
       // once we remove the manual recursion, we'll need to explicitly filter
@@ -230,8 +215,8 @@ Future<List<String>> listDir(dir,
     };
 
     lister.onFile = (file) {
-      if (!includeHiddenFiles && basename(file).startsWith('.')) return;
-      contents.add(join(dir, basename(file)));
+      if (!includeHiddenFiles && path.basename(file).startsWith('.')) return;
+      contents.add(join(dir, path.basename(file)));
     };
 
     return completer.future.then((contents) {
@@ -361,13 +346,6 @@ Future<File> createPackageSymlink(String name, from, to,
   });
 }
 
-/// Given [entry] which may be a [String], [File], or [Directory] relative to
-/// the current working directory, returns its full canonicalized path.
-String getFullPath(entry) => path.absolute(_getPath(entry));
-
-/// Returns whether or not [entry] is an absolute path.
-bool isAbsolute(entry) => path.isAbsolute(_getPath(entry));
-
 /// Resolves [target] relative to the location of pub.dart.
 String relativeToPub(String target) {
   var scriptPath = new File(new Options().script).fullPathSync();
@@ -375,10 +353,11 @@ String relativeToPub(String target) {
   // Walk up until we hit the "util(s)" directory. This lets us figure out where
   // we are if this function is called from pub.dart, or one of the tests,
   // which also live under "utils", or from the SDK where pub is in "util".
-  var utilDir = dirname(scriptPath);
-  while (basename(utilDir) != 'utils' && basename(utilDir) != 'util') {
-    if (basename(utilDir) == '') throw 'Could not find path to pub.';
-    utilDir = dirname(utilDir);
+  var utilDir = path.dirname(scriptPath);
+  while (path.basename(utilDir) != 'utils' &&
+         path.basename(utilDir) != 'util') {
+    if (path.basename(utilDir) == '') throw 'Could not find path to pub.';
+    utilDir = path.dirname(utilDir);
   }
 
   return path.normalize(join(utilDir, 'pub', target));
@@ -728,7 +707,7 @@ Future timeout(Future input, int milliseconds, String description) {
 Future withTempDir(Future fn(String path)) {
   return defer(() {
     var tempDir = createTempDir();
-    return fn(tempDir.path).whenComplete(() {
+    return fn(tempDir).whenComplete(() {
       return deleteDir(tempDir);
     });
   });
@@ -835,13 +814,13 @@ ByteStream createTarGz(List contents, {baseDir}) {
   var controller = new StreamController<List<int>>();
 
   if (baseDir == null) baseDir = path.current;
-  baseDir = getFullPath(baseDir);
+  baseDir = path.absolute(baseDir);
   contents = contents.map((entry) {
-    entry = getFullPath(entry);
+    entry = path.absolute(_getPath(entry));
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
     }
-    return relativeTo(entry, baseDir);
+    return path.relative(entry, from: baseDir);
   }).toList();
 
   if (Platform.operatingSystem != "windows") {
