@@ -8686,20 +8686,20 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    *
    * Would be accessed in Dart as:
    *
-   *     var value = element.dataAttributes['myRandomValue'];
+   *     var value = element.dataset['myRandomValue'];
    *
    * See also:
    *
    * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
    */
-  Map<String, String> get dataAttributes =>
+  Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  void set dataAttributes(Map<String, String> value) {
-    final dataAttributes = this.dataAttributes;
-    dataAttributes.clear();
+  void set dataset(Map<String, String> value) {
+    final data = this.dataset;
+    data.clear();
     for (String key in value.keys) {
-      dataAttributes[key] = value[key];
+      data[key] = value[key];
     }
   }
 
@@ -9260,10 +9260,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DomName('Element.clientWidth')
   @DocsEditable
   final int clientWidth;
-
-  @DomName('Element.dataset')
-  @DocsEditable
-  final Map<String, String> dataset;
 
   @JSName('firstElementChild')
   @DomName('Element.firstElementChild')

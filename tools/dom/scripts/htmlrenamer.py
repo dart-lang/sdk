@@ -336,6 +336,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'DOMCoreException.VALIDATION_ERR',
     'DOMCoreException.WRONG_DOCUMENT_ERR',
     'Element.accessKey',
+    'Element.dataset',
     'Element.get:classList',
     'Element.getAttributeNode',
     'Element.getAttributeNodeNS',
