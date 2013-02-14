@@ -23,7 +23,7 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, use_sse41);
+DECLARE_FLAG(bool, eliminate_type_checks);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -560,6 +560,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   Label is_assignable, runtime_call;
   __ cmpq(RAX, raw_null);
   __ j(EQUAL, &is_assignable);
+
+  if (!FLAG_eliminate_type_checks) {
+    // If type checks are not eliminated during the graph building then
+    // a transition sentinel can be seen here.
+    __ CompareObject(RAX, Object::transition_sentinel());
+    __ j(EQUAL, &is_assignable);
+  }
 
   // Generate throw new TypeError() if the type is malformed.
   if (dst_type.IsMalformed()) {
@@ -1319,25 +1326,6 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
   __ Drop(1);
   __ jmp(skip_call);
   __ Bind(&fall_through);
-}
-
-
-void FlowGraphCompiler::LoadDoubleOrSmiToFpu(FpuRegister result,
-                                             Register reg,
-                                             Register temp,
-                                             Label* not_double_or_smi) {
-  Label is_smi, done;
-  __ testq(reg, Immediate(kSmiTagMask));
-  __ j(ZERO, &is_smi);
-  __ CompareClassId(reg, kDoubleCid);
-  __ j(NOT_EQUAL, not_double_or_smi);
-  __ movsd(result, FieldAddress(reg, Double::value_offset()));
-  __ jmp(&done);
-  __ Bind(&is_smi);
-  __ movq(temp, reg);
-  __ SmiUntag(temp);
-  __ cvtsi2sd(result, temp);
-  __ Bind(&done);
 }
 
 

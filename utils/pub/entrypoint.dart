@@ -5,6 +5,9 @@
 library entrypoint;
 
 import 'dart:async';
+
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
@@ -49,8 +52,8 @@ class Entrypoint {
         cache = cache;
 
   // TODO(rnystrom): Make this path configurable.
-  /// The path to this "packages" directory.
-  String get path => join(root.dir, 'packages');
+  /// The path to the entrypoint's "packages" directory.
+  String get packagesDir => join(root.dir, 'packages');
 
   /// Ensures that the package identified by [id] is installed to the directory.
   /// Returns the resolved [PackageId].
@@ -67,9 +70,9 @@ class Entrypoint {
     var pendingOrCompleted = _installs[id];
     if (pendingOrCompleted != null) return pendingOrCompleted;
 
-    var packageDir = join(path, id.name);
+    var packageDir = join(packagesDir, id.name);
     var future = defer(() {
-      ensureDir(dirname(packageDir));
+      ensureDir(path.dirname(packageDir));
       if (!dirExists(packageDir)) return;
 
       // TODO(nweiz): figure out when to actually delete the directory, and when
@@ -127,7 +130,7 @@ class Entrypoint {
   /// Removes the old packages directory, installs all dependencies listed in
   /// [packageVersions], and writes a [LockFile].
   Future _installDependencies(List<PackageId> packageVersions) {
-    return cleanDir(path).then((_) {
+    return cleanDir(packagesDir).then((_) {
       return Future.wait(packageVersions.map((id) {
         if (id.isRoot) return new Future.immediate(id);
         return install(id);
@@ -224,10 +227,10 @@ class Entrypoint {
   /// allow a package to import its own files using `package:`.
   Future _installSelfReference(_) {
     return defer(() {
-      var linkPath = join(path, root.name);
+      var linkPath = join(packagesDir, root.name);
       // Create the symlink if it doesn't exist.
       if (entryExists(linkPath)) return;
-      ensureDir(path);
+      ensureDir(packagesDir);
       return createPackageSymlink(root.name, root.dir, linkPath,
           isSelfLink: true);
     });
@@ -275,7 +278,7 @@ class Entrypoint {
   Future<List<String>> _listDirWithoutPackages(dir) {
     return listDir(dir).then((files) {
       return Future.wait(files.map((file) {
-        if (basename(file) == 'packages') return new Future.immediate([]);
+        if (path.basename(file) == 'packages') return new Future.immediate([]);
         return defer(() {
           if (!dirExists(file)) return [];
           return _listDirWithoutPackages(file);
@@ -293,7 +296,7 @@ class Entrypoint {
     return defer(() {
       var to = join(dir, 'packages');
       if (entryExists(to)) return;
-      return createSymlink(path, to);
+      return createSymlink(packagesDir, to);
     });
   }
 }

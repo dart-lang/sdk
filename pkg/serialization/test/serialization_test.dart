@@ -386,6 +386,20 @@ main() {
     expect(a2.city, "Seattle");
   });
 
+  test("Straight JSON format, non-string key", () {
+    // This tests what happens if we have a key that's not a string. That's
+    // not allowed by json, so we don't actually turn it into a json string,
+    // but someone might reasonably convert to a json-able structure without
+    // going through the string representation.
+    var p1 = new Person()..name = 'Alice'..address = a1;
+    var s = new Serialization()
+        ..addRule(new PersonRuleReturningMapWithNonStringKey());
+    var p2 = writeAndReadBack(s,
+        new SimpleJsonFormat(storeRoundTripInfo: true), p1);
+    expect(p2.name, "Alice");
+    expect(p2.address.street, "N 34th");
+  });
+
   test("Root is a Map", () {
     // Note that we can't use the usual round-trip test because it has cycles.
     var p1 = new Person()..name = 'Alice'..address = a1;
@@ -702,5 +716,33 @@ class NodeRule extends CustomRule {
   setState(Node node, state) {
     node.parent = state[0];
     node.children = state[2];
+  }
+}
+
+/**
+ * This is a rather silly rule which stores the address data in a map,
+ * but inverts the keys and values, so we look up values and find the
+ * corresponding key. This will lead to maps that aren't allowed in JSON,
+ * and which have keys that need to be dereferenced.
+ */
+class PersonRuleReturningMapWithNonStringKey extends CustomRule {
+  appliesTo(instance, _) => instance is Person;
+  getState(instance) {
+    return new Map()
+      ..[instance.name] = "name"
+      ..[instance.address] = "address";
+  }
+  create(state) => new Person();
+  setState(Person a, state) {
+    a.name = findValue("name", state);
+    a.address = findValue("address", state);
+  }
+  findValue(String key, Map state) {
+    var answer;
+    for (var each in state.keys) {
+      var value = state[each];
+      if (value == key) return each;
+    }
+    return null;
   }
 }

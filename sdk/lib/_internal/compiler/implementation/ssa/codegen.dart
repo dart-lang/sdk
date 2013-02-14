@@ -1528,6 +1528,30 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else if (target == backend.jsStringConcat) {
           push(new js.Binary('+', object, arguments[0]), node);
           return;
+        } else if (target.isNative()
+                   && !compiler.enableTypeAssertions
+                   && target.isFunction()) {
+          // Enable direct calls to a native method only if we don't
+          // run in checked mode, where the Dart version may have
+          // type annotations on parameters and return type that it
+          // should check.
+          // Also check that the parameters are not functions: it's
+          // the callee that will translate them to JS functions.
+          // TODO(ngeoffray): There are some cases where we could
+          // still inline in checked mode if we know the arguments
+          // have the right type. And we could do the closure
+          // conversion as well as the return type annotation check.
+          bool canInlineNativeCall = true;
+          FunctionElement function = target;
+          function.computeSignature(compiler).forEachParameter((Element element) {
+            DartType type = element.computeType(compiler).unalias(compiler);
+            if (type is FunctionType) {
+              canInlineNativeCall = false;
+            }
+          });
+          if (canInlineNativeCall) {
+            methodName = target.fixedBackendName();
+          }
         }
       }
     }
@@ -1617,6 +1641,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
+      assert(selector.typeKind != TypedSelectorKind.UNKNOWN);
       world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;

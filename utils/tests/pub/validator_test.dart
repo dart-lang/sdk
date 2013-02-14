@@ -10,9 +10,10 @@ import 'dart:json' as json;
 import 'dart:math' as math;
 
 import 'test_pub.dart';
-import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/http/lib/testing.dart';
+import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
@@ -36,6 +37,16 @@ void expectValidationError(ValidatorCreator fn) {
 
 void expectValidationWarning(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
+}
+
+expectDependencyValidationError(String error) {
+  expectLater(schedulePackageValidation(dependency),
+      pairOf(someElement(contains(error)), isEmpty));
+}
+
+expectDependencyValidationWarning(String warning) {
+  expectLater(schedulePackageValidation(dependency),
+      pairOf(isEmpty, someElement(contains(warning))));
 }
 
 Validator compiledDartdoc(Entrypoint entrypoint) =>
@@ -66,7 +77,31 @@ Validator utf8Readme(Entrypoint entrypoint) =>
 
 void scheduleNormalPackage() => normalPackage.scheduleCreate();
 
+/// Sets up a test package with dependency [dep] and mocks a server with
+/// [hostedVersions] of the package available.
+setUpDependency(Map dep, {List<String> hostedVersions}) {
+  useMockClient(new MockClient((request) {
+    expect(request.method, equals("GET"));
+    expect(request.url.path, equals("/packages/foo.json"));
+
+    if (hostedVersions == null) {
+      return new Future.immediate(new http.Response("not found", 404));
+    } else {
+      return new Future.immediate(new http.Response(json.stringify({
+        "name": "foo",
+        "uploaders": ["nweiz@google.com"],
+        "versions": hostedVersions
+      }), 200));
+    }
+  }));
+
+  dir(appPath, [
+    libPubspec("test_pkg", "1.0.0", deps: [dep])
+  ]).scheduleCreate();
+}
+
 main() {
+  initConfig();
   group('should consider a package valid if it', () {
     setUp(scheduleNormalPackage);
 
@@ -326,124 +361,88 @@ main() {
       expectValidationError(lib);
     });
 
-    group('has a dependency with a non-hosted source', () {
-      group('where a hosted version of that dependency exists', () {
-        integration("and should suggest the hosted package's primary "
-            "version", () {
-          useMockClient(new MockClient((request) {
-            expect(request.method, equals("GET"));
-            expect(request.url.path, equals("/packages/foo.json"));
-
-            return new Future.immediate(new http.Response(json.stringify({
-              "name": "foo",
-              "uploaders": ["nweiz@google.com"],
-              "versions": ["3.0.0-pre", "2.0.0", "1.0.0"]
-            }), 200));
-          }));
-
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
-              {'git': 'git://github.com/dart-lang/foo'}
-            ])
-          ]).scheduleCreate();
-
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains(
-                  '  foo: ">=2.0.0 <3.0.0"'))));
+    group('has a git dependency', () {
+      group('where a hosted version exists', () {
+        integration("and should suggest the hosted primary version", () {
+          setUpDependency({'git': 'git://github.com/dart-lang/foo'},
+              hostedVersions: ["3.0.0-pre", "2.0.0", "1.0.0"]);
+          expectDependencyValidationWarning('  foo: ">=2.0.0 <3.0.0"');
         });
 
-        integration("and should suggest the hosted package's prerelease "
-            "version if it's the only version available", () {
-          useMockClient(new MockClient((request) {
-            expect(request.method, equals("GET"));
-            expect(request.url.path, equals("/packages/foo.json"));
-
-            return new Future.immediate(new http.Response(json.stringify({
-              "name": "foo",
-              "uploaders": ["nweiz@google.com"],
-              "versions": ["3.0.0-pre", "2.0.0-pre"]
-            }), 200));
-          }));
-
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
-              {'git': 'git://github.com/dart-lang/foo'}
-            ])
-          ]).scheduleCreate();
-
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains(
-                  '  foo: ">=3.0.0-pre <4.0.0"'))));
+        integration("and should suggest the hosted prerelease version if "
+                    "it's the only version available", () {
+          setUpDependency({'git': 'git://github.com/dart-lang/foo'},
+              hostedVersions: ["3.0.0-pre", "2.0.0-pre"]);
+          expectDependencyValidationWarning('  foo: ">=3.0.0-pre <4.0.0"');
         });
 
-        integration("and should suggest a tighter constraint if the primary "
-            "version is pre-1.0.0", () {
-          useMockClient(new MockClient((request) {
-            expect(request.method, equals("GET"));
-            expect(request.url.path, equals("/packages/foo.json"));
-
-            return new Future.immediate(new http.Response(json.stringify({
-              "name": "foo",
-              "uploaders": ["nweiz@google.com"],
-              "versions": ["0.0.1", "0.0.2"]
-            }), 200));
-          }));
-
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
-              {'git': 'git://github.com/dart-lang/foo'}
-            ])
-          ]).scheduleCreate();
-
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains(
-                  '  foo: ">=0.0.2 <0.0.3"'))));
+        integration("and should suggest a tighter constraint if primary is "
+                    "pre-1.0.0", () {
+          setUpDependency({'git': 'git://github.com/dart-lang/foo'},
+              hostedVersions: ["0.0.1", "0.0.2"]);
+          expectDependencyValidationWarning('  foo: ">=0.0.2 <0.0.3"');
         });
       });
 
-      group('where no hosted version of that dependency exists', () {
+      group('where no hosted version exists', () {
         integration("and should use the other source's version", () {
-          useMockClient(new MockClient((request) {
-            expect(request.method, equals("GET"));
-            expect(request.url.path, equals("/packages/foo.json"));
-
-            return new Future.immediate(new http.Response("not found", 404));
-          }));
-
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
-              {
-                'git': {'url': 'git://github.com/dart-lang/foo'},
-                'version': '>=1.0.0 <2.0.0'
-              }
-            ])
-          ]).scheduleCreate();
-
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains(
-                  '  foo: ">=1.0.0 <2.0.0"'))));
+          setUpDependency({
+            'git': 'git://github.com/dart-lang/foo',
+            'version': '>=1.0.0 <2.0.0'
+          });
+          expectDependencyValidationWarning('  foo: ">=1.0.0 <2.0.0"');
         });
 
         integration("and should use the other source's unquoted version if "
-            "it's concrete", () {
-          useMockClient(new MockClient((request) {
-            expect(request.method, equals("GET"));
-            expect(request.url.path, equals("/packages/foo.json"));
+                    "concrete", () {
+          setUpDependency({
+            'git': 'git://github.com/dart-lang/foo',
+            'version': '0.2.3'
+          });
+          expectDependencyValidationWarning('  foo: 0.2.3');
+        });
+      });
+    });
 
-            return new Future.immediate(new http.Response("not found", 404));
-          }));
+    group('has a path dependency', () {
+      group('where a hosted version exists', () {
+        integration("and should suggest the hosted primary version", () {
+          setUpDependency({'path': path.join(sandboxDir, 'foo')},
+              hostedVersions: ["3.0.0-pre", "2.0.0", "1.0.0"]);
+          expectDependencyValidationError('  foo: ">=2.0.0 <3.0.0"');
+        });
 
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
-              {
-                'git': {'url': 'git://github.com/dart-lang/foo'},
-                'version': '0.2.3'
-              }
-            ])
-          ]).scheduleCreate();
+        integration("and should suggest the hosted prerelease version if "
+                    "it's the only version available", () {
+          setUpDependency({'path': path.join(sandboxDir, 'foo')},
+              hostedVersions: ["3.0.0-pre", "2.0.0-pre"]);
+          expectDependencyValidationError('  foo: ">=3.0.0-pre <4.0.0"');
+        });
 
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains('  foo: 0.2.3'))));
+        integration("and should suggest a tighter constraint if primary is "
+                    "pre-1.0.0", () {
+          setUpDependency({'path': path.join(sandboxDir, 'foo')},
+              hostedVersions: ["0.0.1", "0.0.2"]);
+          expectDependencyValidationError('  foo: ">=0.0.2 <0.0.3"');
+        });
+      });
+
+      group('where no hosted version exists', () {
+        integration("and should use the other source's version", () {
+          setUpDependency({
+            'path': path.join(sandboxDir, 'foo'),
+            'version': '>=1.0.0 <2.0.0'
+          });
+          expectDependencyValidationError('  foo: ">=1.0.0 <2.0.0"');
+        });
+
+        integration("and should use the other source's unquoted version if "
+                    "concrete", () {
+          setUpDependency({
+            'path': path.join(sandboxDir, 'foo'),
+            'version': '0.2.3'
+          });
+          expectDependencyValidationError('  foo: 0.2.3');
         });
       });
     });
@@ -507,9 +506,7 @@ main() {
             }))
           ]).scheduleCreate();
 
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains(
-                  '  foo: ">=1.2.3 <2.0.0"'))));
+          expectDependencyValidationWarning('  foo: ">=1.2.3 <2.0.0"');
         });
 
         integration('and it should suggest a concrete constraint if the locked '
@@ -532,9 +529,7 @@ main() {
             }))
           ]).scheduleCreate();
 
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, someElement(contains(
-                  '  foo: ">=0.1.2 <0.1.3"'))));
+          expectDependencyValidationWarning('  foo: ">=0.1.2 <0.1.3"');
         });
       });
     });

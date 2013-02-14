@@ -49,5 +49,7 @@ doItSync(Function f) {
 // completion.
 Future doItAsync(void f()) {
   // Ignore value and errors.
-  return new Future.delayed(0, f).catchError((_) {}).then((_) => true);
+  return new Future.delayed(Duration.ZERO, f)
+    .catchError((_) {})
+    .then((_) => true);
 }

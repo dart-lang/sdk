@@ -13,6 +13,7 @@ import 'io.dart';
 import 'io.dart' as io show createTempDir;
 import 'log.dart' as log;
 import 'package.dart';
+import 'path_source.dart';
 import 'pubspec.dart';
 import 'sdk_source.dart';
 import 'source.dart';
@@ -46,9 +47,10 @@ class SystemCache {
   /// Creates a system cache and registers the standard set of sources.
   factory SystemCache.withSources(String rootDir) {
     var cache = new SystemCache(rootDir);
-    cache.register(new SdkSource());
     cache.register(new GitSource());
     cache.register(new HostedSource());
+    cache.register(new PathSource());
+    cache.register(new SdkSource());
     cache.sources.setDefault('hosted');
     return cache;
   }
@@ -101,7 +103,7 @@ class SystemCache {
   /// packages into while installing. It uses this instead of the OS's system
   /// temp directory to ensure that it's on the same volume as the pub system
   /// cache so that it can move the directory from it.
-  Directory createTempDir() {
+  String createTempDir() {
     var temp = ensureDir(tempDir);
     return io.createTempDir(join(temp, 'dir'));
   }

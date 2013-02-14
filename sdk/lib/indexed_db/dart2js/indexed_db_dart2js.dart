@@ -190,11 +190,13 @@ class Cursor native "*IDBCursor" {
 @DomName('IDBCursorWithValue')
 class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 
+  dynamic get value => _convertNativeToDart_IDBAny(this._value);
+  @JSName('value')
   @DomName('IDBCursorWithValue.value')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final Object value;
+  final dynamic _value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -237,12 +239,6 @@ class Database extends EventTarget native "*IDBDatabase" {
   @DomName('IDBDatabase.versionchangeEvent')
   @DocsEditable
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  DatabaseEvents get on =>
-    new DatabaseEvents(this);
 
   @DomName('IDBDatabase.name')
   @DocsEditable
@@ -309,22 +305,6 @@ class Database extends EventTarget native "*IDBDatabase" {
   @DomName('IDBDatabase.onversionchange')
   @DocsEditable
   Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
-}
-
-@DocsEditable
-@deprecated
-class DatabaseEvents extends Events {
-  @DocsEditable
-  DatabaseEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get versionChange => this['versionchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -616,7 +596,7 @@ class ObjectStore native "*IDBObjectStore" {
    * the current transaction.
    */
   @DomName('IDBObjectStore.openCursor')
-  Stream<Cursor> openCursor({key, KeyRange range, String direction,
+  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
       bool autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
@@ -702,29 +682,31 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   Index createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) && !?options) {
-      return _createIndex_1(name, keyPath);
+      List keyPath_1 = convertDartToNative_StringArray(keyPath);
+      return _createIndex_1(name, keyPath_1);
     }
     if ((keyPath is List<String> || keyPath == null)) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath, options_1);
+      List keyPath_2 = convertDartToNative_StringArray(keyPath);
+      var options_3 = convertDartToNative_Dictionary(options);
+      return _createIndex_2(name, keyPath_2, options_3);
     }
     if ((keyPath is String || keyPath == null) && !?options) {
       return _createIndex_3(name, keyPath);
     }
     if ((keyPath is String || keyPath == null)) {
-      var options_2 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_2);
+      var options_4 = convertDartToNative_Dictionary(options);
+      return _createIndex_4(name, keyPath, options_4);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_1(name, List<String> keyPath) native;
+  Index _createIndex_1(name, List keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_2(name, List<String> keyPath, options) native;
+  Index _createIndex_2(name, List keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
@@ -800,7 +782,7 @@ class ObjectStore native "*IDBObjectStore" {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController<Cursor>();
+    var controller = new StreamController();
 
     request.onError.listen((e) {
       //TODO: Report stacktrace once issue 4061 is resolved.
@@ -838,12 +820,6 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
   @DocsEditable
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  OpenDBRequestEvents get on =>
-    new OpenDBRequestEvents(this);
-
   @DomName('IDBOpenDBRequest.onblocked')
   @DocsEditable
   Stream<Event> get onBlocked => blockedEvent.forTarget(this);
@@ -851,19 +827,6 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
   @DomName('IDBOpenDBRequest.onupgradeneeded')
   @DocsEditable
   Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
-}
-
-@DocsEditable
-@deprecated
-class OpenDBRequestEvents extends RequestEvents {
-  @DocsEditable
-  OpenDBRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get blocked => this['blocked'];
-
-  @DocsEditable
-  EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -881,12 +844,6 @@ class Request extends EventTarget native "*IDBRequest" {
   @DomName('IDBRequest.successEvent')
   @DocsEditable
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  RequestEvents get on =>
-    new RequestEvents(this);
 
   @DomName('IDBRequest.error')
   @DocsEditable
@@ -942,19 +899,6 @@ class Request extends EventTarget native "*IDBRequest" {
   @DocsEditable
   Stream<Event> get onSuccess => successEvent.forTarget(this);
 }
-
-@DocsEditable
-@deprecated
-class RequestEvents extends Events {
-  @DocsEditable
-  RequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get success => this['success'];
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1000,12 +944,6 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   @DomName('IDBTransaction.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  TransactionEvents get on =>
-    new TransactionEvents(this);
 
   @DomName('IDBTransaction.db')
   @DocsEditable
@@ -1061,22 +999,6 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class TransactionEvents extends Events {
-  @DocsEditable
-  TransactionEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get complete => this['complete'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

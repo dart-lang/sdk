@@ -4,62 +4,41 @@
 
 part of universe;
 
-// TODO(kasperl): It seems possible to rewrite this class to be more
-// like the FunctionSet abstraction which is a lot simpler.
-class SelectorMap<T> extends PartialTypeTree {
-
-  SelectorMap(Compiler compiler) : super(compiler);
-
-  SelectorMapNode<T> newNode(ClassElement type) => new SelectorMapNode<T>(type);
+class SelectorMap<T> {
+  final Compiler compiler;
+  final Map<SourceString, SelectorMapNode<T>> nodes =
+      new Map<SourceString, SelectorMapNode<T>>();
+  SelectorMap(this.compiler);
 
   T operator [](Selector selector) {
-    SelectorMapNode<T> node = findNode(selectorType(selector), false);
-    if (node == null) return null;
-    Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
-    if (selectors == null) return null;
-    for (Link link = selectors; !link.isEmpty; link = link.tail) {
-      SelectorValue<T> existing = link.head;
-      if (existing.selector.equalsUntyped(selector)) return existing.value;
-    }
-    return null;
-  }
-
-  // TODO(kasperl): Do we need to support removing selectors by
-  // passing null as the value?
-  void operator []=(Selector selector, T value) {
-    ClassElement type = selectorType(selector);
-    SelectorMapNode<T> node = findNode(type, true);
     SourceString name = selector.name;
-    Link<SelectorValue<T>> selectors = node.selectorsByName.putIfAbsent(
-        name, () => const Link());
-    // Run through the linked list of selectors with the same name. If
-    // we find one that matches, we update the value in the mapping.
-    for (Link link = selectors; !link.isEmpty; link = link.tail) {
-      SelectorValue<T> existing = link.head;
-      // It is safe to ignore the type here, because all selector
-      // mappings that are stored in a single node have the same type.
-      if (existing.selector.equalsUntyped(selector)) {
-        existing.value = value;
-        return;
-      }
-    }
-    // We could not find an existing mapping for the selector, so
-    // we add a new one to the existing linked list.
-    SelectorValue<T> head = new SelectorValue<T>(selector, value);
-    node.selectorsByName[name] = selectors.prepend(head);
+    SelectorMapNode node = nodes[name];
+    return (node != null)
+        ? node.lookup(selector)
+        : null;
   }
 
-  // TODO(kasperl): Share code with the [] operator?
+  void operator []=(Selector selector, T value) {
+    SourceString name = selector.name;
+    SelectorMapNode node = nodes.putIfAbsent(
+        name, () => new SelectorMapNode(name));
+    node.update(selector, value);
+  }
+
   bool containsKey(Selector selector) {
-    SelectorMapNode<T> node = findNode(selectorType(selector), false);
-    if (node == null) return false;
-    Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
-    if (selectors == null) return false;
-    for (Link link = selectors; !link.isEmpty; link = link.tail) {
-      SelectorValue<T> existing = link.head;
-      if (existing.selector.equalsUntyped(selector)) return true;
-    }
-    return false;
+    SourceString name = selector.name;
+    SelectorMapNode node = nodes[name];
+    return (node != null)
+        ? node.containsKey(selector)
+        : false;
+  }
+
+  T remove(Selector selector) {
+    SourceString name = selector.name;
+    SelectorMapNode node = nodes[name];
+    return (node != null)
+        ? node.remove(selector)
+        : null;
   }
 
   /**
@@ -69,56 +48,82 @@ class SelectorMap<T> extends PartialTypeTree {
    */
   void visitMatching(Element member, bool visit(Selector selector, T value)) {
     assert(member.isMember());
-    if (root == null) return;
-    // TODO(kasperl): Use visitHierachyMatching when possible. It is
-    // currently broken in subtle ways when it comes to finding typed
-    // selectors where we only know the interface of the receiver.
-    visitAllMatching(member, visit);
+    SourceString name = member.name;
+    SelectorMapNode node = nodes[name];
+    if (node != null) {
+      node.visitMatching(member, compiler, visit);
+    }
   }
-
-  void visitAllMatching(Element member, bool visit(selector, value)) {
-    root.visitRecursively((SelectorMapNode<T> node) {
-      Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
-      if (selectors == null) return true;
-      for (Link link = selectors; !link.isEmpty; link = link.tail) {
-        SelectorValue<T> existing = link.head;
-        Selector selector = existing.selector;
-        // Since we're running through the entire tree we have to use
-        // the applies method that takes types into account.
-        if (selector.appliesUnnamed(member, compiler)) {
-          if (!visit(selector, existing.value)) return false;
-        }
-      }
-      return true;
-    });
-  }
-
-  void visitHierarchyMatching(Element member, bool visit(selector, value)) {
-    visitHierarchy(member.getEnclosingClass(), (SelectorMapNode<T> node) {
-      Link<SelectorValue<T>> selectors = node.selectorsByName[member.name];
-      if (selectors == null) return true;
-      for (Link link = selectors; !link.isEmpty; link = link.tail) {
-        SelectorValue<T> existing = link.head;
-        Selector selector = existing.selector;
-        if (selector.appliesUntyped(member, compiler)) {
-          if (!visit(selector, existing.value)) return false;
-        }
-      }
-      return true;
-    });
-  }
-
 }
 
-class SelectorMapNode<T> extends PartialTypeTreeNode {
-  final Map<SourceString, Link<SelectorValue<T>>> selectorsByName =
-      new Map<SourceString, Link<SelectorValue<T>>>();
-  SelectorMapNode(ClassElement type) : super(type);
-}
+class SelectorMapNode<T> {
+  final SourceString name;
+  final Map<Selector, T> selectors = new Map<Selector, T>();
 
-class SelectorValue<T> {
-  final Selector selector;
-  T value;
-  SelectorValue(this.selector, this.value);
-  toString() => "$selector -> $value";
+  // We start caching which selectors match which elements when the
+  // number of different selectors exceed a threshold. This way we
+  // avoid lots of repeated calls to the Selector.applies method.
+  static const int MAX_SELECTORS_NO_CACHE = 8;
+  Map<Element, List<Selector>> cache;
+
+  SelectorMapNode(this.name);
+
+  T lookup(Selector selector) {
+    assert(selector.name == name);
+    return selectors[selector];
+  }
+
+  void update(Selector selector, T value) {
+    assert(selector.name == name);
+    bool existing = selectors.containsKey(selector);
+    selectors[selector] = value;
+    if (existing) return;
+    // The update has introduced a new selector in the map, so we need
+    // to consider if we should start caching. At the very least, we
+    // have to clear the cache because the new element may invalidate
+    // existing cache entries.
+    if (cache == null) {
+      if (selectors.length > MAX_SELECTORS_NO_CACHE) {
+        cache = new Map<Element, List<Selector>>();
+      }
+    } else if (!cache.isEmpty) {
+      cache.clear();
+    }
+  }
+
+  bool containsKey(Selector selector) {
+    assert(selector.name == name);
+    return selectors.containsKey(selector);
+  }
+
+  T remove(Selector selector) {
+    assert(selector.name == name);
+    if (!selectors.containsKey(selector)) return null;
+    if (cache != null && !cache.isEmpty) cache.clear();
+    return selectors.remove(selector);
+  }
+
+  void visitMatching(Element member, Compiler compiler,
+                     bool visit(Selector selector, T value)) {
+    assert(member.name == name);
+    Iterable<Selector> matching = computeMatching(member, compiler);
+    for (Selector selector in matching) {
+      if (!visit(selector, selectors[selector])) return;
+    }
+  }
+
+  Iterable<Selector> computeMatching(Element member, Compiler compiler) {
+    // Probe the cache if it exists. Do this before creating the
+    // matching iterable to cut down on the overhead for cache hits.
+    if (cache != null) {
+      List<Selector> cached = cache[member];
+      if (cached != null) return cached;
+    }
+    // Filter the selectors keys so we only have the ones that apply
+    // to the given member element.
+    Iterable<Selector> matching = selectors.keys.where(
+        (Selector selector) => selector.appliesUnnamed(member, compiler));
+    if (cache == null) return matching;
+    return cache[member] = matching.toList();
+  }
 }

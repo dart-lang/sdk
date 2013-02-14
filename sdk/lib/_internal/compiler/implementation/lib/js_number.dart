@@ -235,22 +235,22 @@ class JSNumber implements num {
 
   bool operator <(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', '# < #', this, other);
+    return JS('bool', '# < #', this, other);
   }
 
   bool operator >(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', '# > #', this, other);
+    return JS('bool', '# > #', this, other);
   }
 
   bool operator <=(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', '# <= #', this, other);
+    return JS('bool', '# <= #', this, other);
   }
 
   bool operator >=(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', '# >= #', this, other);
+    return JS('bool', '# >= #', this, other);
   }
 }
 

@@ -31,6 +31,7 @@ import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/http.dart';
 import '../../pub/io.dart';
+import '../../pub/path_source.dart';
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
@@ -404,6 +405,9 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
       case "hosted":
         source = new HostedSource();
         break;
+      case "path":
+        source = new PathSource();
+        break;
       case "sdk":
         source = new SdkSource();
         break;
@@ -423,16 +427,24 @@ String _packageName(String sourceName, description) {
   switch (sourceName) {
   case "git":
     var url = description is String ? description : description['url'];
-    return basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
+    // TODO(rnystrom): Using path.basename on a URL is hacky. If we add URL
+    // support to pkg/path, should use an explicit builder for that.
+    return path.basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;
     return description['name'];
+  case "path":
+    return path.basename(description);
   case "sdk":
     return description;
   default:
     return description;
   }
 }
+
+/// The full path to the created sandbox directory for an integration test.
+String get sandboxDir => _sandboxDir;
+String _sandboxDir;
 
 /// The path of the package cache directory used for tests. Relative to the
 /// sandbox directory.
@@ -452,7 +464,7 @@ final String packagesPath = "$appPath/packages";
 
 /// The type for callbacks that will be fired during [schedulePub]. Takes the
 /// sandbox directory as a parameter.
-typedef Future _ScheduledEvent(Directory parentDir);
+typedef Future _ScheduledEvent(String parentDir);
 
 /// The list of events that are scheduled to run as part of the test case.
 List<_ScheduledEvent> _scheduled;
@@ -488,27 +500,32 @@ void _integration(String description, void body(), [Function testFn]) {
       file('version', '0.1.2.3')
     ]).scheduleCreate();
 
+    _sandboxDir = createTempDir();
+
     // Schedule the test.
     body();
 
     // Run all of the scheduled tasks. If an error occurs, it will propagate
     // through the futures back up to here where we can hand it off to unittest.
     var asyncDone = expectAsync0(() {});
-    var sandboxDir = createTempDir();
-    return timeout(_runScheduled(sandboxDir, _scheduled),
+    return timeout(_runScheduled(_scheduled),
           _TIMEOUT, 'waiting for a test to complete').catchError((e) {
-      return _runScheduled(sandboxDir, _scheduledOnException).then((_) {
+      return _runScheduled(_scheduledOnException).then((_) {
         // Rethrow the original error so it keeps propagating.
         throw e;
       });
     }).whenComplete(() {
       // Clean up after ourselves. Do this first before reporting back to
       // unittest because it will advance to the next test immediately.
-      return _runScheduled(sandboxDir, _scheduledCleanup).then((_) {
+      return _runScheduled(_scheduledCleanup).then((_) {
         _scheduled = null;
         _scheduledCleanup = null;
         _scheduledOnException = null;
-        if (sandboxDir != null) return deleteDir(sandboxDir);
+        if (_sandboxDir != null) {
+          var dir = _sandboxDir;
+          _sandboxDir = null;
+          return deleteDir(dir);
+        }
       });
     }).then((_) {
       // If we got here, the test completed successfully so tell unittest so.
@@ -527,9 +544,17 @@ void _integration(String description, void body(), [Function testFn]) {
 /// tests.
 String get testDirectory {
   var dir = new Options().script;
-  while (basename(dir) != 'pub') dir = dirname(dir);
+  while (path.basename(dir) != 'pub') dir = path.dirname(dir);
 
-  return getFullPath(dir);
+  return path.absolute(dir);
+}
+
+/// Schedules renaming (moving) the directory at [from] to [to], both of which
+/// are assumed to be relative to [sandboxDir].
+void scheduleRename(String from, String to) {
+  _schedule((sandboxDir) {
+    return renameDir(join(sandboxDir, from), join(sandboxDir, to));
+  });
 }
 
 /// Schedules a call to the Pub command-line utility. Runs Pub with [args] and
@@ -602,12 +627,14 @@ void confirmPublish(ScheduledProcess pub) {
   pub.writeLine("y");
 }
 
-
 /// Calls [fn] with appropriately modified arguments to run a pub process. [fn]
 /// should have the same signature as [startProcess], except that the returned
 /// [Future] may have a type other than [Process].
 Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
-  String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
+  String pathInSandbox(String relPath) {
+    return join(path.absolute(sandboxDir), relPath);
+  }
+
   return defer(() {
     ensureDir(pathInSandbox(appPath));
     return Future.wait([
@@ -677,7 +704,7 @@ void useMockClient(MockClient client) {
   });
 }
 
-Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
+Future _runScheduled(List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
   var iterator = scheduled.iterator;
 
@@ -688,7 +715,7 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
       return new Future.immediate(null);
     }
 
-    var future = iterator.current(parentDir);
+    var future = iterator.current(_sandboxDir);
     if (future != null) {
       return future.then(runNextEvent);
     } else {
@@ -815,7 +842,7 @@ abstract class Descriptor {
   /// Schedules the directory to be validated after Pub is run with
   /// [schedulePub]. The directory will be validated relative to the sandbox
   /// directory.
-  void scheduleValidate() => _schedule((parentDir) => validate(parentDir.path));
+  void scheduleValidate() => _schedule((parentDir) => validate(parentDir));
 
   /// Asserts that the name of the descriptor is a [String] and returns it.
   String get _stringName {
@@ -1169,7 +1196,7 @@ class NothingDescriptor extends Descriptor {
 typedef Validator ValidatorCreator(Entrypoint entrypoint);
 
 /// Schedules a single [Validator] to run on the [appPath]. Returns a scheduled
-/// Future that contains the erros and warnings produced by that validator.
+/// Future that contains the errors and warnings produced by that validator.
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return _scheduleValue((sandboxDir) {

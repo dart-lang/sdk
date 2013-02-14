@@ -939,6 +939,10 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
       return OneByteString::data_offset();
     case kTwoByteStringCid:
       return TwoByteString::data_offset();
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
+      // Elements start at offset 0 of the external data.
+      return 0;
     default:
       UNIMPLEMENTED();
       return Array::data_offset();

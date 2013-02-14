@@ -10,6 +10,8 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this a "package:" URL, or something nicer than this.
 import '../../pkg/oauth2/lib/oauth2.dart';
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
@@ -138,9 +140,9 @@ Credentials _loadCredentials(SystemCache cache) {
 void _saveCredentials(SystemCache cache, Credentials credentials) {
   log.fine('Saving OAuth2 credentials.');
   _credentials = credentials;
-  var path = _credentialsFile(cache);
-  ensureDir(dirname(path));
-  writeTextFile(path, credentials.toJson(), dontLogContents: true);
+  var credentialsPath = _credentialsFile(cache);
+  ensureDir(path.dirname(credentialsPath));
+  writeTextFile(credentialsPath, credentials.toJson(), dontLogContents: true);
 }
 
 /// The path to the file in which the user's OAuth2 credentials are stored.

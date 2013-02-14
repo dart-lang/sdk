@@ -42,8 +42,10 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
     "Trace disabling optimized code.");
-DEFINE_FLAG(int, huge_method_cutoff, 20000,
-            "Huge method cutoff: Disables optimizations for huge methods.");
+DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
+    "Huge method cutoff in tokens: Disables optimizations for huge methods.");
+DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
+    "Huge method cutoff in unoptimized code size (in bytes).");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -2075,6 +2077,13 @@ void Class::set_interfaces(const Array& value) const {
 }
 
 
+void Class::set_mixin(const Type& value) const {
+  // Resolution and application of mixin type occurs in finalizer.
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->mixin_, value.raw());
+}
+
+
 void Class::AddDirectSubclass(const Class& subclass) const {
   ASSERT(!subclass.IsNull());
   ASSERT(subclass.SuperClass() == raw());
@@ -2185,12 +2194,13 @@ bool Class::TypeTest(
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
     // Check for covariance.
-    if (other_type_arguments.IsNull() ||
-        other_type_arguments.IsRawInstantiatedRaw(len)) {
+    if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
       return true;
     }
-    if (type_arguments.IsNull() ||
-        type_arguments.IsRawInstantiatedRaw(len)) {
+    if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
+      // Other type can't be more specific than this one because for that
+      // it would have to have all dynamic type arguments which is checked
+      // above.
       return test_kind == kIsSubtypeOf;
     }
     return type_arguments.TypeTest(test_kind,
@@ -3663,10 +3673,20 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::is_optimizable() const {
-  return OptimizableBit::decode(raw_ptr()->kind_tag_) &&
-         (script() != Script::null()) &&
-         !is_native() &&
-         ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff);
+  if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
+      (script() != Script::null()) &&
+      !is_native() &&
+      ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
+    // Additional check needed for implicit getters.
+    if (HasCode() &&
+       (Code::Handle(unoptimized_code()).Size() >=
+        FLAG_huge_method_cutoff_in_code_size)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -4081,6 +4101,15 @@ bool Function::TypeTest(TypeTestKind test_kind,
 }
 
 
+// The compiler generates an implicit constructor if a class definition
+// does not contain an explicit constructor or factory. The implicit
+// constructor has the same token position as the owner class.
+bool Function::IsImplicitConstructor() const {
+  return IsConstructor() &&
+         (token_pos() == Class::Handle(Owner()).token_pos());
+}
+
+
 bool Function::IsImplicitClosureFunction() const {
   if (!IsClosureFunction()) {
     return false;
@@ -4137,6 +4166,24 @@ RawFunction* Function::New(const String& name,
     result.set_data(data);
   }
   return result.raw();
+}
+
+
+RawFunction* Function::Clone(const Class& new_owner) const {
+  ASSERT(!IsConstructor());
+  Function& clone = Function::Handle();
+  clone ^= Object::Clone(*this, Heap::kOld);
+  const Class& owner = Class::Handle(this->Owner());
+  const PatchClass& clone_owner =
+      PatchClass::Handle(PatchClass::New(new_owner, owner));
+  clone.set_owner(clone_owner);
+  clone.StorePointer(&clone.raw_ptr()->code_, Code::null());
+  clone.StorePointer(&clone.raw_ptr()->unoptimized_code_, Code::null());
+  clone.set_usage_counter(0);
+  clone.set_deoptimization_counter(0);
+  clone.set_optimized_instruction_count(0);
+  clone.set_optimized_call_site_count(0);
+  return clone.raw();
 }
 
 
@@ -4375,6 +4422,16 @@ RawClass* Function::Owner() const {
   }
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).patched_class();
+}
+
+
+RawClass* Function::origin() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).source_class();
 }
 
 
@@ -4637,6 +4694,26 @@ void Field::set_name(const String& value) const {
 }
 
 
+RawClass* Field::owner() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).patched_class();
+}
+
+
+RawClass* Field::origin() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).source_class();
+}
+
+
 RawInstance* Field::value() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return raw_ptr()->value_;
@@ -4685,6 +4762,21 @@ RawField* Field::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();
+}
+
+
+
+RawField* Field::Clone(const Class& new_owner) const {
+  Field& clone = Field::Handle();
+  clone ^= Object::Clone(*this, Heap::kOld);
+  const Class& owner = Class::Handle(this->owner());
+  const PatchClass& clone_owner =
+      PatchClass::Handle(PatchClass::New(new_owner, owner));
+  clone.set_owner(clone_owner);
+  if (!clone.is_static()) {
+    clone.SetOffset(0);
+  }
+  return clone.raw();
 }
 
 

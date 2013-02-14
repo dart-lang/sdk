@@ -113,4 +113,5 @@ class AuthenticateHeader {
 }
 
 /// Returns a [Future] that asynchronously completes to `null`.
-Future get async => new Future.delayed(0, () => null);
+Future get async => new Future.delayed(const Duration(milliseconds: 0),
+                                       () => null);

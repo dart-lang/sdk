@@ -137,19 +137,29 @@ abstract class Future<T> {
   /**
    * Creates a future that completes after a delay.
    *
-   * The future will be completed after [milliseconds] have passed with
-   * the result of calling [value]. If [milliseconds] is 0, it completes at the
-   * earliest in the next event-loop iteration.
+   * The future will be completed after the given [duration] has passed with
+   * the result of calling [computation]. If the duration is 0 or less, it
+   * completes no sooner than in the next event-loop iteration.
    *
-   * If calling [value] throws, the created future will complete with the
+   * If [computation] is not given or [:null:] then it will behave as if
+   * [computation] was set to [:() => null:]. That is, it will complete with
+   * [:null:].
+   *
+   * If calling [computation] throws, the created future will complete with the
    * error.
    *
    * See [Completer]s, for futures with values that are computed asynchronously.
+   *
+   * *Deprecation note*: this method initially took an [int] as argument (the
+   * milliseconds to wait). It is now a [Duration].
    */
-  factory Future.delayed(int milliseconds, T value()) {
+  factory Future.delayed(var duration, [T computation()]) {
+    // TODO(floitsch): no need to allocate a ThenFuture when the computation is
+    // null.
+    if (computation == null) computation = (() => null);
     _ThenFuture<dynamic, T> future =
-        new _ThenFuture<dynamic, T>((_) => value());
-    new Timer(milliseconds, (_) => future._sendValue(null));
+        new _ThenFuture<dynamic, T>((_) => computation());
+    new Timer(duration, () => future._sendValue(null));
     return future;
   }
 

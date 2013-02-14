@@ -433,6 +433,7 @@ class RawClass : public RawObject {
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawType* super_type_;
+  RawType* mixin_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
@@ -555,7 +556,8 @@ class RawFunction : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawObject* owner_;  // Class or  patch class where this function was defined.
+  RawObject* owner_;  // Class or patch class or mixin class
+                      // where this function is defined.
   RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
@@ -619,7 +621,8 @@ class RawField : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawClass* owner_;
+  RawObject* owner_;  // Class or patch class or mixin class
+                      // where this field is defined.
   RawAbstractType* type_;
   RawInstance* value_;  // Offset in words for instance and value for static.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }

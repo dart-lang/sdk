@@ -1369,7 +1369,8 @@ abstract class HInvokeDynamic extends HInvoke {
   }
 
   HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    return specializer.computeTypeFromInputTypes(this, types, compiler);
+    HType type = specializer.computeTypeFromInputTypes(this, types, compiler);
+    return type.isUnknown() ? guaranteedType : type;
   }
 }
 
@@ -1671,6 +1672,9 @@ class HSwitch extends HControlFlow {
 abstract class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HInstruction left, HInstruction right) : super(left, right);
   HType get guaranteedType => HType.INTEGER;
+  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
+    return guaranteedType;
+  }
 }
 
 class HShiftLeft extends HBinaryBitOp {

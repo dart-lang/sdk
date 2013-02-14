@@ -26,18 +26,28 @@ abstract class HType {
           isInterfaceType: isInterfaceType);
     }
 
-    if (element == compiler.intClass) {
+    JavaScriptBackend backend = compiler.backend;
+    if (element == compiler.intClass || element == backend.jsIntClass) {
       return canBeNull ? HType.INTEGER_OR_NULL : HType.INTEGER;
-    } else if (element == compiler.numClass) {
+    } else if (element == compiler.numClass 
+               || element == backend.jsNumberClass) {
       return canBeNull ? HType.NUMBER_OR_NULL : HType.NUMBER;
-    } else if (element == compiler.doubleClass) {
+    } else if (element == compiler.doubleClass
+               || element == backend.jsDoubleClass) {
       return canBeNull ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
-    } else if (element == compiler.stringClass) {
+    } else if (element == compiler.stringClass
+               || element == backend.jsStringClass) {
       return canBeNull ? HType.STRING_OR_NULL : HType.STRING;
-    } else if (element == compiler.boolClass) {
+    } else if (element == compiler.boolClass
+               || element == backend.jsBoolClass) {
       return canBeNull ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
-    } else if (element == compiler.nullClass) {
+    } else if (element == compiler.nullClass
+               || element == backend.jsNullClass) {
       return HType.NULL;
+    } else if (element == backend.jsArrayClass) {
+      return canBeNull
+          ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
+          : HType.READABLE_ARRAY;
     } else if (!isExact) {
       if (element == compiler.listClass
           || Elements.isListSupertype(element, compiler)) {
@@ -55,7 +65,8 @@ abstract class HType {
             type,
             canBeNull: canBeNull,
             isInterfaceType: isInterfaceType);
-      } else if (element == compiler.objectClass) {
+      } else if (element == compiler.objectClass
+                 || element == compiler.dynamicClass) {
         return new HBoundedPotentialPrimitiveType(
             compiler.objectClass.computeType(compiler),
             true,
@@ -158,12 +169,23 @@ abstract class HType {
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
 
-  Element lookupMember(SourceString name, Compiler compiler) {
-    if (!isExact()) return null;
+  Element lookupSingleTarget(Selector selector, Compiler compiler) {
+    if (isInterfaceType()) return null;
     DartType type = computeType(compiler);
     if (type == null) return null;
     ClassElement cls = type.element;
-    return cls.lookupMember(name);
+    Element member = cls.lookupSelector(selector);
+    if (member == null) return null;
+    // [:ClassElement.lookupSelector:] may return an abstract field,
+    // and selctors don't work well with them.
+    // TODO(ngeoffray): Clean up lookupSelector and selectors to know
+    // if it's a getter or a setter that we're interested in.
+    if (!member.isFunction()) return null;
+    if (!selector.applies(member, compiler)) return null;
+    if (!isExact() && !compiler.world.hasNoOverridingMember(member)) {
+      return null;
+    }
+    return member;
   }
 
   DartType computeType(Compiler compiler);

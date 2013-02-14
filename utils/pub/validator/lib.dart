@@ -7,6 +7,8 @@ library lib_validator;
 import 'dart:async';
 import 'dart:io';
 
+import '../../../pkg/path/lib/path.dart' as path;
+
 import '../entrypoint.dart';
 import '../io.dart';
 import '../system_cache.dart';
@@ -31,7 +33,7 @@ class LibValidator extends Validator {
       }
 
       return listDir(libDir).then((files) {
-        files = files.map((file) => relativeTo(file, libDir)).toList();
+        files = files.map((file) => path.relative(file, from: libDir)).toList();
         if (files.isEmpty) {
           errors.add('You must have a non-empty "lib" directory.\n'
               "Without that, users cannot import any code from your package.");

@@ -22,8 +22,8 @@ class CompiledDartdocValidator extends Validator {
   Future validate() {
     return listDir(entrypoint.root.dir, recursive: true).then((entries) {
       for (var entry in entries) {
-        if (basename(entry) != "nav.json") return false;
-        var dir = dirname(entry);
+        if (path.basename(entry) != "nav.json") return false;
+        var dir = path.dirname(entry);
 
         // Look for tell-tale Dartdoc output files all in the same directory.
         var files = [

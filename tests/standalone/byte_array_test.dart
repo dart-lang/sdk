@@ -55,6 +55,15 @@ void testCreateExternalClampedUint8ByteArray() {
     Expect.equals(0, externalClampedByteArray[i]);
   }
 
+  externalClampedByteArray[0] = -1;
+  Expect.equals(0, externalClampedByteArray[0]);
+  
+  for (int i = 0; i < 10; i++) {
+    externalClampedByteArray[i] = i + 250;
+  }
+  for (int i = 0; i < 10; i++) {
+    Expect.equals(i + 250 > 255 ? 255 : i + 250, externalClampedByteArray[i]);
+  }
 }
 
 void testUnsignedByteArrayRange(bool check_throws) {

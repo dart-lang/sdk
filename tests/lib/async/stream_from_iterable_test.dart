@@ -62,7 +62,10 @@ main() {
     subscription = stream.listen((int value) {
       actual.add(value);
       // Do a 10 ms pause during the playback of the iterable.
-      if (value == 20) { subscription.pause(new Future.delayed(10, () {})); }
+      Duration duration = const Duration(milliseconds: 10);
+      if (value == 20) {
+        subscription.pause(new Future.delayed(duration, () {}));
+      }
     }, onDone: expectAsync0(() {
       actual.close();
       Events expected = new Events.fromIterable(iter);

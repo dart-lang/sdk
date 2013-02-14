@@ -274,7 +274,7 @@ class Apidoc extends doc.Dartdoc {
         includeMdnMemberComment(member), super.getMemberComment(member));
   }
 
-  doc.DocComment _mergeDocs(MdnComment mdnComment,
+  doc.DocComment _mergeDocs(doc.MdnComment mdnComment,
                             doc.DocComment fileComment) {
     // Otherwise, prefer comment from the (possibly generated) Dart file.
     if (fileComment != null) return fileComment;
@@ -321,11 +321,21 @@ class Apidoc extends doc.Dartdoc {
     }
   }
 
+  doc.MdnComment lookupMdnComment(Mirror mirror) { 
+    if (mirror is TypeMirror) {
+      return includeMdnTypeComment(mirror);
+    } else if (mirror is MemberMirror) {
+      return includeMdnMemberComment(mirror);
+    } else {
+      return null;
+    }
+  }
+
   /**
    * Gets the MDN-scraped docs for [type], or `null` if this type isn't
    * scraped from MDN.
    */
-  MdnComment includeMdnTypeComment(TypeMirror type) {
+  doc.MdnComment includeMdnTypeComment(TypeMirror type) {
     if (_mdnTypeNamesToSkip.contains(type.simpleName)) {
       print('Skipping MDN type ${type.simpleName}');
       return null;
@@ -359,7 +369,7 @@ class Apidoc extends doc.Dartdoc {
     if (mdnType['summary'].trim().isEmpty) return null;
 
     // Remember which MDN page we're using so we can attribute it.
-    return new MdnComment(mdnType['summary'], mdnType['srcUrl']);
+    return new doc.MdnComment(mdnType['summary'], mdnType['srcUrl']);
   }
 
   /**
@@ -412,7 +422,7 @@ class Apidoc extends doc.Dartdoc {
     if (mdnMember['help'].trim().isEmpty) return null;
 
     // Remember which MDN page we're using so we can attribute it.
-    return new MdnComment(mdnMember['help'], mdnType['srcUrl']);
+    return new doc.MdnComment(mdnMember['help'], mdnType['srcUrl']);
   }
 
   /**
@@ -429,28 +439,4 @@ class Apidoc extends doc.Dartdoc {
 
     return a(memberUrl(member), memberName);
   }
-}
-
-class MdnComment implements doc.DocComment {
-  final String mdnComment;
-  final String mdnUrl;
-
-  MdnComment(String this.mdnComment, String this.mdnUrl);
-
-  String get text => mdnComment;
-
-  ClassMirror get inheritedFrom => null;
-
-  String get html {
-    // Wrap the mdn comment so we can highlight it and so we handle MDN scraped
-    // content that lacks a top-level block tag.
-   return '''
-        <div class="mdn">
-        $mdnComment
-        <div class="mdn-note"><a href="$mdnUrl">from MDN</a></div>
-        </div>
-        ''';
-  }
-
-  String toString() => mdnComment;
 }

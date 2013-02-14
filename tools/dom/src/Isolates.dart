@@ -99,12 +99,10 @@ class _RemoteSendPortSync implements SendPortSync {
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
     var result = null;
-    var listener = (Event e) {
+    window.on[source].first.then((Event e) {
       result = json.parse(_getPortSyncEventData(e));
-    };
-    window.on[source].add(listener);
+    });
     _dispatchEvent(target, [source, message]);
-    window.on[source].remove(listener);
     return result;
   }
 
@@ -159,7 +157,7 @@ class ReceivePortSync {
 
   num _portId;
   Function _callback;
-  EventListener _listener;
+  StreamSubscription _portSubscription;
 
   ReceivePortSync() {
     if (_portIdCount == null) {
@@ -184,21 +182,20 @@ class ReceivePortSync {
 
   void receive(callback(var message)) {
     _callback = callback;
-    if (_listener == null) {
-      _listener = (Event e) {
+    if (_portSubscription == null) {
+      _portSubscription = window.on[_listenerName].listen((Event e) {
         var data = json.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
         _dispatchEvent(replyTo, _serialize(result));
-      };
-      window.on[_listenerName].add(_listener);
+      });
     }
   }
 
   void close() {
     _portMap.remove(_portId);
-    if (_listener != null) window.on[_listenerName].remove(_listener);
+    if (_portSubscription != null) _portSubscription.cancel();
   }
 
   SendPortSync toSendPort() {

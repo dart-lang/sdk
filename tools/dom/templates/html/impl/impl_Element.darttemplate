@@ -775,6 +775,44 @@ $if DART2JS
 $endif
   var xtag;
 
+  /**
+   * Scrolls this element into view.
+   *
+   * Only one of of the alignment options may be specified at a time.
+   *
+   * If no options are specified then this will attempt to scroll the minimum
+   * amount needed to bring the element into view.
+   *
+   * Note that alignCenter is currently only supported on WebKit platforms. If
+   * alignCenter is specified but not supported then this will fall back to
+   * alignTop.
+   *
+   * See also:
+   *
+   * * [scrollIntoView](http://docs.webplatform.org/wiki/dom/methods/scrollIntoView)
+   * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
+   */
+  void scrollIntoView([ScrollAlignment alignment]) {
+    var hasScrollIntoViewIfNeeded = false;
+$if DART2JS
+    hasScrollIntoViewIfNeeded =
+        JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
+$endif
+    if (alignment == ScrollAlignment.TOP) {
+      this.$dom_scrollIntoView(true);
+    } else if (alignment == ScrollAlignment.BOTTOM) {
+      this.$dom_scrollIntoView(false);
+    } else if (hasScrollIntoViewIfNeeded) {
+      if (alignment == ScrollAlignment.CENTER) {
+        this.$dom_scrollIntoViewIfNeeded(true);
+      } else {
+        this.$dom_scrollIntoViewIfNeeded();
+      }
+    } else {
+      this.$dom_scrollIntoView();
+    }
+  }
+
 $if DART2JS
   @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
@@ -1063,4 +1101,21 @@ $else
   static Element createElement_tag(String tag) =>
       document.$dom_createElement(tag);
 $endif
+}
+
+
+/**
+ * Options for Element.scrollIntoView.
+ */
+class ScrollAlignment {
+  final _value;
+  const ScrollAlignment._internal(this._value);
+  toString() => 'ScrollAlignment.$_value';
+
+  /// Attempt to align the element to the top of the scrollable area.
+  static const TOP = const ScrollAlignment._internal('TOP');
+  /// Attempt to center the element in the scrollable area.
+  static const CENTER = const ScrollAlignment._internal('CENTER');
+  /// Attempt to align the element to the bottom of the scrollable area.
+  static const BOTTOM = const ScrollAlignment._internal('BOTTOM');
 }

@@ -25,15 +25,15 @@ DEFINE_FLAG(bool, new_identity_spec, true,
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, trace_optimization);
 
 Definition::Definition()
     : range_(NULL),
+      type_(NULL),
       temp_index_(-1),
       ssa_temp_index_(-1),
-      propagated_type_(AbstractType::Handle()),
-      propagated_cid_(kIllegalCid),
       input_use_list_(NULL),
       env_use_list_(NULL),
       use_kind_(kValue),  // Phis and parameters rely on this default.
@@ -146,10 +146,7 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
-         ((immutable_ == other_load->immutable_) &&
-          ((ResultCid() == other_load->ResultCid()) ||
-           (ResultCid() == kDynamicCid) ||
-           (other_load->ResultCid() == kDynamicCid))));
+         ((immutable_ == other_load->immutable_)));
   return offset_in_bytes() == other_load->offset_in_bytes();
 }
 
@@ -407,175 +404,14 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-// TODO(regis): Support a set of compile types for the given value.
-bool Value::CanComputeIsNull(bool* is_null) const {
-  ASSERT(is_null != NULL);
-  // For now, we can only return a meaningful result if the value is constant.
-  if (!BindsToConstant()) {
+bool Value::NeedsStoreBuffer() {
+  if (Type()->IsNull() ||
+      (Type()->ToNullableCid() == kSmiCid) ||
+      (Type()->ToNullableCid() == kBoolCid)) {
     return false;
   }
 
-  // Return true if the constant value is Object::null.
-  if (BindsToConstantNull()) {
-    *is_null = true;
-    return true;
-  }
-
-  // Consider the compile type of the value to check for sentinels, which are
-  // also treated as null.
-  const AbstractType& compile_type = AbstractType::Handle(CompileType());
-  ASSERT(!compile_type.IsMalformed());
-  ASSERT(!compile_type.IsVoidType());
-
-  // There are only three instances that can be of type Null:
-  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-  // The inline code and run time code performing the type check will only
-  // encounter the 2 sentinel values if type check elimination was disabled.
-  // Otherwise, the type check of a sentinel value will be eliminated here,
-  // because these sentinel values can only be encountered as constants, never
-  // as actual value of a heap object being type checked.
-  if (compile_type.IsNullType()) {
-    *is_null = true;
-    return true;
-  }
-
-  return false;
-}
-
-
-// TODO(regis): Support a set of compile types for the given value.
-bool Value::CanComputeIsInstanceOf(const AbstractType& type,
-                                   bool* is_instance) const {
-  ASSERT(is_instance != NULL);
-  // We cannot give an answer if the given type is malformed.
-  if (type.IsMalformed()) {
-    return false;
-  }
-
-  // We should never test for an instance of null.
-  ASSERT(!type.IsNullType());
-
-  // Consider the compile type of the value.
-  const AbstractType& compile_type = AbstractType::Handle(CompileType());
-  if (compile_type.IsMalformed()) {
-    return false;
-  }
-
-  // If the compile type of the value is void, we are type checking the result
-  // of a void function, which was checked to be null at the return statement
-  // inside the function.
-  if (compile_type.IsVoidType()) {
-    ASSERT(FLAG_enable_type_checks);
-    *is_instance = true;
-    return true;
-  }
-
-  // The Null type is only a subtype of Object and of dynamic.
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
-  if (compile_type.IsNullType()) {
-    *is_instance =
-        type.IsObjectType() || type.IsDynamicType() || type.IsVoidType();
-    return true;
-  }
-
-  // Until we support a set of compile types, we can only give answers for
-  // constant values. Indeed, a variable of the proper compile time type may
-  // still hold null at run time and therefore fail the test.
-  if (!BindsToConstant()) {
-    return false;
-  }
-
-  // A non-null constant is not an instance of void.
-  if (type.IsVoidType()) {
-    *is_instance = false;
-    return true;
-  }
-
-  // Since the value is a constant, its type is instantiated.
-  ASSERT(compile_type.IsInstantiated());
-
-  // The run time type of the value is guaranteed to be a subtype of the
-  // compile time type of the value. However, establishing here that the
-  // compile time type is a subtype of the given type does not guarantee that
-  // the run time type will also be a subtype of the given type, because the
-  // subtype relation is not transitive when an uninstantiated type is
-  // involved.
-  Error& malformed_error = Error::Handle();
-  if (type.IsInstantiated()) {
-    // Perform the test on the compile-time type and provide the answer, unless
-    // the type test produced a malformed error (e.g. an upper bound error).
-    *is_instance = compile_type.IsSubtypeOf(type, &malformed_error);
-  } else {
-    // However, the 'more specific than' relation is transitive and used here.
-    // In other words, if the compile type of the value is more specific than
-    // the given type, the run time type of the value, which is guaranteed to be
-    // a subtype of the compile type, is also guaranteed to be a subtype of the
-    // given type.
-    *is_instance = compile_type.IsMoreSpecificThan(type, &malformed_error);
-  }
-  return malformed_error.IsNull();
-}
-
-
-bool Value::NeedsStoreBuffer() const {
-  const intptr_t cid = ResultCid();
-  if ((cid == kSmiCid) || (cid == kBoolCid) || (cid == kNullCid)) {
-    return false;
-  }
   return !BindsToConstant();
-}
-
-
-RawAbstractType* PhiInstr::CompileType() const {
-  ASSERT(!HasPropagatedType());
-  // Since type propagation has not yet occured, we are reaching this phi via a
-  // back edge phi input. Return null as compile type so that this input is
-  // ignored in the first iteration of type propagation.
-  return AbstractType::null();
-}
-
-
-RawAbstractType* PhiInstr::LeastSpecificInputType() const {
-  AbstractType& least_specific_type = AbstractType::Handle();
-  AbstractType& input_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < InputCount(); i++) {
-    input_type = InputAt(i)->CompileType();
-    if (input_type.IsNull()) {
-      // This input is on a back edge and we are in the first iteration of type
-      // propagation. Ignore it.
-      continue;
-    }
-    ASSERT(!input_type.IsNull());
-    if (least_specific_type.IsNull() ||
-        least_specific_type.IsMoreSpecificThan(input_type, NULL)) {
-      // Type input_type is less specific than the current least_specific_type.
-      least_specific_type = input_type.raw();
-    } else if (input_type.IsMoreSpecificThan(least_specific_type, NULL)) {
-      // Type least_specific_type is less specific than input_type. No change.
-    } else {
-      // The types are unrelated. No need to continue.
-      least_specific_type = Type::ObjectType();
-      break;
-    }
-  }
-  return least_specific_type.raw();
-}
-
-
-RawAbstractType* ParameterInstr::CompileType() const {
-  ASSERT(!HasPropagatedType());
-  // Note that returning the declared type of the formal parameter would be
-  // incorrect, because ParameterInstr is used as input to the type check
-  // verifying the run time type of the passed-in parameter and this check would
-  // always be wrongly eliminated.
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* PushArgumentInstr::CompileType() const {
-  return AbstractType::null();
 }
 
 
@@ -724,45 +560,6 @@ void Definition::ReplaceWith(Definition* other,
     set_previous(NULL);
     set_next(NULL);
   }
-}
-
-
-bool Definition::SetPropagatedCid(intptr_t cid) {
-  if (cid == kIllegalCid) {
-    return false;
-  }
-  if (propagated_cid_ == kIllegalCid) {
-    // First setting, nothing has changed.
-    propagated_cid_ = cid;
-    return false;
-  }
-  bool has_changed = (propagated_cid_ != cid);
-  propagated_cid_ = cid;
-  return has_changed;
-}
-
-
-intptr_t Definition::GetPropagatedCid() {
-  if (has_propagated_cid()) return propagated_cid();
-  intptr_t cid = ResultCid();
-  ASSERT(cid != kIllegalCid);
-  SetPropagatedCid(cid);
-  return cid;
-}
-
-
-intptr_t PhiInstr::GetPropagatedCid() {
-  return propagated_cid();
-}
-
-
-intptr_t ParameterInstr::GetPropagatedCid() {
-  return propagated_cid();
-}
-
-
-intptr_t AssertAssignableInstr::GetPropagatedCid() {
-  return propagated_cid();
 }
 
 
@@ -1027,346 +824,10 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
-RawAbstractType* Value::CompileType() const {
-  if (definition()->HasPropagatedType()) {
-    return definition()->PropagatedType();
-  }
-  // The compile type may be requested when building the flow graph, i.e. before
-  // type propagation has occurred. To avoid repeatedly computing the compile
-  // type of the definition, we store it as initial propagated type.
-  AbstractType& type = AbstractType::Handle(definition()->CompileType());
-  definition()->SetPropagatedType(type);
-  return type.raw();
-}
-
-
-intptr_t Value::ResultCid() const {
-  if (reaching_cid() == kIllegalCid) {
-    return definition()->GetPropagatedCid();
-  }
-  return reaching_cid();
-}
-
-
-
-RawAbstractType* ConstantInstr::CompileType() const {
-  if (value().IsNull()) {
-    return Type::NullType();
-  }
-  if (value().IsInstance()) {
-    return Instance::Cast(value()).GetType();
-  } else {
-    ASSERT(value().IsAbstractTypeArguments());
-    return AbstractType::null();
-  }
-}
-
-
-intptr_t ConstantInstr::ResultCid() const {
-  if (value().IsNull()) {
-    return kNullCid;
-  }
-  if (value().IsInstance()) {
-    return Class::Handle(value().clazz()).id();
-  } else {
-    ASSERT(value().IsAbstractTypeArguments());
-    return kDynamicCid;
-  }
-}
-
-
-RawAbstractType* AssertAssignableInstr::CompileType() const {
-  const AbstractType& value_compile_type =
-      AbstractType::Handle(value()->CompileType());
-  if (!value_compile_type.IsNull() &&
-      value_compile_type.IsMoreSpecificThan(dst_type(), NULL)) {
-    return value_compile_type.raw();
-  }
-  return dst_type().raw();
-}
-
-
-RawAbstractType* AssertBooleanInstr::CompileType() const {
-  return Type::BoolType();
-}
-
-
-RawAbstractType* ArgumentDefinitionTestInstr::CompileType() const {
-  return Type::BoolType();
-}
-
-
-RawAbstractType* CurrentContextInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* StoreContextInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* ClosureCallInstr::CompileType() const {
-  // Because of function subtyping rules, the declared return type of a closure
-  // call cannot be relied upon for compile type analysis. For example, a
-  // function returning dynamic can be assigned to a closure variable declared
-  // to return int and may actually return a double at run-time.
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* InstanceCallInstr::CompileType() const {
-  // TODO(regis): Return a more specific type than dynamic for recognized
-  // combinations of receiver type and method name.
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* PolymorphicInstanceCallInstr::CompileType() const {
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* StaticCallInstr::CompileType() const {
-  if (FLAG_enable_type_checks) {
-    return function().result_type();
-  }
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* LoadLocalInstr::CompileType() const {
-  if (FLAG_enable_type_checks) {
-    return local().type().raw();
-  }
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* StoreLocalInstr::CompileType() const {
-  return value()->CompileType();
-}
-
-
-RawAbstractType* StrictCompareInstr::CompileType() const {
-  return Type::BoolType();
-}
-
-
-// Only known == targets return a Boolean.
-RawAbstractType* EqualityCompareInstr::CompileType() const {
-  if ((receiver_class_id() == kSmiCid) ||
-      (receiver_class_id() == kDoubleCid) ||
-      (receiver_class_id() == kNumberCid)) {
-    return Type::BoolType();
-  }
-  return Type::DynamicType();
-}
-
-
-intptr_t EqualityCompareInstr::ResultCid() const {
-  if ((receiver_class_id() == kSmiCid) ||
-      (receiver_class_id() == kDoubleCid) ||
-      (receiver_class_id() == kNumberCid)) {
-    // Known/library equalities that are guaranteed to return Boolean.
-    return kBoolCid;
-  }
-  return kDynamicCid;
-}
-
-
 bool EqualityCompareInstr::IsPolymorphic() const {
   return HasICData() &&
       (ic_data()->NumberOfChecks() > 0) &&
       (ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks);
-}
-
-
-RawAbstractType* RelationalOpInstr::CompileType() const {
-  if ((operands_class_id() == kSmiCid) ||
-      (operands_class_id() == kDoubleCid) ||
-      (operands_class_id() == kNumberCid)) {
-    // Known/library relational ops that are guaranteed to return Boolean.
-    return Type::BoolType();
-  }
-  return Type::DynamicType();
-}
-
-
-intptr_t RelationalOpInstr::ResultCid() const {
-  if ((operands_class_id() == kSmiCid) ||
-      (operands_class_id() == kDoubleCid) ||
-      (operands_class_id() == kNumberCid)) {
-    // Known/library relational ops that are guaranteed to return Boolean.
-    return kBoolCid;
-  }
-  return kDynamicCid;
-}
-
-
-RawAbstractType* NativeCallInstr::CompileType() const {
-  // The result type of the native function is identical to the result type of
-  // the enclosing native Dart function. However, we prefer to check the type
-  // of the value returned from the native call.
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* StringFromCharCodeInstr::CompileType() const {
-  return Type::StringType();
-}
-
-
-RawAbstractType* LoadIndexedInstr::CompileType() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return Type::DynamicType();
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return Type::Double();
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return Type::IntType();
-    default:
-      UNIMPLEMENTED();
-      return Type::IntType();
-  }
-}
-
-
-RawAbstractType* StoreIndexedInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* StoreInstanceFieldInstr::CompileType() const {
-  return value()->CompileType();
-}
-
-
-RawAbstractType* LoadStaticFieldInstr::CompileType() const {
-  if (FLAG_enable_type_checks) {
-    return field().type();
-  }
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* StoreStaticFieldInstr::CompileType() const {
-  return value()->CompileType();
-}
-
-
-RawAbstractType* BooleanNegateInstr::CompileType() const {
-  return Type::BoolType();
-}
-
-
-RawAbstractType* InstanceOfInstr::CompileType() const {
-  return Type::BoolType();
-}
-
-
-RawAbstractType* CreateArrayInstr::CompileType() const {
-  return type().raw();
-}
-
-
-RawAbstractType* CreateClosureInstr::CompileType() const {
-  const Function& fun = function();
-  const Class& signature_class = Class::Handle(fun.signature_class());
-  return signature_class.SignatureType();
-}
-
-
-RawAbstractType* AllocateObjectInstr::CompileType() const {
-  // TODO(regis): Be more specific.
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* AllocateObjectWithBoundsCheckInstr::CompileType() const {
-  // TODO(regis): Be more specific.
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* LoadFieldInstr::CompileType() const {
-  // Type may be null if the field is a VM field, e.g. context parent.
-  // Keep it as null for debug purposes and do not return dynamic in production
-  // mode, since misuse of the type would remain undetected.
-  if (type().IsNull()) {
-    return AbstractType::null();
-  }
-  if (FLAG_enable_type_checks) {
-    return type().raw();
-  }
-  return Type::DynamicType();
-}
-
-
-RawAbstractType* StoreVMFieldInstr::CompileType() const {
-  return value()->CompileType();
-}
-
-
-RawAbstractType* InstantiateTypeArgumentsInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* ExtractConstructorTypeArgumentsInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* ExtractConstructorInstantiatorInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* AllocateContextInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* ChainContextInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* CloneContextInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* CatchEntryInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* CheckStackOverflowInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* BinarySmiOpInstr::CompileType() const {
-  return Type::SmiType();
-}
-
-
-intptr_t BinarySmiOpInstr::ResultCid() const {
-  return kSmiCid;
 }
 
 
@@ -1395,47 +856,6 @@ bool BinarySmiOpInstr::RightIsPowerOfTwoConstant() const {
   const intptr_t int_value = Smi::Cast(constant).Value();
   if (int_value == 0) return false;
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
-}
-
-
-RawAbstractType* BinaryMintOpInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-intptr_t BinaryMintOpInstr::ResultCid() const {
-  return kDynamicCid;
-}
-
-
-RawAbstractType* ShiftMintOpInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-intptr_t ShiftMintOpInstr::ResultCid() const {
-  return kDynamicCid;
-}
-
-
-RawAbstractType* UnaryMintOpInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-intptr_t UnaryMintOpInstr::ResultCid() const {
-  return kDynamicCid;
-}
-
-
-RawAbstractType* BinaryDoubleOpInstr::CompileType() const {
-  return Type::Double();
-}
-
-
-intptr_t BinaryDoubleOpInstr::ResultCid() const {
-  // The output is not an instance but when it is boxed it becomes double.
-  return kDoubleCid;
 }
 
 
@@ -1599,96 +1019,6 @@ Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-RawAbstractType* MathSqrtInstr::CompileType() const {
-  return Type::Double();
-}
-
-
-RawAbstractType* UnboxDoubleInstr::CompileType() const {
-  return Type::null();
-}
-
-
-intptr_t BoxDoubleInstr::ResultCid() const {
-  return kDoubleCid;
-}
-
-
-RawAbstractType* BoxDoubleInstr::CompileType() const {
-  return Type::Double();
-}
-
-
-intptr_t BoxIntegerInstr::ResultCid() const {
-  return kDynamicCid;
-}
-
-
-RawAbstractType* BoxIntegerInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-intptr_t UnboxIntegerInstr::ResultCid() const {
-  return kDynamicCid;
-}
-
-
-RawAbstractType* UnboxIntegerInstr::CompileType() const {
-  return Type::null();
-}
-
-
-RawAbstractType* UnarySmiOpInstr::CompileType() const {
-  return Type::SmiType();
-}
-
-
-RawAbstractType* SmiToDoubleInstr::CompileType() const {
-  return Type::Double();
-}
-
-
-RawAbstractType* DoubleToIntegerInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-RawAbstractType* DoubleToSmiInstr::CompileType() const {
-  return Type::SmiType();
-}
-
-
-RawAbstractType* DoubleToDoubleInstr::CompileType() const {
-  return Type::Double();
-}
-
-
-RawAbstractType* InvokeMathCFunctionInstr::CompileType() const {
-  return Type::Double();
-}
-
-
-RawAbstractType* CheckClassInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* CheckSmiInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* CheckArrayBoundInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
-RawAbstractType* CheckEitherNonSmiInstr::CompileType() const {
-  return AbstractType::null();
-}
-
-
 // Optimizations that eliminate or simplify individual instructions.
 Instruction* Instruction::Canonicalize(FlowGraphOptimizer* optimizer) {
   return this;
@@ -1752,7 +1082,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   StaticCallInstr* call = value()->definition()->AsStaticCall();
   if (call != NULL &&
       call->is_known_constructor() &&
-      call->ResultCid() == kArrayCid) {
+      (call->Type()->ToCid() == kArrayCid)) {
     return call->ArgumentAt(1)->value()->definition();
   }
   return this;
@@ -1760,33 +1090,18 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
-  const intptr_t value_cid = value()->ResultCid();
-  return (value_cid == kBoolCid) ? value()->definition() : this;
+  if (FLAG_eliminate_type_checks && (value()->Type()->ToCid() == kBoolCid)) {
+    return value()->definition();
+  }
+
+  return this;
 }
 
 
 Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
-  // (1) Replace the assert with its input if the input has a known compatible
-  // class-id. The class-ids handled here are those that are known to be
-  // results of IL instructions.
-  intptr_t cid = value()->ResultCid();
-  bool is_redundant = false;
-  if (dst_type().IsIntType()) {
-    is_redundant = (cid == kSmiCid) || (cid == kMintCid);
-  } else if (dst_type().IsDoubleType()) {
-    is_redundant = (cid == kDoubleCid);
-  } else if (dst_type().IsBoolType()) {
-    is_redundant = (cid == kBoolCid);
-  }
-  if (is_redundant) return value()->definition();
-
-  // (2) Replace the assert with its input if the input is the result of a
-  // compatible assert itself.
-  AssertAssignableInstr* check = value()->definition()->AsAssertAssignable();
-  if ((check != NULL) && check->dst_type().Equals(dst_type())) {
-    // TODO(fschneider): Propagate type-assertions across phi-nodes.
-    // TODO(fschneider): Eliminate more asserts with subtype relation.
-    return check;
+  if (FLAG_eliminate_type_checks &&
+      value()->Type()->IsAssignableTo(dst_type())) {
+    return value()->definition();
   }
 
   // (3) For uninstantiated target types: If the instantiator type arguments
@@ -1868,7 +1183,7 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // Handles e === true.
   if ((kind() == Token::kEQ_STRICT) &&
       (right_constant.raw() == Bool::True().raw()) &&
-      (left()->ResultCid() == kBoolCid)) {
+      (left()->Type()->ToCid() == kBoolCid)) {
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
   }
@@ -1877,7 +1192,10 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
-  const intptr_t value_cid = value()->ResultCid();
+  // TODO(vegorov): Replace class checks with null checks when ToNullableCid
+  // matches.
+
+  const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kDynamicCid) {
     return this;
   }
@@ -1896,14 +1214,14 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 Instruction* CheckSmiInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
-  return (value()->ResultCid() == kSmiCid) ?  NULL : this;
+  return (value()->Type()->ToCid() == kSmiCid) ?  NULL : this;
 }
 
 
 Instruction* CheckEitherNonSmiInstr::Canonicalize(
     FlowGraphOptimizer* optimizer) {
-  if ((left()->ResultCid() == kDoubleCid) ||
-      (right()->ResultCid() == kDoubleCid)) {
+  if ((left()->Type()->ToCid() == kDoubleCid) ||
+      (right()->Type()->ToCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.
   }
   return this;
@@ -2122,13 +1440,11 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!is_eliminated()) {
-    compiler->GenerateAssertAssignable(token_pos(),
-                                       deopt_id(),
-                                       dst_type(),
-                                       dst_name(),
-                                       locs());
-  }
+  compiler->GenerateAssertAssignable(token_pos(),
+                                     deopt_id(),
+                                     dst_type(),
+                                     dst_name(),
+                                     locs());
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
 }
 
@@ -2400,7 +1716,7 @@ RangeBoundary RangeBoundary::Max(RangeBoundary a, RangeBoundary b) {
 
 
 void Definition::InferRange() {
-  ASSERT(GetPropagatedCid() == kSmiCid);  // Has meaning only for smis.
+  ASSERT(Type()->ToCid() == kSmiCid);  // Has meaning only for smis.
   if (range_ == NULL) {
     range_ = Range::Unknown();
   }

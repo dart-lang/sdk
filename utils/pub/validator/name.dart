@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import '../../../pkg/path/lib/path.dart' as path;
+
 import '../entrypoint.dart';
 import '../io.dart';
 import '../utils.dart';
@@ -53,8 +54,8 @@ class NameValidator extends Validator {
       return listDir(libDir, recursive: true);
     }).then((files) {
       return files
-          .map((file) => relativeTo(file, dirname(libDir)))
-          .where((file) => !splitPath(file).contains("src") &&
+          .map((file) => path.relative(file, from: path.dirname(libDir)))
+          .where((file) => !path.split(file).contains("src") &&
                            path.extension(file) == '.dart')
           .toList();
     });

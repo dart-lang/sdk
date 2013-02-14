@@ -1837,6 +1837,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     FunctionElement function = new FunctionElementX.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
+    // [function] and its enclosing method share the same
+    // [TreeElementMapping].
+    compiler.enqueuer.resolution.resolvedElements[function] = mapping;
     Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
     defineElement(node, function, doAddToScope: node.name != null);

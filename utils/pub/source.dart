@@ -5,6 +5,9 @@
 library source;
 
 import 'dart:async';
+
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -105,15 +108,51 @@ abstract class Source {
   ///
   /// By default, this uses [systemCacheDirectory] and [install].
   Future<Package> installToSystemCache(PackageId id) {
-    var path;
+    var packageDir;
     return systemCacheDirectory(id).then((p) {
-      path = p;
-      if (dirExists(path)) return true;
-      ensureDir(dirname(path));
-      return install(id, path);
+      packageDir = p;
+
+      // See if it's already cached.
+      if (!dirExists(packageDir)) return false;
+
+      return _isCachedPackageCorrupted(packageDir).then((isCorrupted) {
+        if (!isCorrupted) return true;
+
+        // Busted, so wipe out the package and reinstall.
+        return deleteDir(packageDir).then((_) => false);
+      });
+    }).then((isInstalled) {
+      if (isInstalled) return true;
+      ensureDir(path.dirname(packageDir));
+      return install(id, packageDir);
     }).then((found) {
       if (!found) throw 'Package $id not found.';
-      return new Package.load(id.name, path, systemCache.sources);
+      return new Package.load(id.name, packageDir, systemCache.sources);
+    });
+  }
+
+  /// Since pub generates symlinks that point into the system cache (in
+  /// particular, targeting the "lib" directories of cached packages), it's
+  /// possible to accidentally break cached packages if something traverses
+  /// that symlink.
+  ///
+  /// This tries to determine if the cached package at [packageDir] has been
+  /// corrupted. The heuristics are it is corrupted if any of the following are
+  /// true:
+  ///
+  ///   * It has an empty "lib" directory.
+  ///   * It has no pubspec.
+  Future<bool> _isCachedPackageCorrupted(String packageDir) {
+    return defer(() {
+      if (!fileExists(join(packageDir, "pubspec.yaml"))) return true;
+
+      var libDir = join(packageDir, "lib");
+      if (dirExists(libDir)) {
+        return listDir(libDir).then((contents) => contents.length == 0);
+      }
+
+      // If we got here, it's OK.
+      return false;
     });
   }
 

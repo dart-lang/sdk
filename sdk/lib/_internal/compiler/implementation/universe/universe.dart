@@ -13,7 +13,6 @@ import '../util/util.dart';
 import '../js/js.dart' as js;
 
 part 'function_set.dart';
-part 'partial_type_tree.dart';
 part 'selector_map.dart';
 
 class Universe {

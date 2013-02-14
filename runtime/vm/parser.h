@@ -40,6 +40,7 @@ class ParsedFunction : public ZoneAllocated {
         saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
+        array_literal_var_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
@@ -102,6 +103,17 @@ class ParsedFunction : public ZoneAllocated {
   }
   static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
 
+  void set_array_literal_var(LocalVariable* local) {
+    ASSERT((local != NULL) &&  (array_literal_var_ == NULL));
+    array_literal_var_ = local;
+  }
+  LocalVariable* array_literal_var() const {
+    ASSERT(array_literal_var_ != NULL);
+    return array_literal_var_;
+  }
+
+  static LocalVariable* CreateArrayLiteralVar(intptr_t token_pos);
+
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
   int num_copied_params() const { return num_copied_params_; }
@@ -117,6 +129,9 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_current_context_var_;
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
+  // TODO(hausner): Remove once ArrayNode creation is removed from flow
+  // graph builder.
+  LocalVariable* array_literal_var_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
@@ -313,7 +328,8 @@ class Parser : public ValueObject {
   // Support for parsing of scripts.
   void ParseTopLevel();
   void ParseClassDefinition(const GrowableObjectArray& pending_classes);
-  void ParseFunctionTypeAlias(const GrowableObjectArray& pending_classes);
+  void ParseMixinTypedef(const GrowableObjectArray& pending_classes);
+  void ParseTypedef(const GrowableObjectArray& pending_classes);
   void ParseTopLevelVariable(TopLevel* top_level);
   void ParseTopLevelFunction(TopLevel* top_level);
   void ParseTopLevelAccessor(TopLevel* top_level);
@@ -351,7 +367,7 @@ class Parser : public ValueObject {
   void ParseFormalParameterList(bool allow_explicit_default_values,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
-  void AddImplicitConstructor(ClassDesc* members);
+  void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(
       const Class& cls,
@@ -372,6 +388,7 @@ class Parser : public ValueObject {
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   RawArray* ParseInterfaceList(const Type& super_type);
+  RawType* ParseMixins(const Type& super_type);
   void AddInterfaceIfUnique(intptr_t interfaces_pos,
                             const GrowableObjectArray& interface_list,
                             const AbstractType& interface);
@@ -474,6 +491,7 @@ class Parser : public ValueObject {
   bool IsIdentifier();
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
+  bool IsMixinTypedef();
   bool TryParseTypeParameter();
   bool TryParseOptionalType();
   bool TryParseReturnType();
@@ -612,6 +630,7 @@ class Parser : public ValueObject {
       const Function& constructor,
       ArgumentListNode* arguments);
 
+  LocalVariable* BuildArrayTempLocal(intptr_t token_pos);
 
   const Script& script_;
   TokenStream::Iterator tokens_iterator_;
@@ -642,6 +661,9 @@ class Parser : public ValueObject {
   Class& current_class_;
 
   // The current library (and thus class dictionary) used to resolve names.
+  // When parsing a function, this is the library in which the function
+  // is defined. This can be the library in which the current_class_ is
+  // defined, or the library of a mixin class where the function originates.
   const Library& library_;
 
   // List of try blocks seen so far, this is used to generate inlined finally

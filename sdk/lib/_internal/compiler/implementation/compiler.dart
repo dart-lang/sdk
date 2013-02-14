@@ -650,12 +650,12 @@ abstract class Compiler implements DiagnosticListener {
     if (analyzeOnly) return;
     assert(main != null);
 
-    log('Inferring types...');
-    typesTask.onResolutionComplete(main);
-
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.
     world.populate();
+
+    log('Inferring types...');
+    typesTask.onResolutionComplete(main);
 
     log('Compiling...');
     phase = PHASE_COMPILING;

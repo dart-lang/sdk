@@ -25,7 +25,8 @@ Future<Database> createAndOpenDb() {
 Future<Database> writeItems(Database db) {
   Future<Object> write(index) {
     var transaction = db.transaction([STORE_NAME], 'readwrite');
-    return transaction.objectStore(STORE_NAME).put('Item $index', index);
+    return transaction.objectStore(STORE_NAME).put(
+        {'content': 'Item $index'}, index);
   }
 
   var future = write(0);
@@ -50,6 +51,8 @@ testRange(db, range, expectedFirst, expectedLast) {
   int lastKey;
   cursors.listen((cursor) {
     lastKey = cursor.key;
+    var value = cursor.value;
+    expect(value['content'], 'Item ${cursor.key}');
   });
 
   if (expectedFirst != null) {

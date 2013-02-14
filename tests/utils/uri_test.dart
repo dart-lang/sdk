@@ -8,8 +8,8 @@ import 'dart:utf';
 import 'dart:uri';
 
 testUri(String uri, bool isAbsolute) {
-  Expect.equals(isAbsolute, Uri.parse(uri).isAbsolute());
-  Expect.equals(isAbsolute, new Uri(uri).isAbsolute());
+  Expect.equals(isAbsolute, Uri.parse(uri).isAbsolute);
+  Expect.equals(isAbsolute, new Uri(uri).isAbsolute);
   Expect.stringEquals(uri, Uri.parse(uri).toString());
   Expect.stringEquals(uri, new Uri(uri).toString());
 

@@ -89,7 +89,7 @@ class FunctionSetNode {
         isList = false;
       }
       elements.add(element);
-      cache.clear();
+      if (!cache.isEmpty) cache.clear();
     }
   }
 
@@ -103,14 +103,14 @@ class FunctionSetNode {
       if (index != list.length) {
         list[index] = last;
       }
-      cache.clear();
+      if (!cache.isEmpty) cache.clear();
     } else {
       Set set = elements;
       if (set.remove(element)) {
         // To avoid wobbling between the two representations, we do
         // not transition back to the list representation even if we
         // end up with few enough elements at this point.
-        cache.clear();
+        if (!cache.isEmpty) cache.clear();
       }
     }
   }

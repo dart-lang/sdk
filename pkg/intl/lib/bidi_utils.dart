@@ -353,22 +353,6 @@ class Bidi {
   }
 
   /**
-   * Find the first index in [str] of the first closing parenthesis that does
-   * not match an opening parenthesis.
-   */
-  static int _unmatchedParenIndex(String str) {
-    int sum = 0;
-    int index = 0;
-    while (sum >= 0 || index > str.length) {
-      int char = str.charCodeAt(index);
-      if (char == '('.charCodeAt(0))  sum++;
-      else if (char == ')'.charCodeAt(0)) sum--;
-      index++;
-    }
-    return index;
-  }
-
-  /**
    * Replace the double and single quote directly after a Hebrew character in
    * [str] with GERESH and GERSHAYIM. This is most likely the user's intention.
    */

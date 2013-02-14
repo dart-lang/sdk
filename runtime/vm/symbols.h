@@ -59,6 +59,7 @@ class ObjectPointerVisitor;
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionVar, ":exception_var")                                            \
   V(StacktraceVar, ":stacktrace_var")                                          \
+  V(ArrayLiteralVar, ":array_literal_var")                                     \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
   V(Library, "library")                                                        \
@@ -280,6 +281,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   }
   static const String& Dash() {
     return *(symbol_handles_[kNullCharId + '-']);
+  }
+  static const String& Ampersand() {
+    return *(symbol_handles_[kNullCharId + '&']);
   }
 
   // Access methods for symbol handles stored in the vm isolate.

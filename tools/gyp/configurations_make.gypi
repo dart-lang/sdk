@@ -33,17 +33,17 @@
       },
 
       'Dart_ia32_Base': {
-        'cflags': [ '-m32', ],
+        'cflags': [ '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
       },
 
       'Dart_x64_Base': {
-        'cflags': [ '-m64', ],
+        'cflags': [ '-m64', '-msse2' ],
         'ldflags': [ '-m64', ],
       },
 
       'Dart_simarm_Base': {
-        'cflags': [ '-O3', '-m32', ],
+        'cflags': [ '-O3', '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
       },
 
@@ -57,7 +57,7 @@
       },
 
       'Dart_simmips_Base': {
-        'cflags': [ '-O3', '-m32', ],
+        'cflags': [ '-O3', '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
       },
 

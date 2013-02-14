@@ -612,6 +612,13 @@ abstract class VariableListElement extends Element {
   void set type(DartType value);
 }
 
+/**
+ * A synthetic element which holds a getter and/or a setter.
+ *
+ * This element unifies handling of fields and getters/setters.  When
+ * looking at code like "foo.x", we don't have to look for both a
+ * field named "x", a getter named "x", and a setter named "x=".
+ */
 abstract class AbstractFieldElement extends Element {
   FunctionElement get getter;
   FunctionElement get setter;

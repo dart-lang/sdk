@@ -24,22 +24,18 @@ testReadWrite(key, value, check,
   var db;
   // Delete any existing DBs.
   return html.window.indexedDB.deleteDatabase(dbName).then((_) {
-      html.window.console.log('open');
       return html.window.indexedDB.open(dbName, version: version,
         onUpgradeNeeded: createObjectStore);
     }).then((result) {
-      html.window.console.log('write');
       db = result;
       var transaction = db.transaction([storeName], 'readwrite');
       transaction.objectStore(storeName).put(value, key);
 
       return transaction.completed;
     }).then((db) {
-      html.window.console.log('read');
       var transaction = db.transaction(storeName, 'readonly');
       return transaction.objectStore(storeName).getObject(key);
     }).then((object) {
-      html.window.console.log('got close');
       db.close();
       check(value, object);
     }).catchError((e) {

@@ -21,6 +21,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -53,7 +54,7 @@ DEFINE_FLAG(bool, verify_compiler, false,
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-
+DECLARE_FLAG(bool, trace_type_propagation);
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -190,15 +191,25 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // Use lists are maintained and validated by the inliner.
       }
 
+      if (FLAG_trace_type_propagation) {
+        OS::Print("Before type propagation:\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
+      }
+
       // Propagate types and eliminate more type tests.
       if (FLAG_propagate_types) {
         FlowGraphTypePropagator propagator(flow_graph);
-        propagator.PropagateTypes();
+        propagator.Propagate();
       }
 
-      // Propagate sminess from CheckSmi to phis.
+      if (FLAG_trace_type_propagation) {
+        OS::Print("After type propagation:\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
+      }
+
       flow_graph->ComputeUseLists();
-      optimizer.PropagateSminess();
 
       // Use propagated class-ids to optimize further.
       optimizer.ApplyClassIds();
@@ -465,10 +476,11 @@ static RawError* CompileFunctionHelper(const Function& function,
     ParsedFunction* parsed_function = new ParsedFunction(
         Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
-      OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
+      OS::Print("Compiling %sfunction: '%s' @ token %"Pd", size %"Pd"\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_pos());
+                function.token_pos(),
+                (function.end_token_pos() - function.token_pos()));
     }
     {
       HANDLESCOPE(isolate);
@@ -495,9 +507,10 @@ static RawError* CompileFunctionHelper(const Function& function,
     per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {
-      OS::Print("--> '%s' entry: %#"Px" time: %"Pd64" us\n",
+      OS::Print("--> '%s' entry: %#"Px" size: %"Pd" time: %"Pd64" us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),
+                Code::Handle(function.CurrentCode()).Size(),
                 per_compile_timer.TotalElapsedTime());
     }
 
@@ -625,6 +638,9 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->set_expression_temp_var(
         ParsedFunction::CreateExpressionTempVar(0));
     fragment->scope()->AddVariable(parsed_function->expression_temp_var());
+    parsed_function->set_array_literal_var(
+        ParsedFunction::CreateArrayLiteralVar(0));
+    fragment->scope()->AddVariable(parsed_function->array_literal_var());
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.

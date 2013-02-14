@@ -212,9 +212,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  if (!is_eliminated()) {
-    EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
-  }
+  EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
   ASSERT(obj == result);
 }
 
@@ -1097,14 +1095,16 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-intptr_t LoadIndexedInstr::ResultCid() const {
+CompileType* LoadIndexedInstr::ComputeInitialType() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
-      return kDynamicCid;
+      return CompileType::Dynamic();
+
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
-      return kDoubleCid;
+      return CompileType::FromCid(kDoubleCid);
+
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
@@ -1114,16 +1114,19 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
-      return kSmiCid;
+      return CompileType::FromCid(kSmiCid);
+
     case kInt32ArrayCid:
     case kUint32ArrayCid:
       // Result can be Smi or Mint when boxed.
       // Instruction can deoptimize if we optimistically assumed that the result
       // fits into Smi.
-      return CanDeoptimize() ? kSmiCid : kDynamicCid;
+      return CanDeoptimize() ? CompileType::FromCid(kSmiCid)
+                             : CompileType::Int();
+
     default:
       UNIMPLEMENTED();
-      return kDynamicCid;
+      return CompileType::Dynamic();
   }
 }
 
@@ -1163,12 +1166,19 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged and tagged again at the end of the
-  // operation (element size == 1), or it is left smi tagged (for all element
-  // sizes > 1).
-  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                    ? Location::RegisterOrSmiConstant(index())
-                    : Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  if (index_scale() == 1) {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::WritableRegister());
+  } else {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::RequiresRegister());
+  }
   if (representation() == kUnboxedDouble) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
@@ -1199,9 +1209,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             FieldAddress(array, ExternalUint8Array::data_offset()));
     __ movzxb(result, element_address);
     __ SmiTag(result);
-    if (index.IsRegister()) {
-      __ SmiTag(index.reg());  // Re-tag.
-    }
     return;
   }
 
@@ -1235,9 +1242,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kFloat64ArrayCid:
         __ movsd(result, element_address);
         break;
-    }
-    if ((index_scale() == 1) && index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
     }
     return;
   }
@@ -1291,9 +1295,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(result, element_address);
       break;
   }
-  if ((index_scale() == 1) && index.IsRegister()) {
-      __ SmiTag(index.reg());  // Re-tag.
-  }
 }
 
 
@@ -1305,7 +1306,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kArrayCid:
     case kInt8ArrayCid:
     case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
     case kUint8ClampedArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
       return kTagged;
@@ -1328,18 +1331,31 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged and tagged again at the end of the
-  // operation (element size == 1), or it is left smi tagged (for all element
-  // sizes > 1).
-  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                    ? Location::RegisterOrSmiConstant(index())
-                    : Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id());
+  if (index_scale == 1) {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::WritableRegister());
+  } else {
+    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
+                      ? Location::Constant(
+                          index()->definition()->AsConstant()->value())
+                      : Location::RequiresRegister());
+  }
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, ShouldEmitStoreBarrier()
                         ? Location::WritableRegister()
                         : Location::RegisterOrConstant(value()));
       break;
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
+      // Need temp register to load the external array's data array.
+      locs->AddTemp(Location::RequiresRegister());
+      // Fall through.
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
@@ -1376,11 +1392,25 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id());
 
-  FieldAddress element_address = index.IsRegister() ?
-      FlowGraphCompiler::ElementAddressForRegIndex(
-          class_id(), index_scale, array, index.reg()) :
-      FlowGraphCompiler::ElementAddressForIntIndex(
+  Address element_address(kNoRegister, 0);
+  if ((class_id() == kExternalUint8ArrayCid) ||
+      (class_id() == kExternalUint8ClampedArrayCid)) {
+    Register temp = locs()->temp(0).reg();
+    element_address = index.IsRegister()
+        ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
+            class_id(), index_scale, temp, index.reg())
+        : FlowGraphCompiler::ExternalElementAddressForIntIndex(
+            class_id(), index_scale, temp,
+            Smi::Cast(index.constant()).Value());
+    __ movl(temp,
+            FieldAddress(array, ExternalUint8Array::data_offset()));
+  } else {
+    element_address = index.IsRegister()
+        ? FlowGraphCompiler::ElementAddressForRegIndex(
+          class_id(), index_scale, array, index.reg())
+        : FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), index_scale, array, Smi::Cast(index.constant()).Value());
+  }
 
   switch (class_id()) {
     case kArrayCid:
@@ -1397,6 +1427,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kInt8ArrayCid:
     case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
       if (index.IsRegister()) {
         __ SmiUntag(index.reg());
       }
@@ -1409,11 +1440,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(EAX);
         __ movb(element_address, AL);
       }
-      if (index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
-      }
       break;
-    case kUint8ClampedArrayCid: {
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ClampedArrayCid: {
       if (index.IsRegister()) {
         __ SmiUntag(index.reg());
       }
@@ -1442,9 +1471,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movl(EAX, Immediate(0xFF));
         __ Bind(&store_value);
         __ movb(element_address, AL);
-      }
-      if (index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
       }
       break;
     }
@@ -1586,18 +1612,12 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary() const {
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  EDX = length, ECX = element type.
   ASSERT(locs()->in(0).reg() == ECX);
-  __ movl(EDX, Immediate(Smi::RawValue(ArgumentCount())));
+  __ movl(EDX, Immediate(Smi::RawValue(num_elements())));
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
   ASSERT(locs()->out().reg() == EAX);
-
-  // Pop the element values from the stack into the array.
-  __ leal(EDX, FieldAddress(EAX, Array::data_offset()));
-  for (int i = ArgumentCount() - 1; i >= 0; --i) {
-    __ popl(Address(EDX, i * kWordSize));
-  }
 }
 
 
@@ -2219,10 +2239,38 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHL: {
+      Range* right_range = this->right()->definition()->range();
+      if (this->left()->BindsToConstant()) {
+        // If left is constant, we know the maximal allowed size for right.
+        const Object& obj = this->left()->BoundConstant();
+        if (obj.IsSmi()) {
+          const intptr_t left_int = Smi::Cast(obj).Value();
+          if (left_int == 0) {
+            __ cmpl(right, Immediate(0));
+            __ j(NEGATIVE, deopt);
+            break;
+          }
+          intptr_t tmp = (left_int > 0) ? left_int : ~left_int;
+          intptr_t max_right = kSmiBits;
+          while ((tmp >>= 1) != 0) {
+            max_right--;
+          }
+          const bool right_needs_check =
+              (right_range == NULL) ||
+              !right_range->IsWithin(0, max_right - 1);
+          if (right_needs_check) {
+            __ cmpl(right,
+              Immediate(reinterpret_cast<int32_t>(Smi::New(max_right))));
+            __ j(ABOVE_EQUAL, deopt);
+          }
+          __ SmiUntag(right);
+          __ shll(left, right);
+          break;
+        }
+      }
       Register temp = locs()->temp(0).reg();
       // Check if count too large for handling it inlined.
       __ movl(temp, left);
-      Range* right_range = this->right()->definition()->range();
       const bool right_needs_check =
           (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
       if (right_needs_check) {
@@ -2267,8 +2315,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary() const {
-  ASSERT((left()->ResultCid() != kDoubleCid) &&
-         (right()->ResultCid() != kDoubleCid));
+  ASSERT((left()->Type()->ToCid() != kDoubleCid) &&
+         (right()->Type()->ToCid() != kDoubleCid));
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -2354,18 +2402,23 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxDoubleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = CanDeoptimize() ? 1 : 0;
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const bool needs_temp = ((value_cid != kSmiCid) && (value_cid != kDoubleCid));
+  const bool needs_writable_input = (value_cid == kSmiCid);
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  if (CanDeoptimize()) summary->set_temp(0, Location::RequiresRegister());
+  summary->set_in(0, needs_writable_input
+                     ? Location::WritableRegister()
+                     : Location::RequiresRegister());
+  if (needs_temp) summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(Location::RequiresFpuRegister());
   return summary;
 }
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->ResultCid();
+  const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 
@@ -2374,13 +2427,21 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(value);  // Untag input before conversion.
     __ cvtsi2sd(result, value);
-    __ SmiTag(value);  // Restore input register.
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
-    compiler->LoadDoubleOrSmiToFpu(result,
-                                   value,
-                                   locs()->temp(0).reg(),
-                                   deopt);
+    Register temp = locs()->temp(0).reg();
+    Label is_smi, done;
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, &is_smi);
+    __ CompareClassId(value, kDoubleCid, temp);
+    __ j(NOT_EQUAL, deopt);
+    __ movsd(result, FieldAddress(value, Double::value_offset()));
+    __ jmp(&done);
+    __ Bind(&is_smi);
+    __ movl(temp, value);
+    __ SmiUntag(temp);
+    __ cvtsi2sd(result, temp);
+    __ Bind(&done);
   }
 }
 
@@ -2753,8 +2814,6 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary() const {
 
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // TODO(srdjan): Check if we can remove this by reordering CSE and LICM.
-  if (value()->ResultCid() == kSmiCid) return;
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckSmi);
@@ -2809,18 +2868,23 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxIntegerInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = CanDeoptimize() ? 1 : 0;
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const bool needs_temp = ((value_cid != kSmiCid) && (value_cid != kMintCid));
+  const bool needs_writable_input = (value_cid == kSmiCid);
+  const intptr_t kNumTemps = needs_temp ? 1 : 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  if (CanDeoptimize()) summary->set_temp(0, Location::RequiresRegister());
+  summary->set_in(0, needs_writable_input
+                     ? Location::WritableRegister()
+                     : Location::RequiresRegister());
+  if (needs_temp) summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(Location::RequiresFpuRegister());
   return summary;
 }
 
 
 void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->ResultCid();
+  const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 
@@ -2830,7 +2894,6 @@ void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(value);  // Untag input before conversion.
     __ movd(result, value);
     __ pmovsxdq(result, result);
-    __ SmiTag(value);  // Restore input register.
   } else {
     Register temp = locs()->temp(0).reg();
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptUnboxInteger);

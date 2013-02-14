@@ -265,17 +265,22 @@ class ArgumentDefinitionTestNode : public AstNode {
 
 class ArrayNode : public AstNode {
  public:
-  ArrayNode(intptr_t token_pos, const AbstractType& type)
+  ArrayNode(intptr_t token_pos,
+            const AbstractType& type,
+            const LocalVariable& temp)
       : AstNode(token_pos),
         type_(type),
+        temp_local_(temp),
         elements_() {
     CheckFields();
   }
   ArrayNode(intptr_t token_pos,
             const AbstractType& type,
+            const LocalVariable& temp,
             const GrowableArray<AstNode*>& elements)
       : AstNode(token_pos),
         type_(type),
+        temp_local_(temp),
         elements_(elements.length()) {
     CheckFields();
     for (intptr_t i = 0; i < elements.length(); i++) {
@@ -295,10 +300,13 @@ class ArrayNode : public AstNode {
 
   const AbstractType& type() const { return type_; }
 
+  const LocalVariable& temp_local() const { return temp_local_; }
+
   DECLARE_COMMON_NODE_FUNCTIONS(ArrayNode);
 
  private:
   const AbstractType& type_;
+  const LocalVariable& temp_local_;  // Store allocated array while filling it.
   GrowableArray<AstNode*> elements_;
 
   void CheckFields() {

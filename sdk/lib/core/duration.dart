@@ -25,6 +25,8 @@ class Duration implements Comparable {
 
   static const int MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
 
+  static const Duration ZERO = const Duration(seconds: 0);
+
   /**
    * This [Duration] in milliseconds.
    */
