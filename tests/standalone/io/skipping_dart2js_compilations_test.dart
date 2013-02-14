@@ -141,13 +141,10 @@ class TestCompletedHandler {
       Expect.isFalse(new File(fileUtils.scriptOutputPath.toNativePath())
           .existsSync());
     }
-    fileUtils.cleanup();
   }
 }
 
-runner.TestCase makeTestCase(String testName,
-                             TestCompletedHandler completedHandler) {
-  var fileUtils = completedHandler.fileUtils;
+runner.TestCase makeTestCase(String testName, FileUtils fileUtils) {
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
   var scriptDirPath = new Path(new Options().script).directoryPath;
   var createFileScript = scriptDirPath.
@@ -166,7 +163,7 @@ runner.TestCase makeTestCase(String testName,
       testName,
       commands,
       config,
-      completedHandler.processCompletedTest,
+      (_) {},
       new Set<String>.from([status.PASS]));
 }
 
@@ -199,26 +196,52 @@ void main() {
                                   createJsDeps: true,
                                   createDart: true,
                                   createSnapshot: true);
+  void cleanup() {
+    fs_noTestJs.cleanup();
+    fs_noTestJsDeps.cleanup();
+    fs_noTestDart.cleanup();
+    fs_noTestSnapshot.cleanup();
+    fs_notUpToDate_snapshot.cleanup();
+    fs_notUpToDate_dart.cleanup();
+    fs_upToDate.cleanup();
+  }
 
   void touchFilesAndRunTests() {
     fs_notUpToDate_snapshot.touchFile(fs_notUpToDate_snapshot.testSnapshot);
     fs_notUpToDate_dart.touchFile(fs_notUpToDate_dart.testDart);
     fs_upToDate.touchFile(fs_upToDate.testJs);
 
-    void runTest(String name, FileUtils fileUtils, bool shouldRun) {
-      var testCase = makeTestCase(
-          name, new TestCompletedHandler(fileUtils, shouldRun));
-      new runner.RunningProcess(testCase, testCase.commands[0]).start();
+    Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
+      var completedHandler = new TestCompletedHandler(fileUtils, shouldRun);
+      var testCase = makeTestCase(name, fileUtils);
+      var process = new runner.RunningProcess(testCase, testCase.commands[0]);
+      return process.start().then((_) {
+        completedHandler.processCompletedTest(testCase);
+      });
     }
-    runTest("fs_noTestJs", fs_noTestJs, true);
-    runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);
-    runTest("fs_noTestDart", fs_noTestDart, true);
-    runTest("fs_noTestSnapshot", fs_noTestSnapshot, true);
-    runTest("fs_notUpToDate_snapshot", fs_notUpToDate_snapshot, true);
-    runTest("fs_notUpToDate_dart", fs_notUpToDate_dart, true);
-    // This is the only test where all dependencies are present and the test.js
-    // file is newer than all the others. So we pass 'false' for shouldRun.
-    runTest("fs_upToDate", fs_upToDate, false);
+    // We run the tests in sequence, so that if one of them failes we clean up
+    // everything and throw.
+    runTest("fs_noTestJs", fs_noTestJs, true).then((_) {
+      return runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);
+    }).then((_) {
+      return runTest("fs_noTestDart", fs_noTestDart, true);
+    }).then((_) {
+      return runTest("fs_noTestSnapshot", fs_noTestSnapshot, true);
+    }).then((_) {
+      return runTest("fs_notUpToDate_snapshot", fs_notUpToDate_snapshot, true);
+    }).then((_) {
+      return runTest("fs_notUpToDate_dart", fs_notUpToDate_dart, true);
+    }).then((_) {
+      // This is the only test where all dependencies are present and the
+      // test.js file is newer than all the others. So we pass 'false' for
+      // shouldRun.
+      return runTest("fs_upToDate", fs_upToDate, false);
+    }).catchError((error) {
+      cleanup();
+      throw error;
+    }).then((_) {
+      cleanup();
+    });
   }
   // We need to wait some time to make sure that the files we 'touch' get a
   // bigger timestamp than the old ones
