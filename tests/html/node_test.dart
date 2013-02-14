@@ -159,6 +159,23 @@ main() {
       expect(node.nodes[3], isHRElement);
       expect(node.nodes[4], isImageElement);
       expect(node.nodes[5], isInputElement);
+
+      var a = makeNodeWithChildren();
+      var b = makeNodeWithChildren();
+      var childrenLength = a.children.length + b.children.length;
+      var nodesLength = a.nodes.length + b.nodes.length;
+
+      a.children.addAll(b.children);
+      expect(b.children.length, 0);
+      expect(a.children.length, childrenLength);
+
+      b.nodes.addAll(a.children);
+      expect(a.children.length, 0);
+      expect(b.children.length, childrenLength);
+
+      a.nodes.addAll(b.nodes);
+      expect(b.nodes.length, 0);
+      expect(a.nodes.length, nodesLength);
     });
 
     test('clear', () {

@@ -8917,6 +8917,10 @@ class _ChildrenElementList implements List {
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
+    if (iterable is _ChildNodeListLazy) {
+      iterable = new List.from(iterable);
+    }
+
     for (Element element in iterable) {
       _element.$dom_appendChild(element);
     }
@@ -18567,6 +18571,9 @@ class _ChildNodeListLazy implements List {
 
 
   void addAll(Iterable<Node> iterable) {
+    if (iterable is _ChildNodeListLazy) {
+      iterable = new List.from(iterable);
+    }
     for (Node node in iterable) {
       _this.$dom_appendChild(node);
     }
