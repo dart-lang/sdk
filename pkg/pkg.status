@@ -36,8 +36,8 @@ intl/test/find_default_locale_standalone_test: Skip
 analyzer-experimental/test/options_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/parser_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/element_test.dart: Skip # Imports dart:io.
-analyzer-experimental/test/generated/ast_test.dart: Skip # Imports dart:io.
+analyzer-experimental/test/generated/element_test: Skip # Imports dart:io.
+analyzer-experimental/test/generated/ast_test: Skip # Imports dart:io.
 
 # Issue 8440 forces us to use path in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
