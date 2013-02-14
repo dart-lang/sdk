@@ -65,7 +65,8 @@ abstract class HType {
             type,
             canBeNull: canBeNull,
             isInterfaceType: isInterfaceType);
-      } else if (element == compiler.objectClass) {
+      } else if (element == compiler.objectClass
+                 || element == compiler.dynamicClass) {
         return new HBoundedPotentialPrimitiveType(
             compiler.objectClass.computeType(compiler),
             true,

@@ -1528,7 +1528,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else if (target == backend.jsStringConcat) {
           push(new js.Binary('+', object, arguments[0]), node);
           return;
-        } else if (target.isNative() && !compiler.enableTypeAssertions) {
+        } else if (target.isNative()
+                   && !compiler.enableTypeAssertions
+                   && target.isFunction()) {
           // Enable direct calls to a native method only if we don't
           // run in checked mode, where the Dart version may have
           // type annotations on parameters and return type that it
@@ -1540,7 +1542,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // have the right type. And we could do the closure
           // conversion as well as the return type annotation check.
           bool canInlineNativeCall = true;
-          target.computeSignature(compiler).forEachParameter((Element element) {
+          FunctionElement function = target;
+          function.computeSignature(compiler).forEachParameter((Element element) {
             DartType type = element.computeType(compiler).unalias(compiler);
             if (type is FunctionType) {
               canInlineNativeCall = false;
