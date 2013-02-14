@@ -2028,7 +2028,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
 
 
 void Assembler::StoreIntoObject(Register object,
-                                const FieldAddress& dest,
+                                const Address& dest,
                                 Register value) {
   ASSERT(object != value);
   movq(dest, value);
@@ -2044,7 +2044,7 @@ void Assembler::StoreIntoObject(Register object,
 
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const FieldAddress& dest,
+                                         const Address& dest,
                                          Register value) {
   movq(dest, value);
 #if defined(DEBUG)

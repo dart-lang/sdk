@@ -603,6 +603,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
       // Check that value is always smi.
@@ -679,6 +681,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       case kInt8ArrayCid:
       case kUint8ArrayCid:
       case kUint8ClampedArrayCid:
+      case kExternalUint8ArrayCid:
+      case kExternalUint8ClampedArrayCid:
       case kInt16ArrayCid:
       case kUint16ArrayCid:
       case kInt32ArrayCid:
@@ -1367,6 +1371,8 @@ static bool IsSupportedByteArrayCid(intptr_t cid) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kInt32ArrayCid:

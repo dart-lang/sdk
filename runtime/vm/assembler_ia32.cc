@@ -1870,7 +1870,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
 
 
 void Assembler::StoreIntoObject(Register object,
-                                const FieldAddress& dest,
+                                const Address& dest,
                                 Register value) {
   ASSERT(object != value);
   TraceStoreIntoObject(object, dest, value);
@@ -1887,7 +1887,7 @@ void Assembler::StoreIntoObject(Register object,
 
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const FieldAddress& dest,
+                                         const Address& dest,
                                          Register value) {
   TraceStoreIntoObject(object, dest, value);
   movl(dest, value);
@@ -1904,7 +1904,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
-                                         const FieldAddress& dest,
+                                         const Address& dest,
                                          const Object& value) {
   if (value.IsSmi() || value.InVMHeap()) {
     movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
@@ -1921,7 +1921,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 
 void Assembler::TraceStoreIntoObject(Register object,
-                                     const FieldAddress& dest,
+                                     const Address& dest,
                                      Register value) {
   if (HeapTrace::is_enabled()) {
     pushal();

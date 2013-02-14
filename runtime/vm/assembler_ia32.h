@@ -606,18 +606,18 @@ class Assembler : public ValueObject {
   void LoadDoubleConstant(XmmRegister dst, double value);
 
   void StoreIntoObject(Register object,  // Object we are storing into.
-                       const FieldAddress& dest,  // Where we are storing into.
+                       const Address& dest,  // Where we are storing into.
                        Register value);  // Value we are storing.
 
   void StoreIntoObjectNoBarrier(Register object,
-                                const FieldAddress& dest,
+                                const Address& dest,
                                 Register value);
   void StoreIntoObjectNoBarrier(Register object,
-                                const FieldAddress& dest,
+                                const Address& dest,
                                 const Object& value);
 
   void TraceStoreIntoObject(Register object,
-                            const FieldAddress& dest,
+                            const Address& dest,
                             Register value);
 
   void DoubleNegate(XmmRegister d);
