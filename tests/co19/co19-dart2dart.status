@@ -547,6 +547,8 @@ LibTest/core/Queue/Queue.from_A01_t02: Fail # iterator-change, co19 issue 365
 LibTest/core/RegExp/allMatches_A01_t01: Fail # iterator-change, co19 issue 365
 LibTest/core/Set/Set.from_A01_t02: Fail # iterator-change, co19 issue 365
 
+LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379
+
 LibTest/core/Completer/Completer_A01_t01: Fail # Future is in async library. co19 issue 367
 LibTest/core/Completer/completeException_A01_t01: Fail # Future is in async library. co19 issue 367
 LibTest/core/Completer/completeException_A02_t01: Fail # Future is in async library. co19 issue 367

@@ -317,13 +317,16 @@ class DateTest {
 
   static void testConstructors() {
     var dt0 = new DateTime.utc(2011, 5, 11, 18, 58, 35, 0);
+    var dt0b = new DateTime.utc(2011, 5, 11, 18, 58, 35, 0).toLocal();
     Expect.equals(1305140315000, dt0.millisecondsSinceEpoch);
     var dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000);
     Expect.equals(dt1.millisecondsSinceEpoch, dt0.millisecondsSinceEpoch);
-    Expect.equals(true, dt1 == dt0);
+    Expect.equals(false, dt1 == dt0);
+    Expect.equals(true, dt1 == dt0b);
     var dt3 = new DateTime(dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,
                        dt1.second, dt1.millisecond);
     Expect.equals(dt1.millisecondsSinceEpoch, dt3.millisecondsSinceEpoch);
+    Expect.equals(false, dt3 == dt0);
     Expect.equals(true, dt1 == dt3);
     dt3 = new DateTime(
         dt1.year, dt1.month, dt1.day, dt1.hour, dt1.minute,

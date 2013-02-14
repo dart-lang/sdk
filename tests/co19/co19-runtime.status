@@ -239,6 +239,8 @@ LibTest/core/Queue/Queue.from_A01_t02: Fail # iterator-change, co19 issue 365
 LibTest/core/RegExp/allMatches_A01_t01: Fail # iterator-change, co19 issue 365
 LibTest/core/Set/Set.from_A01_t02: Fail # iterator-change, co19 issue 365
 
+LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379
+
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail # issue 6085
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
