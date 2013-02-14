@@ -36,6 +36,12 @@ main() {
     expect(callCount, 1);
   });
 
+  test('broadcast', () {
+    var stream = new DivElement().onClick;
+    expect(stream.asBroadcastStream(), stream);
+    expect(stream.isBroadcast, isTrue);
+  });
+
   // Validates that capturing events fire on parent before child.
   test('capture', () {
     var parent = new DivElement();

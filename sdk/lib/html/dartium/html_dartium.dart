@@ -32497,6 +32497,7 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream() => this;
+  bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
       { void onError(AsyncError error),
