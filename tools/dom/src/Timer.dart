@@ -17,11 +17,11 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   var maker;
   var canceller;
   if (repeating) {
-    maker = window._setInterval;
-    canceller = window._clearInterval;
+    maker = window.setInterval;
+    canceller = window.clearInterval;
   } else {
-    maker = window._setTimeout;
-    canceller = window._clearTimeout;
+    maker = window.setTimeout;
+    canceller = window.clearTimeout;
   }
   Timer timer;
   final int id = maker(() { callback(timer); }, milliSeconds);

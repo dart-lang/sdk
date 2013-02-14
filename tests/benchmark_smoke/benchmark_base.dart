@@ -94,7 +94,7 @@ class BenchmarkBase {
 class BenchmarkSuite {
   /** The set of benchmarks that have yet to run. */
   List<Function> benchmarks;
-
+  
   /**
    * The set of scores from the benchmarks that have already run. (Used for
    * calculating the Geometric mean).
@@ -112,15 +112,15 @@ class BenchmarkSuite {
     benchmarks = [() => Smoketest.main()];
     totalBenchmarks = benchmarks.length;
   }
-
+  
   /** Run all of the benchmarks that we have in our benchmarks list. */
   runBenchmarks() {
     runBenchmarksHelper(benchmarks);
   }
-
+ 
    /**
    * Run the remaining benchmarks in our list. We chain the calls providing
-   * little breaks for the main page to gain control, so we don't force the
+   * little breaks for the main page to gain control, so we don't force the 
    * entire page to hang the whole time.
    */
   runBenchmarksHelper(List<Function> remainingBenchmarks) {
@@ -128,11 +128,10 @@ class BenchmarkSuite {
     var benchmark = remainingBenchmarks.removeLast();
     benchmark();
     if (remainingBenchmarks.length > 0) {
-      /* Provide small breaks between each benchmark, so that the browser
+      /* Provide small breaks between each benchmark, so that the browser 
       doesn't get unhappy about long running scripts, and so the user
       can regain control of the UI to kill the page as needed. */
-      new Timer(const Duration(milliseconds: 25),
-          () => runBenchmarksHelper(remainingBenchmarks));
+      window.setTimeout(() => runBenchmarksHelper(remainingBenchmarks), 25);
     } else if (remainingBenchmarks.length == 0) {
       // We've run all of the benchmarks. Update the page with the score.
       BENCHMARK_VIEW.setScore(geometricMean(scores));
@@ -141,7 +140,7 @@ class BenchmarkSuite {
 
   /** Store the results of a single benchmark run. */
   updateIndividualScore(String name, num score) {
-    scores.add(score);
+    scores.add(score); 
     BENCHMARK_VIEW.incrementProgress(name, score, totalBenchmarks);
   }
 
@@ -173,9 +172,9 @@ class BenchmarkView {
     body.nodes.add(
         new Element.html("<p id='testResultScore'>Score: $newScore</p>"));
   }
-
+ 
   /**
-   * Update the page HTML to show how much progress we've made through the
+   * Update the page HTML to show how much progress we've made through the 
    * benchmarks.
    */
   incrementProgress(String name, num score, num totalBenchmarks) {
@@ -185,8 +184,8 @@ class BenchmarkView {
     // the user we're making progress.
     num percentage = 100 * numCompleted ~/ totalBenchmarks;
   }
-
-  /**
+  
+  /** 
    * Rounds the score to have at least three significant digits (hopefully)
    * helping readability of the scores.
    */
