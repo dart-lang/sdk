@@ -9550,6 +9550,40 @@ abstract class Element extends Node implements ElementTraversal {
    */
   var xtag;
 
+  /**
+   * Scrolls this element into view.
+   *
+   * Only one of of the alignment options may be specified at a time.
+   *
+   * If no options are specified then this will attempt to scroll the minimum
+   * amount needed to bring the element into view.
+   *
+   * Note that alignCenter is currently only supported on WebKit platforms. If
+   * alignCenter is specified but not supported then this will fall back to
+   * alignTop.
+   *
+   * See also:
+   *
+   * * [scrollIntoView](http://docs.webplatform.org/wiki/dom/methods/scrollIntoView)
+   * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
+   */
+  void scrollIntoView([ScrollAlignment alignment]) {
+    var hasScrollIntoViewIfNeeded = false;
+    if (alignment == ScrollAlignment.TOP) {
+      this.$dom_scrollIntoView(true);
+    } else if (alignment == ScrollAlignment.BOTTOM) {
+      this.$dom_scrollIntoView(false);
+    } else if (hasScrollIntoViewIfNeeded) {
+      if (alignment == ScrollAlignment.CENTER) {
+        this.$dom_scrollIntoViewIfNeeded(true);
+      } else {
+        this.$dom_scrollIntoViewIfNeeded();
+      }
+    } else {
+      this.$dom_scrollIntoView();
+    }
+  }
+
 
   Element.internal() : super.internal();
 
@@ -9983,7 +10017,24 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void scrollIntoView([bool centerIfNeeded]) {
+  void $dom_scrollIntoView([bool alignWithTop]) {
+    if (?alignWithTop) {
+      _scrollIntoView_1(alignWithTop);
+      return;
+    }
+    _scrollIntoView_2();
+    return;
+  }
+
+  @DomName('Element._scrollIntoView_1')
+  @DocsEditable
+  void _scrollIntoView_1(alignWithTop) native "Element__scrollIntoView_1_Callback";
+
+  @DomName('Element._scrollIntoView_2')
+  @DocsEditable
+  void _scrollIntoView_2() native "Element__scrollIntoView_2_Callback";
+
+  void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) {
     if (?centerIfNeeded) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -10367,6 +10418,23 @@ class _ElementFactoryProvider {
   @DomName('Document.createElement')
   static Element createElement_tag(String tag) =>
       document.$dom_createElement(tag);
+}
+
+
+/**
+ * Options for Element.scrollIntoView.
+ */
+class ScrollAlignment {
+  final _value;
+  const ScrollAlignment._internal(this._value);
+  toString() => 'ScrollAlignment.$_value';
+
+  /// Attempt to align the element to the top of the scrollable area.
+  static const TOP = const ScrollAlignment._internal('TOP');
+  /// Attempt to center the element in the scrollable area.
+  static const CENTER = const ScrollAlignment._internal('CENTER');
+  /// Attempt to align the element to the bottom of the scrollable area.
+  static const BOTTOM = const ScrollAlignment._internal('BOTTOM');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

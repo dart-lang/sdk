@@ -618,6 +618,18 @@ main() {
     testUnsupported('removeLast', () => getQueryAll().removeLast());
   });
 
+  group('functional', () {
+    test('scrollIntoView', () {
+      var child = new DivElement();
+      document.body.append(child);
+
+      child.scrollIntoView(ScrollAlignment.TOP);
+      child.scrollIntoView(ScrollAlignment.BOTTOM);
+      child.scrollIntoView(ScrollAlignment.CENTER);
+      child.scrollIntoView();
+    });
+  });
+
   group('_ElementList', () {
     List<Element> makeElList() => makeElementWithChildren().children;
 

@@ -8790,6 +8790,42 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
+  /**
+   * Scrolls this element into view.
+   *
+   * Only one of of the alignment options may be specified at a time.
+   *
+   * If no options are specified then this will attempt to scroll the minimum
+   * amount needed to bring the element into view.
+   *
+   * Note that alignCenter is currently only supported on WebKit platforms. If
+   * alignCenter is specified but not supported then this will fall back to
+   * alignTop.
+   *
+   * See also:
+   *
+   * * [scrollIntoView](http://docs.webplatform.org/wiki/dom/methods/scrollIntoView)
+   * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
+   */
+  void scrollIntoView([ScrollAlignment alignment]) {
+    var hasScrollIntoViewIfNeeded = false;
+    hasScrollIntoViewIfNeeded =
+        JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
+    if (alignment == ScrollAlignment.TOP) {
+      this.$dom_scrollIntoView(true);
+    } else if (alignment == ScrollAlignment.BOTTOM) {
+      this.$dom_scrollIntoView(false);
+    } else if (hasScrollIntoViewIfNeeded) {
+      if (alignment == ScrollAlignment.CENTER) {
+        this.$dom_scrollIntoViewIfNeeded(true);
+      } else {
+        this.$dom_scrollIntoViewIfNeeded();
+      }
+    } else {
+      this.$dom_scrollIntoView();
+    }
+  }
+
   @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
@@ -9389,10 +9425,15 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   void scrollByPages(int pages) native;
 
+  @JSName('scrollIntoView')
+  @DomName('Element.scrollIntoView')
+  @DocsEditable
+  void $dom_scrollIntoView([bool alignWithTop]) native;
+
   @JSName('scrollIntoViewIfNeeded')
   @DomName('Element.scrollIntoViewIfNeeded')
   @DocsEditable
-  void scrollIntoView([bool centerIfNeeded]) native;
+  void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) native;
 
   @JSName('setAttribute')
   @DomName('Element.setAttribute')
@@ -9765,6 +9806,23 @@ class _ElementFactoryProvider {
   static dynamic createElement_tag(String tag) =>
       // Firefox may return a JS function for some types (Embed, Object).
       JS('Element|=Object', 'document.createElement(#)', tag);
+}
+
+
+/**
+ * Options for Element.scrollIntoView.
+ */
+class ScrollAlignment {
+  final _value;
+  const ScrollAlignment._internal(this._value);
+  toString() => 'ScrollAlignment.$_value';
+
+  /// Attempt to align the element to the top of the scrollable area.
+  static const TOP = const ScrollAlignment._internal('TOP');
+  /// Attempt to center the element in the scrollable area.
+  static const CENTER = const ScrollAlignment._internal('CENTER');
+  /// Attempt to align the element to the bottom of the scrollable area.
+  static const BOTTOM = const ScrollAlignment._internal('BOTTOM');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
