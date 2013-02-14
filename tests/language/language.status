@@ -545,16 +545,6 @@ type_parameter_literal_test: Fail
 
 [ $compiler == dart2dart && $minified ]
 
-mixin_mixin_test: Fail
-mixin_field_test: Fail
-mixin_implements_test: Fail
-mixin_this_use_test: Fail
-mixin_naming_test: Fail
-mixin_is_test: Fail
-mixin_method_test: Fail
-mixin_illegal_super_use_test/none: Fail
-mixin_illegal_superclass_test/none: Fail
-
 # TODO(tball): Assign proper bug numbers.
 class_literal_test/none: Fail
 

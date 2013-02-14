@@ -579,6 +579,12 @@ class PlaceholderCollector extends Visitor {
     }
   }
 
+  visitNamedMixinApplication(NamedMixinApplication node) {
+    ClassElement classElement = currentElement;
+    makeElementPlaceholder(node.name, classElement);
+    node.visitChildren(this);
+  }
+
   bool tryResolveAndCollectTypeVariable(
       TypeDeclarationElement typeDeclaration, Identifier name) {
     // Hack for case when interface and default class are in different
