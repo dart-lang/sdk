@@ -2,6 +2,7 @@ library WindowOpenTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:async';
 
 main() {
   useHtmlConfiguration();
@@ -26,8 +27,8 @@ closeWindow(win) {
   win.close();
   doneHandler() {
     if (!win.closed) {
-      window.setTimeout(expectAsync0(doneHandler), 1);
+      new Timer(const Duration(milliseconds: 1), expectAsync0(doneHandler));
     }
   }
-  window.setTimeout(expectAsync0(doneHandler), 1);
+  new Timer(const Duration(milliseconds: 1), expectAsync0(doneHandler));
 }
