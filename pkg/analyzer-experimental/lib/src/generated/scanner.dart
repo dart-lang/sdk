@@ -92,10 +92,10 @@ class Keyword {
    * @param syntax the lexeme for the keyword
    */
   Keyword.con1(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_215_impl(___name, ___ordinal, syntax);
+    _jtd_constructor_224_impl(___name, ___ordinal, syntax);
   }
-  _jtd_constructor_215_impl(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_216_impl(___name, ___ordinal, syntax, false);
+  _jtd_constructor_224_impl(String ___name, int ___ordinal, String syntax) {
+    _jtd_constructor_225_impl(___name, ___ordinal, syntax, false);
   }
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
@@ -103,13 +103,13 @@ class Keyword {
    * @param syntax the lexeme for the keyword
    * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
-  Keyword.con2(String ___name, int ___ordinal, String syntax, bool isPseudoKeyword) {
-    _jtd_constructor_216_impl(___name, ___ordinal, syntax, isPseudoKeyword);
+  Keyword.con2(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
+    _jtd_constructor_225_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
   }
-  _jtd_constructor_216_impl(String ___name, int ___ordinal, String syntax, bool isPseudoKeyword) {
+  _jtd_constructor_225_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
     __name = ___name;
     __ordinal = ___ordinal;
-    this._syntax = syntax;
+    this._syntax = syntax2;
     this._isPseudoKeyword2 = isPseudoKeyword;
   }
   /**
@@ -288,7 +288,7 @@ class Token {
    */
   Token setNext(Token token) {
     _next = token;
-    token.previous2 = this;
+    token.previous = this;
     return token;
   }
   /**
@@ -306,8 +306,8 @@ class Token {
    * offset.
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  void set offset2(int offset) {
-    this._offset = offset;
+  void set offset(int offset3) {
+    this._offset = offset3;
   }
   String toString() => lexeme;
   /**
@@ -320,8 +320,8 @@ class Token {
    * Set the previous token in the token stream to the given token.
    * @param previous the previous token in the token stream
    */
-  void set previous2(Token previous) {
-    this._previous = previous;
+  void set previous(Token previous2) {
+    this._previous = previous2;
   }
 }
 /**
@@ -510,19 +510,19 @@ class TokenType {
    */
   String _lexeme;
   TokenType.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_227_impl(___name, ___ordinal);
+    _jtd_constructor_236_impl(___name, ___ordinal);
   }
-  _jtd_constructor_227_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_228_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
+  _jtd_constructor_236_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_237_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
   }
-  TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass, String lexeme) {
-    _jtd_constructor_228_impl(___name, ___ordinal, tokenClass, lexeme);
+  TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
+    _jtd_constructor_237_impl(___name, ___ordinal, tokenClass2, lexeme2);
   }
-  _jtd_constructor_228_impl(String ___name, int ___ordinal, TokenClass tokenClass, String lexeme) {
+  _jtd_constructor_237_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
     __name = ___name;
     __ordinal = ___ordinal;
-    this._tokenClass = tokenClass == null ? TokenClass.NO_CLASS : tokenClass;
-    this._lexeme = lexeme;
+    this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;
+    this._lexeme = lexeme2;
   }
   /**
    * Return the lexeme that defines this type of token, or {@code null} if there is more than one
@@ -539,57 +539,68 @@ class TokenType {
    * Return {@code true} if this type of token represents an additive operator.
    * @return {@code true} if this type of token represents an additive operator
    */
-  bool isAdditiveOperator() => _tokenClass == TokenClass.ADDITIVE_OPERATOR;
+  bool isAdditiveOperator() => identical(_tokenClass, TokenClass.ADDITIVE_OPERATOR);
   /**
    * Return {@code true} if this type of token represents an assignment operator.
    * @return {@code true} if this type of token represents an assignment operator
    */
-  bool isAssignmentOperator() => _tokenClass == TokenClass.ASSIGNMENT_OPERATOR;
+  bool isAssignmentOperator() => identical(_tokenClass, TokenClass.ASSIGNMENT_OPERATOR);
+  /**
+   * Return {@code true} if this type of token represents an associative operator. An associative
+   * operator is an operator for which the following equality is true:{@code (a * b) * c == a * (b * c)}. In other words, if the result of applying the operator to
+   * multiple operands does not depend on the order in which those applications occur.
+   * <p>
+   * Note: This method considers the logical-and and logical-or operators to be associative, even
+   * though the order in which the application of those operators can have an effect because
+   * evaluation of the right-hand operand is conditional.
+   * @return {@code true} if this type of token represents an associative operator
+   */
+  bool isAssociativeOperator() => identical(this, AMPERSAND) || identical(this, AMPERSAND_AMPERSAND) || identical(this, BAR) || identical(this, BAR_BAR) || identical(this, CARET) || identical(this, PLUS) || identical(this, STAR);
   /**
    * Return {@code true} if this type of token represents an equality operator.
    * @return {@code true} if this type of token represents an equality operator
    */
-  bool isEqualityOperator() => _tokenClass == TokenClass.EQUALITY_OPERATOR;
+  bool isEqualityOperator() => identical(_tokenClass, TokenClass.EQUALITY_OPERATOR);
   /**
    * Return {@code true} if this type of token represents an increment operator.
    * @return {@code true} if this type of token represents an increment operator
    */
-  bool isIncrementOperator() => _lexeme == "++" || _lexeme == "--";
+  bool isIncrementOperator() => identical(_lexeme, "++") || identical(_lexeme, "--");
   /**
    * Return {@code true} if this type of token represents a multiplicative operator.
    * @return {@code true} if this type of token represents a multiplicative operator
    */
-  bool isMultiplicativeOperator() => _tokenClass == TokenClass.MULTIPLICATIVE_OPERATOR;
+  bool isMultiplicativeOperator() => identical(_tokenClass, TokenClass.MULTIPLICATIVE_OPERATOR);
   /**
    * Return {@code true} if this token type represents an operator.
    * @return {@code true} if this token type represents an operator
    */
-  bool isOperator() => _tokenClass != TokenClass.NO_CLASS && this != TokenType.OPEN_PAREN && this != TokenType.OPEN_SQUARE_BRACKET && this != TokenType.PERIOD;
+  bool isOperator() => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
   /**
    * Return {@code true} if this type of token represents a relational operator.
    * @return {@code true} if this type of token represents a relational operator
    */
-  bool isRelationalOperator() => _tokenClass == TokenClass.RELATIONAL_OPERATOR;
+  bool isRelationalOperator() => identical(_tokenClass, TokenClass.RELATIONAL_OPERATOR);
   /**
    * Return {@code true} if this type of token represents a shift operator.
    * @return {@code true} if this type of token represents a shift operator
    */
-  bool isShiftOperator() => _tokenClass == TokenClass.SHIFT_OPERATOR;
+  bool isShiftOperator() => identical(_tokenClass, TokenClass.SHIFT_OPERATOR);
   /**
    * Return {@code true} if this type of token represents a unary postfix operator.
    * @return {@code true} if this type of token represents a unary postfix operator
    */
-  bool isUnaryPostfixOperator() => _tokenClass == TokenClass.UNARY_POSTFIX_OPERATOR;
+  bool isUnaryPostfixOperator() => identical(_tokenClass, TokenClass.UNARY_POSTFIX_OPERATOR);
   /**
    * Return {@code true} if this type of token represents a unary prefix operator.
    * @return {@code true} if this type of token represents a unary prefix operator
    */
-  bool isUnaryPrefixOperator() => _tokenClass == TokenClass.UNARY_PREFIX_OPERATOR;
+  bool isUnaryPrefixOperator() => identical(_tokenClass, TokenClass.UNARY_PREFIX_OPERATOR);
   /**
    * Return {@code true} if this token type represents an operator that can be defined by users.
    * @return {@code true} if this token type represents an operator that can be defined by users
    */
-  bool isUserDefinableOperator() => _lexeme == "==" || _lexeme == "~" || _lexeme == "[]" || _lexeme == "[]=" || _lexeme == "*" || _lexeme == "/" || _lexeme == "%" || _lexeme == "~/" || _lexeme == "+" || _lexeme == "-" || _lexeme == "<<" || _lexeme == ">>" || _lexeme == ">=" || _lexeme == ">" || _lexeme == "<=" || _lexeme == "<" || _lexeme == "&" || _lexeme == "^" || _lexeme == "|";
+  bool isUserDefinableOperator() => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
   String toString() => __name;
 }
 class TokenType_EOF extends TokenType {
@@ -632,7 +643,7 @@ class BeginToken extends Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   BeginToken(TokenType type, int offset) : super(type, offset) {
-    assert((type == TokenType.OPEN_CURLY_BRACKET || type == TokenType.OPEN_PAREN || type == TokenType.OPEN_SQUARE_BRACKET || type == TokenType.STRING_INTERPOLATION_EXPRESSION));
+    assert((identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)));
   }
   /**
    * Return the token that corresponds to this token.
@@ -643,7 +654,7 @@ class BeginToken extends Token {
    * Set the token that corresponds to this token to the given token.
    * @param token the token that corresponds to this token
    */
-  void set endToken2(Token token) {
+  void set endToken(Token token) {
     this._endToken = token;
   }
 }
@@ -724,18 +735,18 @@ class TokenClass {
    */
   int _precedence = 0;
   TokenClass.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_225_impl(___name, ___ordinal);
+    _jtd_constructor_234_impl(___name, ___ordinal);
   }
-  _jtd_constructor_225_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_226_impl(___name, ___ordinal, 0);
+  _jtd_constructor_234_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_235_impl(___name, ___ordinal, 0);
   }
-  TokenClass.con2(String ___name, int ___ordinal, int precedence) {
-    _jtd_constructor_226_impl(___name, ___ordinal, precedence);
+  TokenClass.con2(String ___name, int ___ordinal, int precedence2) {
+    _jtd_constructor_235_impl(___name, ___ordinal, precedence2);
   }
-  _jtd_constructor_226_impl(String ___name, int ___ordinal, int precedence) {
+  _jtd_constructor_235_impl(String ___name, int ___ordinal, int precedence2) {
     __name = ___name;
     __ordinal = ___ordinal;
-    this._precedence = precedence;
+    this._precedence = precedence2;
   }
   /**
    * Return the precedence of tokens of this class, or {@code 0} if the such tokens do not represent
@@ -807,14 +818,14 @@ class StringScanner extends AbstractScanner {
     if (_charOffset + 1 >= _stringLength) {
       return -1;
     }
-    return _string.charCodeAt(++_charOffset);
+    return _string.codeUnitAt(++_charOffset);
   }
   String getString(int start, int endDelta) => _string.substring(start - _offsetDelta, _charOffset + 1 + endDelta);
   int peek() {
     if (_charOffset + 1 >= _string.length) {
       return -1;
     }
-    return _string.charCodeAt(_charOffset + 1);
+    return _string.codeUnitAt(_charOffset + 1);
   }
 }
 /**
@@ -965,12 +976,12 @@ abstract class AbstractScanner {
       _lastComment = _lastComment.setNext(new StringToken(type, value, _tokenStart));
     }
   }
-  void appendEndToken(TokenType type, TokenType beginType) {
+  void appendEndToken(TokenType type26, TokenType beginType) {
     Token token;
     if (_firstComment == null) {
-      token = new Token(type, _tokenStart);
+      token = new Token(type26, _tokenStart);
     } else {
-      token = new TokenWithComment(type, _tokenStart, _firstComment);
+      token = new TokenWithComment(type26, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -978,8 +989,8 @@ abstract class AbstractScanner {
     int last = _groupingStack.length - 1;
     if (last >= 0) {
       BeginToken begin = _groupingStack[last];
-      if (begin.type == beginType) {
-        begin.endToken2 = token;
+      if (identical(begin.type, beginType)) {
+        begin.endToken = token;
         _groupingStack.removeAt(last);
       }
     }
@@ -1049,14 +1060,14 @@ abstract class AbstractScanner {
   }
   int bigSwitch(int next) {
     beginToken();
-    if (next == 0xd) {
+    if (next == 0xD) {
       next = advance();
-      if (next == 0xa) {
+      if (next == 0xA) {
         next = advance();
       }
       recordStartOfLine();
       return next;
-    } else if (next == 0xa) {
+    } else if (next == 0xA) {
       recordStartOfLine();
       return advance();
     } else if (next == 0x9 || next == 0x20) {
@@ -1069,31 +1080,31 @@ abstract class AbstractScanner {
         return tokenizeString(advance(), start, true);
       }
     }
-    if (0x61 <= next && next <= 0x7a) {
+    if (0x61 <= next && next <= 0x7A) {
       return tokenizeKeywordOrIdentifier(next, true);
     }
-    if ((0x41 <= next && next <= 0x5a) || next == 0x5f || next == 0x24) {
+    if ((0x41 <= next && next <= 0x5A) || next == 0x5F || next == 0x24) {
       return tokenizeIdentifier(next, offset, true);
     }
-    if (next == 0x3c) {
+    if (next == 0x3C) {
       return tokenizeLessThan(next);
     }
-    if (next == 0x3e) {
+    if (next == 0x3E) {
       return tokenizeGreaterThan(next);
     }
-    if (next == 0x3d) {
+    if (next == 0x3D) {
       return tokenizeEquals(next);
     }
     if (next == 0x21) {
       return tokenizeExclamation(next);
     }
-    if (next == 0x2b) {
+    if (next == 0x2B) {
       return tokenizePlus(next);
     }
-    if (next == 0x2d) {
+    if (next == 0x2D) {
       return tokenizeMinus(next);
     }
-    if (next == 0x2a) {
+    if (next == 0x2A) {
       return tokenizeMultiply(next);
     }
     if (next == 0x25) {
@@ -1102,19 +1113,19 @@ abstract class AbstractScanner {
     if (next == 0x26) {
       return tokenizeAmpersand(next);
     }
-    if (next == 0x7c) {
+    if (next == 0x7C) {
       return tokenizeBar(next);
     }
-    if (next == 0x5e) {
+    if (next == 0x5E) {
       return tokenizeCaret(next);
     }
-    if (next == 0x5b) {
+    if (next == 0x5B) {
       return tokenizeOpenSquareBracket(next);
     }
-    if (next == 0x7e) {
+    if (next == 0x7E) {
       return tokenizeTilde(next);
     }
-    if (next == 0x5c) {
+    if (next == 0x5C) {
       appendToken(TokenType.BACKSLASH);
       return advance();
     }
@@ -1129,23 +1140,23 @@ abstract class AbstractScanner {
       appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
       return advance();
     }
-    if (next == 0x2c) {
+    if (next == 0x2C) {
       appendToken(TokenType.COMMA);
       return advance();
     }
-    if (next == 0x3a) {
+    if (next == 0x3A) {
       appendToken(TokenType.COLON);
       return advance();
     }
-    if (next == 0x3b) {
+    if (next == 0x3B) {
       appendToken(TokenType.SEMICOLON);
       return advance();
     }
-    if (next == 0x3f) {
+    if (next == 0x3F) {
       appendToken(TokenType.QUESTION);
       return advance();
     }
-    if (next == 0x5d) {
+    if (next == 0x5D) {
       appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
       return advance();
     }
@@ -1153,15 +1164,15 @@ abstract class AbstractScanner {
       appendToken(TokenType.BACKPING);
       return advance();
     }
-    if (next == 0x7b) {
+    if (next == 0x7B) {
       appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
       return advance();
     }
-    if (next == 0x7d) {
+    if (next == 0x7D) {
       appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
       return advance();
     }
-    if (next == 0x2f) {
+    if (next == 0x2F) {
       return tokenizeSlashOrComment(next);
     }
     if (next == 0x40) {
@@ -1171,7 +1182,7 @@ abstract class AbstractScanner {
     if (next == 0x22 || next == 0x27) {
       return tokenizeString(next, offset, false);
     }
-    if (next == 0x2e) {
+    if (next == 0x2E) {
       return tokenizeDotOrNumber(next);
     }
     if (next == 0x30) {
@@ -1186,7 +1197,7 @@ abstract class AbstractScanner {
     if (Character.isLetter(next)) {
       return tokenizeIdentifier(next, offset, true);
     }
-    if (next == AbstractScanner._$NBSP) {
+    if (next == _$NBSP) {
       return advance();
     }
     reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
@@ -1202,7 +1213,7 @@ abstract class AbstractScanner {
     int last = _groupingStack.length - 1;
     while (last >= 0) {
       BeginToken begin = _groupingStack[last];
-      if (begin.type == TokenType.OPEN_CURLY_BRACKET || begin.type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+      if (identical(begin.type, TokenType.OPEN_CURLY_BRACKET) || identical(begin.type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         return begin;
       }
       _hasUnmatchedGroups2 = true;
@@ -1250,7 +1261,7 @@ abstract class AbstractScanner {
     if (next == 0x26) {
       appendToken(TokenType.AMPERSAND_AMPERSAND);
       return advance();
-    } else if (next == 0x3d) {
+    } else if (next == 0x3D) {
       appendToken(TokenType.AMPERSAND_EQ);
       return advance();
     } else {
@@ -1260,10 +1271,10 @@ abstract class AbstractScanner {
   }
   int tokenizeBar(int next) {
     next = advance();
-    if (next == 0x7c) {
+    if (next == 0x7C) {
       appendToken(TokenType.BAR_BAR);
       return advance();
-    } else if (next == 0x3d) {
+    } else if (next == 0x3D) {
       appendToken(TokenType.BAR_EQ);
       return advance();
     } else {
@@ -1271,14 +1282,14 @@ abstract class AbstractScanner {
       return next;
     }
   }
-  int tokenizeCaret(int next) => select(0x3d, TokenType.CARET_EQ, TokenType.CARET);
+  int tokenizeCaret(int next) => select(0x3D, TokenType.CARET_EQ, TokenType.CARET);
   int tokenizeDotOrNumber(int next) {
     int start = offset;
     next = advance();
     if ((0x30 <= next && next <= 0x39)) {
       return tokenizeFractionPart(next, start);
-    } else if (0x2e == next) {
-      return select(0x2e, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
+    } else if (0x2E == next) {
+      return select(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
       appendToken(TokenType.PERIOD);
       return next;
@@ -1286,10 +1297,10 @@ abstract class AbstractScanner {
   }
   int tokenizeEquals(int next) {
     next = advance();
-    if (next == 0x3d) {
+    if (next == 0x3D) {
       appendToken(TokenType.EQ_EQ);
       return advance();
-    } else if (next == 0x3e) {
+    } else if (next == 0x3E) {
       appendToken(TokenType.FUNCTION);
       return advance();
     }
@@ -1298,7 +1309,7 @@ abstract class AbstractScanner {
   }
   int tokenizeExclamation(int next) {
     next = advance();
-    if (next == 0x3d) {
+    if (next == 0x3D) {
       appendToken(TokenType.BANG_EQ);
       return advance();
     }
@@ -1306,7 +1317,7 @@ abstract class AbstractScanner {
     return next;
   }
   int tokenizeExponent(int next) {
-    if (next == 0x2b || next == 0x2d) {
+    if (next == 0x2B || next == 0x2D) {
       next = advance();
     }
     bool hasDigits = false;
@@ -1341,8 +1352,8 @@ abstract class AbstractScanner {
     }
     if (!hasDigit) {
       appendStringToken(TokenType.INT, getString(start, -2));
-      if (0x2e == next) {
-        return select2(0x2e, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
+      if (0x2E == next) {
+        return select2(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
       }
       appendToken2(TokenType.PERIOD, offset - 1);
       return bigSwitch(next);
@@ -1355,12 +1366,12 @@ abstract class AbstractScanner {
   }
   int tokenizeGreaterThan(int next) {
     next = advance();
-    if (0x3d == next) {
+    if (0x3D == next) {
       appendToken(TokenType.GT_EQ);
       return advance();
-    } else if (0x3e == next) {
+    } else if (0x3E == next) {
       next = advance();
-      if (0x3d == next) {
+      if (0x3D == next) {
         appendToken(TokenType.GT_GT_EQ);
         return advance();
       } else {
@@ -1397,7 +1408,7 @@ abstract class AbstractScanner {
     return tokenizeNumber(next);
   }
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
-    while ((0x61 <= next && next <= 0x7a) || (0x41 <= next && next <= 0x5a) || (0x30 <= next && next <= 0x39) || next == 0x5f || (next == 0x24 && allowDollar) || Character.isLetterOrDigit(next)) {
+    while ((0x61 <= next && next <= 0x7A) || (0x41 <= next && next <= 0x5A) || (0x30 <= next && next <= 0x39) || next == 0x5F || (next == 0x24 && allowDollar) || Character.isLetterOrDigit(next)) {
       next = advance();
     }
     appendStringToken(TokenType.IDENTIFIER, getString(start, next < 0 ? 0 : -1));
@@ -1407,7 +1418,7 @@ abstract class AbstractScanner {
     appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
     next = advance();
     while (next != -1) {
-      if (next == 0x7d) {
+      if (next == 0x7D) {
         BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
           beginToken();
@@ -1415,12 +1426,12 @@ abstract class AbstractScanner {
           next = advance();
           beginToken();
           return next;
-        } else if (begin.type == TokenType.OPEN_CURLY_BRACKET) {
+        } else if (identical(begin.type, TokenType.OPEN_CURLY_BRACKET)) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
           next = advance();
           beginToken();
-        } else if (begin.type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+        } else if (identical(begin.type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.STRING_INTERPOLATION_EXPRESSION);
           next = advance();
@@ -1445,32 +1456,32 @@ abstract class AbstractScanner {
     beginToken();
     return next;
   }
-  int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
+  int tokenizeKeywordOrIdentifier(int next2, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = offset;
-    while (state != null && 0x61 <= next && next <= 0x7a) {
-      state = state.next(next as int);
-      next = advance();
+    while (state != null && 0x61 <= next2 && next2 <= 0x7A) {
+      state = state.next((next2 as int));
+      next2 = advance();
     }
     if (state == null || state.keyword() == null) {
-      return tokenizeIdentifier(next, start, allowDollar);
+      return tokenizeIdentifier(next2, start, allowDollar);
     }
-    if ((0x41 <= next && next <= 0x5a) || (0x30 <= next && next <= 0x39) || next == 0x5f || next == 0x24) {
-      return tokenizeIdentifier(next, start, allowDollar);
-    } else if (next < 128) {
+    if ((0x41 <= next2 && next2 <= 0x5A) || (0x30 <= next2 && next2 <= 0x39) || next2 == 0x5F || next2 == 0x24) {
+      return tokenizeIdentifier(next2, start, allowDollar);
+    } else if (next2 < 128) {
       appendKeywordToken(state.keyword());
-      return next;
+      return next2;
     } else {
-      return tokenizeIdentifier(next, start, allowDollar);
+      return tokenizeIdentifier(next2, start, allowDollar);
     }
   }
   int tokenizeLessThan(int next) {
     next = advance();
-    if (0x3d == next) {
+    if (0x3D == next) {
       appendToken(TokenType.LT_EQ);
       return advance();
-    } else if (0x3c == next) {
-      return select(0x3d, TokenType.LT_LT_EQ, TokenType.LT_LT);
+    } else if (0x3C == next) {
+      return select(0x3D, TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
       appendToken(TokenType.LT);
       return next;
@@ -1478,10 +1489,10 @@ abstract class AbstractScanner {
   }
   int tokenizeMinus(int next) {
     next = advance();
-    if (next == 0x2d) {
+    if (next == 0x2D) {
       appendToken(TokenType.MINUS_MINUS);
       return advance();
-    } else if (next == 0x3d) {
+    } else if (next == 0x3D) {
       appendToken(TokenType.MINUS_EQ);
       return advance();
     } else {
@@ -1497,9 +1508,9 @@ abstract class AbstractScanner {
         reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, []);
         appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(_tokenStart, 0));
         return next;
-      } else if (0x2a == next) {
+      } else if (0x2A == next) {
         next = advance();
-        if (0x2f == next) {
+        if (0x2F == next) {
           --nesting;
           if (0 == nesting) {
             appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(_tokenStart, 0));
@@ -1508,9 +1519,9 @@ abstract class AbstractScanner {
             next = advance();
           }
         }
-      } else if (0x2f == next) {
+      } else if (0x2F == next) {
         next = advance();
-        if (0x2a == next) {
+        if (0x2A == next) {
           next = advance();
           ++nesting;
         }
@@ -1565,7 +1576,7 @@ abstract class AbstractScanner {
         }
         continue;
       }
-      if (next == 0x5c) {
+      if (next == 0x5C) {
         next = advance();
         if (next == -1) {
           break;
@@ -1577,14 +1588,14 @@ abstract class AbstractScanner {
     appendStringToken(TokenType.STRING, getString(start, 0));
     return advance();
   }
-  int tokenizeMultiply(int next) => select(0x3d, TokenType.STAR_EQ, TokenType.STAR);
+  int tokenizeMultiply(int next) => select(0x3D, TokenType.STAR_EQ, TokenType.STAR);
   int tokenizeNumber(int next) {
     int start = offset;
     while (true) {
       next = advance();
       if (0x30 <= next && next <= 0x39) {
         continue;
-      } else if (next == 0x2e) {
+      } else if (next == 0x2E) {
         return tokenizeFractionPart(advance(), start);
       } else if (next == 0x64 || next == 0x44) {
         appendStringToken(TokenType.DOUBLE, getString(start, 0));
@@ -1599,20 +1610,20 @@ abstract class AbstractScanner {
   }
   int tokenizeOpenSquareBracket(int next) {
     next = advance();
-    if (next == 0x5d) {
-      return select(0x3d, TokenType.INDEX_EQ, TokenType.INDEX);
+    if (next == 0x5D) {
+      return select(0x3D, TokenType.INDEX_EQ, TokenType.INDEX);
     } else {
       appendBeginToken(TokenType.OPEN_SQUARE_BRACKET);
       return next;
     }
   }
-  int tokenizePercent(int next) => select(0x3d, TokenType.PERCENT_EQ, TokenType.PERCENT);
+  int tokenizePercent(int next) => select(0x3D, TokenType.PERCENT_EQ, TokenType.PERCENT);
   int tokenizePlus(int next) {
     next = advance();
-    if (0x2b == next) {
+    if (0x2B == next) {
       appendToken(TokenType.PLUS_PLUS);
       return advance();
-    } else if (0x3d == next) {
+    } else if (0x3D == next) {
       appendToken(TokenType.PLUS_EQ);
       return advance();
     } else {
@@ -1623,7 +1634,7 @@ abstract class AbstractScanner {
   int tokenizeSingleLineComment(int next) {
     while (true) {
       next = advance();
-      if (0xa == next || 0xd == next || -1 == next) {
+      if (0xA == next || 0xD == next || -1 == next) {
         appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, 0));
         return next;
       }
@@ -1635,7 +1646,7 @@ abstract class AbstractScanner {
       if (next == quoteChar) {
         appendStringToken(TokenType.STRING, getString(start, 0));
         return advance();
-      } else if (next == 0xd || next == 0xa) {
+      } else if (next == 0xD || next == 0xA) {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
         appendStringToken(TokenType.STRING, getString(start, 0));
         return advance();
@@ -1648,7 +1659,7 @@ abstract class AbstractScanner {
   }
   int tokenizeSingleLineString(int next, int quoteChar, int start) {
     while (next != quoteChar) {
-      if (next == 0x5c) {
+      if (next == 0x5C) {
         next = advance();
       } else if (next == 0x24) {
         appendStringToken(TokenType.STRING, getString(start, -1));
@@ -1657,7 +1668,7 @@ abstract class AbstractScanner {
         start = offset;
         continue;
       }
-      if (next <= 0xd && (next == 0xa || next == 0xd || next == -1)) {
+      if (next <= 0xD && (next == 0xA || next == 0xD || next == -1)) {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
         appendStringToken(TokenType.STRING, getString(start, 0));
         return advance();
@@ -1669,11 +1680,11 @@ abstract class AbstractScanner {
   }
   int tokenizeSlashOrComment(int next) {
     next = advance();
-    if (0x2a == next) {
+    if (0x2A == next) {
       return tokenizeMultiLineComment(next);
-    } else if (0x2f == next) {
+    } else if (0x2F == next) {
       return tokenizeSingleLineComment(next);
-    } else if (0x3d == next) {
+    } else if (0x3D == next) {
       appendToken(TokenType.SLASH_EQ);
       return advance();
     } else {
@@ -1702,7 +1713,7 @@ abstract class AbstractScanner {
   int tokenizeStringInterpolation(int start) {
     beginToken();
     int next = advance();
-    if (next == 0x7b) {
+    if (next == 0x7B) {
       return tokenizeInterpolatedExpression(next, start);
     } else {
       return tokenizeInterpolatedIdentifier(next, start);
@@ -1713,7 +1724,7 @@ abstract class AbstractScanner {
       if (peek() == 0x21) {
         do {
           next = advance();
-        } while (next != 0xa && next != 0xd && next > 0);
+        } while (next != 0xA && next != 0xD && next > 0);
         appendStringToken(TokenType.SCRIPT_TAG, getString(_tokenStart, 0));
         return next;
       }
@@ -1723,8 +1734,8 @@ abstract class AbstractScanner {
   }
   int tokenizeTilde(int next) {
     next = advance();
-    if (next == 0x2f) {
-      return select(0x3d, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
+    if (next == 0x2F) {
+      return select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
       appendToken(TokenType.TILDE);
       return next;
@@ -1777,18 +1788,18 @@ class KeywordState {
    * @param length the number of strings in the array that pass through the state being built
    * @return the state that was created
    */
-  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length) {
+  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length12) {
     List<KeywordState> result = new List<KeywordState>.fixedLength(26);
-    assert(length != 0);
+    assert(length12 != 0);
     int chunk = 0x0;
     int chunkStart = -1;
     bool isLeaf = false;
-    for (int i = offset; i < offset + length; i++) {
+    for (int i = offset; i < offset + length12; i++) {
       if (strings[i].length == start) {
         isLeaf = true;
       }
       if (strings[i].length > start) {
-        int c = strings[i].charCodeAt(start);
+        int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
             result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, i - chunkStart);
@@ -1800,9 +1811,9 @@ class KeywordState {
     }
     if (chunkStart != -1) {
       assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length - chunkStart);
+      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length12 - chunkStart);
     } else {
-      assert(length == 1);
+      assert(length12 == 1);
       return new KeywordState(_EMPTY_TABLE, strings[offset]);
     }
     if (isLeaf) {
