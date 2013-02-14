@@ -2095,10 +2095,38 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHL: {
+      Range* right_range = this->right()->definition()->range();
+      if (this->left()->BindsToConstant()) {
+        // If left is constant, we know the maximal allowed size for right.
+        const Object& obj = this->left()->BoundConstant();
+        if (obj.IsSmi()) {
+          const intptr_t left_int = Smi::Cast(obj).Value();
+          if (left_int == 0) {
+            __ cmpq(right, Immediate(0));
+            __ j(NEGATIVE, deopt);
+            break;
+          }
+          intptr_t tmp = (left_int > 0) ? left_int : ~left_int;
+          intptr_t max_right = kSmiBits;
+          while ((tmp >>= 1) != 0) {
+            max_right--;
+          }
+          const bool right_needs_check =
+              (right_range == NULL) ||
+              !right_range->IsWithin(0, max_right - 1);
+          if (right_needs_check) {
+            __ cmpq(right,
+              Immediate(reinterpret_cast<int64_t>(Smi::New(max_right))));
+            __ j(ABOVE_EQUAL, deopt);
+          }
+          __ SmiUntag(right);
+          __ shlq(left, right);
+          break;
+        }
+      }
       Register temp = locs()->temp(0).reg();
       // Check if count too large for handling it inlined.
       __ movq(temp, left);
-      Range* right_range = this->right()->definition()->range();
       const bool right_needs_check =
           (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
       if (right_needs_check) {
