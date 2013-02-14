@@ -157,7 +157,7 @@ class PackageManifest {
   /** Package description */
   final description;
   /** Libraries contained in this package. */
-  final List<String> libraries = <String>[];
+  final List<Reference> libraries = <Reference>[];
   /**
    * Descriptive string describing the version# of the package.
    *
@@ -419,11 +419,10 @@ class Dartdoc {
         version, revision);
 
     for (final lib in _sortedLibraries) {
-      var libraryElement = new LibraryElement(lib.qualifiedName, lib)
+      var libraryElement = new LibraryElement(lib.qualifiedName, lib, lookupMdnComment)
           ..stripDuplicateUris(null, null);
-      packageManifest.libraries.add(libraryElement.id);
+      packageManifest.libraries.add(new Reference.fromElement(libraryElement));
       startFile("$revision/${libraryElement.id}.json");
-
       write(json_serializer.serialize(libraryElement));
       endFile();
     }
@@ -439,6 +438,8 @@ class Dartdoc {
     write(json_serializer.serialize(packageManifest));
     endFile();
   }
+  
+  MdnComment lookupMdnComment(Mirror mirror) => null;
 
   void startFile(String path) {
     _filePath = new Path(path);
@@ -1985,4 +1986,28 @@ class DocComment {
   String get html => md.markdownToHtml(text);
 
   String toString() => text;
+}
+
+class MdnComment implements DocComment {
+  final String mdnComment;
+  final String mdnUrl;
+
+  MdnComment(String this.mdnComment, String this.mdnUrl);
+
+  String get text => mdnComment;
+
+  ClassMirror get inheritedFrom => null;
+
+  String get html {
+    // Wrap the mdn comment so we can highlight it and so we handle MDN scraped
+    // content that lacks a top-level block tag.
+   return '''
+        <div class="mdn">
+        $mdnComment
+        <div class="mdn-note"><a href="$mdnUrl">from MDN</a></div>
+        </div>
+        ''';
+  }
+
+  String toString() => mdnComment;
 }
