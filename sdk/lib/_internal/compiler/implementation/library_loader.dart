@@ -358,7 +358,7 @@ class LibraryLoaderTask extends LibraryLoader {
    * used as is, any URI resolution should be done beforehand.
    */
   void scanPart(Part part, Uri resolvedUri, LibraryElement library) {
-    if (!resolvedUri.isAbsolute()) throw new ArgumentError(resolvedUri);
+    if (!resolvedUri.isAbsolute) throw new ArgumentError(resolvedUri);
     Uri readableUri = compiler.translateResolvedUri(library, resolvedUri, part);
     Script sourceScript = compiler.readScript(readableUri, part);
     CompilationUnitElement unit =

@@ -134,7 +134,7 @@ class Compiler extends leg.Compiler {
    * Reads the script designated by [readableUri].
    */
   leg.Script readScript(Uri readableUri, [tree.Node node]) {
-    if (!readableUri.isAbsolute()) {
+    if (!readableUri.isAbsolute) {
       internalError('Relative uri $readableUri provided to readScript(Uri)',
                     node: node);
     }

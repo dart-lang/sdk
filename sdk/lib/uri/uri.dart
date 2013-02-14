@@ -92,7 +92,7 @@ class Uri {
   /**
    * Returns `true` if the URI is absolute.
    */
-  bool isAbsolute() {
+  bool get isAbsolute {
     if ("" == scheme) return false;
     if ("" != fragment) return false;
     return true;
@@ -143,7 +143,7 @@ class Uri {
       targetPath = removeDotSegments(reference.path);
       targetQuery = reference.query;
     } else {
-      if (reference.hasAuthority()) {
+      if (reference.hasAuthority) {
         targetUserInfo = reference.userInfo;
         targetDomain = reference.domain;
         targetPort = reference.port;
@@ -180,7 +180,7 @@ class Uri {
                                   fragment: reference.fragment);
   }
 
-  bool hasAuthority() {
+  bool get hasAuthority {
     return (userInfo != "") || (domain != "") || (port != 0);
   }
 
@@ -219,7 +219,7 @@ class Uri {
   String toString() {
     StringBuffer sb = new StringBuffer();
     _addIfNonEmpty(sb, scheme, scheme, ':');
-    if (hasAuthority() || (scheme == "file")) {
+    if (hasAuthority || (scheme == "file")) {
       sb.add("//");
       _addIfNonEmpty(sb, userInfo, userInfo, "@");
       sb.add(domain == null ? "null" : domain);
