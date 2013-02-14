@@ -2585,24 +2585,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction createForeignArray(String code, inputs) {
       return createForeign(code, HType.READABLE_ARRAY, inputs);
     }
-    HInstruction typeInfo;
-
-    /// Helper to create an instruction that contains the runtime value of
-    /// the type variable [variable].
-    HInstruction getTypeArgument(TypeVariableType variable) {
-      if (typeInfo == null) {
-        typeInfo = getRuntimeTypeInfo(localsHandler.readThis());
-      }
-      int intIndex = RuntimeTypeInformation.getTypeVariableIndex(variable);
-      HInstruction index = graph.addConstantInt(intIndex, constantSystem);
-      return createForeignArray('#[#]', <HInstruction>[typeInfo, index]);
-    }
 
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
     HInstruction representations;
     if (type.element.isTypeVariable()) {
-      return <HInstruction>[getTypeArgument(type)];
+      return <HInstruction>[addTypeVariableReference(type)];
     } else {
       assert(type.element.isClass());
       List<HInstruction> arguments = <HInstruction>[];
@@ -2610,8 +2598,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       for (DartType argument in interface.typeArguments) {
         List<HInstruction> inputs = <HInstruction>[];
         String template = rti.getTypeRepresentation(argument, (variable) {
-          HInstruction runtimeType = getTypeArgument(variable);
-          add(runtimeType);
+          HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
         });
         HInstruction representation = createForeignArray(template, inputs);
@@ -3150,6 +3137,49 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
+   * Helper to create an instruction that gets the value of a type variable.
+   */
+  HInstruction addTypeVariableReference(TypeVariableType type) {
+    Element member = currentElement;
+    if (member.enclosingElement.isClosure()) {
+      ClosureClassElement closureClass = member.enclosingElement;
+      member = closureClass.methodElement;
+      member = member.getOutermostEnclosingMemberOrTopLevel();
+    }
+    if (member.isFactoryConstructor()) {
+      // The type variable is stored in a parameter of the method.
+      return localsHandler.readLocal(type.element);
+    } else if (member.isInstanceMember() ||
+               member.isGenerativeConstructor()) {
+      // The type variable is stored on the object.  Generate code to extract
+      // the type arguments from the object, substitute them as an instance
+      // of the type we are testing against (if necessary), and extract the
+      // type argument by the index of the variable in the list of type
+      // variables for that class.
+      int index = RuntimeTypeInformation.getTypeVariableIndex(type);
+      HInstruction thisObject = localsHandler.readThis();
+      String substitutionNameString =
+          backend.namer.substitutionName(member.getEnclosingClass());
+      HInstruction substitutionName = graph.addConstantString(
+          new LiteralDartString(substitutionNameString), null, constantSystem);
+      HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
+          <HInstruction>[thisObject, substitutionName]);
+      add(substitution);
+      pushInvokeHelper3(backend.getGetRuntimeTypeArgument(),
+                        thisObject,
+                        substitution,
+                        graph.addConstantInt(index, constantSystem),
+                        HType.UNKNOWN);
+      return pop();
+    } else {
+      // TODO(ngeoffray): Match the VM behavior and throw an
+      // exception at runtime.
+      compiler.cancel('Unimplemented unresolved type variable',
+                      element: type.element);
+    }
+  }
+
+  /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: [argument] must not be malformed in checked mode.
@@ -3163,54 +3193,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return graph.addConstantNull(constantSystem);
     }
 
-    // The inputs are shared between invocations of the helper.
     List<HInstruction> inputs = <HInstruction>[];
 
-    /**
-     * Helper to create an instruction that gets the value of a type variable.
-     */
-    String addTypeVariableReference(TypeVariableType type) {
-      Element member = currentElement;
-      if (member.enclosingElement.isClosure()) {
-        ClosureClassElement closureClass = member.enclosingElement;
-        member = closureClass.methodElement;
-        member = member.getOutermostEnclosingMemberOrTopLevel();
-      }
-      if (member.isFactoryConstructor()) {
-        // The type variable is stored in a parameter of the method.
-        inputs.add(localsHandler.readLocal(type.element));
-      } else if (member.isInstanceMember() ||
-                 member.isGenerativeConstructor()) {
-        // The type variable is stored on the object.  Generate code to extract
-        // the type arguments from the object, substitute them as an instance
-        // of the type we are testing against (if necessary), and extract the
-        // type argument by the index of the variable in the list of type
-        // variables for that class.
-        int index = RuntimeTypeInformation.getTypeVariableIndex(type);
-        HInstruction thisObject = localsHandler.readThis();
-        String substitutionNameString =
-            backend.namer.substitutionName(member.getEnclosingClass());
-        HInstruction substitutionName = graph.addConstantString(
-            new LiteralDartString(substitutionNameString), null, constantSystem);
-        HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
-            <HInstruction>[thisObject, substitutionName]);
-        add(substitution);
-        pushInvokeHelper3(backend.getGetRuntimeTypeArgument(),
-                          thisObject,
-                          substitution,
-                          graph.addConstantInt(index, constantSystem),
-                          HType.UNKNOWN);
-        inputs.add(pop());
-      } else {
-        // TODO(ngeoffray): Match the VM behavior and throw an
-        // exception at runtime.
-        compiler.cancel('Unimplemented unresolved type variable',
-                        node: currentNode);
-      }
-    }
+    String template = rti.getTypeRepresentation(argument, (variable) {
+      inputs.add(addTypeVariableReference(variable));
+    });
 
-    String template = rti.getTypeRepresentation(argument,
-                                                addTypeVariableReference);
     HInstruction result = createForeign(template, HType.STRING, inputs);
     add(result);
     return result;
