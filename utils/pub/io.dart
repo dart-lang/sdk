@@ -81,8 +81,8 @@ String writeBinaryFile(String file, List<int> contents) {
 Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   log.io("Creating $file from stream.");
 
-  var stream = new File(file).openOutputStream();
-  return stream.pipe(wrapOutputStream(stream)).then((_) {
+  var outputStream = new File(file).openOutputStream();
+  return stream.pipe(wrapOutputStream(outputStream)).then((_) {
     log.fine("Created $file from stream.");
     return file;
   });
