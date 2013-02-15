@@ -107,7 +107,7 @@ $else
   // clear() defined by IDL.
 $endif
 
-  List<$E> get reversed {
+  Iterable<$E> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

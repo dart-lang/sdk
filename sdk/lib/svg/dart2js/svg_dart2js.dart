@@ -3149,7 +3149,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   // clear() defined by IDL.
 
-  List<Length> get reversed {
+  Iterable<Length> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -3776,7 +3776,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   // clear() defined by IDL.
 
-  List<Number> get reversed {
+  Iterable<Number> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -4679,7 +4679,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   // clear() defined by IDL.
 
-  List<PathSeg> get reversed {
+  Iterable<PathSeg> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -5566,7 +5566,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   // clear() defined by IDL.
 
-  List<String> get reversed {
+  Iterable<String> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -6732,7 +6732,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   // clear() defined by IDL.
 
-  List<Transform> get reversed {
+  Iterable<Transform> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -7254,7 +7254,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ElementInstance> get reversed {
+  Iterable<ElementInstance> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

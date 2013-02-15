@@ -7266,7 +7266,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<DomMimeType> get reversed {
+  Iterable<DomMimeType> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -7523,7 +7523,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<DomPlugin> get reversed {
+  Iterable<DomPlugin> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -7887,7 +7887,7 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<String> get reversed {
+  Iterable<String> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8165,7 +8165,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> get reversed {
+  Iterable<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8399,7 +8399,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  List<Element> get reversed {
+  Iterable<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -10729,7 +10729,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<File> get reversed {
+  Iterable<File> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -11289,7 +11289,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<num> get reversed {
+  Iterable<num> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -11508,7 +11508,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<num> get reversed {
+  Iterable<num> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -12036,7 +12036,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -12246,7 +12246,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -14268,7 +14268,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -14487,7 +14487,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -14706,7 +14706,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -17198,7 +17198,7 @@ class _ChildNodeListLazy implements List {
     return this[index];
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -17607,7 +17607,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -19927,7 +19927,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SourceBuffer> get reversed {
+  Iterable<SourceBuffer> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -20210,7 +20210,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechGrammar> get reversed {
+  Iterable<SpeechGrammar> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -20781,7 +20781,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Map> get reversed {
+  Iterable<Map> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -21867,7 +21867,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<TextTrackCue> get reversed {
+  Iterable<TextTrackCue> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -22075,7 +22075,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<TextTrack> get reversed {
+  Iterable<TextTrack> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -22490,7 +22490,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Touch> get reversed {
+  Iterable<Touch> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -22939,7 +22939,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -23158,7 +23158,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -23377,7 +23377,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -23593,7 +23593,7 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -27312,7 +27312,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ClientRect> get reversed {
+  Iterable<ClientRect> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -27512,7 +27512,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<CssRule> get reversed {
+  Iterable<CssRule> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -27712,7 +27712,7 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<CssValue> get reversed {
+  Iterable<CssValue> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -27912,7 +27912,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Entry> get reversed {
+  Iterable<Entry> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -28112,7 +28112,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<EntrySync> get reversed {
+  Iterable<EntrySync> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -28312,7 +28312,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Gamepad> get reversed {
+  Iterable<Gamepad> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -28575,7 +28575,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<MediaStream> get reversed {
+  Iterable<MediaStream> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -28775,7 +28775,7 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -28999,7 +28999,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechInputResult> get reversed {
+  Iterable<SpeechInputResult> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -29199,7 +29199,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechRecognitionResult> get reversed {
+  Iterable<SpeechRecognitionResult> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -29399,7 +29399,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<StyleSheet> get reversed {
+  Iterable<StyleSheet> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

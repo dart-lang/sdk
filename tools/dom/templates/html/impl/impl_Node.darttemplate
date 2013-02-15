@@ -200,7 +200,7 @@ $endif
     return this[index];
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

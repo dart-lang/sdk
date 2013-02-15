@@ -7967,7 +7967,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<DomMimeType> get reversed {
+  Iterable<DomMimeType> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8238,7 +8238,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<DomPlugin> get reversed {
+  Iterable<DomPlugin> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8627,7 +8627,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<String> get reversed {
+  Iterable<String> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8926,7 +8926,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> get reversed {
+  Iterable<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -9160,7 +9160,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  List<Element> get reversed {
+  Iterable<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -11465,7 +11465,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<File> get reversed {
+  Iterable<File> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -12079,7 +12079,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<num> get reversed {
+  Iterable<num> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -12317,7 +12317,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<num> get reversed {
+  Iterable<num> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -12915,7 +12915,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -13127,7 +13127,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -15488,7 +15488,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -15726,7 +15726,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -15964,7 +15964,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -18735,7 +18735,7 @@ class _ChildNodeListLazy implements List {
     return this[index];
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -19141,7 +19141,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -21768,7 +21768,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SourceBuffer> get reversed {
+  Iterable<SourceBuffer> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -22089,7 +22089,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechGrammar> get reversed {
+  Iterable<SpeechGrammar> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -22747,7 +22747,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Map> get reversed {
+  Iterable<Map> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -24069,7 +24069,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<TextTrackCue> get reversed {
+  Iterable<TextTrackCue> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -24281,7 +24281,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<TextTrack> get reversed {
+  Iterable<TextTrack> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -24700,7 +24700,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Touch> get reversed {
+  Iterable<Touch> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -25194,7 +25194,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -25432,7 +25432,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -25670,7 +25670,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -25906,7 +25906,7 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed {
+  Iterable<int> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -29584,7 +29584,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ClientRect> get reversed {
+  Iterable<ClientRect> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -29788,7 +29788,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<CssRule> get reversed {
+  Iterable<CssRule> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -29992,7 +29992,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<CssValue> get reversed {
+  Iterable<CssValue> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -30339,7 +30339,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Entry> get reversed {
+  Iterable<Entry> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -30543,7 +30543,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<EntrySync> get reversed {
+  Iterable<EntrySync> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -30747,7 +30747,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Gamepad> get reversed {
+  Iterable<Gamepad> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -31042,7 +31042,7 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<MediaStream> get reversed {
+  Iterable<MediaStream> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -31246,7 +31246,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed {
+  Iterable<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -31474,7 +31474,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechInputResult> get reversed {
+  Iterable<SpeechInputResult> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -31678,7 +31678,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechRecognitionResult> get reversed {
+  Iterable<SpeechRecognitionResult> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -31882,7 +31882,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<StyleSheet> get reversed {
+  Iterable<StyleSheet> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

@@ -3413,7 +3413,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   // clear() defined by IDL.
 
-  List<Length> get reversed {
+  Iterable<Length> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -4117,7 +4117,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   // clear() defined by IDL.
 
-  List<Number> get reversed {
+  Iterable<Number> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -5297,7 +5297,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   // clear() defined by IDL.
 
-  List<PathSeg> get reversed {
+  Iterable<PathSeg> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -6282,7 +6282,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // clear() defined by IDL.
 
-  List<String> get reversed {
+  Iterable<String> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -7537,7 +7537,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   // clear() defined by IDL.
 
-  List<Transform> get reversed {
+  Iterable<Transform> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8113,7 +8113,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ElementInstance> get reversed {
+  Iterable<ElementInstance> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

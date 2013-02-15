@@ -69,7 +69,7 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
-  List<Element> get reversed => _filtered.reversed;
+  Iterable<Element> get reversed => _filtered.reversed;
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');

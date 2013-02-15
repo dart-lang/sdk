@@ -149,7 +149,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> get reversed {
+  Iterable<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -383,7 +383,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  List<Element> get reversed {
+  Iterable<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
