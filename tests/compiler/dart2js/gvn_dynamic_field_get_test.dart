@@ -6,7 +6,6 @@
 
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
-import 'dart:uri';
 
 const String TEST = r"""
 class A {

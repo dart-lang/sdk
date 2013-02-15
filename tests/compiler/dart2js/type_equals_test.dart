@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
-import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "compiler_helper.dart";
 import "parser_helper.dart";
-import "dart:uri";
 
 bool test(compiler, String name1, String name2, {bool expect}) {
   Expect.isTrue(?expect, 'required parameter "expect" not given');

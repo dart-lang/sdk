@@ -5,22 +5,41 @@
 
 library compiler_helper;
 
-import "dart:uri";
+import 'dart:uri';
+export 'dart:uri' show Uri;
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
        as lego;
-import "../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart"
+export '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
        as js;
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as leg;
-import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart" as ssa;
-import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+export '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+       show Constant,
+            Message,
+            MessageKind,
+            Selector,
+            SourceSpan;
+
+import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart' as ssa;
+
+import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+export '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
+
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        show Compiler;
 
-import "mock_compiler.dart";
-import "parser_helper.dart";
+export '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+
+import 'mock_compiler.dart';
+export 'mock_compiler.dart';
+
+import 'parser_helper.dart';
 
 String compile(String code, {String entry: 'main',
                              String coreSource: DEFAULT_CORELIB,
