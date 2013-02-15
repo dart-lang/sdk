@@ -19643,16 +19643,14 @@ class SelectElement extends Element native "*HTMLSelectElement" {
   // does not operate as a List.
   List<OptionElement> get options {
     var options = this.children.where((e) => e is OptionElement).toList();
-    // TODO(floitsch): find better way to create a read-only list view.
-    return options.take(options.length);
+    return new UnmodifiableListView<OptionElement>(options);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       var options = this.options.where((o) => o.selected).toList();
-      // TODO(floitsch): find better way to create a read-only list view.
-      return options.take(options.length);
+      return new UnmodifiableListView<OptionElement>(options);
     } else {
       return [this.options[this.selectedIndex]];
     }
