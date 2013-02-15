@@ -48,7 +48,7 @@ class NameValidator extends Validator {
   /// Returns a list of all libraries in the current package as paths relative
   /// to the package's root directory.
   Future<List<String>> get _libraries {
-    var libDir = join(entrypoint.root.dir, "lib");
+    var libDir = path.join(entrypoint.root.dir, "lib");
     return defer(() {
       if (!dirExists(libDir)) return [];
       return listDir(libDir, recursive: true);

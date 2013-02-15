@@ -5,6 +5,9 @@
 library git_source;
 
 import 'dart:async';
+
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'git.dart' as git;
 import 'io.dart';
 import 'package.dart';
@@ -42,7 +45,7 @@ class GitSource extends Source {
             "Please ensure Git is correctly installed.");
       }
 
-      ensureDir(join(systemCacheRoot, 'cache'));
+      ensureDir(path.join(systemCacheRoot, 'cache'));
       return _ensureRepoCache(id);
     }).then((_) => systemCacheDirectory(id)).then((path) {
       revisionCachePath = path;
@@ -61,7 +64,7 @@ class GitSource extends Source {
   Future<String> systemCacheDirectory(PackageId id) {
     return _revisionAt(id).then((rev) {
       var revisionCacheName = '${id.name}-$rev';
-      return join(systemCacheRoot, revisionCacheName);
+      return path.join(systemCacheRoot, revisionCacheName);
     });
   }
   /// Ensures [description] is a Git URL.
@@ -148,7 +151,7 @@ class GitSource extends Source {
   /// [id] (the one in `<system cache>/git/cache`).
   String _repoCachePath(PackageId id) {
     var repoCacheName = '${id.name}-${sha1(_getUrl(id))}';
-    return join(systemCacheRoot, 'cache', repoCacheName);
+    return path.join(systemCacheRoot, 'cache', repoCacheName);
   }
 
   /// Returns the repository URL for [id].

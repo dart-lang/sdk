@@ -136,7 +136,7 @@ class LishCommand extends PubCommand {
     var rootDir = entrypoint.root.dir;
 
     return git.isInstalled.then((gitInstalled) {
-      if (dirExists(join(rootDir, '.git')) && gitInstalled) {
+      if (dirExists(path.join(rootDir, '.git')) && gitInstalled) {
         // List all files that aren't gitignored, including those not checked
         // in to Git.
         return git.run(["ls-files", "--cached", "--others",

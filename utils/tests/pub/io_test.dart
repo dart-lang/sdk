@@ -4,7 +4,9 @@
 
 library io_test;
 
+import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
+
 import '../../pub/io.dart';
 import '../../pub/utils.dart';
 import 'test_pub.dart';
@@ -14,119 +16,119 @@ main() {
 
   group('listDir', () {
     test('lists a simple directory non-recursively', () {
-      expect(withTempDir((path) {
+      expect(withTempDir((temp) {
         var future = defer(() {
-          writeTextFile(join(path, 'file1.txt'), '');
-          writeTextFile(join(path, 'file2.txt'), '');
-          createDir(join(path, 'subdir'));
-          writeTextFile(join(path, 'subdir', 'file3.txt'), '');
-          return listDir(path);
+          writeTextFile(path.join(temp, 'file1.txt'), '');
+          writeTextFile(path.join(temp, 'file2.txt'), '');
+          createDir(path.join(temp, 'subdir'));
+          writeTextFile(path.join(temp, 'subdir', 'file3.txt'), '');
+          return listDir(temp);
         });
         expect(future, completion(unorderedEquals([
-          join(path, 'file1.txt'),
-          join(path, 'file2.txt'),
-          join(path, 'subdir')
+          path.join(temp, 'file1.txt'),
+          path.join(temp, 'file2.txt'),
+          path.join(temp, 'subdir')
         ])));
         return future;
       }), completes);
     });
 
     test('lists a simple directory recursively', () {
-      expect(withTempDir((path) {
+      expect(withTempDir((temp) {
         var future = defer(() {
-          writeTextFile(join(path, 'file1.txt'), '');
-          writeTextFile(join(path, 'file2.txt'), '');
-          createDir(join(path, 'subdir'));
-          writeTextFile(join(path, 'subdir', 'file3.txt'), '');
-          return listDir(path, recursive: true);
+          writeTextFile(path.join(temp, 'file1.txt'), '');
+          writeTextFile(path.join(temp, 'file2.txt'), '');
+          createDir(path.join(temp, 'subdir'));
+          writeTextFile(path.join(temp, 'subdir', 'file3.txt'), '');
+          return listDir(temp, recursive: true);
         });
 
         expect(future, completion(unorderedEquals([
-          join(path, 'file1.txt'),
-          join(path, 'file2.txt'),
-          join(path, 'subdir'),
-          join(path, 'subdir', 'file3.txt'),
+          path.join(temp, 'file1.txt'),
+          path.join(temp, 'file2.txt'),
+          path.join(temp, 'subdir'),
+          path.join(temp, 'subdir', 'file3.txt'),
         ])));
         return future;
       }), completes);
     });
 
     test('ignores hidden files by default', () {
-      expect(withTempDir((path) {
+      expect(withTempDir((temp) {
         var future = defer(() {
-          writeTextFile(join(path, 'file1.txt'), '');
-          writeTextFile(join(path, 'file2.txt'), '');
-          writeTextFile(join(path, '.file3.txt'), '');
-          createDir(join(path, '.subdir'));
-          writeTextFile(join(path, '.subdir', 'file3.txt'), '');
-          return listDir(path, recursive: true);
+          writeTextFile(path.join(temp, 'file1.txt'), '');
+          writeTextFile(path.join(temp, 'file2.txt'), '');
+          writeTextFile(path.join(temp, '.file3.txt'), '');
+          createDir(path.join(temp, '.subdir'));
+          writeTextFile(path.join(temp, '.subdir', 'file3.txt'), '');
+          return listDir(temp, recursive: true);
         });
         expect(future, completion(unorderedEquals([
-          join(path, 'file1.txt'),
-          join(path, 'file2.txt')
+          path.join(temp, 'file1.txt'),
+          path.join(temp, 'file2.txt')
         ])));
         return future;
       }), completes);
     });
 
     test('includes hidden files when told to', () {
-      expect(withTempDir((path) {
+      expect(withTempDir((temp) {
         var future = defer(() {
-          writeTextFile(join(path, 'file1.txt'), '');
-          writeTextFile(join(path, 'file2.txt'), '');
-          writeTextFile(join(path, '.file3.txt'), '');
-          createDir(join(path, '.subdir'));
-          writeTextFile(join(path, '.subdir', 'file3.txt'), '');
-          return listDir(path, recursive: true, includeHiddenFiles: true);
+          writeTextFile(path.join(temp, 'file1.txt'), '');
+          writeTextFile(path.join(temp, 'file2.txt'), '');
+          writeTextFile(path.join(temp, '.file3.txt'), '');
+          createDir(path.join(temp, '.subdir'));
+          writeTextFile(path.join(temp, '.subdir', 'file3.txt'), '');
+          return listDir(temp, recursive: true, includeHiddenFiles: true);
         });
         expect(future, completion(unorderedEquals([
-          join(path, 'file1.txt'),
-          join(path, 'file2.txt'),
-          join(path, '.file3.txt'),
-          join(path, '.subdir'),
-          join(path, '.subdir', 'file3.txt')
+          path.join(temp, 'file1.txt'),
+          path.join(temp, 'file2.txt'),
+          path.join(temp, '.file3.txt'),
+          path.join(temp, '.subdir'),
+          path.join(temp, '.subdir', 'file3.txt')
         ])));
         return future;
       }), completes);
     });
 
     test('returns the unresolved paths for symlinks', () {
-      expect(withTempDir((path) {
-        var dirToList = join(path, 'dir-to-list');
+      expect(withTempDir((temp) {
+        var dirToList = path.join(temp, 'dir-to-list');
         var future = defer(() {
-          createDir(join(path, 'dir1'));
-          writeTextFile(join(path, 'dir1', 'file1.txt'), '');
-          createDir(join(path, 'dir2'));
-          writeTextFile(join(path, 'dir2', 'file2.txt'), '');
+          createDir(path.join(temp, 'dir1'));
+          writeTextFile(path.join(temp, 'dir1', 'file1.txt'), '');
+          createDir(path.join(temp, 'dir2'));
+          writeTextFile(path.join(temp, 'dir2', 'file2.txt'), '');
           createDir(dirToList);
-          return createSymlink(join(path, 'dir1'),
-                               join(dirToList, 'linked-dir1'));
+          return createSymlink(path.join(temp, 'dir1'),
+                               path.join(dirToList, 'linked-dir1'));
         }).then((_) {
-          createDir(join(dirToList, 'subdir'));
+          createDir(path.join(dirToList, 'subdir'));
           return createSymlink(
-                  join(path, 'dir2'),
-                  join(dirToList, 'subdir', 'linked-dir2'));
+                  path.join(temp, 'dir2'),
+                  path.join(dirToList, 'subdir', 'linked-dir2'));
         }).then((_) => listDir(dirToList, recursive: true));
         expect(future, completion(unorderedEquals([
-          join(dirToList, 'linked-dir1'),
-          join(dirToList, 'linked-dir1', 'file1.txt'),
-          join(dirToList, 'subdir'),
-          join(dirToList, 'subdir', 'linked-dir2'),
-          join(dirToList, 'subdir', 'linked-dir2', 'file2.txt'),
+          path.join(dirToList, 'linked-dir1'),
+          path.join(dirToList, 'linked-dir1', 'file1.txt'),
+          path.join(dirToList, 'subdir'),
+          path.join(dirToList, 'subdir', 'linked-dir2'),
+          path.join(dirToList, 'subdir', 'linked-dir2', 'file2.txt'),
         ])));
         return future;
       }), completes);
     });
 
     test('works with recursive symlinks', () {
-      expect(withTempDir((path) {
+      expect(withTempDir((temp) {
         var future = defer(() {
-          writeTextFile(join(path, 'file1.txt'), '');
-          return createSymlink(path, join(path, 'linkdir'));
-        }).then((_) => listDir(path, recursive: true));
+          writeTextFile(path.join(temp, 'file1.txt'), '');
+          return createSymlink(temp, path.join(temp, 'linkdir'));
+        }).then((_) => listDir(temp, recursive: true));
         expect(future, completion(unorderedEquals([
-          join(path, 'file1.txt'),
-          join(path, 'linkdir')
+          path.join(temp, 'file1.txt'),
+          path.join(temp, 'linkdir')
         ])));
         return future;
       }), completes);

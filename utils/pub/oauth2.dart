@@ -147,7 +147,7 @@ void _saveCredentials(SystemCache cache, Credentials credentials) {
 
 /// The path to the file in which the user's OAuth2 credentials are stored.
 String _credentialsFile(SystemCache cache) =>
-  join(cache.rootDir, 'credentials.json');
+    path.join(cache.rootDir, 'credentials.json');
 
 /// Gets the user to authorize pub as a client of pub.dartlang.org via oauth2.
 /// Returns a Future that will complete to a fully-authorized [Client].

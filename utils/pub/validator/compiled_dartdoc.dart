@@ -28,10 +28,10 @@ class CompiledDartdocValidator extends Validator {
         // Look for tell-tale Dartdoc output files all in the same directory.
         var files = [
           entry,
-          join(dir, "index.html"),
-          join(dir, "styles.css"),
-          join(dir, "dart-logo-small.png"),
-          join(dir, "client-live-nav.js")
+          path.join(dir, "index.html"),
+          path.join(dir, "styles.css"),
+          path.join(dir, "dart-logo-small.png"),
+          path.join(dir, "client-live-nav.js")
         ];
 
         if (files.every((val) => fileExists(val))) {

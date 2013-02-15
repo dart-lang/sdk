@@ -22,17 +22,6 @@ export '../../pkg/http/lib/http.dart' show ByteStream;
 
 final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 
-/// Joins a number of path string parts into a single path. Handles
-/// platform-specific path separators. Parts can be [String], [Directory], or
-/// [File] objects.
-String join(part1, [part2, part3, part4, part5, part6, part7, part8]) {
-  var parts = [part1, part2, part3, part4, part5, part6, part7, part8]
-      .map((part) => part == null ? null : _getPath(part)).toList();
-
-  return path.join(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5],
-      parts[6], parts[7]);
-}
-
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
 bool isBeneath(String entry, String dir) {
@@ -40,92 +29,82 @@ bool isBeneath(String entry, String dir) {
   return !path.isAbsolute(relative) && path.split(relative)[0] != '..';
 }
 
-/// Determines if [path], which can be a [String] file path, a [File], or a
-/// [Directory] exists on the file system.
-bool entryExists(path) => fileExists(path) || dirExists(path);
+/// Determines if a file or directory at [path] exists.
+bool entryExists(String path) => fileExists(path) || dirExists(path);
 
-/// Determines if [file], which can be a [String] file path or a [File], exists
-/// on the file system.
-bool fileExists(file) => _getFile(file).existsSync();
+/// Determines if [file] exists on the file system.
+bool fileExists(String file) => new File(file).existsSync();
 
-/// Reads the contents of the text file [file], which can either be a [String]
-/// or a [File].
-String readTextFile(file) => _getFile(file).readAsStringSync(Encoding.UTF_8);
+/// Reads the contents of the text file [file].
+String readTextFile(String file) =>
+    new File(file).readAsStringSync(Encoding.UTF_8);
 
-/// Reads the contents of the binary file [file], which can either be a [String]
-/// or a [File].
-List<int> readBinaryFile(file) {
-  var path = _getPath(file);
-  log.io("Reading binary file $path.");
-  var contents = new File(path).readAsBytesSync();
-  log.io("Read ${contents.length} bytes from $path.");
+/// Reads the contents of the binary file [file].
+List<int> readBinaryFile(String file) {
+  log.io("Reading binary file $file.");
+  var contents = new File(file).readAsBytesSync();
+  log.io("Read ${contents.length} bytes from $file.");
   return contents;
 }
 
-/// Creates [file] (which can either be a [String] or a [File]), and writes
-/// [contents] to it.
+/// Creates [file] and writes [contents] to it.
 ///
 /// If [dontLogContents] is true, the contents of the file will never be logged.
-File writeTextFile(file, String contents, {dontLogContents: false}) {
-  var path = _getPath(file);
-  file = new File(path);
-
+String writeTextFile(String file, String contents, {dontLogContents: false}) {
   // Sanity check: don't spew a huge file.
-  log.io("Writing ${contents.length} characters to text file $path.");
+  log.io("Writing ${contents.length} characters to text file $file.");
   if (!dontLogContents && contents.length < 1024 * 1024) {
     log.fine("Contents:\n$contents");
   }
 
-  return file..writeAsStringSync(contents);
-}
-
-/// Deletes [file], which can be a [String] or a [File].
-File deleteFile(file) => _getFile(file)..delete();
-
-/// Creates [file] (which can either be a [String] or a [File]), and writes
-/// [contents] to it.
-File writeBinaryFile(file, List<int> contents) {
-  var path = _getPath(file);
-  file = new File(path);
-
-  log.io("Writing ${contents.length} bytes to binary file $path.");
-  file.openSync(FileMode.WRITE)
-      ..writeListSync(contents, 0, contents.length)
-      ..closeSync();
-  log.fine("Wrote text file $path.");
+  new File(file).writeAsStringSync(contents);
   return file;
 }
 
-/// Writes [stream] to a new file at [path], which may be a [String] or a
-/// [File]. Will replace any file already at that path. Completes when the file
-/// is done being written.
-Future<File> createFileFromStream(Stream<List<int>> stream, path) {
-  path = _getPath(path);
+/// Deletes [file].
+void deleteFile(String file) {
+  new File(file).delete();
+}
 
-  log.io("Creating $path from stream.");
+/// Creates [file] and writes [contents] to it.
+String writeBinaryFile(String file, List<int> contents) {
+  log.io("Writing ${contents.length} bytes to binary file $file.");
+  new File(file).openSync(FileMode.WRITE)
+      ..writeListSync(contents, 0, contents.length)
+      ..closeSync();
+  log.fine("Wrote text file $file.");
+  return file;
+}
 
-  var file = new File(path);
-  return stream.pipe(wrapOutputStream(file.openOutputStream())).then((_) {
-    log.fine("Created $path from stream.");
+/// Writes [stream] to a new file at path [file]. Will replace any file already
+/// at that path. Completes when the file is done being written.
+Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
+  log.io("Creating $file from stream.");
+
+  var stream = new File(file).openOutputStream();
+  return stream.pipe(wrapOutputStream(stream)).then((_) {
+    log.fine("Created $file from stream.");
+    return file;
   });
 }
 
 /// Creates a directory [dir].
-Directory createDir(dir) => _getDirectory(dir)..createSync();
+String createDir(String dir) {
+  new Directory(dir).createSync();
+  return dir;
+}
 
 /// Ensures that [dirPath] and all its parent directories exist. If they don't
 /// exist, creates them.
-Directory ensureDir(dirPath) {
-  dirPath = _getPath(dirPath);
-
+String ensureDir(String dirPath) {
   log.fine("Ensuring directory $dirPath exists.");
   var dir = new Directory(dirPath);
-  if (dirPath == '.' || dirExists(dirPath)) return dir;
+  if (dirPath == '.' || dirExists(dirPath)) return dirPath;
 
   ensureDir(path.dirname(dirPath));
 
   try {
-    createDir(dir);
+    createDir(dirPath);
   } on DirectoryIOException catch (ex) {
     // Error 17 means the directory already exists (or 183 on Windows).
     if (ex.osError.errorCode == 17 || ex.osError.errorCode == 183) {
@@ -135,7 +114,7 @@ Directory ensureDir(dirPath) {
     }
   }
 
-  return dir;
+  return dirPath;
 }
 
 /// Creates a temp directory whose name will be based on [dir] with a unique
@@ -143,35 +122,32 @@ Directory ensureDir(dirPath) {
 /// created in a platform-dependent temporary location. Returns the path of the
 /// created directory.
 String createTempDir([dir = '']) {
-  var tempDir = _getDirectory(dir).createTempSync();
+  var tempDir = new Directory(dir).createTempSync();
   log.io("Created temp directory ${tempDir.path}");
   return tempDir.path;
 }
 
-/// Asynchronously recursively deletes [dir], which can be a [String] or a
-/// [Directory]. Returns a [Future] that completes when the deletion is done.
-Future<Directory> deleteDir(dir) {
-  dir = _getDirectory(dir);
-
-  return _attemptRetryable(() => log.ioAsync("delete directory ${dir.path}",
-      dir.delete(recursive: true)));
+/// Asynchronously recursively deletes [dir]. Returns a [Future] that completes
+/// when the deletion is done.
+Future<String> deleteDir(String dir) {
+  return _attemptRetryable(() => log.ioAsync("delete directory $dir",
+      new Directory(dir).delete(recursive: true).then((_) => dir)));
 }
 
-/// Asynchronously lists the contents of [dir], which can be a [String]
-/// directory path or a [Directory]. If [recursive] is `true`, lists
+/// Asynchronously lists the contents of [dir]. If [recursive] is `true`, lists
 /// subdirectory contents (defaults to `false`). If [includeHiddenFiles] is
 /// `true`, includes files and directories beginning with `.` (defaults to
 /// `false`).
 ///
 /// If [dir] is a string, the returned paths are guaranteed to begin with it.
-Future<List<String>> listDir(dir,
+Future<List<String>> listDir(String dir,
     {bool recursive: false, bool includeHiddenFiles: false}) {
-  Future<List<String>> doList(Directory dir, Set<String> listedDirectories) {
+  Future<List<String>> doList(String dir, Set<String> listedDirectories) {
     var contents = <String>[];
     var completer = new Completer<List<String>>();
 
     // Avoid recursive symlinks.
-    var resolvedPath = new File(dir.path).fullPathSync();
+    var resolvedPath = new File(dir).fullPathSync();
     if (listedDirectories.contains(resolvedPath)) {
       return new Future.immediate([]);
     }
@@ -179,15 +155,14 @@ Future<List<String>> listDir(dir,
     listedDirectories = new Set<String>.from(listedDirectories);
     listedDirectories.add(resolvedPath);
 
-    log.io("Listing directory ${dir.path}.");
-    var lister = dir.list();
+    log.io("Listing directory $dir.");
+    var lister = new Directory(dir).list();
 
     lister.onDone = (done) {
       // TODO(rnystrom): May need to sort here if it turns out onDir and onFile
       // aren't guaranteed to be called in a certain order. So far, they seem to.
       if (done) {
-        log.fine("Listed directory ${dir.path}:\n"
-                  "${contents.join('\n')}");
+        log.fine("Listed directory $dir:\n${contents.join('\n')}");
         completer.complete(contents);
       }
     };
@@ -204,19 +179,19 @@ Future<List<String>> listDir(dir,
     lister.onError = (error) => completer.completeError(error, stackTrace);
     lister.onDir = (file) {
       if (!includeHiddenFiles && path.basename(file).startsWith('.')) return;
-      file = join(dir, path.basename(file));
+      file = path.join(dir, path.basename(file));
       contents.add(file);
       // TODO(nweiz): don't manually recurse once issue 7358 is fixed. Note that
       // once we remove the manual recursion, we'll need to explicitly filter
       // out files in hidden directories.
       if (recursive) {
-        children.add(doList(new Directory(file), listedDirectories));
+        children.add(doList(file, listedDirectories));
       }
     };
 
     lister.onFile = (file) {
       if (!includeHiddenFiles && path.basename(file).startsWith('.')) return;
-      contents.add(join(dir, path.basename(file)));
+      contents.add(path.join(dir, path.basename(file)));
     };
 
     return completer.future.then((contents) {
@@ -227,17 +202,16 @@ Future<List<String>> listDir(dir,
     });
   }
 
-  return doList(_getDirectory(dir), new Set<String>());
+  return doList(dir, new Set<String>());
 }
 
-/// Determines if [dir], which can be a [String] directory path or a
-/// [Directory], exists on the file system.
-bool dirExists(dir) => _getDirectory(dir).existsSync();
+/// Determines if [dir] exists on the file system.
+bool dirExists(String dir) => new Directory(dir).existsSync();
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
 /// new empty directory will be created. Returns a [Future] that completes when
 /// the new clean directory is created.
-Future<Directory> cleanDir(dir) {
+Future<String> cleanDir(String dir) {
   return defer(() {
     if (dirExists(dir)) {
       // Delete it first.
@@ -251,13 +225,12 @@ Future<Directory> cleanDir(dir) {
 
 /// Renames (i.e. moves) the directory [from] to [to]. Returns a [Future] with
 /// the destination directory.
-Future<Directory> renameDir(from, String to) {
-  from = _getDirectory(from);
-  log.io("Renaming directory ${from.path} to $to.");
+Future<String> renameDir(String from, String to) {
+  log.io("Renaming directory $from to $to.");
 
-  return _attemptRetryable(() => from.rename(to)).then((dir) {
-    log.fine("Renamed directory ${from.path} to $to.");
-    return dir;
+  return _attemptRetryable(() => new Directory(from).rename(to)).then((dir) {
+    log.fine("Renamed directory $from to $to.");
+    return to;
   });
 }
 
@@ -291,15 +264,11 @@ Future _attemptRetryable(Future callback()) {
   return makeAttempt(null);
 }
 
-/// Creates a new symlink that creates an alias from [from] to [to], both of
-/// which can be a [String], [File], or [Directory]. Returns a [Future] which
-/// completes to the symlink file (i.e. [to]).
+/// Creates a new symlink that creates an alias from [from] to [to]. Returns a
+/// [Future] which completes to the symlink file (i.e. [to]).
 ///
 /// Note that on Windows, only directories may be symlinked to.
-Future<File> createSymlink(from, to) {
-  from = _getPath(from);
-  to = _getPath(to);
-
+Future<String> createSymlink(String from, String to) {
   log.fine("Creating symlink ($to is a symlink to $from)");
 
   var command = 'ln';
@@ -315,22 +284,19 @@ Future<File> createSymlink(from, to) {
     args = ['/j', to, from];
   }
 
-  return runProcess(command, args).then((result) {
-    // TODO(rnystrom): Check exit code and output?
-    return new File(to);
-  });
+  // TODO(rnystrom): Check exit code and output?
+  return runProcess(command, args).then((result) => to);
 }
 
 /// Creates a new symlink that creates an alias from the `lib` directory of
-/// package [from] to [to], both of which can be a [String], [File], or
-/// [Directory]. Returns a [Future] which completes to the symlink file (i.e.
-/// [to]). If [from] does not have a `lib` directory, this shows a warning if
-/// appropriate and then does nothing.
-Future<File> createPackageSymlink(String name, from, to,
+/// package [from] to [to]. Returns a [Future] which completes to the symlink
+/// file (i.e. [to]). If [from] does not have a `lib` directory, this shows a
+/// warning if appropriate and then does nothing.
+Future<String> createPackageSymlink(String name, String from, String to,
     {bool isSelfLink: false}) {
   return defer(() {
     // See if the package has a "lib" directory.
-    from = join(from, 'lib');
+    from = path.join(from, 'lib');
     log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
     if (dirExists(from)) return createSymlink(from, to);
 
@@ -342,7 +308,7 @@ Future<File> createPackageSymlink(String name, from, to,
                   'you will not be able to import any libraries from it.');
     }
 
-    return _getFile(to);
+    return to;
   });
 }
 
@@ -360,7 +326,7 @@ String relativeToPub(String target) {
     utilDir = path.dirname(utilDir);
   }
 
-  return path.normalize(join(utilDir, 'pub', target));
+  return path.normalize(path.join(utilDir, 'pub', target));
 }
 
 // TODO(nweiz): add a ByteSink wrapper to make writing strings to stdout/stderr
@@ -643,8 +609,8 @@ class PubProcess {
 /// Calls [fn] with appropriately modified arguments. [fn] should have the same
 /// signature as [Process.start], except that the returned [Future] may have a
 /// type other than [Process].
-Future _doProcess(Function fn, String executable, List<String> args, workingDir,
-    Map<String, String> environment) {
+Future _doProcess(Function fn, String executable, List<String> args,
+    String workingDir, Map<String, String> environment) {
   // TODO(rnystrom): Should dart:io just handle this?
   // Spawning a process on Windows will not look for the executable in the
   // system path. So, if executable looks like it needs that (i.e. it doesn't
@@ -657,7 +623,7 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
 
   final options = new ProcessOptions();
   if (workingDir != null) {
-    options.workingDirectory = _getDirectory(workingDir).path;
+    options.workingDirectory = workingDir;
   }
 
   if (environment != null) {
@@ -713,11 +679,9 @@ Future withTempDir(Future fn(String path)) {
   });
 }
 
-/// Extracts a `.tar.gz` file from [stream] to [destination], which can be a
-/// directory or a path. Returns whether or not the extraction was successful.
-Future<bool> extractTarGz(Stream<List<int>> stream, destination) {
-  destination = _getPath(destination);
-
+/// Extracts a `.tar.gz` file from [stream] to [destination]. Returns whether
+/// or not the extraction was successful.
+Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   log.fine("Extracting .tar.gz stream to $destination.");
 
   if (Platform.operatingSystem == "windows") {
@@ -761,7 +725,8 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
 
   return withTempDir((tempDir) {
     // Write the archive to a temp file.
-    return createFileFromStream(stream, join(tempDir, 'data.tar.gz')).then((_) {
+    var dataFile = path.join(tempDir, 'data.tar.gz');
+    return createFileFromStream(stream, dataFile).then((_) {
       // 7zip can't unarchive from gzip -> tar -> destination all in one step
       // first we un-gzip it to a tar file.
       // Note: Setting the working directory instead of passing in a full file
@@ -816,7 +781,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   if (baseDir == null) baseDir = path.current;
   baseDir = path.absolute(baseDir);
   contents = contents.map((entry) {
-    entry = path.absolute(_getPath(entry));
+    entry = path.absolute(entry);
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
     }
@@ -825,7 +790,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
 
   if (Platform.operatingSystem != "windows") {
     var args = ["--create", "--gzip", "--directory", baseDir];
-    args.addAll(contents.map(_getPath));
+    args.addAll(contents);
     // TODO(nweiz): It's possible that enough command-line arguments will make
     // the process choke, so at some point we should save the arguments to a
     // file and pass them in via --files-from for tar and -i@filename for 7zip.
@@ -842,7 +807,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
 
   withTempDir((tempDir) {
     // Create the tar file.
-    var tarFile = join(tempDir, "intermediate.tar");
+    var tarFile = path.join(tempDir, "intermediate.tar");
     var args = ["a", "-w$baseDir", tarFile];
     args.addAll(contents.map((entry) => '-i!"$entry"'));
 
@@ -895,31 +860,6 @@ class PubProcessResult {
   const PubProcessResult(this.stdout, this.stderr, this.exitCode);
 
   bool get success => exitCode == 0;
-}
-
-/// Gets a dart:io [File] for [entry], which can either already be a File or be
-/// a path string.
-File _getFile(entry) {
-  if (entry is File) return entry;
-  if (entry is String) return new File(entry);
-  throw 'Entry $entry is not a supported type.';
-}
-
-/// Gets the path string for [entry], which can either already be a path string,
-/// or be a [File] or [Directory]. Allows working generically with "file-like"
-/// objects.
-String _getPath(entry) {
-  if (entry is String) return entry;
-  if (entry is File) return entry.name;
-  if (entry is Directory) return entry.path;
-  throw 'Entry $entry is not a supported type.';
-}
-
-/// Gets a [Directory] for [entry], which can either already be one, or be a
-/// [String].
-Directory _getDirectory(entry) {
-  if (entry is Directory) return entry;
-  return new Directory(entry);
 }
 
 /// Gets a [Uri] for [uri], which can either already be one, or be a [String].

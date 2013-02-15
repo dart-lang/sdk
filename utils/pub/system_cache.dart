@@ -7,6 +7,8 @@ library system_cache;
 import 'dart:io';
 import 'dart:async';
 
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'git_source.dart';
 import 'hosted_source.dart';
 import 'io.dart';
@@ -30,7 +32,7 @@ class SystemCache {
   /// The root directory where this package cache is located.
   final String rootDir;
 
-  String get tempDir => join(rootDir, '_temp');
+  String get tempDir => path.join(rootDir, '_temp');
 
   /// Packages which are currently being asynchronously installed to the cache.
   final Map<PackageId, Future<Package>> _pendingInstalls;
@@ -105,7 +107,7 @@ class SystemCache {
   /// cache so that it can move the directory from it.
   String createTempDir() {
     var temp = ensureDir(tempDir);
-    return io.createTempDir(join(temp, 'dir'));
+    return io.createTempDir(path.join(temp, 'dir'));
   }
 
   /// Delete's the system cache's internal temp directory.

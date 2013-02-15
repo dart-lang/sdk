@@ -8,6 +8,8 @@ library sdk;
 import 'dart:io';
 
 import '../../pkg/path/lib/path.dart' as path;
+
+import 'io.dart';
 import 'log.dart' as log;
 import 'version.dart';
 
@@ -38,7 +40,7 @@ Version version = _getVersion();
 /// Determine the SDK's version number.
 Version _getVersion() {
   var revisionPath = path.join(rootDirectory, "version");
-  var version = new File(revisionPath).readAsStringSync().trim();
+  var version = readTextFile(revisionPath).trim();
 
   // Given a version file like: 0.1.2.0_r17495
   // We create a semver like:   0.1.2+0.r17495

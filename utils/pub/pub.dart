@@ -6,12 +6,12 @@
 library pub;
 
 import 'dart:async';
-import '../../pkg/args/lib/args.dart';
-import '../../pkg/path/lib/path.dart' as path;
 import 'dart:io';
 import 'dart:math';
-import 'http.dart';
-import 'io.dart';
+
+import '../../pkg/args/lib/args.dart';
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'command_help.dart';
 import 'command_install.dart';
 import 'command_lish.dart';
@@ -20,6 +20,8 @@ import 'command_uploader.dart';
 import 'command_version.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
+import 'http.dart';
+import 'io.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
@@ -116,7 +118,7 @@ main() {
     cacheDir = Platform.environment['PUB_CACHE'];
   } else if (Platform.operatingSystem == 'windows') {
     var appData = Platform.environment['APPDATA'];
-    cacheDir = join(appData, 'Pub', 'Cache');
+    cacheDir = path.join(appData, 'Pub', 'Cache');
   } else {
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }

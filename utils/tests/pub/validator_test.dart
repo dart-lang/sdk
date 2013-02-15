@@ -9,11 +9,12 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math' as math;
 
-import 'test_pub.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
+
+import 'test_pub.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
@@ -115,20 +116,20 @@ main() {
     });
 
     integration('has a COPYING file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(join(appPath, 'COPYING'), '').scheduleCreate();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'COPYING'), '').scheduleCreate();
       expectNoValidationError(license);
     });
 
     integration('has a prefixed LICENSE file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
       expectNoValidationError(license);
     });
 
     integration('has a suffixed LICENSE file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(join(appPath, 'LICENSE.md'), '').scheduleCreate();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'LICENSE.md'), '').scheduleCreate();
       expectNoValidationError(license);
     });
 
@@ -272,7 +273,7 @@ main() {
     });
 
     integration('has no LICENSE file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
       expectValidationError(license);
     });
 
@@ -334,7 +335,7 @@ main() {
     });
 
     integration('has a single library named differently than the package', () {
-      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       dir(appPath, [
         dir("lib", [file("best_pkg.dart", "int i = 0;")])
       ]).scheduleCreate();
@@ -342,17 +343,17 @@ main() {
     });
 
     integration('has no lib directory', () {
-      dir(join(appPath, "lib")).scheduleDelete();
+      dir(path.join(appPath, "lib")).scheduleDelete();
       expectValidationError(lib);
     });
 
     integration('has an empty lib directory', () {
-      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       expectValidationError(lib);
     });
 
     integration('has a lib directory containing only src', () {
-      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       dir(appPath, [
         dir("lib", [
           dir("src", [file("test_pkg.dart", "int i = 0;")])

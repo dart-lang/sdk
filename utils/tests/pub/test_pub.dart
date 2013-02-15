@@ -553,7 +553,7 @@ String get testDirectory {
 /// are assumed to be relative to [sandboxDir].
 void scheduleRename(String from, String to) {
   _schedule((sandboxDir) {
-    return renameDir(join(sandboxDir, from), join(sandboxDir, to));
+    return renameDir(path.join(sandboxDir, from), path.join(sandboxDir, to));
   });
 }
 
@@ -632,7 +632,7 @@ void confirmPublish(ScheduledProcess pub) {
 /// [Future] may have a type other than [Process].
 Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
   String pathInSandbox(String relPath) {
-    return join(path.absolute(sandboxDir), relPath);
+    return path.join(path.absolute(sandboxDir), relPath);
   }
 
   return defer(() {
@@ -853,15 +853,15 @@ abstract class Descriptor {
   /// Validates that at least one file in [dir] matching [name] is valid
   /// according to [validate]. [validate] should throw or complete to an
   /// exception if the input path is invalid.
-  Future _validateOneMatch(String dir, Future validate(String path)) {
+  Future _validateOneMatch(String dir, Future validate(String entry)) {
     // Special-case strings to support multi-level names like "myapp/packages".
     if (name is String) {
-      var path = join(dir, name);
+      var entry = path.join(dir, name);
       return defer(() {
-        if (!entryExists(path)) {
-          throw new ExpectException('Entry $path not found.');
+        if (!entryExists(entry)) {
+          throw new ExpectException('Entry $entry not found.');
         }
-        return validate(path);
+        return validate(entry);
       });
     }
 
@@ -929,13 +929,13 @@ class FileDescriptor extends Descriptor {
 
   /// Creates the file within [dir]. Returns a [Future] that is completed after
   /// the creation is done.
-  Future<File> create(dir) =>
-      defer(() => writeBinaryFile(join(dir, _stringName), contents));
+  Future<String> create(dir) =>
+      defer(() => writeBinaryFile(path.join(dir, _stringName), contents));
 
   /// Deletes the file within [dir]. Returns a [Future] that is completed after
   /// the deletion is done.
   Future delete(dir) =>
-      defer(() => deleteFile(join(dir, _stringName)));
+      defer(() => deleteFile(path.join(dir, _stringName)));
 
   /// Validates that this file correctly matches the actual file at [path].
   Future validate(String path) {
@@ -972,10 +972,10 @@ class DirectoryDescriptor extends Descriptor {
 
   /// Creates the file within [dir]. Returns a [Future] that is completed after
   /// the creation is done.
-  Future<Directory> create(parentDir) {
+  Future<String> create(parentDir) {
     return defer(() {
       // Create the directory.
-      var dir = ensureDir(join(parentDir, _stringName));
+      var dir = ensureDir(path.join(parentDir, _stringName));
       if (contents == null) return dir;
 
       // Recursively create all of its children.
@@ -988,7 +988,7 @@ class DirectoryDescriptor extends Descriptor {
   /// Deletes the directory within [dir]. Returns a [Future] that is completed
   /// after the deletion is done.
   Future delete(dir) {
-    return deleteDir(join(dir, _stringName));
+    return deleteDir(path.join(dir, _stringName));
   }
 
   /// Validates that the directory at [path] contains all of the expected
@@ -1050,7 +1050,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
   : super(name, contents);
 
   /// Creates the Git repository and commits the contents.
-  Future<Directory> create(parentDir) {
+  Future create(parentDir) {
     return _runGitCommands(parentDir, [
       ['init'],
       ['add', '.'],
@@ -1081,10 +1081,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
 
   /// Schedule a Git command to run in this repository.
   void scheduleGit(List<String> args) {
-    _schedule((parentDir) {
-      var gitDir = new Directory(join(parentDir, name));
-      return _runGit(args, gitDir);
-    });
+    _schedule((parentDir) => _runGit(args, path.join(parentDir, name)));
   }
 
   Future _runGitCommands(parentDir, List<List<String>> commands) {
@@ -1102,7 +1099,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     });
   }
 
-  Future<List<String>> _runGit(List<String> args, Directory workingDir) {
+  Future<List<String>> _runGit(List<String> args, String workingDir) {
     // Explicitly specify the committer information. Git needs this to commit
     // and we don't want to rely on the buildbots having this already set up.
     var environment = {
@@ -1112,8 +1109,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
       'GIT_COMMITTER_EMAIL': 'pub@dartlang.org'
     };
 
-    return gitlib.run(args, workingDir: workingDir.path,
-        environment: environment);
+    return gitlib.run(args, workingDir: workingDir, environment: environment);
   }
 }
 
@@ -1126,13 +1122,15 @@ class TarFileDescriptor extends Descriptor {
 
   /// Creates the files and directories within this tar file, then archives
   /// them, compresses them, and saves the result to [parentDir].
-  Future<File> create(parentDir) {
+  Future<String> create(parentDir) {
     return withTempDir((tempDir) {
       return Future.wait(contents.map((child) => child.create(tempDir)))
           .then((createdContents) {
         return createTarGz(createdContents, baseDir: tempDir).toBytes();
       }).then((bytes) {
-        return new File(join(parentDir, _stringName)).writeAsBytes(bytes);
+        var file = path.join(parentDir, _stringName);
+        writeBinaryFile(file, bytes);
+        return file;
       });
     });
   }
@@ -1157,7 +1155,7 @@ class TarFileDescriptor extends Descriptor {
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
     withTempDir((tempDir) {
       return create(tempDir).then((tar) {
-        var sourceStream = tar.openInputStream();
+        var sourceStream = new File(tar).openInputStream();
         return store(wrapInputStream(sourceStream), controller);
       });
     });
@@ -1174,7 +1172,7 @@ class NothingDescriptor extends Descriptor {
 
   Future validate(String dir) {
     return defer(() {
-      if (entryExists(join(dir, name))) {
+      if (entryExists(path.join(dir, name))) {
         throw new ExpectException('File $name in $dir should not exist.');
       }
     });
@@ -1198,10 +1196,10 @@ typedef Validator ValidatorCreator(Entrypoint entrypoint);
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return _scheduleValue((sandboxDir) {
-    var cache = new SystemCache.withSources(join(sandboxDir, cachePath));
+    var cache = new SystemCache.withSources(path.join(sandboxDir, cachePath));
 
     return defer(() {
-      var validator = fn(new Entrypoint(join(sandboxDir, appPath), cache));
+      var validator = fn(new Entrypoint(path.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);
       });
