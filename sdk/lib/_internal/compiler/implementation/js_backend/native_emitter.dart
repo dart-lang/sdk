@@ -138,11 +138,11 @@ function(cls, desc) {
     if (builder.properties.isEmpty) return;
 
     String nativeTag = toNativeTag(classElement);
-    js.Expression definition =
-        js.call(js.use(defineNativeClassName),
-                [js.string(nativeTag), builder.toObjectInitializer()]);
+    jsAst.Expression definition =
+        js[defineNativeClassName](
+            [js.string(nativeTag), builder.toObjectInitializer()]);
 
-    nativeBuffer.add(js.prettyPrint(definition, compiler));
+    nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
     nativeBuffer.add('$N$n');
 
     classesWithDynamicDispatch.add(classElement);
@@ -153,9 +153,10 @@ function(cls, desc) {
     return result == null ? const<ClassElement>[] : result;
   }
 
-  void potentiallyConvertDartClosuresToJs(List<js.Statement> statements,
-                                          FunctionElement member,
-                                          List<js.Parameter> stubParameters) {
+  void potentiallyConvertDartClosuresToJs(
+      List<jsAst.Statement> statements,
+      FunctionElement member,
+      List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
         compiler.findHelper(const SourceString('convertDartClosureToJS'));
@@ -166,7 +167,7 @@ function(cls, desc) {
       String name = parameter.name.slowToString();
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
-      for (js.Parameter stubParameter in stubParameters) {
+      for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
           DartType type = parameter.computeType(compiler).unalias(compiler);
           if (type is FunctionType) {
@@ -175,11 +176,12 @@ function(cls, desc) {
             int arity = type.computeArity();
 
             statements.add(
-                new js.ExpressionStatement(
+                new jsAst.ExpressionStatement(
                     js.assign(
-                        js.use(name),
-                        js.use(closureConverter).callWith(
-                            [js.use(name), new js.LiteralNumber('$arity')]))));
+                        js[name],
+                        js[closureConverter](
+                            [js[name],
+                             new jsAst.LiteralNumber('$arity')]))));
             break;
           }
         }
@@ -187,11 +189,11 @@ function(cls, desc) {
     });
   }
 
-  List<js.Statement> generateParameterStubStatements(
+  List<jsAst.Statement> generateParameterStubStatements(
       Element member,
       String invocationName,
-      List<js.Parameter> stubParameters,
-      List<js.Expression> argumentsBuffer,
+      List<jsAst.Parameter> stubParameters,
+      List<jsAst.Expression> argumentsBuffer,
       int indexOfLastOptionalArgumentInParameters) {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
@@ -205,11 +207,11 @@ function(cls, desc) {
     ClassElement classElement = member.enclosingElement;
     String nativeTagInfo = classElement.nativeTagInfo.slowToString();
 
-    List<js.Statement> statements = <js.Statement>[];
+    List<jsAst.Statement> statements = <jsAst.Statement>[];
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
 
     String target;
-    List<js.Expression> arguments;
+    List<jsAst.Expression> arguments;
 
     if (!nativeMethods.contains(member)) {
       // When calling a method that has a native body, we call it with our
@@ -224,16 +226,16 @@ function(cls, desc) {
           0, indexOfLastOptionalArgumentInParameters + 1);
     }
     statements.add(
-        new js.Return(
-            new js.VariableUse('this').dot(target).callWith(arguments)));
+        new jsAst.Return(
+            new jsAst.VariableUse('this')[target](arguments)));
 
     if (!overriddenMethods.contains(member)) {
       // Call the method directly.
       return statements;
     } else {
-      return <js.Statement>[
+      return <jsAst.Statement>[
           generateMethodBodyWithPrototypeCheck(
-              invocationName, new js.Block(statements), stubParameters)];
+              invocationName, new jsAst.Block(statements), stubParameters)];
     }
   }
 
@@ -242,26 +244,24 @@ function(cls, desc) {
   // super class. If the method is not available, we make a direct call to
   // Object.prototype.$methodName.  This method will patch the prototype of
   // 'this' to the real method.
-  js.Statement generateMethodBodyWithPrototypeCheck(
+  jsAst.Statement generateMethodBodyWithPrototypeCheck(
       String methodName,
-      js.Statement body,
-      List<js.Parameter> parameters) {
+      jsAst.Statement body,
+      List<jsAst.Parameter> parameters) {
     return js.if_(
-        js.use('Object').dot('getPrototypeOf')
-            .callWith([js.use('this')])
-            .dot('hasOwnProperty').callWith([js.string(methodName)]),
+        js['Object']['getPrototypeOf']('this')['hasOwnProperty'](
+            js.string(methodName)),
         body,
         js.return_(
-            js.use('Object').dot('prototype').dot(methodName).dot('call')
-            .callWith(
-                <js.Expression>[js.use('this')]..addAll(
-                    parameters.map((param) => js.use(param.name))))));
+            js['Object']['prototype'][methodName]['call'](
+                <jsAst.Expression>[js['this']]..addAll(
+                    parameters.map((param) => js[param.name])))));
   }
 
-  js.Block generateMethodBodyWithPrototypeCheckForElement(
+  jsAst.Block generateMethodBodyWithPrototypeCheckForElement(
       FunctionElement element,
-      js.Block body,
-      List<js.Parameter> parameters) {
+      jsAst.Block body,
+      List<jsAst.Parameter> parameters) {
     ElementKind kind = element.kind;
     if (kind != ElementKind.FUNCTION &&
         kind != ElementKind.GETTER &&
@@ -270,7 +270,7 @@ function(cls, desc) {
     }
 
     String methodName = backend.namer.getName(element);
-    return new js.Block(
+    return new jsAst.Block(
         [generateMethodBodyWithPrototypeCheck(methodName, body, parameters)]);
   }
 
@@ -322,23 +322,23 @@ function(cls, desc) {
     // Temporary variables for common substrings.
     List<String> varNames = <String>[];
     // Values of temporary variables.
-    Map<String, js.Expression> varDefns = new Map<String, js.Expression>();
+    Map<String, jsAst.Expression> varDefns = new Map<String, jsAst.Expression>();
 
     // Expression to compute tags string for a class.  The expression will
     // initially be a string or expression building a string, but may be
     // replaced with a variable reference to the common substring.
-    Map<ClassElement, js.Expression> tagDefns =
-        new Map<ClassElement, js.Expression>();
+    Map<ClassElement, jsAst.Expression> tagDefns =
+        new Map<ClassElement, jsAst.Expression>();
 
-    js.Expression makeExpression(ClassElement classElement) {
+    jsAst.Expression makeExpression(ClassElement classElement) {
       // Expression fragments for this set of cls keys.
-      List<js.Expression> expressions = <js.Expression>[];
+      List<jsAst.Expression> expressions = <jsAst.Expression>[];
       // TODO: Remove if cls is abstract.
       List<String> subtags = [toNativeTag(classElement)];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
-          js.Expression existing = tagDefns[tag];
+          jsAst.Expression existing = tagDefns[tag];
           if (existing == null) {
             // [subclass] is still within the subtree between dispatch classes.
             subtags.add(toNativeTag(tag));
@@ -346,19 +346,19 @@ function(cls, desc) {
           } else {
             // [subclass] is one of the preorderDispatchClasses, so CSE this
             // reference with the previous reference.
-            js.VariableUse use = existing.asVariableUse();
+            jsAst.VariableUse use = existing.asVariableUse();
             if (use != null && varDefns.containsKey(use.name)) {
               // We end up here if the subclasses have a DAG structure.  We
               // don't have DAGs yet, but if the dispatch is used for mixins
               // that will be a possibility.
               // Re-use the previously created temporary variable.
-              expressions.add(new js.VariableUse(use.name));
+              expressions.add(new jsAst.VariableUse(use.name));
             } else {
               String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
               varDefns[varName] = existing;
-              tagDefns[tag] = new js.VariableUse(varName);
-              expressions.add(new js.VariableUse(varName));
+              tagDefns[tag] = new jsAst.VariableUse(varName);
+              expressions.add(new jsAst.VariableUse(varName));
             }
           }
         }
@@ -368,12 +368,12 @@ function(cls, desc) {
       if (!subtags.isEmpty) {
         expressions.add(js.string(subtags.join('|')));
       }
-      js.Expression expression;
+      jsAst.Expression expression;
       if (expressions.length == 1) {
         expression = expressions[0];
       } else {
-        js.Expression array = new js.ArrayInitializer.from(expressions);
-        expression = js.call(array.dot('join'), [js.string('|')]);
+        jsAst.Expression array = new jsAst.ArrayInitializer.from(expressions);
+        expression = array['join']([js.string('|')]);
       }
       return expression;
     }
@@ -384,46 +384,47 @@ function(cls, desc) {
 
     // Write out a thunk that builds the metadata.
     if (!tagDefns.isEmpty) {
-      List<js.Statement> statements = <js.Statement>[];
+      List<jsAst.Statement> statements = <jsAst.Statement>[];
 
-      List<js.VariableInitialization> initializations =
-          <js.VariableInitialization>[];
+      List<jsAst.VariableInitialization> initializations =
+          <jsAst.VariableInitialization>[];
       for (final String varName in varNames) {
         initializations.add(
-            new js.VariableInitialization(
-                new js.VariableDeclaration(varName),
+            new jsAst.VariableInitialization(
+                new jsAst.VariableDeclaration(varName),
                 varDefns[varName]));
       }
       if (!initializations.isEmpty) {
         statements.add(
-            new js.ExpressionStatement(
-                new js.VariableDeclarationList(initializations)));
+            new jsAst.ExpressionStatement(
+                new jsAst.VariableDeclarationList(initializations)));
       }
 
       // [table] is a list of lists, each inner list of the form:
       //   [dynamic-dispatch-tag, tags-of-classes-implementing-dispatch-tag]
       // E.g.
       //   [['Node', 'Text|HTMLElement|HTMLDivElement|...'], ...]
-      js.Expression table =
-          new js.ArrayInitializer.from(
+      jsAst.Expression table =
+          new jsAst.ArrayInitializer.from(
               preorderDispatchClasses.map((cls) =>
-                  new js.ArrayInitializer.from([
+                  new jsAst.ArrayInitializer.from([
                       js.string(toNativeTag(cls)),
                       tagDefns[cls]])));
 
       //  $.dynamicSetMetadata(table);
       statements.add(
-          new js.ExpressionStatement(
-              new js.Call(
-                  new js.VariableUse(dynamicSetMetadataName),
+          new jsAst.ExpressionStatement(
+              new jsAst.Call(
+                  new jsAst.VariableUse(dynamicSetMetadataName),
                   [table])));
 
       //  (function(){statements})();
       if (emitter.compiler.enableMinification) nativeBuffer.add(';');
       nativeBuffer.add(
-          js.prettyPrint(
-              new js.ExpressionStatement(
-                  new js.Call(new js.Fun([], new js.Block(statements)), [])),
+          jsAst.prettyPrint(
+              new jsAst.ExpressionStatement(
+                  new jsAst.Call(new jsAst.Fun([], new jsAst.Block(statements)),
+                                 [])),
               compiler));
     }
   }
@@ -460,10 +461,10 @@ function(cls, desc) {
     targetBuffer.add('$defineNativeClassName = '
                      '$defineNativeClassFunction$N$n');
 
-    List<js.Property> objectProperties = <js.Property>[];
+    List<jsAst.Property> objectProperties = <jsAst.Property>[];
 
-    void addProperty(String name, js.Expression value) {
-      objectProperties.add(new js.Property(js.string(name), value));
+    void addProperty(String name, jsAst.Expression value) {
+      objectProperties.add(new jsAst.Property(js.string(name), value));
     }
 
     // Because of native classes, we have to generate some is checks
@@ -478,16 +479,14 @@ function(cls, desc) {
         if (element.isObject(compiler)) continue;
         String name = backend.namer.operatorIs(element);
         addProperty(name,
-            js.fun([], js.block1(js.return_(new js.LiteralBool(false)))));
+            js.fun([], js.return_(new jsAst.LiteralBool(false))));
       }
     }
     emitIsChecks();
 
-    js.Expression makeCallOnThis(String functionName) =>
-        js.fun([],
-            js.block1(
-                js.return_(
-                    js.call(js.use(functionName), [js.use('this')]))));
+    jsAst.Expression makeCallOnThis(String functionName) {
+      return js.fun([], js.return_(js[functionName]('this')));
+    }
 
     // In order to have the toString method on every native class,
     // we must patch the JS Object prototype with a helper method.
@@ -503,8 +502,8 @@ function(cls, desc) {
     // Same as above, but for operator==.
     String equalsName = backend.namer.publicInstanceMethodNameByArity(
         const SourceString('=='), 1);
-    addProperty(equalsName, js.fun(['a'], js.block1(
-        js.return_(js.strictEquals(new js.This(), js.use('a'))))));
+    addProperty(equalsName, js.fun(['a'],
+        js.return_(js.strictEquals(new jsAst.This(), js['a']))));
 
     // If the native emitter has been asked to take care of the
     // noSuchMethod handlers, we do that now.
@@ -515,28 +514,25 @@ function(cls, desc) {
     // If we have any properties to add to Object.prototype, we run
     // through them and add them using defineProperty.
     if (!objectProperties.isEmpty) {
-      js.Expression init =
-          js.call(
-              js.fun(['table'],
-                  js.block1(
-                      new js.ForIn(
-                          new js.VariableDeclarationList(
-                              [new js.VariableInitialization(
-                                  new js.VariableDeclaration('key'),
-                                  null)]),
-                          js.use('table'),
-                          new js.ExpressionStatement(
-                              js.call(
-                                  js.use(defPropName),
-                                  [js.use('Object').dot('prototype'),
-                                   js.use('key'),
-                                   new js.PropertyAccess(js.use('table'),
-                                                         js.use('key'))]))))),
-              [new js.ObjectInitializer(objectProperties)]);
+      jsAst.Expression init =
+          js.fun(['table'],
+              new jsAst.ForIn(
+                  new jsAst.VariableDeclarationList(
+                      [new jsAst.VariableInitialization(
+                          new jsAst.VariableDeclaration('key'),
+                          null)]),
+                  js['table'],
+                  new jsAst.ExpressionStatement(
+                      js[defPropName](
+                          [js['Object']['prototype'],
+                           js['key'],
+                           new jsAst.PropertyAccess(js['table'],
+                                                    js['key'])]))))(
+              new jsAst.ObjectInitializer(objectProperties));
 
       if (emitter.compiler.enableMinification) targetBuffer.add(';');
-      targetBuffer.add(js.prettyPrint(
-          new js.ExpressionStatement(init), compiler));
+      targetBuffer.add(jsAst.prettyPrint(
+          new jsAst.ExpressionStatement(init), compiler));
       targetBuffer.add('\n');
     }
 

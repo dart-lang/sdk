@@ -624,15 +624,15 @@ class JavaScriptBackend extends Backend {
   /**
    * The generated code as a js AST for compiled methods. 
    */
-  Map<Element, js.Expression> get generatedCode {
+  Map<Element, jsAst.Expression> get generatedCode {
     return compiler.enqueuer.codegen.generatedCode;
   }
 
   /**
    * The generated code as a js AST for compiled bailout methods. 
    */
-  final Map<Element, js.Expression> generatedBailoutCode =
-      new Map<Element, js.Expression>();
+  final Map<Element, jsAst.Expression> generatedBailoutCode =
+      new Map<Element, jsAst.Expression>();
 
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
@@ -959,12 +959,12 @@ class JavaScriptBackend extends Backend {
     optimizer.optimize(work, graph, false);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
-      js.Expression code = generator.generateBailoutMethod(work, graph);
+      jsAst.Expression code = generator.generateBailoutMethod(work, graph);
       generatedBailoutCode[element] = code;
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph, true);
     }
-    js.Expression code = generator.generateCode(work, graph);
+    jsAst.Expression code = generator.generateCode(work, graph);
     generatedCode[element] = code;
     invalidateAfterCodegen.forEach(eagerRecompile);
     invalidateAfterCodegen.clear();
@@ -985,7 +985,7 @@ class JavaScriptBackend extends Backend {
    */
   String assembleCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    return js.prettyPrint(generatedCode[element], compiler).getText();
+    return jsAst.prettyPrint(generatedCode[element], compiler).getText();
   }
 
   void assembleProgram() {

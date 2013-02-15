@@ -151,6 +151,10 @@ abstract class Node {
   void visitChildren(NodeVisitor visitor);
 
   VariableUse asVariableUse() => null;
+
+  Statement toStatement() {
+    throw new UnsupportedError('toStatement');
+  }
 }
 
 class Program extends Node {
@@ -164,6 +168,7 @@ class Program extends Node {
 }
 
 abstract class Statement extends Node {
+  Statement toStatement() => this;
 }
 
 class Block extends Statement {
@@ -432,8 +437,71 @@ class LiteralStatement extends Statement {
 abstract class Expression extends Node {
   int get precedenceLevel;
 
-  PropertyAccess dot(String name) => new PropertyAccess.field(this, name);
   Call callWith(List<Expression> arguments) => new Call(this, arguments);
+
+  New newWith(List<Expression> arguments) => new New(this, arguments);
+
+  PropertyAccess operator [](expression) {
+    if (expression is Expression) {
+      return new PropertyAccess(this, expression);
+    } else if (expression is int) {
+      return new PropertyAccess.indexed(this, expression);
+    } else if (expression is String) {
+      return new PropertyAccess.field(this, expression);
+    } else {
+      throw new ArgumentError('Expected an int, String, or Expression');
+    }
+  }
+
+  Statement toStatement() => new ExpressionStatement(this);
+
+  Call call([expression]) {
+    List<Expression> arguments;
+    if (expression == null) {
+      arguments = <Expression>[];
+    } else if (expression is List) {
+      arguments = expression.map(js.toExpression).toList();
+    } else {
+      arguments = <Expression>[js.toExpression(expression)];
+    }
+    return callWith(arguments);
+  }
+
+  Expression equals(expression) => binary('==', expression);
+
+  Expression strictEquals(expression) => binary('===', expression);
+
+  Expression notEquals(expression) => binary('!=', expression);
+
+  Expression operator +(expression) => binary('+', expression);
+
+  Expression operator -(expression) => binary('-', expression);
+
+  Expression operator &(expression) => binary('&', expression);
+
+  Expression operator <(expression) => binary('<', expression);
+
+  Expression operator >(expression) => binary('>', expression);
+
+  Expression operator >=(expression) => binary('>=', expression);
+
+  Expression binary(String operator, expression) {
+    return new Binary(operator, this, js.toExpression(expression));
+  }
+
+  Expression assign(expression) {
+    return new Assignment(this, js.toExpression(expression));
+  }
+
+  Expression update(String operator, expression) {
+    return new Assignment.compound(this, operator, js.toExpression(expression));
+  }
+
+  Expression get plusPlus => new Postfix('++', this);
+
+  Prefix get typeof => new Prefix('typeof', this);
+
+  Prefix get not => new Prefix('!', this);
 }
 
 class LiteralExpression extends Expression {
@@ -661,6 +729,8 @@ class VariableUse extends VariableReference {
   accept(NodeVisitor visitor) => visitor.visitVariableUse(this);
 
   VariableUse asVariableUse() => this;
+
+  VariableDeclarationList def([initializer]) => js.defineVar(name, initializer);
 }
 
 class VariableDeclaration extends VariableReference {
@@ -859,48 +929,124 @@ class RegExpLiteral extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-Prefix typeOf(Expression argument) => new Prefix('typeof', argument);
+class JsBuilder {
+  const JsBuilder();
 
-Binary equals(Expression left, Expression right) {
-  return new Binary('==', left, right);
+  VariableUse operator [](String name) => new VariableUse(name);
+
+  // TODO(ahe): Remove this method.
+  Binary equals(Expression left, Expression right) {
+    return new Binary('==', left, right);
+  }
+
+  // TODO(ahe): Remove this method.
+  Binary strictEquals(Expression left, Expression right) {
+    return new Binary('===', left, right);
+  }
+
+  LiteralString string(String value) => new LiteralString('"$value"');
+
+  If if_(condition, thenPart, [elsePart]) {
+    condition = toExpression(condition);
+    return (elsePart == null)
+        ? new If.noElse(condition, toStatement(thenPart))
+        : new If(condition, toStatement(thenPart), toStatement(elsePart));
+  }
+
+  Return return_([value]) {
+    return new Return(value == null ? null : toExpression(value));
+  }
+
+  Block block(statement) {
+    if (statement is Block) {
+      return statement;
+    } else if (statement is List) {
+      return new Block(statement.map(toStatement).toList());
+    } else {
+      return new Block(<Statement>[toStatement(statement)]);
+    }
+  }
+
+  Fun fun(parameters, body) {
+    Parameter toParameter(parameter) {
+      if (parameter is String) {
+        return new Parameter(parameter);
+      } else if (parameter is Parameter) {
+        return parameter;
+      } else {
+        throw new ArgumentError('parameter should be a String or a Parameter');
+      }
+    }
+    if (parameters is! List) {
+      parameters = [parameters];
+    }
+    return new Fun(parameters.map(toParameter).toList(), block(body));
+  }
+
+  Assignment assign(Expression leftHandSide, Expression value) {
+    return new Assignment(leftHandSide, value);
+  }
+
+  Expression undefined() => new Prefix('void', new LiteralNumber('0'));
+
+  VariableDeclarationList defineVar(String name, [initializer]) {
+    if (initializer != null) {
+      initializer = toExpression(initializer);
+    }
+    var declaration = new VariableDeclaration(name);
+    var initialization = [new VariableInitialization(declaration, initializer)];
+    return new VariableDeclarationList(initialization);
+  }
+
+  Statement toStatement(statement) {
+    if (statement is List) {
+      return new Block(statement.map(toStatement).toList());
+    } else if (statement is Node) {
+      return statement.toStatement();
+    } else {
+      throw new ArgumentError('statement');
+    }
+  }
+
+  Expression toExpression(expression) {
+    if (expression is Expression) {
+      return expression;
+    } else if (expression is String) {
+      return this[expression];
+    } else if (expression is num) {
+      return new LiteralNumber('$expression');
+    } else if (expression is bool) {
+      return new LiteralBool(expression);
+    } else if (expression is Map) {
+      if (!expression.isEmpty) {
+        throw new ArgumentError('expression should be an empty Map');
+      }
+      return new ObjectInitializer([]);
+    } else {
+      throw new ArgumentError('expression should be an Expression, '
+                              'a String, a num, a bool, or a Map');
+    }
+  }
+
+  ForIn forIn(String name, object, statement) {
+    return new ForIn(defineVar(name),
+                     toExpression(object),
+                     toStatement(statement));
+  }
+
+  For for_(init, condition, update, statement) {
+    return new For(
+        toExpression(init), toExpression(condition), toExpression(update),
+        toStatement(statement));
+  }
+
+  Try try_(body, {catchPart, finallyPart}) {
+    if (catchPart != null) catchPart = toStatement(catchPart);
+    if (finallyPart != null) finallyPart = toStatement(finallyPart);
+    return new Try(toStatement(body), catchPart, finallyPart);
+  }
 }
 
-Binary strictEquals(Expression left, Expression right) {
-  return new Binary('===', left, right);
-}
+const JsBuilder js = const JsBuilder();
 
-LiteralString string(String value) => new LiteralString('"$value"');
-
-If if_(Expression condition, Node then, [Node otherwise]) {
-  return (otherwise == null)
-      ? new If.noElse(condition, then)
-      : new If(condition, then, otherwise);
-}
-
-Return return_([Expression value]) => new Return(value);
-
-VariableUse use(String name) => new VariableUse(name);
-
-PropertyAccess fieldAccess(Expression receiver, String fieldName) {
-  return new PropertyAccess.field(receiver, fieldName);
-}
-
-Block emptyBlock() => new Block.empty();
-
-Block block1(Statement statement) => new Block(<Statement>[statement]);
-
-Block block2(Statement s1, Statement s2) => new Block(<Statement>[s1, s2]);
-
-Call call(Expression target, List<Expression> arguments) {
-  return new Call(target, arguments);
-}
-
-Fun fun(List<String> parameterNames, Block body) {
-  return new Fun(parameterNames.map((n) => new Parameter(n)).toList(), body);
-}
-
-Assignment assign(Expression leftHandSide, Expression value) {
-  return new Assignment(leftHandSide, value);
-}
-
-Expression undefined() => new Prefix('void', new LiteralNumber('0'));
+LiteralString string(String value) => js.string(value);

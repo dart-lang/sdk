@@ -27,20 +27,22 @@ class ClosureInvocationElement extends FunctionElementX {
 /**
  * A convenient type alias for some functions that emit keyed values.
  */
-typedef void DefineStubFunction(String invocationName, js.Expression value);
+typedef void DefineStubFunction(String invocationName, jsAst.Expression value);
 
 /**
  * A data structure for collecting fragments of a class definition.
  */
 class ClassBuilder {
-  final List<js.Property> properties = <js.Property>[];
+  final List<jsAst.Property> properties = <jsAst.Property>[];
 
   // Has the same signature as [DefineStubFunction].
-  void addProperty(String name, js.Expression value) {
-    properties.add(new js.Property(js.string(name), value));
+  void addProperty(String name, jsAst.Expression value) {
+    properties.add(new jsAst.Property(js.string(name), value));
   }
 
-  js.Expression toObjectInitializer() => new js.ObjectInitializer(properties);
+  jsAst.Expression toObjectInitializer() {
+    return new jsAst.ObjectInitializer(properties);
+  }
 }
 
 /**
@@ -126,11 +128,11 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  js.Expression constantReference(Constant value) {
+  jsAst.Expression constantReference(Constant value) {
     return constantEmitter.reference(value);
   }
 
-  js.Expression constantInitializerExpression(Constant value) {
+  jsAst.Expression constantInitializerExpression(Constant value) {
     return constantEmitter.initializationExpression(value);
   }
 
@@ -172,42 +174,100 @@ class CodeEmitterTask extends CompilerTask {
   const GETTER_SETTER_CODE = 0x3d;
   const GETTER_CODE = 0x3e;
   const RENAMING_FLAG = 0x40;
-  String needsGetterCode(String variable) => '($variable & 3) > 0';
-  String needsSetterCode(String variable) => '($variable & 2) == 0';
-  String isRenaming(String variable) => '($variable & $RENAMING_FLAG) != 0';
 
-  String get generateAccessorFunction {
-    return """
-function generateAccessor(field, prototype) {
-  var len = field.length;
-  var lastCharCode = field.charCodeAt(len - 1);
-  var needsAccessor = (lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE;
-  if (needsAccessor) {
-    var needsGetter = ${needsGetterCode('lastCharCode')};
-    var needsSetter = ${needsSetterCode('lastCharCode')};
-    var renaming = ${isRenaming('lastCharCode')};
-    var accessorName = field = field.substring(0, len - 1);
-    if (renaming) {
-      var divider = field.indexOf(":");
-      accessorName = field.substring(0, divider);
-      field = field.substring(divider + 1);
-    }
-    if (needsGetter) {
-      var getterString = "return this." + field + ";";
-      prototype["${namer.getterPrefix}" + accessorName] =
-          new Function(getterString);
-    }
-    if (needsSetter) {
-      var setterString = "this." + field + " = v;";
-      prototype["${namer.setterPrefix}" + accessorName] =
-          new Function("v", setterString);
-    }
-  }
-  return field;
-}""";
+  jsAst.Expression needsGetterCode(String variable) {
+    // ($variable & 3) > 0
+    return (js[variable] & 3) > 0;
   }
 
-  String get defineClassFunction {
+  jsAst.Expression needsSetterCode(String variable) {
+    // ($variable & 2) == 0
+    return (js[variable] & 2).equals(0);
+  }
+
+  jsAst.Expression isRenaming(String variable) {
+    // ($variable & $RENAMING_FLAG) != 0
+    return (js[variable] & RENAMING_FLAG).notEquals(0);
+  }
+
+  jsAst.FunctionDeclaration get generateAccessorFunction {
+    // function generateAccessor(field, prototype) {
+    jsAst.Fun fun = js.fun(['field', 'prototype'], [
+
+      // var len = field.length;
+      js['len'].def(js['field']['length']),
+
+      // var lastCharCode = field.charCodeAt(len - 1);
+      js['lastCharCode'].def(js['field']['charCodeAt'](js['len'] - 1)),
+
+      // var needsAccessor =
+      //     (lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE;
+      js['needsAccessor'].def(
+          (js['lastCharCode'] & SUFFIX_MASK) >= FIRST_SUFFIX_CODE),
+
+      // if (needsAccessor) {
+      js.if_('needsAccessor', [
+        // var needsGetter = ${needsGetterCode('lastCharCode')};
+        js['needsGetter'].def(needsGetterCode('lastCharCode')),
+
+        // var needsSetter = ${needsSetterCode('lastCharCode')};
+        js['needsSetter'].def(needsSetterCode('lastCharCode')),
+
+        // var renaming = ${isRenaming('lastCharCode')};
+        js['renaming'].def(isRenaming('lastCharCode')),
+
+        // var accessorName = field = field.substring(0, len - 1);
+        js['accessorName'].def(
+            js['field'].assign(js['field']['substring']([0, js['len'] - 1]))),
+
+        // if (renaming) {
+        js.if_('renaming', [
+          // var divider = field.indexOf(":");
+          js['divider'].def(js['field']['indexOf'](js.string(':'))),
+
+          // accessorName = field.substring(0, divider);
+          js['accessorName'].assign(js['field']['substring']([0, 'divider'])),
+
+          // field = field.substring(divider + 1);
+          js['field'].assign(js['field']['substring'](js['divider'] + 1))
+        ]),
+
+        // if (needsGetter) {
+        js.if_('needsGetter', [
+          // var getterString = "return this." + field + ";";
+          js['getterString'].def(js.string('return this.') + 'field'),
+
+          // prototype["${namer.getterPrefix}" + accessorName] =
+          //     new Function(getterString);
+          js['prototype'][js.string(namer.getterPrefix) + 'accessorName']
+              .assign(js['Function'].newWith([js['getterString']]))
+        ]),
+
+        // if (needsSetter) {
+        js.if_('needsSetter', [
+          // var setterString = "this." + field + " = v;";
+          js['setterString'].def(
+              js.string('this.') + 'field' + js.string('$_=${_}v')),
+
+          // prototype["${namer.setterPrefix}" + accessorName] =
+          //     new Function("v", setterString);
+          js['prototype'][js.string(namer.setterPrefix) + 'accessorName']
+              .assign(js['Function'].newWith([js.string('v'),
+                                              js['setterString']]))
+        ]),
+
+      ]),
+
+      // return field;
+      js.return_('field')
+    ]);
+
+    return new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('generateAccessor'),
+        fun);
+  }
+
+  jsAst.Fun get defineClassFunction {
     // First the class name, then the field names in an array and the members
     // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -221,33 +281,68 @@ function generateAccessor(field, prototype) {
     //   this.x = t - v;
     //  },
     // });
-    return """
-function(cls, fields, prototype) {
-  var constructor;
-  if (typeof fields == 'function') {
-    constructor = fields;
-  } else {
-    var str = "function " + cls + "(";
-    var body = "";
-    for (var i = 0; i < fields.length; i++) {
-      if (i != 0) str += ", ";
-      var field = fields[i];
-      field = generateAccessor(field, prototype);
-      str += field;
-      body += "this." + field + " = " + field + ";\\n";
-    }
-    str += ") {" + body + "}\\n";
-    str += "return " + cls + ";";
-    constructor = new Function(str)();
-  }
-  constructor.prototype = prototype;
-  constructor.builtin\$cls = cls;
-  return constructor;
-}""";
+
+    // function(cls, fields, prototype) {
+    return js.fun(['cls', 'fields', 'prototype'], [
+
+      // var constructor;
+      js['constructor'].def(),
+
+      // if (typeof fields == 'function') {
+      js.if_(js['fields'].typeof.equals(js.string('function')), [
+        // constructor = fields;
+        js['constructor'].assign('fields')
+      ], /* else */ [
+        // var str = "function " + cls + "(";
+        js['str'].def(js.string('function ') + 'cls' + js.string('(')),
+
+        // var body = "";
+        js['body'].def(js.string('')),
+
+        // for (var i = 0; i < fields.length; i++) {
+        js.for_(js['i'].def(0),
+                js['i'] < js['fields']['length'],
+                js['i'].plusPlus, [
+          // if (i != 0) str += ", ";
+          js.if_(js['i'].notEquals(0), js['str'].update('+', js.string(', '))),
+
+          // var field = fields[i];
+          js['field'].def(js['fields'][js['i']]),
+
+          // field = generateAccessor(field, prototype);
+          js['field'].assign(js['generateAccessor'](['field', 'prototype'])),
+
+          // str += field;
+          js['str'].update('+', 'field'),
+
+          // body += "this." + field + " = " + field + ";\\n";
+          js['body'].update('+',
+                            js.string('this.') + 'field' + js.string(" = ") +
+                            'field' + js.string(r';\n'))
+        ]),
+
+        // str += ") {" + body + "}\\nreturn " + cls;
+        js['str'].update(
+            '+',
+            js.string(') {') + 'body' + js.string(r'}\nreturn ') + 'cls'),
+
+        // constructor = new Function(str)();
+        js['constructor'].assign(js['Function'].newWith([js['str']])())
+      ]),
+
+      // constructor.prototype = prototype;
+      js['constructor']['prototype'].assign('prototype'),
+
+      // constructor.builtin\$cls = cls;
+      js['constructor'][r'builtin$cls'].assign('cls'),
+
+      // return constructor;
+      js.return_('constructor')
+    ]);
   }
 
   /** Needs defineClass to be defined. */
-  String get protoSupportCheck {
+  List buildProtoSupportCheck() {
     // On Firefox and Webkit browsers we can manipulate the __proto__
     // directly. Opera claims to have __proto__ support, but it is buggy.
     // So we have to do more checks.
@@ -256,18 +351,33 @@ function(cls, fields, prototype) {
     // If the browser does not support __proto__ we need to instantiate an
     // object with the correct (internal) prototype set up correctly, and then
     // copy the members.
+    // TODO(8541): Remove this work around.
 
-    return '''
-var $supportsProtoName = false;
-var tmp = $defineClassName('c', ['f?'], {}).prototype;
-if (tmp.__proto__) {
-  tmp.__proto__ = {};
-  if (typeof tmp.get\$f !== 'undefined') $supportsProtoName = true;
-}
-''';
+    return [
+      // var $supportsProtoName = false;
+      js[supportsProtoName].def(false),
+
+      // var tmp = $defineClassName('c', ['f?'], {}).prototype;
+      js['tmp'].def(
+          js[defineClassName](
+              [js.string('c'),
+               new jsAst.ArrayInitializer.from([js.string('f?')]),
+               {}])['prototype']),
+
+      // if (tmp.__proto__) {
+      js.if_(js['tmp']['__proto__'], [
+        // tmp.__proto__ = {};
+        js['tmp']['__proto__'].assign({}),
+
+        // if (typeof tmp.get\$f != 'undefined') $supportsProtoName = true;
+        js.if_(js['tmp'][r'get$f'].typeof.notEquals(js.string('undefined')),
+               js[supportsProtoName].assign(true))
+
+      ])
+    ];
   }
 
-  String get finishClassesFunction {
+  jsAst.Fun get finishClassesFunction {
     // 'defineClass' does not require the classes to be constructed in order.
     // Classes are initially just stored in the 'pendingClasses' field.
     // 'finishClasses' takes all pending classes and sets up the prototype.
@@ -280,67 +390,171 @@ if (tmp.__proto__) {
     // For engines where we have access to the '__proto__' we can manipulate
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
-    return '''
-function(collectedClasses) {
-  var hasOwnProperty = Object.prototype.hasOwnProperty;
-  for (var cls in collectedClasses) {
-    if (hasOwnProperty.call(collectedClasses, cls)) {
-      var desc = collectedClasses[cls];
-'''/* The 'fields' are either a constructor function or a string encoding
-      fields, constructor and superclass.  Get the superclass and the fields
-      in the format Super;field1,field2 from the null-string property on the
-      descriptor. */'''
-      var fields = desc[''], supr;
-      if (typeof fields == 'string') {
-        var s = fields.split(';'); supr = s[0];
-        fields = s[1] == '' ? [] : s[1].split(',');
-      } else {
-        supr = desc['super'];
-      }
-      $isolatePropertiesName[cls] = $defineClassName(cls, fields, desc);
-      if (supr) $pendingClassesName[cls] = supr;
-    }
-  }
-  var pendingClasses = $pendingClassesName;
-'''/* FinishClasses can be called multiple times. This means that we need to
-      clear the pendingClasses property. */'''
-  $pendingClassesName = {};
-  var finishedClasses = {};
-  function finishClass(cls) {
-'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
-      hasOwnProperty instead. */'''
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    if (hasOwnProperty.call(finishedClasses, cls)) return;
-    finishedClasses[cls] = true;
-    var superclass = pendingClasses[cls];
-'''/* The superclass is only false (empty string) for Dart's Object class. */'''
-    if (!superclass) return;
-    finishClass(superclass);
-    var constructor = $isolatePropertiesName[cls];
-    var superConstructor = $isolatePropertiesName[superclass];
-    var prototype = constructor.prototype;
-    if ($supportsProtoName) {
-      prototype.__proto__ = superConstructor.prototype;
-      prototype.constructor = constructor;
-    } else {
-      function tmp() {};
-      tmp.prototype = superConstructor.prototype;
-      var newPrototype = new tmp();
-      constructor.prototype = newPrototype;
-      newPrototype.constructor = constructor;
-      for (var member in prototype) {
-        if (!member) continue;  '''/* Short version of: if (member == '') */'''
-        if (hasOwnProperty.call(prototype, member)) {
-          newPrototype[member] = prototype[member];
-        }
-      }
-    }
-  }
-  for (var cls in pendingClasses) finishClass(cls);
-}''';
+
+    // function(collectedClasses) {
+    return js.fun(['collectedClasses'], [
+
+      // var hasOwnProperty = Object.prototype.hasOwnProperty;
+      js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
+
+      // for (var cls in collectedClasses) {
+      js.forIn('cls', 'collectedClasses', [
+        // if (hasOwnProperty.call(collectedClasses, cls)) {
+        js.if_(js['hasOwnProperty']['call'](['collectedClasses', 'cls']),[
+
+          // var desc = collectedClasses[cls];
+          js['desc'].def(js['collectedClasses'][js['cls']]),
+
+          /* The 'fields' are either a constructor function or a
+           * string encoding fields, constructor and superclass.  Get
+           * the superclass and the fields in the format
+           * Super;field1,field2 from the null-string property on the
+           * descriptor.
+           */
+          // var fields = desc[''], supr;
+          (() {
+            var fields = js['desc'][''];
+            var supr = js['supr'].def(null).declarations.single;
+            var fieldsAndSupr = js['fields'].def(fields);
+            fieldsAndSupr.declarations.add(supr);
+            return fieldsAndSupr;
+          })(),
+
+          // if (typeof fields == 'string') {
+          js.if_(js['fields'].typeof.equals(js.string('string')), [
+            // var s = fields.split(';');
+            js['s'].def(js['fields']['split'](js.string(';'))),
+
+            // supr = s[0];
+            js['supr'].assign(js['s'][0]),
+
+            // fields = s[1] == '' ? [] : s[1].split(',');
+            js['fields'].assign(
+                new jsAst.Conditional(
+                    js['s'][1].equals(js.string('')),
+                    new jsAst.ArrayInitializer(0, []),
+                    js['s'][1]['split'](js.string(',')))),
+          ], /* else */ [
+            // supr = desc['super'];
+            js['supr'].assign(js['desc']['super'])
+          ]),
+
+          // $isolatePropertiesName[cls] = $defineClassName(cls, fields, desc);
+          js[isolatePropertiesName][js['cls']].assign(
+              js[defineClassName](['cls', 'fields', 'desc'])),
+
+          // if (supr) $pendingClassesName[cls] = supr;
+          js.if_(js['supr'],
+                 js[pendingClassesName][js['cls']].assign(js['supr']))
+        ])
+      ]),
+
+
+      // var pendingClasses = $pendingClassesName;
+      js['pendingClasses'].def(js[pendingClassesName]),
+
+      /* FinishClasses can be called multiple times. This means that we need to
+         clear the pendingClasses property. */
+      // $pendingClassesName = {};
+      js[pendingClassesName].assign({}),
+
+      // var finishedClasses = {};
+      js['finishedClasses'].def({}),
+
+      // function finishClass(cls) { ... }
+      buildFinishClass(),
+
+      // for (var cls in pendingClasses) finishClass(cls);
+      js.forIn('cls', 'pendingClasses', js['finishClass']('cls'))
+    ]);
   }
 
-  String get finishIsolateConstructorFunction {
+  jsAst.FunctionDeclaration buildFinishClass() {
+    // function finishClass(cls) {
+    jsAst.Fun fun = js.fun(['cls'], [
+
+      // TODO(8540): Remove this work around.
+      /* Opera does not support 'getOwnPropertyNames'. Therefore we use
+         hasOwnProperty instead. */
+
+      // var hasOwnProperty = Object.prototype.hasOwnProperty;
+      js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
+
+      // if (hasOwnProperty.call(finishedClasses, cls)) return;
+      js.if_(js['hasOwnProperty']['call'](['finishedClasses', 'cls']),
+             js.return_()),
+
+      // finishedClasses[cls] = true;
+      js['finishedClasses'][js['cls']].assign(true),
+
+      // var superclass = pendingClasses[cls];
+      js['superclass'].def(js['pendingClasses'][js['cls']]),
+
+      /* The superclass is only false (empty string) for Dart's Object class. */
+      // if (!superclass) return;
+      js.if_(js['superclass'].not, js.return_()),
+
+      // finishClass(superclass);
+      js['finishClass']('superclass'),
+
+      // var constructor = $isolatePropertiesName[cls];
+      js['constructor'].def(js[isolatePropertiesName][js['cls']]),
+
+      // var superConstructor = $isolatePropertiesName[superclass];
+      js['superConstructor'].def(js[isolatePropertiesName][js['superclass']]),
+
+      // var prototype = constructor.prototype;
+      js['prototype'].def(js['constructor']['prototype']),
+
+      // if ($supportsProtoName) {
+      js.if_(supportsProtoName, [
+        // prototype.__proto__ = superConstructor.prototype;
+        js['prototype']['__proto__'].assign(js['superConstructor']['prototype']),
+
+        // prototype.constructor = constructor;
+        js['prototype']['constructor'].assign('constructor')
+
+      ], /* else */ [
+        // function tmp() {};
+        new jsAst.FunctionDeclaration(
+            new jsAst.VariableDeclaration('tmp'),
+            js.fun([], [])),
+
+        // tmp.prototype = superConstructor.prototype;
+        js['tmp']['prototype'].assign(js['superConstructor']['prototype']),
+
+        // var newPrototype = new tmp();
+        js['newPrototype'].def(js['tmp'].newWith([])),
+
+        // constructor.prototype = newPrototype;
+        js['constructor']['prototype'].assign('newPrototype'),
+
+        // newPrototype.constructor = constructor;
+        js['newPrototype']['constructor'].assign('constructor'),
+
+        // for (var member in prototype) {
+        js.forIn('member', 'prototype', [
+          /* Short version of: if (member == '') */
+          // if (!member) continue;
+          js.if_(js['member'].not, new jsAst.Continue(null)),
+
+          // if (hasOwnProperty.call(prototype, member)) {
+          js.if_(js['hasOwnProperty']['call'](['prototype', 'member']), [
+            // newPrototype[member] = prototype[member];
+            js['newPrototype'][js['member']].assign(
+                js['prototype'][js['member']])
+          ])
+        ])
+
+      ])
+    ]);
+
+    return new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('finishClass'),
+        fun);
+  }
+
+  jsAst.Fun get finishIsolateConstructorFunction {
     String isolate = namer.isolateName;
     // We replace the old Isolate function with a new one that initializes
     // all its field with the initial (and often final) value of all globals.
@@ -362,91 +576,178 @@ function(collectedClasses) {
     //
     // We also copy over old values like the prototype, and the
     // isolateProperties themselves.
-    return """function(oldIsolate) {
-  var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
-  var isolatePrototype = oldIsolate.prototype;
-  var str = "{\\n";
-  str += "var properties = $isolate.${namer.isolatePropertiesName};\\n";
-  for (var staticName in isolateProperties) {
-    if (Object.prototype.hasOwnProperty.call(isolateProperties, staticName)) {
-      str += "this." + staticName + "= properties." + staticName + ";\\n";
-    }
-  }
-  str += "}\\n";
-  var newIsolate = new Function(str);
-  newIsolate.prototype = isolatePrototype;
-  isolatePrototype.constructor = newIsolate;
-  newIsolate.${namer.isolatePropertiesName} = isolateProperties;
-  return newIsolate;
-}""";
+
+    // function(oldIsolate) {
+    return js.fun('oldIsolate', [
+      // var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
+      js['isolateProperties'].def(
+                   js['oldIsolate'][namer.isolatePropertiesName]),
+
+      // var isolatePrototype = oldIsolate.prototype;
+      js['isolatePrototype'].def(js['oldIsolate']['prototype']),
+
+      // var str = "{\\n";
+      js['str'].def(js.string(r'{\n')),
+
+      // str += "var properties = $isolate.${namer.isolatePropertiesName};\\n";
+      js['str'].update('+', js.string('var properties = '
+                                      '$isolate.${namer.isolatePropertiesName};'
+                                      r'\n')),
+
+      // var hasOwnProperty = Object.prototype.hasOwnProperty;
+      js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
+
+      // for (var staticName in isolateProperties) {
+      js.forIn('staticName', 'isolateProperties', [
+
+        // if (hasOwnProperty.call(isolateProperties, staticName)) {
+        js.if_(js['hasOwnProperty']['call'](['isolateProperties',
+                                             'staticName']), [
+
+          //str += "this." + staticName + "= properties." + staticName + ";\\n";
+          js['str'].update(
+              '+',
+              js.string("this.") + 'staticName' + js.string("= properties.") +
+              'staticName' + js.string(r';\n'))
+        ])
+      ]),
+
+      // str += "}\\n";
+      js['str'].update('+', js.string(r'}\n')),
+
+      // var newIsolate = new Function(str);
+      js['newIsolate'].def(js['Function'].newWith([js['str']])),
+
+      // newIsolate.prototype = isolatePrototype;
+      js['newIsolate']['prototype'].assign('isolatePrototype'),
+
+      // isolatePrototype.constructor = newIsolate;
+      js['isolatePrototype']['constructor'].assign('newIsolate'),
+
+      // newIsolate.${namer.isolatePropertiesName} = isolateProperties;
+      js['newIsolate'][namer.isolatePropertiesName].assign('isolateProperties'),
+
+      // return newIsolate;
+      js.return_('newIsolate')
+    ]);
   }
 
-  String get lazyInitializerFunction {
+  jsAst.Fun get lazyInitializerFunction {
     String isolate = namer.CURRENT_ISOLATE;
-    return """
-function(prototype, staticName, fieldName, getterName, lazyValue) {
-  var getter = new Function("{ return $isolate." + fieldName + ";}");
-$lazyInitializerLogic
-}""";
+
+    // function(prototype, staticName, fieldName, getterName, lazyValue) {
+    var parameters = <String>['prototype', 'staticName', 'fieldName',
+                              'getterName', 'lazyValue'];
+    return js.fun(parameters, [
+      // var getter = new Function("{ return $isolate." + fieldName + ";}");
+      js['getter'].def(js['Function'].newWith([
+          js.string("{ return $isolate.") + 'fieldName' + js.string('}')]))
+    ]..addAll(addLazyInitializerLogic())
+    );
   }
 
-  String get lazyInitializerLogic {
+  List addLazyInitializerLogic() {
     String isolate = namer.CURRENT_ISOLATE;
     JavaScriptBackend backend = compiler.backend;
     String cyclicThrow = namer.isolateAccess(backend.cyclicThrowHelper);
-    return """
-  var sentinelUndefined = {};
-  var sentinelInProgress = {};
-  prototype[fieldName] = sentinelUndefined;
-  prototype[getterName] = function() {
-    var result = $isolate[fieldName];
-    try {
-      if (result === sentinelUndefined) {
-        $isolate[fieldName] = sentinelInProgress;
-        try {
-          result = $isolate[fieldName] = lazyValue();
-        } finally {
-""" // Use try-finally, not try-catch/throw as it destroys the stack trace.
-"""
-          if (result === sentinelUndefined) {
-            if ($isolate[fieldName] === sentinelInProgress) {
-              $isolate[fieldName] = null;
-            }
-          }
-        }
-      } else if (result === sentinelInProgress) {
-        $cyclicThrow(staticName);
-      }
-      return result;
-    } finally {
-      $isolate[getterName] = getter;
-    }
-  };""";
+
+    return [
+      // var sentinelUndefined = {};
+      js['sentinelUndefined'].def({}),
+
+      // var sentinelInProgress = {};
+      js['sentinelInProgress'].def({}),
+
+      // prototype[fieldName] = sentinelUndefined;
+      js['prototype'][js['fieldName']].assign('sentinelUndefined'),
+
+      // prototype[getterName] = function() {
+      js['prototype'][js['getterName']].assign(js.fun([], [
+        // var result = $isolate[fieldName];
+        js['result'].def(js[isolate][js['fieldName']]),
+
+        // try {
+        js.try_([
+          // if (result === sentinelUndefined) {
+          js.if_(js['result'].strictEquals('sentinelUndefined'), [
+
+            // $isolate[fieldName] = sentinelInProgress;
+            js[isolate][js['fieldName']].assign('sentinelInProgress'),
+
+            // try {
+            js.try_([
+              // result = $isolate[fieldName] = lazyValue();
+              js['result'].assign(
+                  js[isolate][js['fieldName']].assign(js['lazyValue']()))
+
+            ], finallyPart: [
+              // Use try-finally, not try-catch/throw as it destroys the
+              // stack trace.
+
+              // if (result === sentinelUndefined) {
+              js.if_(js['result'].strictEquals('sentinelUndefined'), [
+                // if ($isolate[fieldName] === sentinelInProgress) {
+                js.if_(js[isolate][js['fieldName']]
+                       .strictEquals('sentinelInProgress'), [
+
+                  // $isolate[fieldName] = null;
+                  js[isolate][js['fieldName']].assign(new jsAst.LiteralNull())
+                ])
+              ])
+            ])
+          ], /* else */ [
+            // } else if (result === sentinelInProgress) {
+            js.if_(js['result'].strictEquals('sentinelInProgress'),
+              // $cyclicThrow(staticName);
+              js[cyclicThrow]('staticName')
+            )
+          ]),
+
+          // return result;
+          js.return_('result')
+
+        ], finallyPart: [
+          // $isolate[getterName] = getter;
+          js[isolate][js['getterName']].assign('getter')
+        ])
+      ]))
+    ];
   }
 
-  void addDefineClassAndFinishClassFunctionsIfNecessary(CodeBuffer buffer) {
-    if (needsDefineClass) {
-      // Declare function called generateAccessor.  This is used in
+  List buildDefineClassAndFinishClassFunctionsIfNecessary() {
+    if (!needsDefineClass) return [];
+    return [
+      // Declare a function called "generateAccessor".  This is used in
       // defineClassFunction (it's a local declaration in init()).
-      buffer.add("$generateAccessorFunction$N");
-      buffer.add("$generateAccessorHolder = generateAccessor$N");
-      buffer.add("$defineClassName = $defineClassFunction$N");
-      buffer.add(protoSupportCheck);
-      buffer.add("$pendingClassesName = {}$N");
-      buffer.add("$finishClassesName = $finishClassesFunction$N");
-    }
+      generateAccessorFunction,
+
+      // $generateAccessorHolder = generateAccessor;
+      js[generateAccessorHolder].assign('generateAccessor'),
+
+      // $defineClassName = $defineClassFunction;
+      js[defineClassName].assign(defineClassFunction)
+    ]
+    ..addAll(buildProtoSupportCheck())
+    ..addAll([
+      // $pendingClassesName = {};
+      js[pendingClassesName].assign({}),
+
+      js[finishClassesName].assign(finishClassesFunction)
+    ]);
   }
 
-  void addLazyInitializerFunctionIfNecessary(CodeBuffer buffer) {
-    if (needsLazyInitializer) {
-      buffer.add("$lazyInitializerName = $lazyInitializerFunction$N");
-    }
+  List buildLazyInitializerFunctionIfNecessary() {
+    if (!needsLazyInitializer) return [];
+
+    // $lazyInitializerName = $lazyInitializerFunction
+    return [js[lazyInitializerName].assign(lazyInitializerFunction)];
   }
 
-  void emitFinishIsolateConstructor(CodeBuffer buffer) {
-    String name = finishIsolateConstructorName;
-    String value = finishIsolateConstructorFunction;
-    buffer.add("$name = $value$N");
+  List buildFinishIsolateConstructor() {
+    return [
+      // $finishIsolateConstructorName = $finishIsolateConstructorFunction
+      js[finishIsolateConstructorName].assign(finishIsolateConstructorFunction)
+    ];
   }
 
   void emitFinishIsolateConstructorInvocation(CodeBuffer buffer) {
@@ -499,19 +800,19 @@ $lazyInitializerLogic
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<js.Parameter> parametersBuffer =
-        new List<js.Parameter>.fixedLength(
+    List<jsAst.Parameter> parametersBuffer =
+        new List<jsAst.Parameter>.fixedLength(
             selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
-    List<js.Expression> argumentsBuffer =
-        new List<js.Expression>.fixedLength(
+    List<jsAst.Expression> argumentsBuffer =
+        new List<jsAst.Expression>.fixedLength(
             parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
     if (isInterceptorClass) {
       count++;
-      parametersBuffer[0] = new js.Parameter(receiverArgumentName);
-      argumentsBuffer[0] = new js.VariableUse(receiverArgumentName);
+      parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
+      argumentsBuffer[0] = js[receiverArgumentName];
     }
 
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
@@ -523,17 +824,17 @@ $lazyInitializerLogic
       assert(jsName != receiverArgumentName);
       int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
       if (count < optionalParameterStart) {
-        parametersBuffer[count] = new js.Parameter(jsName);
-        argumentsBuffer[count] = new js.VariableUse(jsName);
+        parametersBuffer[count] = new jsAst.Parameter(jsName);
+        argumentsBuffer[count] = js[jsName];
       } else {
         int index = names.indexOf(element.name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
-          argumentsBuffer[count] = new js.VariableUse(jsName);
+          argumentsBuffer[count] = js[jsName];
           parametersBuffer[optionalParameterStart + index] =
-              new js.Parameter(jsName);
+              new jsAst.Parameter(jsName);
         // Note that [elements] may be null for a synthesized [member].
         } else if (elements != null && elements.isParameterChecked(element)) {
           argumentsBuffer[count] = constantReference(SentinelConstant.SENTINEL);
@@ -554,20 +855,16 @@ $lazyInitializerLogic
       count++;
     });
 
-    List<js.Statement> body;
+    List body;
     if (member.hasFixedBackendName()) {
       body = nativeEmitter.generateParameterStubStatements(
           member, invocationName, parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else {
-      body = <js.Statement>[
-          new js.Return(
-              new js.VariableUse('this')
-                  .dot(namer.getName(member))
-                  .callWith(argumentsBuffer))];
+      body = [js.return_(js['this'][namer.getName(member)](argumentsBuffer))];
     }
 
-    js.Fun function = new js.Fun(parametersBuffer, new js.Block(body));
+    jsAst.Fun function = js.fun(parametersBuffer, body);
 
     defineStub(invocationName, function);
   }
@@ -726,7 +1023,7 @@ $lazyInitializerLogic
         || member.isAccessor()) {
       if (member.isAbstract(compiler)) return;
       JavaScriptBackend backend = compiler.backend;
-      js.Expression code = backend.generatedCode[member];
+      jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
       builder.addProperty(namer.getName(member), code);
       code = backend.generatedBailoutCode[member];
@@ -788,12 +1085,12 @@ $lazyInitializerLogic
         includeSuperMembers: false);
 
     void generateIsTest(Element other) {
-      js.Expression code;
+      jsAst.Expression code;
       if (compiler.objectClass == other) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
-        code = js.fun([], js.block1(js.return_(new js.LiteralBool(true))));
+        code = js.fun([], [js.return_(true)]);
       } else {
-        code = new js.LiteralBool(true);
+        code = new jsAst.LiteralBool(true);
       }
       builder.addProperty(namer.operatorIs(other), code);
     }
@@ -801,21 +1098,20 @@ $lazyInitializerLogic
     void generateSubstitution(Element other, {bool emitNull: false}) {
       RuntimeTypeInformation rti = backend.rti;
       // TODO(karlklose): support typedefs with variables.
-      js.Expression expression;
+      jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
       if (other.kind == ElementKind.CLASS) {
         String substitution = rti.getSupertypeSubstitution(classElement, other,
             alwaysGenerateFunction: true);
         if (substitution != null) {
-          expression = new js.LiteralExpression(substitution);
+          expression = new jsAst.LiteralExpression(substitution);
         } else if (emitNull || needsNativeCheck) {
-          expression = new js.LiteralNull();
+          expression = new jsAst.LiteralNull();
         }
       }
       if (expression != null) {
         if (needsNativeCheck) {
-          expression =
-              new js.Fun([], new js.Block([new js.Return(expression)]));
+          expression = js.fun([], js.return_(expression));
         }
         builder.addProperty(namer.substitutionName(other), expression);
       }
@@ -847,7 +1143,7 @@ $lazyInitializerLogic
           ? js.equals
           : js.strictEquals;
       builder.addProperty(name, js.fun(['receiver', 'a'],
-          js.block1(js.return_(kind(js.use('receiver'), js.use('a'))))));
+          js.block(js.return_(kind(js['receiver'], js['a'])))));
     }
   }
 
@@ -1009,17 +1305,14 @@ $lazyInitializerLogic
                       ClassBuilder builder) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
     builder.addProperty(getterName,
-        js.fun([], js.block1(js.return_(js.use('this').dot(fieldName)))));
+        js.fun([], js.return_(js['this'][fieldName])));
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
     String setterName = namer.setterNameFromAccessorName(accessorName);
     builder.addProperty(setterName,
-        js.fun(['v'],
-            js.block1(
-                new js.ExpressionStatement(
-                    js.assign(js.use('this').dot(fieldName), js.use('v'))))));
+        js.fun(['v'], js['this'][fieldName].assign('v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -1044,19 +1337,14 @@ $lazyInitializerLogic
     SourceString helper = compiler.backend.getCheckedModeHelper(type);
     FunctionElement helperElement = compiler.findHelper(helper);
     String helperName = namer.isolateAccess(helperElement);
-    List<js.Expression> arguments = <js.Expression>[js.use('v')];
+    List<jsAst.Expression> arguments = <jsAst.Expression>[js['v']];
     if (helperElement.computeSignature(compiler).parameterCount != 1) {
       arguments.add(js.string(namer.operatorIs(type.element)));
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
     builder.addProperty(setterName,
-        js.fun(['v'],
-            js.block1(
-                new js.ExpressionStatement(
-                    js.assign(
-                        js.use('this').dot(fieldName),
-                        js.call(js.use(helperName), arguments))))));
+        js.fun(['v'], js['this'][fieldName].assign(js[helperName](arguments))));
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -1188,11 +1476,9 @@ $lazyInitializerLogic
     emitClassGettersSetters(classElement, builder);
     emitInstanceMembers(classElement, builder);
 
-    js.Expression init =
-        js.assign(
-            js.use(classesCollector).dot(className),
-            builder.toObjectInitializer());
-    buffer.add(js.prettyPrint(init, compiler));
+    jsAst.Expression init =
+        js[classesCollector][className].assign(builder.toObjectInitializer());
+    buffer.add(jsAst.prettyPrint(init, compiler));
     buffer.add('$N$n');
   }
 
@@ -1218,29 +1504,23 @@ $lazyInitializerLogic
     // emit all possible sends on intercepted methods.
     for (Selector selector in
          backend.usedInterceptors.toList()..sort(_compareSelectorNames)) {
-      List<js.Parameter> parameters = <js.Parameter>[];
-      List<js.Expression> arguments = <js.Expression>[];
-      parameters.add(new js.Parameter('receiver'));
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+      List<jsAst.Expression> arguments = <jsAst.Expression>[];
+      parameters.add(new jsAst.Parameter('receiver'));
 
       String name = backend.namer.invocationName(selector);
       if (selector.isSetter()) {
-        parameters.add(new js.Parameter('value'));
-        arguments.add(new js.VariableUse('value'));
+        parameters.add(new jsAst.Parameter('value'));
+        arguments.add(js['value']);
       } else {
         for (int i = 0; i < selector.argumentCount; i++) {
           String argName = 'a$i';
-          parameters.add(new js.Parameter(argName));
-          arguments.add(new js.VariableUse(argName));
+          parameters.add(new jsAst.Parameter(argName));
+          arguments.add(js[argName]);
         }
       }
-      js.Fun function =
-          new js.Fun(parameters,
-              new js.Block(
-                  <js.Statement>[
-                      new js.Return(
-                          new js.VariableUse('receiver')
-                              .dot(name)
-                              .callWith(arguments))]));
+      jsAst.Fun function =
+          js.fun(parameters, js.return_(js['receiver'][name](arguments)));
       builder.addProperty(name, function);
     }
   }
@@ -1470,10 +1750,10 @@ $lazyInitializerLogic
 
   void emitStaticFunction(CodeBuffer buffer,
                           String name,
-                          js.Expression functionExpression) {
-    js.Expression assignment =
-        js.assign(js.use(isolateProperties).dot(name), functionExpression);
-    buffer.add(js.prettyPrint(assignment, compiler));
+                          jsAst.Expression functionExpression) {
+    jsAst.Expression assignment =
+        js[isolateProperties][name].assign(functionExpression);
+    buffer.add(jsAst.prettyPrint(assignment, compiler));
     buffer.add('$N$n');
   }
 
@@ -1490,9 +1770,9 @@ $lazyInitializerLogic
             .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      js.Expression code = backend.generatedCode[element];
+      jsAst.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
-      js.Expression bailoutCode = backend.generatedBailoutCode[element];
+      jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
         emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
@@ -1502,7 +1782,7 @@ $lazyInitializerLogic
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
-      js.Expression bailoutCode = backend.generatedBailoutCode[element];
+      jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
     }
   }
@@ -1524,13 +1804,11 @@ $lazyInitializerLogic
       String fieldAccess = '$isolateProperties.$staticName';
       buffer.add("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
 
-      addParameterStubs(callElement, (String name, js.Expression value) {
-        js.Expression assignment =
-            js.assign(
-                js.use(isolateProperties).dot(staticName).dot(name),
-                value);
+      addParameterStubs(callElement, (String name, jsAst.Expression value) {
+        jsAst.Expression assignment =
+            js[isolateProperties][staticName][name].assign(value);
         buffer.add(
-            js.prettyPrint(new js.ExpressionStatement(assignment), compiler));
+            jsAst.prettyPrint(assignment.toStatement(), compiler));
         buffer.add('$N');
       });
 
@@ -1649,37 +1927,32 @@ $lazyInitializerLogic
       String invocationName = namer.instanceMethodName(callElement);
 
       List<String> parameters = <String>[];
-      List<js.Expression> arguments = <js.Expression>[];
+      List<jsAst.Expression> arguments = <jsAst.Expression>[];
       if (inInterceptor) {
-        arguments.add(js.use('this').dot(fieldNames[2]));
+        arguments.add(js['this'][fieldNames[2]]);
       }
       for (int i = 0; i < parameterCount; i++) {
         String name = 'p$i';
         parameters.add(name);
-        arguments.add(js.use(name));
+        arguments.add(js[name]);
       }
 
-      js.Expression fun =
-          js.fun(parameters,
-              js.block1(
-                  js.return_(
-                      new js.PropertyAccess(
-                          js.use('this').dot(fieldNames[0]),
-                          js.use('this').dot(fieldNames[1]))
-                      .callWith(arguments))));
+      jsAst.Expression fun = js.fun(
+          parameters,
+          js.return_(
+              js['this'][fieldNames[0]][js['this'][fieldNames[1]]](arguments)));
       boundClosureBuilder.addProperty(invocationName, fun);
 
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
       typedefChecks.forEach((Element typedef) {
         String operator = namer.operatorIs(typedef);
-        boundClosureBuilder.addProperty(operator, new js.LiteralBool(true));
+        boundClosureBuilder.addProperty(operator, new jsAst.LiteralBool(true));
       });
 
-      js.Expression init =
-          js.assign(
-              js.use(classesCollector).dot(mangledName),
+      jsAst.Expression init =
+          js[classesCollector][mangledName].assign(
               boundClosureBuilder.toObjectInitializer());
-      boundClosureBuffer.add(js.prettyPrint(init, compiler));
+      boundClosureBuffer.add(jsAst.prettyPrint(init, compiler));
       boundClosureBuffer.add("$N");
 
       closureClass = namer.isolateAccess(closureClassElement);
@@ -1695,19 +1968,17 @@ $lazyInitializerLogic
     String targetName = namer.instanceMethodName(member);
 
     List<String> parameters = <String>[];
-    List<js.Expression> arguments = <js.Expression>[];
-    arguments.add(js.use('this'));
+    List<jsAst.Expression> arguments = <jsAst.Expression>[];
+    arguments.add(js['this']);
     arguments.add(js.string(targetName));
     if (inInterceptor) {
       parameters.add(extraArg);
-      arguments.add(js.use(extraArg));
+      arguments.add(js[extraArg]);
     }
 
-    js.Expression getterFunction =
-        js.fun(parameters,
-            js.block1(
-                js.return_(
-                    new js.New(js.use(closureClass), arguments))));
+    jsAst.Expression getterFunction = js.fun(
+        parameters,
+        js.return_(js[closureClass].newWith(arguments)));
 
     defineStub(getterName, getterFunction);
   }
@@ -1730,18 +2001,18 @@ $lazyInitializerLogic
 
     const String receiverArgumentName = r'$receiver';
 
-    js.Expression buildGetter() {
+    jsAst.Expression buildGetter() {
       if (member.isGetter()) {
         String getterName = namer.getterName(member);
-        return new js.VariableUse('this').dot(getterName).callWith(
+        return js['this'][getterName](
             isInterceptorClass
-                ? <js.Expression>[new js.VariableUse(receiverArgumentName)]
-                : <js.Expression>[]);
+                ? <jsAst.Expression>[js[receiverArgumentName]]
+                : <jsAst.Expression>[]);
       } else {
         String fieldName = member.hasFixedBackendName()
             ? member.fixedBackendName()
             : namer.instanceFieldName(member);
-        return new js.VariableUse('this').dot(fieldName);
+        return js['this'][fieldName];
       }
     }
 
@@ -1760,25 +2031,21 @@ $lazyInitializerLogic
         Selector callSelector = new Selector.callClosureFrom(selector);
         String closureCallName = namer.invocationName(callSelector);
 
-        List<js.Parameter> parameters = <js.Parameter>[];
-        List<js.Expression> arguments = <js.Expression>[];
+        List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+        List<jsAst.Expression> arguments = <jsAst.Expression>[];
         if (isInterceptorClass) {
-          parameters.add(new js.Parameter(receiverArgumentName));
+          parameters.add(new jsAst.Parameter(receiverArgumentName));
         }
 
         for (int i = 0; i < selector.argumentCount; i++) {
           String name = 'arg$i';
-          parameters.add(new js.Parameter(name));
-          arguments.add(new js.VariableUse(name));
+          parameters.add(new jsAst.Parameter(name));
+          arguments.add(js[name]);
         }
 
-        js.Fun function =
-            new js.Fun(parameters,
-                new js.Block(
-                    <js.Statement>[
-                        new js.Return(
-                            buildGetter().dot(closureCallName)
-                                .callWith(arguments))]));
+        jsAst.Fun function = js.fun(
+            parameters,
+            js.return_(buildGetter()[closureCallName](arguments)));
 
         defineStub(invocationName, function);
       }
@@ -1792,13 +2059,10 @@ $lazyInitializerLogic
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
-        js.Expression init =
-            new js.Assignment(
-                new js.PropertyAccess.field(
-                    new js.VariableUse(isolateProperties),
-                    namer.getName(element)),
-                constantEmitter.referenceInInitializationContext(initialValue));
-        buffer.add(js.prettyPrint(init, compiler));
+        jsAst.Expression init =
+          js[isolateProperties][namer.getName(element)].assign(
+              constantEmitter.referenceInInitializationContext(initialValue));
+        buffer.add(jsAst.prettyPrint(init, compiler));
         buffer.add('$N');
       });
     }
@@ -1813,31 +2077,31 @@ $lazyInitializerLogic
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         assert(backend.generatedBailoutCode[element] == null);
-        js.Expression code = backend.generatedCode[element];
+        jsAst.Expression code = backend.generatedCode[element];
         assert(code != null);
         // The code only computes the initial value. We build the lazy-check
         // here:
         //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
         // The name is used for error reporting. The 'initial' must be a
         // closure that constructs the initial value.
-        List<js.Expression> arguments = <js.Expression>[];
-        arguments.add(js.use(isolateProperties));
+        List<jsAst.Expression> arguments = <jsAst.Expression>[];
+        arguments.add(js[isolateProperties]);
         arguments.add(js.string(element.name.slowToString()));
         arguments.add(js.string(namer.getName(element)));
         arguments.add(js.string(namer.getLazyInitializerName(element)));
         arguments.add(code);
-        js.Expression getter = buildLazyInitializedGetter(element);
+        jsAst.Expression getter = buildLazyInitializedGetter(element);
         if (getter != null) {
           arguments.add(getter);
         }
-        js.Expression init = js.call(js.use(lazyInitializerName), arguments);
-        buffer.add(js.prettyPrint(init, compiler));
+        jsAst.Expression init = js[lazyInitializerName](arguments);
+        buffer.add(jsAst.prettyPrint(init, compiler));
         buffer.add("$N");
       }
     }
   }
 
-  js.Expression buildLazyInitializedGetter(VariableElement element) {
+  jsAst.Expression buildLazyInitializedGetter(VariableElement element) {
     // Nothing to do, the 'lazy' function will create the getter.
     return null;
   }
@@ -1861,13 +2125,9 @@ $lazyInitializerLogic
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
       }
-      js.Expression init =
-          new js.Assignment(
-              new js.PropertyAccess.field(
-                  new js.VariableUse(isolateProperties),
-                  name),
-              constantInitializerExpression(constant));
-      buffer.add(js.prettyPrint(init, compiler));
+      jsAst.Expression init = js[isolateProperties][name].assign(
+          constantInitializerExpression(constant));
+      buffer.add(jsAst.prettyPrint(init, compiler));
       buffer.add('$N');
     }
   }
@@ -1935,17 +2195,17 @@ $lazyInitializerLogic
       return result;
     }
 
-    js.Expression generateMethod(String jsName, Selector selector) {
+    jsAst.Expression generateMethod(String jsName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
       int type = selector.invocationMirrorKind;
       String methodName = selector.invocationMirrorMemberName;
-      List<js.Parameter> parameters = <js.Parameter>[];
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
       CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
-        parameters.add(new js.Parameter('\$$i'));
+        parameters.add(new jsAst.Parameter('\$$i'));
       }
 
-      List<js.Expression> argNames =
+      List<jsAst.Expression> argNames =
           selector.getOrderedNamedArguments().map((SourceString name) =>
               js.string(name.slowToString())).toList();
 
@@ -1954,26 +2214,15 @@ $lazyInitializerLogic
       String createInvocationMirror = namer.getName(
           compiler.createInvocationMirrorElement);
 
-      js.Expression expression =
-          new js.This()
-          .dot(noSuchMethodName)
-          .callWith(
-              <js.Expression>[
-                  new js.VariableUse(namer.CURRENT_ISOLATE)
-                  .dot(createInvocationMirror)
-                  .callWith(
-                      <js.Expression>[
-                          js.string(methodName),
-                          js.string(internalName),
-                          new js.LiteralNumber('$type'),
-                          new js.ArrayInitializer.from(
-                              parameters.map((param) => js.use(param.name))
-                                        .toList()),
-                          new js.ArrayInitializer.from(argNames)])]);
-      js.Expression function =
-          new js.Fun(parameters,
-              new js.Block(<js.Statement>[new js.Return(expression)]));
-      return function;
+      jsAst.Expression expression = js['this'][noSuchMethodName](
+          js[namer.CURRENT_ISOLATE][createInvocationMirror]([
+              js.string(methodName),
+              js.string(internalName),
+              type,
+              new jsAst.ArrayInitializer.from(
+                  parameters.map((param) => js[param.name]).toList()),
+              new jsAst.ArrayInitializer.from(argNames)]));
+      return js.fun(parameters, js.return_(expression));
     }
 
     void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
@@ -2065,7 +2314,7 @@ $lazyInitializerLogic
         if (holders.every(hasMatchingMember)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         if (!addedJsNames.contains(jsName)) {
-          js.Expression method = generateMethod(jsName, selector);
+          jsAst.Expression method = generateMethod(jsName, selector);
           defineStub(jsName, method);
           addedJsNames.add(jsName);
         }
@@ -2144,36 +2393,34 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
                                 String objectName,
                                 String key,
                                 Collection<ClassElement> classes) {
-    js.Statement buildReturnInterceptor(ClassElement cls) {
-      return js.return_(js.fieldAccess(js.use(namer.isolateAccess(cls)),
-                                       'prototype'));
+    jsAst.Statement buildReturnInterceptor(ClassElement cls) {
+      return js.return_(js[namer.isolateAccess(cls)]['prototype']);
     }
 
-    js.VariableUse receiver = js.use('receiver');
+    jsAst.VariableUse receiver = js['receiver'];
     JavaScriptBackend backend = compiler.backend;
 
     /**
      * Build a JavaScrit AST node for doing a type check on
      * [cls]. [cls] must be an interceptor class.
      */
-    js.Statement buildInterceptorCheck(ClassElement cls) {
-      js.Expression condition;
+    jsAst.Statement buildInterceptorCheck(ClassElement cls) {
+      jsAst.Expression condition;
       assert(backend.isInterceptorClass(cls));
       if (cls == backend.jsBoolClass) {
-        condition = js.equals(js.typeOf(receiver), js.string('boolean'));
+        condition = receiver.typeof.equals(js.string('boolean'));
       } else if (cls == backend.jsIntClass ||
                  cls == backend.jsDoubleClass ||
                  cls == backend.jsNumberClass) {
         throw 'internal error';
       } else if (cls == backend.jsArrayClass) {
-        condition = js.equals(js.fieldAccess(receiver, 'constructor'),
-                              js.use('Array'));
+        condition = receiver['constructor'].equals('Array');
       } else if (cls == backend.jsStringClass) {
-        condition = js.equals(js.typeOf(receiver), js.string('string'));
+        condition = receiver.typeof.equals(js.string('string'));
       } else if (cls == backend.jsNullClass) {
-        condition = js.equals(receiver, new js.LiteralNull());
+        condition = receiver.equals(new jsAst.LiteralNull());
       } else if (cls == backend.jsFunctionClass) {
-        condition = js.equals(js.typeOf(receiver), js.string('function'));
+        condition = receiver.typeof.equals(js.string('function'));
       } else {
         throw 'internal error';
       }
@@ -2205,31 +2452,28 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
     if (hasInt) hasNumber = true;
 
-    js.Block block = new js.Block.empty();
+    jsAst.Block block = new jsAst.Block.empty();
 
     if (hasNumber) {
-      js.Statement whenNumber;
+      jsAst.Statement whenNumber;
 
       /// Note: there are two number classes in play: Dart's [num],
       /// and JavaScript's Number (typeof receiver == 'number').  This
       /// is the fallback used when we have determined that receiver
       /// is a JavaScript Number.
-      js.Return returnNumberClass = buildReturnInterceptor(
+      jsAst.Return returnNumberClass = buildReturnInterceptor(
           hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
 
       if (hasInt) {
-        js.Expression isInt =
-            js.equals(js.call(js.fieldAccess(js.use('Math'), 'floor'),
-                              [receiver]),
-                      receiver);
-        (whenNumber = js.emptyBlock()).statements
-          ..add(js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)))
-          ..add(returnNumberClass);
+        jsAst.Expression isInt = js['Math']['floor'](receiver).equals(receiver);
+        whenNumber = js.block([
+            js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)),
+            returnNumberClass]);
       } else {
         whenNumber = returnNumberClass;
       }
       block.statements.add(
-          js.if_(js.equals(js.typeOf(receiver), js.string('number')),
+          js.if_(receiver.typeof.equals(js.string('number')),
                  whenNumber));
     }
 
@@ -2242,7 +2486,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // Returning "undefined" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
       // [unwrapException] in js_helper.dart.
-      block.statements.add(js.if_(js.equals(receiver, new js.LiteralNull()),
+      block.statements.add(js.if_(receiver.equals(new jsAst.LiteralNull()),
                                   js.return_(js.undefined())));
     }
     if (hasFunction) {
@@ -2256,12 +2500,11 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     if (hasArray) {
       block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
-    block.statements.add(js.return_(js.fieldAccess(js.use(objectName),
-                                                   'prototype')));
+    block.statements.add(js.return_(js[objectName]['prototype']));
 
-    js.PropertyAccess name = js.fieldAccess(js.use(isolateProperties), key);
-    buffer.add(js.prettyPrint(js.assign(name, js.fun(['receiver'], block)),
-                              compiler));
+    buffer.add(jsAst.prettyPrint(
+        js[isolateProperties][key].assign(js.fun(['receiver'], block)),
+        compiler));
     buffer.add(N);
   }
 
@@ -2321,38 +2564,47 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       String getInterceptorName =
           namer.getInterceptorName(backend.getInterceptorMethod, classes);
 
-      List<js.Parameter> parameters = <js.Parameter>[];
-      List<js.Expression> arguments = <js.Expression>[];
-      parameters.add(new js.Parameter('receiver'));
-      arguments.add(js.use('receiver'));
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+      List<jsAst.Expression> arguments = <jsAst.Expression>[];
+      parameters.add(new jsAst.Parameter('receiver'));
+      arguments.add(js['receiver']);
 
       if (selector.isSetter()) {
-        parameters.add(new js.Parameter('value'));
-        arguments.add(js.use('value'));
+        parameters.add(new jsAst.Parameter('value'));
+        arguments.add(js['value']);
       } else {
         for (int i = 0; i < selector.argumentCount; i++) {
           String argName = 'a$i';
-          parameters.add(new js.Parameter(argName));
-          arguments.add(js.use(argName));
+          parameters.add(new jsAst.Parameter(argName));
+          arguments.add(js[argName]);
         }
       }
 
       String invocationName = backend.namer.invocationName(selector);
-      js.Fun function =
-          new js.Fun(parameters,
-              js.block1(js.return_(
-                        js.use(isolateProperties)
-                            .dot(getInterceptorName)
-                            .callWith([js.use('receiver')])
-                            .dot(invocationName)
-                            .callWith(arguments))));
+      jsAst.Fun function = js.fun(parameters, js.return_(
+          js[isolateProperties][getInterceptorName]('receiver')[invocationName](
+              arguments)));
 
-      js.PropertyAccess property =
-          js.fieldAccess(js.use(isolateProperties), oneShotInterceptorName);
+      jsAst.PropertyAccess property =
+          js[isolateProperties][oneShotInterceptorName];
 
-      buffer.add(js.prettyPrint(js.assign(property, function), compiler));
+      buffer.add(jsAst.prettyPrint(property.assign(function), compiler));
       buffer.add(N);
     }
+  }
+
+  void emitInitFunction(CodeBuffer buffer) {
+    jsAst.Fun fun = js.fun([], [
+      // $isolateProperties = {};
+      js[isolateProperties].assign({}),
+    ]
+    ..addAll(buildDefineClassAndFinishClassFunctionsIfNecessary())
+    ..addAll(buildLazyInitializerFunctionIfNecessary())
+    ..addAll(buildFinishIsolateConstructor())
+    );
+    jsAst.FunctionDeclaration decl = new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('init'), fun);
+    buffer.add(jsAst.prettyPrint(decl, compiler).getText());
   }
 
   String assembleProgram() {
@@ -2404,12 +2656,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
 
       nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
-      mainBuffer.add('function init()$_{\n');
-      mainBuffer.add('$isolateProperties$_=$_{}$N');
-      addDefineClassAndFinishClassFunctionsIfNecessary(mainBuffer);
-      addLazyInitializerFunctionIfNecessary(mainBuffer);
-      emitFinishIsolateConstructor(mainBuffer);
-      mainBuffer.add('}\n');
+      emitInitFunction(mainBuffer);
       compiler.assembledCode = mainBuffer.getText();
 
       if (generateSourceMap) {
