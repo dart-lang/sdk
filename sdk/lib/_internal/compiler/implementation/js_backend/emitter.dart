@@ -138,8 +138,6 @@ class CodeEmitterTask extends CompilerTask {
 
   String get name => 'CodeEmitter';
 
-  String get defineClassName
-      => '${namer.isolateName}.\$defineClass';
   String get currentGenerateAccessorName
       => '${namer.CURRENT_ISOLATE}.\$generateAccessor';
   String get generateAccessorHolder
@@ -148,8 +146,6 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.isolateName}.\$finishClasses';
   String get finishIsolateConstructorName
       => '${namer.isolateName}.\$finishIsolateConstructor';
-  String get pendingClassesName
-      => '${namer.isolateName}.\$pendingClasses';
   String get isolatePropertiesName
       => '${namer.isolateName}.${namer.isolatePropertiesName}';
   String get supportsProtoName
@@ -357,9 +353,9 @@ class CodeEmitterTask extends CompilerTask {
       // var $supportsProtoName = false;
       js[supportsProtoName].def(false),
 
-      // var tmp = $defineClassName('c', ['f?'], {}).prototype;
+      // var tmp = defineClass('c', ['f?'], {}).prototype;
       js['tmp'].def(
-          js[defineClassName](
+          js['defineClass'](
               [js.string('c'),
                new jsAst.ArrayInitializer.from([js.string('f?')]),
                {}])['prototype']),
@@ -378,9 +374,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   jsAst.Fun get finishClassesFunction {
-    // 'defineClass' does not require the classes to be constructed in order.
-    // Classes are initially just stored in the 'pendingClasses' field.
-    // 'finishClasses' takes all pending classes and sets up the prototype.
+    // Class descriptions are collected in a JS object.
+    // 'finishClasses' takes all collected descriptions and sets up
+    // the prototype.
     // Once set up, the constructors prototype field satisfy:
     //  - it contains all (local) members.
     //  - its internal prototype (__proto__) points to the superclass'
@@ -393,6 +389,11 @@ class CodeEmitterTask extends CompilerTask {
 
     // function(collectedClasses) {
     return js.fun(['collectedClasses'], [
+      // var isolateProperties = $isolatePropertiesName;
+      js['isolateProperties'].def(isolatePropertiesName),
+
+      // var pendingClasses = {};
+      js['pendingClasses'].def({}),
 
       // var hasOwnProperty = Object.prototype.hasOwnProperty;
       js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
@@ -439,24 +440,15 @@ class CodeEmitterTask extends CompilerTask {
             js['supr'].assign(js['desc']['super'])
           ]),
 
-          // $isolatePropertiesName[cls] = $defineClassName(cls, fields, desc);
-          js[isolatePropertiesName][js['cls']].assign(
-              js[defineClassName](['cls', 'fields', 'desc'])),
+          // isolateProperties[cls] = defineClass(cls, fields, desc);
+          js['isolateProperties'][js['cls']].assign(
+              js['defineClass'](['cls', 'fields', 'desc'])),
 
-          // if (supr) $pendingClassesName[cls] = supr;
+          // if (supr) pendingClasses[cls] = supr;
           js.if_(js['supr'],
-                 js[pendingClassesName][js['cls']].assign(js['supr']))
+                 js['pendingClasses'][js['cls']].assign(js['supr']))
         ])
       ]),
-
-
-      // var pendingClasses = $pendingClassesName;
-      js['pendingClasses'].def(js[pendingClassesName]),
-
-      /* FinishClasses can be called multiple times. This means that we need to
-         clear the pendingClasses property. */
-      // $pendingClassesName = {};
-      js[pendingClassesName].assign({}),
 
       // var finishedClasses = {};
       js['finishedClasses'].def({}),
@@ -497,11 +489,11 @@ class CodeEmitterTask extends CompilerTask {
       // finishClass(superclass);
       js['finishClass']('superclass'),
 
-      // var constructor = $isolatePropertiesName[cls];
-      js['constructor'].def(js[isolatePropertiesName][js['cls']]),
+      // var constructor = isolateProperties[cls];
+      js['constructor'].def(js['isolateProperties'][js['cls']]),
 
-      // var superConstructor = $isolatePropertiesName[superclass];
-      js['superConstructor'].def(js[isolatePropertiesName][js['superclass']]),
+      // var superConstructor = isolateProperties[superclass];
+      js['superConstructor'].def(js['isolateProperties'][js['superclass']]),
 
       // var prototype = constructor.prototype;
       js['prototype'].def(js['constructor']['prototype']),
@@ -724,14 +716,12 @@ class CodeEmitterTask extends CompilerTask {
       // $generateAccessorHolder = generateAccessor;
       js[generateAccessorHolder].assign('generateAccessor'),
 
-      // $defineClassName = $defineClassFunction;
-      js[defineClassName].assign(defineClassFunction)
+      // function defineClass ...
+      new jsAst.FunctionDeclaration(
+          new jsAst.VariableDeclaration('defineClass'), defineClassFunction)
     ]
     ..addAll(buildProtoSupportCheck())
     ..addAll([
-      // $pendingClassesName = {};
-      js[pendingClassesName].assign({}),
-
       js[finishClassesName].assign(finishClassesFunction)
     ]);
   }
