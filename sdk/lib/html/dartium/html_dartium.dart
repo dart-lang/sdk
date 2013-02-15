@@ -12429,12 +12429,19 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
 @DocsEditable
 @DomName('FormData')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
   factory FormData([FormElement form]) => _create(form);
 
   @DocsEditable
   static FormData _create(form) native "DOMFormData_constructorCallback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('DOMFormData.append')
   @DocsEditable
@@ -13533,6 +13540,20 @@ class HttpRequest extends EventTarget {
     return completer.future;
   }
 
+  /**
+   * Checks to see if the Progress event is supported on the current platform.
+   */
+  static bool get supportsProgressEvent {
+    return true;
+  }
+
+  /**
+   * Checks to see if the LoadEnd event is supported on the current platform.
+   */
+  static bool get supportsLoadEndEvent {
+    return true;
+  }
+
   HttpRequest.internal() : super.internal();
 
   @DomName('XMLHttpRequest.abortEvent')
@@ -13641,6 +13662,10 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.response')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Object get response native "XMLHttpRequest_response_Getter";
 
   /**
@@ -13850,6 +13875,10 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.onloadend')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
   /**
@@ -13869,6 +13898,10 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.onprogress')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
   /**

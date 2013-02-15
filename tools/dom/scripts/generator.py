@@ -737,6 +737,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental",
   ],
+  'FormData': _all_but_ie9_annotations,
   'HashChangeEvent': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -844,6 +845,9 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
+  'XMLHttpRequest.onloadend': _all_but_ie9_annotations,
+  'XMLHttpRequest.onprogress': _all_but_ie9_annotations,
+  'XMLHttpRequest.response': _all_but_ie9_annotations,
   'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
   'XSLTProcessor': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",

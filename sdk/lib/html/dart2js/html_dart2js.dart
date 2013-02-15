@@ -11607,6 +11607,10 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 @DocsEditable
 @DomName('FormData')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FormData native "*FormData" {
 
   @DomName('DOMFormData.DOMFormData')
@@ -11619,6 +11623,9 @@ class FormData native "*FormData" {
   }
   static FormData _create_1(form) => JS('FormData', 'new FormData(#)', form);
   static FormData _create_2() => JS('FormData', 'new FormData()');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.FormData)');
 
   @DomName('DOMFormData.append')
   @DocsEditable
@@ -12635,6 +12642,22 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
     return completer.future;
   }
 
+  /**
+   * Checks to see if the Progress event is supported on the current platform.
+   */
+  static bool get supportsProgressEvent {
+    var xhr = new HttpRequest();
+    return JS('bool', '"onprogress" in #', xhr);
+  }
+
+  /**
+   * Checks to see if the LoadEnd event is supported on the current platform.
+   */
+  static bool get supportsLoadEndEvent {
+    var xhr = new HttpRequest();
+    return JS('bool', '"onloadend" in #', xhr);
+  }
+
 
   @DomName('XMLHttpRequest.abortEvent')
   @DocsEditable
@@ -12740,6 +12763,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.response')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
@@ -12929,6 +12956,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.onloadend')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
   /**
@@ -12948,6 +12979,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.onprogress')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
   /**

@@ -356,6 +356,7 @@ js_support_checks = dict({
     'Database': "JS('bool', '!!(window.openDatabase)')",
     'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
+    'FormData': "JS('bool', '!!(window.FormData)')",
     'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
     'HTMLShadowElement': ElemSupportStr('shadow'),
     'MediaStreamEvent': "Event._isTypeSupported('MediaStreamEvent')",
