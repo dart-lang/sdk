@@ -115,11 +115,11 @@ void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
   LocalFree(argv);
 }
 
-int64_t Timer::GetCurrentTimeMilliseconds() {
+int64_t TimerUtils::GetCurrentTimeMilliseconds() {
   return GetCurrentTimeMicros() / 1000;
 }
 
-int64_t Timer::GetCurrentTimeMicros() {
+int64_t TimerUtils::GetCurrentTimeMicros() {
   static const int64_t kTimeEpoc = 116444736000000000LL;
   static const int64_t kTimeScaler = 10;  // 100 ns to us.
 
