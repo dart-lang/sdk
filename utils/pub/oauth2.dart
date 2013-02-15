@@ -118,7 +118,7 @@ Credentials _loadCredentials(SystemCache cache) {
     if (_credentials != null) return _credentials;
 
     var path = _credentialsFile(cache);
-    if (!fileExists(path)) return;
+    if (!fileExists(path)) return null;
 
     var credentials = new Credentials.fromJson(readTextFile(path));
     if (credentials.isExpired && !credentials.canRefresh) {

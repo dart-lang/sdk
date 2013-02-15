@@ -28,8 +28,8 @@ Future<List<String>> run(List<String> args,
         environment: environment);
   }).then((result) {
     if (!result.success) throw new Exception(
-        'Git error. Command: git ${Strings.join(args, " ")}\n'
-        '${Strings.join(result.stderr, "\n")}');
+        'Git error. Command: git ${args.join(" ")}\n'
+        '${result.stderr.join("\n")}');
 
     return result.stdout;
   });

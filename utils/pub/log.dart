@@ -110,7 +110,7 @@ Future ioAsync(String startMessage, Future operation,
 /// Logs the spawning of an [executable] process with [arguments] at [IO]
 /// level.
 void process(String executable, List<String> arguments) {
-  io("Spawning $executable ${Strings.join(arguments, ' ')}");
+  io("Spawning $executable ${arguments.join(' ')}");
 }
 
 /// Logs the results of running [executable].

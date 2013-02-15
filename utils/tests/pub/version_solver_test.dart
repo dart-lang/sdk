@@ -465,11 +465,11 @@ class MockSource extends Source {
       : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name, String description) {
-    return fakeAsync(() => _packages[description].keys.toList());
+    return defer(() => _packages[description].keys.toList());
   }
 
   Future<Pubspec> describe(PackageId id) {
-    return fakeAsync(() {
+    return defer(() {
       return _packages[id.name][id.version].pubspec;
     });
   }
@@ -524,15 +524,6 @@ class MockVersionlessSource extends Source {
   void addPackage(Package package) {
     _packages[package.name] = package;
   }
-}
-
-Future fakeAsync(callback()) {
-  var completer = new Completer();
-  Timer.run(() {
-    completer.complete(callback());
-  });
-
-  return completer.future;
 }
 
 Pair<String, Source> parseSource(String name) {

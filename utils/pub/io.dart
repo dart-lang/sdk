@@ -187,7 +187,7 @@ Future<List<String>> listDir(dir,
       // aren't guaranteed to be called in a certain order. So far, they seem to.
       if (done) {
         log.fine("Listed directory ${dir.path}:\n"
-                  "${Strings.join(contents, '\n')}");
+                  "${contents.join('\n')}");
         completer.complete(contents);
       }
     };
@@ -681,7 +681,7 @@ Future _doProcess(Function fn, String executable, List<String> args, workingDir,
 Future timeout(Future input, int milliseconds, String description) {
   bool completed = false;
   var completer = new Completer();
-  var timer = new Timer(new Duration(milliseconds: milliseconds), () {
+  var timer = new Timer(new Duration(milliseconds: milliseconds), (_) {
     completed = true;
     completer.completeError(new TimeoutException(
         'Timed out while $description.'));
@@ -770,8 +770,8 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
     }).then((result) {
       if (result.exitCode != 0) {
         throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
-            '${Strings.join(result.stdout, "\n")}\n'
-            '${Strings.join(result.stderr, "\n")}';
+            '${result.stdout.join("\n")}\n'
+            '${result.stderr.join("\n")}';
       }
       // Find the tar file we just created since we don't know its name.
       return listDir(tempDir);
@@ -791,8 +791,8 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
     }).then((result) {
       if (result.exitCode != 0) {
         throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
-            '${Strings.join(result.stdout, "\n")}\n'
-            '${Strings.join(result.stderr, "\n")}';
+            '${result.stdout.join("\n")}\n'
+            '${result.stderr.join("\n")}';
       }
       return true;
     });

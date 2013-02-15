@@ -158,7 +158,8 @@ Future defer(callback()) {
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(new Duration(milliseconds: milliseconds), completer.complete);
+  new Timer(new Duration(milliseconds: milliseconds),
+      (_) => completer.complete());
   return completer.future;
 }
 
@@ -326,10 +327,10 @@ String mapToQuery(Map<String, String> map) {
     value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
     pairs.add([key, value]);
   });
-  return Strings.join(pairs.map((pair) {
+  return pairs.map((pair) {
     if (pair[1] == null) return pair[0];
     return "${pair[0]}=${pair[1]}";
-  }), "&");
+  }).join("&");
 }
 
 /// Add all key/value pairs from [source] to [destination], overwriting any

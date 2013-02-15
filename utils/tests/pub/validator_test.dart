@@ -133,9 +133,9 @@ main() {
     });
 
     integration('has "authors" instead of "author"', () {
-      var package = package("test_pkg", "1.0.0");
-      package["authors"] = [package.remove("author")];
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["authors"] = [pkg.remove("author")];
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
       expectNoValidationError(pubspecField);
     });
 
@@ -206,67 +206,67 @@ main() {
     setUp(scheduleNormalPackage);
 
     integration('is missing the "homepage" field', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("homepage");
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("homepage");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationError(pubspecField);
     });
 
     integration('is missing the "description" field', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("description");
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("description");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationError(pubspecField);
     });
 
     integration('is missing the "author" field', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("author");
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("author");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationError(pubspecField);
     });
 
     integration('has a single author without an email', () {
-      var package = package("test_pkg", "1.0.0");
-      package["author"] = "Nathan Weizenbaum";
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["author"] = "Nathan Weizenbaum";
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has one of several authors without an email', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("author");
-      package["authors"] = [
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("author");
+      pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
         "Nathan Weizenbaum",
         "John Messerly <jmesserly@google.com>"
       ];
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has a single author without a name', () {
-      var package = package("test_pkg", "1.0.0");
-      package["author"] = "<nweiz@google.com>";
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["author"] = "<nweiz@google.com>";
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has one of several authors without a name', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("author");
-      package["authors"] = [
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("author");
+      pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
         "<nweiz@google.com>",
         "John Messerly <jmesserly@google.com>"
       ];
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });

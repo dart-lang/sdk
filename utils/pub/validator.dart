@@ -75,7 +75,7 @@ abstract class Validator {
       if (!errors.isEmpty) {
         log.error("Missing requirements:");
         for (var error in errors) {
-          log.error("* ${Strings.join(error.split('\n'), '\n  ')}");
+          log.error("* ${error.split('\n').join('\n  ')}");
         }
         log.error("");
       }
@@ -83,7 +83,7 @@ abstract class Validator {
       if (!warnings.isEmpty) {
         log.warning("Suggestions:");
         for (var warning in warnings) {
-          log.warning("* ${Strings.join(warning.split('\n'), '\n  ')}");
+          log.warning("* ${warning.split('\n').join('\n  ')}");
         }
         log.warning("");
       }

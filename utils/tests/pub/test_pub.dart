@@ -580,7 +580,7 @@ void schedulePub({List args, Pattern output, Pattern error,
           failures.addAll(result.stderr.map((line) => '| $line'));
         }
 
-        throw new ExpectException(Strings.join(failures, '\n'));
+        throw new ExpectException(failures.join('\n'));
       }
 
       return null;
@@ -743,7 +743,7 @@ void _validateOutput(List<String> failures, String pipe, Pattern expected,
 
 void _validateOutputRegex(List<String> failures, String pipe,
                           RegExp expected, List<String> actual) {
-  var actualText = Strings.join(actual, '\n');
+  var actualText = actual.join('\n');
   if (actualText.contains(expected)) return;
 
   if (actual.length == 0) {
@@ -952,8 +952,7 @@ class FileDescriptor extends Descriptor {
   /// Loads the contents of the file.
   ByteStream load(List<String> path) {
     if (!path.isEmpty) {
-      var joinedPath = Strings.join(path, '/');
-      throw "Can't load $joinedPath from within $name: not a directory.";
+      throw "Can't load ${path.join('/')} from within $name: not a directory.";
     }
 
     return new ByteStream.fromBytes(contents);
@@ -1019,7 +1018,7 @@ class DirectoryDescriptor extends Descriptor {
       }
     }
 
-    throw "Directory $name doesn't contain ${Strings.join(path, '/')}.";
+    throw "Directory $name doesn't contain ${path.join('/')}.";
   }
 }
 
@@ -1103,7 +1102,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     });
   }
 
-  Future<String> _runGit(List<String> args, Directory workingDir) {
+  Future<List<String>> _runGit(List<String> args, Directory workingDir) {
     // Explicitly specify the committer information. Git needs this to commit
     // and we don't want to rely on the buildbots having this already set up.
     var environment = {
@@ -1151,8 +1150,7 @@ class TarFileDescriptor extends Descriptor {
   /// Loads the contents of this tar file.
   ByteStream load(List<String> path) {
     if (!path.isEmpty) {
-      var joinedPath = Strings.join(path, '/');
-      throw "Can't load $joinedPath from within $name: not a directory.";
+      throw "Can't load ${path.join('/')} from within $name: not a directory.";
     }
 
     var controller = new StreamController<List<int>>();
@@ -1186,8 +1184,8 @@ class NothingDescriptor extends Descriptor {
     if (path.isEmpty) {
       throw "Can't load the contents of $name: it doesn't exist.";
     } else {
-      throw "Can't load ${Strings.join(path, '/')} from within $name: $name "
-        "doesn't exist.";
+      throw "Can't load ${path.join('/')} from within $name: $name doesn't "
+        "exist.";
     }
   }
 }
