@@ -97,23 +97,27 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
     return new MappedIterable(this, f);
   }
 
-  Iterable<E> take(int n) {
-    return new SubListIterable(this, 0, n);
+  List mappedBy(f(E element)) {
+    return new MappedList(this, f);
   }
 
-  Iterable<E> skip(int n) {
-    return new SubListIterable(this, n, null);
+  List<E> take(int n) {
+    return new ListView(this, 0, n);
   }
 
-  Iterable<E> get reversed => new ReversedListIterable(this);
+  List<E> skip(int n) {
+    return new ListView(this, n, null);
+  }
 
   String toString() => ToString.collectionToString(this);
+
+  List<E> get reversed {
+    return new ReversedListView(this, 0, null);
+  }
 }
 
 /**
  * Abstract class implementing the non-length changing operations of [List].
- *
- * All modifications are performed using [[]=].
  */
 abstract class FixedLengthListBase<E> extends ListBase<E> {
   void operator[]=(int index, E value);
@@ -282,22 +286,264 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
   }
 }
 
+/**
+ * Iterates over a [List] in growing index order.
+ */
+class ListIterator<E> implements Iterator<E> {
+  final List<E> _list;
+  final int _length;
+  int _position;
+  E _current;
+
+  ListIterator(List<E> list)
+      : _list = list, _position = -1, _length = list.length;
+
+  bool moveNext() {
+    if (_list.length != _length) {
+      throw new ConcurrentModificationError(_list);
+    }
+    int nextPosition = _position + 1;
+    if (nextPosition < _length) {
+      _position = nextPosition;
+      _current = _list[nextPosition];
+      return true;
+    }
+    _current = null;
+    return false;
+  }
+
+  E get current => _current;
+}
+
+class MappedList<S, T> extends UnmodifiableListBase<T> {
+  final List<S> _list;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  final /* _Transformation<S, T> */ _f;
+
+  MappedList(this._list, T this._f(S element));
+
+  T operator[](int index) => _f(_list[index]);
+  int get length => _list.length;
+}
+
 /** An empty fixed-length list. */
 class EmptyList<E> extends FixedLengthListBase<E> {
   int get length => 0;
   E operator[](int index) { throw new RangeError.value(index); }
   void operator []=(int index, E value) { throw new RangeError.value(index); }
-  Iterable<E> skip(int count) => const EmptyIterable();
-  Iterable<E> take(int count) => const EmptyIterable();
-  Iterable<E> get reversed => const EmptyIterable();
+  List<E> skip(int count) => this;
+  List<E> take(int count) => this;
+  List<E> get reversed => this;
   void sort([int compare(E a, E b)]) {}
 }
 
-class ReversedListIterable<E> extends ListIterable<E> {
-  Iterable<E> _source;
-  ReversedListIterable(this._source);
+/**
+ * A fixed-length view of a sub-range of another [List].
+ *
+ * The range is described by start and end points relative
+ * to the other List's start or end.
+ *
+ * The range changes dynamically as the underlying list changes
+ * its length.
+ */
+abstract class SubListView<E> extends UnmodifiableListBase<E> {
+  final List<E> _list;
+  final int _start;
+  final int _end;
 
-  int get length => _source.length;
+  /**
+   * Create a sub-list view.
+   *
+   * Both [_start] and [_end] can be given as positions
+   * relative to the start of [_list] (a non-negative integer)
+   * or relative to the end of [_list] (a negative integer or
+   * null, with null being at the end of the list).
+   */
+  SubListView(this._list, this._start, this._end);
 
-  E elementAt(int index) => _source.elementAt(_source.length - 1 - index);
+  int _absoluteIndex(int relativeIndex) {
+    if (relativeIndex == null) return _list.length;
+    if (relativeIndex < 0) {
+      int result = _list.length + relativeIndex;
+      if (result < 0) return 0;
+      return result;
+    }
+    if (relativeIndex > _list.length) {
+      return _list.length;
+    }
+    return relativeIndex;
+  }
+
+  int get length {
+    int result = _absoluteIndex(_end) - _absoluteIndex(_start);
+    if (result >= 0) return result;
+    return 0;
+  }
+
+  _createListView(int start, int end) {
+    if (start == null) return new EmptyList<E>();
+    if (end != null) {
+      if (start < 0) {
+        if (end <= start) return new EmptyList<E>();
+      } else {
+        if (end >= 0 && end <= start) return new EmptyList<E>();
+      }
+    }
+    return new ListView(_list, start, end);
+  }
+
+  _createReversedListView(int start, int end) {
+    if (start == null) return new EmptyList<E>();
+    if (end != null) {
+      if (start < 0) {
+        if (end <= start) return new EmptyList<E>();
+      } else {
+        if (end >= 0 && end <= start) return new EmptyList<E>();
+      }
+    }
+    return new ReversedListView(_list, start, end);
+  }
+}
+
+
+/**
+ * A fixed-length view of a sub-range of a [List].
+ */
+class ListView<E> extends SubListView<E> {
+
+  ListView(List<E> list, int start, int end) : super(list, start, end);
+
+  E operator[](int index) {
+    int start = _absoluteIndex(_start);
+    int end = _absoluteIndex(_end);
+    int length = end - start;
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    return _list[start + index];
+  }
+
+  List<E> skip(int count) {
+    if (count is! int || count < 0) {
+      throw new ArgumentError(count);
+    }
+    if (_start == null) {
+      return new EmptyList<E>();
+    }
+    int newStart = _start + count;
+    if (_start < 0 && newStart >= 0) {
+      return new EmptyList<E>();
+    }
+    return _createListView(newStart, _end);
+  }
+
+  List<E> take(int count) {
+    if (count is! int || count < 0) {
+      throw new ArgumentError(count);
+    }
+    if (_start == null) {
+      return new EmptyList<E>();
+    }
+    int newEnd = _start + count;
+    if (_start < 0 && newEnd >= 0) {
+      newEnd = null;
+    }
+    return _createListView(_start, newEnd);
+  }
+
+  List<E> get reversed => new ReversedListView(_list, _start, _end);
+}
+
+/**
+ * Reversed view of a [List], or a slice of a list.
+ *
+ * The view is fixed-length and becomes invalid if the underlying
+ * list changes its length below the slice used by this reversed list.
+ *
+ * Start index and end index can be either positive, negative or null.
+ * Positive means an index relative to the start of the list,
+ * negative means an index relative to the end of the list, and null
+ * means at the end of the list (since there is no -0 integer).
+ */
+class ReversedListView<E> extends SubListView<E> {
+
+  ReversedListView(List<E> list, int start, int end)
+      : super(list, start, end);
+
+  E operator[](int index) {
+    int start = _absoluteIndex(_start);
+    int end = _absoluteIndex(_end);
+    int length = end - start;
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    return _list[end - index - 1];
+  }
+
+  List<E> skip(int count) {
+    if (count is! int || count < 0) {
+      throw new ArgumentError(count);
+    }
+    if (_end == null) {
+      return _createReversedListView(_start, -count);
+    }
+    int newEnd = _end - count;
+    if (_end >= 0 && newEnd < 0) {
+      return new EmptyList<E>();
+    }
+    return _createReversedListView(_start, newEnd);
+  }
+
+  List<E> take(int count) {
+    if (count is! int || count < 0) {
+      throw new ArgumentError(count);
+    }
+    int newStart;
+    if (_end == null) {
+      newStart = -count;
+    } else {
+      newStart = _end - count;
+      if (_end >= 0 && newStart < 0) {
+        return new EmptyList<E>();
+      }
+    }
+    return _createReversedListView(newStart, _end);
+  }
+
+  Iterator<E> get iterator => new ReverseListIterator<E>(
+      _list, _absoluteIndex(_start), _absoluteIndex(_end));
+
+  List<E> get reversed {
+    return new ListView(_list, _start, _end);
+  }
+}
+
+/**
+ * An [Iterator] over a slice of a list that access elements in reverse order.
+ */
+class ReverseListIterator<E> implements Iterator<E> {
+  final List<E> _list;
+  final int _start;
+  final int _originalLength;
+  int _index;
+  E _current;
+
+  ReverseListIterator(List<E> list, int start, int end)
+      : _list = list,
+        _start = start,
+        _index = end,
+        _originalLength = list.length;
+
+  bool moveNext() {
+    if (_list.length != _originalLength) {
+      throw new ConcurrentModificationError(_list);
+    }
+    if (_index <= _start) return false;
+    _index -= 1;
+    _current = _list[_index];
+    return true;
+  }
+
+  E get current => _current;
 }

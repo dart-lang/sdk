@@ -145,6 +145,10 @@ $endif
     return IterableMixinWorkaround.mapList(this, f);
   }
 
+  List mappedBy(f(Node element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
+
   Iterable<Node> where(bool f(Node element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -196,7 +200,7 @@ $endif
     return this[index];
   }
 
-  Iterable<Node> get reversed {
+  List<Node> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

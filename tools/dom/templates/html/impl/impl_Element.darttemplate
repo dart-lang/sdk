@@ -65,6 +65,10 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
+  List mappedBy(f(Element element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
+
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -145,7 +149,7 @@ class _ChildrenElementList implements List {
     }
   }
 
-  Iterable<Element> get reversed {
+  List<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -286,6 +290,10 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
+  List mappedBy(f(Element element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
+
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -375,7 +383,7 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Iterable<Element> get reversed {
+  List<Element> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

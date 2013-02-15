@@ -191,7 +191,7 @@ main() {
     stream.where((_) => true).listen((_) {});
   });
 
-  test('map', () {
+  test('mappedBy', () {
     stream.map((_) => null).listen((_) {});
   });
 

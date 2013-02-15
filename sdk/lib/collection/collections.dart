@@ -318,7 +318,12 @@ class IterableMixinWorkaround {
   }
 
   static Iterable mapList(List list, f(var element)) {
-    return new MappedListIterable(list, f);
+    return new MappedListIterable(list, f, 0, null);
+  }
+
+  static List mappedByList(List list, f(var element)) {
+    // This is currently a List as well as an Iterable.
+    return new MappedList(list, f);
   }
 
   static Iterable expand(Iterable iterable, Iterable f(var element)) {
@@ -328,7 +333,7 @@ class IterableMixinWorkaround {
   static Iterable takeList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
     // This is currently a List as well as an Iterable.
-    return new SubListIterable(list, 0, n);
+    return new ListView(list, 0, n);
   }
 
   static Iterable takeWhile(Iterable iterable, bool test(var value)) {
@@ -339,7 +344,7 @@ class IterableMixinWorkaround {
   static Iterable skipList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
     // This is currently a List as well as an Iterable.
-    return new SubListIterable(list, n, null);
+    return new ListView(list, n, null);
   }
 
   static Iterable skipWhile(Iterable iterable, bool test(var value)) {
@@ -347,8 +352,8 @@ class IterableMixinWorkaround {
     return new SkipWhileIterable(iterable, test);
   }
 
-  static Iterable reversedList(List l) {
-    return new ReversedListIterable(l);
+  static List reversedList(List l) {
+    return new ReversedListView(l, 0, null);
   }
 
   static void sortList(List l, int compare(a, b)) {
@@ -466,6 +471,11 @@ class Collections {
   @deprecated
   static Iterable where(Iterable iterable, bool f(var element))
       => IterableMixinWorkaround.where(iterable, f);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  @deprecated
+  static List mappedByList(List list, f(var element))
+      => IterableMixinWorkaround.mappedByList(list, f);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
   @deprecated

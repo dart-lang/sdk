@@ -4,6 +4,7 @@
 
 part of dart._collection.dev;
 
+
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
  *
@@ -14,7 +15,7 @@ abstract class ListIterable<E> extends Iterable<E> {
   int get length;
   E elementAt(int i);
 
-  Iterator<E> get iterator => new ListIterator<E>(this);
+  Iterator<E> get iterator => new ListIterableIterator<E>(this);
 
   void forEach(void action(E element)) {
     int length = this.length;
@@ -92,7 +93,7 @@ abstract class ListIterable<E> extends Iterable<E> {
 
   E lastMatching(bool test(E element), { E orElse() }) {
     int length = this.length;
-    for (int i = length - 1; i >= 0; i--) {
+    for (int i = length - 1; i >= 0; i++) {
       E element = elementAt(i);
       if (test(element)) return element;
       if (length != this.length) {
@@ -197,11 +198,13 @@ abstract class ListIterable<E> extends Iterable<E> {
 
   Iterable map(f(E element)) => new MappedIterable(this, f);
 
+  Iterable mappedBy(f(E element)) => super.mappedBy(f);
+
   reduce(var initialValue, combine(var previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
-      value = combine(value, elementAt(i));
+      value = reduce(value, elementAt(i));
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
       }
@@ -234,7 +237,7 @@ abstract class ListIterable<E> extends Iterable<E> {
   }
 }
 
-class SubListIterable<E> extends ListIterable<E> {
+abstract class SubListIterable<E> extends ListIterable<E> {
   final Iterable<E> _iterable;
   final int _start;
   /** If null, represents the length of the iterable. */
@@ -281,27 +284,19 @@ class SubListIterable<E> extends ListIterable<E> {
     if (_endOrLength == null) {
       return new SubListIterable(_iterable, _start, _start + count);
     } else {
-      int newEnd = _start + count;
+      newEnd = _start + count;
       if (_endOrLength < newEnd) return this;
       return new SubListIterable(_iterable, _start, newEnd);
     }
   }
 }
 
-/**
- * An [Iterator] that iterates a list-like [Iterable].
- *
- * All iterations is done in terms of [Iterable.length] and
- * [Iterable.elementAt]. These operations are fast for list-like
- * iterables.
- */
-class ListIterator<E> implements Iterator<E> {
+class ListIterableIterator<E> implements Iterator<E> {
   final Iterable<E> _iterable;
   final int _length;
   int _index;
   E _current;
-
-  ListIterator(Iterable<E> iterable)
+  ListIterableIterator(Iterable<E> iterable)
       : _iterable = iterable, _length = iterable.length, _index = 0;
 
   E get current => _current;
@@ -335,13 +330,8 @@ class MappedIterable<S, T> extends Iterable<T> {
   // Length related functions are independent of the mapping.
   int get length => _iterable.length;
   bool get isEmpty => _iterable.isEmpty;
-
-  // Index based lookup can be done before transforming.
-  T get first => _f(_iterable.first);
-  T get last => _f(_iterable.last);
-  T get single => _f(_iterable.single);
-  T elementAt(int index) => _f(_iterable.elementAt(index));
 }
+
 
 class MappedIterator<S, T> extends Iterator<T> {
   T _current;
@@ -356,25 +346,343 @@ class MappedIterator<S, T> extends Iterator<T> {
     if (_iterator.moveNext()) {
       _current = _f(_iterator.current);
       return true;
+    } else {
+      _current = null;
+      return false;
     }
-    _current = null;
-    return false;
   }
 
   T get current => _current;
 }
 
 /** Specialized alternative to [MappedIterable] for mapped [List]s. */
-class MappedListIterable<S, T> extends ListIterable<T> {
-  final Iterable<S> _source;
+class MappedListIterable<S, T> extends Iterable<T> {
+  final List<S> _list;
+  /**
+   * Start index of the part of the list to map.
+   *
+   * Allows mapping only a sub-list of an existing list.
+   *
+   * Used to implement lazy skip/take on a [MappedListIterable].
+   */
+  final int _start;
+
+  /**
+   * End index of the part of the list to map.
+   *
+   * If null, always use the length of the list.
+   */
+  final int _end;
+
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
   final /* _Transformation<S, T> */ _f;
 
-  MappedListIterable(this._source, T this._f(S value));
+  MappedListIterable(this._list, T this._f(S element), this._start, this._end) {
+    if (_end != null && _end < _start) {
+      throw new ArgumentError("End ($_end) before start ($_start)");
+    }
+  }
 
-  int get length => _source.length;
-  T elementAt(int index) => _f(_source.elementAt(index));
+  /** The start index, limited to the current length of the list. */
+  int get _startIndex {
+    if (_start <= _list.length) return _start;
+    return _list.length;
+  }
+
+  /** The end index, if given, limited to the current length of the list. */
+  int get _endIndex {
+    if (_end == null || _end > _list.length) return _list.length;
+    return _end;
+  }
+
+  Iterator<T> get iterator =>
+      new MappedListIterator<S, T>(_list, _f, _startIndex, _endIndex);
+
+  void forEach(void action(T element)) {
+    int length = _list.length;
+    for (int i = _startIndex, n = _endIndex; i < n; i++) {
+      action(_f(_list[i]));
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+  }
+
+  bool get isEmpty => _startIndex == _endIndex;
+
+  int get length => _endIndex - _startIndex;
+
+  T get first {
+    int start = _startIndex;
+    if (start == _endIndex) {
+      throw new StateError("No elements");
+    }
+    return _f(_list.elementAt(start));
+  }
+
+  T get last {
+    int end = _endIndex;
+    if (end == _startIndex) {
+      throw new StateError("No elements");
+    }
+    return _f(_list.elementAt(end - 1));
+  }
+
+  T get single {
+    int start = _startIndex;
+    int end = _endIndex;
+    if (start != end - 1) {
+      if (start == end) {
+        throw new StateError("No elements");
+      }
+      throw new StateError("Too many elements");
+    }
+    return _f(_list[start]);
+  }
+
+  T elementAt(int index) {
+    index += _startIndex;
+    if (index >= _endIndex) {
+      throw new StateError("No matching element");
+    }
+    return _f(_list.elementAt(index));
+  }
+
+  bool contains(T element) {
+    int length = _list.length;
+    for (int i = _startIndex, n = _endIndex; i < n; i++) {
+      if (_f(_list[i]) == element) {
+        return true;
+      }
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    return false;
+  }
+
+  bool every(bool test(T element)) {
+    int length = _list.length;
+    for (int i = _startIndex, n = _endIndex; i < n; i++) {
+      if (!test(_f(_list[i]))) return false;
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    return true;
+  }
+
+  bool any(bool test(T element)) {
+    int length = _list.length;
+    for (int i = _startIndex, n = _endIndex; i < n; i++) {
+      if (test(_f(_list[i]))) return true;
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    return false;
+  }
+
+  T firstMatching(bool test(T element), { T orElse() }) {
+    int length = _list.length;
+    for (int i = _startIndex, n = _endIndex; i < n; i++) {
+      T value = _f(_list[i]);
+      if (test(value)) return value;
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  T lastMatching(bool test(T element), { T orElse() }) {
+    int length = _list.length;
+    for (int i = _endIndex - 1, start = _startIndex; i >= start; i++) {
+      T value = _f(_list[i]);
+      if (test(value)) return value;
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
+  }
+
+  T singleMatching(bool test(T element)) {
+    int length = _list.length;
+    T match;
+    bool matchFound = false;
+    for (int i = _startIndex, n = _endIndex; i < n; i++) {
+      T value = _f(_list[i]);
+      if (test(value)) {
+        if (matchFound) {
+          throw new StateError("More than one matching element");
+        }
+        matchFound = true;
+        match = value;
+      }
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    if (matchFound) return match;
+    throw new StateError("No matching element");
+  }
+
+  T min([int compare(T a, T b)]) {
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
+    int length = _list.length;
+    int start = _startIndex;
+    int end = _endIndex;
+    if (start == end) return null;
+    T value = _f(_list[start]);
+    if (_list.length != length) {
+      throw new ConcurrentModificationError(_list);
+    }
+    for (int i = start + 1; i < end; i++) {
+      T nextValue = _f(_list[i]);
+      if (compare(value, nextValue) > 0) {
+        value = nextValue;
+      }
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    return value;
+  }
+
+  T max([int compare(T a, T b)]) {
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
+    int length = _list.length;
+    int start = _startIndex;
+    int end = _endIndex;
+    if (start == end) return null;
+    T value = _f(_list[start]);
+    if (_list.length != length) {
+      throw new ConcurrentModificationError(_list);
+    }
+    for (int i = start + 1; i < end; i++) {
+      T nextValue = _f(_list[i]);
+      if (compare(value, nextValue) < 0) {
+        value = nextValue;
+      }
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    return value;
+  }
+
+  String join([String separator]) {
+    int start = _startIndex;
+    int end = _endIndex;
+    if (start == end) return "";
+    StringBuffer buffer = new StringBuffer("${_f(_list[start])}");
+    if (_list.length != length) {
+      throw new ConcurrentModificationError(_list);
+    }
+    for (int i = start + 1; i < end; i++) {
+      if (separator != null && separator != "") {
+        buffer.add(separator);
+      }
+      buffer.add("${_f(_list[i])}");
+      if (_list.length != length) {
+        throw new ConcurrentModificationError(_list);
+      }
+    }
+    return buffer.toString();
+  }
+
+  Iterable<T> where(bool test(T element)) => super.where(test);
+
+  Iterable map(f(T element)) {
+    return new MappedListIterable(_list, (S v) => f(_f(v)), _start, _end);
+  }
+
+  Iterable mappedBy(f(T element)) => map(f);
+
+  reduce(var initialValue, combine(var previousValue, T element)) {
+    return _list.reduce(initialValue, (v, S e) => combine(v, _f(e)));
+  }
+
+  Iterable<T> skip(int count) {
+    int start = _startIndex + count;
+    if (_end != null && start >= _end) {
+      return new EmptyIterable<T>();
+    }
+    return new MappedListIterable(_list, _f, start, _end);
+  }
+
+  Iterable<T> skipWhile(bool test(T element)) => super.skipWhile(test);
+
+  Iterable<T> take(int count)  {
+    int newEnd = _start + count;
+    if (_end == null || newEnd < _end)  {
+      return new MappedListIterable(_list, _f, _start, newEnd);
+    }
+    // Equivalent to "this".
+    return new MappedListIterable(_list, _f, _start, _end);
+  }
+
+  Iterable<T> takeWhile(bool test(T element)) => super.takeWhile(test);
+
+  List<T> toList() {
+    List<T> result = new List<T>();
+    forEach(result.add);
+    return result;
+  }
+
+  Set<T> toSet() {
+    Set<T> result = new Set<T>();
+    forEach(result.add);
+    return result;
+  }
+}
+
+/**
+ * Iterator for [MappedListIterable].
+ *
+ * A list iterator that iterates over (a sublist of) a list and
+ * returns the values transformed by a function.
+ *
+ * As a list iterator, it throws if the length of the list has
+ * changed during iteration.
+ */
+class MappedListIterator<S, T> implements Iterator<T> {
+  List<S> _list;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  final /* _Transformation<S, T> */ _f;
+  final int _endIndex;
+  final int _length;
+  int _index;
+  T _current;
+
+  MappedListIterator(List<S> list, this._f, int start, this._endIndex)
+      : _list = list, _length = list.length, _index = start;
+
+  T get current => _current;
+
+  bool moveNext() {
+    if (_list.length != _length) {
+      throw new ConcurrentModificationError(_list);
+    }
+    if (_index >= _endIndex) {
+      _current = null;
+      return false;
+    }
+    _current = _f(_list[_index]);
+    _index++;
+    return true;
+  }
 }
 
 typedef bool _ElementPredicate<E>(E element);
@@ -660,6 +968,8 @@ class EmptyIterable<E> extends Iterable<E> {
   Iterable<E> where(bool test(E element)) => this;
 
   Iterable map(f(E element)) => const EmptyIterable();
+
+  Iterable mappedBy(f(E element)) => const EmptyIterable();
 
   reduce(var initialValue, combine(var previousValue, E element)) {
     return initialValue;

@@ -13,12 +13,16 @@ main() {
   Set set2 = new Set();
 
   Iterable<int> take0 = list1.take(0);
+  Expect.isTrue(take0 is List);
+  Expect.isTrue(take0.take(2).take(1) is List);
   Iterator<int> it = take0.iterator;
   Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
 
   Iterable<int> take1 = list1.take(1);
+  Expect.isTrue(take1 is List);
+  Expect.isTrue(take1.take(2).take(1) is List);
   it = take1.iterator;
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -28,6 +32,8 @@ main() {
 
   Iterable<int> take2 = list1.take(2);
   it = take2.iterator;
+  Expect.isTrue(take2 is List);
+  Expect.isTrue(take2.take(2).take(1) is List);
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(1, it.current);
@@ -37,6 +43,8 @@ main() {
   Expect.isNull(it.current);
 
   Iterable<int> take3 = list1.take(3);
+  Expect.isTrue(take3 is List);
+  Expect.isTrue(take3.take(2).take(1) is List);
   it = take3.iterator;
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -49,6 +57,8 @@ main() {
   Expect.isNull(it.current);
 
   Iterable<int> take4 = list1.take(4);
+  Expect.isTrue(take4 is List);
+  Expect.isTrue(take4.take(2).take(1) is List);
   it = take4.iterator;
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -105,12 +115,16 @@ main() {
   Expect.isNull(it.current);
 
   take0 = list2.take(0);
+  Expect.isTrue(take0 is List);
+  Expect.isTrue(take0.take(2).take(1) is List);
   it = take0.iterator;
   Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
 
   take1 = list2.take(1);
+  Expect.isTrue(take1 is List);
+  Expect.isTrue(take1.take(2).take(1) is List);
   it = take1.iterator;
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -119,6 +133,8 @@ main() {
   Expect.isNull(it.current);
 
   take2 = list2.take(2);
+  Expect.isTrue(take2 is List);
+  Expect.isTrue(take2.take(2).take(1) is List);
   it = take2.iterator;
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -129,6 +145,8 @@ main() {
   Expect.isNull(it.current);
 
   take3 = list2.take(3);
+  Expect.isTrue(take3 is List);
+  Expect.isTrue(take3.take(2).take(1) is List);
   it = take3.iterator;
   Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -139,12 +157,16 @@ main() {
   Expect.isNull(it.current);
 
   Iterable<String> take02 = list3.take(0);
+  Expect.isTrue(take02 is List);
+  Expect.isTrue(take02.take(2).take(1) is List);
   Iterator<String> it2 = take02.iterator;
   Expect.isNull(it2.current);
   Expect.isFalse(it2.moveNext());
   Expect.isNull(it2.current);
 
   Iterable<String> take12 = list3.take(1);
+  Expect.isTrue(take12 is List);
+  Expect.isTrue(take12.take(2).take(1) is List);
   it2 = take12.iterator;
   Expect.isNull(it2.current);
   Expect.isFalse(it2.moveNext());

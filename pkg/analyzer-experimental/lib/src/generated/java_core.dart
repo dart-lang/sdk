@@ -303,7 +303,7 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
     return elements.removeLast();
   }
 
-  Iterable<E> get reversed => elements.reversed;
+  List<E> get reversed => elements.reversed;
 
   List<E> getRange(int start, int length) {
     return elements.getRange(start, length);
