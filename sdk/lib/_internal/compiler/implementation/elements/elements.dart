@@ -553,6 +553,13 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   void addTag(LibraryTag tag, DiagnosticListener listener);
   void addImport(Element element, DiagnosticListener listener);
 
+  /// Record which element an import or export tag resolved to.
+  /// (Belongs on builder object).
+  void recordResolvedTag(LibraryDependency tag, LibraryElement library);
+
+  /// Return the library element corresponding to an import or export.
+  LibraryElement getLibraryFromTag(LibraryDependency tag);
+
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
 

@@ -98,6 +98,23 @@ dynamic compileAndCheck(String code,
   return check(compiler, element);
 }
 
+compileSources(Map<String, String> sources,
+               check(MockCompiler compiler)) {
+  Uri base = new Uri.fromComponents(scheme: 'source');
+  Uri mainUri = base.resolve('main.dart');
+  String mainCode = sources['main.dart'];
+  Expect.isNotNull(mainCode, 'No source code found for "main.dart"');
+  MockCompiler compiler = compilerFor(mainCode, mainUri);
+
+  sources.forEach((String path, String code) {
+    if (path == 'main.dart') return;
+    compiler.registerSource(base.resolve(path), code);
+  });
+
+  compiler.runCompiler(mainUri);
+  return check(compiler);
+}
+
 lego.Element findElement(compiler, String name) {
   var element = compiler.mainApp.find(buildSourceString(name));
   Expect.isNotNull(element, 'Could not locate $name.');
