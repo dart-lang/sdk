@@ -7898,9 +7898,6 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   Iterable map(f(DomMimeType element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(DomMimeType element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -8168,9 +8165,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   Iterable map(f(DomPlugin element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(DomPlugin element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -8558,9 +8552,6 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   Iterable map(f(String element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(String element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -8842,10 +8833,6 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  List mappedBy(f(Element element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
-  }
-
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -9065,10 +9052,6 @@ class _FrozenElementList implements List {
 
   Iterable map(f(Element element)) {
     return IterableMixinWorkaround.mapList(this, f);
-  }
-
-  List mappedBy(f(Element element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
   Iterable<Element> where(bool f(Element element)) {
@@ -11396,9 +11379,6 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   Iterable map(f(File element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(File element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<File> where(bool f(File element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -12010,9 +11990,6 @@ class Float32Array extends ArrayBufferView implements List<num> {
   Iterable map(f(num element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(num element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -12247,9 +12224,6 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   Iterable map(f(num element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(num element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12846,9 +12820,6 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   Iterable map(f(Node element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -13057,9 +13028,6 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   Iterable map(f(Node element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15419,9 +15387,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -15657,9 +15622,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -15894,9 +15856,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -18680,10 +18639,6 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  List mappedBy(f(Node element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
-  }
-
   Iterable<Node> where(bool f(Node element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -19071,9 +19026,6 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   Iterable map(f(Node element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -21697,9 +21649,6 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   Iterable map(f(SourceBuffer element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(SourceBuffer element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -22017,9 +21966,6 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   Iterable map(f(SpeechGrammar element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22675,9 +22621,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   Iterable map(f(Map element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Map element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Map> where(bool f(Map element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -23998,9 +23941,6 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   Iterable map(f(TextTrackCue element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(TextTrackCue element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -24209,9 +24149,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   Iterable map(f(TextTrack element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(TextTrack element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<TextTrack> where(bool f(TextTrack element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24628,9 +24565,6 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   Iterable map(f(Touch element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Touch element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Touch> where(bool f(Touch element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25123,9 +25057,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -25360,9 +25291,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25599,9 +25527,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -25834,9 +25759,6 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   Iterable map(f(int element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29513,9 +29435,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   Iterable map(f(ClientRect element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(ClientRect element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<ClientRect> where(bool f(ClientRect element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -29717,9 +29636,6 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   Iterable map(f(CssRule element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(CssRule element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<CssRule> where(bool f(CssRule element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -29920,9 +29836,6 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   Iterable map(f(CssValue element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(CssValue element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<CssValue> where(bool f(CssValue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30268,9 +30181,6 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   Iterable map(f(Entry element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Entry element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Entry> where(bool f(Entry element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -30472,9 +30382,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   Iterable map(f(EntrySync element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(EntrySync element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<EntrySync> where(bool f(EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -30675,9 +30582,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   Iterable map(f(Gamepad element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Gamepad element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Gamepad> where(bool f(Gamepad element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30971,9 +30875,6 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   Iterable map(f(MediaStream element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(MediaStream element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<MediaStream> where(bool f(MediaStream element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -31174,9 +31075,6 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   Iterable map(f(Node element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31403,9 +31301,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   Iterable map(f(SpeechInputResult element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -31607,9 +31502,6 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   Iterable map(f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -31810,9 +31702,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   Iterable map(f(StyleSheet element)) =>
       IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(StyleSheet element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -32387,8 +32276,6 @@ abstract class CssClassSet implements Set<String> {
   String join([String separator]) => readClasses().join(separator);
 
   Iterable map(f(String element)) => readClasses().map(f);
-
-  Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 

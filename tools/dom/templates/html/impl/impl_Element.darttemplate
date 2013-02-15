@@ -65,10 +65,6 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  List mappedBy(f(Element element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
-  }
-
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -288,10 +284,6 @@ class _FrozenElementList implements List {
 
   Iterable map(f(Element element)) {
     return IterableMixinWorkaround.mapList(this, f);
-  }
-
-  List mappedBy(f(Element element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
   Iterable<Element> where(bool f(Element element)) {

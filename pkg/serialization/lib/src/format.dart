@@ -216,7 +216,7 @@ class SimpleJsonFormat extends Format {
     } else {
       throw new SerializationException("Invalid data format");
     }
-    // Do not use mappedBy or other lazy operations for this. They do not play
+    // Do not use map or other lazy operations for this. They do not play
     // well with a function that destructively modifies its arguments.
     var newData = mapValues(data, (each) => recursivelyFixUp(each, r, result));
     result[ruleNumber].add(newData);

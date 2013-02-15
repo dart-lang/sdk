@@ -97,10 +97,6 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
     return new MappedIterable(this, f);
   }
 
-  List mappedBy(f(E element)) {
-    return new MappedList(this, f);
-  }
-
   Iterable<E> take(int n) {
     return new SubListIterable(this, 0, n);
   }
@@ -286,16 +282,6 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
   }
 }
 
-class MappedList<S, T> extends UnmodifiableListBase<T> {
-  final List<S> _list;
-  // TODO(ahe): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733
-  final /* _Transformation<S, T> */ _f;
-
-  MappedList(this._list, T this._f(S element));
-
-  T operator[](int index) => _f(_list[index]);
-  int get length => _list.length;
 }
 
 /** An empty fixed-length list. */
