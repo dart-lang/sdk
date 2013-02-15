@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dromaeo;
+import 'dart:async';
 import 'dart:html';
 import 'dart:json' as json;
 import '../../../samples/third_party/dromaeo/common/common.dart';
