@@ -620,16 +620,21 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   switch (breakpoint_kind_) {
     case PcDescriptors::kIcCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
-          CodePatcher::GetInstanceCallAt(pc_, NULL, NULL);
-      CodePatcher::PatchInstanceCallAt(pc_,
+          CodePatcher::GetInstanceCallAt(pc_, code, NULL, NULL);
+      CodePatcher::PatchInstanceCallAt(pc_, code,
                                        StubCode::BreakpointDynamicEntryPoint());
       break;
     }
     case PcDescriptors::kFuncCall: {
-      saved_bytes_.target_address_ = CodePatcher::GetStaticCallTargetAt(pc_);
-      CodePatcher::PatchStaticCallAt(pc_,
-          StubCode::BreakpointStaticEntryPoint());
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      saved_bytes_.target_address_ =
+          CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::BreakpointStaticEntryPoint());
       break;
     }
     case PcDescriptors::kReturn:
@@ -645,12 +650,20 @@ void CodeBreakpoint::PatchCode() {
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
   switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall:
-      CodePatcher::PatchInstanceCallAt(pc_, saved_bytes_.target_address_);
+    case PcDescriptors::kIcCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      CodePatcher::PatchInstanceCallAt(pc_, code,
+                                       saved_bytes_.target_address_);
       break;
-    case PcDescriptors::kFuncCall:
-      CodePatcher::PatchStaticCallAt(pc_, saved_bytes_.target_address_);
+    }
+    case PcDescriptors::kFuncCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     saved_bytes_.target_address_);
       break;
+    }
     case PcDescriptors::kReturn:
       RestoreFunctionReturn();
       break;
@@ -1483,18 +1496,20 @@ void Debugger::SignalBpReached() {
       func_to_instrument = bpt->function();
       ICData& ic_data = ICData::Handle();
       Array& descriptor = Array::Handle();
-      CodePatcher::GetInstanceCallAt(bpt->pc_, &ic_data, &descriptor);
+      const Code& code =
+          Code::Handle(Function::Handle(bpt->function_).unoptimized_code());
+      CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data, &descriptor);
       ArgumentsDescriptor arg_descriptor(descriptor);
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
       intptr_t num_args = arg_descriptor.Count();
       Instance& receiver =
           Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
-      Code& code =
+      Code& target_code =
           Code::Handle(ResolveCompileInstanceCallTarget(receiver,
                                                         ic_data,
                                                         descriptor));
-      if (!code.IsNull()) {
-        Function& callee = Function::Handle(code.function());
+      if (!target_code.IsNull()) {
+        Function& callee = Function::Handle(target_code.function());
         if (IsDebuggable(callee)) {
           func_to_instrument = callee.raw();
         }

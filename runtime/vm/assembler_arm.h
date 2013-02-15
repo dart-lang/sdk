@@ -264,7 +264,7 @@ class Assembler : public ValueObject {
  public:
   Assembler()
       : buffer_(),
-        object_pool_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+        object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
         comments_() { }
   ~Assembler() { }
@@ -280,13 +280,10 @@ class Assembler : public ValueObject {
     ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const {
-    return object_pool_;
-  }
+  const GrowableObjectArray& object_pool() const { return object_pool_; }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
-    ASSERT(object_pool_.Length() == 0);  // TODO(regis): Otherwise, more work.
   }
 
   // Debugging and bringup support.
@@ -459,14 +456,20 @@ class Assembler : public ValueObject {
   void blx(Register rm, Condition cond = AL);
 
   // Macros.
-  // Branch to an entry address that can be patched at runtime.
+  // Branch to an entry address. Call sequence is never patched.
   void Branch(const ExternalLabel* label);
+
+  // Branch and link to an entry address. Call sequence is never patched.
   void BranchLink(const ExternalLabel* label);
 
-  // Branch to entry after setting LR and storing LR at ad.
+  // Branch and link to an entry address. Call sequence can be patched.
+  void BranchLinkPatchable(const ExternalLabel* label);
+
+  // Branch and link to entry after storing return address at ad.
+  // Call sequence is never patched.
   void BranchLinkStore(const ExternalLabel* label, Address ad);
 
-  // Branch to [base + offset] after setting LR.
+  // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int offset);
 
   // Add signed constant value to rd. May clobber IP.
@@ -533,7 +536,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  const GrowableObjectArray& object_pool_;  // Objects and jump targets.
+  GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   int32_t prologue_offset_;
 
   int32_t AddObject(const Object& obj);

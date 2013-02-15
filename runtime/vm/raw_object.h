@@ -791,7 +791,14 @@ class RawCode : public RawObject {
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->code_);
+  }
   RawCode* code_;
+  RawArray* object_pool_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
+  }
   intptr_t size_;
 
   // Variable length data follows here.

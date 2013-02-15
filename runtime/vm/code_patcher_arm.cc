@@ -7,20 +7,30 @@
 
 #include "vm/code_patcher.h"
 
+#include "vm/object.h"
+
 namespace dart {
 
-uword CodePatcher::GetStaticCallTargetAt(uword return_address) {
+uword CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                         const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   UNIMPLEMENTED();
   return 0;
 }
 
 
-void CodePatcher::PatchStaticCallAt(uword return_address, uword new_target) {
+void CodePatcher::PatchStaticCallAt(uword return_address,
+                                    const Code& code,
+                                    uword new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   UNIMPLEMENTED();
 }
 
 
-void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
+void CodePatcher::PatchInstanceCallAt(uword return_address,
+                                      const Code& code,
+                                      uword new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   UNIMPLEMENTED();
 }
 
@@ -30,15 +40,11 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
 }
 
 
-bool CodePatcher::IsDartCall(uword return_address) {
-  UNIMPLEMENTED();
-  return false;
-}
-
-
 uword CodePatcher::GetInstanceCallAt(uword return_address,
+                                     const Code& code,
                                      ICData* ic_data,
                                      Array* arguments_descriptor) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   UNIMPLEMENTED();
   return 0;
 }

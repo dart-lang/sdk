@@ -94,9 +94,9 @@ void TestStaticCallPatching(Dart_NativeArguments args) {
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
   StackFrame* static_caller_frame = iterator.NextFrame();
-  uword target_address =
-      CodePatcher::GetStaticCallTargetAt(static_caller_frame->pc());
   const Code& code = Code::Handle(static_caller_frame->LookupDartCode());
+  uword target_address =
+      CodePatcher::GetStaticCallTargetAt(static_caller_frame->pc(), code);
   const Function& target_function =
       Function::Handle(code.GetStaticCallTargetFunctionAt(
           static_caller_frame->pc()));

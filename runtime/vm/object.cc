@@ -7648,9 +7648,12 @@ RawCode* Code::FinalizeCode(const char* name,
       region.Store<RawObject*>(offset_in_instrs, object->raw());
     }
 
-    // Hook up Code and Instruction objects.
+    // Hook up Code and Instructions objects.
     instrs.set_code(code.raw());
     code.set_instructions(instrs.raw());
+
+    // Set object pool in Instructions object.
+    instrs.set_object_pool(Array::MakeArray(assembler->object_pool()));
   }
   return code.raw();
 }
@@ -7708,7 +7711,7 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
     if ((descriptors.DeoptId(i) == deopt_id) &&
         (descriptors.DescriptorKind(i) == kind)) {
       uword pc = descriptors.PC(i);
-      ASSERT((EntryPoint() <= pc) && (pc < (EntryPoint() + Size())));
+      ASSERT(ContainsInstructionAt(pc));
       return pc;
     }
   }
@@ -7777,7 +7780,8 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
         max_id = deopt_id;
       }
       node_ids->Add(deopt_id);
-      CodePatcher::GetInstanceCallAt(descriptors.PC(i), &ic_data_obj, NULL);
+      CodePatcher::GetInstanceCallAt(descriptors.PC(i), *this,
+                                     &ic_data_obj, NULL);
       ic_data_objs.Add(ic_data_obj);
     }
   }
@@ -7813,7 +7817,7 @@ void Code::ExtractUncalledStaticCallDeoptIds(
     if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
       // Static call.
       const uword target_addr =
-          CodePatcher::GetStaticCallTargetAt(descriptors.PC(i));
+          CodePatcher::GetStaticCallTargetAt(descriptors.PC(i), *this);
       if (target_addr == StubCode::CallStaticFunctionEntryPoint()) {
         deopt_ids->Add(descriptors.DeoptId(i));
       }
@@ -11890,6 +11894,9 @@ RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
 
 
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
+  if (growable_array.IsNull()) {
+    return Array::null();
+  }
   intptr_t used_len = growable_array.Length();
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();

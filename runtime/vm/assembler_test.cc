@@ -14,11 +14,11 @@ namespace dart {
 
 ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
-ASSEMBLER_TEST_RUN(StoreIntoObject, entry) {
+ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   typedef void (*StoreData)(RawContext* ctx,
                             RawObject* value,
                             RawObject* growable_array);
-  StoreData test_code = reinterpret_cast<StoreData>(entry);
+  StoreData test_code = reinterpret_cast<StoreData>(test->entry());
 
   const Array& old_array = Array::Handle(Array::New(3, Heap::kOld));
   const Array& new_array = Array::Handle(Array::New(3, Heap::kNew));

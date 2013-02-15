@@ -134,24 +134,24 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 }
 
 
-uword AssemblerTest::Assemble() {
+void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   const Class& cls = Class::ZoneHandle(
        Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, cls, 0));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, assembler_));
+  code_ = Code::FinalizeCode(function, assembler_);
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =
-        Instructions::Handle(code.instructions());
+        Instructions::Handle(code_.instructions());
     uword start = instructions.EntryPoint();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }
-  const Instructions& instructions = Instructions::Handle(code.instructions());
-  return instructions.EntryPoint();
+  const Instructions& instructions = Instructions::Handle(code_.instructions());
+  entry_ = instructions.EntryPoint();
 }
 
 

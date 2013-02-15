@@ -15,12 +15,13 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(&StubCode::InstanceFunctionLookupLabel());
+  __ Stop("Test should not be executed");
 }
 
 
-ASSEMBLER_TEST_RUN(Call, entry) {
-  CallPattern call(entry);
+ASSEMBLER_TEST_RUN(Call, test) {
+  CallPattern call(test->entry(), test->code());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             call.TargetAddress());
 }
@@ -31,11 +32,11 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Jump, entry) {
-  JumpPattern jump1(entry);
+ASSEMBLER_TEST_RUN(Jump, test) {
+  JumpPattern jump1(test->entry());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump1.TargetAddress());
-  JumpPattern jump2(entry + jump1.pattern_length_in_bytes());
+  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes());
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();

@@ -269,7 +269,7 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
       // If the deoptimization happened at an IC call, update the IC data
       // to avoid repeated deoptimization at the same site next time around.
       ICData& ic_data = ICData::Handle();
-      CodePatcher::GetInstanceCallAt(pc, &ic_data, NULL);
+      CodePatcher::GetInstanceCallAt(pc, code, &ic_data, NULL);
       if (!ic_data.IsNull()) {
         ic_data.set_deopt_reason(deopt_context->deopt_reason());
       }

@@ -115,7 +115,11 @@ class CPUFeatures : public AllStatic {
 
 class Assembler : public ValueObject {
  public:
-  Assembler() { UNIMPLEMENTED(); }
+  Assembler()
+      : buffer_(),
+        object_pool_(GrowableObjectArray::Handle()),
+        prologue_offset_(-1),
+        comments_() { }
   ~Assembler() { }
 
   void PopRegister(Register r) {
@@ -138,6 +142,10 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
     UNIMPLEMENTED();
     return *pointer_offsets_;
+  }
+  const GrowableObjectArray& object_pool() const {
+    UNIMPLEMENTED();
+    return object_pool_;
   }
   void FinalizeInstructions(const MemoryRegion& region) {
     UNIMPLEMENTED();
@@ -169,6 +177,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;
+  GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   ZoneGrowableArray<int>* pointer_offsets_;
   int prologue_offset_;
 

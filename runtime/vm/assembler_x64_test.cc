@@ -23,9 +23,9 @@ ASSEMBLER_TEST_GENERATE(ReadArgument, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(ReadArgument, entry) {
+ASSEMBLER_TEST_RUN(ReadArgument, test) {
   typedef int64_t (*ReadArgumentCode)(int64_t n);
-  ReadArgumentCode id = reinterpret_cast<ReadArgumentCode>(entry);
+  ReadArgumentCode id = reinterpret_cast<ReadArgumentCode>(test->entry());
   EXPECT_EQ(42, id(42));
   EXPECT_EQ(87, id(87));
   static const int64_t kLargeConstant = 0x1234567812345678LL;
@@ -203,7 +203,7 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(AddressingModes, entry) {
+ASSEMBLER_TEST_RUN(AddressingModes, test) {
   // Avoid running the code since it is constructed to lead to crashes.
 }
 
@@ -229,11 +229,11 @@ ASSEMBLER_TEST_GENERATE(JumpAroundCrash, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(JumpAroundCrash, entry) {
-  Instr* instr = Instr::At(entry);
+ASSEMBLER_TEST_RUN(JumpAroundCrash, test) {
+  Instr* instr = Instr::At(test->entry());
   EXPECT(!instr->IsBreakPoint());
   typedef void (*JumpAroundCrashCode)();
-  reinterpret_cast<JumpAroundCrashCode>(entry)();
+  reinterpret_cast<JumpAroundCrashCode>(test->entry())();
 }
 
 
@@ -250,9 +250,9 @@ ASSEMBLER_TEST_GENERATE(SimpleLoop, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SimpleLoop, entry) {
+ASSEMBLER_TEST_RUN(SimpleLoop, test) {
   typedef int (*SimpleLoopCode)();
-  EXPECT_EQ(2 * 87, reinterpret_cast<SimpleLoopCode>(entry)());
+  EXPECT_EQ(2 * 87, reinterpret_cast<SimpleLoopCode>(test->entry())());
 }
 
 
@@ -269,9 +269,9 @@ ASSEMBLER_TEST_GENERATE(Increment, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Increment, entry) {
+ASSEMBLER_TEST_RUN(Increment, test) {
   typedef int (*IncrementCode)();
-  EXPECT_EQ(3, reinterpret_cast<IncrementCode>(entry)());
+  EXPECT_EQ(3, reinterpret_cast<IncrementCode>(test->entry())());
 }
 
 
@@ -287,9 +287,9 @@ ASSEMBLER_TEST_GENERATE(IncrementLong, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(IncrementLong, entry) {
+ASSEMBLER_TEST_RUN(IncrementLong, test) {
   typedef int64_t (*IncrementCodeLong)();
-  EXPECT_EQ(0x100000001, reinterpret_cast<IncrementCodeLong>(entry)());
+  EXPECT_EQ(0x100000001, reinterpret_cast<IncrementCodeLong>(test->entry())());
 }
 
 
@@ -306,9 +306,9 @@ ASSEMBLER_TEST_GENERATE(Decrement, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Decrement, entry) {
+ASSEMBLER_TEST_RUN(Decrement, test) {
   typedef int (*DecrementCode)();
-  EXPECT_EQ(0, reinterpret_cast<DecrementCode>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<DecrementCode>(test->entry())());
 }
 
 
@@ -324,9 +324,9 @@ ASSEMBLER_TEST_GENERATE(DecrementLong, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DecrementLong, entry) {
+ASSEMBLER_TEST_RUN(DecrementLong, test) {
   typedef int64_t (*DecrementCodeLong)();
-  EXPECT_EQ(0xffffffff, reinterpret_cast<DecrementCodeLong>(entry)());
+  EXPECT_EQ(0xffffffff, reinterpret_cast<DecrementCodeLong>(test->entry())());
 }
 
 
@@ -339,9 +339,9 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedMultiply, entry) {
+ASSEMBLER_TEST_RUN(SignedMultiply, test) {
   typedef int (*SignedMultiply)();
-  EXPECT_EQ(8000, reinterpret_cast<SignedMultiply>(entry)());
+  EXPECT_EQ(8000, reinterpret_cast<SignedMultiply>(test->entry())());
 }
 
 
@@ -371,9 +371,9 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedMultiply64, entry) {
+ASSEMBLER_TEST_RUN(SignedMultiply64, test) {
   typedef int64_t (*SignedMultiply64)();
-  EXPECT_EQ(32, reinterpret_cast<SignedMultiply64>(entry)());
+  EXPECT_EQ(32, reinterpret_cast<SignedMultiply64>(test->entry())());
 }
 
 
@@ -396,10 +396,10 @@ ASSEMBLER_TEST_GENERATE(SignedMultiplyLong, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedMultiplyLong, entry) {
+ASSEMBLER_TEST_RUN(SignedMultiplyLong, test) {
   typedef int64_t (*SignedMultiplyLong)();
   EXPECT_EQ(kProductLargeConstants,
-            reinterpret_cast<SignedMultiplyLong>(entry)());
+            reinterpret_cast<SignedMultiplyLong>(test->entry())());
 }
 
 
@@ -413,9 +413,9 @@ ASSEMBLER_TEST_GENERATE(OverflowSignedMultiply, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(OverflowSignedMultiply, entry) {
+ASSEMBLER_TEST_RUN(OverflowSignedMultiply, test) {
   typedef int (*OverflowSignedMultiply)();
-  EXPECT_EQ(0, reinterpret_cast<OverflowSignedMultiply>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<OverflowSignedMultiply>(test->entry())());
 }
 
 
@@ -429,9 +429,9 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply1, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedMultiply1, entry) {
+ASSEMBLER_TEST_RUN(SignedMultiply1, test) {
   typedef int (*SignedMultiply1)();
-  EXPECT_EQ(8000, reinterpret_cast<SignedMultiply1>(entry)());
+  EXPECT_EQ(8000, reinterpret_cast<SignedMultiply1>(test->entry())());
 }
 
 
@@ -445,9 +445,9 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply2, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedMultiply2, entry) {
+ASSEMBLER_TEST_RUN(SignedMultiply2, test) {
   typedef int (*SignedMultiply2)();
-  EXPECT_EQ(2000, reinterpret_cast<SignedMultiply2>(entry)());
+  EXPECT_EQ(2000, reinterpret_cast<SignedMultiply2>(test->entry())());
 }
 
 
@@ -461,9 +461,9 @@ ASSEMBLER_TEST_GENERATE(SignedDivide, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedDivide, entry) {
+ASSEMBLER_TEST_RUN(SignedDivide, test) {
   typedef int32_t (*SignedDivide)();
-  EXPECT_EQ(-87 / 42, reinterpret_cast<SignedDivide>(entry)());
+  EXPECT_EQ(-87 / 42, reinterpret_cast<SignedDivide>(test->entry())());
 }
 
 
@@ -477,9 +477,10 @@ ASSEMBLER_TEST_GENERATE(SignedDivideLong, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SignedDivideLong, entry) {
+ASSEMBLER_TEST_RUN(SignedDivideLong, test) {
   typedef int64_t (*SignedDivideLong)();
-  EXPECT_EQ(kLargeConstant / 42, reinterpret_cast<SignedDivideLong>(entry)());
+  EXPECT_EQ(kLargeConstant / 42,
+            reinterpret_cast<SignedDivideLong>(test->entry())());
 }
 
 
@@ -491,9 +492,9 @@ ASSEMBLER_TEST_GENERATE(Negate, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Negate, entry) {
+ASSEMBLER_TEST_RUN(Negate, test) {
   typedef int (*Negate)();
-  EXPECT_EQ(-42, reinterpret_cast<Negate>(entry)());
+  EXPECT_EQ(-42, reinterpret_cast<Negate>(test->entry())());
 }
 
 
@@ -508,9 +509,9 @@ ASSEMBLER_TEST_GENERATE(MoveExtend, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(MoveExtend, entry) {
+ASSEMBLER_TEST_RUN(MoveExtend, test) {
   typedef int (*MoveExtend)();
-  EXPECT_EQ(0xff - 1 + 0xffff, reinterpret_cast<MoveExtend>(entry)());
+  EXPECT_EQ(0xff - 1 + 0xffff, reinterpret_cast<MoveExtend>(test->entry())());
 }
 
 
@@ -529,9 +530,10 @@ ASSEMBLER_TEST_GENERATE(MoveExtendMemory, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(MoveExtendMemory, entry) {
+ASSEMBLER_TEST_RUN(MoveExtendMemory, test) {
   typedef int (*MoveExtendMemory)();
-  EXPECT_EQ(0xff - 1 + 0xffff, reinterpret_cast<MoveExtendMemory>(entry)());
+  EXPECT_EQ(0xff - 1 + 0xffff,
+            reinterpret_cast<MoveExtendMemory>(test->entry())());
 }
 
 
@@ -547,9 +549,9 @@ ASSEMBLER_TEST_GENERATE(MoveWord, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(MoveWord, entry) {
+ASSEMBLER_TEST_RUN(MoveWord, test) {
   typedef int (*MoveWord)();
-  EXPECT_EQ(0xffff, reinterpret_cast<MoveWord>(entry)());
+  EXPECT_EQ(0xffff, reinterpret_cast<MoveWord>(test->entry())());
 }
 
 
@@ -566,9 +568,9 @@ ASSEMBLER_TEST_GENERATE(MoveWordRex, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(MoveWordRex, entry) {
+ASSEMBLER_TEST_RUN(MoveWordRex, test) {
   typedef int (*MoveWordRex)();
-  EXPECT_EQ(0xffff, reinterpret_cast<MoveWordRex>(entry)());
+  EXPECT_EQ(0xffff, reinterpret_cast<MoveWordRex>(test->entry())());
 }
 
 
@@ -587,9 +589,9 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Bitwise, entry) {
+ASSEMBLER_TEST_RUN(Bitwise, test) {
   typedef int (*Bitwise)();
-  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise>(entry)());
+  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise>(test->entry())());
 }
 
 
@@ -631,9 +633,9 @@ ASSEMBLER_TEST_GENERATE(Bitwise64, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Bitwise64, entry) {
+ASSEMBLER_TEST_RUN(Bitwise64, test) {
   typedef int (*Bitwise64)();
-  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise64>(entry)());
+  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise64>(test->entry())());
 }
 
 
@@ -833,9 +835,9 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(LogicalOps, entry) {
+ASSEMBLER_TEST_RUN(LogicalOps, test) {
   typedef int (*LogicalOpsCode)();
-  EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(test->entry())());
 }
 
 
@@ -1023,9 +1025,9 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(LogicalOps64, entry) {
+ASSEMBLER_TEST_RUN(LogicalOps64, test) {
   typedef int (*LogicalOpsCode)();
-  EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(test->entry())());
 }
 
 
@@ -1073,9 +1075,9 @@ ASSEMBLER_TEST_GENERATE(LogicalTestL, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(LogicalTestL, entry) {
+ASSEMBLER_TEST_RUN(LogicalTestL, test) {
   typedef int (*LogicalTestCode)();
-  EXPECT_EQ(0, reinterpret_cast<LogicalTestCode>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<LogicalTestCode>(test->entry())());
 }
 
 
@@ -1141,9 +1143,9 @@ ASSEMBLER_TEST_GENERATE(LogicalTestQ, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(LogicalTestQ, entry) {
+ASSEMBLER_TEST_RUN(LogicalTestQ, test) {
   typedef int (*LogicalTestCode)();
-  EXPECT_EQ(0, reinterpret_cast<LogicalTestCode>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<LogicalTestCode>(test->entry())());
 }
 
 
@@ -1159,9 +1161,9 @@ ASSEMBLER_TEST_GENERATE(CompareSwapEQ, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(CompareSwapEQ, entry) {
+ASSEMBLER_TEST_RUN(CompareSwapEQ, test) {
   typedef int (*CompareSwapEQCode)();
-  EXPECT_EQ(0, reinterpret_cast<CompareSwapEQCode>(entry)());
+  EXPECT_EQ(0, reinterpret_cast<CompareSwapEQCode>(test->entry())());
 }
 
 
@@ -1177,9 +1179,9 @@ ASSEMBLER_TEST_GENERATE(CompareSwapNEQ, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(CompareSwapNEQ, entry) {
+ASSEMBLER_TEST_RUN(CompareSwapNEQ, test) {
   typedef int (*CompareSwapNEQCode)();
-  EXPECT_EQ(4, reinterpret_cast<CompareSwapNEQCode>(entry)());
+  EXPECT_EQ(4, reinterpret_cast<CompareSwapNEQCode>(test->entry())());
 }
 
 
@@ -1192,10 +1194,10 @@ ASSEMBLER_TEST_GENERATE(Exchange, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Exchange, entry) {
+ASSEMBLER_TEST_RUN(Exchange, test) {
   typedef int64_t (*Exchange)();
   EXPECT_EQ(kAnotherLargeConstant - kLargeConstant,
-            reinterpret_cast<Exchange>(entry)());
+            reinterpret_cast<Exchange>(test->entry())());
 }
 
 
@@ -1205,9 +1207,10 @@ ASSEMBLER_TEST_GENERATE(LargeConstant, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(LargeConstant, entry) {
+ASSEMBLER_TEST_RUN(LargeConstant, test) {
   typedef int64_t (*LargeConstantCode)();
-  EXPECT_EQ(kLargeConstant, reinterpret_cast<LargeConstantCode>(entry)());
+  EXPECT_EQ(kLargeConstant,
+            reinterpret_cast<LargeConstantCode>(test->entry())());
 }
 
 
@@ -1246,9 +1249,9 @@ ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(CallSimpleLeaf, entry) {
+ASSEMBLER_TEST_RUN(CallSimpleLeaf, test) {
   typedef int (*CallSimpleLeafCode)();
-  EXPECT_EQ(42 + 87, reinterpret_cast<CallSimpleLeafCode>(entry)());
+  EXPECT_EQ(42 + 87, reinterpret_cast<CallSimpleLeafCode>(test->entry())());
 }
 
 
@@ -1265,9 +1268,9 @@ ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(JumpSimpleLeaf, entry) {
+ASSEMBLER_TEST_RUN(JumpSimpleLeaf, test) {
   typedef int (*JumpSimpleLeafCode)();
-  EXPECT_EQ(42, reinterpret_cast<JumpSimpleLeafCode>(entry)());
+  EXPECT_EQ(42, reinterpret_cast<JumpSimpleLeafCode>(test->entry())());
 }
 
 
@@ -1326,9 +1329,9 @@ ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SingleFPMoves, entry) {
+ASSEMBLER_TEST_RUN(SingleFPMoves, test) {
   typedef float (*SingleFPMovesCode)();
-  EXPECT_EQ(234, reinterpret_cast<SingleFPMovesCode>(entry)());
+  EXPECT_EQ(234, reinterpret_cast<SingleFPMovesCode>(test->entry())());
 }
 
 
@@ -1352,9 +1355,9 @@ ASSEMBLER_TEST_GENERATE(SingleFPMoves2, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SingleFPMoves2, entry) {
+ASSEMBLER_TEST_RUN(SingleFPMoves2, test) {
   typedef float (*SingleFPMoves2Code)();
-  EXPECT_EQ(234, reinterpret_cast<SingleFPMoves2Code>(entry)());
+  EXPECT_EQ(234, reinterpret_cast<SingleFPMoves2Code>(test->entry())());
 }
 
 
@@ -1382,9 +1385,9 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SingleFPOperations, entry) {
+ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
   typedef float (*SingleFPOperationsCode)();
-  float res = reinterpret_cast<SingleFPOperationsCode>(entry)();
+  float res = reinterpret_cast<SingleFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
@@ -1405,9 +1408,9 @@ ASSEMBLER_TEST_GENERATE(PackedFPOperations, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedFPOperations, entry) {
+ASSEMBLER_TEST_RUN(PackedFPOperations, test) {
   typedef float (*PackedFPOperationsCode)();
-  float res = reinterpret_cast<PackedFPOperationsCode>(entry)();
+  float res = reinterpret_cast<PackedFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
 }
 
@@ -1427,9 +1430,9 @@ ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedFPOperations2, entry) {
+ASSEMBLER_TEST_RUN(PackedFPOperations2, test) {
   typedef float (*PackedFPOperations2Code)();
-  float res = reinterpret_cast<PackedFPOperations2Code>(entry)();
+  float res = reinterpret_cast<PackedFPOperations2Code>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
@@ -1445,9 +1448,9 @@ ASSEMBLER_TEST_GENERATE(PackedCompareEQ, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedCompareEQ, entry) {
+ASSEMBLER_TEST_RUN(PackedCompareEQ, test) {
   typedef uint32_t (*PackedCompareEQCode)();
-  uint32_t res = reinterpret_cast<PackedCompareEQCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedCompareEQCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -1463,9 +1466,9 @@ ASSEMBLER_TEST_GENERATE(PackedCompareNEQ, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedCompareNEQ, entry) {
+ASSEMBLER_TEST_RUN(PackedCompareNEQ, test) {
   typedef uint32_t (*PackedCompareNEQCode)();
-  uint32_t res = reinterpret_cast<PackedCompareNEQCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedCompareNEQCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
 }
 
@@ -1481,9 +1484,9 @@ ASSEMBLER_TEST_GENERATE(PackedCompareLT, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedCompareLT, entry) {
+ASSEMBLER_TEST_RUN(PackedCompareLT, test) {
   typedef uint32_t (*PackedCompareLTCode)();
-  uint32_t res = reinterpret_cast<PackedCompareLTCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedCompareLTCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
 }
 
@@ -1499,9 +1502,9 @@ ASSEMBLER_TEST_GENERATE(PackedCompareLE, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedCompareLE, entry) {
+ASSEMBLER_TEST_RUN(PackedCompareLE, test) {
   typedef uint32_t (*PackedCompareLECode)();
-  uint32_t res = reinterpret_cast<PackedCompareLECode>(entry)();
+  uint32_t res = reinterpret_cast<PackedCompareLECode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
 }
 
@@ -1517,9 +1520,9 @@ ASSEMBLER_TEST_GENERATE(PackedCompareNLT, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedCompareNLT, entry) {
+ASSEMBLER_TEST_RUN(PackedCompareNLT, test) {
   typedef uint32_t (*PackedCompareNLTCode)();
-  uint32_t res = reinterpret_cast<PackedCompareNLTCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedCompareNLTCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -1535,9 +1538,9 @@ ASSEMBLER_TEST_GENERATE(PackedCompareNLE, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedCompareNLE, entry) {
+ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
   typedef uint32_t (*PackedCompareNLECode)();
-  uint32_t res = reinterpret_cast<PackedCompareNLECode>(entry)();
+  uint32_t res = reinterpret_cast<PackedCompareNLECode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -1552,9 +1555,9 @@ ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedNegate, entry) {
+ASSEMBLER_TEST_RUN(PackedNegate, test) {
   typedef float (*PackedNegateCode)();
-  float res = reinterpret_cast<PackedNegateCode>(entry)();
+  float res = reinterpret_cast<PackedNegateCode>(test->entry())();
   EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
 }
 
@@ -1569,9 +1572,9 @@ ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedAbsolute, entry) {
+ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
   typedef float (*PackedAbsoluteCode)();
-  float res = reinterpret_cast<PackedAbsoluteCode>(entry)();
+  float res = reinterpret_cast<PackedAbsoluteCode>(test->entry())();
   EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
 }
 
@@ -1584,9 +1587,9 @@ ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedSetWZero, entry) {
+ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
   typedef float (*PackedSetWZeroCode)();
-  float res = reinterpret_cast<PackedSetWZeroCode>(entry)();
+  float res = reinterpret_cast<PackedSetWZeroCode>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
@@ -1599,9 +1602,9 @@ ASSEMBLER_TEST_GENERATE(PackedMin, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedMin, entry) {
+ASSEMBLER_TEST_RUN(PackedMin, test) {
   typedef float (*PackedMinCode)();
-  float res = reinterpret_cast<PackedMinCode>(entry)();
+  float res = reinterpret_cast<PackedMinCode>(test->entry())();
   EXPECT_FLOAT_EQ(2.0f, res, 0.001f);
 }
 
@@ -1614,9 +1617,9 @@ ASSEMBLER_TEST_GENERATE(PackedMax, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedMax, entry) {
+ASSEMBLER_TEST_RUN(PackedMax, test) {
   typedef float (*PackedMaxCode)();
-  float res = reinterpret_cast<PackedMaxCode>(entry)();
+  float res = reinterpret_cast<PackedMaxCode>(test->entry())();
   EXPECT_FLOAT_EQ(4.0f, res, 0.001f);
 }
 
@@ -1648,9 +1651,9 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalOr, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedLogicalOr, entry) {
+ASSEMBLER_TEST_RUN(PackedLogicalOr, test) {
   typedef uint32_t (*PackedLogicalOrCode)();
-  uint32_t res = reinterpret_cast<PackedLogicalOrCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedLogicalOrCode>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
 }
 
@@ -1681,9 +1684,9 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalAnd, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedLogicalAnd, entry) {
+ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
   typedef uint32_t (*PackedLogicalAndCode)();
-  uint32_t res = reinterpret_cast<PackedLogicalAndCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedLogicalAndCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0000F000), res);
 }
 
@@ -1707,9 +1710,9 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(PackedLogicalNot, entry) {
+ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   typedef uint32_t (*PackedLogicalNotCode)();
-  uint32_t res = reinterpret_cast<PackedLogicalNotCode>(entry)();
+  uint32_t res = reinterpret_cast<PackedLogicalNotCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -1768,9 +1771,10 @@ ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleFPMoves, entry) {
+ASSEMBLER_TEST_RUN(DoubleFPMoves, test) {
   typedef double (*DoubleFPMovesCode)();
-  EXPECT_FLOAT_EQ(1024.67, reinterpret_cast<DoubleFPMovesCode>(entry)(), 0.001);
+  EXPECT_FLOAT_EQ(1024.67,
+                  reinterpret_cast<DoubleFPMovesCode>(test->entry())(), 0.001);
 }
 
 
@@ -1799,9 +1803,9 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleFPOperations, entry) {
+ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
   typedef double (*SingleFPOperationsCode)();
-  double res = reinterpret_cast<SingleFPOperationsCode>(entry)();
+  double res = reinterpret_cast<SingleFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(7.668, res, 0.001);
 }
 
@@ -1816,9 +1820,9 @@ ASSEMBLER_TEST_GENERATE(Int32ToDoubleConversion, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Int32ToDoubleConversion, entry) {
+ASSEMBLER_TEST_RUN(Int32ToDoubleConversion, test) {
   typedef double (*IntToDoubleConversionCode)();
-  double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
+  double res = reinterpret_cast<IntToDoubleConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(-2.0, res, 0.001);
 }
 
@@ -1833,9 +1837,9 @@ ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, entry) {
+ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, test) {
   typedef double (*Int64ToDoubleConversionCode)();
-  double res = reinterpret_cast<Int64ToDoubleConversionCode>(entry)();
+  double res = reinterpret_cast<Int64ToDoubleConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(static_cast<double>(12LL << 32), res, 0.001);
 }
 
@@ -1856,9 +1860,9 @@ ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, entry) {
+ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, test) {
   typedef int64_t (*DoubleToInt64ConversionCode)();
-  int64_t res = reinterpret_cast<DoubleToInt64ConversionCode>(entry)();
+  int64_t res = reinterpret_cast<DoubleToInt64ConversionCode>(test->entry())();
   EXPECT_EQ(0, res);
 }
 
@@ -1895,9 +1899,9 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestObjectCompare, entry) {
+ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
   typedef bool (*TestObjectCompare)();
-  bool res = reinterpret_cast<TestObjectCompare>(entry)();
+  bool res = reinterpret_cast<TestObjectCompare>(test->entry())();
   EXPECT_EQ(true, res);
 }
 
@@ -1916,9 +1920,9 @@ ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestNop, entry) {
+ASSEMBLER_TEST_RUN(TestNop, test) {
   typedef int (*TestNop)();
-  int res = reinterpret_cast<TestNop>(entry)();
+  int res = reinterpret_cast<TestNop>(test->entry())();
   EXPECT_EQ(36, res);  // 36 nop bytes emitted.
 }
 
@@ -1930,9 +1934,9 @@ ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestAlign0, entry) {
+ASSEMBLER_TEST_RUN(TestAlign0, test) {
   typedef int (*TestAlign0)();
-  int res = reinterpret_cast<TestAlign0>(entry)();
+  int res = reinterpret_cast<TestAlign0>(test->entry())();
   EXPECT_EQ(0, res);  // 0 bytes emitted.
 }
 
@@ -1945,9 +1949,9 @@ ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestAlign1, entry) {
+ASSEMBLER_TEST_RUN(TestAlign1, test) {
   typedef int (*TestAlign1)();
-  int res = reinterpret_cast<TestAlign1>(entry)();
+  int res = reinterpret_cast<TestAlign1>(test->entry())();
   EXPECT_EQ(4, res);  // 4 bytes emitted.
 }
 
@@ -1960,9 +1964,9 @@ ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestAlign1Offset1, entry) {
+ASSEMBLER_TEST_RUN(TestAlign1Offset1, test) {
   typedef int (*TestAlign1Offset1)();
-  int res = reinterpret_cast<TestAlign1Offset1>(entry)();
+  int res = reinterpret_cast<TestAlign1Offset1>(test->entry())();
   EXPECT_EQ(3, res);  // 3 bytes emitted.
 }
 
@@ -1975,9 +1979,9 @@ ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestAlignLarge, entry) {
+ASSEMBLER_TEST_RUN(TestAlignLarge, test) {
   typedef int (*TestAlignLarge)();
-  int res = reinterpret_cast<TestAlignLarge>(entry)();
+  int res = reinterpret_cast<TestAlignLarge>(test->entry())();
   EXPECT_EQ(16, res);  // 16 bytes emitted.
 }
 
@@ -2000,9 +2004,9 @@ ASSEMBLER_TEST_GENERATE(TestAdds, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestAdds, entry) {
+ASSEMBLER_TEST_RUN(TestAdds, test) {
   typedef int (*TestAdds)();
-  int res = reinterpret_cast<TestAdds>(entry)();
+  int res = reinterpret_cast<TestAdds>(test->entry())();
   EXPECT_EQ(20, res);
 }
 
@@ -2014,9 +2018,9 @@ ASSEMBLER_TEST_GENERATE(TestNot, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(TestNot, entry) {
+ASSEMBLER_TEST_RUN(TestNot, test) {
   typedef int (*TestNot)();
-  unsigned int res = reinterpret_cast<TestNot>(entry)();
+  unsigned int res = reinterpret_cast<TestNot>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
 }
 
@@ -2030,9 +2034,9 @@ ASSEMBLER_TEST_GENERATE(XorpdZeroing, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
+ASSEMBLER_TEST_RUN(XorpdZeroing, test) {
   typedef double (*XorpdZeroingCode)(double d);
-  double res = reinterpret_cast<XorpdZeroingCode>(entry)(12.56e3);
+  double res = reinterpret_cast<XorpdZeroingCode>(test->entry())(12.56e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0001);
 }
 
@@ -2050,9 +2054,9 @@ ASSEMBLER_TEST_GENERATE(XorpdZeroing2, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(XorpdZeroing2, entry) {
+ASSEMBLER_TEST_RUN(XorpdZeroing2, test) {
   typedef double (*XorpdZeroing2Code)(double d);
-  double res = reinterpret_cast<XorpdZeroing2Code>(entry)(12.56e3);
+  double res = reinterpret_cast<XorpdZeroing2Code>(test->entry())(12.56e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0001);
 }
 
@@ -2063,9 +2067,9 @@ ASSEMBLER_TEST_GENERATE(Pxor, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Pxor, entry) {
+ASSEMBLER_TEST_RUN(Pxor, test) {
   typedef double (*PxorCode)(double d);
-  double res = reinterpret_cast<PxorCode>(entry)(12.3456e3);
+  double res = reinterpret_cast<PxorCode>(test->entry())(12.3456e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0);
 }
 
@@ -2076,10 +2080,11 @@ ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(SquareRootDouble, entry) {
+ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
   typedef double (*SquareRootDoubleCode)(double d);
   const double kDoubleConst = .7;
-  double res = reinterpret_cast<SquareRootDoubleCode>(entry)(kDoubleConst);
+  double res =
+      reinterpret_cast<SquareRootDoubleCode>(test->entry())(kDoubleConst);
   EXPECT_FLOAT_EQ(sqrt(kDoubleConst), res, 0.0001);
 }
 
@@ -2108,9 +2113,9 @@ ASSEMBLER_TEST_GENERATE(DoubleFPUStackMoves, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleFPUStackMoves, entry) {
+ASSEMBLER_TEST_RUN(DoubleFPUStackMoves, test) {
   typedef int64_t (*DoubleFPUStackMovesCode)();
-  int64_t res = reinterpret_cast<DoubleFPUStackMovesCode>(entry)();
+  int64_t res = reinterpret_cast<DoubleFPUStackMovesCode>(test->entry())();
   EXPECT_FLOAT_EQ(1024.67, (bit_cast<double, int64_t>(res)), 0.001);
 }
 
@@ -2127,10 +2132,10 @@ ASSEMBLER_TEST_GENERATE(Sine, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Sine, entry) {
+ASSEMBLER_TEST_RUN(Sine, test) {
   typedef double (*SineCode)(double d);
   const double kDoubleConst = 0.7;
-  double res = reinterpret_cast<SineCode>(entry)(kDoubleConst);
+  double res = reinterpret_cast<SineCode>(test->entry())(kDoubleConst);
   EXPECT_FLOAT_EQ(sin(kDoubleConst), res, 0.0001);
 }
 
@@ -2147,10 +2152,10 @@ ASSEMBLER_TEST_GENERATE(Cosine, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Cosine, entry) {
+ASSEMBLER_TEST_RUN(Cosine, test) {
   typedef double (*CosineCode)(double f);
   const double kDoubleConst = 0.7;
-  double res = reinterpret_cast<CosineCode>(entry)(kDoubleConst);
+  double res = reinterpret_cast<CosineCode>(test->entry())(kDoubleConst);
   EXPECT_FLOAT_EQ(cos(kDoubleConst), res, 0.0001);
 }
 
@@ -2162,9 +2167,9 @@ ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(IntToDoubleConversion, entry) {
+ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
   typedef double (*IntToDoubleConversionCode)();
-  double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
+  double res = reinterpret_cast<IntToDoubleConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(6.0, res, 0.001);
 }
 
@@ -2179,9 +2184,9 @@ ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(IntToDoubleConversion2, entry) {
+ASSEMBLER_TEST_RUN(IntToDoubleConversion2, test) {
   typedef double (*IntToDoubleConversion2Code)(int i);
-  double res = reinterpret_cast<IntToDoubleConversion2Code>(entry)(3);
+  double res = reinterpret_cast<IntToDoubleConversion2Code>(test->entry())(3);
   EXPECT_FLOAT_EQ(3.0, res, 0.001);
 }
 
@@ -2191,15 +2196,15 @@ ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, entry) {
+ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
   typedef double (*DoubleToDoubleTruncCode)(double d);
-  double res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(12.3);
+  double res = reinterpret_cast<DoubleToDoubleTruncCode>(test->entry())(12.3);
   EXPECT_EQ(12.0, res);
-  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(12.8);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(test->entry())(12.8);
   EXPECT_EQ(12.0, res);
-  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(-12.3);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(test->entry())(-12.3);
   EXPECT_EQ(-12.0, res);
-  res = reinterpret_cast<DoubleToDoubleTruncCode>(entry)(-12.8);
+  res = reinterpret_cast<DoubleToDoubleTruncCode>(test->entry())(-12.8);
   EXPECT_EQ(-12.0, res);
 }
 
@@ -2210,13 +2215,13 @@ ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleAbs, entry) {
+ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   typedef double (*DoubleAbsCode)(double d);
   double val = -12.45;
-  double res =  reinterpret_cast<DoubleAbsCode>(entry)(val);
+  double res =  reinterpret_cast<DoubleAbsCode>(test->entry())(val);
   EXPECT_FLOAT_EQ(-val, res, 0.001);
   val = 12.45;
-  res =  reinterpret_cast<DoubleAbsCode>(entry)(val);
+  res =  reinterpret_cast<DoubleAbsCode>(test->entry())(val);
   EXPECT_FLOAT_EQ(val, res, 0.001);
 }
 
@@ -2227,27 +2232,31 @@ ASSEMBLER_TEST_GENERATE(DoubleToDoubleRound, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(DoubleToDoubleRound, entry) {
+ASSEMBLER_TEST_RUN(DoubleToDoubleRound, test) {
   typedef double (*DoubleToDoubleRoundCode)(double d);
-  double res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(12.3);
+  double res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(12.3);
   EXPECT_EQ(12.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(12.8);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(12.8);
   EXPECT_EQ(13.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(0.5);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(0.5);
   EXPECT_EQ(1.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-12.3);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(-12.3);
   EXPECT_EQ(-12.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-12.8);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(-12.8);
   EXPECT_EQ(-13.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-0.5);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(-0.5);
   EXPECT_EQ(-1.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(0.49999999999999994);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(
+      test->entry())(0.49999999999999994);
   EXPECT_EQ(0.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-0.49999999999999994);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(
+      test->entry())(-0.49999999999999994);
   EXPECT_EQ(-0.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(9007199254740991.0);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(
+      test->entry())(9007199254740991.0);
   EXPECT_EQ(9007199254740991.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(entry)(-9007199254740991.0);
+  res = reinterpret_cast<DoubleToDoubleRoundCode>(
+      test->entry())(-9007199254740991.0);
   EXPECT_EQ(-9007199254740991.0, res);
 }
 
@@ -2259,13 +2268,13 @@ ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(ExtractSignBits, entry) {
+ASSEMBLER_TEST_RUN(ExtractSignBits, test) {
   typedef int (*ExtractSignBits)(double d);
-  int res = reinterpret_cast<ExtractSignBits>(entry)(1.0);
+  int res = reinterpret_cast<ExtractSignBits>(test->entry())(1.0);
   EXPECT_EQ(0, res);
-  res = reinterpret_cast<ExtractSignBits>(entry)(-1.0);
+  res = reinterpret_cast<ExtractSignBits>(test->entry())(-1.0);
   EXPECT_EQ(1, res);
-  res = reinterpret_cast<ExtractSignBits>(entry)(-0.0);
+  res = reinterpret_cast<ExtractSignBits>(test->entry())(-0.0);
   EXPECT_EQ(1, res);
 }
 

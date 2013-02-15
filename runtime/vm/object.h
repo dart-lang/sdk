@@ -2224,8 +2224,9 @@ class Namespace : public Object {
 
 class Instructions : public Object {
  public:
-  intptr_t size() const { return raw_ptr()->size_; }
+  intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
   RawCode* code() const { return raw_ptr()->code_; }
+  RawArray* object_pool() const { return raw_ptr()->object_pool_; }
 
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
@@ -2263,8 +2264,11 @@ class Instructions : public Object {
   void set_size(intptr_t size) const {
     raw_ptr()->size_ = size;
   }
-  void set_code(RawCode* code) {
+  void set_code(RawCode* code) const {
     raw_ptr()->code_ = code;
+  }
+  void set_object_pool(RawArray* object_pool) const {
+    raw_ptr()->object_pool_ = object_pool;
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -2607,6 +2611,11 @@ class Code : public Object {
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
+  }
+  bool ContainsInstructionAt(uword addr) const {
+    const Instructions& instr = Instructions::Handle(instructions());
+    const uword offset = addr - instr.EntryPoint();
+    return offset < static_cast<uword>(instr.size());
   }
 
   RawPcDescriptors* pc_descriptors() const {

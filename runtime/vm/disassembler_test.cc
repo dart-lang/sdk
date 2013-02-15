@@ -20,8 +20,8 @@ TEST_CASE(Disassembler) {
 
   // Only verify that the disassembler does not crash.
   AssemblerTest test("Disassembler", &assembler);
-  uword entry = test.Assemble();
-  Disassembler::Disassemble(entry, entry + assembler.CodeSize());
+  test.Assemble();
+  Disassembler::Disassemble(test.entry(), test.entry() + assembler.CodeSize());
 }
 #endif
 

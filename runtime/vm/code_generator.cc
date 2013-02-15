@@ -762,8 +762,9 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // Before patching verify that we are not repeatedly patching to the same
   // target.
   ASSERT(target_code.EntryPoint() !=
-         CodePatcher::GetStaticCallTargetAt(caller_frame->pc()));
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), target_code.EntryPoint());
+         CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
+  CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
+                                 target_code.EntryPoint());
   caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("PatchStaticCall: patching from %#"Px" to '%s' %#"Px"\n",
@@ -1356,7 +1357,8 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   const Function& target_function = Function::Handle(
       caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(target_function.CurrentCode());
-  CodePatcher::PatchStaticCallAt(frame->pc(), target_code.EntryPoint());
+  CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
+                                 target_code.EntryPoint());
   caller_code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: patching from %#"Px" to '%s' %#"Px"\n",

@@ -20,9 +20,9 @@ ASSEMBLER_TEST_GENERATE(Simple, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(Simple, entry) {
+ASSEMBLER_TEST_RUN(Simple, test) {
   typedef int (*SimpleCode)();
-  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, entry));
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 }  // namespace dart
