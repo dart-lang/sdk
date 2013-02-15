@@ -321,6 +321,11 @@ class IterableMixinWorkaround {
     return new MappedListIterable(list, f);
   }
 
+  static List mappedByList(List list, f(var element)) {
+    // This is currently a List as well as an Iterable.
+    return new MappedList(list, f);
+  }
+
   static Iterable expand(Iterable iterable, Iterable f(var element)) {
     return new ExpandIterable(iterable, f);
   }
@@ -466,6 +471,11 @@ class Collections {
   @deprecated
   static Iterable where(Iterable iterable, bool f(var element))
       => IterableMixinWorkaround.where(iterable, f);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  @deprecated
+  static List mappedByList(List list, f(var element))
+      => IterableMixinWorkaround.mappedByList(list, f);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
   @deprecated

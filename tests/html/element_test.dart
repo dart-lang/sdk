@@ -537,7 +537,7 @@ main() {
       expect(els[2], isHRElement);
     });
 
-    test('map', () {
+    test('mappedBy', () {
       var texts = getQueryAll().map((el) => el.text).toList();
       expect(texts, equals(['Dart!', 'Hello', '']));
     });

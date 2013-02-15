@@ -104,6 +104,10 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
+  List mappedBy(f(E element)) {
+    IterableMixinWorkaround.mappedByList(this, f);
+  }
+
   reduce(initialValue, combine(previousValue, E element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
@@ -332,6 +336,10 @@ class _ImmutableArray<E> implements List<E> {
 
   Iterable map(f(E element)) {
     return IterableMixinWorkaround.mapList(this, f);
+  }
+
+  List mappedBy(f(E element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
   String join([String separator]) {

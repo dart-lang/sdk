@@ -7,7 +7,7 @@
 
 // TODO(jmesserly): we might want a version of this that return an iterable,
 // however JS, Python and Ruby versions are all eager.
-List map(Iterable source, mapper(source)) {
+List mappedBy(Iterable source, mapper(source)) {
   List result = new List();
   if (source is List) {
     List list = source; // TODO: shouldn't need this

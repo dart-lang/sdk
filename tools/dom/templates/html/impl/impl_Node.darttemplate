@@ -145,6 +145,10 @@ $endif
     return IterableMixinWorkaround.mapList(this, f);
   }
 
+  List mappedBy(f(Node element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
+
   Iterable<Node> where(bool f(Node element)) {
     return IterableMixinWorkaround.where(this, f);
   }

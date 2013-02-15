@@ -233,6 +233,10 @@ abstract class _ByteArrayBase {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
+  List mappedBy(f(int element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
+
   String join([String separator]) {
     return IterableMixinWorkaround.join(this, separator);
   }

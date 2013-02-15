@@ -134,6 +134,13 @@ abstract class Stream<T> {
   }
 
   /**
+   * Deprecated alias for [map].
+   *
+   * @deprecated
+   */
+  Stream mappedBy(f(T element)) => map(f);
+
+  /**
    * Create a wrapper Stream that intercepts some errors from this stream.
    *
    * If this stream sends an error that matches [test], then it is intercepted
