@@ -92,10 +92,6 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  List mappedBy(f(E element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
-  }
-
   String join([String separator]) {
     if (separator == null) separator = "";
     var list = new List(this.length);

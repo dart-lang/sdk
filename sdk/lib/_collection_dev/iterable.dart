@@ -197,8 +197,6 @@ abstract class ListIterable<E> extends Iterable<E> {
 
   Iterable map(f(E element)) => new MappedIterable(this, f);
 
-  Iterable mappedBy(f(E element)) => super.mappedBy(f);
-
   reduce(var initialValue, combine(var previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
@@ -662,8 +660,6 @@ class EmptyIterable<E> extends Iterable<E> {
   Iterable<E> where(bool test(E element)) => this;
 
   Iterable map(f(E element)) => const EmptyIterable();
-
-  Iterable mappedBy(f(E element)) => const EmptyIterable();
 
   reduce(var initialValue, combine(var previousValue, E element)) {
     return initialValue;
