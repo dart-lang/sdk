@@ -13,6 +13,7 @@
 #include "bin/dartutils.h"
 #include "bin/log.h"
 #include "bin/socket.h"
+#include "bin/utils.h"
 #include "platform/thread.h"
 
 
@@ -20,23 +21,6 @@ static const int kInfinityTimeout = -1;
 static const int kTimeoutId = -1;
 static const int kShutdownId = -2;
 
-
-int64_t GetCurrentTimeMilliseconds() {
-  static const int64_t kTimeEpoc = 116444736000000000LL;
-
-  // Although win32 uses 64-bit integers for representing timestamps,
-  // these are packed into a FILETIME structure. The FILETIME structure
-  // is just a struct representing a 64-bit integer. The TimeStamp union
-  // allows access to both a FILETIME and an integer representation of
-  // the timestamp.
-  union TimeStamp {
-    FILETIME ft_;
-    int64_t t_;
-  };
-  TimeStamp time;
-  GetSystemTimeAsFileTime(&time.ft_);
-  return (time.t_ - kTimeEpoc) / 10000;
-}
 
 IOBuffer* IOBuffer::AllocateBuffer(int buffer_size, Operation operation) {
   IOBuffer* buffer = new(buffer_size) IOBuffer(buffer_size, operation);
@@ -858,7 +842,7 @@ DWORD EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 

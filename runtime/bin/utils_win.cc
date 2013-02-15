@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <errno.h>
+#include <time.h>
 
 #include "bin/utils.h"
 #include "bin/log.h"
@@ -112,4 +113,27 @@ wchar_t** ShellUtils::GetUnicodeArgv(int* argc) {
 
 void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
   LocalFree(argv);
+}
+
+int64_t OS::GetCurrentTimeMillis() {
+  return GetCurrentTimeMicros() / 1000;
+}
+
+int64_t OS::GetCurrentTimeMicros() {
+  static const int64_t kTimeEpoc = 116444736000000000LL;
+  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+
+  // Although win32 uses 64-bit integers for representing timestamps,
+  // these are packed into a FILETIME structure. The FILETIME
+  // structure is just a struct representing a 64-bit integer. The
+  // TimeStamp union allows access to both a FILETIME and an integer
+  // representation of the timestamp. The Windows timestamp is in
+  // 100-nanosecond intervals since January 1, 1601.
+  union TimeStamp {
+    FILETIME ft_;
+    int64_t t_;
+  };
+  TimeStamp time;
+  GetSystemTimeAsFileTime(&time.ft_);
+  return (time.t_ - kTimeEpoc) / kTimeScaler;
 }

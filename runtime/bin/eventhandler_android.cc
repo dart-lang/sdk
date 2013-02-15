@@ -10,25 +10,15 @@
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <unistd.h>
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
+#include "bin/utils.h"
 #include "platform/hashmap.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
-
-
-int64_t GetCurrentTimeMilliseconds() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return ((static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec) / 1000;
-}
 
 
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
@@ -358,14 +348,14 @@ intptr_t EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
 
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_ != kInfinityTimeout) {
-    intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+    intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_port_);
       timeout_ = kInfinityTimeout;
