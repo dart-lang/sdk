@@ -787,20 +787,3 @@ Language/14_Types/5_Function_Types_A02_t10: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A03_t06: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A03_t10: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A03_t11: Fail # dartbug.com/7342
-
-# Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Map/containsKey_A01_t02: Fail
-LibTest/core/Map/operator_subscript_A01_t02: Fail
-LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail
-LibTest/core/Map/remove_A01_t02: Fail
-LibTest/core/Set/add_A01_t02: Fail
-LibTest/core/Set/addAll_A01_t02: Fail
-LibTest/core/Set/contains_A01_t02: Fail
-LibTest/core/Set/containsAll_A01_t02: Fail
-LibTest/core/Set/intersection_A03_t01: Fail
-LibTest/core/Set/isSubsetOf_A01_t02: Fail
-LibTest/core/Set/remove_A01_t02: Fail
-LibTest/core/Set/removeAll_A01_t02: Fail
-
-# Doesn't expect concurrent modification error (issue 376).
-LibTest/core/Map/forEach_A01_t07: Fail

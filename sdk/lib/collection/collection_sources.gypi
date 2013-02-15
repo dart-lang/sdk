@@ -7,15 +7,11 @@
   'sources': [
     'arrays.dart',
     'collections.dart',
-    'hash_map.dart',
-    'hash_set.dart',
-    'hash_table.dart',
     'iterator.dart',
-    'linked_hash_map.dart',
-    'linked_hash_set.dart',
-    'linked_hash_table.dart',
+    'map.dart',
     'maps.dart',
     'queue.dart',
+    'set.dart',
     'splay_tree.dart',
   ],
 }

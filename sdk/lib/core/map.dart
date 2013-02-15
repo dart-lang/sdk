@@ -47,9 +47,6 @@ abstract class Map<K, V> {
    * If [key] is not associated to a value, calls [ifAbsent] and
    * updates the map by mapping [key] to the value returned by
    * [ifAbsent]. Returns the value in the map.
-   *
-   * It is an error to add or remove keys from map during the call to
-   * [ifAbsent].
    */
   V putIfAbsent(K key, V ifAbsent());
 
@@ -68,8 +65,6 @@ abstract class Map<K, V> {
 
   /**
    * Applies [f] to each {key, value} pair of the map.
-   *
-   * It is an error to add or remove keys from the map during iteration.
    */
   void forEach(void f(K key, V value));
 

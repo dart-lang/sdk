@@ -362,7 +362,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
                                cause,
                                [String reason]) {
     Iterable matches = unusedClasses.where(predicate);
-    matches.toList().forEach((c) => enqueueClass(c, cause));
+    matches.forEach((c) => enqueueClass(c, cause));
   }
 
   onFirstNativeClass() {
