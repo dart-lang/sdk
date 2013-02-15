@@ -47,7 +47,7 @@ abstract class Source {
   /// The root directory of this source's cache within the system cache.
   ///
   /// This shouldn't be overridden by subclasses.
-  String get systemCacheRoot => join(systemCache.rootDir, name);
+  String get systemCacheRoot => path.join(systemCache.rootDir, name);
 
   /// Records the system cache to which this source belongs.
   ///
@@ -144,9 +144,9 @@ abstract class Source {
   ///   * It has no pubspec.
   Future<bool> _isCachedPackageCorrupted(String packageDir) {
     return defer(() {
-      if (!fileExists(join(packageDir, "pubspec.yaml"))) return true;
+      if (!fileExists(path.join(packageDir, "pubspec.yaml"))) return true;
 
-      var libDir = join(packageDir, "lib");
+      var libDir = path.join(packageDir, "lib");
       if (dirExists(libDir)) {
         return listDir(libDir).then((contents) => contents.length == 0);
       }

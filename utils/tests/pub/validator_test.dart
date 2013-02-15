@@ -9,11 +9,12 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math' as math;
 
-import 'test_pub.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
+
+import 'test_pub.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
@@ -115,27 +116,27 @@ main() {
     });
 
     integration('has a COPYING file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(join(appPath, 'COPYING'), '').scheduleCreate();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'COPYING'), '').scheduleCreate();
       expectNoValidationError(license);
     });
 
     integration('has a prefixed LICENSE file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
       expectNoValidationError(license);
     });
 
     integration('has a suffixed LICENSE file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(join(appPath, 'LICENSE.md'), '').scheduleCreate();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'LICENSE.md'), '').scheduleCreate();
       expectNoValidationError(license);
     });
 
     integration('has "authors" instead of "author"', () {
-      var package = package("test_pkg", "1.0.0");
-      package["authors"] = [package.remove("author")];
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["authors"] = [pkg.remove("author")];
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
       expectNoValidationError(pubspecField);
     });
 
@@ -206,73 +207,73 @@ main() {
     setUp(scheduleNormalPackage);
 
     integration('is missing the "homepage" field', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("homepage");
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("homepage");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationError(pubspecField);
     });
 
     integration('is missing the "description" field', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("description");
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("description");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationError(pubspecField);
     });
 
     integration('is missing the "author" field', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("author");
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("author");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationError(pubspecField);
     });
 
     integration('has a single author without an email', () {
-      var package = package("test_pkg", "1.0.0");
-      package["author"] = "Nathan Weizenbaum";
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["author"] = "Nathan Weizenbaum";
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has one of several authors without an email', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("author");
-      package["authors"] = [
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("author");
+      pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
         "Nathan Weizenbaum",
         "John Messerly <jmesserly@google.com>"
       ];
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has a single author without a name', () {
-      var package = package("test_pkg", "1.0.0");
-      package["author"] = "<nweiz@google.com>";
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["author"] = "<nweiz@google.com>";
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has one of several authors without a name', () {
-      var package = package("test_pkg", "1.0.0");
-      package.remove("author");
-      package["authors"] = [
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("author");
+      pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
         "<nweiz@google.com>",
         "John Messerly <jmesserly@google.com>"
       ];
-      dir(appPath, [pubspec(package)]).scheduleCreate();
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has no LICENSE file', () {
-      file(join(appPath, 'LICENSE'), '').scheduleDelete();
+      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
       expectValidationError(license);
     });
 
@@ -334,7 +335,7 @@ main() {
     });
 
     integration('has a single library named differently than the package', () {
-      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       dir(appPath, [
         dir("lib", [file("best_pkg.dart", "int i = 0;")])
       ]).scheduleCreate();
@@ -342,17 +343,17 @@ main() {
     });
 
     integration('has no lib directory', () {
-      dir(join(appPath, "lib")).scheduleDelete();
+      dir(path.join(appPath, "lib")).scheduleDelete();
       expectValidationError(lib);
     });
 
     integration('has an empty lib directory', () {
-      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       expectValidationError(lib);
     });
 
     integration('has a lib directory containing only src', () {
-      file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       dir(appPath, [
         dir("lib", [
           dir("src", [file("test_pkg.dart", "int i = 0;")])

@@ -5,6 +5,9 @@
 library sdk_source;
 
 import 'dart:async';
+
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -45,7 +48,7 @@ class SdkSource extends Source {
   /// Gets the path in the SDK's "pkg" directory to the directory containing
   /// package [id]. Returns `null` if the package could not be found.
   String _getPackagePath(PackageId id) {
-    var pkgPath = join(sdk.rootDirectory, "pkg", id.description);
+    var pkgPath = path.join(sdk.rootDirectory, "pkg", id.description);
     return dirExists(pkgPath) ? pkgPath : null;
   }
 }

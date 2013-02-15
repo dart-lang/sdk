@@ -8156,6 +8156,10 @@ class _ChildrenElementList implements List {
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
+    if (iterable is _ChildNodeListLazy) {
+      iterable = new List.from(iterable);
+    }
+
     for (Element element in iterable) {
       _element.$dom_appendChild(element);
     }
@@ -8686,20 +8690,20 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    *
    * Would be accessed in Dart as:
    *
-   *     var value = element.dataAttributes['myRandomValue'];
+   *     var value = element.dataset['myRandomValue'];
    *
    * See also:
    *
    * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
    */
-  Map<String, String> get dataAttributes =>
+  Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  void set dataAttributes(Map<String, String> value) {
-    final dataAttributes = this.dataAttributes;
-    dataAttributes.clear();
+  void set dataset(Map<String, String> value) {
+    final data = this.dataset;
+    data.clear();
     for (String key in value.keys) {
-      dataAttributes[key] = value[key];
+      data[key] = value[key];
     }
   }
 
@@ -9260,10 +9264,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DomName('Element.clientWidth')
   @DocsEditable
   final int clientWidth;
-
-  @DomName('Element.dataset')
-  @DocsEditable
-  final Map<String, String> dataset;
 
   @JSName('firstElementChild')
   @DomName('Element.firstElementChild')
@@ -11607,6 +11607,10 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 @DocsEditable
 @DomName('FormData')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FormData native "*FormData" {
 
   @DomName('DOMFormData.DOMFormData')
@@ -11619,6 +11623,9 @@ class FormData native "*FormData" {
   }
   static FormData _create_1(form) => JS('FormData', 'new FormData(#)', form);
   static FormData _create_2() => JS('FormData', 'new FormData()');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.FormData)');
 
   @DomName('DOMFormData.append')
   @DocsEditable
@@ -12635,6 +12642,22 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
     return completer.future;
   }
 
+  /**
+   * Checks to see if the Progress event is supported on the current platform.
+   */
+  static bool get supportsProgressEvent {
+    var xhr = new HttpRequest();
+    return JS('bool', '"onprogress" in #', xhr);
+  }
+
+  /**
+   * Checks to see if the LoadEnd event is supported on the current platform.
+   */
+  static bool get supportsLoadEndEvent {
+    var xhr = new HttpRequest();
+    return JS('bool', '"onloadend" in #', xhr);
+  }
+
 
   @DomName('XMLHttpRequest.abortEvent')
   @DocsEditable
@@ -12740,6 +12763,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.response')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
@@ -12929,6 +12956,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.onloadend')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
   /**
@@ -12948,6 +12979,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.onprogress')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
   /**
@@ -17032,6 +17067,9 @@ class _ChildNodeListLazy implements List {
 
 
   void addAll(Iterable<Node> iterable) {
+    if (iterable is _ChildNodeListLazy) {
+      iterable = new List.from(iterable);
+    }
     for (Node node in iterable) {
       _this.$dom_appendChild(node);
     }
@@ -25788,6 +25826,56 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 @DomName('Window')
 class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
+  /**
+   * Executes a [callback] after the immediate execution stack has completed.
+   *
+   * This differs from using Timer.run(callback)
+   * because Timer will run in about 4-15 milliseconds, depending on browser,
+   * depending on load. [setImmediate], in contrast, makes browser-specific
+   * changes in behavior to attempt to run immediately after the current
+   * frame unwinds, causing the future to complete after all processing has
+   * completed for the current event, but before any subsequent events.
+   */
+  void setImmediate(TimeoutHandler callback) { 
+    _addMicrotaskCallback(callback);
+  }
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  SendPortSync lookupPort(String name) {
+    var port =
+        json.parse(document.documentElement.attributes['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    document.documentElement.attributes['dart-port:$name'] =
+        json.stringify(serialized);
+  }
+
+  /**
+   * Returns a Future that completes just before the window is about to repaint
+   * so the user can draw an animation frame
+   *
+   * If you need to later cancel this animation, use [requestAnimationFrame]
+   * instead.
+   *
+   * Note: The code that runs when the future completes should call 
+   * [animationFrame] again for the animation to continue.
+   */
+  Future<num> get animationFrame {
+    var completer = new Completer<int>();
+    requestAnimationFrame(completer.complete);
+    return completer.future;
+  }
+
   Document get document => JS('Document', '#.document', this);
 
   WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
@@ -25853,15 +25941,21 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   }
 
   /**
-   * Executes a [callback] after the immediate execution stack has completed.
+   * Called to draw an animation frame and then request the window to repaint
+   * after [callback] has finished (creating the animation). 
    *
-   * This will cause the callback to be executed after all processing has
-   * completed for the current event, but before any subsequent events.
+   * Use this method only if you need to later call [cancelAnimationFrame]. If
+   * not, the preferred Dart idiom is to set animation frames by calling
+   * [animationFrame], which returns a Future.
+   *
+   * Returns a non-zero valued integer to represent the request id for this
+   * request. This value only needs to be saved if you intend to call
+   * [cancelAnimationFrame] so you can specify the particular animation to
+   * cancel.
+   *
+   * Note: The supplied [callback] needs to call [requestAnimationFrame] again
+   * for the animation to continue.
    */
-  void setImmediate(TimeoutHandler callback) {
-    _addMicrotaskCallback(callback);
-  }
-
   @DomName('DOMWindow.requestAnimationFrame')
   int requestAnimationFrame(RequestAnimationFrameCallback callback) {
     _ensureRequestAnimationFrame();
@@ -25919,25 +26013,6 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
-
-  /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  SendPortSync lookupPort(String name) {
-    var port = json.parse(document.documentElement.attributes['dart-port:$name']);
-    return _deserialize(port);
-  }
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
-  }
 
   @DomName('Window.console')
   Console get console => Console.safeConsole;
@@ -26257,13 +26332,15 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   void captureEvents() native;
 
+  @JSName('clearInterval')
   @DomName('DOMWindow.clearInterval')
   @DocsEditable
-  void clearInterval(int handle) native;
+  void _clearInterval(int handle) native;
 
+  @JSName('clearTimeout')
   @DomName('DOMWindow.clearTimeout')
   @DocsEditable
-  void clearTimeout(int handle) native;
+  void _clearTimeout(int handle) native;
 
   @DomName('DOMWindow.close')
   @DocsEditable
@@ -26375,13 +26452,15 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   void scrollTo(int x, int y) native;
 
+  @JSName('setInterval')
   @DomName('DOMWindow.setInterval')
   @DocsEditable
-  int setInterval(TimeoutHandler handler, int timeout) native;
+  int _setInterval(TimeoutHandler handler, int timeout) native;
 
+  @JSName('setTimeout')
   @DomName('DOMWindow.setTimeout')
   @DocsEditable
-  int setTimeout(TimeoutHandler handler, int timeout) native;
+  int _setTimeout(TimeoutHandler handler, int timeout) native;
 
   @DomName('DOMWindow.showModalDialog')
   @DocsEditable
@@ -30009,6 +30088,7 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream() => this;
+  bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
       { void onError(AsyncError error),
@@ -31377,11 +31457,11 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   var maker;
   var canceller;
   if (repeating) {
-    maker = window.setInterval;
-    canceller = window.clearInterval;
+    maker = window._setInterval;
+    canceller = window._clearInterval;
   } else {
-    maker = window.setTimeout;
-    canceller = window.clearTimeout;
+    maker = window._setTimeout;
+    canceller = window._clearTimeout;
   }
   Timer timer;
   final int id = maker(() { callback(timer); }, milliSeconds);

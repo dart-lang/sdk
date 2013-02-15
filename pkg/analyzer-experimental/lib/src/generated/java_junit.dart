@@ -34,6 +34,9 @@ class JUnitTestCase {
   static void assertEqualsMsg(String msg, expected, actual) {
     expect(actual, equalsMsg(msg, expected));
   }
+  static void assertSame(expected, actual) {
+    expect(actual, same(expected));
+  }
 }
 
 runJUnitTest(testInstance, Function testFunction) {

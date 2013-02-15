@@ -63,7 +63,6 @@ element_types_test/supported_keygen: Fail
 element_types_test/supported_meter: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
-form_data_test: Fail # TODO(efortuna): Issue 7875.
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 inner_frame_test: Skip
@@ -117,7 +116,7 @@ element_types_test/supported_output: Fail
 element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
-form_data_test: Fail # Issue 4793.
+form_data_test/supported: Fail
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
 transition_event_test/supported: Fail
@@ -201,8 +200,9 @@ url_test: Fail              # IE9 does not support createObjectURL (it is suppor
 websocket_test/supported: Fail
 window_open_test: Skip      # BUG(4016)
 isolates_test: Skip         # BUG(4016)
-xhr_test: Skip              # BUG(4016)
 xhr_test/supported_HttpRequestProgressEvent: Fail
+xhr_test/supported_onLoadEnd: Fail
+xhr_test/supported_onProgress: Fail
 xhr_cross_origin_test: Fail # Issue 6016.
 xsltprocessor_test/supported: Fail
 

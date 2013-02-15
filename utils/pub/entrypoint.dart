@@ -53,7 +53,7 @@ class Entrypoint {
 
   // TODO(rnystrom): Make this path configurable.
   /// The path to the entrypoint's "packages" directory.
-  String get packagesDir => join(root.dir, 'packages');
+  String get packagesDir => path.join(root.dir, 'packages');
 
   /// Ensures that the package identified by [id] is installed to the directory.
   /// Returns the resolved [PackageId].
@@ -70,7 +70,7 @@ class Entrypoint {
     var pendingOrCompleted = _installs[id];
     if (pendingOrCompleted != null) return pendingOrCompleted;
 
-    var packageDir = join(packagesDir, id.name);
+    var packageDir = path.join(packagesDir, id.name);
     var future = defer(() {
       ensureDir(path.dirname(packageDir));
       if (!dirExists(packageDir)) return;
@@ -207,7 +207,7 @@ class Entrypoint {
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it
   /// exists. If it doesn't, this completes to an empty [LockFile].
   LockFile loadLockFile() {
-    var lockFilePath = join(root.dir, 'pubspec.lock');
+    var lockFilePath = path.join(root.dir, 'pubspec.lock');
     if (!fileExists(lockFilePath)) return new LockFile.empty();
     return new LockFile.parse(readTextFile(lockFilePath), cache.sources);
   }
@@ -219,7 +219,7 @@ class Entrypoint {
       if (!id.isRoot) lockFile.packages[id.name] = id;
     }
 
-    var lockFilePath = join(root.dir, 'pubspec.lock');
+    var lockFilePath = path.join(root.dir, 'pubspec.lock');
     writeTextFile(lockFilePath, lockFile.serialize());
   }
 
@@ -227,7 +227,7 @@ class Entrypoint {
   /// allow a package to import its own files using `package:`.
   Future _installSelfReference(_) {
     return defer(() {
-      var linkPath = join(packagesDir, root.name);
+      var linkPath = path.join(packagesDir, root.name);
       // Create the symlink if it doesn't exist.
       if (entryExists(linkPath)) return;
       ensureDir(packagesDir);
@@ -240,11 +240,11 @@ class Entrypoint {
   /// into them so that their entrypoints can be run. Do the same for any
   /// subdirectories of `test/` and `example/`.
   Future _linkSecondaryPackageDirs(_) {
-    var binDir = join(root.dir, 'bin');
-    var exampleDir = join(root.dir, 'example');
-    var testDir = join(root.dir, 'test');
-    var toolDir = join(root.dir, 'tool');
-    var webDir = join(root.dir, 'web');
+    var binDir = path.join(root.dir, 'bin');
+    var exampleDir = path.join(root.dir, 'example');
+    var testDir = path.join(root.dir, 'test');
+    var toolDir = path.join(root.dir, 'tool');
+    var webDir = path.join(root.dir, 'web');
     return defer(() {
       if (!dirExists(binDir)) return;
       return _linkSecondaryPackageDir(binDir);
@@ -294,7 +294,7 @@ class Entrypoint {
   /// Creates a symlink to the `packages` directory in [dir] if none exists.
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
-      var to = join(dir, 'packages');
+      var to = path.join(dir, 'packages');
       if (entryExists(to)) return;
       return createSymlink(packagesDir, to);
     });

@@ -149,13 +149,13 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(Source source, ErrorCode errorCode, List<Object> arguments) {
-    _jtd_constructor_117_impl(source, errorCode, arguments);
+  AnalysisError.con1(Source source2, ErrorCode errorCode2, List<Object> arguments) {
+    _jtd_constructor_122_impl(source2, errorCode2, arguments);
   }
-  _jtd_constructor_117_impl(Source source, ErrorCode errorCode, List<Object> arguments) {
-    this._source = source;
-    this._errorCode = errorCode;
-    this._message = JavaString.format(errorCode.message, arguments);
+  _jtd_constructor_122_impl(Source source2, ErrorCode errorCode2, List<Object> arguments) {
+    this._source = source2;
+    this._errorCode = errorCode2;
+    this._message = JavaString.format(errorCode2.message, arguments);
   }
   /**
    * Initialize a newly created analysis error for the specified source at the given location.
@@ -165,15 +165,15 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) {
-    _jtd_constructor_118_impl(source, offset, length, errorCode, arguments);
+  AnalysisError.con2(Source source3, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
+    _jtd_constructor_123_impl(source3, offset2, length11, errorCode3, arguments);
   }
-  _jtd_constructor_118_impl(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) {
-    this._source = source;
-    this._offset = offset;
-    this._length = length;
-    this._errorCode = errorCode;
-    this._message = JavaString.format(errorCode.message, arguments);
+  _jtd_constructor_123_impl(Source source3, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
+    this._source = source3;
+    this._offset = offset2;
+    this._length = length11;
+    this._errorCode = errorCode3;
+    this._message = JavaString.format(errorCode3.message, arguments);
   }
   /**
    * Return the error code associated with the error.
@@ -212,8 +212,8 @@ class AnalysisError {
    * Set the source in which the error occurred to the given source.
    * @param source the source in which the error occurred
    */
-  void set source2(Source source) {
-    this._source = source;
+  void set source(Source source4) {
+    this._source = source4;
   }
   String toString() {
     StringBuffer builder = new StringBuffer();

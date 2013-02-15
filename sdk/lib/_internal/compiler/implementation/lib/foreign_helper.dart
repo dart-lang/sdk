@@ -133,6 +133,15 @@ void JS_SET_CURRENT_ISOLATE(var isolate) {}
 dynamic JS_CREATE_ISOLATE() {}
 
 /**
+ * Returns the JavaScript constructor function for Dart's Object class.
+ * This can be used for type tests, as in
+ *
+ *     if (JS('bool', '# instanceof #', obj, JS_DART_OBJECT_CONSTRUCTOR()))
+ *       ...
+ */
+dynamic JS_DART_OBJECT_CONSTRUCTOR() {}
+
+/**
  * Returns the prefix used for generated is checks on classes.
  */
 String JS_OPERATOR_IS_PREFIX() {}

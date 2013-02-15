@@ -11,6 +11,8 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
+import '../../pkg/path/lib/path.dart' as path;
+
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
@@ -99,7 +101,7 @@ class HostedSource extends Source {
     });
 
     return new Future.immediate(
-        join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}"));
+        path.join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}"));
   }
 
   String packageName(description) => _parseDescription(description).first;

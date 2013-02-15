@@ -5,6 +5,7 @@
 library microtask_;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:async';
 import 'dart:html';
 
 main() {
@@ -15,10 +16,10 @@ main() {
     var rafCalled = false;
     var immediateCalled = false;
 
-    window.setTimeout(expectAsync0(() {
+    Timer.run(expectAsync0(() {
       timeoutCalled = true;
       expect(immediateCalled, true);
-    }), 0);
+    }));
 
 
     window.requestAnimationFrame((_) {

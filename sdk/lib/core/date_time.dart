@@ -272,44 +272,83 @@ class DateTime implements Date {
   }
 
   /**
-   * Returns true if [this] occurs at the same time as [other]. The
-   * comparison is independent of whether the time is utc or in the local
-   * time zone.
+   * Returns true if [other] is a [DateTime] at the same moment and in the
+   * same timezone (UTC or local).
+   *
+   * See [isAtSameMomentAs] for a comparison that ignores the timezone.
    */
   bool operator ==(other) {
     if (!(other is DateTime)) return false;
-    return (millisecondsSinceEpoch == other.millisecondsSinceEpoch);
+    return (millisecondsSinceEpoch == other.millisecondsSinceEpoch &&
+            isUtc == other.isUtc);
   }
 
   /**
    * Returns true if [this] occurs before [other]. The comparison is independent
-   * of whether the time is utc or in the local time zone.
+   * of whether the time is in UTC or in the local time zone.
+   *
+   * *Deprecated* Use [isBefore] instead.
    */
+  @deprecated
   bool operator <(DateTime other)
       => millisecondsSinceEpoch < other.millisecondsSinceEpoch;
 
   /**
    * Returns true if [this] occurs at the same time or before [other]. The
-   * comparison is independent of whether the time is utc or in the local
+   * comparison is independent of whether the time is in UTC or in the local
    * time zone.
+   *
+   * *Deprecated* Use [isAfter] instead ([:!isAfter:]).
    */
+  @deprecated
   bool operator <=(DateTime other)
       => millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
 
   /**
    * Returns true if [this] occurs after [other]. The comparison is independent
-   * of whether the time is utc or in the local time zone.
+   * of whether the time is in UTC or in the local time zone.
+   *
+   * *Deprecated* Use [isAfter] instead.
    */
+  @deprecated
   bool operator >(DateTime other)
       => millisecondsSinceEpoch > other.millisecondsSinceEpoch;
 
   /**
    * Returns true if [this] occurs at the same time or after [other]. The
-   * comparison is independent of whether the time is utc or in the local
+   * comparison is independent of whether the time is in UTC or in the local
    * time zone.
+   *
+   * *Deprecated* Use [isBefore] instead ([:!isBefore:]).
    */
+  @deprecated
   bool operator >=(DateTime other)
       => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
+
+  /**
+   * Returns true if [this] occurs before [other]. The comparison is independent
+   * of whether the time is in UTC or in the local time zone.
+   */
+  bool isBefore(DateTime other) {
+    return millisecondsSinceEpoch < other.millisecondsSinceEpoch;
+  }
+
+  /**
+   * Returns true if [this] occurs after [other]. The comparison is independent
+   * of whether the time is in UTC or in the local time zone.
+   */
+  bool isAfter(DateTime other) {
+    return millisecondsSinceEpoch > other.millisecondsSinceEpoch;
+  }
+
+  /**
+   * Returns true if [this] occurs at the same moment as [other]. The
+   * comparison is independent of whether the time is in UTC or in the local
+   * time zone.
+   */
+  bool isAtSameMomentAs(DateTime other) {
+    return millisecondsSinceEpoch == other.millisecondsSinceEpoch;
+  }
 
   int compareTo(DateTime other)
       => millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);

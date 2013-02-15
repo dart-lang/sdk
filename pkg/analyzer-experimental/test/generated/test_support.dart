@@ -42,19 +42,19 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_234_impl();
+    _jtd_constructor_258_impl();
   }
-  _jtd_constructor_234_impl() {
+  _jtd_constructor_258_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
-  GatheringErrorListener.con1(String rawSource) {
-    _jtd_constructor_235_impl(rawSource);
+  GatheringErrorListener.con1(String rawSource2) {
+    _jtd_constructor_259_impl(rawSource2);
   }
-  _jtd_constructor_235_impl(String rawSource) {
-    this._rawSource = rawSource;
-    this._markedSource = rawSource;
+  _jtd_constructor_259_impl(String rawSource2) {
+    this._rawSource = rawSource2;
+    this._markedSource = rawSource2;
   }
   /**
    * Assert that the number of errors that have been gathered matches the number of errors that are
@@ -170,7 +170,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     int expectedErrorCount = 0;
     int expectedWarningCount = 0;
     for (ErrorSeverity severity in expectedSeverities) {
-      if (severity == ErrorSeverity.ERROR) {
+      if (identical(severity, ErrorSeverity.ERROR)) {
         expectedErrorCount++;
       } else {
         expectedWarningCount++;
@@ -179,7 +179,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     int actualErrorCount = 0;
     int actualWarningCount = 0;
     for (AnalysisError error in _errors) {
-      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+      if (identical(error.errorCode.errorSeverity, ErrorSeverity.ERROR)) {
         actualErrorCount++;
       } else {
         actualWarningCount++;
@@ -194,7 +194,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError if any errors have been gathered
    */
   void assertNoErrors() {
-    assertErrors(GatheringErrorListener._NO_ERRORS);
+    assertErrors(_NO_ERRORS);
   }
   /**
    * Return the errors that were collected.
@@ -206,9 +206,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param errorCode the error code being searched for
    * @return {@code true} if an error with the given error code has been gathered
    */
-  bool hasError(ErrorCode errorCode) {
+  bool hasError(ErrorCode errorCode4) {
     for (AnalysisError error in _errors) {
-      if (error.errorCode == errorCode) {
+      if (identical(error.errorCode, errorCode4)) {
         return true;
       }
     }
@@ -244,7 +244,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondError the second error being compared
    * @return {@code true} if the two errors are equivalent
    */
-  bool equals(AnalysisError firstError, AnalysisError secondError) => firstError.errorCode == secondError.errorCode && firstError.offset == secondError.offset && firstError.length == secondError.length && equals3(firstError.source, secondError.source);
+  bool equals(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equals3(firstError.source, secondError.source);
   /**
    * Return {@code true} if the two sources are equivalent.
    * @param firstSource the first source being compared
@@ -272,15 +272,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(expectedErrors.length);
     writer.print(" errors:");
     for (AnalysisError error in expectedErrors) {
-      Source source5 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source5];
+      Source source9 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source9];
       writer.println();
       if (lineInfo == null) {
-        int offset8 = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source5 == null ? "" : source5.shortName, error.errorCode, offset8, offset8 + error.length]);
+        int offset9 = error.offset;
+        writer.printf("  %s %s (%d..%d)", [source9 == null ? "" : source9.shortName, error.errorCode, offset9, offset9 + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source5 == null ? "" : source5.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [source9 == null ? "" : source9.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
     writer.println();
@@ -288,15 +288,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
-      Source source6 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source6];
+      Source source10 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source10];
       writer.println();
       if (lineInfo == null) {
-        int offset9 = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source6 == null ? "" : source6.shortName, error.errorCode, offset9, offset9 + error.length, error.message]);
+        int offset10 = error.offset;
+        writer.printf("  %s %s (%d..%d): %s", [source10 == null ? "" : source10.shortName, error.errorCode, offset10, offset10 + error.length, error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source6 == null ? "" : source6.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [source10 == null ? "" : source10.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
@@ -376,7 +376,7 @@ class EngineTestCase extends JUnitTestCase {
    */
   static void assertEqualString(String expected, String actual) {
     if (actual == null || expected == null) {
-      if (actual == expected) {
+      if (identical(actual, expected)) {
         return;
       }
       if (actual == null) {
@@ -387,8 +387,8 @@ class EngineTestCase extends JUnitTestCase {
     }
     int diffPos = getDiffPos(expected, actual);
     if (diffPos != -1) {
-      int diffAhead = Math.max(0, diffPos - EngineTestCase._PRINT_RANGE);
-      int diffAfter = Math.min(actual.length, diffPos + EngineTestCase._PRINT_RANGE);
+      int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
+      int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
       String diffStr = "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
       String message = "Content not as expected: is\n${actual}\nDiffers at pos ${diffPos}: ${diffStr}\nexpected:\n${expected}";
       JUnitTestCase.assertEqualsMsg(message, expected, actual);
@@ -471,7 +471,7 @@ class EngineTestCase extends JUnitTestCase {
     if (!isInstanceOf(object, expectedClass)) {
       JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
-    return object as Object;
+    return (object as Object);
   }
   /**
    * Assert that the given array is non-{@code null} and has the expected number of elements.
@@ -498,10 +498,10 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
       assertInstanceOf(KeywordToken, actualToken);
-      JUnitTestCase.assertEquals((expectedToken as KeywordToken).keyword, (actualToken as KeywordToken).keyword);
+      JUnitTestCase.assertEquals(((expectedToken as KeywordToken)).keyword, ((actualToken as KeywordToken)).keyword);
     } else if (expectedToken is StringToken) {
       assertInstanceOf(StringToken, actualToken);
-      JUnitTestCase.assertEquals((expectedToken as StringToken).lexeme, (actualToken as StringToken).lexeme);
+      JUnitTestCase.assertEquals(((expectedToken as StringToken)).lexeme, ((actualToken as StringToken)).lexeme);
     }
   }
   /**
@@ -554,7 +554,7 @@ class EngineTestCase extends JUnitTestCase {
     int len1 = Math.min(str1.length, str2.length);
     int diffPos = -1;
     for (int i = 0; i < len1; i++) {
-      if (str1.charCodeAt(i) != str2.charCodeAt(i)) {
+      if (str1.codeUnitAt(i) != str2.codeUnitAt(i)) {
         diffPos = i;
         break;
       }

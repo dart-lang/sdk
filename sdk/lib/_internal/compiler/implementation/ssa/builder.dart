@@ -3010,6 +3010,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       <HInstruction>[]));
   }
 
+  void handleForeignDartObjectJsConstructorFunction(Send node) {
+    if (!node.arguments.isEmpty) {
+      compiler.cancel('Too many arguments', node: node.argumentsNode);
+    }
+    String jsClassReference = backend.namer.isolateAccess(compiler.objectClass);
+    push(new HForeign(new DartString.literal(jsClassReference),
+                      HType.UNKNOWN,
+                      <HInstruction>[]));
+  }
+
   visitForeignSend(Send node) {
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
@@ -3031,6 +3041,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
     } else if (name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
+    } else if (name == const SourceString('JS_DART_OBJECT_CONSTRUCTOR')) {
+      handleForeignDartObjectJsConstructorFunction(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }

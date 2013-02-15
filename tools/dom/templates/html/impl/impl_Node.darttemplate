@@ -69,6 +69,9 @@ $endif
 
 
   void addAll(Iterable<Node> iterable) {
+    if (iterable is _ChildNodeListLazy) {
+      iterable = new List.from(iterable);
+    }
     for (Node node in iterable) {
       _this.$dom_appendChild(node);
     }

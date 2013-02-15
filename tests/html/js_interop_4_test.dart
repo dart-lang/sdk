@@ -5,6 +5,7 @@
 library JsInterop4Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:async';
 import 'dart:html';
 import 'dart:isolate';
 
@@ -52,7 +53,7 @@ main() {
     var done = expectAsync0(() {});
     var fun2 = (message) {
       expect(message, 3);
-      window.setTimeout(done, 0);
+      Timer.run(done);
     };
 
     var port2 = new ReceivePortSync();

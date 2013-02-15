@@ -240,14 +240,18 @@ dynamicBind(var obj,
   // The tag is related to the class name.  E.g. the dart:html class
   // '_ButtonElement' has the tag 'HTMLButtonElement'.  TODO(erikcorry): rename
   // getTypeNameOf to getTypeTag.
-  String tag = getTypeNameOf(obj);
-  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
 
-  var method = dynamicBindLookup(hasOwnPropertyFunction, tag, methods);
-  if (method == null) {
-    String secondTag = alternateTag(obj, tag);
-    if (secondTag != null) {
-      method = dynamicBindLookup(hasOwnPropertyFunction, secondTag, methods);
+  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
+  var method = null;
+  if (!isDartObject(obj)) {
+    String tag = getTypeNameOf(obj);
+
+    method = dynamicBindLookup(hasOwnPropertyFunction, tag, methods);
+    if (method == null) {
+      String secondTag = alternateTag(obj, tag);
+      if (secondTag != null) {
+        method = dynamicBindLookup(hasOwnPropertyFunction, secondTag, methods);
+      }
     }
   }
 
@@ -255,32 +259,31 @@ dynamicBind(var obj,
   // getTypeNameOf in case the minifier has renamed Object.
   if (method == null) {
     String nameOfObjectClass = getTypeNameOf(const Object());
-    method =
-        lookupDynamicClass(hasOwnPropertyFunction, methods, nameOfObjectClass);
+    method = lookupDynamicClass(
+        hasOwnPropertyFunction, methods, nameOfObjectClass);
   }
 
-  var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
   if (method == null) {
-    // If the method cannot be found, we use a trampoline method that
-    // will throw a [NoSuchMethodError] if the object is of the
-    // exact prototype, or will call [dynamicBind] again if the object
-    // is a subclass.
-    method = JS('var',
-        'function () {'
-          'if (Object.getPrototypeOf(this) === #) {'
-            'throw new TypeError(# + " is not a function");'
-          '} else {'
-            'return Object.prototype[#].apply(this, arguments);'
-          '}'
-        '}',
-      proto, name, name);
-  }
-
-  if (!callHasOwnProperty(hasOwnPropertyFunction, proto, name)) {
-    defineProperty(proto, name, method);
+    // Throw the `TypeError` that would have happened if this dynamic bind hook
+    // had not been installed on `Object.prototype`.
+    JS('void',
+       // `(function(){...})()` converts statement `throw` into an expression.
+       '(function(){throw new TypeError(# + " is not a function");})()',
+       name);
+  } else {
+    var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
+    if (!callHasOwnProperty(hasOwnPropertyFunction, proto, name)) {
+      defineProperty(proto, name, method);
+    }
   }
 
   return JS('var', '#.apply(#, #)', method, obj, arguments);
+}
+
+// Is [obj] an instance of a Dart-defined class?
+bool isDartObject(obj) {
+  // Some of the extra parens here are necessary.
+  return JS('bool', '((#) instanceof (#))', obj, JS_DART_OBJECT_CONSTRUCTOR());
 }
 
 dynamicBindLookup(var hasOwnPropertyFunction, String tag, var methods) {

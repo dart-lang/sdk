@@ -1,11 +1,30 @@
 library java.core;
 
 import "dart:math" as math;
+import "dart:io";
+import "dart:uri";
 
 class System {
+  static final String pathSeparator = Platform.pathSeparator;
+  static final int pathSeparatorChar = Platform.pathSeparator.codeUnitAt(0);
+
   static int currentTimeMillis() {
-    return (new Date.now()).millisecondsSinceEpoch;
+    return (new DateTime.now()).millisecondsSinceEpoch;
   }
+  static String getProperty(String name) {
+    if (name == 'os.name') {
+      return Platform.operatingSystem;
+    }
+    if (name == 'line.separator') {
+      if (Platform.operatingSystem == 'windows') {
+        return '\r\n';
+      }
+      return '\n';
+    }
+    return null;
+  }
+  static String getenv(String name) => Platform.environment[name];
+
 }
 
 /**
@@ -20,7 +39,17 @@ bool isInstanceOf(o, Type t) {
     return true;
   }
   String oTypeName = o.runtimeType.toString();
-  if (oTypeName == "${t.toString()}Impl") {
+  String tTypeName = t.toString();
+  if (oTypeName == tTypeName) {
+    return true;
+  }
+  if (oTypeName == "${tTypeName}Impl") {
+    return true;
+  }
+  if (oTypeName.startsWith("_HashMap") && tTypeName == "Map") {
+    return true;
+  }
+  if (oTypeName.startsWith("List") && tTypeName == "List") {
     return true;
   }
   return false;
@@ -45,10 +74,11 @@ class JavaArrays {
     }
     int result = 1;
     for (var element in a) {
-      result = 31 * result + (element == null ? 0 : element.hashCode());
+      result = 31 * result + (element == null ? 0 : element.hashCode);
     }
     return result;
   }
+  static List asList(List list) => list;
 }
 
 class Character {
@@ -80,7 +110,7 @@ class CharBuffer {
   final String _content;
   CharBuffer(this._content);
   static CharBuffer wrap(String content) => new CharBuffer(content);
-  int charAt(int index) => _content.charCodeAt(index);
+  int charAt(int index) => _content.codeUnitAt(index);
   int length() => _content.length;
   String subSequence(int start, int end) => _content.substring(start, end);
 }
@@ -99,7 +129,7 @@ String _printf(String fmt, List args) {
   bool markFound = false;
   int argIndex = 0;
   for (int i = 0; i < fmt.length; i++) {
-    int c = fmt.charCodeAt(i);
+    int c = fmt.codeUnitAt(i);
     if (c == 0x25) {
       if (markFound) {
         sb.addCharCode(c);
@@ -178,9 +208,17 @@ class RuntimeException implements Exception {
   String toString() => "RuntimeException";
 }
 
+class JavaException implements Exception {
+  final String message;
+  final Exception e;
+  JavaException([this.message = "", this.e = null]);
+  JavaException.withCause(this.e) : message = null;
+  String toString() => "JavaException: $message $e";
+}
+
 class IllegalArgumentException implements Exception {
   final String message;
-  const IllegalArgumentException([this.message = ""]);
+  const IllegalArgumentException([this.message = "", Exception e = null]);
   String toString() => "IllegalStateException: $message";
 }
 
@@ -196,6 +234,14 @@ class UnsupportedOperationException implements Exception {
 
 class NumberFormatException implements Exception {
   String toString() => "NumberFormatException";
+}
+
+class URISyntaxException implements Exception {
+  String toString() => "URISyntaxException";
+}
+
+class IOException implements Exception {
+  String toString() => "IOException";
 }
 
 class ListWrapper<E> extends Collection<E> implements List<E> {
@@ -276,6 +322,42 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   }
 }
 
+class JavaIterator<E> {
+  Collection<E> _collection;
+  List<E> _elements = new List<E>();
+  int _coPos = 0;
+  int _elPos = 0;
+  E _current = null;
+  JavaIterator(this._collection) {
+    Iterator iterator = _collection.iterator;
+    while (iterator.moveNext()) {
+      _elements.add(iterator.current);
+    }
+  }
+
+  bool get hasNext {
+    return _elPos < _elements.length;
+  }
+
+  E next() {
+    _current = _elements[_elPos];
+    _coPos++;
+    _elPos++;
+    return _current;
+  }
+
+  void remove() {
+    if (_collection is List) {
+      _coPos--;
+      (_collection as List).remove(_coPos);
+    } else if (_collection is Set) {
+      _collection.remove(_current);
+    } else {
+      throw new StateError("Unsupported collection ${_collection.runtimeType}");
+    }
+  }
+}
+
 class MapEntry<K, V> {
   K _key;
   V _value;
@@ -298,4 +380,28 @@ bool javaSetAdd(Set s, o) {
     return true;
   }
   return false;
+}
+
+void javaMapPutAll(Map target, Map source) {
+  source.forEach((k, v) {
+    target[k] = v;
+  });
+}
+
+File newRelativeFile(File base, String child) {
+  var childPath = new Path(base.fullPathSync()).join(new Path(child));
+  return new File.fromPath(childPath);
+}
+
+File newFileFromUri(Uri uri) {
+  return new File(uri.path);
+}
+
+File getAbsoluteFile(File file) {
+  var path = file.fullPathSync();
+  return new File(path);
+}
+
+Uri newUriFromFile(File file) {
+  return new Uri.fromComponents(path: file.fullPathSync());
 }

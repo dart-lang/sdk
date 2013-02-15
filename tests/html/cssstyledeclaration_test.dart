@@ -6,6 +6,7 @@ library CssStyleDeclarationTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:async';
 
 main() {
   useHtmlConfiguration();
@@ -84,10 +85,10 @@ main() {
     document.body.children.add(element);
 
     // Need to wait one tick after the element has been added to the page.
-    window.setTimeout(expectAsync0(() {
+    new Timer(const Duration(milliseconds: 10), expectAsync0(() {
       element.style.textDecoration = 'underline';
       var style = element.getComputedStyle();
       expect(style.textDecoration, equals('underline'));
-    }), 10);
+    }));
   });
 }

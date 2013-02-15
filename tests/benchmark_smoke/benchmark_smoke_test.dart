@@ -6,6 +6,7 @@ library benchmarksmoketest;
 
 // Tests that benchmark classes used in perf testing are not broken.
 import 'benchmark_lib.dart';
+import 'dart:async';
 import 'dart:html';
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
@@ -13,9 +14,9 @@ import '../../pkg/unittest/lib/html_config.dart';
 void main() {
   useHtmlConfiguration();
 
-  test('performanceTesting', () { 
-    window.setTimeout(BENCHMARK_SUITE.runBenchmarks, 0);
-    window.setTimeout(expectAsync0(testForCompletion), 0);
+  test('performanceTesting', () {
+    Timer.run(BENCHMARK_SUITE.runBenchmarks);
+    Timer.run(expectAsync0(testForCompletion));
   });
 }
 

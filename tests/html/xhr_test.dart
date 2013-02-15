@@ -5,6 +5,7 @@
 library XHRTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'dart:async';
 import 'dart:html';
 import 'dart:json' as json;
 
@@ -20,7 +21,7 @@ main() {
 
   void validate200Response(xhr) {
     expect(xhr.status, equals(200));
-    var data = json.parse(xhr.response);
+    var data = json.parse(xhr.responseText);
     expect(data, contains('feed'));
     expect(data['feed'], contains('entry'));
     expect(data, isMap);
@@ -37,6 +38,18 @@ main() {
     });
   });
 
+  group('supported_onProgress', () {
+    test('supported', () {
+      expect(HttpRequest.supportsProgressEvent, isTrue);
+    });
+  });
+
+  group('supported_onLoadEnd', () {
+    test('supported', () {
+      expect(HttpRequest.supportsLoadEndEvent, isTrue);
+    });
+  });
+
   group('xhr', () {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
@@ -50,18 +63,23 @@ main() {
     });
 
     test('XHR file', () {
+      var loadEndCalled = false;
+
       var xhr = new HttpRequest();
       xhr.open('GET', url, true);
       xhr.onReadyStateChange.listen(expectAsyncUntil1((e) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate200Response(xhr);
+
+          Timer.run(expectAsync0(() {
+            expect(loadEndCalled, HttpRequest.supportsLoadEndEvent);
+          }));
         }
       }, () => xhr.readyState == HttpRequest.DONE));
 
-      xhr.onLoadEnd.listen(expectAsync1((ProgressEvent e) {
-        expect(e.currentTarget, xhr);
-        expect(e.target, xhr);
-      }));
+      xhr.onLoadEnd.listen((ProgressEvent e) {
+        loadEndCalled = true;
+      });
       xhr.send();
     });
 
@@ -90,7 +108,7 @@ main() {
         }).then(expectAsync1(
           (xhr) {
             expect(xhr.readyState, equals(HttpRequest.DONE));
-            expect(progressCalled, isTrue);
+            expect(progressCalled, HttpRequest.supportsProgressEvent);
             validate200Response(xhr);
           }));
     });

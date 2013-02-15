@@ -116,7 +116,7 @@ class Instrumentation {
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
-  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_2();
+  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_5();
   /**
    * The current instrumentation logger.
    */
@@ -162,8 +162,8 @@ class Instrumentation {
    * Set the logger that should receive instrumentation information to the given logger.
    * @param logger the logger that should receive instrumentation information
    */
-  static void set logger(InstrumentationLogger logger) {
-    _CURRENT_LOGGER = logger == null ? Instrumentation._NULL_LOGGER : logger;
+  static void set logger(InstrumentationLogger logger3) {
+    _CURRENT_LOGGER = logger3 == null ? _NULL_LOGGER : logger3;
   }
   /**
    * Prevent the creation of instances of this class
@@ -171,15 +171,15 @@ class Instrumentation {
   Instrumentation() {
   }
 }
-class InstrumentationLogger_2 implements InstrumentationLogger {
+class InstrumentationLogger_5 implements InstrumentationLogger {
   /**
    * An operation builder that will silently ignore all data and logging requests.
    */
-  OperationBuilder _NULL_BUILDER = new OperationBuilder_3();
+  OperationBuilder _NULL_BUILDER = new OperationBuilder_6();
   OperationBuilder createMetric(String name, int time) => _NULL_BUILDER;
   OperationBuilder createOperation(String name, int time) => _NULL_BUILDER;
 }
-class OperationBuilder_3 implements OperationBuilder {
+class OperationBuilder_6 implements OperationBuilder {
   void log() {
   }
   OperationBuilder with2(String name, AsyncValue valueGenerator) => this;

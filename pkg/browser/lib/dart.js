@@ -25,7 +25,7 @@ if (navigator.webkitStartDart) {
         // Remap foo.dart to foo.dart.js.
         if (scripts[i].src && scripts[i].src != '') {
           var script = document.createElement('script');
-          script.src = scripts[i].src + '.js';
+          script.src = scripts[i].src.replace(/\.dart(?=\?|$)/, '.dart.js');
           var parent = scripts[i].parentNode;
           parent.replaceChild(script, scripts[i]);
         }

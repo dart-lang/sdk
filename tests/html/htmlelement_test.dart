@@ -29,21 +29,21 @@ main() {
     TableRowElement headerRow = table.rows[0];
     expect(headerRow.cells.length, 2);
   });
-  test('dataAttributes', () {
+  test('dataset', () {
     Element div = new Element.tag('div');
 
-    expect(div.dataAttributes.isEmpty, isTrue);
-    expect(div.dataAttributes['foo'], isNull);
-    expect(div.dataAttributes.isEmpty, isTrue);
+    expect(div.dataset.isEmpty, isTrue);
+    expect(div.dataset['foo'], isNull);
+    expect(div.dataset.isEmpty, isTrue);
 
-    div.dataAttributes['foo'] = 'foo-value';
-    expect(div.dataAttributes['foo'], 'foo-value');
-    expect(div.dataAttributes.isEmpty, isFalse);
+    div.dataset['foo'] = 'foo-value';
+    expect(div.dataset['foo'], 'foo-value');
+    expect(div.dataset.isEmpty, isFalse);
 
-    expect(div.dataAttributes.containsValue('foo-value'), isTrue);
-    expect(div.dataAttributes.containsValue('bar-value'), isFalse);
-    expect(div.dataAttributes.containsKey('foo'), isTrue);
-    expect(div.dataAttributes.containsKey('bar'), isFalse);
+    expect(div.dataset.containsValue('foo-value'), isTrue);
+    expect(div.dataset.containsValue('bar-value'), isFalse);
+    expect(div.dataset.containsKey('foo'), isTrue);
+    expect(div.dataset.containsKey('bar'), isFalse);
 
     bool hasBeenInvoked;
     String f() {
@@ -52,40 +52,40 @@ main() {
     }
 
     hasBeenInvoked = false;
-    expect(div.dataAttributes.putIfAbsent('bar', f), 'bar-value');
+    expect(div.dataset.putIfAbsent('bar', f), 'bar-value');
     expect(hasBeenInvoked, isTrue);
 
     hasBeenInvoked = false;
-    expect(div.dataAttributes.putIfAbsent('bar', f), 'bar-value');
+    expect(div.dataset.putIfAbsent('bar', f), 'bar-value');
     expect(hasBeenInvoked, isFalse);
 
     final keys = <String> [];
     final values = <String> [];
-    div.dataAttributes.forEach((String key, String value) {
+    div.dataset.forEach((String key, String value) {
         keys.add(key);
         values.add(value);
     });
     expect(keys, unorderedEquals(['foo', 'bar']));
     expect(values, unorderedEquals(['foo-value', 'bar-value']));
 
-    expect(new List<String>.from(div.dataAttributes.keys),
+    expect(new List<String>.from(div.dataset.keys),
         unorderedEquals(['foo', 'bar']));
-    expect(new List<String>.from(div.dataAttributes.values),
+    expect(new List<String>.from(div.dataset.values),
         unorderedEquals(['foo-value', 'bar-value']));
 
-    expect(div.dataAttributes.length, 2);
-    expect(div.dataAttributes.isEmpty, isFalse);
+    expect(div.dataset.length, 2);
+    expect(div.dataset.isEmpty, isFalse);
 
-    expect(div.dataAttributes.remove('qux'), isNull);
-    expect(div.dataAttributes.length, 2);
-    expect(div.dataAttributes.isEmpty, isFalse);
+    expect(div.dataset.remove('qux'), isNull);
+    expect(div.dataset.length, 2);
+    expect(div.dataset.isEmpty, isFalse);
 
-    expect(div.dataAttributes.remove('foo'), 'foo-value');
-    expect(div.dataAttributes.length, 1);
-    expect(div.dataAttributes.isEmpty, isFalse);
+    expect(div.dataset.remove('foo'), 'foo-value');
+    expect(div.dataset.length, 1);
+    expect(div.dataset.isEmpty, isFalse);
 
-    div.dataAttributes.clear();
-    expect(div.dataAttributes.length, 0);
-    expect(div.dataAttributes.isEmpty, isTrue);
+    div.dataset.clear();
+    expect(div.dataset.length, 0);
+    expect(div.dataset.isEmpty, isTrue);
   });
 }
