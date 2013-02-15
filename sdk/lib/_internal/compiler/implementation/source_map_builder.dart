@@ -134,7 +134,6 @@ class SourceMapBuilder {
   int indexOf(List<String> list, String value, Map<String, int> map) {
     return map.putIfAbsent(value, () {
       int index = list.length;
-      map[value] = index;
       list.add(value);
       return index;
     });
