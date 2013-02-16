@@ -15,10 +15,8 @@ import '../../pub/version.dart';
 class MockSource extends Source {
   final String name = "mock";
   final bool shouldCache = false;
-  dynamic parseDescription(String filePath, description,
-                           {bool fromLockFile: false}) {
+  void validateDescription(description, {bool fromLockFile: false}) {
     if (description != 'ok') throw new FormatException('Bad');
-    return description;
   }
   String packageName(description) => 'foo';
 }
@@ -31,12 +29,12 @@ main() {
       sources.register(new MockSource());
 
       expectFormatError(String pubspec) {
-        expect(() => new Pubspec.parse(null, pubspec, sources),
+        expect(() => new Pubspec.parse(pubspec, sources),
             throwsFormatException);
       }
 
       test("allows a version constraint for dependencies", () {
-        var pubspec = new Pubspec.parse(null, '''
+        var pubspec = new Pubspec.parse('''
 dependencies:
   foo:
     mock: ok
@@ -51,7 +49,7 @@ dependencies:
       });
 
       test("allows an empty dependencies map", () {
-        var pubspec = new Pubspec.parse(null, '''
+        var pubspec = new Pubspec.parse('''
 dependencies:
 ''', sources);
 
@@ -76,8 +74,8 @@ dependencies:
       });
 
       test("throws if 'homepage' doesn't have an HTTP scheme", () {
-        new Pubspec.parse(null, 'homepage: http://ok.com', sources);
-        new Pubspec.parse(null, 'homepage: https://also-ok.com', sources);
+        new Pubspec.parse('homepage: http://ok.com', sources);
+        new Pubspec.parse('homepage: https://also-ok.com', sources);
 
         expectFormatError('homepage: ftp://badscheme.com');
         expectFormatError('homepage: javascript:alert("!!!")');
@@ -91,8 +89,8 @@ dependencies:
       });
 
       test("throws if 'documentation' doesn't have an HTTP scheme", () {
-        new Pubspec.parse(null, 'documentation: http://ok.com', sources);
-        new Pubspec.parse(null, 'documentation: https://also-ok.com', sources);
+        new Pubspec.parse('documentation: http://ok.com', sources);
+        new Pubspec.parse('documentation: https://also-ok.com', sources);
 
         expectFormatError('documentation: ftp://badscheme.com');
         expectFormatError('documentation: javascript:alert("!!!")');
@@ -101,8 +99,8 @@ dependencies:
       });
 
       test("throws if 'authors' is not a string or a list of strings", () {
-        new Pubspec.parse(null, 'authors: ok fine', sources);
-        new Pubspec.parse(null, 'authors: [also, ok, fine]', sources);
+        new Pubspec.parse('authors: ok fine', sources);
+        new Pubspec.parse('authors: [also, ok, fine]', sources);
 
         expectFormatError('authors: 123');
         expectFormatError('authors: {not: {a: string}}');
@@ -110,7 +108,7 @@ dependencies:
       });
 
       test("throws if 'author' is not a string", () {
-        new Pubspec.parse(null, 'author: ok fine', sources);
+        new Pubspec.parse('author: ok fine', sources);
 
         expectFormatError('author: 123');
         expectFormatError('author: {not: {a: string}}');
@@ -122,7 +120,7 @@ dependencies:
       });
 
       test("allows comment-only files", () {
-        var pubspec = new Pubspec.parse(null, '''
+        var pubspec = new Pubspec.parse('''
 # No external dependencies yet
 # Including for completeness
 # ...and hoping the spec expands to include details about author, version, etc
@@ -134,12 +132,12 @@ dependencies:
 
       group("environment", () {
         test("defaults to any SDK constraint if environment is omitted", () {
-          var pubspec = new Pubspec.parse(null, '', sources);
+          var pubspec = new Pubspec.parse('', sources);
           expect(pubspec.environment.sdkVersion, equals(VersionConstraint.any));
         });
 
         test("allows an empty environment map", () {
-          var pubspec = new Pubspec.parse(null, '''
+          var pubspec = new Pubspec.parse('''
 environment:
 ''', sources);
           expect(pubspec.environment.sdkVersion, equals(VersionConstraint.any));
@@ -152,7 +150,7 @@ environment: []
         });
 
         test("allows a version constraint for the sdk", () {
-          var pubspec = new Pubspec.parse(null, '''
+          var pubspec = new Pubspec.parse('''
 environment:
   sdk: ">=1.2.3 <2.3.4"
 ''', sources);

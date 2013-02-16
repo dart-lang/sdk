@@ -82,7 +82,7 @@ class Entrypoint {
     }).then((_) {
       if (id.source.shouldCache) {
         return cache.install(id).then(
-            (pkg) => createPackageSymlink(id.name, packageDir, pkg.dir));
+            (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
       } else {
         return id.source.install(id, packageDir).then((found) {
           if (found) return null;
@@ -209,7 +209,7 @@ class Entrypoint {
   LockFile loadLockFile() {
     var lockFilePath = path.join(root.dir, 'pubspec.lock');
     if (!fileExists(lockFilePath)) return new LockFile.empty();
-    return new LockFile.load(lockFilePath, cache.sources);
+    return new LockFile.parse(readTextFile(lockFilePath), cache.sources);
   }
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
@@ -231,7 +231,7 @@ class Entrypoint {
       // Create the symlink if it doesn't exist.
       if (entryExists(linkPath)) return;
       ensureDir(packagesDir);
-      return createPackageSymlink(root.name, linkPath, root.dir,
+      return createPackageSymlink(root.name, root.dir, linkPath,
           isSelfLink: true);
     });
   }
@@ -294,9 +294,9 @@ class Entrypoint {
   /// Creates a symlink to the `packages` directory in [dir] if none exists.
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
-      var symlink = path.join(dir, 'packages');
-      if (entryExists(symlink)) return;
-      return createSymlink(packagesDir, symlink);
+      var to = path.join(dir, 'packages');
+      if (entryExists(to)) return;
+      return createSymlink(packagesDir, to);
     });
   }
 }

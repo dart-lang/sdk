@@ -264,23 +264,15 @@ Future _attemptRetryable(Future callback()) {
   return makeAttempt(null);
 }
 
-/// Creates a new symlink at path [symlink] that points to [target]. Returns a
-/// [Future] which completes to the path to the symlink file.
-///
-/// If [relative] is true, creates a symlink with a relative path from the
-/// symlink to the target. Otherwise, uses the [target] path unmodified.
+/// Creates a new symlink that creates an alias from [from] to [to]. Returns a
+/// [Future] which completes to the symlink file (i.e. [to]).
 ///
 /// Note that on Windows, only directories may be symlinked to.
-Future<String> createSymlink(String target, String symlink,
-    {bool relative: false}) {
-  if (relative) {
-    target = path.normalize(path.relative(target, from: path.dirname(symlink)));
-  }
-
-  log.fine("Creating $symlink pointing to $target");
+Future<String> createSymlink(String from, String to) {
+  log.fine("Creating symlink ($to is a symlink to $from)");
 
   var command = 'ln';
-  var args = ['-s', target, symlink];
+  var args = ['-s', from, to];
 
   if (Platform.operatingSystem == 'windows') {
     // Call mklink on Windows to create an NTFS junction point. Only works on
@@ -289,29 +281,24 @@ Future<String> createSymlink(String target, String symlink,
     // link (/d) because the latter requires some privilege shenanigans that
     // I'm not sure how to specify from the command line.
     command = 'mklink';
-    args = ['/j', symlink, target];
+    args = ['/j', to, from];
   }
 
   // TODO(rnystrom): Check exit code and output?
-  return runProcess(command, args).then((result) => symlink);
+  return runProcess(command, args).then((result) => to);
 }
 
-/// Creates a new symlink that creates an alias at [symlink] that points to the
-/// `lib` directory of package [target]. Returns a [Future] which completes to
-/// the path to the symlink file. If [target] does not have a `lib` directory,
-/// this shows a warning if appropriate and then does nothing.
-///
-/// If [relative] is true, creates a symlink with a relative path from the
-/// symlink to the target. Otherwise, uses the [target] path unmodified.
-Future<String> createPackageSymlink(String name, String symlink, String target,
-    {bool isSelfLink: false, bool relative: false}) {
+/// Creates a new symlink that creates an alias from the `lib` directory of
+/// package [from] to [to]. Returns a [Future] which completes to the symlink
+/// file (i.e. [to]). If [from] does not have a `lib` directory, this shows a
+/// warning if appropriate and then does nothing.
+Future<String> createPackageSymlink(String name, String from, String to,
+    {bool isSelfLink: false}) {
   return defer(() {
     // See if the package has a "lib" directory.
-    target = path.join(target, 'lib');
+    from = path.join(from, 'lib');
     log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
-    if (dirExists(target)) {
-      return createSymlink(target, symlink, relative: relative);
-    }
+    if (dirExists(from)) return createSymlink(from, to);
 
     // It's OK for the self link (i.e. the root package) to not have a lib
     // directory since it may just be a leaf application that only has
@@ -321,7 +308,7 @@ Future<String> createPackageSymlink(String name, String symlink, String target,
                   'you will not be able to import any libraries from it.');
     }
 
-    return symlink;
+    return to;
   });
 }
 

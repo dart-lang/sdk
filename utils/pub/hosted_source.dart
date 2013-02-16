@@ -56,7 +56,7 @@ class HostedSource extends Source {
       "${id.version}.yaml";
 
     return httpClient.read(fullUrl).then((yaml) {
-      return new Pubspec.parse(null, yaml, systemCache.sources);
+      return new Pubspec.parse(yaml, systemCache.sources);
     }).catchError((ex) {
       _throwFriendlyError(ex, id, parsed.last);
     });
@@ -114,10 +114,8 @@ class HostedSource extends Source {
   /// There are two valid formats. A plain string refers to a package with the
   /// given name from the default host, while a map with keys "name" and "url"
   /// refers to a package with the given name from the host at the given URL.
-  dynamic parseDescription(String containingPath, description,
-                           {bool fromLockFile: false}) {
+  void validateDescription(description, {bool fromLockFile: false}) {
     _parseDescription(description);
-    return description;
   }
 
   /// When an error occurs trying to read something about [package] from [url],

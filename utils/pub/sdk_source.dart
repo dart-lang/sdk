@@ -41,7 +41,7 @@ class SdkSource extends Source {
       var path = _getPackagePath(id);
       if (path == null) return false;
 
-      return createPackageSymlink(id.name, destPath, path).then((_) => true);
+      return createPackageSymlink(id.name, path, destPath).then((_) => true);
     });
   }
 
