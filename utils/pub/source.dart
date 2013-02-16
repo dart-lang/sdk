@@ -169,13 +169,23 @@ abstract class Source {
   /// When a [Pubspec] or [LockFile] is parsed, it reads in the description for
   /// each dependency. It is up to the dependency's [Source] to determine how
   /// that should be interpreted. This will be called during parsing to validate
-  /// that the given [description] is well-formed according to this source. It
-  /// should return if the description is valid, or throw a [FormatException] if
-  /// not.
+  /// that the given [description] is well-formed according to this source, and
+  /// to give the source a chance to canonicalize the description.
+  ///
+  /// [containingPath] is the path to the local file (pubspec or lockfile)
+  /// where this description appears. It may be `null` if the description is
+  /// coming from some in-memory source (such as pulling down a pubspec from
+  /// pub.dartlang.org).
+  ///
+  /// It should return if a (possibly modified) valid description, or throw a
+  /// [FormatException] if not valid.
   ///
   /// [fromLockFile] is true when the description comes from a [LockFile], to
   /// allow the source to use lockfile-specific descriptions via [resolveId].
-  void validateDescription(description, {bool fromLockFile: false}) {}
+  dynamic parseDescription(String containingPath, description,
+                           {bool fromLockFile: false}) {
+    return description;
+  }
 
   /// Returns whether or not [description1] describes the same package as
   /// [description2] for this source. This method should be light-weight. It
@@ -199,7 +209,7 @@ abstract class Source {
   /// the resolved id.
   ///
   /// The returned [PackageId] may have a description field that's invalid
-  /// according to [validateDescription], although it must still be serializable
+  /// according to [parseDescription], although it must still be serializable
   /// to JSON and YAML. It must also be equal to [id] according to
   /// [descriptionsEqual].
   ///

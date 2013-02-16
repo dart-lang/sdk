@@ -10,6 +10,7 @@ import '../../pkg/path/lib/path.dart' as path;
 
 import 'git.dart' as git;
 import 'io.dart';
+import 'log.dart' as log;
 import 'package.dart';
 import 'source.dart';
 import 'source_registry.dart';
@@ -67,24 +68,33 @@ class GitSource extends Source {
       return path.join(systemCacheRoot, revisionCacheName);
     });
   }
+
   /// Ensures [description] is a Git URL.
-  void validateDescription(description, {bool fromLockFile: false}) {
+  dynamic parseDescription(String containingPath, description,
+                           {bool fromLockFile: false}) {
+    // TODO(rnystrom): Handle git URLs that are relative file paths (#8570).
     // A single string is assumed to be a Git URL.
-    if (description is String) return;
+    // TODO(rnystrom): Now that this function can modify the description, it
+    // may as well canonicalize it to a map so that other code in the source
+    // can assume that.
+    if (description is String) return description;
     if (description is! Map || !description.containsKey('url')) {
       throw new FormatException("The description must be a Git URL or a map "
           "with a 'url' key.");
     }
-    description = new Map.from(description);
-    description.remove('url');
-    description.remove('ref');
-    if (fromLockFile) description.remove('resolved-ref');
 
-    if (!description.isEmpty) {
-      var plural = description.length > 1;
-      var keys = description.keys.join(', ');
+    var parsed = new Map.from(description);
+    parsed.remove('url');
+    parsed.remove('ref');
+    if (fromLockFile) parsed.remove('resolved-ref');
+
+    if (!parsed.isEmpty) {
+      var plural = parsed.length > 1;
+      var keys = parsed.keys.join(', ');
       throw new FormatException("Invalid key${plural ? 's' : ''}: $keys.");
     }
+
+    return description;
   }
 
   /// Two Git descriptions are equal if both their URLs and their refs are
