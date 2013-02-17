@@ -42,7 +42,7 @@ Map<String, PubCommand> get pubCommands {
     'uploader': new UploaderCommand(),
     'version': new VersionCommand()
   };
-  for (var command in commands.values) {
+  for (var command in commands.values.toList()) {
     for (var alias in command.aliases) {
       commands[alias] = command;
     }
