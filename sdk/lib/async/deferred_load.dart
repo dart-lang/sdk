@@ -1,0 +1,41 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Indicates that loading of [libraryName] is deferred.
+ *
+ * Applies to library imports, when used as metadata.
+ *
+ * Example usage:
+ *
+ * [:
+ * @lazy
+ * import 'foo.dart' as foo;
+ *
+ * const lazy = const DeferredLibrary('com.example.foo');
+ *
+ * void main() {
+ *   foo.method(); // Throws a NoSuchMethodError, foo is not loaded yet.
+ *   lazy.load().then(onFooLoaded);
+ * }
+ *
+ * void onFooLoaded(_) {
+ *   foo.method();
+ * }
+ * :]
+ */
+class DeferredLibrary {
+  final String libraryName;
+  final String uri;
+
+  const DeferredLibrary(this.libraryName, {this.uri});
+
+  /**
+   * Ensure that [libraryName] has been loaded.
+   *
+   * The value of the returned future is true if this invocation of
+   * [load] caused the library to be loaded.
+   */
+  external Future<bool> load();
+}

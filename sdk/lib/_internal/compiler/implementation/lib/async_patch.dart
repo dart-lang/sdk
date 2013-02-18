@@ -38,3 +38,15 @@ patch class Timer {
     return new TimerImpl.repeating(milliseconds, callback);
   }
 }
+
+final Set<String> _loadedLibraries = new Set<String>();
+
+patch class DeferredLibrary {
+  patch Future<bool> load() {
+    // TODO(ahe): Implement this.
+    Future future =
+        new Future<bool>.immediate(!_loadedLibraries.contains(libraryName));
+    _loadedLibraries.add(libraryName);
+    return future;
+  }
+}
