@@ -1009,6 +1009,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   compiledArguments);
     assert(succeeded);
 
+    // Create the inlining state after evaluating the arguments, that
+    // may have an impact on the state of the current method.
+    InliningState state = new InliningState(
+        function, returnElement, returnType, elements, stack, localsHandler);
+    localsHandler = new LocalsHandler.from(localsHandler);
+
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
     signature.orderedForEachParameter((Element parameter) {
@@ -1036,8 +1042,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
     }
-    InliningState state =
-        new InliningState(function, returnElement, returnType, elements, stack);
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new ElementX(const SourceString("result"),
@@ -1063,6 +1067,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(stack.length == 1);
     state.oldStack.add(stack[0]);
     stack = state.oldStack;
+    localsHandler = state.oldLocalsHandler;
   }
 
   /**
@@ -4834,12 +4839,14 @@ class InliningState {
   final DartType oldReturnType;
   final TreeElements oldElements;
   final List<HInstruction> oldStack;
+  final LocalsHandler oldLocalsHandler;
 
   InliningState(this.function,
                 this.oldReturnElement,
                 this.oldReturnType,
                 this.oldElements,
-                this.oldStack) {
+                this.oldStack,
+                this.oldLocalsHandler) {
     assert(function.isImplementation);
   }
 }
