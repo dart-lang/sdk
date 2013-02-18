@@ -17,9 +17,6 @@ async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.c
 crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
 
-[ $runtime == safari]
-crypto/hmac_md5_test: Fail # Bug in JSC: the test only passes when being debugged.
-
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
