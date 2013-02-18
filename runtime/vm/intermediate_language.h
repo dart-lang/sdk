@@ -44,6 +44,18 @@ class FlowGraphOptimizer;
   V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
   V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
   V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
+  V(_Float32Array, _getIndexed, Float32ArrayGetIndexed, 734006846)             \
+  V(_Float64Array, _getIndexed, Float64ArrayGetIndexed, 498074772)             \
+  V(_Int8Array, _getIndexed, Int8ArrayGetIndexed, 712069760)                   \
+  V(_Uint8Array, _getIndexed, Uint8ArrayGetIndexed, 535849990)                 \
+  V(_Uint8ClampedArray, _getIndexed, Uint8ClampedArrayGetIndexed, 873344956)   \
+  V(_ExternalUint8Array, _getIndexed, ExternalUint8ArrayGetIndexed, 402720239) \
+  V(_ExternalUint8ClampedArray, _getIndexed,                                   \
+    ExternalUint8ClampedArrayGetIndexed, 682839007)                            \
+  V(_Int16Array, _getIndexed, Int16ArrayGetIndexed, 313999108)                 \
+  V(_Uint16Array, _getIndexed, Uint16ArrayGetIndexed, 539701175)               \
+  V(_Int32Array, _getIndexed, Int32ArrayGetIndexed, 655321526)                 \
+  V(_Uint32Array, _getIndexed, Uint32ArrayGetIndexed, 1060443550)              \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \

@@ -1390,11 +1390,31 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     // No type feedback collected or multiple targets found.
     return false;
   }
+
   Function& target = Function::Handle();
   GrowableArray<intptr_t> class_ids;
   ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
+
+  // Byte array access.
+  switch (recognized_kind) {
+    case MethodRecognizer::kFloat32ArrayGetIndexed:
+    case MethodRecognizer::kFloat64ArrayGetIndexed:
+    case MethodRecognizer::kInt8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ArrayGetIndexed:
+    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
+    case MethodRecognizer::kInt16ArrayGetIndexed:
+    case MethodRecognizer::kUint16ArrayGetIndexed:
+    case MethodRecognizer::kInt32ArrayGetIndexed:
+    case MethodRecognizer::kUint32ArrayGetIndexed:
+      return TryReplaceWithLoadIndexed(call);
+    default:
+      break;
+  }
+
   if ((recognized_kind == MethodRecognizer::kStringBaseCharCodeAt) &&
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
