@@ -373,6 +373,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     staticUse(const SourceString('defineProperty'));
     staticUse(const SourceString('toStringForNativeObject'));
     staticUse(const SourceString('hashCodeForNativeObject'));
+    staticUse(const SourceString('convertDartClosureToJS'));
 
     addNativeExceptions();
   }
