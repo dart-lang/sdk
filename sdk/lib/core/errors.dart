@@ -151,49 +151,7 @@ class NoSuchMethodError implements Error {
                           [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames;
 
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    int i = 0;
-    if (_arguments != null) {
-      for (; i < _arguments.length; i++) {
-        if (i > 0) {
-          sb.add(", ");
-        }
-        sb.add(Error.safeToString(_arguments[i]));
-      }
-    }
-    if (_namedArguments != null) {
-      _namedArguments.forEach((String key, var value) {
-        if (i > 0) {
-          sb.add(", ");
-        }
-        sb.add(key);
-        sb.add(": ");
-        sb.add(Error.safeToString(value));
-        i++;
-      });
-    }
-    if (_existingArgumentNames == null) {
-      return "NoSuchMethodError : method not found: '$_memberName'\n"
-          "Receiver: ${Error.safeToString(_receiver)}\n"
-          "Arguments: [$sb]";
-    } else {
-      String actualParameters = sb.toString();
-      sb = new StringBuffer();
-      for (int i = 0; i < _existingArgumentNames.length; i++) {
-        if (i > 0) {
-          sb.add(", ");
-        }
-        sb.add(_existingArgumentNames[i]);
-      }
-      String formalParameters = sb.toString();
-      return "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$_memberName'\n"
-          "Receiver: ${Error.safeToString(_receiver)}\n"
-          "Tried calling: $_memberName($actualParameters)\n"
-          "Found: $_memberName($formalParameters)";
-    }
-  }
+  external String toString();
 }
 
 
