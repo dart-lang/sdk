@@ -121,9 +121,12 @@ abstract class Enqueuer {
     if (isProcessed(member)) return;
     if (!member.isInstanceMember()) return;
     if (member.isField()) {
-      // Native fields need to go into instanceMembersByName as they are virtual
-      // instantiation points and escape points.
-      // Test the enclosing class, since the metadata has not been parsed yet.
+      // Fields are implicitly used by the constructor of the
+      // instantiated class they are part of.
+      compiler.world.registerUsedElement(member);
+      // Native fields need to go into instanceMembersByName as they
+      // are virtual instantiation points and escape points. Test the
+      // enclosing class, since the metadata has not been parsed yet.
       if (!member.enclosingElement.isNative()) return;
     }
 

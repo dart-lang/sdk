@@ -2156,24 +2156,6 @@ class CodeEmitterTask extends CompilerTask {
     // do not introduce duplicates (bad for code size).
     Set<String> addedJsNames = new Set<String>();
 
-    // Keep track of the noSuchMethod holders for each possible
-    // receiver type.
-    Map<ClassElement, Set<ClassElement>> noSuchMethodHolders =
-        new Map<ClassElement, Set<ClassElement>>();
-    Set<ClassElement> noSuchMethodHoldersFor(DartType type) {
-      ClassElement element = type.element;
-      Set<ClassElement> result = noSuchMethodHolders[element];
-      if (result == null) {
-        // For now, we check the entire world to see if an object of
-        // the given type may have a user-defined noSuchMethod
-        // implementation. We could do better by only looking at
-        // instantiated (or otherwise needed) classes.
-        result = compiler.world.findNoSuchMethodHolders(type);
-        noSuchMethodHolders[element] = result;
-      }
-      return result;
-    }
-
     jsAst.Expression generateMethod(String jsName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
       int type = selector.invocationMirrorKind;
@@ -2239,11 +2221,10 @@ class CodeEmitterTask extends CompilerTask {
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
-        DartType receiverType = objectType;
         ClassElement receiverClass = objectClass;
         if (selector is TypedSelector) {
           TypedSelector typedSelector = selector;
-          receiverType = typedSelector.receiverType;
+          DartType receiverType = typedSelector.receiverType;
           receiverClass = receiverType.element;
         }
 
@@ -2289,7 +2270,8 @@ class CodeEmitterTask extends CompilerTask {
         // If we're calling bar on an object of type A we do need the
         // handler because we may have to call B.noSuchMethod since B
         // does not implement bar.
-        Set<ClassElement> holders = noSuchMethodHoldersFor(receiverType);
+        Iterable<ClassElement> holders =
+            compiler.world.locateNoSuchMethodHolders(selector);
         if (holders.every(hasMatchingMember)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         if (!addedJsNames.contains(jsName)) {

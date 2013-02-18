@@ -29,7 +29,7 @@ abstract class HType {
     JavaScriptBackend backend = compiler.backend;
     if (element == compiler.intClass || element == backend.jsIntClass) {
       return canBeNull ? HType.INTEGER_OR_NULL : HType.INTEGER;
-    } else if (element == compiler.numClass 
+    } else if (element == compiler.numClass
                || element == backend.jsNumberClass) {
       return canBeNull ? HType.NUMBER_OR_NULL : HType.NUMBER;
     } else if (element == compiler.doubleClass
@@ -169,26 +169,22 @@ abstract class HType {
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
 
-  Element lookupSingleTarget(Selector selector, Compiler compiler) {
-    if (isInterfaceType()) return null;
-    DartType type = computeType(compiler);
-    if (type == null) return null;
-    ClassElement cls = type.element;
-    Element member = cls.lookupSelector(selector);
-    if (member == null) return null;
-    // [:ClassElement.lookupSelector:] may return an abstract field,
-    // and selctors don't work well with them.
-    // TODO(ngeoffray): Clean up lookupSelector and selectors to know
-    // if it's a getter or a setter that we're interested in.
-    if (!member.isFunction()) return null;
-    if (!selector.applies(member, compiler)) return null;
-    if (!isExact() && !compiler.world.hasNoOverridingMember(member)) {
-      return null;
-    }
-    return member;
-  }
-
   DartType computeType(Compiler compiler);
+
+  Selector refine(Selector selector, Compiler compiler) {
+    DartType receiverType = computeType(compiler);
+    if (receiverType != null && !receiverType.isMalformed) {
+      if (isExact()) {
+        return new TypedSelector.exact(receiverType, selector);
+      } else if (isInterfaceType()) {
+        return new TypedSelector.subtype(receiverType, selector);
+      } else {
+        return new TypedSelector.subclass(receiverType, selector);
+      }
+    } else {
+      return selector;
+    }
+  }
 
   /**
    * The intersection of two types is the intersection of its values. For

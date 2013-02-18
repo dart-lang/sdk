@@ -11,18 +11,16 @@ class World {
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final Set<ClassElement> classesNeedingRti;
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
-  final FunctionSet userDefinedGetters;
-  final FunctionSet userDefinedSetters;
+  final FullFunctionSet allFunctions;
 
   World(Compiler compiler)
       : subtypes = new Map<ClassElement, Set<ClassElement>>(),
         mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
         typesImplementedBySubclasses =
             new Map<ClassElement, Set<ClassElement>>(),
-        userDefinedGetters = new FunctionSet(compiler),
-        userDefinedSetters = new FunctionSet(compiler),
         classesNeedingRti = new Set<ClassElement>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
+        allFunctions = new FullFunctionSet(compiler),
         this.compiler = compiler;
 
   void populate() {
@@ -117,22 +115,12 @@ class World {
     return classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
   }
 
-  void recordUserDefinedGetter(Element element) {
-    assert(element.isGetter());
-    userDefinedGetters.add(element);
-  }
-
-  void recordUserDefinedSetter(Element element) {
-    assert(element.isSetter());
-    userDefinedSetters.add(element);
-  }
-
   bool hasAnyUserDefinedGetter(Selector selector) {
-    return !userDefinedGetters.filter(selector).isEmpty;
+    return allFunctions.filter(selector).any((each) => each.isGetter());
   }
 
   bool hasAnyUserDefinedSetter(Selector selector) {
-    return !userDefinedSetters.filter(selector).isEmpty;
+     return allFunctions.filter(selector).any((each) => each.isSetter());
   }
 
   // Returns whether a subclass of [superclass] implements [type].
@@ -142,97 +130,44 @@ class World {
     return subclasses.contains(type.element);
   }
 
-  bool hasNoOverridingMember(Element element) {
-    ClassElement cls = element.getEnclosingClass();
-    Set<ClassElement> subclasses = compiler.world.subtypes[cls];
-    // TODO(ngeoffray): Implement the full thing.
-    return subclasses == null || subclasses.isEmpty;
-  }
-
   void registerUsedElement(Element element) {
     if (element.isInstanceMember() && !element.isAbstract(compiler)) {
-      if (element.isGetter()) {
-        // We're collecting user-defined getters to let the codegen know which
-        // field accesses might have side effects.
-        recordUserDefinedGetter(element);
-      } else if (element.isSetter()) {
-        recordUserDefinedSetter(element);
-      }
+      allFunctions.add(element);
     }
   }
 
-  /**
-   * Returns a [MemberSet] that contains the possible targets of the given
-   * [selector] on a receiver with the given [type]. This includes all sub
-   * types.
-   */
-  MemberSet _memberSetFor(DartType type, Selector selector) {
-    assert(compiler != null);
-    ClassElement cls = type.element;
-    SourceString name = selector.name;
-    LibraryElement library = selector.library;
-    MemberSet result = new MemberSet(name);
-    Element element = cls.implementation.lookupSelector(selector);
-    if (element != null) result.add(element);
-
-    bool isPrivate = name.isPrivate();
-    Set<ClassElement> subtypesOfCls = subtypes[cls];
-    if (subtypesOfCls != null) {
-      for (ClassElement sub in subtypesOfCls) {
-        // Private members from a different library are not visible.
-        if (isPrivate && sub.getLibrary() != library) continue;
-        element = sub.implementation.lookupLocalMember(name);
-        if (element != null) result.add(element);
-      }
-    }
-    return result;
+  VariableElement locateSingleField(Selector selector) {
+    Element result = locateSingleElement(selector);
+    return (result != null && result.isField()) ? result : null;
   }
 
-  /**
-   * Returns the field in [type] described by the given [selector].
-   * If no such field exists, or a subclass overrides the field
-   * returns [:null:].
-   */
-  VariableElement locateSingleField(DartType type, Selector selector) {
-    ClassElement cls = type.element;
-    Element result = cls.implementation.lookupSelector(selector);
-    if (result == null) return null;
-    if (!result.isField()) return null;
-
-    // Verify that no subclass overrides the field.
-    MemberSet memberSet = _memberSetFor(type, selector);
-    if (memberSet.elements.length != 1) return null;
-    assert(memberSet.elements.contains(result));
-    return result;
+  Element locateSingleElement(Selector selector) {
+    Iterable<Element> targets = allFunctions.filter(selector);
+    if (targets.length != 1) return null;
+    Element result = targets.first;
+    ClassElement enclosing = result.getEnclosingClass();
+    DartType receiverType = selector.receiverType;
+    ClassElement receiverTypeElement = (receiverType == null)
+        ? compiler.objectClass
+        : receiverType.element;
+    // We only return the found element if it is guaranteed to be
+    // implemented on the exact receiver type. It could be found in a
+    // subclass or in an inheritance-wise unrelated class in case of
+    // subtype selectors.
+    return (receiverTypeElement.isSubclassOf(enclosing)) ? result : null;
   }
 
-  Set<ClassElement> findNoSuchMethodHolders(DartType type) {
-    Set<ClassElement> result = new Set<ClassElement>();
+  Iterable<ClassElement> locateNoSuchMethodHolders(Selector selector) {
     Selector noSuchMethodSelector = new Selector.noSuchMethod();
-    MemberSet memberSet = _memberSetFor(type, noSuchMethodSelector);
-    for (Element element in memberSet.elements) {
-      ClassElement holder = element.getEnclosingClass();
-      if (!identical(holder, compiler.objectClass) &&
-          noSuchMethodSelector.applies(element, compiler)) {
-        result.add(holder);
-      }
+    DartType receiverType = selector.receiverType;
+    if (receiverType != null) {
+      noSuchMethodSelector = new TypedSelector(
+          receiverType, selector.typeKind, noSuchMethodSelector);
     }
-    return result;
+    ClassElement objectClass = compiler.objectClass;
+    return allFunctions
+        .filter(noSuchMethodSelector)
+        .map((Element member) => member.getEnclosingClass())
+        .where((ClassElement holder) => !identical(holder, objectClass));
   }
-}
-
-/**
- * A [MemberSet] contains all the possible targets for a selector.
- */
-class MemberSet {
-  final Set<Element> elements;
-  final SourceString name;
-
-  MemberSet(SourceString this.name) : elements = new Set<Element>();
-
-  void add(Element element) {
-    elements.add(element);
-  }
-
-  bool get isEmpty => elements.isEmpty;
 }

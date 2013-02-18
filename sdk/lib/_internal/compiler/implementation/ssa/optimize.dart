@@ -389,7 +389,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     if (node.isInterceptorCall) return handleInterceptorCall(node);
     HType receiverType = types[node.receiver];
-    Element element = receiverType.lookupSingleTarget(node.selector, compiler);
+    Selector selector = receiverType.refine(node.selector, compiler);
+    Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null && element.isFunction()) {
       FunctionElement method = element;
@@ -599,11 +600,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   Element findConcreteFieldForDynamicAccess(HInstruction receiver,
                                             Selector selector) {
     HType receiverType = types[receiver];
-    if (!receiverType.isUseful()) return null;
-    DartType type = receiverType.computeType(compiler);
-    if (type == null) return null;
-    if (Elements.isErroneousElement(type.element)) return null;
-    return compiler.world.locateSingleField(type, selector);
+    return compiler.world.locateSingleField(
+        receiverType.refine(selector, compiler));
   }
 
   HInstruction visitFieldGet(HFieldGet node) {

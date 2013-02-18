@@ -250,21 +250,25 @@ class LocalsHandler {
 
   HType cachedTypeOfThis;
 
-  HType computeTypeOfThis() {
-    Element element = closureData.thisElement;
-    ClassElement cls = element.enclosingElement.getEnclosingClass();
-    Compiler compiler = builder.compiler;
-    DartType type = cls.computeType(compiler);
-    if (compiler.world.isUsedAsMixin(cls)) {
-      // If the enclosing class is used as a mixin, [:this:] can be
-      // of the class that mixins the enclosing class. These two
-      // classes do not have a subclass relationship, so, for
-      // simplicity, we mark the type as an interface type.
-      cachedTypeOfThis = new HType.nonNullSubtype(type, compiler);
-    } else {
-      cachedTypeOfThis = new HType.nonNullSubclass(type, compiler);
+  HType getTypeOfThis() {
+    HType result = cachedTypeOfThis;
+    if (result == null) {
+      Element element = closureData.thisElement;
+      ClassElement cls = element.enclosingElement.getEnclosingClass();
+      Compiler compiler = builder.compiler;
+      DartType type = cls.computeType(compiler);
+      if (compiler.world.isUsedAsMixin(cls)) {
+        // If the enclosing class is used as a mixin, [:this:] can be
+        // of the class that mixins the enclosing class. These two
+        // classes do not have a subclass relationship, so, for
+        // simplicity, we mark the type as an interface type.
+        result = new HType.nonNullSubtype(type, compiler);
+      } else {
+        result = new HType.nonNullSubclass(type, compiler);
+      }
+      cachedTypeOfThis = result;
     }
-    return cachedTypeOfThis;
+    return result;
   }
 
   /**
@@ -320,7 +324,7 @@ class LocalsHandler {
       // not have any thisElement if the closure was created inside a static
       // context.
       HThis thisInstruction = new HThis(
-          closureData.thisElement, computeTypeOfThis());
+          closureData.thisElement, getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
@@ -435,10 +439,7 @@ class LocalsHandler {
   HInstruction readThis() {
     HInstruction res = readLocal(closureData.thisElement);
     if (res.guaranteedType == null) {
-      if (cachedTypeOfThis == null) {
-        computeTypeOfThis();
-      }
-      res.guaranteedType = cachedTypeOfThis;
+      res.guaranteedType = getTypeOfThis();
     }
     return res;
   }
@@ -2327,9 +2328,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           buildInvokeDynamic(send, selector, left, [right]),
           op);
     if (op.source.stringValue == '!=') {
-      HBoolify bl = new HBoolify(pop());
-      add(bl);
-      pushWithPosition(new HNot(bl), op);
+      pushWithPosition(new HNot(popBoolified()), op);
     }
   }
 
@@ -2793,26 +2792,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  visitDynamicSend(Send node) {
+  bool isThisSend(Send send) {
+    Node receiver = send.receiver;
+    if (receiver == null) return true;
+    Identifier identifier = receiver.asIdentifier();
+    return identifier != null && identifier.isThis();
+  }
+
+  visitDynamicSend(Send node, {bool inline: true}) {
     Selector selector = elements.getSelector(node);
 
-    SourceString dartMethodName;
-    bool isNotEquals = false;
-    if (node.isIndex && !node.arguments.tail.isEmpty) {
-      dartMethodName = Elements.constructOperatorName(
-          const SourceString('[]='), false);
-    } else if (node.selector.asOperator() != null) {
-      SourceString name = node.selector.asIdentifier().source;
-      isNotEquals = identical(name.stringValue, '!=');
-      dartMethodName = Elements.constructOperatorName(
-          name, node.argumentsNode is Prefix);
-    } else {
-      dartMethodName = node.selector.asIdentifier().source;
+    // TODO(kasperl): It would be much better to try to get the
+    // guaranteed type of the receiver after we've evaluated it, but
+    // because of the way inlining currently works that is hard to do
+    // with re-evaluating the receiver.
+    if (isThisSend(node)) {
+      HType receiverType = localsHandler.getTypeOfThis();
+      selector = receiverType.refine(selector, compiler);
     }
 
-    Element element = elements[node];
+    Element element = compiler.world.locateSingleElement(selector);
     bool isClosureCall = false;
-    if (element != null && compiler.world.hasNoOverridingMember(element)) {
+    if (inline && element != null) {
       if (tryInlineMethod(element, selector, node.arguments, node)) {
         if (element.isGetter()) {
           // If the element is a getter, we are doing a closure call
@@ -2849,11 +2850,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     pushWithPosition(invoke, node);
-
-    if (isNotEquals) {
-      HNot not = new HNot(popBoolified());
-      push(not);
-    }
   }
 
   visitClosureSend(Send node) {
@@ -3609,7 +3605,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
       if (const SourceString("=") == op.source) {
-        visitDynamicSend(node);
+        // TODO(kasperl): We temporarily disable inlining because the
+        // code here cannot deal with it yet.
+        visitDynamicSend(node, inline: false);
         HInvokeDynamicMethod method = pop();
         // Push the value.
         stack.add(method.inputs.last);
@@ -3622,7 +3620,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // Compound assignments are considered as being prefix.
         bool isCompoundAssignment = op.source.stringValue.endsWith('=');
         bool isPrefix = !node.isPostfix;
-        Element getter = elements[node.selector];
         if (isCompoundAssignment) {
           value = pop();
           index = pop();
@@ -3646,7 +3643,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
     } else if (const SourceString("=") == op.source) {
-      Element element = elements[node];
       Link<Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       visit(link.head);
@@ -3658,13 +3654,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||
              node.assignmentOperator.source.stringValue.endsWith("="));
-      Element element = elements[node];
       bool isCompoundAssignment = !node.arguments.isEmpty;
       bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
 
       // [receiver] is only used if the node is an instance send.
       HInstruction receiver = null;
-      Element selectorElement = elements[node];
       if (Elements.isInstanceSend(node, elements)) {
         receiver = generateInstanceSendReceiver(node);
         generateInstanceGetterWithCompiledReceiver(node, receiver);
@@ -3934,12 +3928,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       if (interceptedClasses == null) {
         iterator =
-            new HInvokeDynamicGetter(selector, null, receiver, hasGetter);
+            new HInvokeDynamicGetter(selector, null, receiver, !hasGetter);
       } else {
         HInterceptor interceptor =
             invokeInterceptor(interceptedClasses, receiver, null);
         iterator =
-            new HInvokeDynamicGetter(selector, null, interceptor, hasGetter);
+            new HInvokeDynamicGetter(selector, null, interceptor, !hasGetter);
         // Add the receiver as an argument to the getter call on the
         // interceptor.
         iterator.inputs.add(receiver);
@@ -3950,7 +3944,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       SourceString name = const SourceString('moveNext');
       Selector selector = new Selector.call(
           name, currentElement.getLibrary(), 0);
-      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
       return popBoolified();
     }
@@ -3958,7 +3951,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       SourceString name = const SourceString('current');
       Selector call = new Selector.getter(name, currentElement.getLibrary());
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
-      push(new HInvokeDynamicGetter(call, null, iterator, hasGetter));
+      push(new HInvokeDynamicGetter(call, null, iterator, !hasGetter));
 
       Element variable;
       if (node.declaredIdentifier.asSend() != null) {
