@@ -11,16 +11,19 @@ import "dart:io";
 import "dart:isolate";
 
 void testListNonExistent() {
+  var keepAlive = new ReceivePort();
   new Directory("").createTemp().then((d) {
     d.delete().then((ignore) {
       Expect.throws(() => d.listSync(), (e) => e is DirectoryIOException);
       Expect.throws(() => d.listSync(recursive: true),
                     (e) => e is DirectoryIOException);
+      keepAlive.close();
     });
   });
 }
 
 void testListTooLongName() {
+  var keepAlive = new ReceivePort();
   new Directory("").createTemp().then((d) {
     var subDirName = 'subdir';
     var subDir = new Directory("${d.path}/$subDirName");
@@ -37,6 +40,8 @@ void testListTooLongName() {
                     (e) => e is DirectoryIOException);
       Expect.throws(() => long.listSync(recursive: true),
                     (e) => e is DirectoryIOException);
+      d.deleteSync(recursive: true);
+      keepAlive.close();
     });
   });
 }
