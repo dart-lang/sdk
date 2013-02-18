@@ -33,6 +33,9 @@ crypto/hmac_md5_test: Fail, Pass
 [ $runtime == vm && $arch == x64 ]
 async/slow_consumer2_test: Fail # Issue 7726
 
+[ $compiler == none && $runtime == drt ]
+async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
+
 [ $arch == arm ]
 *: Skip
 
