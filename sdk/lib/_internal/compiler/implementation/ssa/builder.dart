@@ -3575,7 +3575,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction invoke = new HInvokeDynamicMethod(
         selector, inputs, isIntercepted);
     HType returnType = mapInferredType(
-        compiler.typesTask.getGuaranteedTypeOfNode(work.element, node));
+        compiler.typesTask.getGuaranteedTypeOfNode(currentElement, node));
     if (returnType != null) {
       invoke.guaranteedType = returnType;
     }
