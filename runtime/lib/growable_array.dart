@@ -246,10 +246,6 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  List mappedBy(f(T element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
-  }
-
   reduce(initialValue, combine(previousValue, T element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
@@ -310,7 +306,7 @@ class _GrowableObjectArray<T> implements List<T> {
     this.length = 0;
   }
 
-  List<T> get reversed => new ReversedListView<T>(this, 0, null);
+  Iterable<T> get reversed => new ReversedListIterable<T>(this);
 
   void sort([int compare(T a, T b)]) {
     IterableMixinWorkaround.sortList(this, compare);

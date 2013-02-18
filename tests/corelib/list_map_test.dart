@@ -16,13 +16,15 @@ void testOperations() {
   // Comparison lists.
   List l = const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   List r = const [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
-  // A base list that starts out like l.
-  List base = l.toList();
-  // A lazy reverse of base.
-  Iterable reversed = base.reversed;
+  // Function that reverses l and r lists when used to map.
+  int rev(x) => 11 - x;
+  // A base list that starts out like l, but isn't const.
+  Iterable base = l.map((x) => x).toList();
 
-  Expect.listEquals(r, reversed.toList());
-  Expect.listEquals(l, reversed.toList().reversed.toList());
+  Iterable reversed = l.map(rev);
+
+  Expect.listEquals(r, l.map(rev).toList());
+  Expect.listEquals(l, l.map(rev).map(rev).toList());
   for (int i = 0; i < r.length; i++) {
     Expect.equals(r[i], reversed.elementAt(i));
   }
@@ -49,6 +51,12 @@ void testOperations() {
 
   void testList(List list) {
     var throws = const ThrowMarker();
+    List mappedList = new List(list.length);
+    for (int i = 0; i < list.length; i++) {
+      mappedList[i] = rev(list[i]);
+    }
+    Iterable reversed = list.map(rev);
+
     void testEquals(v1, v2, path) {
       if (v1 is Iterable) {
         Iterator i1 = v1.iterator;
@@ -69,15 +77,10 @@ void testOperations() {
       }
     }
 
-    void testOp(operation(Iterable reversedList), name) {
-      List reversedList = new List(list.length);
-      for (int i = 0; i < list.length; i++) {
-        reversedList[i] = list[list.length - 1 - i];
-      }
-      Iterable reversed = list.reversed;
+    void testOp(operation(Iterable mappedList), name) {
       var expect;
       try {
-        expect = operation(reversedList);
+        expect = operation(mappedList);
       } catch (e) {
         expect = throws;
       }
@@ -92,12 +95,18 @@ void testOperations() {
     testOp((i) => i.first, "first");
     testOp((i) => i.last, "last");
     testOp((i) => i.single, "single");
-    testOp((i) => i.firstMatching((n) => n < 5), "firstMatching<5");
+    testOp((i) => i.firstMatching((n) => false), "firstMatching<false");
     testOp((i) => i.firstMatching((n) => n < 10), "firstMatching<10");
+    testOp((i) => i.firstMatching((n) => n < 5), "firstMatching<5");
+    testOp((i) => i.firstMatching((n) => true), "firstMatching<true");
+    testOp((i) => i.lastMatching((n) => false), "lastMatching<false");
     testOp((i) => i.lastMatching((n) => n < 5), "lastMatching<5");
     testOp((i) => i.lastMatching((n) => n < 10), "lastMatching<10");
+    testOp((i) => i.lastMatching((n) => true), "lastMatching<true");
+    testOp((i) => i.singleMatching((n) => false), "singleMatching<false");
     testOp((i) => i.singleMatching((n) => n < 5), "singelMatching<5");
     testOp((i) => i.singleMatching((n) => n < 10), "singelMatching<10");
+    testOp((i) => i.singleMatching((n) => true), "singleMatching<true");
     testOp((i) => i.contains(5), "contains(5)");
     testOp((i) => i.contains(10), "contains(10)");
     testOp((i) => i.any((n) => n < 5), "any<5");
@@ -116,6 +125,22 @@ void testOperations() {
     testOp((i) => i.expand((n) => []), "expand[]");
     testOp((i) => i.expand((n) => [n]), "expand[n]");
     testOp((i) => i.expand((n) => [n, n]), "expand[n, n]");
+    testOp((i) => i.take(0), "take(0)");
+    testOp((i) => i.take(5), "take(5)");
+    testOp((i) => i.take(10), "take(10)");
+    testOp((i) => i.take(15), "take(15)");
+    testOp((i) => i.skip(0), "skip(0)");
+    testOp((i) => i.skip(5), "skip(5)");
+    testOp((i) => i.skip(10), "skip(10)");
+    testOp((i) => i.skip(15), "skip(15)");
+    testOp((i) => i.takeWhile((n) => false), "takeWhile(t)");
+    testOp((i) => i.takeWhile((n) => n < 5), "takeWhile(n<5)");
+    testOp((i) => i.takeWhile((n) => n > 5), "takeWhile(n>5)");
+    testOp((i) => i.takeWhile((n) => true), "takeWhile(f)");
+    testOp((i) => i.skipWhile((n) => false), "skipWhile(t)");
+    testOp((i) => i.skipWhile((n) => n < 5), "skipWhile(n<5)");
+    testOp((i) => i.skipWhile((n) => n > 5), "skipWhile(n>5)");
+    testOp((i) => i.skipWhile((n) => true), "skipWhile(f)");
   }
 
   // Combinations of lists with 0, 1 and more elements.
@@ -130,7 +155,10 @@ void testOperations() {
   testList([0, 1, 2, 3]);
   testList([3, 4, 5, 6]);
   testList([10, 11, 12, 13]);
+  testList(l);
+  testList(r);
+  testList(base);
 
   // Reverse const list.
-  Expect.listEquals(r, l.reversed.toList());
+  Expect.listEquals(r, l.map(rev).toList());
 }

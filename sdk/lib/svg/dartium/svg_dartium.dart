@@ -3346,9 +3346,6 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   Iterable map(f(Length element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Length element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Length> where(bool f(Length element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -3413,7 +3410,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   // clear() defined by IDL.
 
-  List<Length> get reversed {
+  Iterable<Length> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -4050,9 +4047,6 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   Iterable map(f(Number element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Number element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Number> where(bool f(Number element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -4117,7 +4111,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   // clear() defined by IDL.
 
-  List<Number> get reversed {
+  Iterable<Number> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -5230,9 +5224,6 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   Iterable map(f(PathSeg element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(PathSeg element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<PathSeg> where(bool f(PathSeg element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -5297,7 +5288,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   // clear() defined by IDL.
 
-  List<PathSeg> get reversed {
+  Iterable<PathSeg> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -6215,9 +6206,6 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   Iterable map(f(String element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(String element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -6282,7 +6270,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // clear() defined by IDL.
 
-  List<String> get reversed {
+  Iterable<String> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -7470,9 +7458,6 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   Iterable map(f(Transform element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Transform element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Transform> where(bool f(Transform element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -7537,7 +7522,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   // clear() defined by IDL.
 
-  List<Transform> get reversed {
+  Iterable<Transform> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -8044,9 +8029,6 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   Iterable map(f(ElementInstance element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(ElementInstance element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<ElementInstance> where(bool f(ElementInstance element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -8113,7 +8095,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ElementInstance> get reversed {
+  Iterable<ElementInstance> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

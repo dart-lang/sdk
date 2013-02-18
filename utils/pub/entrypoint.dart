@@ -134,7 +134,7 @@ class Entrypoint {
       return Future.wait(packageVersions.map((id) {
         if (id.isRoot) return new Future.immediate(id);
         return install(id);
-      }));
+      }).toList());
     }).then(_saveLockFile)
       .then(_installSelfReference)
       .then(_linkSecondaryPackageDirs);
@@ -267,7 +267,7 @@ class Entrypoint {
             if (!dirExists(file)) return;
             return _linkSecondaryPackageDir(file);
           });
-        }));
+        }).toList());
       });
     });
   }
@@ -287,7 +287,7 @@ class Entrypoint {
           fileAndSubfiles.addAll(subfiles);
           return fileAndSubfiles;
         });
-      }));
+      }).toList());
     }).then(flatten);
   }
 
