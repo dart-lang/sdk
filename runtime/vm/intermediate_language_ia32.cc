@@ -1314,7 +1314,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kTagged;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      return kUnboxedMint;
+      return value()->IsSmiValue() ? kTagged : kUnboxedMint;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kUnboxedDouble;
@@ -1368,12 +1368,18 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // Writable register because the value must be untagged before storing.
       locs->set_in(2, Location::WritableRegister());
       break;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // Mints are stored in XMM registers. For smis, use a writable register
+      // because the value must be untagged before storing.
+      locs->set_in(2, value()->IsSmiValue()
+                      ? Location::WritableRegister()
+                      : Location::RequiresFpuRegister());
+      break;
     case kFloat32ArrayCid:
       // Need temp register for float-to-double conversion.
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
     case kFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
@@ -1483,7 +1489,15 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+      if (value()->IsSmiValue()) {
+        ASSERT(RequiredInputRepresentation(2) == kTagged);
+        Register value = locs()->in(2).reg();
+        __ SmiUntag(value);
+        __ movl(element_address, value);
+      } else {
+        ASSERT(RequiredInputRepresentation(2) == kUnboxedMint);
       __ movss(element_address, locs()->in(2).fpu_reg());
+      }
       break;
     case kFloat32ArrayCid:
       // Convert to single precision.

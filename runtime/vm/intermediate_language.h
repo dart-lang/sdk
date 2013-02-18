@@ -262,6 +262,8 @@ class Value : public ZoneAllocated {
 
   const char* DebugName() const { return "Value"; }
 
+  bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
+
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
 
