@@ -30,7 +30,9 @@ main() {
   checkNumberOfMatches(matches, 1);
   var cls = findElement(compiler, 'A');
   Expect.isNotNull(cls);
-  var element = cls.lookupLocalMember(buildSourceString('foo'));
+  SourceString name = buildSourceString('foo');
+  var element = cls.lookupLocalMember(name);
   Expect.isNotNull(element);
-  Expect.isFalse(compiler.world.userDefinedGetters.contains(element));
+  Selector selector = new Selector.getter(name, null);
+  Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector));
 }
