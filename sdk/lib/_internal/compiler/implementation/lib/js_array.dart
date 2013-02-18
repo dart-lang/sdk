@@ -92,10 +92,6 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  List mappedBy(f(E element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
-  }
-
   String join([String separator]) {
     if (separator == null) separator = "";
     var list = new List(this.length);
@@ -230,7 +226,7 @@ class JSArray<E> implements List<E> {
 
   bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
 
-  List<E> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');

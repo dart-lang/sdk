@@ -66,7 +66,7 @@ main() {
     expect(classes, unorderedEquals(['foo', 'bar', 'baz']));
   });
 
-  test('mappedBy', () {
+  test('map', () {
     expect(makeClassSet().map((c) => c.toUpperCase()).toList(),
         unorderedEquals(['FOO', 'BAR', 'BAZ']));
   });

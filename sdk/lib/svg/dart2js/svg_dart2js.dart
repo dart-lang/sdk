@@ -3082,9 +3082,6 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   Iterable map(f(Length element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Length element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Length> where(bool f(Length element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -3149,7 +3146,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   // clear() defined by IDL.
 
-  List<Length> get reversed {
+  Iterable<Length> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -3709,9 +3706,6 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   Iterable map(f(Number element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Number element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Number> where(bool f(Number element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -3776,7 +3770,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   // clear() defined by IDL.
 
-  List<Number> get reversed {
+  Iterable<Number> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -4612,9 +4606,6 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   Iterable map(f(PathSeg element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(PathSeg element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<PathSeg> where(bool f(PathSeg element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -4679,7 +4670,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   // clear() defined by IDL.
 
-  List<PathSeg> get reversed {
+  Iterable<PathSeg> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -5499,9 +5490,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   Iterable map(f(String element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(String element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -5566,7 +5554,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   // clear() defined by IDL.
 
-  List<String> get reversed {
+  Iterable<String> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -6665,9 +6653,6 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   Iterable map(f(Transform element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(Transform element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<Transform> where(bool f(Transform element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -6732,7 +6717,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   // clear() defined by IDL.
 
-  List<Transform> get reversed {
+  Iterable<Transform> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
@@ -7185,9 +7170,6 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   Iterable map(f(ElementInstance element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  List mappedBy(f(ElementInstance element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
   Iterable<ElementInstance> where(bool f(ElementInstance element)) =>
       IterableMixinWorkaround.where(this, f);
 
@@ -7254,7 +7236,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ElementInstance> get reversed {
+  Iterable<ElementInstance> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 

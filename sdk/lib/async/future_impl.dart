@@ -112,32 +112,35 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   factory _FutureImpl.wait(Iterable<Future> futures) {
-    // TODO(ajohnsen): can we do better wrt. the generic type T?
-    if (futures.isEmpty) {
-      return new Future<List>.immediate(const []);
+    Completer completer;
+    // List collecting values from the futures.
+    // Set to null if an error occurs.
+    List values;
+    void handleError(error) {
+      if (values != null) {
+        values = null;
+        completer.completeError(error.error, error.stackTrace);
+      }
     }
-
-    Completer completer = new Completer<List>();
-    int remaining = futures.length;
-    List values = new List.fixedLength(futures.length);
-
     // As each future completes, put its value into the corresponding
     // position in the list of values.
-    int i = 0;
-    bool completed = false;
+    int remaining = 0;
     for (Future future in futures) {
-      int pos = i++;
-      future.then((Object value) {
+      int pos = remaining++;
+      future.catchError(handleError).then((Object value) {
+        if (values == null) return null;
         values[pos] = value;
-        if (--remaining == 0) {
+        remaining--;
+        if (remaining == 0) {
           completer.complete(values);
         }
-      }).catchError((error) {
-        if (!completed) completer.completeError(error.error, error.stackTrace);
-        completed = true;
       });
     }
-
+    if (remaining == 0) {
+      return new Future.immediate(const []);
+    }
+    values = new List.fixedLength(remaining);
+    completer = new Completer<List>();
     return completer.future;
   }
 

@@ -46,8 +46,6 @@ abstract class CssClassSet implements Set<String> {
 
   Iterable map(f(String element)) => readClasses().map(f);
 
-  Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
-
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
   Iterable expand(Iterable f(String element)) => readClasses.expand(f);

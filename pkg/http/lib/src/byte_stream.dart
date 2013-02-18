@@ -35,5 +35,5 @@ class ByteStream extends StreamView<List<int>> {
       toBytes().then((bytes) => decodeString(bytes, encoding));
 
   Stream<String> toStringStream([Encoding encoding=Encoding.UTF_8]) =>
-      wrapStream(mappedBy((bytes) => decodeString(bytes, encoding)));
+      wrapStream(map((bytes) => decodeString(bytes, encoding)));
 }

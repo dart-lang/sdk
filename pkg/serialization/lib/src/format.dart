@@ -210,13 +210,13 @@ class SimpleJsonFormat extends Format {
     // the data is shown to the user, so we destructively modify.
     if (data is List) {
       ruleNumber = data.last;
-      data = data.take(data.length -1);
+      data = data.take(data.length - 1).toList();
     } else if (data is Map) {
       ruleNumber = data.remove(RULE);
     } else {
       throw new SerializationException("Invalid data format");
     }
-    // Do not use mappedBy or other lazy operations for this. They do not play
+    // Do not use map or other lazy operations for this. They do not play
     // well with a function that destructively modifies its arguments.
     var newData = mapValues(data, (each) => recursivelyFixUp(each, r, result));
     result[ruleNumber].add(newData);

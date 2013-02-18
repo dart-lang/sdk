@@ -51,12 +51,6 @@ abstract class Iterable<E> {
   Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);
 
   /**
-   * Deprecated alias for [map].
-   */
-  @deprecated
-  Iterable mappedBy(f(E element)) => map(f);
-
-  /**
    * Returns a lazy [Iterable] with all elements that satisfy the
    * predicate [f].
    *

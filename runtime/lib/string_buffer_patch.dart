@@ -2,58 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch /* abstract */ class StringBuffer {
-  /* patch */ factory StringBuffer([Object content = ""])
-    => new _StringBufferImpl(content);
-}
-
-class _StringBufferImpl implements StringBuffer {
-
+patch class StringBuffer {
   List<String> _buffer;
   int _length;
 
   /// Creates the string buffer with an initial content.
-  _StringBufferImpl(Object content) {
-    clear();
-    add(content);
+  /* patch */ StringBuffer([Object content = ""]) {
+    _buffer = new List<String>();
+    _length = 0;
+    write(content);
   }
 
-  /// Returns the length of the buffer.
-  int get length => _length;
-
-  bool get isEmpty => _length == 0;
+  /* patch */ int get length => _length;
 
   /// Adds [obj] to the buffer.
-  void add(Object obj) {
+  /* patch */ void write(Object obj) {
     // TODO(srdjan): The following four lines could be replaced by
     // '$obj', but apparently this is too slow on the Dart VM.
-    String str = obj.toString();
-    if (str is !String) {
-      throw new ArgumentError('toString() did not return a string');
+    String str;
+    if (obj is String) {
+      str = obj;
+    } else {
+      str = obj.toString();
+      if (str is! String) {
+        throw new ArgumentError('toString() did not return a string');
+      }
     }
     if (str.isEmpty) return;
     _buffer.add(str);
     _length += str.length;
   }
 
-  /// Adds all items in [objects] to the buffer.
-  void addAll(Iterable objects) {
-    for (Object obj in objects) add(obj);
-  }
-
-  /// Adds the string representation of [charCode] to the buffer.
-  void addCharCode(int charCode) {
-    add(new String.fromCharCodes([charCode]));
-  }
-
   /// Clears the string buffer.
-  void clear() {
+  /* patch */ void clear() {
     _buffer = new List<String>();
     _length = 0;
   }
 
   /// Returns the contents of buffer as a concatenated string.
-  String toString() {
+  /* patch */ String toString() {
     if (_buffer.length == 0) return "";
     if (_buffer.length == 1) return _buffer[0];
     String result = Strings.concatAll(_buffer);
