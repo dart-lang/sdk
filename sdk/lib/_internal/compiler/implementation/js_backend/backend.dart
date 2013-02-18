@@ -330,7 +330,7 @@ class FieldTypesRegistry {
         && initializerType == null
         && constructorType == null
         && setterType == null) {
-      // Don't register UNKONWN if there is currently no type information
+      // Don't register UNKNOWN if there is currently no type information
       // present for the field. Instead register the function holding the
       // setter for recompilation if better type information for the field
       // becomes available.
@@ -501,7 +501,7 @@ class ArgumentTypesRegistry {
 
     // Run through all optimized functions and figure out if they need
     // to be recompiled because of this new invocation.
-    optimizedFunctions.filterBySelector(selector).forEach((Element element) {
+    for (Element element in optimizedFunctions.filter(selector)) {
       // TODO(kasperl): Maybe check if the element is already marked for
       // recompilation? Could be pretty cheap compared to computing
       // union types.
@@ -521,7 +521,7 @@ class ArgumentTypesRegistry {
         }
       }
       if (recompile) backend.scheduleForRecompilation(element);
-    });
+    }
   }
 
   HTypeList parameterTypes(FunctionElement element,
@@ -585,7 +585,7 @@ class ArgumentTypesRegistry {
     }
 
     // TODO(kasperl): What kind of non-members do we get here?
-    if (!element.isMember()) return;
+    if (!element.isInstanceMember()) return;
 
     if (parameterTypes.allUnknown) {
       optimizedFunctions.remove(element);

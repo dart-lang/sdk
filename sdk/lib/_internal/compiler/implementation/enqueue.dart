@@ -182,7 +182,7 @@ abstract class Enqueuer {
     }
 
     // The element is not yet used. Add it to the list of instance
-    // members to still be processed. 
+    // members to still be processed.
     Link<Element> members = instanceMembersByName.putIfAbsent(
         memberName, () => const Link<Element>());
     instanceMembersByName[memberName] = members.prepend(member);
@@ -513,7 +513,8 @@ class CodegenEnqueuer extends Enqueuer {
       : super('codegen enqueuer', compiler, itemCompilationContextCreator),
         queue = new Queue<CodegenWorkItem>();
 
-  bool isProcessed(Element member) => generatedCode.containsKey(member);
+  bool isProcessed(Element member) =>
+      member.isAbstract(compiler) || generatedCode.containsKey(member);
 
   bool addElementToWorkList(Element element, [TreeElements elements]) {
     if (queueIsClosed) {

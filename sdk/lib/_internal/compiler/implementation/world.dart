@@ -128,16 +128,16 @@ class World {
   }
 
   bool hasAnyUserDefinedGetter(Selector selector) {
-    return userDefinedGetters.hasAnyElementMatchingSelector(selector);
+    return !userDefinedGetters.filter(selector).isEmpty;
   }
 
   bool hasAnyUserDefinedSetter(Selector selector) {
-    return userDefinedSetters.hasAnyElementMatchingSelector(selector);
+    return !userDefinedSetters.filter(selector).isEmpty;
   }
 
   // Returns whether a subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, DartType type) {
-    Set<ClassElement> subclasses= typesImplementedBySubclasses[superclass];
+    Set<ClassElement> subclasses = typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
     return subclasses.contains(type.element);
   }
@@ -150,7 +150,7 @@ class World {
   }
 
   void registerUsedElement(Element element) {
-    if (element.isMember()) {
+    if (element.isInstanceMember() && !element.isAbstract(compiler)) {
       if (element.isGetter()) {
         // We're collecting user-defined getters to let the codegen know which
         // field accesses might have side effects.
@@ -194,13 +194,13 @@ class World {
    * returns [:null:].
    */
   VariableElement locateSingleField(DartType type, Selector selector) {
-    MemberSet memberSet = _memberSetFor(type, selector);
     ClassElement cls = type.element;
     Element result = cls.implementation.lookupSelector(selector);
     if (result == null) return null;
     if (!result.isField()) return null;
 
     // Verify that no subclass overrides the field.
+    MemberSet memberSet = _memberSetFor(type, selector);
     if (memberSet.elements.length != 1) return null;
     assert(memberSet.elements.contains(result));
     return result;
