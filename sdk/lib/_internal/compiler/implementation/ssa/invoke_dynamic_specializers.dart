@@ -15,19 +15,16 @@ class InvokeDynamicSpecializer {
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     return HType.UNKNOWN;
   }
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
-    return HType.UNKNOWN;
+    return instruction.instructionType;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
     return null;
   }
 
@@ -86,11 +83,10 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     HInstruction index = instruction.inputs[2];
     if (input == instruction.inputs[1] &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
+        (index.isTypeUnknown() || index.isNumber())) {
       return HType.MUTABLE_ARRAY;
     }
     // The index should be an int when the receiver is a string or array.
@@ -100,9 +96,8 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
-    if (instruction.inputs[1].isMutableArray(types)) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+    if (instruction.inputs[1].isMutableArray()) {
       return new HIndexAssign(instruction.inputs[1],
                               instruction.inputs[2],
                               instruction.inputs[3]);
@@ -116,11 +111,10 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     HInstruction index = instruction.inputs[2];
     if (input == instruction.inputs[1] &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
+        (index.isTypeUnknown() || index.isNumber())) {
       return HType.INDEXABLE_PRIMITIVE;
     }
     // The index should be an int when the receiver is a string or array.
@@ -130,9 +124,8 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
-    if (instruction.inputs[1].isIndexablePrimitive(types)) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+    if (instruction.inputs[1].isIndexablePrimitive()) {
       return new HIndex(instruction.inputs[1], instruction.inputs[2]);
     }
     return null;
@@ -148,10 +141,9 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     if (input == instruction.inputs[1]) {
-      HType propagatedType = types[instruction];
+      HType propagatedType = instruction.instructionType;
       if (propagatedType.isUnknown() || propagatedType.isNumber()) {
         return HType.INTEGER;
       }
@@ -160,18 +152,16 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
   }
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
-    if (instruction.inputs[1].isPrimitive(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
+    if (instruction.inputs[1].isPrimitive()) return HType.INTEGER;
+    return instruction.instructionType;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber(types)) return new HBitNot(input);
+    if (input.isNumber()) return new HBitNot(input);
     return null;
   }
 }
@@ -185,10 +175,9 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     if (input == instruction.inputs[1]) {
-      HType propagatedType = types[instruction];
+      HType propagatedType = instruction.instructionType;
       // If the outgoing type should be a number (integer, double or both) we
       // want the outgoing type to be the input too.
       // If we don't know the outgoing type we try to make it a number.
@@ -199,17 +188,15 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   }
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
-    HType operandType = types[instruction.inputs[1]];
+    HType operandType = instruction.inputs[1].instructionType;
     if (operandType.isNumber()) return operandType;
-    return HType.UNKNOWN;
+    return instruction.instructionType;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber(types)) return new HNegate(input);
+    if (input.isNumber()) return new HNegate(input);
     return null;
   }
 }
@@ -218,25 +205,23 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   const BinaryArithmeticSpecializer();
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isInteger(types) && right.isInteger(types)) return HType.INTEGER;
-    if (left.isNumber(types)) {
-      if (left.isDouble(types) || right.isDouble(types)) return HType.DOUBLE;
+    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
+    if (left.isNumber()) {
+      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
       return HType.NUMBER;
     }
-    return HType.UNKNOWN;
+    return instruction.instructionType;
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     if (input == instruction.inputs[0]) return HType.UNKNOWN;
 
-    HType propagatedType = types[instruction];
+    HType propagatedType = instruction.instructionType;
     // If the desired output type should be an integer we want to get two
     // integers as arguments.
     if (propagatedType.isInteger()) return HType.INTEGER;
@@ -255,18 +240,17 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     // to the array case.
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (input == right && left.isNumber(types)) return HType.NUMBER;
+    if (input == right && left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 
-  bool isBuiltin(HInvokeDynamic instruction, HTypeMap types) {
-    return instruction.inputs[1].isNumber(types)
-        && instruction.inputs[2].isNumber(types);
+  bool isBuiltin(HInvokeDynamic instruction) {
+    return instruction.inputs[1].isNumber()
+        && instruction.inputs[2].isNumber();
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
-    if (isBuiltin(instruction, types)) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+    if (isBuiltin(instruction)) {
       HInstruction builtin =
           newBuiltinVariant(instruction.inputs[1], instruction.inputs[2]);
       if (builtin != null) return builtin;
@@ -303,22 +287,20 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   }
 
   HType computeTypeFromInputTypes(HInstruction instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
-    if (left.isNumber(types)) return HType.DOUBLE;
-    return HType.UNKNOWN;
+    if (left.isNumber()) return HType.DOUBLE;
+    return instruction.instructionType;
   }
 
   HType computeDesiredTypeForInput(HInstruction instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     if (input == instruction.inputs[0]) return HType.UNKNOWN;
     // A division can never return an integer. So don't ask for integer inputs.
-    if (instruction.isInteger(types)) return HType.UNKNOWN;
+    if (instruction.isInteger()) return HType.UNKNOWN;
     return super.computeDesiredTypeForInput(
-        instruction, input, types, compiler);
+        instruction, input, compiler);
   }
 
   HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
@@ -380,21 +362,19 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   const BinaryBitOpSpecializer();
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
-    if (left.isPrimitive(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
+    if (left.isPrimitive()) return HType.INTEGER;
+    return instruction.instructionType;
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     if (input == instruction.inputs[0]) return HType.UNKNOWN;
-    HType propagatedType = types[instruction];
+    HType propagatedType = instruction.instructionType;
     // If the outgoing type should be a number we can get that only if both
     // inputs are integers. If we don't know the outgoing type we try to make
     // it an integer.
@@ -412,11 +392,10 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.shiftLeft;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (!left.isNumber(types) || !right.isConstantInteger()) return null;
+    if (!left.isNumber() || !right.isConstantInteger()) return null;
     HConstant rightConstant = right;
     IntConstant intConstant = rightConstant.constant;
     int count = intConstant.value;
@@ -484,35 +463,34 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  HTypeMap types,
                                   Compiler compiler) {
-    if (types[instruction.inputs[1]].isPrimitiveOrNull()) return HType.BOOLEAN;
-    return HType.UNKNOWN;
+    if (instruction.inputs[1].instructionType.isPrimitiveOrNull()) {
+      return HType.BOOLEAN;
+    }
+    return instruction.instructionType;
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     if (input == instruction.inputs[0]) return HType.UNKNOWN;
-    HType propagatedType = types[instruction];
+    HType propagatedType = instruction.instructionType;
     // For all relational operations except HIdentity, we expect to get numbers
     // only. With numbers the outgoing type is a boolean. If something else
     // is desired, then numbers are incorrect, though.
     if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
       HInstruction left = instruction.inputs[1];
-      if (left.isTypeUnknown(types) || left.isNumber(types)) {
+      if (left.isTypeUnknown() || left.isNumber()) {
         return HType.NUMBER;
       }
     }
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isNumber(types) && right.isNumber(types)) {
+    if (left.isNumber() && right.isNumber()) {
       return newBuiltinVariant(left, right);
     }
     return null;
@@ -526,37 +504,35 @@ class EqualsSpecializer extends RelationalSpecializer {
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
-                                   HTypeMap types,
                                    Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    HType propagatedType = types[instruction];
-    if (input == left && types[right].isUseful()) {
+    HType propagatedType = instruction.instructionType;
+    if (input == left && right.instructionType.isUseful()) {
       // All our useful types have 'identical' semantics. But we don't want to
       // speculatively test for all possible types. Therefore we try to match
       // the two types. That is, if we see x == 3, then we speculatively test
       // if x is a number and bailout if it isn't.
       // If right is a number we don't need more than a number (no need to match
       // the exact type of right).
-      if (right.isNumber(types)) return HType.NUMBER;
-      return types[right];
+      if (right.isNumber()) return HType.NUMBER;
+      return right.instructionType;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == left && left.isIndexablePrimitive(types)) {
+    if (input == left && left.isIndexablePrimitive()) {
       return HType.READABLE_ARRAY;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == right && right.isIndexablePrimitive(types)) {
+    if (input == right && right.isIndexablePrimitive()) {
       return HType.STRING;
     }
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
-                                   HTypeMap types) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (types[left].isPrimitiveOrNull() || right.isConstantNull()) {
+    if (left.instructionType.isPrimitiveOrNull() || right.isConstantNull()) {
       return newBuiltinVariant(left, right);
     }
     return null;
