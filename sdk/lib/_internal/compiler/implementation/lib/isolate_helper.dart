@@ -406,43 +406,23 @@ class IsolateNatives {
    * JavaScript workers.
    */
   static String computeThisScript() {
-    // TODO(ahe): The following works in Firefox during loading of the
-    // script, and is being considered for the standard.
-    // if (JS('String', 'typeof document') == 'object') {
-    //   var currentScript = JS('', 'document.currentScript');
-    //   if (JS('String', 'typeof #', currentScript) == 'object') {
-    //     return JS('String', '#.src', currentScript);
-    //   }
-    // }
-
-    var stack = JS('String|Null', 'new Error().stack');
-    if (stack == null) {
-      // According to Internet Explorer documentation, the stack
-      // property is not set until the exception is thrown.
-      stack = JS('String',
-                 '(function() {'
-                 'try { throw new Error() } catch(e) { return e.stack }'
-                 '})()');
+    // TODO(7369): Find a cross-platform non-brittle way of getting the
+    // currently running script.
+    var scripts = JS('', r"document.getElementsByTagName('script')");
+    // The scripts variable only contains the scripts that have already been
+    // executed. The last one is the currently running script.
+    for (int i = 0, len = JS('int', '#.length', scripts); i < len; i++) {
+      var script = JS('', '#[#]', scripts, i);
+      var src = JS('String|Null', '# && #.src', script, script);
+      // Filter out the test controller script, and the Dart
+      // bootstrap script.
+      if (src != null
+          && !src.endsWith('test_controller.js')
+          && !src.endsWith('dart.js')) {
+        return src;
+      }
     }
-    var pattern, matches;
-
-    // This pattern matches V8, Chrome, and Internet Explorer stack
-    // traces that look like this:
-    // Error
-    //     at methodName (URI:LINE:COLUMN)
-    pattern = JS('', r'new RegExp("^ *at (.*):[0-9]*:[0-9]*$", "m")');
-
-    matches = JS('=List|Null', '#.match(#)', stack, pattern);
-    if (matches != null) return JS('String', '#[1]', matches);
-
-    // This pattern matches Firefox stack traces that look like this:
-    // methodName@URI:LINE
-    pattern = JS('', r'new RegExp("^[^@]*@(.*):[0-9]*$", "m")');
-
-    matches = JS('=List|Null', '#.match(#)', stack, pattern);
-    if (matches != null) return JS('String', '#[1]', matches);
-
-    throw new UnsupportedError('Cannot extract URI from "$stack"');
+    return null;
   }
 
   static computeGlobalThis() => JS('', 'function() { return this; }()');
