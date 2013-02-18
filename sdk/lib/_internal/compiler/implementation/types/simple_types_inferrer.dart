@@ -153,6 +153,9 @@ class SimpleTypesInferrer extends TypesInferrer {
    */
   getConcreteTypeOfNode(Element owner, Node node) {
     var elements = compiler.enqueuer.resolution.resolvedElements[owner];
+    // TODO(ngeoffray): Not sure why the resolver would put a null
+    // mapping.
+    if (elements == null) return null;
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): Should the builder call this method with a
     // SendSet?
