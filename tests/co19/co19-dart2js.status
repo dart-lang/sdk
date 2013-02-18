@@ -624,6 +624,11 @@ LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 
+[ $compiler == dart2js && $host_checked ]
+Language/14_Types/4_Interface_Types_A11_t01: Crash # Issue 8557
+Language/14_Types/4_Interface_Types_A11_t02: Crash # Issue 8557
+
+
 #
 # The following tests are failing. Please add the error message
 # (either a compiler error or exception message). The error messages
