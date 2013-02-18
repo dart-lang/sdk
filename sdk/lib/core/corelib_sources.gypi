@@ -33,6 +33,7 @@
     'string.dart',
     'strings.dart',
     'string_buffer.dart',
+    'string_sink.dart',
     'type.dart',
   ],
 }
