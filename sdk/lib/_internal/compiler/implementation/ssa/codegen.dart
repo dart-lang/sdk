@@ -2116,7 +2116,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isString(types)) {
       use(node);
     } else {
-      Element convertToString = compiler.findHelper(const SourceString("S"));
+      Element convertToString = backend.getStringInterpolationHelper();
       world.registerStaticUse(convertToString);
       js.VariableUse variableUse =
           new js.VariableUse(backend.namer.isolateAccess(convertToString));
@@ -2393,43 +2393,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   // TODO(johnniwinther): Refactor this method.
   void visitTypeConversion(HTypeConversion node) {
-    Map<String, SourceString> castNames = const <String, SourceString> {
-      "stringTypeCheck":
-          const SourceString("stringTypeCast"),
-      "doubleTypeCheck":
-          const SourceString("doubleTypeCast"),
-      "numTypeCheck":
-          const SourceString("numTypeCast"),
-      "boolTypeCheck":
-          const SourceString("boolTypeCast"),
-      "functionTypeCheck":
-          const SourceString("functionTypeCast"),
-      "intTypeCheck":
-          const SourceString("intTypeCast"),
-      "numberOrStringSuperNativeTypeCheck":
-          const SourceString("numberOrStringSuperNativeTypeCast"),
-      "numberOrStringSuperTypeCheck":
-          const SourceString("numberOrStringSuperTypeCast"),
-      "stringSuperNativeTypeCheck":
-          const SourceString("stringSuperNativeTypeCast"),
-      "stringSuperTypeCheck":
-          const SourceString("stringSuperTypeCast"),
-      "listTypeCheck":
-          const SourceString("listTypeCast"),
-      "listSuperNativeTypeCheck":
-          const SourceString("listSuperNativeTypeCast"),
-      "listSuperTypeCheck":
-          const SourceString("listSuperTypeCast"),
-      "callTypeCheck":
-          const SourceString("callTypeCast"),
-      "propertyTypeCheck":
-          const SourceString("propertyTypeCast"),
-      // TODO(johnniwinther): Add a malformedTypeCast which produces a TypeError
-      // with another message.
-      "malformedTypeCheck":
-          const SourceString("malformedTypeCheck")
-    };
-
     if (node.isChecked) {
       DartType type = node.type.computeType(compiler);
       Element element = type.element;
@@ -2460,7 +2423,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else {
         helper = backend.getCheckedModeHelper(type);
         if (node.isCastTypeCheck) {
-          helper = castNames[helper.stringValue];
+          helper = backend.castNames[helper.stringValue];
         }
       }
       FunctionElement helperElement = compiler.findHelper(helper);

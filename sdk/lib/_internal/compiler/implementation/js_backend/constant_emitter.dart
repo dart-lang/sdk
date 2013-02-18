@@ -294,9 +294,8 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitType(TypeConstant constant) {
-    SourceString helperSourceName = const SourceString('createRuntimeType');
-    Element helper = compiler.findHelper(helperSourceName);
     JavaScriptBackend backend = compiler.backend;
+    Element helper = backend.getCreateRuntimeType();
     String helperName = backend.namer.getName(helper);
     DartType type = constant.representedType;
     Element element = type.element;

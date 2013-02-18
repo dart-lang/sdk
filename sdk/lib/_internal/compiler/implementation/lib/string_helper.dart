@@ -77,7 +77,7 @@ stringReplaceJS(receiver, replacer, to) {
   return JS('String', r'#.replace(#, #)', receiver, replacer, to);
 }
 
-final RegExp quoteRegExp = new JSSyntaxRegExp(r'[-[\]{}()*+?.,\\^$|#\s]');
+final RegExp quoteRegExp = const JSSyntaxRegExp(r'[-[\]{}()*+?.,\\^$|#\s]');
 
 stringReplaceAllUnchecked(receiver, from, to) {
   checkString(to);

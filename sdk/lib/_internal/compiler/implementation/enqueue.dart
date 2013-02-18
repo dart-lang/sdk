@@ -67,6 +67,7 @@ abstract class Enqueuer {
     // runtime type.
     if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
       compiler.enabledRuntimeType = true;
+      compiler.backend.registerRuntimeType();
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
     } else if (element == compiler.invokeOnMethod) {
@@ -204,22 +205,6 @@ abstract class Enqueuer {
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
           compiler.resolver.checkClass(cls);
-        }
-
-        if (compiler.enableTypeAssertions) {
-          // We need to register is checks and helpers for checking
-          // assignments to fields.
-          // TODO(ngeoffray): This should really move to the backend.
-          cls.forEachLocalMember((Element member) {
-            if (!member.isInstanceMember() || !member.isField()) return;
-            DartType type = member.computeType(compiler);
-            registerIsCheck(type);
-            SourceString helper = compiler.backend.getCheckedModeHelper(type);
-            if (helper != null) {
-              Element helperElement = compiler.findHelper(helper);
-              registerStaticUse(helperElement);
-            }
-          });
         }
       }
       processClass(cls);
@@ -364,6 +349,12 @@ abstract class Enqueuer {
 
   void registerIsCheck(DartType type) {
     universe.isChecks.add(type);
+    compiler.backend.registerIsCheck(type, this);
+  }
+
+  void registerAsCheck(DartType type) {
+    registerIsCheck(type);
+    compiler.backend.registerAsCheck(type);
   }
 
   void forEach(f(WorkItem work));

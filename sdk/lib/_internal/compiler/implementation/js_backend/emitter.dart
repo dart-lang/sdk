@@ -69,6 +69,8 @@ class CodeEmitterTask extends CompilerTask {
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
+  JavaScriptBackend get backend => compiler.backend;
+
   String get _ => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
   String get N => compiler.enableMinification ? "\n" : ";\n";
@@ -640,8 +642,7 @@ class CodeEmitterTask extends CompilerTask {
 
   List addLazyInitializerLogic() {
     String isolate = namer.CURRENT_ISOLATE;
-    JavaScriptBackend backend = compiler.backend;
-    String cyclicThrow = namer.isolateAccess(backend.cyclicThrowHelper);
+    String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
 
     return [
       // var sentinelUndefined = {};
@@ -777,7 +778,6 @@ class CodeEmitterTask extends CompilerTask {
     if (alreadyGenerated.contains(invocationName)) return;
     alreadyGenerated.add(invocationName);
 
-    JavaScriptBackend backend = compiler.backend;
     bool isInterceptorClass =
         backend.isInterceptorClass(member.getEnclosingClass());
 
@@ -1012,7 +1012,6 @@ class CodeEmitterTask extends CompilerTask {
         || member.isGenerativeConstructorBody()
         || member.isAccessor()) {
       if (member.isAbstract(compiler)) return;
-      JavaScriptBackend backend = compiler.backend;
       jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
       builder.addProperty(namer.getName(member), code);
@@ -1040,7 +1039,6 @@ class CodeEmitterTask extends CompilerTask {
   void emitInstanceMembers(ClassElement classElement,
                            ClassBuilder builder) {
     assert(invariant(classElement, classElement.isDeclaration));
-    JavaScriptBackend backend = compiler.backend;
     if (classElement == backend.objectInterceptorClass) {
       emitInterceptorMethods(builder);
       // The ObjectInterceptor does not have any instance methods.
@@ -1138,7 +1136,6 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitRuntimeClassesAndTests(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
     RuntimeTypeInformation rti = backend.rti;
     TypeChecks typeChecks = rti.getRequiredChecks();
 
@@ -1324,7 +1321,7 @@ class CodeEmitterTask extends CompilerTask {
     DartType type = member.computeType(compiler);
     // TODO(ahe): Generate a dynamic type error here.
     if (type.element.isErroneous()) return;
-    SourceString helper = compiler.backend.getCheckedModeHelper(type);
+    SourceString helper = backend.getCheckedModeHelper(type);
     FunctionElement helperElement = compiler.findHelper(helper);
     String helperName = namer.isolateAccess(helperElement);
     List<jsAst.Expression> arguments = <jsAst.Expression>[js['v']];
@@ -1489,7 +1486,6 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitInterceptorMethods(ClassBuilder builder) {
-    JavaScriptBackend backend = compiler.backend;
     // Emit forwarders for the ObjectInterceptor class. We need to
     // emit all possible sends on intercepted methods.
     for (Selector selector in
@@ -1540,8 +1536,7 @@ class CodeEmitterTask extends CompilerTask {
       emitSubstitution(cls);
     }
 
-    JavaScriptBackend jsBackend = compiler.backend;
-    RuntimeTypeInformation rti = jsBackend.rti;
+    RuntimeTypeInformation rti = backend.rti;
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
@@ -1656,8 +1651,6 @@ class CodeEmitterTask extends CompilerTask {
     // constructor that always throws. We never need to emit it.
     unneededClasses.add(compiler.boolClass);
 
-    JavaScriptBackend backend = compiler.backend;
-
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassElement> needed = new Set<ClassElement>();
@@ -1748,7 +1741,6 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitStaticFunctions(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
 
@@ -1859,7 +1851,6 @@ class CodeEmitterTask extends CompilerTask {
     String extraArg = null;
     // Methods on interceptor classes take an extra parameter, which is the
     // actual receiver of the call.
-    JavaScriptBackend backend = compiler.backend;
     bool inInterceptor = backend.isInterceptorClass(member.getEnclosingClass());
     if (inInterceptor) {
       cache = interceptorClosureCache;
@@ -1983,7 +1974,6 @@ class CodeEmitterTask extends CompilerTask {
                              DefineStubFunction defineStub) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
-    JavaScriptBackend backend = compiler.backend;
     // If the class is an interceptor class, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptorClass =
@@ -2062,7 +2052,6 @@ class CodeEmitterTask extends CompilerTask {
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
-    JavaScriptBackend backend = compiler.backend;
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
@@ -2388,8 +2377,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
 
     jsAst.VariableUse receiver = js['receiver'];
-    JavaScriptBackend backend = compiler.backend;
-
     /**
      * Build a JavaScrit AST node for doing a type check on
      * [cls]. [cls] must be an interceptor class.
@@ -2502,7 +2489,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
    * Emit all versions of the [:getInterceptor:] method.
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
     // If no class needs to be intercepted, just return.
     if (backend.objectInterceptorClass == null) return;
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
@@ -2532,7 +2518,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     int comparison = _compareSelectorNames(selector1, selector2);
     if (comparison != 0) return comparison;
 
-    JavaScriptBackend backend = compiler.backend;
     Set<ClassElement> classes1 = backend.getInterceptedClassesOn(selector1);
     Set<ClassElement> classes2 = backend.getInterceptedClassesOn(selector2);
     if (classes1.length != classes2.length) {
@@ -2546,7 +2531,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   }
 
   void emitOneShotInterceptors(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
     for (Selector selector in
          backend.oneShotInterceptors.toList()..sort(_compareSelectors)) {
       Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);

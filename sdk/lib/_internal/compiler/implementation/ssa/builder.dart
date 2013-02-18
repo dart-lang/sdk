@@ -2655,8 +2655,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
         void argumentsCheck() {
           HInstruction typeInfo = getRuntimeTypeInfo(expression);
-          Element helper =
-              compiler.findHelper(const SourceString('checkArguments'));
+          Element helper = backend.getCheckArguments();
           HInstruction helperCall = new HStatic(helper);
           add(helperCall);
           List<HInstruction> representations =
@@ -3069,8 +3068,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Constant internalNameConstant =
         constantSystem.createString(new DartString.literal(internalName), node);
 
-    Element createInvocationMirror =
-        compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    Element createInvocationMirror = backend.getCreateInvocationMirror();
 
     var arguments = new List<HInstruction>();
     if (node.argumentsNode != null) {
@@ -3456,8 +3454,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                  {Link<Node> argumentNodes,
                                   List<HInstruction> argumentValues,
                                   List<String> existingArguments}) {
-    Element helper =
-        compiler.findHelper(const SourceString('throwNoSuchMethod'));
+    Element helper = backend.getThrowNoSuchMethod();
     Constant receiverConstant =
         constantSystem.createString(new DartString.empty(), diagnosticNode);
     HInstruction receiver = graph.addConstant(receiverConstant);
@@ -4186,8 +4183,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<List<Constant>> matchExpressions = <List<Constant>>[];
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
-    Element getFallThroughErrorElement =
-        compiler.findHelper(const SourceString("getFallThroughError"));
+    Element getFallThroughErrorElement = backend.getFallThroughError();
     HasNextIterator<Node> caseIterator =
         new HasNextIterator<Node>(node.cases.iterator);
     while (caseIterator.hasNext) {

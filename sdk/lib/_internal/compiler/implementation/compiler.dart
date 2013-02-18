@@ -126,8 +126,24 @@ abstract class Backend {
     return new ItemCompilationContext();
   }
 
-  SourceString getCheckedModeHelper(DartType type) => null;
+  // The following methods are hooks for the backend to register its
+  // helper methods.
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
+  void registerStringInterpolation() {}
+  void registerCatchStatement() {}
+  void registerThrow() {}
+  void registerLazyField() {}
+  void registerTypeLiteral() {}
+  void registerStackTraceInCatch() {}
+  void registerIsCheck(DartType type, Enqueuer enqueuer) {}
+  void registerAsCheck(DartType type) {}
+  void registerThrowNoSuchMethod() {}
+  void registerThrowRuntimeError() {}
+  void registerAbstractClassInstantiation() {}
+  void registerFallThroughError() {}
+  void registerSuperNoSuchMethod() {}
+  void registerConstantMap() {}
+  void registerRuntimeType() {}
 }
 
 /**

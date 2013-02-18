@@ -876,19 +876,39 @@ class JavaScriptBackend extends Backend {
       initializeNoSuchMethod();
       seenAnyClass = true;
     }
+
+    // Register any helper that will be needed by the backend.
+    if (enqueuer.isResolutionQueue) {
+      if (cls == compiler.intClass
+          || cls == compiler.doubleClass
+          || cls == compiler.numClass) {
+        // The backend will try to optimize number operations and use the
+        // `iae` helper directly.
+        enqueuer.registerStaticUse(
+            compiler.findHelper(const SourceString('iae')));
+      } else if (cls == compiler.listClass
+                 || cls == compiler.stringClass) {
+        // The backend will try to optimize array and string access and use the
+        // `ioore` and `iae` helpers directly.
+        enqueuer.registerStaticUse(
+            compiler.findHelper(const SourceString('ioore')));
+        enqueuer.registerStaticUse(
+            compiler.findHelper(const SourceString('iae')));
+      } else if (cls == compiler.functionClass) {
+        enqueuer.registerInstantiatedClass(compiler.closureClass);
+      } else if (cls == compiler.mapClass) {
+        // The backend will use a literal list to initialize the entries
+        // of the map.
+        enqueuer.registerInstantiatedClass(compiler.listClass);
+        enqueuer.registerInstantiatedClass(compiler.mapLiteralClass);
+        enqueueInResolution(getMapMaker());
+      }
+    }
     ClassElement result = null;
     if (cls == compiler.stringClass) {
       addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
       addInterceptors(jsArrayClass, enqueuer);
-      // The backend will try to optimize array access and use the
-      // `ioore` and `iae` helpers directly.
-      if (enqueuer.isResolutionQueue) {
-        enqueuer.registerStaticUse(
-            compiler.findHelper(const SourceString('ioore')));
-        enqueuer.registerStaticUse(
-            compiler.findHelper(const SourceString('iae')));
-      }
     } else if (cls == compiler.intClass) {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
@@ -906,17 +926,16 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsDoubleClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
     } else if (cls == compiler.mapClass) {
-      // The backend will use a literal list to initialize the entries
-      // of the map.
-      if (enqueuer.isResolutionQueue) {
-        enqueuer.registerInstantiatedClass(compiler.listClass);
-        enqueuer.registerInstantiatedClass(compiler.mapLiteralClass);
-      }
     }
-  }
 
-  Element get cyclicThrowHelper {
-    return compiler.findHelper(const SourceString("throwCyclicInit"));
+    if (compiler.enableTypeAssertions) {
+      // We need to register is checks for assignments to fields.
+      cls.forEachLocalMember((Element member) {
+        if (!member.isInstanceMember() || !member.isField()) return;
+        DartType type = member.computeType(compiler);
+        enqueuer.registerIsCheck(type);
+      });
+    }
   }
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
@@ -924,20 +943,117 @@ class JavaScriptBackend extends Backend {
   }
 
   void enqueueHelpers(ResolutionEnqueuer world) {
-    enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
-
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
     if (jsIndexingBehaviorInterface != null) {
       world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler));
     }
 
-    for (var helper in [const SourceString('Closure'),
-                        const SourceString('ConstantMap'),
-                        const SourceString('ConstantProtoMap')]) {
-      var e = compiler.findHelper(helper);
-      if (e != null) world.registerInstantiatedClass(e);
+    if (compiler.enableTypeAssertions) {
+      // Unconditionally register the helper that checks if the
+      // expression in an if/while/for is a boolean.
+      // TODO(ngeoffray): Should we have the resolver register those instead?
+      Element e =
+          compiler.findHelper(const SourceString('boolConversionCheck'));
+      if (e != null) world.addToWorkList(e);
     }
+  }
+
+  void registerStringInterpolation() {
+    enqueueInResolution(getStringInterpolationHelper());
+  }
+
+  void registerCatchStatement() {
+    enqueueInResolution(getExceptionUnwrapper());
+  }
+
+  void registerThrow() {
+    enqueueInResolution(getThrowHelper());
+  }
+
+  void registerLazyField() {
+    enqueueInResolution(getCyclicThrowHelper());
+  }
+
+  void registerTypeLiteral() {
+    enqueueInResolution(getCreateRuntimeType());
+  }
+
+  void registerStackTraceInCatch() {
+    enqueueInResolution(getTraceFromException());
+  }
+
+  void registerRuntimeType() {
+    enqueueInResolution(getSetRuntimeTypeInfo());
+    enqueueInResolution(getGetRuntimeTypeInfo());
+    enqueueInResolution(getGetRuntimeTypeArgument());
+  }
+
+  void registerIsCheck(DartType type, Enqueuer world) {
+    if (!type.isRaw) {
+      enqueueInResolution(getSetRuntimeTypeInfo());
+      enqueueInResolution(getGetRuntimeTypeInfo());
+      enqueueInResolution(getGetRuntimeTypeArgument());
+      enqueueInResolution(getCheckArguments());
+    }
+    // [registerIsCheck] is also called for checked mode checks, so we
+    // need to register checked mode helpers.
+    if (compiler.enableTypeAssertions) {
+      SourceString helperName = getCheckedModeHelper(type);
+      Element e = compiler.findHelper(helperName);
+      if (e != null) world.addToWorkList(e);
+      // We also need the native variant of the check (for DOM types).
+      helperName = nativeNames[helperName.stringValue];
+      if (helperName != null) {
+        e = compiler.findHelper(helperName);
+        if (e != null) world.addToWorkList(e);
+      }
+    }
+  }
+
+  void registerAsCheck(DartType type) {
+    SourceString checkedHelperName = getCheckedModeHelper(type);
+    SourceString helperName = castNames[checkedHelperName.stringValue];
+    Element e = compiler.findHelper(helperName);
+    enqueueInResolution(e);
+    // We also need the native variant of the check (for DOM types).
+    checkedHelperName = nativeNames[checkedHelperName.stringValue];
+    if (checkedHelperName != null) {
+      helperName = castNames[checkedHelperName.stringValue];
+      Element e = compiler.findHelper(helperName);
+      enqueueInResolution(e);
+    }
+  }
+
+  void registerThrowNoSuchMethod() {
+    enqueueInResolution(getThrowNoSuchMethod());
+  }
+
+  void registerThrowRuntimeError() {
+    enqueueInResolution(getThrowRuntimeError());
+  }
+
+  void registerAbstractClassInstantiation() {
+    enqueueInResolution(getThrowAbstractClassInstantiationError());
+  }
+
+  void registerFallThroughError() {
+    enqueueInResolution(getFallThroughError());
+  }
+
+  void registerSuperNoSuchMethod() {
+    enqueueInResolution(getCreateInvocationMirror());
+  }
+
+  void enqueueInResolution(Element e) {
+    if (e != null) compiler.enqueuer.resolution.addToWorkList(e);
+  }
+
+  void registerConstantMap() {
+    Element e = compiler.findHelper(const SourceString('ConstantMap'));
+    if (e != null) compiler.enqueuer.resolution.registerInstantiatedClass(e);
+    e = compiler.findHelper(const SourceString('ConstantProtoMap'));
+    if (e != null) compiler.enqueuer.resolution.registerInstantiatedClass(e);
   }
 
   void codegen(CodegenWorkItem work) {
@@ -951,7 +1067,7 @@ class JavaScriptBackend extends Backend {
         // go through the builder (below) to generate the lazy initializer for
         // the static variable.
         // We also need to register the use of the cyclic-error helper.
-        compiler.enqueuer.codegen.registerStaticUse(cyclicThrowHelper);
+        compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
 
@@ -1194,6 +1310,54 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  Map<String, SourceString> nativeNames = const <String, SourceString> {
+    'stringSuperTypeCheck':
+        const SourceString('stringSuperNativeTypeCheck'),
+    'numberOrStringSuperTypeCheck':
+        const SourceString('numberOrStringSuperNativeTypeCheck'),
+    'listSuperTypeCheck':
+        const SourceString('listSuperNativeTypeCheck'),
+    'propertyTypeCheck':
+        const SourceString('callTypeCheck')
+  };
+
+  Map<String, SourceString> castNames = const <String, SourceString> {
+    "stringTypeCheck":
+        const SourceString("stringTypeCast"),
+    "doubleTypeCheck":
+        const SourceString("doubleTypeCast"),
+    "numTypeCheck":
+        const SourceString("numTypeCast"),
+    "boolTypeCheck":
+        const SourceString("boolTypeCast"),
+    "functionTypeCheck":
+        const SourceString("functionTypeCast"),
+    "intTypeCheck":
+        const SourceString("intTypeCast"),
+    "numberOrStringSuperNativeTypeCheck":
+        const SourceString("numberOrStringSuperNativeTypeCast"),
+    "numberOrStringSuperTypeCheck":
+        const SourceString("numberOrStringSuperTypeCast"),
+    "stringSuperNativeTypeCheck":
+        const SourceString("stringSuperNativeTypeCast"),
+    "stringSuperTypeCheck":
+        const SourceString("stringSuperTypeCast"),
+    "listTypeCheck":
+        const SourceString("listTypeCast"),
+    "listSuperNativeTypeCheck":
+        const SourceString("listSuperNativeTypeCast"),
+    "listSuperTypeCheck":
+        const SourceString("listSuperTypeCast"),
+    "callTypeCheck":
+        const SourceString("callTypeCast"),
+    "propertyTypeCheck":
+        const SourceString("propertyTypeCast"),
+    // TODO(johnniwinther): Add a malformedTypeCast which produces a TypeError
+    // with another message.
+    "malformedTypeCheck":
+        const SourceString("malformedTypeCheck")
+  };
+
   void dumpInferredTypes() {
     print("Inferred argument types:");
     print("------------------------");
@@ -1227,6 +1391,14 @@ class JavaScriptBackend extends Backend {
         const SourceString('throwAbstractClassInstantiationError'));
   }
 
+  Element getStringInterpolationHelper() {
+    return compiler.findHelper(const SourceString('S'));
+  }
+
+  Element getThrowHelper() {
+    return compiler.findHelper(const SourceString(r'$throw'));
+  }
+
   Element getClosureConverter() {
     return compiler.findHelper(const SourceString('convertDartClosureToJS'));
   }
@@ -1251,6 +1423,30 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper(const SourceString('getRuntimeTypeArgument'));
   }
 
+  Element getCheckArguments() {
+    return compiler.findHelper(const SourceString('checkArguments'));
+  }
+
+  Element getThrowNoSuchMethod() {
+    return compiler.findHelper(const SourceString('throwNoSuchMethod'));
+  }
+
+  Element getCreateRuntimeType() {
+    return compiler.findHelper(const SourceString('createRuntimeType'));
+  }
+
+  Element getFallThroughError() {
+    return compiler.findHelper(const SourceString("getFallThroughError"));
+  }
+
+  Element getCreateInvocationMirror() {
+    return compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+  }
+
+  Element getCyclicThrowHelper() {
+    return compiler.findHelper(const SourceString("throwCyclicInit"));
+  }
+   
   /**
    * Remove [element] from the set of generated code, and put it back
    * into the worklist.
