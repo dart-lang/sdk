@@ -288,7 +288,11 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kNullCid;
     } else if (FLAG_use_cha && type_->HasResolvedTypeClass()) {
       const intptr_t cid = Class::Handle(type_->type_class()).id();
-      cid_ = !CHA::HasSubclasses(cid) ? cid : kDynamicCid;
+      if (!CHA::HasSubclasses(cid)) {
+        cid_ = cid;
+      } else {
+        cid_ = kDynamicCid;
+      }
     } else {
       cid_ = kDynamicCid;
     }
