@@ -15,6 +15,7 @@ part of ssa;
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HBaseVisitor {
+  HTypeMap types;
   /**
    * List of [HInstruction] that the instruction merger expects in
    * order when visiting the inputs of an instruction.
@@ -33,7 +34,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(this.generateAtUseSite);
+  SsaInstructionMerger(this.types, this.generateAtUseSite);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -99,7 +100,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   void visitIdentity(HIdentity instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (singleIdentityComparison(left, right) != null) {
+    if (singleIdentityComparison(left, right, types) != null) {
       super.visitIdentity(instruction);
     }
     // Do nothing.
@@ -214,6 +215,7 @@ class SsaInstructionMerger extends HBaseVisitor {
  *  using these operators instead of nested ifs and boolean variables.
  */
 class SsaConditionMerger extends HGraphVisitor {
+  final HTypeMap types;
   Set<HInstruction> generateAtUseSite;
   Set<HInstruction> controlFlowOperators;
 
@@ -222,7 +224,9 @@ class SsaConditionMerger extends HGraphVisitor {
     generateAtUseSite.add(instruction);
   }
 
-  SsaConditionMerger(this.generateAtUseSite, this.controlFlowOperators);
+  SsaConditionMerger(this.types,
+                     this.generateAtUseSite,
+                     this.controlFlowOperators);
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);

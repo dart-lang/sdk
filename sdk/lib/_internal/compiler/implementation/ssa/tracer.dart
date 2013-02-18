@@ -77,6 +77,7 @@ class HTracer extends HGraphVisitor implements Tracer {
 
   void addInstructions(HInstructionStringifier stringifier,
                        HInstructionList list) {
+    HTypeMap types = context.types;
     for (HInstruction instruction = list.first;
          instruction != null;
          instruction = instruction.next) {
@@ -175,7 +176,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    HType type = instruction.instructionType;
+    HType type = context.types[instruction];
     if (!type.isPrimitive()) {
       prefix = 'U';
     } else {
@@ -553,8 +554,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeConversion(HTypeConversion node) {
-    return "TypeConversion: ${temporaryId(node.checkedInput)} to "
-      "${node.instructionType}";
+    return "TypeConversion: ${temporaryId(node.checkedInput)} to ${node.type}";
   }
 
   String visitRangeConversion(HRangeConversion node) {

@@ -162,6 +162,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
+  final HTypeMap types;
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
@@ -206,6 +207,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   SsaCodeGenerator(this.backend, CodegenWorkItem work)
     : this.work = work,
+      this.types =
+          (work.compilationContext as JavaScriptItemCompilationContext).types,
       declaredLocals = new Set<String>(),
       collectedVariableDeclarations = new OrderedSet<String>(),
       currentContainer = new js.Block.empty(),
@@ -335,9 +338,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
+    new SsaInstructionMerger(types, generateAtUseSite).visitGraph(graph);
     new SsaConditionMerger(
-        generateAtUseSite, controlFlowOperators).visitGraph(graph);
+        types, generateAtUseSite, controlFlowOperators).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(compiler, generateAtUseSite);
     intervalBuilder.visitGraph(graph);
@@ -358,8 +361,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HInstruction last = block.last;
       assert(last is HGoto || last is HReturn);
       if (last is HReturn) {
-        backend.registerReturnType(
-            work.element, last.inputs[0].instructionType);
+        backend.registerReturnType(work.element, types[last.inputs[0]]);
       } else {
         backend.registerReturnType(work.element, HType.NULL);
       }
@@ -1268,7 +1270,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitIdentityComparison(HInstruction left, HInstruction right) {
-    String op = singleIdentityComparison(left, right);
+    String op = singleIdentityComparison(left, right, types);
     if (op != null) {
       use(left);
       js.Expression jsLeft = pop();
@@ -1586,7 +1588,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return selector;
     }
     int receiverIndex = node.isInterceptorCall ? 1 : 0;
-    HType receiverType = node.inputs[receiverIndex].instructionType;
+    HType receiverType = types[node.inputs[receiverIndex]];
     return receiverType.refine(selector, compiler);
   }
 
@@ -1610,7 +1612,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerMethodInvoke(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     // Register this invocation to collect the types used at all call sites.
-    backend.registerDynamicInvocation(node, selector);
+    backend.registerDynamicInvocation(node, selector, types);
 
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
@@ -1640,8 +1642,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     world.registerDynamicSetter(selector.name, selector);
     HType valueType = node.isInterceptorCall
-        ? node.inputs[2].instructionType
-        : node.inputs[1].instructionType;
+        ? types[node.inputs[2]]
+        : types[node.inputs[1]];
     backend.addedDynamicSetter(selector, valueType);
     registerInvoke(node);
   }
@@ -1683,7 +1685,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeStatic(HInvokeStatic node) {
     if (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE) {
       // Register this invocation to collect the types used at all call sites.
-      backend.registerStaticInvocation(node);
+      backend.registerStaticInvocation(node, types);
     }
     use(node.target);
     push(new js.Call(pop(), visitArguments(node.inputs)), node);
@@ -1734,7 +1736,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       String name = _fieldPropertyName(element);
       push(new js.PropertyAccess.field(pop(), name), node);
-      DartType type = node.receiver.instructionType.computeType(compiler);
+      DartType type = types[node.receiver].computeType(compiler);
       if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
         world.registerFieldGetter(element);
       }
@@ -1744,14 +1746,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
     String name = _fieldPropertyName(element);
-    DartType type = node.receiver.instructionType.computeType(compiler);
+    DartType type = types[node.receiver].computeType(compiler);
     if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
       // Field setters in the generative constructor body are handled in a
       // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(element);
-        backend.registerFieldSetter(
-            work.element, element, node.value.instructionType);
+        backend.registerFieldSetter(work.element, element, types[node.value]);
       }
     }
     use(node.receiver);
@@ -1800,7 +1801,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       push(new js.LiteralExpression.withData(code, data), node);
     }
-    registerForeignType(node.instructionType);
+    registerForeignType(types[node]);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
   }
 
@@ -1816,7 +1817,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
-    registerForeignType(node.instructionType);
+    registerForeignType(types[node]);
   }
 
   js.Expression newLiteralBool(bool value) {
@@ -1861,8 +1862,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HInstruction right = relational.right;
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.instructionType.isUseful() && left.isInteger()
-          && right.instructionType.isUseful() && right.isInteger();
+      return types[left].isUseful() && left.isInteger(types)
+          && types[right].isUseful() && right.isInteger(types);
     }
 
     if (input is HBoolify && isGenerateAtUseSite(input)) {
@@ -2100,7 +2101,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void useStringified(HInstruction node) {
-    if (node.isString()) {
+    if (node.isString(types)) {
       use(node);
     } else {
       Element convertToString = backend.getStringInterpolationHelper();
@@ -2363,8 +2364,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, type);
       push(new js.Binary('&&', nullTest, pop()));
       attachLocationToLast(node);
-    } else if (input.instructionType.canBePrimitive()
-               || input.instructionType.canBeNull()) {
+    } else if (types[input].canBePrimitive() || types[input].canBeNull()) {
       checkObject(input, '===');
       js.Expression objectTest = pop();
       checkType(input, type);
@@ -2381,7 +2381,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isChecked) {
-      DartType type = node.instructionType.computeType(compiler);
+      DartType type = node.type.computeType(compiler);
       Element element = type.element;
       world.registerIsCheck(type);
 
@@ -2499,27 +2499,27 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     HInstruction input = node.guarded;
     DartType indexingBehavior =
         backend.jsIndexingBehaviorInterface.computeType(compiler);
-    if (node.isInteger()) {
+    if (node.isInteger(types)) {
       // if (input is !int) bailout
       checkInt(input, '!==');
       js.Statement then = bailout(node, 'Not an integer');
       pushStatement(new js.If.noElse(pop(), then), node);
-    } else if (node.isNumber()) {
+    } else if (node.isNumber(types)) {
       // if (input is !num) bailout
       checkNum(input, '!==');
       js.Statement then = bailout(node, 'Not a number');
       pushStatement(new js.If.noElse(pop(), then), node);
-    } else if (node.isBoolean()) {
+    } else if (node.isBoolean(types)) {
       // if (input is !bool) bailout
       checkBool(input, '!==');
       js.Statement then = bailout(node, 'Not a boolean');
       pushStatement(new js.If.noElse(pop(), then), node);
-    } else if (node.isString()) {
+    } else if (node.isString(types)) {
       // if (input is !string) bailout
       checkString(input, '!==');
       js.Statement then = bailout(node, 'Not a string');
       pushStatement(new js.If.noElse(pop(), then), node);
-    } else if (node.isExtendableArray()) {
+    } else if (node.isExtendableArray(types)) {
       // if (input is !Object || input is !Array || input.isFixed) bailout
       checkObject(input, '!==');
       js.Expression objectTest = pop();
@@ -2530,7 +2530,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       test = new js.Binary('||', test, pop());
       js.Statement then = bailout(node, 'Not an extendable array');
       pushStatement(new js.If.noElse(test, then), node);
-    } else if (node.isMutableArray()) {
+    } else if (node.isMutableArray(types)) {
       // if (input is !Object
       //     || ((input is !Array || input.isImmutable)
       //         && input is !JsIndexingBehavior)) bailout
@@ -2545,7 +2545,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary test = new js.Binary('||', objectTest, notIndexing);
       js.Statement then = bailout(node, 'Not a mutable array');
       pushStatement(new js.If.noElse(test, then), node);
-    } else if (node.isReadableArray()) {
+    } else if (node.isReadableArray(types)) {
       // if (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior)) bailout
       checkObject(input, '!==');
@@ -2557,7 +2557,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary test = new js.Binary('||', objectTest, notIndexing);
       js.Statement then = bailout(node, 'Not an array');
       pushStatement(new js.If.noElse(test, then), node);
-    } else if (node.isIndexablePrimitive()) {
+    } else if (node.isIndexablePrimitive(types)) {
       // if (input is !String
       //     && (input is !Object
       //         || (input is !Array && input is !JsIndexingBehavior))) bailout
@@ -2951,13 +2951,15 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 }
 
-String singleIdentityComparison(HInstruction left, HInstruction right) {
+String singleIdentityComparison(HInstruction left,
+                                HInstruction right,
+                                HTypeMap propagatedTypes) {
   // Returns the single identity comparison (== or ===) or null if a more
   // complex expression is required.
   if ((left.isConstant() && left.isConstantSentinel()) ||
       (right.isConstant() && right.isConstantSentinel())) return '===';
-  HType leftType = left.instructionType;
-  HType rightType = right.instructionType;
+  HType leftType = propagatedTypes[left];
+  HType rightType = propagatedTypes[right];
   if (leftType.canBeNull() && rightType.canBeNull()) {
     if (left.isConstantNull() || right.isConstantNull() ||
         (leftType.isPrimitive() && leftType == rightType)) {

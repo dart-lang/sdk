@@ -92,7 +92,7 @@ class SsaBuilderTask extends CompilerTask {
           if (!parameterTypes.allUnknown) {
             int i = 0;
             signature.forEachParameter((Element param) {
-              builder.parameters[param].instructionType = parameterTypes[i++];
+              builder.parameters[param].guaranteedType = parameterTypes[i++];
             });
           }
           backend.registerParameterTypesOptimization(
@@ -299,7 +299,7 @@ class LocalsHandler {
         HInstruction parameter = builder.addParameter(parameterElement);
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
-        parameter.instructionType =
+        parameter.guaranteedType =
             builder.getGuaranteedTypeOfElement(parameterElement);
       });
     }
@@ -355,7 +355,7 @@ class LocalsHandler {
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
       directLocals[closureData.thisElement] = value;
-      value.instructionType = type;
+      value.guaranteedType = type;
     }
   }
 
@@ -438,8 +438,8 @@ class LocalsHandler {
 
   HInstruction readThis() {
     HInstruction res = readLocal(closureData.thisElement);
-    if (res.instructionType == null) {
-      res.instructionType = getTypeOfThis();
+    if (res.guaranteedType == null) {
+      res.guaranteedType = getTypeOfThis();
     }
     return res;
   }
@@ -3382,7 +3382,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
                 currentElement, element);
       }
-      if (returnType != null) instruction.instructionType = returnType;
+      if (returnType != null) instruction.guaranteedType = returnType;
       pushWithPosition(instruction, node);
     } else {
       generateGetter(node, element);
@@ -3577,7 +3577,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HType returnType = mapInferredType(
         compiler.typesTask.getGuaranteedTypeOfNode(work.element, node));
     if (returnType != null) {
-      invoke.instructionType = returnType;
+      invoke.guaranteedType = returnType;
     }
     return invoke;
   }

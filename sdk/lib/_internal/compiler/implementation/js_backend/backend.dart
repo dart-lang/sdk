@@ -77,10 +77,10 @@ class HTypeList {
       : types = null,
         namedArguments = null;
 
-  factory HTypeList.fromStaticInvocation(HInvokeStatic node) {
+  factory HTypeList.fromStaticInvocation(HInvokeStatic node, HTypeMap types) {
     bool allUnknown = true;
     for (int i = 1; i < node.inputs.length; i++) {
-      if (node.inputs[i].instructionType != HType.UNKNOWN) {
+      if (types[node.inputs[i]] != HType.UNKNOWN) {
         allUnknown = false;
         break;
       }
@@ -89,13 +89,14 @@ class HTypeList {
 
     HTypeList result = new HTypeList(node.inputs.length - 1);
     for (int i = 0; i < result.types.length; i++) {
-      result.types[i] = node.inputs[i + 1].instructionType;
+      result.types[i] = types[node.inputs[i + 1]];
     }
     return result;
   }
 
   factory HTypeList.fromDynamicInvocation(HInvokeDynamic node,
-                                          Selector selector) {
+                                          Selector selector,
+                                          HTypeMap types) {
     HTypeList result;
     int argumentsCount = node.inputs.length - 1;
     int startInvokeIndex = HInvoke.ARGUMENTS_OFFSET;
@@ -114,7 +115,7 @@ class HTypeList {
     }
 
     for (int i = 0; i < result.types.length; i++) {
-      result.types[i] = node.inputs[i + startInvokeIndex].instructionType;
+      result.types[i] = types[node.inputs[i + startInvokeIndex]];
     }
     return result;
   }
@@ -455,11 +456,11 @@ class ArgumentTypesRegistry {
     return true;
   }
 
-  void registerStaticInvocation(HInvokeStatic node) {
+  void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
     Element element = node.element;
     assert(invariant(node, element.isDeclaration));
     HTypeList oldTypes = staticTypeMap[element];
-    HTypeList newTypes = new HTypeList.fromStaticInvocation(node);
+    HTypeList newTypes = new HTypeList.fromStaticInvocation(node, types);
     if (oldTypes == null) {
       staticTypeMap[element] = newTypes;
     } else if (updateTypes(oldTypes, newTypes, element, staticTypeMap)) {
@@ -606,10 +607,12 @@ class ArgumentTypesRegistry {
 }
 
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
+  final HTypeMap types;
   final Set<HInstruction> boundsChecked;
 
   JavaScriptItemCompilationContext()
-      : boundsChecked = new Set<HInstruction>();
+      : types = new HTypeMap(),
+        boundsChecked = new Set<HInstruction>();
 }
 
 class JavaScriptBackend extends Backend {
@@ -1111,9 +1114,11 @@ class JavaScriptBackend extends Backend {
    *  Register a dynamic invocation and collect the provided types for the
    *  named selector.
    */
-  void registerDynamicInvocation(HInvokeDynamic node, Selector selector) {
+  void registerDynamicInvocation(HInvokeDynamic node,
+                                 Selector selector,
+                                 HTypeMap types) {
     HTypeList providedTypes =
-        new HTypeList.fromDynamicInvocation(node, selector);
+        new HTypeList.fromDynamicInvocation(node, selector, types);
     argumentTypes.registerDynamicInvocation(providedTypes, selector);
   }
 
@@ -1121,8 +1126,8 @@ class JavaScriptBackend extends Backend {
    *  Register a static invocation and collect the provided types for the
    *  named selector.
    */
-  void registerStaticInvocation(HInvokeStatic node) {
-    argumentTypes.registerStaticInvocation(node);
+  void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
+    argumentTypes.registerStaticInvocation(node, types);
   }
 
   /**

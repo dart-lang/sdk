@@ -58,51 +58,39 @@ class Environment {
 
 /**
  * Visits the graph in dominator order and inserts TypeGuards in places where
- * we consider the guard to be of value. This phase also does type
- * propagation to help find valuable type guards.
+ * we consider the guard to be of value.
+ *
+ * Might modify the [types] in an inconsistent way. No further analysis should
+ * rely on them.
  */
-class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
-    implements OptimizationPhase {
+class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
+  final Compiler compiler;
   final String name = 'SsaTypeGuardInserter';
   final CodegenWorkItem work;
+  final HTypeMap types;
   bool calledInLoop = false;
   bool isRecursiveMethod = false;
   int stateId = 1;
-  Map<HInstruction, HType> savedTypes = new Map<HInstruction, HType>();
 
-  SsaTypeGuardInserter(compiler, this.work) : super(compiler);
+  SsaTypeGuardInserter(this.compiler, this.work, this.types);
 
   void visitGraph(HGraph graph) {
-    // Run the speculative type propagator. This does in-place
-    // update of the type of the instructions, and saves the
-    // previous types in the [savedTypes] map.
-    SsaTypePropagator propagator =
-        new SsaSpeculativeTypePropagator(compiler, savedTypes);
-    propagator.visitGraph(graph);
-
-    // Put back the original types in the instructions, and save the
-    // speculated types in [savedTypes].
-    Map<HInstruction, HType> speculativeTypes = new Map<HInstruction, HType>();
-
-    savedTypes.forEach((HInstruction instruction, HType type) {
-      speculativeTypes[instruction] = instruction.instructionType;
-      instruction.instructionType = type;
-    });
-    savedTypes = speculativeTypes;
-
-    // Propagate types again, and insert type guards in the graph.
     isRecursiveMethod = graph.isRecursiveMethod;
     calledInLoop = graph.calledInLoop;
     work.guards = <HTypeGuard>[];
     visitDominatorTree(graph);
+  }
 
-    // We need to disable the guards, and therefore re-run a
-    // non-speculative type propagator that will not use the
-    // speculated types.
-    work.guards.forEach((HTypeGuard guard) { guard.disable(); });
+  void visitBasicBlock(HBasicBlock block) {
+    block.forEachPhi(visitInstruction);
 
-    propagator = new SsaNonSpeculativeTypePropagator(compiler);
-    propagator.visitGraph(graph);
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      // Note that visitInstruction (from the phis and here) might insert an
+      // HTypeGuard instruction. We have to skip those.
+      if (instruction is !HTypeGuard) visitInstruction(instruction);
+      instruction = instruction.next;
+    }
   }
 
   // Primitive types that are not null are valuable. These include
@@ -159,10 +147,10 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
       if (isNested(userLoopHeader, currentLoopHeader)) return true;
     }
 
-    bool isIndexOperatorOnIndexablePrimitive(instruction) {
+    bool isIndexOperatorOnIndexablePrimitive(instruction, types) {
       return instruction is HIndex
           || (instruction is HInvokeDynamicMethod
-              && instruction.isIndexOperatorOnIndexablePrimitive());
+              && instruction.isIndexOperatorOnIndexablePrimitive(types));
     }
 
     // To speed up computations on values loaded from arrays, we
@@ -173,7 +161,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     // type guard is much smaller than the first one that causes the
     // generation of a bailout method.
     if (hasTypeGuards
-        && isIndexOperatorOnIndexablePrimitive(instruction)) {
+        && isIndexOperatorOnIndexablePrimitive(instruction, types)) {
       HBasicBlock loopHeader = instruction.block.enclosingLoopHeader;
       if (loopHeader != null && loopHeader.parentLoopHeader != null) {
         return true;
@@ -195,21 +183,34 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     return calledInLoop;
   }
 
-  bool shouldInsertTypeGuard(HInstruction instruction, HType speculativeType) {
+  bool shouldInsertTypeGuard(HInstruction instruction,
+                             HType speculativeType,
+                             HType computedType) {
     if (!speculativeType.isUseful()) return false;
     // If the types agree we don't need to check.
-    if (speculativeType == instruction.instructionType) return false;
+    if (speculativeType == computedType) return false;
     // If a bailout check is more expensive than doing the actual operation
     // don't do it either.
     return typeGuardWouldBeValuable(instruction, speculativeType);
   }
 
-  bool updateType(HInstruction instruction) {
-    bool hasChanged = super.updateType(instruction);
-    HType speculativeType = savedTypes[instruction];
-    if (speculativeType == null) return hasChanged;
+  void visitInstruction(HInstruction instruction) {
+    HType speculativeType = types[instruction];
+    HType computedType = instruction.computeTypeFromInputTypes(types, compiler);
+    // Currently the type in [types] is the speculative type each instruction
+    // would like to have. We start by recomputing the type non-speculatively.
+    // If we add a type guard then the guard will expose the speculative type.
+    // If we don't add a type guard then this avoids that subsequent
+    // instructions use the wrong (speculative) type.
+    //
+    // Note that just setting the speculative type of the instruction is not
+    // complete since the type could lead to a phi node which in turn could
+    // change the speculative type. In this case we might miss some guards we
+    // would have liked to insert. Most of the time this should however be
+    // fine, due to dominator-order visiting.
+    types[instruction] = computedType;
 
-    if (shouldInsertTypeGuard(instruction, speculativeType)) {
+    if (shouldInsertTypeGuard(instruction, speculativeType, computedType)) {
       HInstruction insertionPoint;
       if (instruction is HPhi) {
         insertionPoint = instruction.block.first;
@@ -237,16 +238,11 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
         insertionPoint.block.addBefore(insertionPoint, target);
       }
       HTypeGuard guard = new HTypeGuard(speculativeType, instruction, target);
+      types[guard] = speculativeType;
       work.guards.add(guard);
-      // By setting the type of the guard to the speculated type, we
-      // help the analysis find valuable type guards. This however
-      // requires to run a non-speculative type propagation again
-      // after this analysis.
-      guard.instructionType = speculativeType;
       instruction.block.rewrite(instruction, guard);
       insertionPoint.block.addBefore(insertionPoint, guard);
     }
-    return hasChanged;
   }
 }
 
