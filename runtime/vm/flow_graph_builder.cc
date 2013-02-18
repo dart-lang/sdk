@@ -3219,7 +3219,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
                            CatchClauseNode::kInvalidTryIndex);
-  graph_entry_ = new GraphEntryInstr(normal_entry);
+  graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry);
   EffectGraphVisitor for_effect(this, 0);
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).

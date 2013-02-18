@@ -22,11 +22,12 @@ class ControlInstruction;
 class Definition;
 class Environment;
 class FlowGraphCompiler;
+class FlowGraphOptimizer;
 class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
+class ParsedFunction;
 class Range;
-class FlowGraphOptimizer;
 
 
 // TODO(srdjan): Unify with INTRINSIC_LIST.
@@ -1005,7 +1006,8 @@ class BackwardInstructionIterator : public ValueObject {
 
 class GraphEntryInstr : public BlockEntryInstr {
  public:
-  explicit GraphEntryInstr(TargetEntryInstr* normal_entry);
+  GraphEntryInstr(const ParsedFunction& parsed_function,
+                  TargetEntryInstr* normal_entry);
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -1034,12 +1036,17 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
+  const ParsedFunction& parsed_function() const {
+    return parsed_function_;
+  }
+
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
   virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
+  const ParsedFunction& parsed_function_;
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;

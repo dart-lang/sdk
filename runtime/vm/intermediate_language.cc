@@ -196,8 +196,10 @@ const Object& Value::BoundConstant() const {
 }
 
 
-GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
+GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
+                                 TargetEntryInstr* normal_entry)
     : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
+      parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),

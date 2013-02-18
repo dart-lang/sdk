@@ -288,9 +288,7 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kNullCid;
     } else if (FLAG_use_cha && type_->HasResolvedTypeClass()) {
       const intptr_t cid = Class::Handle(type_->type_class()).id();
-      if (!CHA::HasSubclasses(cid)) {
-        cid_ = cid;
-      }
+      cid_ = !CHA::HasSubclasses(cid) ? cid : kDynamicCid;
     } else {
       cid_ = kDynamicCid;
     }
@@ -445,13 +443,32 @@ bool PhiInstr::RecomputeType() {
 }
 
 
+static bool CanTrustParameterType(const Function& function, intptr_t index) {
+  // Parameter is receiver.
+  if (index == 0) {
+    return function.IsDynamicFunction() || function.IsConstructor();
+  }
+
+  // Parameter is the constructor phase.
+  return (index == 1) && function.IsConstructor();
+}
+
 
 CompileType* ParameterInstr::ComputeInitialType() const {
   // Note that returning the declared type of the formal parameter would be
   // incorrect, because ParameterInstr is used as input to the type check
   // verifying the run time type of the passed-in parameter and this check would
   // always be wrongly eliminated.
-  return CompileType::Dynamic();
+  // However there are parameters that are known to match their declared type:
+  // for example receiver and construction phase.
+  if (!CanTrustParameterType(block_->parsed_function().function(),
+                             index())) {
+    return CompileType::Dynamic();
+  }
+
+  LocalScope* scope = block_->parsed_function().node_sequence()->scope();
+  return CompileType::FromAbstractType(scope->VariableAt(index())->type(),
+                                       CompileType::kNonNullable);
 }
 
 
