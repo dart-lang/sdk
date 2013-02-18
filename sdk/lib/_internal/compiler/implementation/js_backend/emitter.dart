@@ -1321,8 +1321,8 @@ class CodeEmitterTask extends CompilerTask {
     DartType type = member.computeType(compiler);
     // TODO(ahe): Generate a dynamic type error here.
     if (type.element.isErroneous()) return;
-    SourceString helper = backend.getCheckedModeHelper(type);
-    FunctionElement helperElement = compiler.findHelper(helper);
+    FunctionElement helperElement
+        = backend.getCheckedModeHelper(type, typeCast: false);
     String helperName = namer.isolateAccess(helperElement);
     List<jsAst.Expression> arguments = <jsAst.Expression>[js['v']];
     if (helperElement.computeSignature(compiler).parameterCount != 1) {

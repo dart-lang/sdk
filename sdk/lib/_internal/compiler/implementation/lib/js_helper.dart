@@ -1336,6 +1336,11 @@ malformedTypeCheck(value, type, reasons) {
   throwMalformedSubtypeError(value, type, reasons);
 }
 
+malformedTypeCast(value, type, reasons) {
+  if (value == null) return value;
+  throw new CastErrorImplementation.malformedTypeCast(value, type, reasons);
+}
+
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not
@@ -1372,17 +1377,27 @@ class TypeErrorImplementation implements TypeError {
 /** Thrown by the 'as' operator if the cast isn't valid. */
 class CastErrorImplementation implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
-  // TODO(lrn): Change actualType and expectedType to "Type" when reified
-  // types are available.
-  final Object actualType;
-  final Object expectedType;
+  final String message;
 
-  CastErrorImplementation(this.actualType, this.expectedType);
+  /**
+   * Normal cast error caused by a failed type cast.
+   */
+  CastErrorImplementation(Object actualType, Object expectedType)
+      : message = "CastError: Casting value of type $actualType to"
+                  " incompatible type $expectedType";
 
-  String toString() {
-    return "CastError: Casting value of type $actualType to"
-           " incompatible type $expectedType";
-  }
+
+  /**
+   * Cast error caused by a type cast to a malformed type.
+   */
+  CastErrorImplementation.malformedTypeCast(Object value,
+                                            String type, String reasons)
+      : message = "CastError: Type '${Primitives.objectTypeName(value)}' "
+                  "cannot be cast to type '$type' because '$type' is "
+                  "malformed: $reasons.";
+
+
+  String toString() => message;
 }
 
 class FallThroughErrorImplementation implements FallThroughError {

@@ -996,30 +996,20 @@ class JavaScriptBackend extends Backend {
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
     if (compiler.enableTypeAssertions) {
-      SourceString helperName = getCheckedModeHelper(type);
-      Element e = compiler.findHelper(helperName);
+      Element e = getCheckedModeHelper(type, typeCast: false);
       if (e != null) world.addToWorkList(e);
       // We also need the native variant of the check (for DOM types).
-      helperName = nativeNames[helperName.stringValue];
-      if (helperName != null) {
-        e = compiler.findHelper(helperName);
-        if (e != null) world.addToWorkList(e);
-      }
+      e = getNativeCheckedModeHelper(type, typeCast: false);
+      if (e != null) world.addToWorkList(e);
     }
   }
 
   void registerAsCheck(DartType type) {
-    SourceString checkedHelperName = getCheckedModeHelper(type);
-    SourceString helperName = castNames[checkedHelperName.stringValue];
-    Element e = compiler.findHelper(helperName);
+    Element e = getCheckedModeHelper(type, typeCast: true);
     enqueueInResolution(e);
     // We also need the native variant of the check (for DOM types).
-    checkedHelperName = nativeNames[checkedHelperName.stringValue];
-    if (checkedHelperName != null) {
-      helperName = castNames[checkedHelperName.stringValue];
-      Element e = compiler.findHelper(helperName);
-      enqueueInResolution(e);
-    }
+    e = getNativeCheckedModeHelper(type, typeCast: true);
+    enqueueInResolution(e);
   }
 
   void registerThrowNoSuchMethod() {
@@ -1253,105 +1243,129 @@ class JavaScriptBackend extends Backend {
   }
 
   /**
-   * Return the checked mode helper name that will be needed to do a
-   * type check on [type] at runtime. Note that this method is being
-   * called both by the resolver with interface types (int, String,
-   * ...), and by the SSA backend with implementation types (JSInt,
-   * JSString, ...).
+   * Returns the checked mode helper that will be needed to do a type check/type
+   * cast on [type] at runtime. Note that this method is being called both by
+   * the resolver with interface types (int, String, ...), and by the SSA
+   * backend with implementation types (JSInt, JSString, ...).
    */
-  SourceString getCheckedModeHelper(DartType type) {
+  Element getCheckedModeHelper(DartType type, {bool typeCast}) {
+    return compiler.findHelper(getCheckedModeHelperName(
+        type, typeCast: typeCast, nativeCheckOnly: false));
+  }
+
+  /**
+   * Returns the native checked mode helper that will be needed to do a type
+   * check/type cast on [type] at runtime. If no native helper exists for
+   * [type], [:null:] is returned.
+   */
+  Element getNativeCheckedModeHelper(DartType type, {bool typeCast}) {
+    SourceString sourceName = getCheckedModeHelperName(
+        type, typeCast: typeCast, nativeCheckOnly: true);
+    if (sourceName == null) return null;
+    return compiler.findHelper(sourceName);
+  }
+
+  /**
+   * Returns the name of the type check/type cast helper method for [type]. If
+   * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
+   */
+  SourceString getCheckedModeHelperName(DartType type,
+                                        {bool typeCast,
+                                         bool nativeCheckOnly}) {
     Element element = type.element;
-    bool nativeCheck =
-          emitter.nativeEmitter.requiresNativeIsCheck(element);
+    bool nativeCheck = nativeCheckOnly ||
+        emitter.nativeEmitter.requiresNativeIsCheck(element);
     if (type.isMalformed) {
       // Check for malformed types first, because the type may be a list type
       // with a malformed argument type.
-      return const SourceString('malformedTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString('malformedTypeCast')
+          : const SourceString('malformedTypeCheck');
     } else if (type == compiler.types.voidType) {
+      assert(!typeCast); // Cannot cast to void.
+      if (nativeCheckOnly) return null;
       return const SourceString('voidTypeCheck');
     } else if (element == jsStringClass || element == compiler.stringClass) {
-      return const SourceString('stringTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString("stringTypeCast")
+          : const SourceString('stringTypeCheck');
     } else if (element == jsDoubleClass || element == compiler.doubleClass) {
-      return const SourceString('doubleTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString("doubleTypeCast")
+          : const SourceString('doubleTypeCheck');
     } else if (element == jsNumberClass || element == compiler.numClass) {
-      return const SourceString('numTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString("numTypeCast")
+          : const SourceString('numTypeCheck');
     } else if (element == jsBoolClass || element == compiler.boolClass) {
-      return const SourceString('boolTypeCheck');
-    } else if (element == jsFunctionClass
-               || element == compiler.functionClass) {
-      return const SourceString('functionTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString("boolTypeCast")
+          : const SourceString('boolTypeCheck');
+    } else if (element == jsFunctionClass ||
+               element == compiler.functionClass) {
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString("functionTypeCast")
+          : const SourceString('functionTypeCheck');
     } else if (element == jsIntClass || element == compiler.intClass) {
-      return const SourceString('intTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast ?
+          const SourceString("intTypeCast") :
+          const SourceString('intTypeCheck');
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
-      return nativeCheck
-          ? const SourceString('numberOrStringSuperNativeTypeCheck')
+      if (nativeCheck) {
+        return typeCast
+            ? const SourceString("numberOrStringSuperNativeTypeCast")
+            : const SourceString('numberOrStringSuperNativeTypeCheck');
+      } else {
+        return typeCast
+          ? const SourceString("numberOrStringSuperTypeCast")
           : const SourceString('numberOrStringSuperTypeCheck');
+      }
     } else if (Elements.isStringOnlySupertype(element, compiler)) {
-      return nativeCheck
-          ? const SourceString('stringSuperNativeTypeCheck')
-          : const SourceString('stringSuperTypeCheck');
+      if (nativeCheck) {
+        return typeCast
+            ? const SourceString("stringSuperNativeTypeCast")
+            : const SourceString('stringSuperNativeTypeCheck');
+      } else {
+        return typeCast
+            ? const SourceString("stringSuperTypeCast")
+            : const SourceString('stringSuperTypeCheck');
+      }
     } else if (element == compiler.listClass || element == jsArrayClass) {
-      return const SourceString('listTypeCheck');
+      if (nativeCheckOnly) return null;
+      return typeCast
+          ? const SourceString("listTypeCast")
+          : const SourceString('listTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
-        return nativeCheck
-            ? const SourceString('listSuperNativeTypeCheck')
-            : const SourceString('listSuperTypeCheck');
+        if (nativeCheck) {
+          return typeCast
+              ? const SourceString("listSuperNativeTypeCast")
+              : const SourceString('listSuperNativeTypeCheck');
+        } else {
+          return typeCast
+              ? const SourceString("listSuperTypeCast")
+              : const SourceString('listSuperTypeCheck');
+        }
       } else {
-        return nativeCheck
-            ? const SourceString('callTypeCheck')
-            : const SourceString('propertyTypeCheck');
+        if (nativeCheck) {
+          return typeCast
+              ? const SourceString("callTypeCast")
+              : const SourceString('callTypeCheck');
+        } else {
+          return typeCast
+              ? const SourceString("propertyTypeCast")
+              : const SourceString('propertyTypeCheck');
+        }
       }
     }
   }
-
-  Map<String, SourceString> nativeNames = const <String, SourceString> {
-    'stringSuperTypeCheck':
-        const SourceString('stringSuperNativeTypeCheck'),
-    'numberOrStringSuperTypeCheck':
-        const SourceString('numberOrStringSuperNativeTypeCheck'),
-    'listSuperTypeCheck':
-        const SourceString('listSuperNativeTypeCheck'),
-    'propertyTypeCheck':
-        const SourceString('callTypeCheck')
-  };
-
-  Map<String, SourceString> castNames = const <String, SourceString> {
-    "stringTypeCheck":
-        const SourceString("stringTypeCast"),
-    "doubleTypeCheck":
-        const SourceString("doubleTypeCast"),
-    "numTypeCheck":
-        const SourceString("numTypeCast"),
-    "boolTypeCheck":
-        const SourceString("boolTypeCast"),
-    "functionTypeCheck":
-        const SourceString("functionTypeCast"),
-    "intTypeCheck":
-        const SourceString("intTypeCast"),
-    "numberOrStringSuperNativeTypeCheck":
-        const SourceString("numberOrStringSuperNativeTypeCast"),
-    "numberOrStringSuperTypeCheck":
-        const SourceString("numberOrStringSuperTypeCast"),
-    "stringSuperNativeTypeCheck":
-        const SourceString("stringSuperNativeTypeCast"),
-    "stringSuperTypeCheck":
-        const SourceString("stringSuperTypeCast"),
-    "listTypeCheck":
-        const SourceString("listTypeCast"),
-    "listSuperNativeTypeCheck":
-        const SourceString("listSuperNativeTypeCast"),
-    "listSuperTypeCheck":
-        const SourceString("listSuperTypeCast"),
-    "callTypeCheck":
-        const SourceString("callTypeCast"),
-    "propertyTypeCheck":
-        const SourceString("propertyTypeCast"),
-    // TODO(johnniwinther): Add a malformedTypeCast which produces a TypeError
-    // with another message.
-    "malformedTypeCheck":
-        const SourceString("malformedTypeCheck")
-  };
 
   void dumpInferredTypes() {
     print("Inferred argument types:");
@@ -1441,7 +1455,7 @@ class JavaScriptBackend extends Backend {
   Element getCyclicThrowHelper() {
     return compiler.findHelper(const SourceString("throwCyclicInit"));
   }
-   
+
   /**
    * Remove [element] from the set of generated code, and put it back
    * into the worklist.

@@ -2379,7 +2379,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  // TODO(johnniwinther): Refactor this method.
   void visitTypeConversion(HTypeConversion node) {
     if (node.isChecked) {
       DartType type = node.instructionType.computeType(compiler);
@@ -2405,22 +2404,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
 
-      SourceString helper;
+      FunctionElement helperElement;
       if (node.isBooleanConversionCheck) {
-        helper = const SourceString('boolConversionCheck');
+        helperElement =
+            compiler.findHelper(const SourceString('boolConversionCheck'));
       } else {
-        helper = backend.getCheckedModeHelper(type);
-        if (node.isCastTypeCheck) {
-          helper = backend.castNames[helper.stringValue];
-        }
+        helperElement = backend.getCheckedModeHelper(type,
+            typeCast: node.isCastTypeCheck);
       }
-      FunctionElement helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);
       List<js.Expression> arguments = <js.Expression>[];
       use(node.checkedInput);
       arguments.add(pop());
       int parameterCount =
           helperElement.computeSignature(compiler).parameterCount;
+      // TODO(johnniwinther): Refactor this to avoid using the parameter count
+      // to determine how the helper should be called.
       if (parameterCount == 2) {
         // 2 arguments implies that the method is either [propertyTypeCheck]
         // or [propertyTypeCast].
