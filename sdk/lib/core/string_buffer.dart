@@ -9,69 +9,29 @@ part of dart.core;
  * efficiently. Only on a call to [toString] are the strings
  * concatenated to a single String.
  */
-class StringBuffer implements StringSink {
+abstract class StringBuffer {
 
   /// Creates the string buffer with an initial content.
-  external StringBuffer([Object content = ""]);
+  external factory StringBuffer([Object content = ""]);
 
   /// Returns the length of the buffer.
-  external int get length;
+  int get length;
 
-  /// Returns whether the buffer is empty.
-  bool get isEmpty => length == 0;
+  // Returns whether the buffer is empty.
+  bool get isEmpty;
 
-  /**
-   * Converts [obj] to a string and adds it to the buffer.
-   *
-   * *Deprecated*. Use [write] instead.
-   */
-  @deprecated
-  void add(Object obj) => write(obj);
-
-  external void write(Object obj);
-
-  void writeAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
-  }
-
-  void writeln(Object obj) {
-    write(obj);
-    write("\n");
-  }
-
-  /**
-   * Adds the string representation of [charCode] to the buffer.
-   *
-   * *Deprecated* Use [writeCharCode] instead.
-   */
-  @deprecated
-  void addCharCode(int charCode) {
-    writeCharCode(charCode);
-  }
+  /// Converts [obj] to a string and adds it to the buffer.
+  void add(Object obj);
 
   /// Adds the string representation of [charCode] to the buffer.
-  void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
-  }
+  void addCharCode(int charCode);
 
-  /**
-   * Adds all items in [objects] to the buffer.
-   *
-   * *Deprecated*. Use [writeAll] instead.
-   */
-  @deprecated
-  void addAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
-  }
+  /// Adds all items in [objects] to the buffer.
+  void addAll(Iterable objects);
 
-  /**
-   * Clears the string buffer.
-   *
-   * *Deprecated*.
-   */
-  @deprecated
-  external void clear();
+  /// Clears the string buffer.
+  void clear();
 
   /// Returns the contents of buffer as a concatenated string.
-  external String toString();
+  String toString();
 }
