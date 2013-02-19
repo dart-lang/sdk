@@ -37,7 +37,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
 
   server = gethostbyname(host);
   if (server == NULL) {
-    TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY(close(fd));
     Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
     return -1;
   }
@@ -205,7 +205,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   FDUtils::SetCloseOnExec(fd);
 
   int optval = 1;
-  TEMP_FAILURE_RETRY(
+  VOID_TEMP_FAILURE_RETRY(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
   server_address.sin_family = AF_INET;
@@ -217,7 +217,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
           bind(fd,
                reinterpret_cast<struct sockaddr *>(&server_address),
                sizeof(server_address))) < 0) {
-    TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY(close(fd));
     Log::PrintErr("Error Bind: %s\n", strerror(errno));
     return -1;
   }

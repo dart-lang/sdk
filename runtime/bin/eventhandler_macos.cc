@@ -135,8 +135,8 @@ EventHandlerImplementation::EventHandlerImplementation()
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
-  TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
-  TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
+  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
+  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
 
 

@@ -61,7 +61,7 @@
 //   - http://msdn.microsoft.com/en-us/library/b0084kay.aspx
 //   - with gcc, run: "echo | gcc -E -dM -"
 #if defined(__ANDROID__)
-#define TARGET_OS_ANDROID
+#define TARGET_OS_ANDROID 1
 #elif defined(__linux__) || defined(__FreeBSD__)
 #define TARGET_OS_LINUX 1
 #elif defined(__APPLE__)
@@ -391,22 +391,28 @@ inline D bit_copy(const S& source) {
 #define strtok_r strtok_s
 #endif
 
-#if !defined(TARGET_OS_WINDOWS) && !defined(TEMP_FAILURE_RETRY)
+#if !defined(TARGET_OS_WINDOWS)
+#if !defined(TEMP_FAILURE_RETRY)
 // TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. The
 // definition below is copied from Linux and adapted to avoid lint
 // errors (type long int changed to int64_t and do/while split on
 // separate lines with body in {}s).
-# define TEMP_FAILURE_RETRY(expression)                                        \
+#define TEMP_FAILURE_RETRY(expression)                                         \
     ({ int64_t __result;                                                       \
        do {                                                                    \
-         __result = (int64_t) (expression);                                    \
+         __result = static_cast<int64_t>(expression);                          \
        } while (__result == -1L && errno == EINTR);                            \
        __result; })
-#endif
+#endif  // !defined(TEMP_FAILURE_RETRY)
 
+// This is a version of TEMP_FAILURE_RETRY which does not use the value
+// returned from the expression.
+#define VOID_TEMP_FAILURE_RETRY(expression)                                    \
+    (static_cast<void>(TEMP_FAILURE_RETRY(expression)))
+
+#endif  // !defined(TARGET_OS_WINDOWS)
 
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
-//
 // Tell the compiler to do printf format string checking if the
 // compiler supports it; see the 'format' attribute in
 // <http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Attributes.html>.
@@ -414,7 +420,6 @@ inline D bit_copy(const S& source) {
 // N.B.: As the GCC manual states, "[s]ince non-static C++ methods
 // have an implicit 'this' argument, the arguments of such methods
 // should be counted from two, not one."
-//
 #define PRINTF_ATTRIBUTE(string_index, first_to_check) \
   __attribute__((__format__(__printf__, string_index, first_to_check)))
 #else
