@@ -894,17 +894,17 @@ abstract class HInstruction implements Spannable {
   String inputsToString() {
     void addAsCommaSeparated(StringBuffer buffer, List<HInstruction> list) {
       for (int i = 0; i < list.length; i++) {
-        if (i != 0) buffer.add(', ');
-        buffer.add("@${list[i].id}");
+        if (i != 0) buffer.write(', ');
+        buffer.write("@${list[i].id}");
       }
     }
 
     StringBuffer buffer = new StringBuffer();
-    buffer.add('(');
+    buffer.write('(');
     addAsCommaSeparated(buffer, inputs);
-    buffer.add(') - used at [');
+    buffer.write(') - used at [');
     addAsCommaSeparated(buffer, usedBy);
-    buffer.add(']');
+    buffer.write(']');
     return buffer.toString();
   }
 

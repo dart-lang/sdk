@@ -1350,7 +1350,7 @@ class CodeEmitterTask extends CompilerTask {
     bool isFirstField = true;
     StringBuffer buffer = new StringBuffer();
     if (!classIsNative) {
-      buffer.add('$superClass;');
+      buffer.write('$superClass;');
     }
     visitClassFields(classElement, (Element member,
                                     String name,
@@ -1369,30 +1369,30 @@ class CodeEmitterTask extends CompilerTask {
         if (isFirstField) {
           isFirstField = false;
         } else {
-          buffer.add(',');
+          buffer.write(',');
         }
         int flag = 0;
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
-          buffer.add(name);
+          buffer.write(name);
         } else {
           // Emit (possibly renaming) field name so we can add accessors at
           // runtime.
-          buffer.add(accessorName);
+          buffer.write(accessorName);
           if (name != accessorName) {
-            buffer.add(':$name');
+            buffer.write(':$name');
             // Only the native classes can have renaming accessors.
             assert(classIsNative);
             flag = RENAMING_FLAG;
           }
         }
         if (needsGetter && needsSetter) {
-          buffer.addCharCode(GETTER_SETTER_CODE + flag);
+          buffer.writeCharCode(GETTER_SETTER_CODE + flag);
         } else if (needsGetter) {
-          buffer.addCharCode(GETTER_CODE + flag);
+          buffer.writeCharCode(GETTER_CODE + flag);
         } else if (needsSetter) {
-          buffer.addCharCode(SETTER_CODE + flag);
+          buffer.writeCharCode(SETTER_CODE + flag);
         }
       }
     });

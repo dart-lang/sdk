@@ -415,8 +415,8 @@ class Selector {
     if (namedArgumentCount > 0) {
       StringBuffer result = new StringBuffer();
       for (int i = 0; i < namedArgumentCount; i++) {
-        if (i != 0) result.add(', ');
-        result.add(namedArguments[i].slowToString());
+        if (i != 0) result.write(', ');
+        result.write(namedArguments[i].slowToString());
       }
       return "[$result]";
     }

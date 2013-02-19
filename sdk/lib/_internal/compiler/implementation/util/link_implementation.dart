@@ -36,19 +36,19 @@ class LinkEntry<T> extends Link<T> {
   }
 
   void printOn(StringBuffer buffer, [separatedBy]) {
-    buffer.add(head);
+    buffer.write(head);
     if (separatedBy == null) separatedBy = '';
     for (Link link = tail; !link.isEmpty; link = link.tail) {
-      buffer.add(separatedBy);
-      buffer.add(link.head);
+      buffer.write(separatedBy);
+      buffer.write(link.head);
     }
   }
 
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    buffer.add('[ ');
+    buffer.write('[ ');
     printOn(buffer, ', ');
-    buffer.add(' ]');
+    buffer.write(' ]');
     return buffer.toString();
   }
 

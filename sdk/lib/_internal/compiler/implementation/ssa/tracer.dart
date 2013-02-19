@@ -114,8 +114,8 @@ class HTracer extends HGraphVisitor implements Tracer {
             String phiId = stringifier.temporaryId(phi);
             StringBuffer inputIds = new StringBuffer();
             for (int i = 0; i < phi.inputs.length; i++) {
-              inputIds.add(stringifier.temporaryId(phi.inputs[i]));
-              inputIds.add(" ");
+              inputIds.write(stringifier.temporaryId(phi.inputs[i]));
+              inputIds.write(" ");
             }
             println("${phi.id} $phiId [ $inputIds]");
           });
@@ -214,7 +214,7 @@ class HInstructionStringifier implements HVisitor<String> {
     StringBuffer envBuffer = new StringBuffer();
     List<HInstruction> inputs = node.inputs;
     for (int i = 0; i < inputs.length; i++) {
-      envBuffer.add(" ${temporaryId(inputs[i])}");
+      envBuffer.write(" ${temporaryId(inputs[i])}");
     }
     String on = node.isEnabled ? "enabled" : "disabled";
     return "BailoutTarget($on): id: ${node.state} env: $envBuffer";
@@ -315,8 +315,8 @@ class HInstructionStringifier implements HVisitor<String> {
                             List<HInstruction> arguments) {
     StringBuffer argumentsString = new StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
-      if (i != 0) argumentsString.add(", ");
-      argumentsString.add(temporaryId(arguments[i]));
+      if (i != 0) argumentsString.write(", ");
+      argumentsString.write(temporaryId(arguments[i]));
     }
     return "$invokeType: $functionName($argumentsString)";
   }
@@ -396,8 +396,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitLiteralList(HLiteralList node) {
     StringBuffer elementsString = new StringBuffer();
     for (int i = 0; i < node.inputs.length; i++) {
-      if (i != 0) elementsString.add(", ");
-      elementsString.add(temporaryId(node.inputs[i]));
+      if (i != 0) elementsString.write(", ");
+      elementsString.write(temporaryId(node.inputs[i]));
     }
     return "Literal list: [$elementsString]";
   }
@@ -428,12 +428,12 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitPhi(HPhi phi) {
     StringBuffer buffer = new StringBuffer();
-    buffer.add("Phi(");
+    buffer.write("Phi(");
     for (int i = 0; i < phi.inputs.length; i++) {
-      if (i > 0) buffer.add(", ");
-      buffer.add(temporaryId(phi.inputs[i]));
+      if (i > 0) buffer.write(", ");
+      buffer.write(temporaryId(phi.inputs[i]));
     }
-    buffer.add(")");
+    buffer.write(")");
     return buffer.toString();
   }
 
@@ -465,17 +465,17 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitSwitch(HSwitch node) {
     StringBuffer buf = new StringBuffer();
-    buf.add("Switch: (");
-    buf.add(temporaryId(node.inputs[0]));
-    buf.add(") ");
+    buf.write("Switch: (");
+    buf.write(temporaryId(node.inputs[0]));
+    buf.write(") ");
     for (int i = 1; i < node.inputs.length; i++) {
-      buf.add(temporaryId(node.inputs[i]));
-      buf.add(": B");
-      buf.add(node.block.successors[i - 1].id);
-      buf.add(", ");
+      buf.write(temporaryId(node.inputs[i]));
+      buf.write(": B");
+      buf.write(node.block.successors[i - 1].id);
+      buf.write(", ");
     }
-    buf.add("default: B");
-    buf.add(node.block.successors.last.id);
+    buf.write("default: B");
+    buf.write(node.block.successors.last.id);
     return buf.toString();
   }
 
@@ -538,7 +538,7 @@ class HInstructionStringifier implements HVisitor<String> {
     assert(inputs[0] == guarded);
     assert(inputs[1] == bailoutTarget);
     for (int i = 2; i < inputs.length; i++) {
-      envBuffer.add(" ${temporaryId(inputs[i])}");
+      envBuffer.write(" ${temporaryId(inputs[i])}");
     }
     String on = node.isEnabled ? "enabled" : "disabled";
     String guardedId = temporaryId(node.guarded);

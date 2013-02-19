@@ -10,7 +10,9 @@ import 'dart2jslib.dart'
        show Compiler,
             CompilerTask,
             ConstructedConstant,
-            SourceString;
+            MessageKind,
+            SourceString,
+            StringConstant;
 
 import 'elements/elements.dart'
        show ClassElement,
@@ -47,7 +49,7 @@ class DeferredLoadTask extends CompilerTask {
         compiler.libraryLoader.loadLibrary(uri, null, uri);
     var element = asyncLibrary.find(const SourceString('DeferredLibrary'));
     if (element == null) {
-      internalErrorOnElement(
+      compiler.internalErrorOnElement(
           asyncLibrary,
           'dart:async library does not contain required class: '
           'DeferredLibrary');
@@ -73,7 +75,7 @@ class DeferredLoadTask extends CompilerTask {
     });
   }
 
-  Link<Element> findDeferredLibraries(LibraryElement library) {
+  Link<LibraryElement> findDeferredLibraries(LibraryElement library) {
     Link<LibraryElement> link = const Link<LibraryElement>();
     for (LibraryTag tag in library.tags) {
       Link<MetadataAnnotation> metadata = tag.metadata;
@@ -83,7 +85,8 @@ class DeferredLoadTask extends CompilerTask {
         Element element = metadata.value.computeType(compiler).element;
         if (element == deferredLibraryClass) {
           ConstructedConstant value = metadata.value;
-          SourceString expectedName = value.fields[0].toDartString().source;
+          StringConstant nameField = value.fields[0];
+          SourceString expectedName = nameField.toDartString().source;
           LibraryElement deferredLibrary = library.getLibraryFromTag(tag);
           link = link.prepend(deferredLibrary);
           SourceString actualName =

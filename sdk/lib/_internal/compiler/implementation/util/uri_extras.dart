@@ -53,12 +53,12 @@ String relativize(Uri base, Uri uri, bool isWindows) {
     }
     StringBuffer sb = new StringBuffer();
     for (int i = common + 1; i < baseParts.length; i++) {
-      sb.add('../');
+      sb.write('../');
     }
     for (int i = common; i < uriParts.length - 1; i++) {
-      sb.add('${uriParts[i]}/');
+      sb.write('${uriParts[i]}/');
     }
-    sb.add('${uriParts.last}');
+    sb.write('${uriParts.last}');
     return sb.toString();
   }
   return uri.toString();

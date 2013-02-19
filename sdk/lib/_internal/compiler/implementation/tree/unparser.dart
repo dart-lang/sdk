@@ -26,7 +26,7 @@ class Unparser implements Visitor {
     add(token.value);
     if (identical(token.kind, KEYWORD_TOKEN)
         || identical(token.kind, IDENTIFIER_TOKEN)) {
-      sb.add(' ');
+      sb.write(' ');
     }
   }
 
@@ -58,23 +58,23 @@ class Unparser implements Visitor {
       visit(node.typeParameters);
     }
     if (node.extendsKeyword != null) {
-      sb.add(' ');
+      sb.write(' ');
       addToken(node.extendsKeyword);
       visit(node.superclass);
     }
     if (!node.interfaces.isEmpty) {
-      sb.add(' ');
+      sb.write(' ');
       visit(node.interfaces);
     }
     if (node.defaultClause != null) {
-      sb.add(' default ');
+      sb.write(' default ');
       visit(node.defaultClause);
     }
-    sb.add('{');
+    sb.write('{');
     for (final member in members) {
       visit(member);
     }
-    sb.add('}');
+    sb.write('}');
   }
 
   visitClassNode(ClassNode node) {
@@ -83,27 +83,27 @@ class Unparser implements Visitor {
 
   visitMixinApplication(MixinApplication node) {
     visit(node.superclass);
-    sb.add(' with ');
+    sb.write(' with ');
     visit(node.mixins);
   }
 
   visitNamedMixinApplication(NamedMixinApplication node) {
-    sb.add('typedef ');
+    sb.write('typedef ');
     visit(node.name);
     if (node.typeParameters != null) {
       visit(node.typeParameters);
     }
-    sb.add(' = ');
+    sb.write(' = ');
     if (!node.modifiers.nodes.isEmpty) {
       visit(node.modifiers);
-      sb.add(' ');
+      sb.write(' ');
     }
     visit(node.mixinApplication);
     if (node.interfaces != null) {
-      sb.add(' implements ');
+      sb.write(' implements ');
       visit(node.interfaces);
     }
-    sb.add(';');
+    sb.write(';');
   }
 
   visitConditional(Conditional node) {
@@ -121,12 +121,12 @@ class Unparser implements Visitor {
 
   visitFor(For node) {
     add(node.forToken.value);
-    sb.add('(');
+    sb.write('(');
     visit(node.initializer);
-    sb.add(';');
+    sb.write(';');
     visit(node.conditionStatement);
     visit(node.update);
-    sb.add(')');
+    sb.write(')');
     visit(node.body);
   }
 
@@ -145,15 +145,15 @@ class Unparser implements Visitor {
       if (!send.isOperator) {
         // Looks like a factory method.
         visit(send.receiver);
-        sb.add('.');
+        sb.write('.');
       } else {
         visit(send.receiver);
         Identifier identifier = send.selector.asIdentifier();
         if (identical(identifier.token.kind, KEYWORD_TOKEN)) {
-          sb.add(' ');
+          sb.write(' ');
         } else if (identifier.source == const SourceString('negate')) {
           // TODO(ahe): Remove special case for negate.
-          sb.add(' ');
+          sb.write(' ');
         }
       }
       visit(send.selector);
@@ -165,15 +165,15 @@ class Unparser implements Visitor {
   visitFunctionExpression(FunctionExpression node) {
     if (!node.modifiers.nodes.isEmpty) {
       visit(node.modifiers);
-      sb.add(' ');
+      sb.write(' ');
     }
     if (node.returnType != null) {
       visit(node.returnType);
-      sb.add(' ');
+      sb.write(' ');
     }
     if (node.getOrSet != null) {
       add(node.getOrSet.value);
-      sb.add(' ');
+      sb.write(' ');
     }
     unparseFunctionName(node.name);
     visit(node.parameters);
@@ -191,7 +191,7 @@ class Unparser implements Visitor {
     visit(node.thenPart);
     if (node.hasElsePart) {
       add(node.elseToken.value);
-      if (node.elsePart is !Block) sb.add(' ');
+      if (node.elsePart is !Block) sb.write(' ');
       visit(node.elsePart);
     }
   }
@@ -218,7 +218,7 @@ class Unparser implements Visitor {
 
   visitStringJuxtaposition(StringJuxtaposition node) {
     visit(node.first);
-    sb.add(" ");
+    sb.write(" ");
     visit(node.second);
   }
 
@@ -236,7 +236,7 @@ class Unparser implements Visitor {
     visit(node.typeArguments);
     visit(node.elements);
     // If list is empty, emit space after [] to disambiguate cases like []==[].
-    if (node.elements.isEmpty) sb.add(' ');
+    if (node.elements.isEmpty) sb.write(' ');
   }
 
   visitModifiers(Modifiers node) => node.visitChildren(this);
@@ -249,7 +249,7 @@ class Unparser implements Visitor {
     String delimiter = (node.delimiter == null) ? "" : "${node.delimiter}";
     visit(from.head);
     for (Link link = from.tail; !link.isEmpty; link = link.tail) {
-      sb.add(delimiter);
+      sb.write(delimiter);
       visit(link.head);
     }
   }
@@ -268,11 +268,11 @@ class Unparser implements Visitor {
 
   visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
-      sb.add(' ');
+      sb.write(' ');
     }
     add(node.beginToken.value);
     if (node.hasExpression && node.beginToken.stringValue != '=>') {
-      sb.add(' ');
+      sb.write(' ');
     }
     visit(node.expression);
     if (node.endToken != null) add(node.endToken.value);
@@ -285,9 +285,9 @@ class Unparser implements Visitor {
     if (asCascadeReceiver != null) {
       add(asCascadeReceiver.cascadeOperator.value);
     } else if (node.selector.asOperator() == null) {
-      sb.add('.');
+      sb.write('.');
     } else if (spacesNeeded) {
-      sb.add(' ');
+      sb.write(' ');
     }
   }
 
@@ -299,14 +299,14 @@ class Unparser implements Visitor {
     if (node.isPrefix) visit(node.selector);
     unparseSendReceiver(node, spacesNeeded: spacesNeeded);
     if (!node.isPrefix && !node.isIndex) visit(node.selector);
-    if (spacesNeeded) sb.add(' ');
+    if (spacesNeeded) sb.write(' ');
     // Also add a space for sequences like x + +1 and y - -y.
     // TODO(ahe): remove case for '+' when we drop the support for it.
     if (node.argumentsNode != null && (identical(opString, '-')
         || identical(opString, '+'))) {
       Token beginToken = node.argumentsNode.getBeginToken();
       if (beginToken != null && identical(beginToken.stringValue, opString)) {
-        sb.add(' ');
+        sb.write(' ');
       }
     }
     visit(node.argumentsNode);
@@ -314,21 +314,21 @@ class Unparser implements Visitor {
 
   visitSendSet(SendSet node) {
     if (node.isPrefix) {
-      sb.add(' ');
+      sb.write(' ');
       visit(node.assignmentOperator);
     }
     unparseSendReceiver(node);
     if (node.isIndex) {
-      sb.add('[');
+      sb.write('[');
       visit(node.arguments.head);
-      sb.add(']');
+      sb.write(']');
       if (!node.isPrefix) visit(node.assignmentOperator);
       unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
     } else {
       visit(node.selector);
       if (!node.isPrefix) {
         visit(node.assignmentOperator);
-        if (node.assignmentOperator.source.slowToString() != '=') sb.add(' ');
+        if (node.assignmentOperator.source.slowToString() != '=') sb.write(' ');
       }
       visit(node.argumentsNode);
     }
@@ -337,7 +337,7 @@ class Unparser implements Visitor {
   visitThrow(Throw node) {
     add(node.throwToken.value);
     if (node.expression != null) {
-      sb.add(' ');
+      sb.write(' ');
       visit(node.expression);
     }
     node.endToken.value.printOn(sb);
@@ -351,7 +351,7 @@ class Unparser implements Visitor {
   visitTypeVariable(TypeVariable node) {
     visit(node.name);
     if (node.bound != null) {
-      sb.add(' extends ');
+      sb.write(' extends ');
       visit(node.bound);
     }
   }
@@ -359,22 +359,22 @@ class Unparser implements Visitor {
   visitVariableDefinitions(VariableDefinitions node) {
     visit(node.modifiers);
     if (!node.modifiers.nodes.isEmpty) {
-      sb.add(' ');
+      sb.write(' ');
     }
     if (node.type != null) {
       visit(node.type);
-      sb.add(' ');
+      sb.write(' ');
     }
     visit(node.definitions);
   }
 
   visitDoWhile(DoWhile node) {
     add(node.doKeyword.value);
-    if (node.body is !Block) sb.add(' ');
+    if (node.body is !Block) sb.write(' ');
     visit(node.body);
     add(node.whileKeyword.value);
     visit(node.condition);
-    sb.add(node.endToken.value);
+    sb.write(node.endToken.value);
   }
 
   visitWhile(While node) {
@@ -395,9 +395,9 @@ class Unparser implements Visitor {
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
-    sb.add('\${'); // TODO(ahe): Preserve the real tokens.
+    sb.write('\${'); // TODO(ahe): Preserve the real tokens.
     visit(node.expression);
-    sb.add('}');
+    sb.write('}');
     visit(node.string);
   }
 
@@ -408,7 +408,7 @@ class Unparser implements Visitor {
   visitGotoStatement(GotoStatement node) {
     add(node.keywordToken.value);
     if (node.target != null) {
-      sb.add(' ');
+      sb.write(' ');
       visit(node.target);
     }
     add(node.semicolonToken.value);
@@ -424,12 +424,12 @@ class Unparser implements Visitor {
 
   visitForIn(ForIn node) {
     add(node.forToken.value);
-    sb.add('(');
+    sb.write('(');
     visit(node.declaredIdentifier);
-    sb.add(' ');
+    sb.write(' ');
     addToken(node.inToken);
     visit(node.expression);
-    sb.add(')');
+    sb.write(')');
     visit(node.body);
   }
 
@@ -470,27 +470,27 @@ class Unparser implements Visitor {
   visitSwitchCase(SwitchCase node) {
     visit(node.labelsAndCases);
     if (node.isDefaultCase) {
-      sb.add('default:');
+      sb.write('default:');
     }
     visit(node.statements);
   }
 
   unparseImportTag(String uri, [String prefix]) {
     final suffix = prefix == null ? '' : ' as $prefix';
-    sb.add('import "$uri"$suffix;');
+    sb.write('import "$uri"$suffix;');
   }
 
   visitScriptTag(ScriptTag node) {
     add(node.beginToken.value);
     visit(node.tag);
-    sb.add('(');
+    sb.write('(');
     visit(node.argument);
     if (node.prefixIdentifier != null) {
       visit(node.prefixIdentifier);
-      sb.add(':');
+      sb.write(':');
       visit(node.prefix);
     }
-    sb.add(')');
+    sb.write(')');
     add(node.endToken.value);
   }
 
@@ -506,7 +506,7 @@ class Unparser implements Visitor {
 
   visitCaseMatch(CaseMatch node) {
     add(node.caseKeyword.value);
-    sb.add(" ");
+    sb.write(" ");
     visit(node.expression);
     add(node.colonToken.value);
   }
@@ -515,7 +515,7 @@ class Unparser implements Visitor {
     addToken(node.onKeyword);
     if (node.type != null) {
       visit(node.type);
-      sb.add(' ');
+      sb.write(' ');
     }
     addToken(node.catchKeyword);
     visit(node.formals);
@@ -526,7 +526,7 @@ class Unparser implements Visitor {
     addToken(node.typedefKeyword);
     if (node.returnType != null) {
       visit(node.returnType);
-      sb.add(' ');
+      sb.write(' ');
     }
     visit(node.name);
     if (node.typeParameters != null) {
@@ -546,12 +546,12 @@ class Unparser implements Visitor {
     addToken(node.importKeyword);
     visit(node.uri);
     if (node.prefix != null) {
-      sb.add(' ');
+      sb.write(' ');
       addToken(node.asKeyword);
       visit(node.prefix);
     }
     if (node.combinators != null) {
-      sb.add(' ');
+      sb.write(' ');
       visit(node.combinators);
     }
     add(node.getEndToken().value);
@@ -561,7 +561,7 @@ class Unparser implements Visitor {
     addToken(node.exportKeyword);
     visit(node.uri);
     if (node.combinators != null) {
-      sb.add(' ');
+      sb.write(' ');
       visit(node.combinators);
     }
     add(node.getEndToken().value);

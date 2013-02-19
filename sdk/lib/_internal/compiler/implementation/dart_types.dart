@@ -268,17 +268,17 @@ class MalformedType extends DartType {
     var sb = new StringBuffer();
     if (typeArguments != null) {
       if (userProvidedBadType != null) {
-        sb.add(userProvidedBadType.name.slowToString());
+        sb.write(userProvidedBadType.name.slowToString());
       } else {
-        sb.add(element.name.slowToString());
+        sb.write(element.name.slowToString());
       }
       if (!typeArguments.isEmpty) {
-        sb.add('<');
+        sb.write('<');
         typeArguments.printOn(sb, ', ');
-        sb.add('>');
+        sb.write('>');
       }
     } else {
-      sb.add(userProvidedBadType.toString());
+      sb.write(userProvidedBadType.toString());
     }
     return sb.toString();
   }
@@ -334,11 +334,11 @@ abstract class GenericType extends DartType {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add(name.slowToString());
+    sb.write(name.slowToString());
     if (!isRaw) {
-      sb.add('<');
+      sb.write('<');
       typeArguments.printOn(sb, ', ');
-      sb.add('>');
+      sb.write('>');
     }
     return sb.toString();
   }
@@ -546,40 +546,40 @@ class FunctionType extends DartType {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add('(');
+    sb.write('(');
     parameterTypes.printOn(sb, ', ');
     bool first = parameterTypes.isEmpty;
     if (!optionalParameterTypes.isEmpty) {
       if (!first) {
-        sb.add(', ');
+        sb.write(', ');
       }
-      sb.add('[');
+      sb.write('[');
       optionalParameterTypes.printOn(sb, ', ');
-      sb.add(']');
+      sb.write(']');
       first = false;
     }
     if (!namedParameterTypes.isEmpty) {
       if (!first) {
-        sb.add(', ');
+        sb.write(', ');
       }
-      sb.add('{');
+      sb.write('{');
       Link<SourceString> namedParameter = namedParameters;
       Link<DartType> namedParameterType = namedParameterTypes;
       first = true;
       while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
         if (!first) {
-          sb.add(', ');
+          sb.write(', ');
         }
-        sb.add(namedParameterType.head);
-        sb.add(' ');
-          sb.add(namedParameter.head.slowToString());
+        sb.write(namedParameterType.head);
+        sb.write(' ');
+          sb.write(namedParameter.head.slowToString());
         namedParameter = namedParameter.tail;
         namedParameterType = namedParameterType.tail;
         first = false;
       }
-      sb.add('}');
+      sb.write('}');
     }
-    sb.add(') -> ${returnType}');
+    sb.write(') -> ${returnType}');
     return sb.toString();
   }
 

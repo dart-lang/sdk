@@ -219,7 +219,7 @@ class StringWrapper extends Iterable<int> implements SourceString {
   Iterator<int> get iterator => new StringCodeIterator(stringValue);
 
   void printOn(StringBuffer sb) {
-    sb.add(stringValue);
+    sb.write(stringValue);
   }
 
   String toString() => stringValue;

@@ -54,10 +54,10 @@ class PrettyPrinter implements Visitor {
   void openNode(Node node, String type, [Map params]) {
     if (params == null) params = new Map();
     addCurrentIndent();
-    sb.add("<");
+    sb.write("<");
     addBeginAndEndTokensToParams(node, params);
     addTypeWithParams(type, params);
-    sb.add(">\n");
+    sb.write(">\n");
     pushTag(type);
   }
 
@@ -67,10 +67,10 @@ class PrettyPrinter implements Visitor {
   void openAndCloseNode(Node node, String type, [Map params]) {
     if (params == null) params = new Map();
     addCurrentIndent();
-    sb.add("<");
+    sb.write("<");
     addBeginAndEndTokensToParams(node, params);
     addTypeWithParams(type, params);
-    sb.add("/>\n");
+    sb.write("/>\n");
   }
 
   /**
@@ -79,14 +79,14 @@ class PrettyPrinter implements Visitor {
   void closeNode() {
     String tag = popTag();
     addCurrentIndent();
-    sb.add("</");
+    sb.write("</");
     addTypeWithParams(tag);
-    sb.add(">\n");
+    sb.write(">\n");
   }
 
   void addTypeWithParams(String type, [Map params]) {
     if (params == null) params = new Map();
-    sb.add("${type}");
+    sb.write("${type}");
     params.forEach((k, v) {
       String value;
       if (v != null) {
@@ -97,12 +97,12 @@ class PrettyPrinter implements Visitor {
       } else {
         value = "[null]";
       }
-      sb.add(' $k="$value"');
+      sb.write(' $k="$value"');
     });
   }
 
   void addCurrentIndent() {
-    tagStack.forEach((_) { sb.add(INDENT); });
+    tagStack.forEach((_) { sb.write(INDENT); });
   }
 
   /**
@@ -318,12 +318,12 @@ class PrettyPrinter implements Visitor {
   visitChildNode(Node node, String fieldName) {
     if (node == null) return;
     addCurrentIndent();
-    sb.add("<$fieldName>\n");
+    sb.write("<$fieldName>\n");
     pushTag(fieldName);
     node.accept(this);
     popTag();
     addCurrentIndent();
-    sb.add("</$fieldName>\n");
+    sb.write("</$fieldName>\n");
   }
 
   openSendNodeWithFields(Send node, String type) {

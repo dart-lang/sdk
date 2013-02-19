@@ -89,15 +89,15 @@ void renamePlaceholders(
     StringBuffer result = new StringBuffer(renameElement(type.element));
     if (type is InterfaceType) {
       if (!type.isRaw) {
-        result.add('<');
+        result.write('<');
         Link<DartType> argumentsLink = type.typeArguments;
-        result.add(renameType(argumentsLink.head, renameElement));
+        result.write(renameType(argumentsLink.head, renameElement));
         for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
              link = link.tail) {
-          result.add(',');
-          result.add(renameType(link.head, renameElement));
+          result.write(',');
+          result.write(renameType(link.head, renameElement));
         }
-        result.add('>');
+        result.write('>');
       }
     }
     return result.toString();
@@ -112,8 +112,8 @@ void renamePlaceholders(
       // Named constructor or factory. Is there a more reliable way to check
       // this case?
       if (!placeholder.isRedirectingCall) {
-        result.add(renameType(placeholder.type, renameElement));
-        result.add('.');
+        result.write(renameType(placeholder.type, renameElement));
+        result.write('.');
       }
       String prefix = '${element.getEnclosingClass().name.slowToString()}\$';
       if (!name.startsWith(prefix)) {
@@ -125,10 +125,10 @@ void renamePlaceholders(
       if (!element.getLibrary().isPlatformLibrary) {
         name = renameString(element.getLibrary(), name);
       }
-      result.add(name);
+      result.write(name);
     } else {
       assert(!placeholder.isRedirectingCall);
-      result.add(renameType(placeholder.type, renameElement));
+      result.write(renameType(placeholder.type, renameElement));
     }
     return result.toString();
   }
@@ -346,14 +346,14 @@ class MinifyingGenerator {
     int index = nextIdIndex++;
     StringBuffer resultBuilder = new StringBuffer();
     if (index < firstCharAlphabet.length) return firstCharAlphabet[index];
-    resultBuilder.add(firstCharAlphabet[index % firstCharAlphabet.length]);
+    resultBuilder.write(firstCharAlphabet[index % firstCharAlphabet.length]);
     index ~/= firstCharAlphabet.length;
     int length = otherCharsAlphabet.length;
     while (index >= length) {
-      resultBuilder.add(otherCharsAlphabet[index % length]);
+      resultBuilder.write(otherCharsAlphabet[index % length]);
       index ~/= length;
     }
-    resultBuilder.add(otherCharsAlphabet[index]);
+    resultBuilder.write(otherCharsAlphabet[index]);
     return resultBuilder.toString();
   }
 }

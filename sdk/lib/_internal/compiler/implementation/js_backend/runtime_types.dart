@@ -234,25 +234,25 @@ class RuntimeTypeInformation {
     StringBuffer builder = new StringBuffer();
     void build(DartType part) {
       if (part is TypeVariableType) {
-        builder.add(onVariable(part));
+        builder.write(onVariable(part));
       } else {
         bool hasArguments = part is InterfaceType && !part.isRaw;
         Element element = part.element;
         if (element == compiler.dynamicClass) {
-          builder.add('null');
+          builder.write('null');
         } else {
           String name = getJsName(element);
           if (!hasArguments) {
-            builder.add(name);
+            builder.write(name);
           } else {
-            builder.add('[');
-            builder.add(name);
+            builder.write('[');
+            builder.write(name);
             InterfaceType interface = part;
             for (DartType argument in interface.typeArguments) {
-              builder.add(', ');
+              builder.write(', ');
               build(argument);
             }
-            builder.add(']');
+            builder.write(']');
           }
         }
       }

@@ -323,7 +323,7 @@ class Namer implements ClosureNamer {
         !signature.optionalParameters.isEmpty) {
       StringBuffer buffer = new StringBuffer();
       signature.orderedOptionalParameters.forEach((Element element) {
-        buffer.add('\$${safeName(element.name.slowToString())}');
+        buffer.write('\$${safeName(element.name.slowToString())}');
       });
       methodName = '$methodName$buffer';
     }
@@ -362,7 +362,7 @@ class Namer implements ClosureNamer {
       assert(name == operatorNameToIdentifier(name));
       StringBuffer buffer = new StringBuffer();
       for (SourceString argumentName in selector.getOrderedNamedArguments()) {
-        buffer.add(r'$');
+        buffer.write(r'$');
         argumentName.printOn(buffer);
       }
       String suffix = '\$${selector.argumentCount}$buffer';
@@ -548,7 +548,7 @@ class Namer implements ClosureNamer {
     StringBuffer buffer = new StringBuffer('${element.name.slowToString()}\$');
     List<String> names = classes.map((cls) => cls.name.slowToString()).toList();
     names.sort();
-    names.forEach(buffer.add);
+    names.forEach(buffer.write);
     return getMappedGlobalName(buffer.toString());
   }
 

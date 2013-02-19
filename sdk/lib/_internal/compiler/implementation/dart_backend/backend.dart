@@ -440,7 +440,7 @@ class DartBackend extends Backend {
       // TODO(antonm): Ideally XML should be a separate backend.
       // TODO(antonm): obey renames and minification, at least as an option.
       StringBuffer sb = new StringBuffer();
-      outputElement(element) { sb.add(parse(element).toDebugString()); }
+      outputElement(element) { sb.write(parse(element).toDebugString()); }
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
@@ -502,7 +502,7 @@ class EmitterUnparser extends Unparser {
 
   visit(Node node) {
     if (node != null && renames.containsKey(node)) {
-      sb.add(renames[node]);
+      sb.write(renames[node]);
     } else {
       super.visit(node);
     }
@@ -516,7 +516,7 @@ class EmitterUnparser extends Unparser {
 
   unparseFunctionName(Node name) {
     if (name != null && renames.containsKey(name)) {
-      sb.add(renames[name]);
+      sb.write(renames[name]);
     } else {
       super.unparseFunctionName(name);
     }
