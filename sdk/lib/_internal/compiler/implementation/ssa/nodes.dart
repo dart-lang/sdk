@@ -254,7 +254,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInstruction(HInstruction instruction) {}
 
   visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
-  visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
+  visitBinaryBitOp(HBinaryBitOp node) => visitInvokeBinary(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
   visitInvokeBinary(HInvokeBinary node) => visitInstruction(node);
   visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
@@ -867,67 +867,27 @@ abstract class HInstruction implements Spannable {
   bool isControlFlow() => false;
 
   // All isFunctions work on the propagated types.
-  bool isArray(HTypeMap types) => types[this].isArray();
-  bool isReadableArray(HTypeMap types) => types[this].isReadableArray();
-  bool isMutableArray(HTypeMap types) => types[this].isMutableArray();
-  bool isExtendableArray(HTypeMap types) => types[this].isExtendableArray();
-  bool isFixedArray(HTypeMap types) => types[this].isFixedArray();
-  bool isBoolean(HTypeMap types) => types[this].isBoolean();
-  bool isInteger(HTypeMap types) => types[this].isInteger();
-  bool isDouble(HTypeMap types) => types[this].isDouble();
-  bool isNumber(HTypeMap types) => types[this].isNumber();
-  bool isNumberOrNull(HTypeMap types) => types[this].isNumberOrNull();
-  bool isString(HTypeMap types) => types[this].isString();
-  bool isTypeUnknown(HTypeMap types) => types[this].isUnknown();
-  bool isIndexablePrimitive(HTypeMap types)
-      => types[this].isIndexablePrimitive();
-  bool isPrimitive(HTypeMap types) => types[this].isPrimitive();
-  bool canBePrimitive(HTypeMap types) => types[this].canBePrimitive();
-  bool canBeNull(HTypeMap types) => types[this].canBeNull();
+  bool isArray() => instructionType.isArray();
+  bool isReadableArray() => instructionType.isReadableArray();
+  bool isMutableArray() => instructionType.isMutableArray();
+  bool isExtendableArray() => instructionType.isExtendableArray();
+  bool isFixedArray() => instructionType.isFixedArray();
+  bool isBoolean() => instructionType.isBoolean();
+  bool isInteger() => instructionType.isInteger();
+  bool isDouble() => instructionType.isDouble();
+  bool isNumber() => instructionType.isNumber();
+  bool isNumberOrNull() => instructionType.isNumberOrNull();
+  bool isString() => instructionType.isString();
+  bool isTypeUnknown() => instructionType.isUnknown();
+  bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
+  bool isPrimitive() => instructionType.isPrimitive();
+  bool canBePrimitive() => instructionType.canBePrimitive();
+  bool canBeNull() => instructionType.canBeNull();
 
   /**
-   * This is the type the instruction is guaranteed to have. It does not
-   * take any propagation into account.
+   * Type of the unstruction.
    */
-  HType guaranteedType = HType.UNKNOWN;
-  bool hasGuaranteedType() => !guaranteedType.isUnknown();
-
-  /**
-   * Some instructions have a good idea of their return type, but cannot
-   * guarantee the type. The computed does not need to be more specialized
-   * than the provided type for [this].
-   *
-   * Examples: the likely type of [:x == y:] is a boolean. In most cases this
-   * cannot be guaranteed, but when merging types we still want to use this
-   * information.
-   *
-   * Similarily the [HAdd] instruction is likely a number. Note that, even if
-   * the incoming type is already set to integer, the likely type might still
-   * just return the number type.
-   */
-  HType computeLikelyType(HTypeMap types, Compiler compiler) => types[this];
-
-  /**
-   * Compute the type of the instruction by propagating the input types through
-   * the instruction.
-   *
-   * By default just copy the guaranteed type.
-   */
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    return guaranteedType;
-  }
-
-  /**
-   * Compute the desired type for the the given [input]. Aside from using
-   * other inputs to compute the desired type one should also use
-   * the given [types] which, during the invocation of this method,
-   * represents the desired type of [this].
-   */
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    return HType.UNKNOWN;
-  }
+  HType instructionType = HType.UNKNOWN;
 
   bool isInBasicBlock() => block != null;
 
@@ -1151,12 +1111,12 @@ abstract class HInstruction implements Spannable {
     if (identical(type.element, compiler.objectClass)) return this;
 
     // If the original can't be null, type conversion also can't produce null.
-    bool canBeNull = this.guaranteedType.canBeNull();
+    bool canBeNull = instructionType.canBeNull();
     HType convertedType = new HType.subtype(type, compiler);
 
     // No need to convert if we know the instruction has
     // [convertedType] as a bound.
-    if (this.guaranteedType == convertedType) {
+    if (instructionType == convertedType) {
       return this;
     }
 
@@ -1176,9 +1136,8 @@ class HBoolify extends HInstruction {
   HBoolify(HInstruction value) : super(<HInstruction>[value]) {
     assert(!hasSideEffects());
     setUseGvn();
+    instructionType = HType.BOOLEAN;
   }
-
-  HType get guaranteedType => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
   int typeCode() => HInstruction.BOOLIFY_TYPECODE;
@@ -1215,6 +1174,10 @@ class HBailoutTarget extends HInstruction {
     setUseGvn();
   }
 
+  void disable() {
+    isEnabled = false;
+  }
+
   bool isControlFlow() => isEnabled;
   bool isJsStatement() => isEnabled;
 
@@ -1225,7 +1188,7 @@ class HBailoutTarget extends HInstruction {
 }
 
 class HTypeGuard extends HCheck {
-  final HType guardedType;
+  HType guardedType;
   bool isEnabled = false;
 
   HTypeGuard(this.guardedType, HInstruction guarded, HInstruction bailoutTarget)
@@ -1236,11 +1199,15 @@ class HTypeGuard extends HCheck {
   HBailoutTarget get bailoutTarget => inputs[1];
   int get state => bailoutTarget.state;
 
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    return isEnabled ? guardedType : types[guarded];
+  void enable() {
+    isEnabled = true;
+    instructionType = guardedType;
   }
 
-  HType get guaranteedType => isEnabled ? guardedType : HType.UNKNOWN;
+  void disable() {
+    isEnabled = false;
+    instructionType = guarded.instructionType;
+  }
 
   bool isControlFlow() => true;
   bool isJsStatement() => isEnabled;
@@ -1264,13 +1231,13 @@ class HBoundsCheck extends HCheck {
    */
   int staticChecks = FULL_CHECK;
 
-  HBoundsCheck(length, index) : super(<HInstruction>[length, index]);
+  HBoundsCheck(length, index) : super(<HInstruction>[length, index]) {
+    instructionType = HType.INTEGER;
+  }
 
   HInstruction get length => inputs[1];
   HInstruction get index => inputs[0];
   bool isControlFlow() => true;
-
-  HType get guaranteedType => HType.INTEGER;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
   int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
@@ -1281,22 +1248,12 @@ class HBoundsCheck extends HCheck {
 class HIntegerCheck extends HCheck {
   bool alwaysFalse = false;
 
-  HIntegerCheck(value) : super(<HInstruction>[value]);
+  HIntegerCheck(value) : super(<HInstruction>[value]) {
+    instructionType = HType.INTEGER;
+  }
 
   HInstruction get value => inputs[0];
   bool isControlFlow() => true;
-
-  HType get guaranteedType => HType.INTEGER;
-
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    // If the desired type of the input is already a number, we want
-    // to specialize it to an integer.
-    return input.isNumber(types)
-      ? HType.INTEGER
-      : super.computeDesiredTypeForInput(input, types, compiler);
-  }
 
   accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
   int typeCode() => HInstruction.INTEGER_CHECK_TYPECODE;
@@ -1358,19 +1315,7 @@ abstract class HInvokeDynamic extends HInvoke {
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
   bool typeEquals(other) => other is HInvokeDynamic;
   bool dataEquals(HInvokeDynamic other) {
-    return selector == other.selector
-        && element == other.element;
-  }
-
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    return specializer.computeDesiredTypeForInput(this, input, types, compiler);
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    HType type = specializer.computeTypeFromInputTypes(this, types, compiler);
-    return type.isUnknown() ? guaranteedType : type;
+    return selector == other.selector && element == other.element;
   }
 }
 
@@ -1391,11 +1336,11 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
-  bool isIndexOperatorOnIndexablePrimitive(HTypeMap types) {
+  bool isIndexOperatorOnIndexablePrimitive() {
     return isInterceptorCall
         && selector.kind == SelectorKind.INDEX
         && selector.name == const SourceString('[]')
-        && inputs[1].isIndexablePrimitive(types);
+        && inputs[1].isIndexablePrimitive();
   }
 }
 
@@ -1442,7 +1387,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 class HInvokeStatic extends HInvoke {
   /** The first input must be the target. */
   HInvokeStatic(inputs, HType type) : super(inputs) {
-    guaranteedType = type;
+    instructionType = type;
   }
 
   toString() => 'invoke static: ${element.name}';
@@ -1543,24 +1488,22 @@ class HLocalSet extends HFieldAccess {
 
 class HForeign extends HInstruction {
   final DartString code;
-  final HType type;
   final bool isStatement;
 
   HForeign(this.code,
-           this.type,
+           HType type,
            List<HInstruction> inputs,
            {this.isStatement: false})
       : super(inputs) {
     setAllSideEffects();
     setDependsOnSomething();
+    instructionType = type;
   }
 
   HForeign.statement(code, List<HInstruction> inputs)
       : this(code, HType.UNKNOWN, inputs, isStatement: true);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
-
-  HType get guaranteedType => type;
 
   bool isJsStatement() => isStatement;
   bool canThrow() => true;
@@ -1588,13 +1531,6 @@ abstract class HInvokeBinary extends HInstruction {
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HInstruction left, HInstruction right) : super(left, right);
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    if (left.isInteger(types) && right.isInteger(types)) return HType.INTEGER;
-    if (left.isDouble(types)) return HType.DOUBLE;
-    return HType.NUMBER;
-  }
-
   BinaryOperation operation(ConstantSystem constantSystem);
 }
 
@@ -1610,10 +1546,10 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(HInstruction left, HInstruction right) : super(left, right);
+  HDivide(HInstruction left, HInstruction right) : super(left, right) {
+    instructionType = HType.DOUBLE;
+  }
   accept(HVisitor visitor) => visitor.visitDivide(this);
-
-  HType get guaranteedType => HType.DOUBLE;
 
   BinaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.divide;
@@ -1667,13 +1603,9 @@ class HSwitch extends HControlFlow {
   String toString() => "HSwitch cases = $inputs";
 }
 
-// TODO(floitsch): Should HBinaryArithmetic really be the super class of
-// HBinaryBitOp?
-abstract class HBinaryBitOp extends HBinaryArithmetic {
-  HBinaryBitOp(HInstruction left, HInstruction right) : super(left, right);
-  HType get guaranteedType => HType.INTEGER;
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    return guaranteedType;
+abstract class HBinaryBitOp extends HInvokeBinary {
+  HBinaryBitOp(HInstruction left, HInstruction right) : super(left, right) {
+    instructionType = HType.INTEGER;
   }
 }
 
@@ -1736,10 +1668,6 @@ class HNegate extends HInvokeUnary {
   HNegate(HInstruction input) : super(input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    return types[operand];
-  }
-
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.negate;
   int typeCode() => HInstruction.NEGATE_TYPECODE;
@@ -1748,10 +1676,11 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(HInstruction input) : super(input);
+  HBitNot(HInstruction input) : super(input) {
+    instructionType = HType.INTEGER;
+  }
   accept(HVisitor visitor) => visitor.visitBitNot(this);
   
-  HType get guaranteedType => HType.INTEGER;
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
@@ -1868,14 +1797,13 @@ class HLoopBranch extends HConditionalBranch {
 
 class HConstant extends HInstruction {
   final Constant constant;
-  final HType constantType;
-  HConstant.internal(this.constant, HType this.constantType)
-      : super(<HInstruction>[]);
+  HConstant.internal(this.constant, HType constantType)
+      : super(<HInstruction>[]) {
+    instructionType = constantType;
+  }
 
   toString() => 'literal: $constant';
   accept(HVisitor visitor) => visitor.visitConstant(this);
-
-  HType get guaranteedType => constantType;
 
   bool isConstant() => true;
   bool isConstantBoolean() => constant.isBool();
@@ -1896,15 +1824,7 @@ class HConstant extends HInstruction {
 class HNot extends HInstruction {
   HNot(HInstruction value) : super(<HInstruction>[value]) {
     setUseGvn();
-  }
-
-  HType get guaranteedType => HType.BOOLEAN;
-
-  // 'Not' only works on booleans. That's what we want as input.
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    return HType.BOOLEAN;
+    instructionType = HType.BOOLEAN;
   }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
@@ -1936,7 +1856,7 @@ class HParameterValue extends HLocalValue {
 
 class HThis extends HParameterValue {
   HThis(Element element, [HType type = HType.UNKNOWN]) : super(element) {
-    guaranteedType = type;
+    instructionType = type;
   }
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
@@ -1968,58 +1888,6 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
-  // Compute the (shared) type of the inputs if any. If all inputs
-  // have the same known type return it. If any two inputs have
-  // different known types, we'll return a conflict -- otherwise we'll
-  // simply return an unknown type.
-  HType computeInputsType(bool ignoreUnknowns,
-                          HTypeMap types,
-                          Compiler compiler) {
-    HType candidateType = HType.CONFLICTING;
-    for (int i = 0, length = inputs.length; i < length; i++) {
-      HType inputType = types[inputs[i]];
-      if (ignoreUnknowns && inputType.isUnknown()) continue;
-      // Phis need to combine the incoming types using the union operation.
-      // For example, if one incoming edge has type integer and the other has
-      // type double, then the phi is either an integer or double and thus has
-      // type number.
-      candidateType = candidateType.union(inputType, compiler);
-      if (candidateType.isUnknown()) return HType.UNKNOWN;
-    }
-    return candidateType;
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    HType inputsType = computeInputsType(false, types, compiler);
-    if (inputsType.isConflicting()) return HType.UNKNOWN;
-    return inputsType;
-  }
-
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    HType propagatedType = types[this];
-    // Best case scenario for a phi is, when all inputs have the same type. If
-    // there is no desired outgoing type we therefore try to unify the input
-    // types (which is basically the [likelyType]).
-    if (propagatedType.isUnknown()) return computeLikelyType(types, compiler);
-    // When the desired outgoing type is conflicting we don't need to give any
-    // requirements on the inputs.
-    if (propagatedType.isConflicting()) return HType.UNKNOWN;
-    // Otherwise the input type must match the desired outgoing type.
-    return propagatedType;
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) {
-    HType agreedType = computeInputsType(true, types, compiler);
-    if (agreedType.isConflicting()) return HType.UNKNOWN;
-    // Don't be too restrictive. If the agreed type is integer or double just
-    // say that the likely type is number. If more is expected the type will be
-    // propagated back.
-    if (agreedType.isNumber()) return HType.NUMBER;
-    return agreedType;
-  }
-
   bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
 
   String logicalOperator() {
@@ -2035,8 +1903,9 @@ class HPhi extends HInstruction {
 
 abstract class HRelational extends HInvokeBinary {
   bool usesBoolifiedInterceptor = false;
-  HRelational(HInstruction left, HInstruction right) : super(left, right);
-  HType get guaranteedType => HType.BOOLEAN;
+  HRelational(HInstruction left, HInstruction right) : super(left, right) {
+    instructionType = HType.BOOLEAN;
+  }
 }
 
 class HIdentity extends HRelational {
@@ -2139,24 +2008,6 @@ class HInterceptor extends HInstruction {
   accept(HVisitor visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
 
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    if (interceptedClasses.length != 1) return HType.UNKNOWN;
-    // If the only class being intercepted is of type number, we
-    // make this interceptor call say it wants that class as input.
-    Element interceptor = interceptedClasses.toList()[0];
-    JavaScriptBackend backend = compiler.backend;
-    if (interceptor == backend.jsNumberClass) {
-      return HType.NUMBER;
-    } else if (interceptor == backend.jsIntClass) {
-      return HType.INTEGER;
-    } else if (interceptor == backend.jsDoubleClass) {
-      return HType.DOUBLE;
-    }
-    return HType.UNKNOWN;
-  }
-
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
   bool dataEquals(HInterceptor other) {
@@ -2182,7 +2033,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
                       this.interceptedClasses)
       : super(selector, null, inputs, true) {
     assert(inputs[0] is HConstant);
-    assert(inputs[0].guaranteedType == HType.NULL);
+    assert(inputs[0].instructionType == HType.NULL);
   }
 
   String toString() => 'one shot interceptor on $selector';
@@ -2225,11 +2076,11 @@ class HStaticStore extends HInstruction {
 }
 
 class HLiteralList extends HInstruction {
-  HLiteralList(inputs) : super(inputs);
+  HLiteralList(inputs) : super(inputs) {
+    instructionType = HType.EXTENDABLE_ARRAY;
+  }
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
-
-  HType get guaranteedType => HType.EXTENDABLE_ARRAY;
 }
 
 /**
@@ -2282,14 +2133,13 @@ class HIs extends HInstruction {
   HIs(this.typeExpression, List<HInstruction> inputs, {this.nullOk: false})
      : super(inputs) {
     setUseGvn();
+    instructionType = HType.BOOLEAN;
   }
 
   HInstruction get expression => inputs[0];
   HInstruction get checkCall => inputs[1];
 
   bool hasArgumentsCheck() => inputs.length > 1;
-
-  HType get guaranteedType => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
@@ -2304,7 +2154,6 @@ class HIs extends HInstruction {
 }
 
 class HTypeConversion extends HCheck {
-  final HType type;
   final int kind;
 
   static const int NO_CHECK = 0;
@@ -2313,10 +2162,11 @@ class HTypeConversion extends HCheck {
   static const int CAST_TYPE_CHECK = 3;
   static const int BOOLEAN_CONVERSION_CHECK = 4;
 
-  HTypeConversion(this.type, HInstruction input, [this.kind = NO_CHECK])
+  HTypeConversion(HType type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
     assert(type != null);
     sourceElement = input.sourceElement;
+    instructionType = type;
   }
   HTypeConversion.checkedModeCheck(HType type, HInstruction input)
       : this(type, input, CHECKED_MODE_CHECK);
@@ -2334,8 +2184,6 @@ class HTypeConversion extends HCheck {
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
   bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
 
-  HType get guaranteedType => type;
-
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
   bool isJsStatement() => kind == ARGUMENT_TYPE_CHECK;
@@ -2345,18 +2193,17 @@ class HTypeConversion extends HCheck {
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeConversion;
   bool dataEquals(HTypeConversion other) {
-    return type == other.type && kind == other.kind;
+    return instructionType == other.instructionType && kind == other.kind;
   }
 }
 
 class HRangeConversion extends HCheck {
   HRangeConversion(HInstruction input) : super(<HInstruction>[input]) {
     sourceElement = input.sourceElement;
+    // We currently only do range analysis for integers.
+    instructionType = HType.INTEGER;
   }
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
-
-  // We currently only do range analysis for integers.
-  HType get guaranteedType => HType.INTEGER;
 }
 
 class HStringConcat extends HInstruction {
@@ -2365,8 +2212,8 @@ class HStringConcat extends HInstruction {
       : super(<HInstruction>[left, right]) {
     setAllSideEffects();
     setDependsOnSomething();
+    instructionType = HType.STRING;
   }
-  HType get guaranteedType => HType.STRING;
 
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];

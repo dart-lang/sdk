@@ -255,7 +255,7 @@ class HNullType extends HPrimitiveType {
   const HNullType();
   bool canBeNull() => true;
   bool isNull() => true;
-  String toString() => 'null';
+  String toString() => 'null type';
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -1095,33 +1095,5 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
     if (other.isReadableArray()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.STRING;
     return super.intersection(other, compiler);
-  }
-}
-
-class HTypeMap {
-  // Approximately 85% of methods in the sample "swarm" have less than
-  // 32 instructions.
-  static const int INITIAL_SIZE = 32;
-
-  List<HType> _list = new List<HType>()..length = INITIAL_SIZE;
-
-  operator [](HInstruction instruction) {
-    HType result;
-    if (instruction.id < _list.length) result = _list[instruction.id];
-    if (result == null) return instruction.guaranteedType;
-    return result;
-  }
-
-  operator []=(HInstruction instruction, HType value) {
-    int length = _list.length;
-    int id = instruction.id;
-    if (length <= id) {
-      if (id + 1 < length * 2) {
-        _list.length = length * 2;
-      } else {
-        _list.length = id + 1;
-      }
-    }
-    _list[id] = value;
   }
 }
