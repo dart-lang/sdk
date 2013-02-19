@@ -490,6 +490,7 @@ LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core
 LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 
+LibTest/core/Date/compareTo_A03_t01: Fail # Comparable<T>.compareTo now statically accepts type T arguments.
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip
