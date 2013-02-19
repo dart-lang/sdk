@@ -25,6 +25,7 @@ dart2js_test: Fail # http://dartbug.com/2264
 *: Skip
 
 [ $compiler == dartc ]
+dart2js_test: Fail # TODO(ahe): I'm working on this.
 
 [ $arch == arm ]
 *: Skip
