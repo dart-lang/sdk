@@ -235,15 +235,15 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
            (use->Type()->ToCid() == kDoubleCid));
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new UnboxIntegerInstr(use->Copy(), deopt_id);
+    converted = new UnboxIntegerInstr(use->CopyWithType(), deopt_id);
 
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
-    converted = new BoxIntegerInstr(use->Copy());
+    converted = new BoxIntegerInstr(use->CopyWithType());
 
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     // Convert by boxing/unboxing.
     // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
-    BoxIntegerInstr* boxed = new BoxIntegerInstr(use->Copy());
+    BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
     use->RemoveFromUseList();
     use->set_definition(boxed);
     boxed->AddInputUse(use);
@@ -254,7 +254,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
 
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    converted = new BoxDoubleInstr(use->Copy(), NULL);
+    converted = new BoxDoubleInstr(use->CopyWithType(), NULL);
 
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     ASSERT((deopt_target != NULL) ||
@@ -270,7 +270,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       InsertBefore(insert_before, double_const, NULL, Definition::kValue);
       converted = new UnboxDoubleInstr(new Value(double_const), deopt_id);
     } else {
-      converted = new UnboxDoubleInstr(use->Copy(), deopt_id);
+      converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
     }
   }
   ASSERT(converted != NULL);
@@ -901,7 +901,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
   if (operands_type == kDoubleCid) {
-    // Check that either left or right are not a smi.  Result or a
+    // Check that either left or right are not a smi.  Result of a
     // binary operation with two smis is a smi not a double.
     InsertBefore(call,
                  new CheckEitherNonSmiInstr(new Value(left),

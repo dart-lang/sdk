@@ -2328,25 +2328,37 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary() const {
-  ASSERT((left()->Type()->ToCid() != kDoubleCid) &&
-         (right()->Type()->ToCid() != kDoubleCid));
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
+  ASSERT((left_cid != kDoubleCid) && (right_cid != kDoubleCid));
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 1;
+  const bool need_temp = (left_cid != kSmiCid) && (right_cid != kSmiCid);
+  const intptr_t kNumTemps = need_temp ? 1 : 0;
   LocationSummary* summary =
     new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
+  if (need_temp) summary->set_temp(0, Location::RequiresRegister());
   return summary;
 }
 
 
 void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinaryDoubleOp);
-  Register temp = locs()->temp(0).reg();
-  __ movl(temp, locs()->in(0).reg());
-  __ orl(temp, locs()->in(1).reg());
-  __ testl(temp, Immediate(kSmiTagMask));
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  if (left_cid == kSmiCid) {
+    __ testl(right, Immediate(kSmiTagMask));
+  } else if (right_cid == kSmiCid) {
+    __ testl(left, Immediate(kSmiTagMask));
+  } else {
+    Register temp = locs()->temp(0).reg();
+    __ movl(temp, left);
+    __ orl(temp, right);
+    __ testl(temp, Immediate(kSmiTagMask));
+  }
   __ j(ZERO, deopt);
 }
 
