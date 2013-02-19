@@ -27,7 +27,7 @@ class MessageKind {
   static const NAMED_ARGUMENT_NOT_FOUND = const MessageKind(
       "no named argument '#{argumentName}' found on method");
   static const METHOD_NOT_FOUND = const MessageKind(
-      'no method named #{methodName} in class #{className}');
+      'no method named #{memberName} in class #{className}');
   static const MEMBER_NOT_STATIC = const MessageKind(
       '#{className}.#{memberName} is not static');
   static const NO_INSTANCE_AVAILABLE = const MessageKind(

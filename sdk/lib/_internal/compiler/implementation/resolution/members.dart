@@ -1967,7 +1967,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
             : MessageKind.MEMBER_NOT_STATIC;
         return warnAndCreateErroneousElement(node, name, kind,
                                              {'className': receiverClass.name,
-                                              'methodName': name});
+                                              'memberName': name});
       }
     } else if (identical(resolvedReceiver.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = resolvedReceiver;
