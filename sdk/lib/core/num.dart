@@ -7,7 +7,7 @@ part of dart.core;
 /**
  * All numbers in dart are instances of [num].
  */
-abstract class num implements Comparable {
+abstract class num implements Comparable<num> {
   /** Addition operator. */
   num operator +(num other);
 

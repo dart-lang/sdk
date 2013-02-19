@@ -288,7 +288,7 @@ class int32 implements intx {
     return _i == _convert(other);
   }
 
-  int compareTo(Comparable other) {
+  int compareTo(other) {
     if (other is int64) {
       return this.toInt64().compareTo(other);
     }
