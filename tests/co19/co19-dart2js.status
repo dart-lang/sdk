@@ -7,7 +7,6 @@
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t05: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t06: Fail # TODO(ahe): Please triage this failure.
@@ -678,7 +677,6 @@ Language/05_Variables/05_Variables_A01_t13: Fail # Checks that variable declarat
 Language/05_Variables/05_Variables_A01_t14: Fail # Checks that variable declaration cannot contain 'const', 'final' and 'var' simultaneously.
 Language/05_Variables/05_Variables_A01_t15: Fail # Checks that a variable declaration cannot contain the 'abstract' keyword.
 Language/05_Variables/05_Variables_A04_t01: Fail # Checks that a compile-time error occurs if a local constant variable is redefined.
-Language/05_Variables/05_Variables_A05_t01: Fail # Checks that a compile-time error occurs if a constant variable is not initialized.
 Language/06_Functions/06_Functions_A01_t31: Fail # Checks that functions can't be declared as static inside of a function body.
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail # Checks that it is a compile-time error to preface library function with 'static'.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t03: Fail # Checks that a required parameter can be constant. Reassigning it should produce a compile-time error.
@@ -714,7 +712,6 @@ Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Checks that a co
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Checks that a compile-time error is produced when the overriding non-abstract  instance method has almost the same set of named parameters as the abstract method being overriden,  except for one that has a different name.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: Fail # Checks that redirecting constructor can not have initializing formals.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Checks that error is produced if a final variable is not initialized in one  of the specified ways.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: Fail # Checks that a compile-time error occur if k’s initializer list contains an initializer for a ﬁnal variable whose declaration includes an initialization expression.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t01: Fail # Checks that a compile-time error is produced when a class with constant  constructor also declares a non-final instance variable.
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: Fail # Checks that compile-time error is produced when a class with constant constructor inherits a non-final instance variable.
 Language/07_Classes/6_Constructors_A01_t01: Fail # Checks that a compile-error is produced when a constructor's id coincides with the name of a field in the same class.

@@ -931,12 +931,12 @@ class ResolverTask extends CompilerTask {
 
 class InitializerResolver {
   final ResolverVisitor visitor;
-  final Map<SourceString, Node> initialized;
+  final Map<Element, Node> initialized;
   Link<Node> initializers;
   bool hasSuper;
 
   InitializerResolver(this.visitor)
-    : initialized = new Map<SourceString, Node>(), hasSuper = false;
+    : initialized = new Map<Element, Node>(), hasSuper = false;
 
   error(Node node, MessageKind kind, [arguments = const {}]) {
     visitor.error(node, kind, arguments);
@@ -953,13 +953,29 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  void checkForDuplicateInitializers(SourceString name, Node init) {
-    if (initialized.containsKey(name)) {
-      error(init, MessageKind.DUPLICATE_INITIALIZER, {'fieldName': name});
-      warning(initialized[name], MessageKind.ALREADY_INITIALIZED,
-              {'fieldName': name});
+  reportDuplicateInitializerError(Element field, Node init, Node existing) {
+    visitor.compiler.reportError(
+        init,
+        new ResolutionError(MessageKind.DUPLICATE_INITIALIZER,
+                            {'fieldName': field.name}));
+    visitor.compiler.reportMessage(
+        visitor.compiler.spanFromNode(existing),
+        new ResolutionError(MessageKind.ALREADY_INITIALIZED,
+                            {'fieldName': field.name}),
+        Diagnostic.INFO);
+  }
+
+  void checkForDuplicateInitializers(Element field, Node init) {
+    SourceString name = field.name;
+    if (initialized.containsKey(field)) {
+      reportDuplicateInitializerError(field, init, initialized[field]);
+    } else if (field.modifiers.isFinal()) {
+      Node fieldNode = field.parseNode(visitor.compiler).asSendSet();
+      if (fieldNode != null) {
+        reportDuplicateInitializerError(field, init, fieldNode);
+      }
     }
-    initialized[name] = init;
+    initialized[field] = init;
   }
 
   void resolveFieldInitializer(FunctionElement constructor, SendSet init) {
@@ -982,7 +998,7 @@ class InitializerResolver {
     }
     visitor.useElement(init, target);
     visitor.world.registerStaticUse(target);
-    checkForDuplicateInitializers(name, init);
+    checkForDuplicateInitializers(target, init);
     // Resolve initializing value.
     visitor.visitInStaticContext(init.arguments.head);
   }
@@ -1121,7 +1137,8 @@ class InitializerResolver {
         constructor.computeSignature(visitor.compiler);
     functionParameters.forEachParameter((Element element) {
       if (identical(element.kind, ElementKind.FIELD_PARAMETER)) {
-        checkForDuplicateInitializers(element.name,
+        FieldParameterElement fieldParameter = element;
+        checkForDuplicateInitializers(fieldParameter.fieldElement,
                                       element.parseNode(visitor.compiler));
       }
     });
