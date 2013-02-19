@@ -8,7 +8,7 @@ part of dart.core;
  * Deprecated class. Please use [DateTime] instead.
  */
 @deprecated
-abstract class Date implements Comparable {
+abstract class Date implements Comparable<Date> {
   // Weekday constants that are returned by [weekday] method:
   static const int MON = 1;
   static const int TUE = 2;

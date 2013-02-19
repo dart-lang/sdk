@@ -17,7 +17,7 @@ part of dart.core;
  * Unicode code point. The runes of a string are accessible through the [runes]
  * getter.
  */
-abstract class String implements Comparable, Pattern {
+abstract class String implements Comparable<String>, Pattern {
   /**
    * Allocates a new String for the specified [charCodes].
    *

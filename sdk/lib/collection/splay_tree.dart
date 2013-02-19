@@ -26,7 +26,7 @@ class SplayTreeNode<K, V> {
  * This implementation is a Dart version of the JavaScript
  * implementation in the V8 project.
  */
-class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
+class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
 
   // The root node of the splay tree. It will contain either the last
   // element inserted, or the last element looked up.

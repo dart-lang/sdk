@@ -81,7 +81,7 @@ class RuntimeTypeInformation {
         addAllInterfaceTypeArguments(type, instantiatedArguments);
       }
     }
-    for (ClassElement cls in instantiatedArguments) {
+    for (ClassElement cls in instantiatedArguments.toList()) {
       for (DartType type in cls.allSupertypes) {
         addAllInterfaceTypeArguments(type, instantiatedArguments);
       }
