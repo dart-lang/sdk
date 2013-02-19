@@ -7,13 +7,3 @@ patch class String {
     return _StringBase.createFromCharCodes(charCodes);
   }
 }
-
-patch class Strings {
-  /* patch */ static String join(Iterable<String> strings, String separator) {
-    return _StringBase.join(strings, separator);
-  }
-
-  /* patch */ static String concatAll(List<String> strings) {
-    return _StringBase.concatAll(strings);
-  }
-}

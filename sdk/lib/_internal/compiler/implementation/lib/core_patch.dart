@@ -202,33 +202,6 @@ patch class String {
   }
 }
 
-// Patch for String implementation.
-patch class Strings {
-  patch static String join(Iterable<String> strings, String separator) {
-    checkNull(strings);
-    if (separator is !String) throw new ArgumentError(separator);
-    return stringJoinUnchecked(_toJsStringArray(strings), separator);
-  }
-
-  patch static String concatAll(Iterable<String> strings) {
-    return stringJoinUnchecked(_toJsStringArray(strings), "");
-  }
-
-  static List _toJsStringArray(Iterable<String> strings) {
-    checkNull(strings);
-    var array;
-    if (!isJsArray(strings)) {
-      strings = new List.from(strings);
-    }
-    final length = strings.length;
-    for (int i = 0; i < length; i++) {
-      final string = strings[i];
-      if (string is !String) throw new ArgumentError(string);
-    }
-    return strings;
-  }
-}
-
 patch class RegExp {
   patch factory RegExp(String pattern,
                        {bool multiLine: false,

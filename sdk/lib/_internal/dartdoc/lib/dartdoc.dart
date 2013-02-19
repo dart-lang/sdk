@@ -691,7 +691,7 @@ class Dartdoc {
         for (final typeVariable in type.originalDeclaration.typeVariables) {
           typeVariables.add(typeVariable.displayName);
         }
-        typeInfo[ARGS] = Strings.join(typeVariables, ', ');
+        typeInfo[ARGS] = typeVariables.join(', ');
       }
       types.add(typeInfo);
     }
@@ -1766,15 +1766,14 @@ class Dartdoc {
       if (typeParams.isEmpty) {
         return type.simpleName;
       }
-      final params = Strings.join(typeParams, ', ');
+      final params = typeParams.join(', ');
       return '${type.simpleName}&lt;$params&gt;';
     }
 
     // See if it's an instantiation of a generic type.
     final typeArgs = type.typeArguments;
     if (typeArgs.length > 0) {
-      final args =
-          Strings.join(typeArgs.map((arg) => typeName(arg)), ', ');
+      final args = typeArgs.map((arg) => typeName(arg)).join(', ');
       return '${type.originalDeclaration.simpleName}&lt;$args&gt;';
     }
 
@@ -1793,7 +1792,7 @@ class Dartdoc {
       lines[i] = unindent(lines[i], column);
     }
 
-    final code = Strings.join(lines, '\n');
+    final code = lines.join('\n');
     return code;
   }
 

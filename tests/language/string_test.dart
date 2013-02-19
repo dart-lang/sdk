@@ -24,7 +24,7 @@ class StringTest {
     List<String> a = new List<String>.fixedLength(2);
     a[0] = "Hello";
     a[1] = "World";
-    String s = Strings.join(a, "*^*");
+    String s = a.join("*^*");
     Expect.equals("Hello*^*World", s);
   }
 

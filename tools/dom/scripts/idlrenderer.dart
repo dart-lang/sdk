@@ -111,7 +111,7 @@ render(idl_node, [indent_str='  ']) {
             else
               formattedArgs.add('$argName=$argValue');
           }
-          w('@$name(${Strings.join(formattedArgs,',')})');
+          w('@$name(${formattedArgs.join(',')})');
         }
         w(' ');
       }
@@ -176,5 +176,5 @@ render(idl_node, [indent_str='  ']) {
   };
 
   w(idl_node);
-  return Strings.concatAll(output);
+  return output.join();
 }

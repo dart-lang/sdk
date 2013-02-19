@@ -575,6 +575,11 @@ Language/12_Statements/10_Try_A03_t01: Fail # co19 issue 381
 Language/12_Statements/10_Try_A03_t02: Fail # co19 issue 381
 Language/12_Statements/10_Try_A03_t03: Fail # co19 issue 381
 
+LibTest/core/Strings/join_A01_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
+
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
 LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367

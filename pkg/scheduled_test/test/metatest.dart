@@ -170,7 +170,7 @@ String _indent(String str) {
   // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
   // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
 
-  return Strings.join(str.split("\n").map((line) => "  $line"), "\n");
+  return str.split("\n").map((line) => "  $line").join("\n");
 }
 
 /// Ensure that the metatest configuration is loaded.

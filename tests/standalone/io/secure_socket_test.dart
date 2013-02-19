@@ -53,7 +53,7 @@ void main() {
   };
   secure.onData = useRead;
   secure.onClosed = () {
-    String fullPage = Strings.concatAll(chunks);
+    String fullPage = chunks.join();
     Expect.isTrue(fullPage.contains('</body></html>'));
     keepAlive.close();
   };

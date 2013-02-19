@@ -90,8 +90,7 @@ class _SequenceNode extends _Node {
     return true;
   }
 
-  String toString() =>
-      '$tag [${Strings.join(content.map((e) => '$e'), ', ')}]';
+  String toString() => '$tag [${content.map((e) => '$e').join(', ')}]';
 
   int get hashCode => super.hashCode ^ _hashCode(content);
 
@@ -179,7 +178,7 @@ class _ScalarNode extends _Node {
           }
         }
       });
-      return '"${Strings.join(escapedValue, '')}"';
+      return '"${escapedValue.join()}"';
     }
 
     throw new YamlException("unknown scalar value: $value");
@@ -193,7 +192,7 @@ class _ScalarNode extends _Node {
     assert(length >= str.length);
     var prefix = [];
     prefix.insertRange(0, length - str.length, '0');
-    return '${Strings.join(prefix, '')}$str';
+    return '${prefix.join()}$str';
   }
 
   int get hashCode => super.hashCode ^ content.hashCode;

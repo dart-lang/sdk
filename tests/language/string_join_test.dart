@@ -8,7 +8,8 @@ class StringJoinTest {
     List<String> ga = new List<String>();
     ga.add("a");
     ga.add("b");
-    Expect.equals("ab", Strings.join(ga, ""));
+    Expect.equals("ab", ga.join());
+    Expect.equals("ab", ga.join(""));
   }
 }
 

@@ -492,5 +492,16 @@ LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to 
 
 LibTest/core/Date/compareTo_A03_t01: Fail # Comparable<T>.compareTo now statically accepts type T arguments.
 
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/join_A01_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/join_A02_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/join_A03_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A02_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A03_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
+
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip

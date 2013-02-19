@@ -556,7 +556,7 @@ void main() {
     arguments = <String>['--debug', '--verbose_debug']..addAll(arguments);
     Process.start(options.executable, arguments).then((Process process) {
       process.onExit = (int exitCode) {
-        print('${Strings.join(arguments, " ")} exited with $exitCode');
+        print('${arguments.join(" ")} exited with $exitCode');
       };
       process.stdin.close();
       // Redirecting both stdout and stderr of the child process to

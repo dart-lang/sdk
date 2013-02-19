@@ -275,7 +275,7 @@ class Grammar {
                   a.startsWith("'") == b.startsWith("'")
                       ? a.compareTo(b)
                       : a.startsWith("'") ? +1 : -1);
-      var expected = Strings.join(tokens, ' or ');
+      var expected = tokens.join(' or ');
       var found = state.max_pos == state._end ? 'end of file'
           : "'${state._text[state.max_pos]}'";
       message = 'Expected $expected but found $found';

@@ -28,7 +28,7 @@ format(thing) {
       fragments.add(format(item));
     }
     fragments.add(']');
-    return Strings.concatAll(fragments);
+    return fragments.join();
   }
   return thing.toString();
 }

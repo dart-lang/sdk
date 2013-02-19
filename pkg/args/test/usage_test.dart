@@ -211,5 +211,5 @@ String unindentString(String text) {
     }
   }
 
-  return Strings.join(lines, '\n');
+  return lines.join('\n');
 }

@@ -47,7 +47,7 @@ String joinPaths(String path1, String path2) {
       pieces.add(piece);
     }
   }
-  return Strings.join(pieces, '/');
+  return pieces.join('/');
 }
 
 /** Returns the directory name for the [path]. */

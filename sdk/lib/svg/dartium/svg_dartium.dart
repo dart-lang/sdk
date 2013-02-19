@@ -6520,8 +6520,7 @@ class _AttributeClassSet extends CssClassSet {
   }
 
   void writeClasses(Set s) {
-    List list = new List.from(s);
-    _element.attributes['class'] = Strings.join(list, ' ');
+    _element.attributes['class'] = s.join(' ');
   }
 }
 

@@ -63,7 +63,7 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
   };
   secure.onClosed = () {
     Expect.isTrue(acceptCertificate);
-    String fullPage = Strings.concatAll(chunks);
+    String fullPage = chunks.join();
     Expect.isTrue(fullPage.contains('</body></html>'));
     completer.complete(null);
   };
