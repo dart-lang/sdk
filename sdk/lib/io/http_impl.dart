@@ -1359,6 +1359,11 @@ class _HttpClientResponse
             }
           }
         }
+        if (!persistentConnection) {
+          throw new RedirectException(
+              "Non-persistent connections are currently not supported for "
+              "redirects", _connection._redirects);
+        }
         // Drain body and redirect.
         inputStream.onData = inputStream.read;
         if (_statusCode == HttpStatus.SEE_OTHER &&

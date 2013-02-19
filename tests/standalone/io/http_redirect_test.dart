@@ -128,6 +128,18 @@ HttpServer setupServer() {
      }
   );
 
+  // Setup redirect where we close the connection.
+  server.addRequestHandler(
+     (HttpRequest request) => request.path == "/closing",
+     (HttpRequest request, HttpResponse response) {
+       response.headers.set(HttpHeaders.LOCATION,
+                            "http://127.0.0.1:${server.port}/");
+       response.statusCode = HttpStatus.FOUND;
+       response.persistentConnection = false;
+       response.outputStream.close();
+     }
+  );
+
   return server;
 }
 
@@ -352,6 +364,27 @@ void testRedirectLoop() {
   };
 }
 
+void testRedirectClosingConnection() {
+  HttpServer server = setupServer();
+  HttpClient client = new HttpClient();
+
+  int redirectCount = 0;
+  HttpClientConnection conn =
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/closing"));
+
+  conn.followRedirects = true;
+  conn.onResponse = (HttpClientResponse response) {
+    response.inputStream.onData = () => Expect.fail("Response not expected");
+    response.inputStream.onClosed = () => Expect.fail("Response not expected");
+  };
+  conn.onError = (e) {
+    Expect.isTrue(e is RedirectException);
+    Expect.isNull(e.redirects);
+    server.close();
+    client.shutdown();
+  };
+}
+
 main() {
   testManualRedirect();
   testManualRedirectWithHeaders();
@@ -361,4 +394,5 @@ main() {
   testAutoRedirect303POST();
   testAutoRedirectLimit();
   testRedirectLoop();
+  testRedirectClosingConnection();
 }
