@@ -135,6 +135,8 @@ function dartMainRunner(main) {
   try {
     main();
   } catch (e) {
+    dartPrint(e);
+    if (e.stack) dartPrint(e.stack);
     window.postMessage('unittest-suite-fail', '*');
     return;
   }
