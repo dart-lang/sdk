@@ -11709,18 +11709,113 @@ class Gamepad native "*Gamepad" {
 @DomName('Geolocation')
 class Geolocation native "*Geolocation" {
 
-  @DomName('Geolocation.clearWatch')
-  @DocsEditable
-  void clearWatch(int watchId) native;
-
   @DomName('Geolocation.getCurrentPosition')
-  @DocsEditable
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
+  Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
+      Duration timeout, Duration maximumAge}) {
+    var options = {};
+    if (enableHighAccuracy != null) {
+      options['enableHighAccuracy'] = enableHighAccuracy;
+    }
+    if (timeout != null) {
+      options['timeout'] = timeout.inMilliseconds;
+    }
+    if (maximumAge != null) {
+      options['maximumAge'] = maximumAge.inMilliseconds;
+    }
+    var completer = new Completer<Geoposition>();
+    try {
+      $dom_getCurrentPosition(
+          (position) {
+            completer.complete(_ensurePosition(position));
+          },
+          (error) {
+            completer.completeError(error);
+          },
+          options);
+    } catch (e, stacktrace) {
+      completer.completeError(e, stacktrace);
+    }
+    return completer.future;
+  }
 
   @DomName('Geolocation.watchPosition')
+  Stream<Geoposition> watchPosition({bool enableHighAccuracy,
+      Duration timeout, Duration maximumAge}) {
+
+    var options = {};
+    if (enableHighAccuracy != null) {
+      options['enableHighAccuracy'] = enableHighAccuracy;
+    }
+    if (timeout != null) {
+      options['timeout'] = timeout.inMilliseconds;
+    }
+    if (maximumAge != null) {
+      options['maximumAge'] = maximumAge.inMilliseconds;
+    }
+
+    int watchId;
+    var controller;
+    controller = new StreamController<Geoposition>(
+      onSubscriptionStateChange: () {
+        if (controller.hasSubscribers) {
+          assert(watchId == null);
+          watchId = $dom_watchPosition(
+              (position) {
+                controller.add(_ensurePosition(position));
+              },
+              (error) {
+                controller.signalError(error);
+              },
+              options);
+        } else {
+          assert(watchId != null);
+          $dom_clearWatch(watchId);
+        }
+      });
+
+    return controller.stream;
+  }
+
+  Geoposition _ensurePosition(domPosition) {
+    try {
+      // Firefox may throw on this.
+      if (domPosition is Geoposition) {
+        return domPosition;
+      }
+    } catch(e) {}
+    return new _GeopositionWrapper(domPosition);
+  }
+
+  @JSName('clearWatch')
+  @DomName('Geolocation.clearWatch')
   @DocsEditable
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
+  void $dom_clearWatch(int watchId) native;
+
+  @JSName('getCurrentPosition')
+  @DomName('Geolocation.getCurrentPosition')
+  @DocsEditable
+  void $dom_getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native;
+
+  @JSName('watchPosition')
+  @DomName('Geolocation.watchPosition')
+  @DocsEditable
+  int $dom_watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native;
 }
+
+/**
+ * Wrapper for Firefox- it returns an object which we cannot map correctly.
+ * Basically Firefox was returning a [xpconnect wrapped nsIDOMGeoPosition] but
+ * which has further oddities.
+ */
+class _GeopositionWrapper implements Geoposition {
+  var _ptr;
+  _GeopositionWrapper(this._ptr);
+
+  Coordinates get coords => JS('Coordinates', '#.coords', _ptr);
+  int get timestamp => JS('int', '#.timestamp', _ptr);
+}
+
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18390,7 +18485,7 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void PositionCallback(Geoposition position);
+typedef void _PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18421,7 +18516,7 @@ class PositionError native "*PositionError" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void PositionErrorCallback(PositionError error);
+typedef void _PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

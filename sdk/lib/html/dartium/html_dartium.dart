@@ -12564,27 +12564,104 @@ class Gamepad extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable
 @DomName('Geolocation')
 class Geolocation extends NativeFieldWrapperClass1 {
+
+  @DomName('Geolocation.getCurrentPosition')
+  Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
+      Duration timeout, Duration maximumAge}) {
+    var options = {};
+    if (enableHighAccuracy != null) {
+      options['enableHighAccuracy'] = enableHighAccuracy;
+    }
+    if (timeout != null) {
+      options['timeout'] = timeout.inMilliseconds;
+    }
+    if (maximumAge != null) {
+      options['maximumAge'] = maximumAge.inMilliseconds;
+    }
+    var completer = new Completer<Geoposition>();
+    try {
+      $dom_getCurrentPosition(
+          (position) {
+            completer.complete(_ensurePosition(position));
+          },
+          (error) {
+            completer.completeError(error);
+          },
+          options);
+    } catch (e, stacktrace) {
+      completer.completeError(e, stacktrace);
+    }
+    return completer.future;
+  }
+
+  @DomName('Geolocation.watchPosition')
+  Stream<Geoposition> watchPosition({bool enableHighAccuracy,
+      Duration timeout, Duration maximumAge}) {
+
+    var options = {};
+    if (enableHighAccuracy != null) {
+      options['enableHighAccuracy'] = enableHighAccuracy;
+    }
+    if (timeout != null) {
+      options['timeout'] = timeout.inMilliseconds;
+    }
+    if (maximumAge != null) {
+      options['maximumAge'] = maximumAge.inMilliseconds;
+    }
+
+    int watchId;
+    var controller;
+    controller = new StreamController<Geoposition>(
+      onSubscriptionStateChange: () {
+        if (controller.hasSubscribers) {
+          assert(watchId == null);
+          watchId = $dom_watchPosition(
+              (position) {
+                controller.add(_ensurePosition(position));
+              },
+              (error) {
+                controller.signalError(error);
+              },
+              options);
+        } else {
+          assert(watchId != null);
+          $dom_clearWatch(watchId);
+        }
+      });
+
+    return controller.stream;
+  }
+
+  Geoposition _ensurePosition(domPosition) {
+    try {
+      // Firefox may throw on this.
+      if (domPosition is Geoposition) {
+        return domPosition;
+      }
+    } catch(e) {}
+    return new _GeopositionWrapper(domPosition);
+  }
   Geolocation.internal();
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable
-  void clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
+  void $dom_clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
+  void $dom_getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
 
   @DomName('Geolocation.watchPosition')
   @DocsEditable
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
-
+  int $dom_watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
 }
+
+
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20081,7 +20158,7 @@ class PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-typedef void PositionCallback(Geoposition position);
+typedef void _PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20116,7 +20193,7 @@ class PositionError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void PositionErrorCallback(PositionError error);
+typedef void _PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
