@@ -5758,7 +5758,7 @@ class _AttributeClassSet extends CssClassSet {
   Set<String> readClasses() {
     var classname = _element.attributes['class'];
 
-    Set<String> s = new Set<String>();
+    Set<String> s = new LinkedHashSet<String>();
     if (classname == null) {
       return s;
     }

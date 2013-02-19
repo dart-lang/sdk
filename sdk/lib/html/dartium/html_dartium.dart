@@ -9263,7 +9263,7 @@ class _ElementCssClassSet extends CssClassSet {
   _ElementCssClassSet(this._element);
 
   Set<String> readClasses() {
-    var s = new Set<String>();
+    var s = new LinkedHashSet<String>();
     var classname = _element.$dom_className;
 
     for (String name in classname.split(' ')) {
