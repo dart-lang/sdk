@@ -966,6 +966,8 @@ class InitializerResolver {
   }
 
   void checkForDuplicateInitializers(Element field, Node init) {
+    // [field] can be null if it could not be resolved.
+    if (field == null) return;
     SourceString name = field.name;
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
