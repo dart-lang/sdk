@@ -16,9 +16,6 @@ async/slow_consumer3_test: Fail # Issue 7733.
 async/slow_consumer_test: Fail # Issue 7733.
 async/slow_consumer2_test: Fail # Issue 7733.
 
-[ $compiler == dart2js && $runtime == ie9 ]
-async/deferred/deferred_api_test: Fail # http://dartbug.com/3940
-
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.

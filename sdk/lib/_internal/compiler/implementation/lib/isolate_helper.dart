@@ -12,7 +12,9 @@ import 'dart:_js_helper' show convertDartClosureToJS,
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
-                                   JS_SET_CURRENT_ISOLATE;
+                                   JS_CURRENT_ISOLATE,
+                                   JS_SET_CURRENT_ISOLATE,
+                                   IsolateContext;
 
 ReceivePort lazyPort;
 
@@ -202,7 +204,7 @@ class _Manager {
 }
 
 /** Context information tracked for each isolate. */
-class _IsolateContext {
+class _IsolateContext implements IsolateContext {
   /** Current isolate id. */
   int id;
 
@@ -406,19 +408,20 @@ class IsolateNatives {
    * JavaScript workers.
    */
   static String computeThisScript() {
-    // TODO(ahe): The following works in Firefox during loading of the
-    // script, and is being considered for the standard.
-    // if (JS('String', 'typeof document') == 'object') {
-    //   var currentScript = JS('', 'document.currentScript');
-    //   if (JS('String', 'typeof #', currentScript) == 'object') {
-    //     return JS('String', '#.src', currentScript);
-    //   }
-    // }
+    var currentScript = JS('', r'$.$currentScript');
+    if (currentScript != null) {
+      return JS('String', 'String(#.src)', currentScript);
+    }
+
+    // TODO(ahe): The following is for supporting command-line engines
+    // such as d8 and jsshell. We should move this code to a helper
+    // library that is only loaded when testing on those engines.
 
     var stack = JS('String|Null', 'new Error().stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
-      // property is not set until the exception is thrown.
+      // property is not set until the exception is thrown. The stack
+      // property was not provided until IE10.
       stack = JS('String',
                  '(function() {'
                  'try { throw new Error() } catch(e) { return e.stack }'

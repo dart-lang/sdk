@@ -578,6 +578,17 @@ class CodeEmitterTask extends CompilerTask {
       js['isolateProperties'].def(
                    js['oldIsolate'][namer.isolatePropertiesName]),
 
+      // isolateProperties.$currentScript =
+      //    (typeof document == "object") && (document.currentScript ||
+      //                 document.scripts[document.scripts.length - 1]);
+      js['isolateProperties'][r'$currentScript'].assign(
+          js['document'].typeof.equals(js.string('object')).binary(
+              '&&',
+              js['document']['currentScript'].binary(
+                  '||',
+                  js['document']['scripts'][
+                      js['document']['scripts']['length'] - 1]))),
+
       // var isolatePrototype = oldIsolate.prototype;
       js['isolatePrototype'].def(js['oldIsolate']['prototype']),
 
