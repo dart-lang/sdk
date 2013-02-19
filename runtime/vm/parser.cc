@@ -8255,7 +8255,14 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   }
 
   // Try to find the identifier in the class scope of the current class.
-  Class& cls = Class::Handle(isolate, current_class().raw());
+  // If the current class is the result of a mixin application, we must
+  // use the class scope of the class from which the function originates.
+  Class& cls = Class::Handle(isolate);
+  if (current_class().mixin() == Type::null()) {
+    cls = current_class().raw();
+  } else {
+    cls = parsed_function()->function().origin();
+  }
   Function& func = Function::Handle(isolate, Function::null());
   Field& field = Field::Handle(isolate, Field::null());
 
