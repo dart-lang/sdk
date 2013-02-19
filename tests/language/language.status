@@ -393,7 +393,6 @@ compile_time_constant_arguments_test/03: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/05: Fail # http://dartbug.com/5519
 compile_time_constant_arguments_test/06: Fail # http://dartbug.com/5519
 const_constructor_syntax_test/04: Fail # http://dartbug.com/5519
-const_constructor_syntax_test/05: Fail # http://dartbug.com/5519
 const_syntax_test/01: Fail # http://dartbug.com/5519
 const_syntax_test/02: Fail # http://dartbug.com/5519
 const_syntax_test/03: Fail # http://dartbug.com/5519
@@ -411,7 +410,6 @@ final_syntax_test/01: Fail # http://dartbug.com/5519
 final_syntax_test/02: Fail # http://dartbug.com/5519
 final_syntax_test/03: Fail # http://dartbug.com/5519
 final_syntax_test/04: Fail # http://dartbug.com/5519
-final_syntax_test/09: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
