@@ -58,7 +58,6 @@ Language/05_Variables/05_Variables_A01_t13: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t14: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t15: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A04_t01: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A05_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t04: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t05: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t06: Fail # Inherited from dart2js

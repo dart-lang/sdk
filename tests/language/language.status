@@ -401,7 +401,6 @@ const_syntax_test/05: Fail # http://dartbug.com/5519
 const_syntax_test/06: Fail # http://dartbug.com/5519
 const_syntax_test/07: Fail # http://dartbug.com/5519
 const_syntax_test/08: Fail # http://dartbug.com/5519
-const_syntax_test/09: Fail # http://dartbug.com/5519
 const_syntax_test/10: Fail # http://dartbug.com/5519
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 final_for_in_variable_test/01: Fail # http://dartbug.com/5519
