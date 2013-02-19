@@ -340,7 +340,6 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   bool report_duplicate_initialization) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
-    library_initialized_ = true;
     password_ = strdup(password);  // This one copy persists until Dart exits.
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
     // TODO(whesse): Verify there are no UTF-8 issues here.
@@ -362,20 +361,25 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                                       SECMOD_DB,
                                       init_flags);
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed NSS_Init call.");
     }
+    library_initialized_ = true;
 
     status = NSS_SetDomesticPolicy();
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed NSS_SetDomesticPolicy call.");
     }
     // Enable TLS, as well as SSL3 and SSL2.
     status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed SSL_OptionSetDefault enable TLS call.");
     }
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed SSL_ConfigServerSessionIDCache call.");
     }
 
