@@ -56,6 +56,8 @@ type_annotation_test/09: Fail # Issue 6973
 
 type_parameter_literal_test: Fail # Issue 7551
 
+on_catch_malformed_type_test: Fail # Issue 8601
+
 mixin_illegal_syntax_test/none: Fail
 mixin_type_parameters_mixin_test: Fail
 mixin_type_parameters_super_test: Fail
@@ -348,6 +350,8 @@ type_variable_scope_test: Fail # type arguments on redirecting factory not imple
 
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
+
+on_catch_malformed_type_test: Fail # Issue 8601
 
 # Mixins fail on the VM.
 mixin_illegal_syntax_test/none: Fail            # VM issue

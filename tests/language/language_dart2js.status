@@ -198,6 +198,7 @@ static_field3_test/0*: Fail
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
+on_catch_malformed_type_test: Fail # Malformed types cause compile-time errors.
 
 
 # Failing tests for mixin type parameters.

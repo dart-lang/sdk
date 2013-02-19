@@ -4474,14 +4474,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (catchBlock.onKeyword != null) {
           DartType type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.cancel('On with unresolved type',
-                            node: catchBlock.type);
+            compiler.internalError('On with no type', node: catchBlock.type);
           }
-          HInstruction condition =
-              new HIs(type, <HInstruction>[unwrappedException]);
-          push(condition);
-        }
-        else {
+          if (type.isMalformed) {
+            // TODO(johnniwinther): Handle malformed types in [HIs] instead.
+            HInstruction condition =
+                graph.addConstantBool(true, constantSystem);
+            stack.add(condition);
+          } else {
+            HInstruction condition =
+                new HIs(type, <HInstruction>[unwrappedException]);
+            push(condition);
+          }
+        } else {
           VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
           if (declaration.type == null) {
@@ -4506,6 +4511,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
+
+        if (compiler.enableTypeAssertions) {
+          // In checked mode: throw a type error if the on-catch type is
+          // malformed.
+          if (catchBlock.onKeyword != null) {
+            DartType type = elements.getType(catchBlock.type);
+            if (type != null && type.isMalformed) {
+              String reasons = Types.fetchReasonsFromMalformedType(type);
+              generateMalformedSubtypeError(node,
+                  unwrappedException, type, reasons);
+              pop();
+              return;
+            }
+          }
+        }
         if (catchBlock.exception != null) {
           localsHandler.updateLocal(elements[catchBlock.exception],
                                     unwrappedException);

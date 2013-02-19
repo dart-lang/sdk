@@ -116,9 +116,6 @@ Language/12_Statements/09_Switch_A03_t01: Fail # TODO(ahe): Please triage this f
 Language/12_Statements/09_Switch_A03_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A06_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/10_Try_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/10_Try_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/10_Try_A03_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/10_Try_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/10_Try_A07_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t01: Fail # TODO(ahe): Please triage this failure.
@@ -576,6 +573,10 @@ LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core
 LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 
 LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379.
+
+Language/12_Statements/10_Try_A03_t01: Fail # co19 issue 381
+Language/12_Statements/10_Try_A03_t02: Fail # co19 issue 381
+Language/12_Statements/10_Try_A03_t03: Fail # co19 issue 381
 
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
