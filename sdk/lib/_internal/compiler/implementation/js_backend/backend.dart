@@ -992,6 +992,7 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getSetRuntimeTypeInfo());
     enqueueInResolution(getGetRuntimeTypeInfo());
     enqueueInResolution(getGetRuntimeTypeArgument());
+    compiler.enqueuer.resolution.registerInstantiatedClass(compiler.listClass);
   }
 
   void registerIsCheck(DartType type, Enqueuer world) {
@@ -1000,6 +1001,7 @@ class JavaScriptBackend extends Backend {
       enqueueInResolution(getGetRuntimeTypeInfo());
       enqueueInResolution(getGetRuntimeTypeArgument());
       enqueueInResolution(getCheckArguments());
+      world.registerInstantiatedClass(compiler.listClass);
     }
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
@@ -1038,6 +1040,9 @@ class JavaScriptBackend extends Backend {
 
   void registerSuperNoSuchMethod() {
     enqueueInResolution(getCreateInvocationMirror());
+    enqueueInResolution(
+        compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD));
+    compiler.enqueuer.resolution.registerInstantiatedClass(compiler.listClass);
   }
 
   void enqueueInResolution(Element e) {
