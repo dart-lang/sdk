@@ -25,5 +25,5 @@ String removeDotSegments(String path) {
     }
   }
   if (appendSlash) output.add("");
-  return Strings.join(output, "/");
+  return output.join("/");
 }

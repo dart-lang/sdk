@@ -103,7 +103,7 @@ class _Path implements Path {
     if (hasTrailingSeparator) {
         segments.add('');
     }
-    return new Path(Strings.join(segments, '/'));
+    return new Path(segments.join('/'));
   }
 
 
@@ -210,8 +210,7 @@ class _Path implements Path {
         segmentsToJoin.add('');
       }
     }
-    return new _Path._internal(Strings.join(segmentsToJoin, '/'),
-                               isWindowsShare);
+    return new _Path._internal(segmentsToJoin.join('/'), isWindowsShare);
   }
 
   String toNativePath() {

@@ -209,7 +209,7 @@ class Entrypoint {
   LockFile loadLockFile() {
     var lockFilePath = path.join(root.dir, 'pubspec.lock');
     if (!fileExists(lockFilePath)) return new LockFile.empty();
-    return new LockFile.parse(readTextFile(lockFilePath), cache.sources);
+    return new LockFile.load(lockFilePath, cache.sources);
   }
 
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
@@ -294,9 +294,9 @@ class Entrypoint {
   /// Creates a symlink to the `packages` directory in [dir] if none exists.
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
-      var to = path.join(dir, 'packages');
-      if (entryExists(to)) return;
-      return createSymlink(packagesDir, to);
+      var symlink = path.join(dir, 'packages');
+      if (entryExists(symlink)) return;
+      return createSymlink(packagesDir, symlink);
     });
   }
 }

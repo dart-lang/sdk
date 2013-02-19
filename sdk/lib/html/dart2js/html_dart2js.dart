@@ -29753,7 +29753,7 @@ abstract class HistoryBase {
 abstract class CssClassSet implements Set<String> {
 
   String toString() {
-    return Strings.join(new List.from(readClasses()), ' ');
+    return readClasses().join(' ');
   }
 
   /**

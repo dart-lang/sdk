@@ -197,7 +197,7 @@ class HtmlDiff {
             for (var t in domTypes) {
               options.add('$t.$name');
             }
-            Strings.join(options, ' or ');
+            options.join(' or ');
             warn('no member $options');
           }
         }

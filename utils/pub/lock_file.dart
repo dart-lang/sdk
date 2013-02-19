@@ -5,6 +5,7 @@
 library lock_file;
 
 import 'dart:json' as json;
+import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
@@ -21,8 +22,19 @@ class LockFile {
   LockFile.empty()
     : packages = <String, PackageId>{};
 
-  /// Parses the lockfile whose text is [contents].
+  /// Loads a lockfile from [filePath].
+  factory LockFile.load(String filePath, SourceRegistry sources) {
+    return LockFile._parse(filePath, readTextFile(filePath), sources);
+  }
+
+  /// Parses a lockfile whose text is [contents].
   factory LockFile.parse(String contents, SourceRegistry sources) {
+    return LockFile._parse(null, contents, sources);
+  }
+
+  /// Parses the lockfile whose text is [contents].
+  static LockFile _parse(String filePath, String contents,
+      SourceRegistry sources) {
     var packages = <String, PackageId>{};
 
     if (contents.trim() == '') return new LockFile.empty();
@@ -54,7 +66,8 @@ class LockFile {
           throw new FormatException('Package $name is missing a description.');
         }
         var description = spec['description'];
-        source.validateDescription(description, fromLockFile: true);
+        description = source.parseDescription(filePath, description,
+            fromLockFile: true);
 
         var id = new PackageId(name, source, version, description);
 

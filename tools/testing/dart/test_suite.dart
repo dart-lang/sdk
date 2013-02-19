@@ -850,9 +850,9 @@ class StandardTestSuite extends TestSuite {
       // replaceAll(RegExp, String) is implemented.
       String optionsName = '';
       if (getVmOptions(optionsFromFile).length > 1) {
-          optionsName = Strings.join(vmOptions, '-').replaceAll('-','')
-                                                    .replaceAll('=','')
-                                                    .replaceAll('/','');
+          optionsName = vmOptions.join('-').replaceAll('-','')
+                                           .replaceAll('=','')
+                                           .replaceAll('/','');
       }
       final String tempDir = createOutputDirectory(info.filePath, optionsName);
 
@@ -1633,7 +1633,7 @@ class JUnitTestSuite extends TestSuite {
   }
 
   void computeClassPath() {
-    classPath = Strings.join(
+    classPath =
         ['$buildDir/analyzer/util/analyzer/dart_analyzer.jar',
          '$buildDir/analyzer/dart_analyzer_tests.jar',
          // Third party libraries.
@@ -1644,8 +1644,8 @@ class JUnitTestSuite extends TestSuite {
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
-         '$dartDir/third_party/junit/v4_8_2/junit.jar'],
-        Platform.operatingSystem == 'windows'? ';': ':');  // Path separator.
+         '$dartDir/third_party/junit/v4_8_2/junit.jar']
+        .join(Platform.operatingSystem == 'windows'? ';': ':');  // Path separator.
   }
 }
 

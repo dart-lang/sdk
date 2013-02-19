@@ -107,7 +107,7 @@ class Command {
       // TODO(efortuna): Remove this when fixed (Issue 1306).
       executable = executable.replaceAll('/', '\\');
     }
-    commandLine = "$executable ${Strings.join(arguments, ' ')}";
+    commandLine = "$executable ${arguments.join(' ')}";
   }
 
   String toString() => commandLine;
@@ -196,7 +196,7 @@ class DumpRenderTreeCommand extends Command {
     if (needDartFlags) {
       env = new Map.from(io.Platform.environment);
       if (needDartFlags) {
-        env['DART_FLAGS'] = Strings.join(dartFlags, " ");
+        env['DART_FLAGS'] = dartFlags.join(" ");
       }
     }
 
@@ -305,7 +305,7 @@ class TestCase {
         newCommands.add(newCommand);
         // If there are extra spaces inside the prefix or suffix, this fails.
         String expected =
-            '$prefix ${c.executable} $suffix ${Strings.join(c.arguments, ' ')}';
+            '$prefix ${c.executable} $suffix ${c.arguments.join(' ')}';
         Expect.stringEquals(expected.trim(), newCommand.commandLine);
       }
       commands = newCommands;
@@ -1152,7 +1152,7 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments) {
-    return Strings.join(arguments, ' ').concat('\n');
+    return arguments.join(' ').concat('\n');
   }
 
   void _reportResult() {
@@ -1287,7 +1287,7 @@ class BatchRunnerProcess {
       callback();
     }).catchError((e) {
       print("Process error:");
-      print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
+      print("  Command: $_executable ${_batchArguments.join(' ')}");
       print("  Error: $e");
       // If there is an error starting a batch process, chances are that
       // it will always fail. So rather than re-trying a 1000+ times, we
@@ -1464,7 +1464,7 @@ class ProcessQueue {
         };
       }).catchError((e) {
         print("Error starting process:");
-        print("  Command: $cmd ${Strings.join(arg, ' ')}");
+        print("  Command: $cmd ${arg.join(' ')}");
         print("  Error: $e");
         // TODO(ahe): How to report this as a test failure?
         exit(1);
@@ -1580,10 +1580,10 @@ class ProcessQueue {
       TestCase test = _tests.removeFirst();
       if (_listTests) {
         var fields = [test.displayName,
-                      Strings.join(new List.from(test.expectedOutcomes), ','),
+                      test.expectedOutcomes.join(','),
                       test.isNegative.toString()];
         fields.addAll(test.commands.last.arguments);
-        print(Strings.join(fields, '\t'));
+        print(fields.join('\t'));
         return;
       }
       if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable || (test

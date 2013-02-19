@@ -825,7 +825,7 @@ String cleanUpLiteral(String text) {
     }
   }
 
-  return Strings.join(lines, '\n');
+  return lines.join('\n');
 }
 
 validate(String description, String markdown, String html,

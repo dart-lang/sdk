@@ -67,9 +67,9 @@ main() {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
           .mappedBy((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
-      output_words.add(Strings.join(settings, '_'));
+      output_words.add(settings.join('_'));
     }
-    print(Strings.join(output_words, ' '));
+    print(output_words.join(' '));
   }
 
   var testSuites = new List<TestSuite>();

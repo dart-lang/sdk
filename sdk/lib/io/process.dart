@@ -242,7 +242,7 @@ class ProcessException implements Exception {
                           int this.errorCode = 0]);
   String toString() {
     var msg = (message == null) ? 'OS error code: $errorCode' : message;
-    var args = Strings.join(arguments, ' ');
+    var args = arguments.join(' ');
     return "ProcessException: $msg\n  Command: $executable $args";
   }
 

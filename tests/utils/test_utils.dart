@@ -30,7 +30,7 @@ String cleanUpLiteral(String text) {
     }
   }
 
-  return Strings.join(lines, '\n');
+  return lines.join('\n');
 }
 
 /**
@@ -49,5 +49,5 @@ String indentLiteral(String text) {
     lines[i] = "        ${lines[i]}";
   }
 
-  return Strings.join(lines, "\n");
+  return lines.join("\n");
 }

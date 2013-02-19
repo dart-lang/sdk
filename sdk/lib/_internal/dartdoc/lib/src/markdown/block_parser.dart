@@ -234,7 +234,7 @@ class CodeBlockSyntax extends BlockSyntax {
     childLines.add('');
 
     // Escape the code.
-    final escaped = classifySource(Strings.join(childLines, '\n'));
+    final escaped = classifySource(childLines.join('\n'));
 
     return new Element.text('pre', escaped);
   }
@@ -275,7 +275,7 @@ class BlockHtmlSyntax extends BlockSyntax {
       parser.advance();
     }
 
-    return new Text(Strings.join(childLines, '\n'));
+    return new Text(childLines.join('\n'));
   }
 }
 
@@ -457,8 +457,7 @@ class ParagraphSyntax extends BlockSyntax {
       parser.advance();
     }
 
-    final contents = parser.document.parseInline(
-        Strings.join(childLines, '\n'));
+    final contents = parser.document.parseInline(childLines.join('\n'));
     return new Element('p', contents);
   }
 }

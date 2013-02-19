@@ -43,7 +43,7 @@ patch class StringBuffer {
   /* patch */ String toString() {
     if (_buffer.length == 0) return "";
     if (_buffer.length == 1) return _buffer[0];
-    String result = Strings.concatAll(_buffer);
+    String result = _StringBase.concatAll(_buffer);
     _buffer.clear();
     _buffer.add(result);
     // Since we track the length at each add operation, there is no

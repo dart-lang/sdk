@@ -504,6 +504,11 @@ LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core
 LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 
+LibTest/core/Strings/join_A01_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. co19 issue 380
+LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
+
 # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Map/containsKey_A01_t02: Fail
 LibTest/core/Map/operator_subscript_A01_t02: Fail

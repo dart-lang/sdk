@@ -29,7 +29,7 @@ void main() {
     chunks.add(new String.fromCharCodes(input.read()));
   };
   input.onClosed = () {
-    String fullPage = Strings.concatAll(chunks);
+    String fullPage = chunks.join();
     Expect.isTrue(fullPage.contains('</body></html>'));
     keepAlive.close();
   };

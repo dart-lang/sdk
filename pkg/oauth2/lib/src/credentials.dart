@@ -171,7 +171,7 @@ class Credentials {
         "client_id": identifier,
         "client_secret": secret
       };
-      if (!scopes.isEmpty) fields["scope"] = Strings.join(scopes, ' ');
+      if (!scopes.isEmpty) fields["scope"] = scopes.join(' ');
 
       return httpClient.post(tokenEndpoint, fields: fields);
     }).then((response) {

@@ -61,7 +61,7 @@ void writeFile(String fileName, String contents) {
 Future _processHelper(String command, List<String> args,
     [int timeout = 300, int procId = 0, Function outputMonitor]) {
   var completer = procId == 0 ? new Completer() : null;
-  log.add('Running $command ${Strings.join(args, " ")}');
+  log.add('Running $command ${args.join(" ")}');
   var timer = null;
   var stdoutHandler, stderrHandler;
   var processFuture = Process.start(command, args);

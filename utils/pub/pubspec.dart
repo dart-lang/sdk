@@ -38,7 +38,8 @@ class Pubspec {
     if (!fileExists(pubspecPath)) throw new PubspecNotFoundException(name);
 
     try {
-      var pubspec = new Pubspec.parse(readTextFile(pubspecPath), sources);
+      var pubspec = new Pubspec.parse(pubspecPath, readTextFile(pubspecPath),
+          sources);
 
       if (pubspec.name == null) {
         throw new PubspecHasNoNameException(name);
@@ -69,10 +70,14 @@ class Pubspec {
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
-  // TODO(rnystrom): Make this a static method to match corelib.
-  /// Parses the pubspec whose text is [contents]. If the pubspec doesn't define
-  /// version for itself, it defaults to [Version.none].
-  factory Pubspec.parse(String contents, SourceRegistry sources) {
+  // TODO(rnystrom): Instead of allowing a null argument here, split this up
+  // into load(), parse(), and _parse() like LockFile does.
+  /// Parses the pubspec stored at [filePath] whose text is [contents]. If the
+  /// pubspec doesn't define version for itself, it defaults to [Version.none].
+  /// [filePath] may be `null` if the pubspec is not on the user's local
+  /// file system.
+  factory Pubspec.parse(String filePath, String contents,
+      SourceRegistry sources) {
     var name = null;
     var version = Version.none;
 
@@ -97,7 +102,7 @@ class Pubspec {
       version = new Version.parse(parsedPubspec['version']);
     }
 
-    var dependencies = _parseDependencies(sources,
+    var dependencies = _parseDependencies(filePath, sources,
         parsedPubspec['dependencies']);
 
     var environmentYaml = parsedPubspec['environment'];
@@ -187,7 +192,8 @@ void _validateFieldUrl(url, String field) {
   }
 }
 
-List<PackageRef> _parseDependencies(SourceRegistry sources, yaml) {
+List<PackageRef> _parseDependencies(String pubspecPath, SourceRegistry sources,
+    yaml) {
   var dependencies = <PackageRef>[];
 
   // Allow an empty dependencies key.
@@ -233,7 +239,8 @@ List<PackageRef> _parseDependencies(SourceRegistry sources, yaml) {
           'Dependency specification $spec should be a string or a mapping.');
     }
 
-    source.validateDescription(description, fromLockFile: false);
+    description = source.parseDescription(pubspecPath, description,
+        fromLockFile: false);
 
     dependencies.add(new PackageRef(
         name, source, versionConstraint, description));
