@@ -22,7 +22,7 @@ typedef int Comparator<T>(T a, T b);
 /**
  * Interface used by types that have an intrinsic ordering.
  */
-abstract class Comparable<T extends Comparable<T>> {
+abstract class Comparable {
   /**
    * Compares this object to another [Comparable]
    *
@@ -31,7 +31,7 @@ abstract class Comparable<T extends Comparable<T>> {
    * May throw an [ArgumentError] if [other] is of a type that
    * is not comparable to [:this:].
    */
-  int compareTo(T other);
+  int compareTo(Comparable other);
 
   /**
    * Compare one comparable to another.

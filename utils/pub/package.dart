@@ -85,7 +85,7 @@ class Package {
 /// different directories that happen to contain identical packages. For
 /// example, the same package may be available from multiple sources. As far as
 /// Pub is concerned, those packages are different.
-class PackageId implements Comparable<PackageId> {
+class PackageId implements Comparable {
   /// The name of the package being identified.
   final String name;
 
@@ -129,7 +129,9 @@ class PackageId implements Comparable<PackageId> {
     return "$name $version from $source";
   }
 
-  int compareTo(PackageId other) {
+  int compareTo(Comparable other) {
+    if (other is! PackageId) throw new ArgumentError(other);
+
     var sourceComp = source.name.compareTo(other.source.name);
     if (sourceComp != 0) return sourceComp;
 

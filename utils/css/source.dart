@@ -6,7 +6,7 @@
 /**
  * Represents a file of source code.
  */
-class SourceFile implements Comparable<SourceFile> {
+class SourceFile implements Comparable {
   // TODO(terry): This filename for in memory buffer.  May need to rework if
   //              filename is used for more than informational.
   static String IN_MEMORY_FILE = '<buffer>';
@@ -132,7 +132,7 @@ class SourceFile implements Comparable<SourceFile> {
  * work.
  */
  // TODO(jmesserly): Rename to Span - but first write cool refactoring tool
-class SourceSpan implements Comparable<SourceSpan> {
+class SourceSpan implements Comparable {
   /** The [SourceFile] that contains this span. */
   final SourceFile file;
 

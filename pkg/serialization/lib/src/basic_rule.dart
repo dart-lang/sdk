@@ -271,7 +271,7 @@ class BasicRule extends SerializationRule {
  * This represents a field in an object. It is intended to be used as part of
  * a [_FieldList].
  */
-abstract class _Field implements Comparable<_Field> {
+abstract class _Field implements Comparable {
 
   /** The FieldList that contains us. */
   final _FieldList fieldList;
