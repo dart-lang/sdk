@@ -16,7 +16,8 @@ import 'dart:_foreign_helper' show JS;
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// DO NOT EDIT
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:html library.
 
 /// The Dart HTML library.

@@ -6,7 +6,8 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JavaScriptIndexingBehavior, JSName;
 import 'dart:_foreign_helper' show JS;
-// DO NOT EDIT
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:svg library.
 
 
