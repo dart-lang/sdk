@@ -1953,7 +1953,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         return null;
       }
       target = receiverClass.lookupLocalMember(name);
-      if (target == null) {
+      if (target == null || target.isInstanceMember()) {
         compiler.backend.registerThrowNoSuchMethod();
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
         // try to resolve injected elements if [currentClass] is in the patch
@@ -1962,14 +1962,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // TODO(karlklose): this should be reported by the caller of
         // [resolveSend] to select better warning messages for getters and
         // setters.
-        return warnAndCreateErroneousElement(node, name,
-                                             MessageKind.METHOD_NOT_FOUND,
+        MessageKind kind = (target == null)
+            ? MessageKind.METHOD_NOT_FOUND
+            : MessageKind.MEMBER_NOT_STATIC;
+        return warnAndCreateErroneousElement(node, name, kind,
                                              {'className': receiverClass.name,
                                               'methodName': name});
-      } else if (target.isInstanceMember()) {
-        error(node, MessageKind.MEMBER_NOT_STATIC,
-              {'className': receiverClass.name,
-               'memberName': name});
       }
     } else if (identical(resolvedReceiver.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = resolvedReceiver;

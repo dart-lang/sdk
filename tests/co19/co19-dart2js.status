@@ -16,7 +16,6 @@ Language/05_Variables/05_Variables_A05_t08: Fail # TODO(ahe): Please triage this
 Language/05_Variables/05_Variables_A05_t09: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t10: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t11: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/05_Variables_A05_t12: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t13: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t14: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A05_t15: Fail # TODO(ahe): Please triage this failure.
@@ -214,7 +213,6 @@ Language/11_Expressions/11_Instance_Creation/2_Const_A09_t02: Fail # TODO(ahe): 
 Language/11_Expressions/11_Instance_Creation/2_Const_A09_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/19_Conditional_A04_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/20_Logical_Boolean_Expressions_A03_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/27_Unary_Expressions_A02_t03: Fail # TODO(ahe): Please triage this failure.
@@ -727,7 +725,6 @@ Language/11_Expressions/01_Constants_A16_t02: Fail # Checks that an OutOfMemoryE
 Language/11_Expressions/05_Strings_A02_t46: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/11_Expressions/05_Strings_A02_t48: Fail # Checks that multi-line strings that contain characters and sequences prohibited by this grammar, cause compile-time errors.
 Language/11_Expressions/06_Lists_A04_t01: Fail # Checks that it is a compile-time error if the type argument of a constant list literal includes a type variable.
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t04: Fail # Checks that it is a static warning if interface C does not declare a static method or getter m.
 Language/11_Expressions/22_Equality_A01_t15: Fail # Checks that equality expressions cannot be operands of another equality expression.
 Language/11_Expressions/22_Equality_A01_t16: Fail # Checks that equality expressions cannot be operands of another equality expression.
 Language/11_Expressions/23_Relational_Expressions_A01_t10: Fail # Checks that a relational expression cannot be the operand of another relational expression.
@@ -742,9 +739,6 @@ Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whites
 # Unexpected compile-time errors.
 #
 [ $compiler == dart2js ]
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t03: Fail # http://dartbug.com/5027
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t06: Fail # http://dartbug.com/5027
-
 Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail # http://dartbug.com/5029
 
 Language/07_Classes/3_Setters_A04_t01: Fail # http://dartbug.com/5023

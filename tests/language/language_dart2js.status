@@ -194,7 +194,6 @@ named_parameters_aggregated_test/01: Fail # Presence of default values for optio
 named_parameters_aggregated_test/03: Fail # Presence of default values for optional params is not properly validated in closure types.
 named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.
 pseudo_kw_test: Fail # Unexpected token '('
-static_field3_test/0*: Fail
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
