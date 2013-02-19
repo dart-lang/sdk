@@ -487,10 +487,11 @@ class Instruction : public ZoneAllocated {
   // Call instructions override this function and return the number of
   // pushed arguments.
   virtual intptr_t ArgumentCount() const = 0;
-  virtual PushArgumentInstr* ArgumentAt(intptr_t index) const {
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     UNREACHABLE();
     return NULL;
-  };
+  }
+  inline Definition* ArgumentAt(intptr_t index) const;
 
   // Returns true, if this instruction can deoptimize.
   virtual bool CanDeoptimize() const = 0;
@@ -971,10 +972,6 @@ class ForwardInstructionIterator : public ValueObject {
 
   // Removes 'current_' from graph and sets 'current_' to previous instruction.
   void RemoveCurrentFromGraph();
-
-  // Inserts replaces 'current_', which must be a definition, with another
-  // definition.  The new definition becomes 'current_'.
-  void ReplaceCurrentWith(Definition* other);
 
   Instruction* Current() const { return current_; }
 
@@ -1495,6 +1492,11 @@ class PushArgumentInstr : public Definition {
 
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
+
+
+inline Definition* Instruction::ArgumentAt(intptr_t index) const {
+  return PushArgumentAt(index)->value()->definition();
+}
 
 
 class ReturnInstr : public TemplateInstruction<1> {
@@ -2129,7 +2131,7 @@ class ClosureCallInstr : public TemplateDefinition<0> {
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
 
@@ -2188,7 +2190,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
   const Array& argument_names() const { return argument_names_; }
@@ -2234,8 +2236,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   virtual intptr_t ArgumentCount() const {
     return instance_call()->ArgumentCount();
   }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
-    return instance_call()->ArgumentAt(index);
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
+    return instance_call()->PushArgumentAt(index);
   }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
@@ -2535,7 +2537,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
   intptr_t token_pos() const { return token_pos_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
 
@@ -2969,7 +2971,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   virtual CompileType* ComputeInitialType() const;
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
 
@@ -3079,7 +3081,7 @@ class CreateClosureInstr : public TemplateDefinition<0> {
   const Function& function() const { return function_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
 

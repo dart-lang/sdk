@@ -179,9 +179,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       FlowGraphOptimizer optimizer(flow_graph);
       optimizer.ApplyICData();
 
-      // Compute the use lists.
-      flow_graph->ComputeUseLists();
-
       // Inlining (mutates the flow graph)
       if (FLAG_use_inlining) {
         TimerScope timer(FLAG_compiler_stats,
@@ -214,13 +211,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Use propagated class-ids to optimize further.
       optimizer.ApplyClassIds();
 
-      // Recompute use lists after applying class ids.
-      flow_graph->ComputeUseLists();
-
       // Do optimizations that depend on the propagated type information.
       optimizer.Canonicalize();
-
-      flow_graph->ComputeUseLists();
 
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
@@ -231,9 +223,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Unbox doubles. Performed after constant propagation to minimize
       // interference from phis merging double values and tagged
       // values comming from dead paths.
-      flow_graph->ComputeUseLists();
       optimizer.SelectRepresentations();
-      flow_graph->ComputeUseLists();
 
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {

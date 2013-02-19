@@ -563,7 +563,7 @@ class CallSiteInliner : public ValueObject {
 
         // Remove push arguments of the call.
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-          PushArgumentInstr* push = call->ArgumentAt(i);
+          PushArgumentInstr* push = call->PushArgumentAt(i);
           push->ReplaceUsesWith(push->value()->definition());
           push->RemoveFromGraph();
         }
@@ -652,7 +652,7 @@ class CallSiteInliner : public ValueObject {
       StaticCallInstr* call = calls[i];
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
-        arguments.Add(call->ArgumentAt(i)->value());
+        arguments.Add(call->PushArgumentAt(i)->value());
       }
       TryInlining(call->function(), call->argument_names(), &arguments, call);
     }
@@ -667,14 +667,14 @@ class CallSiteInliner : public ValueObject {
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
       const CreateClosureInstr* closure =
-          call->ArgumentAt(0)->value()->definition()->AsCreateClosure();
+          call->ArgumentAt(0)->AsCreateClosure();
       if (closure == NULL) {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
-        arguments.Add(call->ArgumentAt(i)->value());
+        arguments.Add(call->PushArgumentAt(i)->value());
       }
       TryInlining(closure->function(),
                   call->argument_names(),
@@ -710,7 +710,7 @@ class CallSiteInliner : public ValueObject {
       }
       GrowableArray<Value*> arguments(instr->ArgumentCount());
       for (int arg_i = 0; arg_i < instr->ArgumentCount(); ++arg_i) {
-        arguments.Add(instr->ArgumentAt(arg_i)->value());
+        arguments.Add(instr->PushArgumentAt(arg_i)->value());
       }
       TryInlining(target,
                   instr->instance_call()->argument_names(),

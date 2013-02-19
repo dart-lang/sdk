@@ -6,17 +6,12 @@
 #define VM_FLOW_GRAPH_H_
 
 #include "vm/growable_array.h"
+#include "vm/intermediate_language.h"
 #include "vm/parser.h"
 
 namespace dart {
 
-class BlockEntryInstr;
-class ConstantInstr;
-class Definition;
 class FlowGraphBuilder;
-class GraphEntryInstr;
-class PhiInstr;
-class ReturnInstr;
 class ValueInliningContext;
 
 class BlockIterator : public ValueObject {
@@ -116,6 +111,15 @@ class FlowGraph : public ZoneAllocated {
 
   ConstantInstr* AddConstantToInitialDefinitions(const Object& object);
   void AddToInitialDefinitions(Definition* defn);
+
+  void InsertBefore(Instruction* next,
+                    Instruction* instr,
+                    Environment* env,
+                    Definition::UseKind use_kind);
+  void InsertAfter(Instruction* prev,
+                   Instruction* instr,
+                   Environment* env,
+                   Definition::UseKind use_kind);
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,

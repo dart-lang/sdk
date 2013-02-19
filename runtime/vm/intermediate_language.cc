@@ -375,21 +375,6 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
 }
 
 
-void ForwardInstructionIterator::ReplaceCurrentWith(Definition* other) {
-  Definition* defn = current_->AsDefinition();
-  ASSERT(defn != NULL);
-  defn->ReplaceUsesWith(other);
-  ASSERT(other->env() == NULL);
-  other->set_env(defn->env());
-  defn->set_env(NULL);
-  ASSERT(!other->HasSSATemp());
-  if (defn->HasSSATemp()) other->set_ssa_temp_index(defn->ssa_temp_index());
-
-  other->InsertBefore(current_);  // So other will be current.
-  RemoveCurrentFromGraph();
-}
-
-
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   ASSERT(current_iterator_ == NULL);
@@ -546,22 +531,42 @@ void Instruction::UnuseAllInputs() {
 
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
-  if ((iterator != NULL) && (this == iterator->Current())) {
-    iterator->ReplaceCurrentWith(other);
-  } else {
-    ReplaceUsesWith(other);
-    ASSERT(other->env() == NULL);
-    other->set_env(env());
-    set_env(NULL);
-    ASSERT(!other->HasSSATemp());
-    if (HasSSATemp()) other->set_ssa_temp_index(ssa_temp_index());
-
-    previous()->LinkTo(other);
-    other->LinkTo(next());
-
-    set_previous(NULL);
-    set_next(NULL);
+  // Record other's input uses.
+  for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
+    Value* input = other->InputAt(i);
+    input->definition()->AddInputUse(input);
+    input->set_instruction(other);
+    input->set_use_index(i);
   }
+  // Take other's environment from this definition.
+  ASSERT(other->env() == NULL);
+  intptr_t use_index = 0;
+  for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    use->set_instruction(other);
+    use->set_use_index(use_index++);
+  }
+  other->set_env(env());
+  set_env(NULL);
+  // Replace all uses of this definition with other.
+  ReplaceUsesWith(other);
+  // Reuse this instruction's SSA name for other.
+  ASSERT(!other->HasSSATemp());
+  if (HasSSATemp()) other->set_ssa_temp_index(ssa_temp_index());
+  // Remove this definition's input uses.
+  UnuseAllInputs();
+
+  // Finally remove this definition from the graph.
+  previous()->LinkTo(other);
+  if ((iterator != NULL) && (this == iterator->Current())) {
+    // Remove through the iterator.
+    other->LinkTo(this);
+    iterator->RemoveCurrentFromGraph();
+  } else {
+    other->LinkTo(next());
+  }
+  set_previous(NULL);
+  set_next(NULL);
 }
 
 
@@ -1085,7 +1090,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   if (call != NULL &&
       call->is_known_constructor() &&
       (call->Type()->ToCid() == kArrayCid)) {
-    return call->ArgumentAt(1)->value()->definition();
+    return call->ArgumentAt(1);
   }
   return this;
 }
@@ -1154,6 +1159,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     if ((comp->input_use_list()->instruction() == this) &&
         (comp->input_use_list()->next_use() == NULL) &&
         (comp->env_use_list() == NULL)) {
+      comparison()->UnuseAllInputs();
       comp->RemoveFromGraph();
       // It is safe to pass a NULL iterator because we're replacing the
       // comparison wrapped in a BranchInstr which does not modify the
@@ -1166,9 +1172,9 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
       if (FLAG_trace_optimization) {
         OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
       }
-      // Clear the comparison's use list, temp index and ssa temp index since
-      // the value of the comparison is not used outside the branch anymore.
-      comp->set_input_use_list(NULL);
+      // Clear the comparison's temp index and ssa temp index since the
+      // value of the comparison is not used outside the branch anymore.
+      ASSERT(comp->input_use_list() == NULL);
       comp->ClearSSATempIndex();
       comp->ClearTempIndex();
     }

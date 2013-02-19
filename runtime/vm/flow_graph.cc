@@ -60,6 +60,34 @@ void FlowGraph::AddToInitialDefinitions(Definition* defn) {
 }
 
 
+void FlowGraph::InsertBefore(Instruction* next,
+                             Instruction* instr,
+                             Environment* env,
+                             Definition::UseKind use_kind) {
+  InsertAfter(next->previous(), instr, env, use_kind);
+}
+
+
+void FlowGraph::InsertAfter(Instruction* prev,
+                            Instruction* instr,
+                            Environment* env,
+                            Definition::UseKind use_kind) {
+  for (intptr_t i = instr->InputCount() - 1; i >= 0; --i) {
+    Value* input = instr->InputAt(i);
+    input->definition()->AddInputUse(input);
+    input->set_instruction(instr);
+    input->set_use_index(i);
+  }
+  ASSERT(instr->env() == NULL);
+  if (env != NULL) env->DeepCopyTo(instr);
+  if (use_kind == Definition::kValue) {
+    ASSERT(instr->IsDefinition());
+    instr->AsDefinition()->set_ssa_temp_index(alloc_ssa_temp_index());
+  }
+  instr->InsertAfter(prev);
+}
+
+
 void FlowGraph::DiscoverBlocks() {
   // Initialize state.
   preorder_.Clear();
@@ -149,6 +177,9 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
   ASSERT(!instr->IsJoinEntry());
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     Value* use = instr->InputAt(i);
+    ASSERT(use->definition() != NULL);
+    ASSERT(use->definition() != instr);
+    ASSERT(use->instruction() == instr);
     ASSERT(use->use_index() == i);
     ASSERT(!FLAG_verify_compiler ||
            (1 == MembershipCount(use, use->definition()->input_use_list())));
@@ -157,6 +188,9 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
     intptr_t use_index = 0;
     for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
       Value* use = it.CurrentValue();
+      ASSERT(use->definition() != NULL);
+      ASSERT(use->definition() != instr);
+      ASSERT(use->instruction() == instr);
       ASSERT(use->use_index() == use_index++);
       ASSERT(!FLAG_verify_compiler ||
              (1 == MembershipCount(use, use->definition()->env_use_list())));
@@ -170,9 +204,13 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
       ASSERT(prev == curr->previous_use());
       ASSERT(defn == curr->definition());
       Instruction* instr = curr->instruction();
-      // The instruction should not be removed from the graph (phis are not
-      // removed until register allocation.)
-      ASSERT(instr->IsPhi() || (instr->previous() != NULL));
+      // The instruction should not be removed from the graph.  Removed
+      // instructions have a NULL previous link.  Phis are not removed until
+      // register allocation.  Comparisons used only in a branch will have a
+      // NULL previous link though they are still in the graph.
+      ASSERT(instr->IsPhi() ||
+             (instr->IsDefinition() && instr->AsDefinition()->IsComparison()) ||
+             (instr->previous() != NULL));
       ASSERT(curr == instr->InputAt(curr->use_index()));
       prev = curr;
       curr = curr->next_use();
@@ -185,9 +223,9 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
       ASSERT(defn == curr->definition());
       Instruction* instr = curr->instruction();
       ASSERT(curr == instr->env()->ValueAtUseIndex(curr->use_index()));
-      // The instruction should not be removed from the graph (phis are not
-      // removed until register allocation.)
-      ASSERT(instr->IsPhi() || (instr->previous() != NULL));
+      ASSERT(instr->IsPhi() ||
+             (instr->IsDefinition() && instr->AsDefinition()->IsComparison()) ||
+             (instr->previous() != NULL));
       prev = curr;
       curr = curr->next_use();
     }

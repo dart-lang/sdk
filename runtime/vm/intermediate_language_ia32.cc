@@ -796,7 +796,6 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
   BranchInstr* kNoBranch = NULL;
   if (receiver_class_id() == kSmiCid) {
-    // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }

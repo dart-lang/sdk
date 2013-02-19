@@ -47,7 +47,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,
-                    Definition::UseKind use_kind);
+                    Definition::UseKind use_kind) {
+    flow_graph_->InsertBefore(next, instr, env, use_kind);
+  }
 
  private:
   // Attempt to build ICData for call using propagated class-ids.
@@ -57,8 +59,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   intptr_t PrepareIndexedOp(InstanceCallInstr* call,
                             intptr_t class_id,
-                            Value** array,
-                            Value** index);
+                            Definition** array,
+                            Definition** index);
   bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
 
@@ -79,12 +81,22 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                            intptr_t receiver_cid,
                                            intptr_t view_cid);
 
-  void AddCheckClass(InstanceCallInstr* call, Value* value);
+  // Insert a check of 'to_check' determined by 'unary_checks'.  If the
+  // check fails it will deoptimize to 'deopt_id' using the deoptimization
+  // environment 'deopt_environment'.  The check is inserted immediately
+  // before 'insert_before'.
+  void AddCheckClass(Definition* to_check,
+                     const ICData& unary_checks,
+                     intptr_t deopt_id,
+                     Environment* deopt_environment,
+                     Instruction* insert_before);
 
-  void InsertAfter(Instruction* prev,
-                   Instruction* instr,
-                   Environment* env,
-                   Definition::UseKind use_kind);
+  // Add a class check for a call's first argument immediately before the
+  // call, using the call's IC data to determine the check, and the call's
+  // deopt ID and deoptimization environment if the check fails.
+  void AddReceiverCheck(InstanceCallInstr* call);
+
+  void ReplaceCall(Definition* call, Definition* replacement);
 
   void InsertConversionsFor(Definition* def);
 
@@ -111,6 +123,14 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
+
+  void HandleRelationalOp(RelationalOpInstr* comp);
+
+  // Visit an equality compare.  The current instruction can be the
+  // comparison itself or a branch on the comparison.
+  template <typename T>
+  void HandleEqualityCompare(EqualityCompareInstr* comp,
+                             T current_instruction);
 
   FlowGraph* flow_graph_;
 
