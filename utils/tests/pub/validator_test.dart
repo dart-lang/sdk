@@ -298,7 +298,7 @@ main() {
     });
 
     integration('has a package name that is a Dart reserved word', () {
-      dir(appPath, [libPubspec("operator", "1.0.0")]).scheduleCreate();
+      dir(appPath, [libPubspec("final", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
     });
 
@@ -329,7 +329,7 @@ main() {
     integration('has a library name that is a Dart reserved word', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [file("operator.dart", "int i = 0;")])
+        dir("lib", [file("for.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
     });

@@ -16,9 +16,10 @@ import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.
 final _RESERVED_WORDS = [
-  "abstract", "as", "dynamic", "export", "external", "factory", "get",
-  "implements", "import", "library", "operator", "part", "set", "static",
-  "typedef"
+  "assert", "break", "case", "catch", "class", "const", "continue", "default",
+  "do", "else", "extends", "false", "final", "finally", "for", "if", "in", "is",
+  "new", "null", "return", "super", "switch", "this", "throw", "true", "try",
+  "var", "void", "while", "with"
 ];
 
 /// A validator that validates the name of the package and its libraries.
