@@ -22,7 +22,7 @@ io/socket_invalid_arguments_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
-[ $runtime == vm && $system == macos && $arch == x64 ]
+[ $runtime == vm && $system == macos ]
 io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
 
 [ $runtime == vm ]
