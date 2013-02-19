@@ -61,6 +61,7 @@ class CodeEmitterTask extends CompilerTask {
   NativeEmitter nativeEmitter;
   CodeBuffer boundClosureBuffer;
   CodeBuffer mainBuffer;
+  final CodeBuffer deferredBuffer = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
@@ -1718,6 +1719,11 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     for (ClassElement element in sortedClasses) {
+      if (isDeferred(element)) {
+        warnNotImplemented(
+            element,
+            'Warning: deferred loading of classes is not implemented yet.');
+      }
       generateClass(element, buffer);
     }
 
@@ -1746,7 +1752,7 @@ class CodeEmitterTask extends CompilerTask {
     buffer.add('$N$n');
   }
 
-  void emitStaticFunctions(CodeBuffer buffer) {
+  void emitStaticFunctions(CodeBuffer eagerBuffer) {
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
 
@@ -1758,6 +1764,7 @@ class CodeEmitterTask extends CompilerTask {
             .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
+      CodeBuffer buffer = isDeferred(element) ? deferredBuffer : eagerBuffer;
       jsAst.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
@@ -1770,6 +1777,7 @@ class CodeEmitterTask extends CompilerTask {
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
+      CodeBuffer buffer = isDeferred(element) ? deferredBuffer : eagerBuffer;
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
     }
@@ -1780,6 +1788,8 @@ class CodeEmitterTask extends CompilerTask {
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
+      // TODO(ahe): Defer loading of these getters.
+
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
@@ -2621,13 +2631,15 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       emitInitFunction(mainBuffer);
       compiler.assembledCode = mainBuffer.getText();
 
-      if (generateSourceMap) {
-        SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
-        String sourceMap = buildSourceMap(mainBuffer, compiledFile);
-        compiler.outputProvider('', 'js.map')
-            ..add(sourceMap)
+      if (!deferredBuffer.isEmpty) {
+        String code = deferredBuffer.getText();
+        compiler.outputProvider('part', 'js')
+            ..add(code)
             ..close();
+        outputSourceMap(deferredBuffer, compiler.assembledCode, 'part');
       }
+
+      outputSourceMap(mainBuffer, compiler.assembledCode, '');
     });
     return compiler.assembledCode;
   }
@@ -2636,6 +2648,26 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     SourceMapBuilder sourceMapBuilder = new SourceMapBuilder();
     buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
     return sourceMapBuilder.build(compiledFile);
+  }
+
+  void outputSourceMap(CodeBuffer buffer, String code, String name) {
+    if (!generateSourceMap) return;
+    SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
+    String sourceMap = buildSourceMap(mainBuffer, compiledFile);
+    compiler.outputProvider(name, 'js.map')
+        ..add(sourceMap)
+        ..close();
+  }
+
+  bool isDeferred(Element element) {
+    return compiler.deferredLoadTask.isDeferred(element);
+  }
+
+  // TODO(ahe): Remove this when deferred loading is fully implemented.
+  void warnNotImplemented(Element element, String message) {
+    compiler.reportMessage(compiler.spanFromSpannable(element),
+                           MessageKind.GENERIC.error({'text': message}),
+                           api.Diagnostic.WARNING);
   }
 }
 

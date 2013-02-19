@@ -4,7 +4,8 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_isolate_helper' show TimerImpl;
+import 'dart:_isolate_helper' show IsolateNatives, TimerImpl;
+import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 
 typedef void _TimerCallback0();
 typedef void _TimerCallback1(Timer timer);
@@ -39,14 +40,58 @@ patch class Timer {
   }
 }
 
-final Set<String> _loadedLibraries = new Set<String>();
-
 patch class DeferredLibrary {
   patch Future<bool> load() {
-    // TODO(ahe): Implement this.
-    Future future =
-        new Future<bool>.immediate(!_loadedLibraries.contains(libraryName));
-    _loadedLibraries.add(libraryName);
-    return future;
+    return _load(libraryName, uri);
   }
 }
+
+// TODO(ahe): This should not only apply to this isolate.
+final _loadedLibraries = <String, Completer<bool>>{};
+
+Future<bool> _load(String libraryName, String uri) {
+  // TODO(ahe): Validate libraryName.  Kasper points out that you want
+  // to be able to experiment with the effect of toggling @DeferLoad,
+  // so perhaps we should silently ignore "bad" library names.
+  Completer completer = new Completer<bool>();
+  Future<bool> future = _loadedLibraries[libraryName];
+  if (future != null) {
+    future.then((_) { completer.complete(false); });
+    return completer.future;
+  }
+  _loadedLibraries[libraryName] = completer.future;
+
+  if (uri == null) {
+    uri = IsolateNatives.thisScript;
+    int index = uri.lastIndexOf('/');
+    uri = '${uri.substring(0, index + 1)}part.js';
+  }
+
+  if (_hasDocument) {
+    // Inject a script tag.
+    var script = JS('', 'document.createElement("script")');
+    JS('', '#.type = "text/javascript"', script);
+    JS('', '#.async = "async"', script);
+    JS('', '#.src = #', script, uri);
+    var onLoad = JS('', '#.bind(null, #)',
+                    DART_CLOSURE_TO_JS(_onDeferredLibraryLoad), completer);
+    JS('', '#.addEventListener("load", #, false)', script, onLoad);
+    JS('', 'document.body.appendChild(#)', script);
+  } else if (JS('String', 'typeof load') == 'function') {
+    new Timer(0, (_) {
+      JS('void', 'load(#)', uri);
+      completer.complete(true);
+    });
+  } else {
+    throw new UnsupportedError('load not supported');
+  }
+  return completer.future;
+}
+
+/// Used to implement deferred loading. Used as callback on "load"
+/// event above in [load].
+_onDeferredLibraryLoad(Completer<bool> completer, event) {
+  completer.complete(true);
+}
+
+bool get _hasDocument => JS('String', 'typeof document') == 'object';

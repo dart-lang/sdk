@@ -307,6 +307,7 @@ abstract class Compiler implements DiagnosticListener {
   ConstantHandler metadataHandler;
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
+  DeferredLoadTask deferredLoadTask;
 
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
@@ -385,6 +386,7 @@ abstract class Compiler implements DiagnosticListener {
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
+      deferredLoadTask = new DeferredLoadTask(this),
       enqueuer = new EnqueueTask(this)];
 
     tasks.addAll(backend.tasks);
@@ -652,6 +654,8 @@ abstract class Compiler implements DiagnosticListener {
         });
       }
     }
+
+    deferredLoadTask.registerMainApp(mainApp);
 
     log('Resolving...');
     phase = PHASE_RESOLVING;
@@ -1042,7 +1046,7 @@ class CompilerTask {
   String get name => 'Unknown task';
   int get timing => watch.elapsedMilliseconds;
 
-  measure(Function action) {
+  measure(action()) {
     CompilerTask previous = compiler.measuredTask;
     if (identical(this, previous)) return action();
     compiler.measuredTask = this;
@@ -1055,6 +1059,10 @@ class CompilerTask {
       if (previous != null) previous.watch.start();
       compiler.measuredTask = previous;
     }
+  }
+
+  measureElement(Element element, action()) {
+    compiler.withCurrentElement(element, () => measure(action));
   }
 }
 

@@ -1071,6 +1071,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                        Selector selector,
                        Link<Node> arguments,
                        Node currentNode) {
+    // We cannot inline a method from a deferred library into a method
+    // which isn't deferred.
+    // TODO(ahe): But we should still inline into the same
+    // connected-component of the deferred library.
+    if (compiler.deferredLoadTask.isDeferred(element)) return false;
+
     if (compiler.disableInlining) return false;
     // Ensure that [element] is an implementation element.
     element = element.implementation;

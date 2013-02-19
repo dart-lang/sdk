@@ -378,6 +378,9 @@ Length: #{length}''');
   static const MISSING_FACTORY_KEYWORD = const MessageKind(
       "Did you forget a factory keyword here?");
 
+  static const DEFERRED_LIBRARY_NAME_MISMATCH = const MessageKind(
+      'Error: Library name mismatch "#{expectedName}" != "#{actualName}".');
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

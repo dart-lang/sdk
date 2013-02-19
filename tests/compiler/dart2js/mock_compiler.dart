@@ -25,6 +25,10 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
+import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
+    show DeferredLoadTask;
+
+
 class WarningMessage {
   Node node;
   Message message;
@@ -167,6 +171,8 @@ class MockCompiler extends Compiler {
     // Our unit tests check code generation output that is affected by
     // inlining support.
     disableInlining = true;
+
+    deferredLoadTask = new MockDeferredLoadTask(this);
   }
 
   /**
@@ -340,5 +346,13 @@ class CollectingTreeElements extends TreeElementMapping {
 
   void remove(Node node) {
     map.remove(node);
+  }
+}
+
+class MockDeferredLoadTask extends DeferredLoadTask {
+  MockDeferredLoadTask(Compiler compiler) : super(compiler);
+
+  void registerMainApp(LibraryElement mainApp) {
+    // Do nothing.
   }
 }
