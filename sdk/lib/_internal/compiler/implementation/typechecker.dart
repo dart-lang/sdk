@@ -254,7 +254,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       return computeType(member);
     }
     reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-                      {'className': classElement.name, 'methodName': name});
+                      {'className': classElement.name, 'memberName': name});
     return types.dynamicType;
   }
 

@@ -1004,6 +1004,10 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
           setter.modifiers.flags | Modifiers.FLAG_ABSTRACT);
     }
   }
+
+  bool isInstanceMember() {
+    return isMember() && !modifiers.isStatic();
+  }
 }
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with
