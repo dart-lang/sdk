@@ -708,6 +708,14 @@ class JavaScriptBackend extends Backend {
    */
   final Map<ClassElement, ClassElement> interceptedClasses;
 
+  /**
+   * Set of selectors that are used from within loops. Used by the
+   * builder to allow speculative optimizations for functions without
+   * loops themselves.
+   */
+  final Map<SourceString, Set<Selector>> selectorsCalledInLoop =
+      new Map<SourceString, Set<Selector>>();
+
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }

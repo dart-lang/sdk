@@ -1590,20 +1590,16 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return receiverType.refine(selector, compiler);
   }
 
-  void registerInvoke(HInvokeDynamic node) {
+  void registerInvoke(HInvokeDynamic node, Selector selector) {
     bool inLoop = node.block.enclosingLoopHeader != null;
-    SourceString name = node.selector.name;
     if (inLoop) {
-      Element target = node.element;
-      if (target != null) {
-        backend.builder.functionsCalledInLoop.add(target);
-      } else {
-        backend.builder.selectorsCalledInLoop[name] = node.selector;
-      }
+      Set<Selector> selectors = backend.selectorsCalledInLoop.putIfAbsent(
+          selector.name, () => new Set<Selector>());
+      selectors.add(selector);
     }
 
     if (node.isInterceptorCall) {
-      backend.addInterceptedSelector(node.selector);
+      backend.addInterceptedSelector(selector);
     }
   }
 
@@ -1633,7 +1629,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       SourceString name = node.selector.name;
       world.registerDynamicInvocation(name, selector);
     }
-    registerInvoke(node);
+    registerInvoke(node, selector);
   }
 
   void registerSetter(HInvokeDynamic node) {
@@ -1643,29 +1639,26 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         ? node.inputs[2].instructionType
         : node.inputs[1].instructionType;
     backend.addedDynamicSetter(selector, valueType);
-    registerInvoke(node);
+    registerInvoke(node, selector);
   }
 
   void registerGetter(HInvokeDynamic node) {
-    Selector getter = node.selector;
-    world.registerDynamicGetter(
-        getter.name, getOptimizedSelectorFor(node, getter));
+    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    world.registerDynamicGetter(selector.name, selector);
     world.registerInstantiatedClass(compiler.functionClass);
-    registerInvoke(node);
+    registerInvoke(node, selector);
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
-    Selector setter = node.selector;
-    String name = backend.namer.invocationName(setter);
+    String name = backend.namer.invocationName(node.selector);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerSetter(node);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
-    Selector getter = node.selector;
-    String name = backend.namer.invocationName(getter);
+    String name = backend.namer.invocationName(node.selector);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerGetter(node);
   }

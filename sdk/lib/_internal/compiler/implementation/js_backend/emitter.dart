@@ -1487,14 +1487,20 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitInterceptorMethods(ClassBuilder builder) {
     // Emit forwarders for the ObjectInterceptor class. We need to
-    // emit all possible sends on intercepted methods.
+    // emit all possible sends on intercepted methods. Because of
+    // typed selectors we have to avoid generating the same forwarder
+    // multiple times.
+    Set<String> alreadyGenerated = new Set<String>();
     for (Selector selector in
          backend.usedInterceptors.toList()..sort(_compareSelectorNames)) {
+      String name = backend.namer.invocationName(selector);
+      if (alreadyGenerated.contains(name)) continue;
+      alreadyGenerated.add(name);
+
       List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
       List<jsAst.Expression> arguments = <jsAst.Expression>[];
       parameters.add(new jsAst.Parameter('receiver'));
 
-      String name = backend.namer.invocationName(selector);
       if (selector.isSetter()) {
         parameters.add(new jsAst.Parameter('value'));
         arguments.add(js['value']);

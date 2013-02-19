@@ -21,17 +21,12 @@ class InterceptedElement extends ElementX {
 
 class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
-  // Loop tracking information.
-  final Set<FunctionElement> functionsCalledInLoop;
-  final Map<SourceString, Selector> selectorsCalledInLoop;
   final JavaScriptBackend backend;
 
   String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend)
     : emitter = backend.emitter,
-      functionsCalledInLoop = new Set<FunctionElement>(),
-      selectorsCalledInLoop = new Map<SourceString, Selector>(),
       backend = backend,
       super(backend.compiler);
 
@@ -58,12 +53,9 @@ class SsaBuilderTask extends CompilerTask {
       }
       assert(graph.isValid());
       if (!identical(kind, ElementKind.FIELD)) {
-        bool inLoop = functionsCalledInLoop.contains(element.declaration);
-        if (!inLoop) {
-          Selector selector = selectorsCalledInLoop[element.name];
-          inLoop = selector != null && selector.applies(element, compiler);
-        }
-        graph.calledInLoop = inLoop;
+        Set<Selector> selectors = backend.selectorsCalledInLoop[element.name];
+        graph.calledInLoop = selectors != null &&
+            selectors.any((selector) => selector.applies(element, compiler));
 
         // If there is an estimate of the parameter types assume these types
         // when compiling.
