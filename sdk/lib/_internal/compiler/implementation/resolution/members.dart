@@ -1436,7 +1436,8 @@ class TypeResolver {
           type = new MalformedType(
               new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                   {'type': node}, typeName.source, enclosingElement),
-              new InterfaceType(cls.declaration, arguments.toLink()));
+              new InterfaceType.userProvidedBadType(cls.declaration,
+                                                    arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = cls.rawType;
@@ -1456,7 +1457,7 @@ class TypeResolver {
           type = new MalformedType(
               new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                   {'type': node}, typeName.source, enclosingElement),
-              new TypedefType(typdef, arguments.toLink()));
+              new TypedefType.userProvidedBadType(typdef, arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = typdef.rawType;

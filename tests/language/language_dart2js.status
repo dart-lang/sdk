@@ -48,7 +48,6 @@ type_variable_bounds2_test/06: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 closure_type_test: Fail # does not detect type error in checked mode.
-function_type_test: Fail # does not detect type error in checked mode.
 factory1_test/00: Fail
 factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
