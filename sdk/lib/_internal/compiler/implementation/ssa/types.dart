@@ -699,7 +699,7 @@ class HReadableArrayType extends HIndexablePrimitiveType {
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.jsArrayClass.computeType(compiler);
+    return backend.jsArrayClass.rawType;
   }
 
   HType union(HType other, Compiler compiler) {

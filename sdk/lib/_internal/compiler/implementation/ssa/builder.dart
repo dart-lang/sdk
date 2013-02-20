@@ -248,7 +248,9 @@ class LocalsHandler {
       Element element = closureData.thisElement;
       ClassElement cls = element.enclosingElement.getEnclosingClass();
       Compiler compiler = builder.compiler;
-      DartType type = cls.computeType(compiler);
+      // Use the raw type because we don't have the type context for the
+      // type parameters.
+      DartType type = cls.rawType;
       if (compiler.world.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
