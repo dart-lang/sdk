@@ -47,7 +47,6 @@ string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == safari ]
-null_nosuchmethod_test: Fail # Issue: 7414
 core_runtime_types_test: Fail
 
 [ $compiler == dart2js && $runtime == ie9 ]

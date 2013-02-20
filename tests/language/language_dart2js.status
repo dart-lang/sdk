@@ -329,11 +329,10 @@ assign_top_method_test: Fail
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
+
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == ie9)]
 arithmetic_test: Fail # Issue 7881
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell)]
-call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 
 [ $compiler == dart2js && $runtime == ie9 ]
 div_by_zero_test: Fail
@@ -351,13 +350,11 @@ type_checks_in_factory_method_test: Fail
 execute_finally8_test: Fail # Issue: 7414
 execute_finally9_test: Fail # Issue: 7414
 null_access_error_test: Fail # Issue: 7414
-string_interpolate_null_test: Fail # Issue: 7414
-call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 closure3_test: Fail # Uncaught error: Instance of 'TypeError'
-method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 arithmetic_test: Fail # Issue: 7414
+
 
 [ $runtime == opera ]
 null_access_error_test: Fail # Issue: 7413
