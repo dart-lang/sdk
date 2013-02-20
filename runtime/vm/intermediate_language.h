@@ -224,13 +224,13 @@ class Value : public ZoneAllocated {
     Value* next_;
   };
 
-  explicit Value(Definition* definition, CompileType* type = NULL)
+  explicit Value(Definition* definition)
       : definition_(definition),
         previous_use_(NULL),
         next_use_(NULL),
         instruction_(NULL),
         use_index_(-1),
-        reaching_type_(type) { }
+        reaching_type_(NULL) { }
 
   Definition* definition() const { return definition_; }
   void set_definition(Definition* definition) { definition_ = definition; }
@@ -254,7 +254,11 @@ class Value : public ZoneAllocated {
 
   // This function must only be used when the new Value is dominated by
   // the original Value.
-  Value* CopyWithType() { return new Value(definition_, reaching_type_); }
+  Value* CopyWithType() {
+    Value* copy = new Value(definition_);
+    copy->reaching_type_ = reaching_type_;
+    return copy;
+  }
 
   CompileType* Type();
 
