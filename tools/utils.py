@@ -60,6 +60,78 @@ def GuessCpus():
     return int(win_cpu_count)
   return int(os.getenv("DART_NUMBER_OF_CORES", 2))
 
+def GetWindowsRegistryKeyName(name):
+  import win32process
+  # Check if python process is 64-bit or if it's 32-bit running in 64-bit OS.
+  # We need to know whether host is 64-bit so that we are looking in right
+  # registry for Visual Studio path.
+  if sys.maxsize > 2**32 or win32process.IsWow64Process():
+    wow6432Node = 'Wow6432Node\\'
+  else:
+    wow6432Node = ''
+  return r'SOFTWARE\%s%s' % (wow6432Node, name)
+
+# Try to guess Visual Studio location when buiding on Windows.
+def GuessVisualStudioPath():
+  defaultPath = r"C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7" \
+                r"\IDE"
+  defaultExecutable = "devenv.com"
+
+  if not IsWindows():
+    return (defaultPath, defaultExecutable)
+
+  keyNamesAndExecutables = [
+    # Pair for non-Express editions.
+    (GetWindowsRegistryKeyName(r'Microsoft\VisualStudio'), 'devenv.com'),
+    # Pair for 2012 Express edition.
+    (GetWindowsRegistryKeyName(r'Microsoft\VSWinExpress'), 'VSWinExpress.exe'),
+    # Pair for pre-2012 Express editions.
+    (GetWindowsRegistryKeyName(r'Microsoft\VCExpress'), 'VCExpress.exe')]
+
+  bestGuess = (0.0, (defaultPath, defaultExecutable))
+
+  import _winreg
+  for (keyName, executable) in keyNamesAndExecutables:
+    try:
+      key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, keyName)
+    except WindowsError:
+      # Can't find this key - moving on the next one.
+      continue
+
+    try:
+      subkeyCounter = 0
+      while True:
+        try:
+          subkeyName = _winreg.EnumKey(key, subkeyCounter)
+          subkeyCounter = subkeyCounter + 1
+        except WindowsError:
+          # Reached end of enumeration. Moving on the next key.
+          break
+
+        match = re.match(r'^\d+\.\d+$', subkeyName)
+        if match:
+          with _winreg.OpenKey(key, subkeyName) as subkey:
+            try:
+              (installDir, registrytype) = _winreg.QueryValueEx(subkey,
+                                                                'InstallDir')
+            except WindowsError:
+              # Can't find value under the key - continue to the next key.
+              continue
+            isExpress = executable != 'devenv.com'
+            if not isExpress and subkeyName == '10.0':
+              # Stop search since if we found non-Express VS2010 version
+              # installed, which is preferred version.
+              return (installDir, executable)
+            else:
+              version = float(subkeyName)
+              # We prefer higher version of Visual Studio and given equal
+              # version numbers we prefer non-Express edition.
+              if version > bestGuess[0]:
+                bestGuess = (version, (installDir, executable))
+    finally:
+      _winreg.CloseKey(key)
+  return bestGuess[1]
+
 
 # Returns true if we're running under Windows.
 def IsWindows():
@@ -271,6 +343,7 @@ def Main(argv):
   print "GuessArchitecture() -> ", GuessArchitecture()
   print "GuessCpus() -> ", GuessCpus()
   print "IsWindows() -> ", IsWindows()
+  print "GuessVisualStudioPath() -> ", GuessVisualStudioPath()
 
 
 class Error(Exception):
