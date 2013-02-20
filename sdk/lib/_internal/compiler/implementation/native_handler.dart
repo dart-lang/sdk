@@ -479,7 +479,8 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'
       || libraryName == 'dart:svg'
-      || libraryName == 'dart:web_audio') {
+      || libraryName == 'dart:web_audio'
+      || libraryName == 'dart:web_sql') {
     library.canUseNative = true;
   }
 }

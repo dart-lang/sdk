@@ -208,7 +208,8 @@ def Main(argv):
                   'json', 'math', 'mirrors', 'scalarlist',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   'uri', 'utf',
-                  join('web_audio', 'dart2js'), join('web_audio', 'dartium')]:
+                  join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
+                  join('web_sql', 'dart2js'), join('web_sql', 'dartium')]:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 

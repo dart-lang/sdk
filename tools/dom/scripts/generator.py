@@ -541,8 +541,8 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     ],
 
     'DOMWindow.openDatabase': [
-      "@Creates('Database')",
-      "@Creates('DatabaseSync')",
+      "@Creates('SqlDatabase')",
+      "@Creates('SqlDatabaseSync')",
     ],
 
     # To be in callback with the browser-created Event, we had to have called

@@ -3,6 +3,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
+import 'dart:web_sql';
 
 void fail(message) {
   guardAsync(() {
@@ -10,7 +11,7 @@ void fail(message) {
     });
 }
 
-Future<SqlTransaction> createTransaction(Database db) {
+Future<SqlTransaction> createTransaction(SqlDatabase db) {
   final completer = new Completer<SqlTransaction>();
 
   db.transaction((SqlTransaction transaction) {
@@ -91,13 +92,13 @@ main() {
 
   group('supported', () {
     test('supported', () {
-      expect(Database.supported, true);
+      expect(SqlDatabase.supported, true);
     });
   });
 
   group('functional', () {
     test('unsupported throws', () {
-      var expectation = Database.supported ? returnsNormally : throws;
+      var expectation = SqlDatabase.supported ? returnsNormally : throws;
       expect(() {
         window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
       }, expectation);
@@ -105,7 +106,7 @@ main() {
     });
     test('Web Database', () {
       // Skip if not supported.
-      if (!Database.supported) {
+      if (!SqlDatabase.supported) {
         return;
       }
 

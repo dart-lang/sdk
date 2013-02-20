@@ -9,6 +9,8 @@ import re
 html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'CDATASection': 'CDataSection',
     'Clipboard': 'DataTransfer',
+    'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
+    'DatabaseSync': 'SqlDatabaseSync',
     'DOMApplicationCache': 'ApplicationCache',
     'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',
@@ -574,6 +576,10 @@ class HtmlRenamer(object):
         return 'svg'
       if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
         return 'indexed_db'
+      if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
+        # WorkerContext has attributes merged in from many other interfaces.
+        if interface.id != 'WorkerContext':
+          return 'web_sql'
 
     return 'html'
 

@@ -260,6 +260,7 @@ _element_constructors = {
   'indexed_db': {},
   'svg': _svg_element_constructors,
   'web_audio': {},
+  'web_sql': {},
 }
 
 _factory_ctr_strings = {
@@ -276,6 +277,10 @@ _factory_ctr_strings = {
     'constructor_name': 'createSvgElement_tag',
   },
   'web_audio': {
+    'provider_name': 'document',
+    'constructor_name': '$dom_createElement'
+  },
+  'web_sql': {
     'provider_name': 'document',
     'constructor_name': '$dom_createElement'
   },
