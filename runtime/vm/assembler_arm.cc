@@ -1176,7 +1176,7 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 
 
 void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
-  // TODO(regis): Make sure that CodePatcher is able to patch the label referred
+  // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
@@ -1557,7 +1557,7 @@ int32_t Assembler::AddObject(const Object& obj) {
     }
   }
   object_pool_.Add(obj);
-  return object_pool_.Length();
+  return object_pool_.Length() - 1;
 }
 
 
@@ -1574,7 +1574,7 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
   // Do not reuse an existing entry, since each reference may be patched
   // independently.
   object_pool_.Add(smi);
-  return object_pool_.Length();
+  return object_pool_.Length() - 1;
 }
 
 }  // namespace dart

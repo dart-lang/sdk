@@ -9,14 +9,16 @@
 
 namespace dart {
 
-// Disassembler only supported on IA32 and X64 now.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Disassembler only supported on IA32, X64, and ARM.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 TEST_CASE(Disassembler) {
   Assembler assembler;
   // The used instructions work on all platforms.
   Register reg = static_cast<Register>(0);
-  assembler.AddImmediate(reg, Immediate(1));
-  assembler.AddImmediate(reg, Immediate(3));
+  assembler.PopRegister(reg);
+  assembler.Stop("testing disassembler");
 
   // Only verify that the disassembler does not crash.
   AssemblerTest test("Disassembler", &assembler);

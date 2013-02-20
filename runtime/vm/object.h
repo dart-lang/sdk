@@ -2612,6 +2612,10 @@ class Code : public Object {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
   }
+  RawArray* ObjectPool() const {
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.object_pool();
+  }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
     const uword offset = addr - instr.EntryPoint();
