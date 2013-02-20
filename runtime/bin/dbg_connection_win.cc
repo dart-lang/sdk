@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/dbg_connection.h"
 
 #include "bin/eventhandler.h"
@@ -39,3 +42,5 @@ intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(socket);
   return recv(client_socket->socket(), buf, len, 0);
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "bin/directory.h"
 
-#include <dirent.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <dirent.h>  // NOLINT
+#include <errno.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/param.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/file.h"
 #include "bin/platform.h"
@@ -385,3 +388,5 @@ bool Directory::Rename(const char* path, const char* new_path) {
   if (exists != EXISTS) return false;
   return (TEMP_FAILURE_RETRY(rename(path, new_path)) == 0);
 }
+
+#endif  // defined(TARGET_OS_LINUX)

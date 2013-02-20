@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <math.h>
-#include <limits>
-
 #include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
+#include <math.h>  // NOLINT
+#include <limits>  // NOLINT
 
 // Taken from third_party/v8/src/platform-win32.cc
 double fmod_ieee(double x, double y) {
@@ -44,3 +45,5 @@ double atan2_ieee(double x, double y) {
     return atan2(x, y);
   }
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

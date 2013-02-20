@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <time.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
+#include <errno.h>  // NOLINT
+#include <time.h>  // NOLINT
 
 #include "bin/utils.h"
 #include "bin/log.h"
@@ -137,3 +140,5 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
   GetSystemTimeAsFileTime(&time.ft_);
   return (time.t_ - kTimeEpoc) / kTimeScaler;
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #define _CRT_RAND_S
 #include "bin/crypto.h"
 
@@ -20,3 +23,5 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   }
   return true;
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

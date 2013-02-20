@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_MACOS)
+
 #include "bin/process.h"
 
-#include <errno.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
+#include <poll.h>  // NOLINT
+#include <signal.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <stdlib.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/log.h"
@@ -560,3 +563,5 @@ void Process::TerminateExitCodeHandler() {
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
+
+#endif  // defined(TARGET_OS_MACOS)

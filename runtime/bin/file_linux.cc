@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "bin/file.h"
 
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <libgen.h>
+#include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
+#include <libgen.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -242,3 +245,5 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   if (S_ISREG(buf.st_mode)) return kFile;
   return kOther;
 }
+
+#endif  // defined(TARGET_OS_LINUX)

@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/eventhandler.h"
 
-#include <process.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <mswsock.h>
+#include <process.h>  // NOLINT
+#include <winsock2.h>  // NOLINT
+#include <ws2tcpip.h>  // NOLINT
+#include <mswsock.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -931,3 +934,5 @@ void EventHandlerImplementation::Start() {
 void EventHandlerImplementation::Shutdown() {
   SendData(kShutdownId, 0, 0);
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

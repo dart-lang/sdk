@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_ANDROID)
+
 #include "bin/log.h"
 
-#include <stdio.h>
-#include <android/log.h>
+#include <stdio.h>  // NOLINT
+#include <android/log.h>  // NOLINT
 
 // TODO(gram): We should be buffering the data and only outputting
 // it when we see a '\n'.
@@ -18,3 +21,4 @@ void Log::VPrintErr(const char* format, va_list args) {
   __android_log_vprint(ANDROID_LOG_ERROR, "Dart", format, args);
 }
 
+#endif  // defined(TARGET_OS_ANDROID)

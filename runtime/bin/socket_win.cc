@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
@@ -279,3 +282,5 @@ void Socket::Close(intptr_t fd) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
   client_socket->close();
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

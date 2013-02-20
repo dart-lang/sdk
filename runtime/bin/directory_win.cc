@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/directory.h"
 
-#include <errno.h>
-#include <sys/stat.h>
+#include <errno.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
 
 #include "bin/log.h"
 
@@ -396,3 +399,5 @@ bool Directory::Rename(const char* path, const char* new_path) {
   free(const_cast<wchar_t*>(system_new_path));
   return (move_status != 0);
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

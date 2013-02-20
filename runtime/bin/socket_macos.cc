@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_MACOS)
+
+#include <errno.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <stdlib.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -262,3 +265,5 @@ void Socket::Close(intptr_t fd) {
     Log::PrintErr("%s\n", error_message);
   }
 }
+
+#endif  // defined(TARGET_OS_MACOS)

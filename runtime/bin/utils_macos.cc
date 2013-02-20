@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <netdb.h>
-#include <sys/time.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_MACOS)
+
+#include <errno.h>  // NOLINT
+#include <netdb.h>  // NOLINT
+#include <sys/time.h>  // NOLINT
 
 #include "bin/utils.h"
 #include "platform/assert.h"
@@ -83,3 +86,5 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
   }
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
+
+#endif  // defined(TARGET_OS_MACOS)

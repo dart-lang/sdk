@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "bin/eventhandler.h"
 
-#include <errno.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/epoll.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <errno.h>  // NOLINT
+#include <pthread.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/epoll.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -421,3 +424,5 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
   return dart::Utils::WordHash(fd + 1);
 }
+
+#endif  // defined(TARGET_OS_LINUX)

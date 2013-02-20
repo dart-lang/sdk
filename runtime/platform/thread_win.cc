@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "platform/thread.h"
 
-#include <process.h>
+#include <process.h>  // NOLINT
 
 #include "platform/assert.h"
 
@@ -336,3 +339,5 @@ void Monitor::NotifyAll() {
 }
 
 }  // namespace dart
+
+#endif  // defined(TARGET_OS_WINDOWS)

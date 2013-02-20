@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <process.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
+#include <process.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/process.h"
@@ -10,7 +13,6 @@
 #include "bin/log.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
-#include "platform/globals.h"
 
 static const int kReadHandle = 0;
 static const int kWriteHandle = 1;
@@ -660,3 +662,5 @@ void Process::TerminateExitCodeHandler() {
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "vm/os.h"
 
-#include <malloc.h>
-#include <time.h>
+#include <malloc.h>  // NOLINT
+#include <time.h>  // NOLINT
 
 #include "platform/utils.h"
 #include "platform/assert.h"
@@ -290,3 +293,5 @@ void OS::Exit(int code) {
 }
 
 }  // namespace dart
+
+#endif  // defined(TARGET_OS_WINDOWS)
