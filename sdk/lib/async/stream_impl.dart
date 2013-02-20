@@ -21,9 +21,11 @@ const int _STREAM_EVENT_ID = 4;
 const int _STREAM_EVENT_ID_SHIFT = 2;
 /// Bit set while firing and clear while not.
 const int _STREAM_FIRING = 8;
+/// Bit set while calling a pause-state or subscription-state change callback.
+const int _STREAM_CALLBACK = 16;
 /// The count of times a stream has paused is stored in the
 /// state, shifted by this amount.
-const int _STREAM_PAUSE_COUNT_SHIFT = 4;
+const int _STREAM_PAUSE_COUNT_SHIFT = 8;
 
 // States for listeners.
 
@@ -153,6 +155,19 @@ abstract class _StreamImpl<T> extends Stream<T> {
   /** Whether we are currently firing an event. */
   bool get _isFiring => (_state & _STREAM_FIRING) != 0;
 
+  /** Whether the state bits allow firing. */
+  bool get _mayFireState {
+    // The state disallows firing if:
+    // - an event is currently firing
+    // - a stat-change callback is being called
+    // - the pause-count is not zero.
+    const int mask =
+        _STREAM_FIRING |
+        _STREAM_CALLBACK |
+        ~((1 << _STREAM_PAUSE_COUNT_SHIFT) - 1);
+    return (_state & mask) == 0;
+  }
+
   int get _currentEventIdBit =>
       (_state & _STREAM_EVENT_ID ) >> _STREAM_EVENT_ID_SHIFT;
 
@@ -160,7 +175,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   bool get _hasSubscribers;
 
   /** Whether the stream can fire a new event. */
-  bool get _canFireEvent => !_isFiring && !_isPaused && !_hasPendingEvent;
+  bool get _canFireEvent => _mayFireState && !_hasPendingEvent;
 
   // State modification.
 
@@ -216,8 +231,12 @@ abstract class _StreamImpl<T> extends Stream<T> {
   void _endFiring() {
     assert(_isFiring);
     _state ^= _STREAM_FIRING;
-    if (_isPaused) _onPauseStateChange();
-    if (!_hasSubscribers) _onSubscriptionStateChange();
+
+    if (!_hasSubscribers) {
+      _callOnSubscriptionStateChange();
+    } else if (_isPaused) {
+      _callOnPauseStateChange();
+    }
   }
 
   /**
@@ -241,7 +260,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
       resumeSignal.whenComplete(() { this._resume(listener, true); });
     }
     if (!wasPaused && !_isFiring) {
-      _onPauseStateChange();
+      _callOnPauseStateChange();
     }
   }
 
@@ -252,7 +271,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
     assert(_isPaused);
     _decrementPauseCount(listener);
     if (!_isPaused) {
-      if (!_isFiring) _onPauseStateChange();
+      if (!_isFiring) _callOnPauseStateChange();
       if (_hasPendingEvent) {
         // If we can fire events now, fire any pending events right away.
         if (fromEvent && !_isFiring) {
@@ -308,6 +327,22 @@ abstract class _StreamImpl<T> extends Stream<T> {
    * This method must not be called while [isFiring] is true.
    */
   void _forEachSubscriber(void action(_StreamSubscriptionImpl<T> subscription));
+
+  /** Calls [_onPauseStateChange] while setting callback bit. */
+  void _callOnPauseStateChange() {
+    // After calling [_close], all pauses are handled internally by the Stream.
+    if (_isClosed) return;
+    _state |= _STREAM_CALLBACK;
+    _onPauseStateChange();
+    _state ^= _STREAM_CALLBACK;
+  }
+
+  /** Calls [_onSubscriptionStateChange] while setting callback bit. */
+  void _callOnSubscriptionStateChange() {
+    _state |= _STREAM_CALLBACK;
+    _onSubscriptionStateChange();
+    _state ^= _STREAM_CALLBACK;
+  }
 
   /**
    * Called when the first subscriber requests a pause or the last a resume.
@@ -430,8 +465,16 @@ abstract class _StreamImpl<T> extends Stream<T> {
 class _SingleStreamImpl<T> extends _StreamImpl<T> {
   _StreamListener _subscriber = null;
 
-  /** Whether one or more active subscribers have requested a pause. */
+  // A single-stream is considered paused when it has no subscriber.
+  // Exception is when it's complete (which only matters for pause-state-change
+  // callbacks), where it's not considered paused.
   bool get _isPaused => (!_hasSubscribers && !_isComplete) || super._isPaused;
+
+
+  // A single-stream is considered paused when it has no subscriber.
+  bool get _canFireEvent =>
+      _mayFireState && !_hasPendingEvent && _hasSubscribers;
+
 
   /** Whether there is currently a subscriber on this [Stream]. */
   bool get _hasSubscribers => _subscriber != null;
@@ -457,7 +500,7 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
     }
     _subscriber = subscription;
     subscription._setSubscribed(0);
-    _onSubscriptionStateChange();
+    _callOnSubscriptionStateChange();
     if (_hasPendingEvent) {
       _schedulePendingEvents();
     }
@@ -485,10 +528,7 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
     int subscriptionPauseCount = subscriber._setUnsubscribed();
     _updatePauseCount(-subscriptionPauseCount);
     if (!_isFiring) {
-      if (subscriptionPauseCount > 0) {
-        _onPauseStateChange();
-      }
-      _onSubscriptionStateChange();
+      _callOnSubscriptionStateChange();
     }
   }
 
@@ -607,7 +647,7 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
     bool firstSubscriber = !_hasSubscribers;
     _InternalLinkList.add(this, listener);
     if (firstSubscriber) {
-      _onSubscriptionStateChange();
+      _callOnSubscriptionStateChange();
     }
   }
 
@@ -640,7 +680,7 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
       bool wasPaused = _isPaused;
       _removeListener(listener);
       if (wasPaused != _isPaused) _onPauseStateChange();
-      if (!_hasSubscribers) _onSubscriptionStateChange();
+      if (!_hasSubscribers) _callOnSubscriptionStateChange();
     }
   }
 
@@ -648,7 +688,7 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
    * Removes a listener from this stream and cancels its pauses.
    *
    * This is a low-level action that doesn't call [_onSubscriptionStateChange].
-   * or [_onPauseStateChange].
+   * or [_callOnPauseStateChange].
    */
   void _removeListener(_StreamListener listener) {
     int pauseCount = listener._setUnsubscribed();
@@ -1138,7 +1178,7 @@ class _SingleStreamMultiplexer<T> extends _MultiStreamImpl<T> {
 
   _SingleStreamMultiplexer(this._source);
 
-  void _onPauseStateChange() {
+  void _callOnPauseStateChange() {
     if (_isPaused) {
       if (_subscription != null) {
         _subscription.pause();
