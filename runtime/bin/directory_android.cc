@@ -16,11 +16,15 @@
 
 class PathBuffer {
  public:
-  PathBuffer() : length(0) { }
+  PathBuffer() : length(0) {
+    data = new char[PATH_MAX + 1];
+  }
 
+  ~PathBuffer() {
+    delete[] data;
+  }
 
-
-  char data[PATH_MAX + 1];
+  char* data;
   int length;
 
   bool Add(const char* name) {
@@ -45,12 +49,11 @@ class PathBuffer {
 };
 
 
-
 // Forward declarations.
-static bool ListRecursively(const char* dir_name,
+static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             DirectoryListing* listing);
-static bool DeleteRecursively(const char* dir_name);
+static bool DeleteRecursively(PathBuffer* path);
 
 
 static void PostError(DirectoryListing *listing,
@@ -58,25 +61,6 @@ static void PostError(DirectoryListing *listing,
   listing->HandleError(dir_name);
 }
 
-
-static PathBuffer* ComputeFullPath(const char* dir_name) {
-  PathBuffer* path = new PathBuffer();
-  char* abs_path;
-  do {
-    abs_path = realpath(dir_name, path->data);
-  } while (abs_path == NULL && errno == EINTR);
-  if (abs_path == NULL) {
-    delete path;
-    return NULL;
-  }
-  path->length = strnlen(path->data, PATH_MAX);
-  if (path->Add(File::PathSeparator())) {
-    return path;
-  } else {
-    delete path;
-    return NULL;
-  }
-}
 
 static bool HandleDir(char* dir_name,
                       PathBuffer* path,
@@ -87,10 +71,10 @@ static bool HandleDir(char* dir_name,
   if (!path->Add(dir_name)) {
     PostError(listing, path->data);
     return false;
-  }
   return listing->HandleDirectory(path->data) &&
-      (!recursive || ListRecursively(path->data, recursive, listing));
+      (!recursive || ListRecursively(path, recursive, listing));
 }
+
 
 static bool HandleFile(char* file_name,
                        PathBuffer* path,
@@ -103,28 +87,22 @@ static bool HandleFile(char* file_name,
 }
 
 
-static bool ListRecursively(const char* dir_name,
+static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             DirectoryListing *listing) {
+  if (!path->Add(File::PathSeparator())) {
+    PostError(listing, path->data);
+    return false;
+  }
   DIR* dir_pointer;
   do {
-    dir_pointer = opendir(dir_name);
+    dir_pointer = opendir(path->data);
   } while (dir_pointer == NULL && errno == EINTR);
   if (dir_pointer == NULL) {
-    PostError(listing, dir_name);
+    PostError(listing, path->data);
     return false;
   }
 
-  // Compute full path for the directory currently being listed.  The
-  // path buffer will be used to construct the current path in the
-  // recursive traversal. path_length does not always equal
-  // strlen(path) but indicates the current prefix of path that is the
-  // path of the current directory in the traversal.
-  PathBuffer* path = ComputeFullPath(dir_name);
-  if (path == NULL) {
-    PostError(listing, dir_name);
-    return false;
-  }
   // Iterate the directory and post the directories and files to the
   // ports.
   int path_length = path->length;
@@ -188,14 +166,13 @@ static bool ListRecursively(const char* dir_name,
   if (status != 0) {
     errno = status;
     success = false;
-    PostError(listing, dir_name);
+    PostError(listing, path->data);
   }
 
   if (closedir(dir_pointer) == -1) {
     success = false;
-    PostError(listing, dir_name);
+    PostError(listing, path->data);
   }
-  delete path;
 
   return success;
 }
@@ -211,35 +188,30 @@ static bool DeleteDir(char* dir_name,
                       PathBuffer* path) {
   if (strcmp(dir_name, ".") == 0) return true;
   if (strcmp(dir_name, "..") == 0) return true;
-  return path->Add(dir_name) && DeleteRecursively(path->data);
+  return path->Add(dir_name) && DeleteRecursively(path);
 }
 
 
-static bool DeleteRecursively(const char* dir_name) {
+static bool DeleteRecursively(PathBuffer* path) {
+  if (!path->Add(File::PathSeparator())) return false;
   // Do not recurse into links for deletion. Instead delete the link.
   struct stat st;
-  if (TEMP_FAILURE_RETRY(lstat(dir_name, &st)) == -1) {
+  if (TEMP_FAILURE_RETRY(lstat(path->data, &st)) == -1) {
     return false;
   } else if (S_ISLNK(st.st_mode)) {
-    return (remove(dir_name) == 0);
+    return (remove(path->data) == 0);
   }
 
   // Not a link. Attempt to open as a directory and recurse into the
   // directory.
   DIR* dir_pointer;
   do {
-    dir_pointer = opendir(dir_name);
+    dir_pointer = opendir(path->data);
   } while (dir_pointer == NULL && errno == EINTR);
 
   if (dir_pointer == NULL) {
     return false;
   }
-
-  // Compute full path for the directory currently being deleted.  The
-  // path buffer will be used to construct the current path in the
-  // recursive traversal.
-  PathBuffer* path = ComputeFullPath(dir_name);
-  if (path == NULL) return false;
 
   // Iterate the directory and delete all files and directories.
   int path_length = path->length;
@@ -293,14 +265,12 @@ static bool DeleteRecursively(const char* dir_name) {
     }
     path->Reset(path_length);
   }
-  delete path;
 
   if ((read != 0) ||
       (closedir(dir_pointer) == -1) ||
-      (remove(dir_name) == -1)) {
+      (remove(path->data) == -1)) {
     return false;
   }
-
   return success;
 }
 
@@ -308,8 +278,12 @@ static bool DeleteRecursively(const char* dir_name) {
 bool Directory::List(const char* dir_name,
                      bool recursive,
                      DirectoryListing *listing) {
-  bool completed = ListRecursively(dir_name, recursive, listing);
-  return completed;
+  PathBuffer path;
+  if (!path.Add(dir_name)) {
+    PostError(listing, dir_name);
+    return false;
+  }
+  return ListRecursively(&path, recursive, listing);
 }
 
 
@@ -385,9 +359,9 @@ char* Directory::CreateTemp(const char* const_template) {
   // dir_template.  Creates the directory with the permissions specified
   // by the process umask.
   // The return value must be freed by the caller.
-  PathBuffer* path = new PathBuffer();
-  path->Add(const_template);
-  if (path->length == 0) {
+  PathBuffer path;
+  path.Add(const_template);
+  if (path.length == 0) {
     // Android does not have a /tmp directory. A partial substitute,
     // suitable for bring-up work and tests, is to create a tmp
     // directory in /data/local/tmp.
@@ -400,12 +374,11 @@ char* Directory::CreateTemp(const char* const_template) {
       mkdir(ANDROID_TEMP_DIR, 0777);
     }
     path->Add(ANDROID_TEMP_DIR "/tmp/temp_dir1_");
-  } else if ((path->data)[path->length - 1] == '/') {
-    path->Add("temp_dir_");
+  } else if ((path.data)[path.length - 1] == '/') {
+    path.Add("temp_dir_");
   }
-  if (!path->Add("XXXXXX")) {
+  if (!path.Add("XXXXXX")) {
     // Pattern has overflowed.
-    delete path;
     return NULL;
   }
   char* result;
@@ -413,14 +386,12 @@ char* Directory::CreateTemp(const char* const_template) {
     result = MakeTempDirectory(path->data);
   } while (result == NULL && errno == EINTR);
   if (result == NULL) {
-    delete path;
     return NULL;
   }
-  int length = strnlen(path->data, PATH_MAX);
+  int length = strnlen(path.data, PATH_MAX);
   result = static_cast<char*>(malloc(length + 1));
-  strncpy(result, path->data, length);
+  strncpy(result, path.data, length);
   result[length] = '\0';
-  delete path;
   return result;
 }
 
@@ -429,7 +400,11 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
   if (!recursive) {
     return (TEMP_FAILURE_RETRY(remove(dir_name)) == 0);
   } else {
-    return DeleteRecursively(dir_name);
+    PathBuffer path;
+    if (!path.Add(dir_name)) {
+      return false;
+    }
+    return DeleteRecursively(&path);
   }
 }
 

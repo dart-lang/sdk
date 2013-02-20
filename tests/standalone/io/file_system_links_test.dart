@@ -136,7 +136,7 @@ testDirectoryListing() {
       }
     }
     Expect.equals(1, files.length);
-    Expect.isTrue(files[0].endsWith(x));
+    Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
     Expect.equals(1, dirs.length);
     Expect.isTrue(dirs[0].endsWith(y));
 
@@ -148,7 +148,7 @@ testDirectoryListing() {
     lister.onDone = (success) {
       Expect.isTrue(success);
       Expect.equals(1, files.length);
-      Expect.isTrue(files[0].endsWith(x));
+      Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
       Expect.equals(1, dirs.length);
       Expect.isTrue(dirs[0].endsWith(y));
       temp.deleteSync(recursive: true);
