@@ -21,9 +21,21 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
       types_(flow_graph->current_ssa_temp_index()),
-      in_worklist_(new BitVector(flow_graph->current_ssa_temp_index())) {
+      in_worklist_(new BitVector(flow_graph->current_ssa_temp_index())),
+      asserts_(NULL),
+      collected_asserts_(NULL) {
   for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
     types_.Add(NULL);
+  }
+
+  if (FLAG_enable_type_checks) {
+    asserts_ = new ZoneGrowableArray<AssertAssignableInstr*>(
+        flow_graph->current_ssa_temp_index());
+    for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
+      asserts_->Add(NULL);
+    }
+
+    collected_asserts_ = new ZoneGrowableArray<intptr_t>(10);
   }
 }
 
@@ -81,6 +93,10 @@ void FlowGraphTypePropagator::Propagate() {
 
 void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
   const intptr_t rollback_point = rollback_.length();
+
+  if (FLAG_enable_type_checks) {
+    StrengthenAsserts(block);
+  }
 
   block->Accept(this);
 
@@ -200,6 +216,86 @@ Definition* FlowGraphTypePropagator::RemoveLastFromWorklist() {
   ASSERT(defn->ssa_temp_index() != -1);
   in_worklist_->Remove(defn->ssa_temp_index());
   return defn;
+}
+
+
+// Unwrap all assert assignable and get a real definition of the value.
+static Definition* UnwrapAsserts(Definition* defn) {
+  while (defn->IsAssertAssignable()) {
+    defn = defn->AsAssertAssignable()->value()->definition();
+  }
+  return defn;
+}
+
+
+// In the given block strengthen type assertions by hoisting first class or smi
+// check over the same value up to the point before the assertion. This allows
+// to eliminate type assertions that are postdominated by class or smi checks as
+// these checks are strongly stricter than type assertions.
+void FlowGraphTypePropagator::StrengthenAsserts(BlockEntryInstr* block) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+
+    if (instr->IsCheckSmi() || instr->IsCheckClass()) {
+      StrengthenAssertWith(instr);
+    }
+
+    // If this is the first type assertion checking given value record it.
+    AssertAssignableInstr* assert = instr->AsAssertAssignable();
+    if (assert != NULL) {
+      Definition* defn = UnwrapAsserts(assert->value()->definition());
+      if ((*asserts_)[defn->ssa_temp_index()] == NULL) {
+        (*asserts_)[defn->ssa_temp_index()] = assert;
+        collected_asserts_->Add(defn->ssa_temp_index());
+      }
+    }
+  }
+
+  for (intptr_t i = 0; i < collected_asserts_->length(); i++) {
+    (*asserts_)[(*collected_asserts_)[i]] = NULL;
+  }
+
+  collected_asserts_->TruncateTo(0);
+}
+
+
+void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
+  // Marker that is used to mark values that already had type assertion
+  // strengthened.
+  AssertAssignableInstr* kStrengthenedAssertMarker =
+      reinterpret_cast<AssertAssignableInstr*>(-1);
+
+  Definition* defn = UnwrapAsserts(check->InputAt(0)->definition());
+
+  AssertAssignableInstr* assert = (*asserts_)[defn->ssa_temp_index()];
+  if ((assert == NULL) || (assert == kStrengthenedAssertMarker)) {
+    return;
+  }
+
+  Instruction* check_clone = NULL;
+  if (check->IsCheckSmi()) {
+    check_clone =
+        new CheckSmiInstr(assert->value()->Copy(),
+                          assert->env()->deopt_id());
+  } else {
+    ASSERT(check->IsCheckClass());
+    check_clone =
+        new CheckClassInstr(assert->value()->Copy(),
+                            assert->env()->deopt_id(),
+                            check->AsCheckClass()->unary_checks());
+  }
+  ASSERT(check_clone != NULL);
+  ASSERT(assert->deopt_id() == assert->env()->deopt_id());
+
+  Value* use = check_clone->InputAt(0);
+  use->set_instruction(check_clone);
+  use->set_use_index(0);
+  use->definition()->AddInputUse(use);
+
+  assert->env()->DeepCopyTo(check_clone);
+  check_clone->InsertBefore(assert);
+
+  (*asserts_)[defn->ssa_temp_index()] = kStrengthenedAssertMarker;
 }
 
 

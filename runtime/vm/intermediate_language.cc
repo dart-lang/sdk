@@ -1111,7 +1111,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     return value()->definition();
   }
 
-  // (3) For uninstantiated target types: If the instantiator type arguments
+  // For uninstantiated target types: If the instantiator type arguments
   // are constant, instantiate the target type here.
   if (dst_type().IsInstantiated()) return this;
 
