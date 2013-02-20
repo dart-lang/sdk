@@ -232,7 +232,7 @@ class Entrypoint {
       if (entryExists(linkPath)) return;
       ensureDir(packagesDir);
       return createPackageSymlink(root.name, root.dir, linkPath,
-          isSelfLink: true);
+          isSelfLink: true, relative: true);
     });
   }
 
@@ -296,7 +296,7 @@ class Entrypoint {
     return defer(() {
       var symlink = path.join(dir, 'packages');
       if (entryExists(symlink)) return;
-      return createSymlink(packagesDir, symlink);
+      return createSymlink(packagesDir, symlink, relative: true);
     });
   }
 }

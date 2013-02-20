@@ -10,6 +10,8 @@ import '../../../../pkg/unittest/lib/unittest.dart';
 import '../test_pub.dart';
 
 main() {
+  initConfig();
+
   group('requires', () {
     integration('a pubspec', () {
       dir(appPath, []).scheduleCreate();
