@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+async/slow_consumer_test: Skip # Issue 8647
+
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
