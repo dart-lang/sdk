@@ -29,8 +29,8 @@ void setup() {
 void setupLocation() {
   // Figure out where we are.
   final body = document.query('body');
-  currentLibrary = body.dataAttributes['library'];
-  currentType = body.dataAttributes['type'];
+  currentLibrary = body.dataset['library'];
+  currentType = body.dataset['type'];
   prefix = (currentType != null) ? '../' : '';
 }
 
@@ -71,9 +71,9 @@ enableCodeBlocks() {
 void enableShowHideInherited() {
   var showInherited = document.query('#show-inherited');
   if (showInherited == null) return;
-  showInherited.dataAttributes.putIfAbsent('show-inherited', () => 'block');
+  showInherited.dataset.putIfAbsent('show-inherited', () => 'block');
   showInherited.onClick.listen((e) {
-    String display = showInherited.dataAttributes['show-inherited'];
+    String display = showInherited.dataset['show-inherited'];
     if (display == 'block') {
       display = 'none';
       showInherited.innerHtml = 'Show inherited';
@@ -81,7 +81,7 @@ void enableShowHideInherited() {
       display = 'block';
       showInherited.innerHtml = 'Hide inherited';
     }
-    showInherited.dataAttributes['show-inherited'] = display;
+    showInherited.dataset['show-inherited'] = display;
     for (var elem in document.queryAll('.inherited')) {
       elem.style.display = display;
     }
