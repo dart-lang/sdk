@@ -501,7 +501,7 @@ class CallSiteInliner : public ValueObject {
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
-        callee_graph->ComputeUseLists();
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       if (FLAG_trace_inlining &&
@@ -561,19 +561,20 @@ class CallSiteInliner : public ValueObject {
         // Plug result in the caller graph.
         inlining_context->ReplaceCall(caller_graph_, call, callee_graph);
 
-        // Remove push arguments of the call.
-        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-          PushArgumentInstr* push = call->PushArgumentAt(i);
-          push->ReplaceUsesWith(push->value()->definition());
-          push->RemoveFromGraph();
-        }
-
         // Replace each stub with the actual argument or the caller's constant.
         // Nulls denote optional parameters for which no actual was given.
         for (intptr_t i = 0; i < arguments->length(); ++i) {
           Definition* stub = param_stubs[i];
           Value* actual = (*arguments)[i];
           if (actual != NULL) stub->ReplaceUsesWith(actual->definition());
+        }
+
+        // Remove push arguments of the call.
+        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+          PushArgumentInstr* push = call->PushArgumentAt(i);
+          push->ReplaceUsesWith(push->value()->definition());
+          push->UnuseAllInputs();
+          push->RemoveFromGraph();
         }
 
         // Replace remaining constants with uses by constants in the caller's
@@ -596,7 +597,7 @@ class CallSiteInliner : public ValueObject {
       if (!in_cache) function_cache_.Add(parsed_function);
 
       // Check that inlining maintains use lists.
-      DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
+      DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->VerifyUseLists());
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;

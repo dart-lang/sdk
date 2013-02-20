@@ -6,6 +6,7 @@
 
 #include "vm/cha.h"
 #include "vm/bit_vector.h"
+#include "vm/il_printer.h"
 
 namespace dart {
 
@@ -28,19 +29,26 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
 
 
 void FlowGraphTypePropagator::Propagate() {
-  // Walk dominator tree and propagate reaching types to all Values.
-  // Collect all phis for a fix point iteration.
+  if (FLAG_trace_type_propagation) {
+    OS::Print("Before type propagation:\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+
+  // Walk the dominator tree and propagate reaching types to all Values.
+  // Collect all phis for a fixed point iteration.
   PropagateRecursive(flow_graph_->graph_entry());
 
 #ifdef DEBUG
-  // Initially work-list contains only phis.
+  // Initially the worklist contains only phis.
   for (intptr_t i = 0; i < worklist_.length(); i++) {
     ASSERT(worklist_[i]->IsPhi());
     ASSERT(worklist_[i]->Type()->IsNone());
   }
 #endif
 
-  // Iterate until fix point is reached updating types of definitions.
+  // Iterate until a fixed point is reached, updating the types of
+  // definitions.
   while (!worklist_.is_empty()) {
     Definition* def = RemoveLastFromWorklist();
     if (FLAG_trace_type_propagation) {
@@ -61,6 +69,12 @@ void FlowGraphTypePropagator::Propagate() {
         }
       }
     }
+  }
+
+  if (FLAG_trace_type_propagation) {
+    OS::Print("After type propagation:\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
   }
 }
 

@@ -172,7 +172,7 @@ bool FlowGraph::ResetUseLists() {
 }
 
 
-static void ValidateUseListsInInstruction(Instruction* instr) {
+static void VerifyUseListsInInstruction(Instruction* instr) {
   ASSERT(instr != NULL);
   ASSERT(!instr->IsJoinEntry());
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
@@ -233,24 +233,24 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
 }
 
 
-bool FlowGraph::ValidateUseLists() {
-  // Validate initial definitions.
+bool FlowGraph::VerifyUseLists() {
+  // Verify the initial definitions.
   for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
-    ValidateUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
+    VerifyUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
   }
 
-  // Validate phis in join entries and the instructions in each block.
+  // Verify phis in join entries and the instructions in each block.
   for (intptr_t i = 0; i < preorder_.length(); ++i) {
     BlockEntryInstr* entry = preorder_[i];
     JoinEntryInstr* join = entry->AsJoinEntry();
     if (join != NULL && join->phis() != NULL) {
       for (intptr_t i = 0; i < join->phis()->length(); ++i) {
         PhiInstr* phi = (*join->phis())[i];
-        if (phi != NULL) ValidateUseListsInInstruction(phi);
+        if (phi != NULL) VerifyUseListsInInstruction(phi);
       }
     }
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      ValidateUseListsInInstruction(it.Current());
+      VerifyUseListsInInstruction(it.Current());
     }
   }
   return true;  // Return true so we can ASSERT validation.
@@ -356,7 +356,7 @@ void FlowGraph::ComputeUseLists() {
     ClearUseLists((*graph_entry_->initial_definitions())[i]);
   }
   ComputeUseListsRecursive(graph_entry_);
-  DEBUG_ASSERT(!FLAG_verify_compiler || ValidateUseLists());
+  DEBUG_ASSERT(!FLAG_verify_compiler || VerifyUseLists());
 }
 
 

@@ -140,7 +140,7 @@ class FlowGraph : public ZoneAllocated {
 #ifdef DEBUG
   // Validation methods for debugging.
   bool ResetUseLists();
-  bool ValidateUseLists();
+  bool VerifyUseLists();
 #endif  // DEBUG
 
  private:
