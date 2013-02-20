@@ -2432,9 +2432,11 @@ void FlowGraphAllocator::CollectRepresentations() {
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {
-      Instruction* instr = instr_it.Current();
-      if (instr->IsDefinition() && instr->representation() == kUnboxedMint) {
-        mint_values_->Add(instr->AsDefinition()->ssa_temp_index());
+      Definition* defn = instr_it.Current()->AsDefinition();
+      if ((defn != NULL) &&
+          (defn->ssa_temp_index() >= 0) &&
+          (defn->representation() == kUnboxedMint)) {
+        mint_values_->Add(defn->ssa_temp_index());
       }
     }
   }
