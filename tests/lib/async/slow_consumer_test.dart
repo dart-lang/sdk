@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--old_gen_heap_size=32
+// VMOptions=--old_gen_heap_size=64
 
 library slow_consumer_test;
 
@@ -60,6 +60,7 @@ class DataProvider {
   }
 
   Stream get stream => controller.stream;
+
   send() {
     if (pendingSend != null) {
       pendingSend.cancel();
@@ -97,7 +98,7 @@ main() {
   // the slower consumer who can only read 200MB/s. The data is sent in 1MB
   // chunks.
   //
-  // This test is limited to 32MB of heap-space (see VMOptions on top of the
+  // This test is limited to 64MB of heap-space (see VMOptions on top of the
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 

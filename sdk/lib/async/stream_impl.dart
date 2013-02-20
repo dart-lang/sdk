@@ -25,7 +25,7 @@ const int _STREAM_FIRING = 8;
 const int _STREAM_CALLBACK = 16;
 /// The count of times a stream has paused is stored in the
 /// state, shifted by this amount.
-const int _STREAM_PAUSE_COUNT_SHIFT = 8;
+const int _STREAM_PAUSE_COUNT_SHIFT = 5;
 
 // States for listeners.
 
@@ -148,6 +148,9 @@ abstract class _StreamImpl<T> extends Stream<T> {
   /** Whether one or more active subscribers have requested a pause. */
   bool get _isPaused => _state >= (1 << _STREAM_PAUSE_COUNT_SHIFT);
 
+  /** Whether we are currently executing a state-chance callback. */
+  bool get _isInCallback => (_state & _STREAM_CALLBACK) != 0;
+
   /** Check whether the pending event queue is non-empty */
   bool get _hasPendingEvent =>
       _pendingEvents != null && !_pendingEvents.isEmpty;
@@ -231,7 +234,6 @@ abstract class _StreamImpl<T> extends Stream<T> {
   void _endFiring() {
     assert(_isFiring);
     _state ^= _STREAM_FIRING;
-
     if (!_hasSubscribers) {
       _callOnSubscriptionStateChange();
     } else if (_isPaused) {
@@ -332,16 +334,24 @@ abstract class _StreamImpl<T> extends Stream<T> {
   void _callOnPauseStateChange() {
     // After calling [_close], all pauses are handled internally by the Stream.
     if (_isClosed) return;
-    _state |= _STREAM_CALLBACK;
-    _onPauseStateChange();
-    _state ^= _STREAM_CALLBACK;
+    if (!_isInCallback) {
+      _state |= _STREAM_CALLBACK;
+      _onPauseStateChange();
+      _state ^= _STREAM_CALLBACK;
+    } else {
+      _onPauseStateChange();
+    }
   }
 
   /** Calls [_onSubscriptionStateChange] while setting callback bit. */
   void _callOnSubscriptionStateChange() {
-    _state |= _STREAM_CALLBACK;
-    _onSubscriptionStateChange();
-    _state ^= _STREAM_CALLBACK;
+    if (!_isInCallback) {
+      _state |= _STREAM_CALLBACK;
+      _onSubscriptionStateChange();
+      _state ^= _STREAM_CALLBACK;
+    } else {
+      _onSubscriptionStateChange();
+    }
   }
 
   /**
@@ -471,9 +481,12 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
   bool get _isPaused => (!_hasSubscribers && !_isComplete) || super._isPaused;
 
 
-  // A single-stream is considered paused when it has no subscriber.
-  bool get _canFireEvent =>
-      _mayFireState && !_hasPendingEvent && _hasSubscribers;
+  bool get _canFireEvent {
+    // A single-stream is considered paused when it has no subscriber and
+    // isn't complete, so it can't fire if there is no subscriber.
+    // It won't try to fire when completed, so no need to check that.
+    return _mayFireState && !_hasPendingEvent && _hasSubscribers;
+  }
 
 
   /** Whether there is currently a subscriber on this [Stream]. */
