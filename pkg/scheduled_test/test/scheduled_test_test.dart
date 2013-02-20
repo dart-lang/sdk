@@ -142,6 +142,74 @@ void main() {
     });
   });
 
+  expectTestsFail('an out-of-band failure in wrapFuture is handled', () {
+    mock_clock.mock().run();
+    test('test', () {
+      schedule(() {
+        wrapFuture(sleep(1).then((_) => expect('foo', equals('bar'))));
+      });
+      schedule(() => sleep(2));
+    });
+  });
+
+  expectTestsFail('an out-of-band failure in wrapFuture that finishes after '
+      'the schedule is handled', () {
+    mock_clock.mock().run();
+    test('test', () {
+      schedule(() {
+        wrapFuture(sleep(2).then((_) => expect('foo', equals('bar'))));
+      });
+      schedule(() => sleep(1));
+    });
+  });
+
+  expectTestsPass("wrapFuture should return the value of the wrapped future",
+      () {
+    test('test', () {
+      schedule(() {
+        expect(wrapFuture(pumpEventQueue().then((_) => 'foo')),
+            completion(equals('foo')));
+      });
+    });
+  });
+
+  expectTestsPass("wrapFuture should pass through the error of the wrapped "
+      "future", () {
+    var error;
+    test('test 1', () {
+      schedule(() {
+        wrapFuture(pumpEventQueue().then((_) {
+          throw 'error';
+        })).catchError(wrapAsync((e) {
+          error = e.error;
+        }));
+      });
+    });
+
+    test('test 2', () {
+      expect(error, equals('error'));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("scheduled blocks whose return values are passed to "
+      "wrapFuture should report exceptions once", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      wrapFuture(schedule(() {
+        throw 'error';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
+    });
+  }, passing: ['test 2']);
+
   expectTestsFail('an out-of-band error reported via signalError is '
       'handled', () {
     mock_clock.mock().run();
@@ -513,6 +581,40 @@ void main() {
         throw 'error1';
       }));
       sleep(2).then(wrapAsync((_) {
+        throw 'error2';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error),
+          orderedEquals(['error1', 'error2', 'error3', 'error4']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass('currentSchedule.errors contains multiple out-of-band errors '
+      'from both the main task queue and onException in onComplete reported '
+      'via wrapFuture', () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.onComplete.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      currentSchedule.onException.schedule(() {
+        wrapFuture(sleep(1).then((_) {
+          throw 'error3';
+        }));
+        wrapFuture(sleep(2).then((_) {
+          throw 'error4';
+        }));
+      });
+
+      wrapFuture(sleep(1).then((_) {
+        throw 'error1';
+      }));
+      wrapFuture(sleep(2).then((_) {
         throw 'error2';
       }));
     });
@@ -917,4 +1019,158 @@ void main() {
 
   // TODO(nweiz): test out-of-band post-timeout errors that are detected after
   // the test finishes once we can detect top-level errors (issue 8417).
+
+  expectTestsPass("nested schedule() runs its function immediately (but "
+      "asynchronously)", () {
+    test('test', () {
+      schedule(() {
+        var nestedScheduleRun = false;
+        schedule(() {
+          nestedScheduleRun = true;
+        });
+
+        expect(nestedScheduleRun, isFalse);
+        expect(pumpEventQueue().then((_) => nestedScheduleRun),
+            completion(isTrue));
+      });
+    });
+  });
+
+  expectTestsPass("out-of-band schedule() runs its function immediately (but "
+      "asynchronously)", () {
+    mock_clock.mock().run();
+    test('test', () {
+      schedule(() {
+        wrapFuture(sleep(1).then((_) {
+          var nestedScheduleRun = false;
+          schedule(() {
+            nestedScheduleRun = true;
+          });
+
+          expect(nestedScheduleRun, isFalse);
+          expect(pumpEventQueue().then((_) => nestedScheduleRun),
+              completion(isTrue));
+        }));
+      });
+    });
+  });
+
+  expectTestsPass("nested schedule() calls don't wait for one another", () {
+    mock_clock.mock().run();
+    test('test', () {
+      var sleepFinished = false;
+      schedule(() {
+        schedule(() => sleep(1).then((_) {
+          sleepFinished = true;
+        }));
+        schedule(() => expect(sleepFinished, isFalse));
+      });
+    });
+  });
+
+  expectTestsPass("nested schedule() calls block their parent task", () {
+    mock_clock.mock().run();
+    test('test', () {
+      var sleepFinished = false;
+      schedule(() {
+        schedule(() => sleep(1).then((_) {
+          sleepFinished = true;
+        }));
+      });
+
+      schedule(() => expect(sleepFinished, isTrue));
+    });
+  });
+
+  expectTestsPass("out-of-band schedule() calls block their parent queue", () {
+    mock_clock.mock().run();
+    test('test', () {
+      var scheduleRun = false;
+      wrapFuture(sleep(1).then((_) {
+        schedule(() => sleep(1).then((_) {
+          scheduleRun = true;
+        }));
+      }));
+
+      currentSchedule.onComplete.schedule(() => expect(scheduleRun, isTrue));
+    });
+  });
+
+  expectTestsPass("nested schedule() calls forward their Future values", () {
+    mock_clock.mock().run();
+    test('test', () {
+      schedule(() {
+        expect(schedule(() => 'foo'), completion(equals('foo')));
+      });
+    });
+  });
+
+  expectTestsPass("errors in nested schedule() calls are properly registered",
+      () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        schedule(() {
+          throw 'error';
+        });
+      });
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("nested scheduled blocks whose return values are passed to "
+      "wrapFuture should report exceptions once", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        wrapFuture(schedule(() {
+          throw 'error';
+        }));
+
+        return pumpEventQueue();
+      });
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("a nested task failing shouldn't short-circuit the parent "
+      "task", () {
+    var parentTaskFinishedBeforeOnComplete = false;
+    test('test 1', () {
+      var parentTaskFinished = false;
+      currentSchedule.onComplete.schedule(() {
+        parentTaskFinishedBeforeOnComplete = parentTaskFinished;
+      });
+
+      schedule(() {
+        schedule(() {
+          throw 'error';
+        });
+
+        return sleep(1).then((_) {
+          parentTaskFinished = true;
+        });
+      });
+    });
+
+    test('test 2', () {
+      expect(parentTaskFinishedBeforeOnComplete, isTrue);
+    });
+  }, passing: ['test 2']);
 }

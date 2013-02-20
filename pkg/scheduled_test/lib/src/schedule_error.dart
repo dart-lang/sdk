@@ -26,13 +26,15 @@ class ScheduleError extends AsyncError {
   /// The state of the schedule at the time the error was detected.
   final ScheduleState _stateWhenDetected;
 
+  int get hashCode => schedule.hashCode ^ task.hashCode ^ queue.hashCode ^
+      _stateWhenDetected.hashCode ^ error.hashCode ^ stackTrace.hashCode ^
+      cause.hashCode;
+
   /// Creates a new [ScheduleError] wrapping [error]. The metadata in
   /// [AsyncError]s and [ScheduleError]s will be preserved.
   factory ScheduleError.from(Schedule schedule, error, {stackTrace,
       AsyncError cause}) {
-    if (error is ScheduleError) {
-      if (schedule == null) schedule = error.schedule;
-    }
+    if (error is ScheduleError) return error;
 
     if (error is AsyncError) {
       // Overwrite the explicit stack trace, because it probably came from a
@@ -51,6 +53,11 @@ class ScheduleError extends AsyncError {
         this.task = schedule.currentTask,
         this.queue = schedule.currentQueue,
         this._stateWhenDetected = schedule.state;
+
+  bool operator ==(other) => other is ScheduleError && task == other.task &&
+      queue == other.queue && _stateWhenDetected == other._stateWhenDetected &&
+      error == other.error && stackTrace == other.stackTrace &&
+      cause == other.cause;
 
   String toString() {
     var result = new StringBuffer();
