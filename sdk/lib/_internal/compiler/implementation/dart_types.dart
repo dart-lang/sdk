@@ -70,6 +70,14 @@ abstract class DartType {
   DartType unalias(Compiler compiler);
 
   /**
+   * Finds the method, field or property named [name] declared or inherited
+   * on this type.
+   */
+  // TODO(johnniwinther): Implement this for [TypeVariableType], [FunctionType],
+  // and [TypedefType].
+  Member lookupMember(SourceString name) => null;
+
+  /**
    * A type is malformed if it is itself a malformed type or contains a
    * malformed type.
    */
@@ -411,6 +419,40 @@ class InterfaceType extends GenericType {
 
   DartType unalias(Compiler compiler) => this;
 
+  /**
+   * Finds the method, field or property named [name] declared or inherited
+   * on this interface type.
+   */
+  Member lookupMember(SourceString name) {
+
+    Member createMember(InterfaceType receiver, InterfaceType declarer,
+                        Element member) {
+      if (member.kind == ElementKind.FUNCTION ||
+          member.kind == ElementKind.ABSTRACT_FIELD ||
+          member.kind == ElementKind.FIELD) {
+        return new Member(receiver, declarer, member);
+      }
+      return null;
+    }
+
+    ClassElement classElement = element;
+    InterfaceType receiver = this;
+    InterfaceType declarer = receiver;
+    Element member = classElement.lookupLocalMember(name);
+    if (member != null) {
+      return createMember(receiver, declarer, member);
+    }
+    for (DartType supertype in classElement.allSupertypes) {
+      declarer = supertype;
+      ClassElement lookupTarget = declarer.element;
+      member = lookupTarget.lookupLocalMember(name);
+      if (member != null) {
+        return createMember(receiver, declarer, member);
+      }
+    }
+    return null;
+  }
+
   bool operator ==(other) {
     if (other is !InterfaceType) return false;
     return super == other;
@@ -664,6 +706,74 @@ class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
   SourceString get name => const SourceString('dynamic');
+}
+
+/**
+ * Member encapsulates a member (method, field, property) with the types of the
+ * declarer and receiver in order to do substitution on the member type.
+ *
+ * Consider for instance these classes and the variable [: B<String> b :]:
+ *
+ *     class A<E> {
+ *       E field;
+ *     }
+ *     class B<F> extends A<F> {}
+ *
+ * In a [Member] for [: b.field :] the [receiver] is the type [: B<String> :]
+ * and the declarer is the type [: A<F> :], which is the supertype of [: B<F> :]
+ * from which [: field :] has been inherited. To compute the type of
+ * [: b.field :] we must first substitute [: E :] by [: F :] using the relation
+ * between [: A<E> :] and [: A<F> :], and then [: F :] by [: String :] using the
+ * relation between [: B<F> :] and [: B<String> :].
+ */
+class Member {
+  final InterfaceType receiver;
+  final InterfaceType declarer;
+  final Element element;
+  DartType cachedType;
+
+  Member(this.receiver, this.declarer, this.element) {
+    assert(invariant(element, element.isAbstractField() ||
+                              element.isField() ||
+                              element.isFunction(),
+                     message: "Unsupported Member element: $element"));
+  }
+
+  DartType computeType(Compiler compiler) {
+    if (cachedType == null) {
+      DartType type;
+      if (element.isAbstractField()) {
+        AbstractFieldElement abstractFieldElement = element;
+        if (abstractFieldElement.getter != null) {
+          FunctionType functionType =
+              abstractFieldElement.getter.computeType(compiler);
+          type = functionType.returnType;
+        } else {
+          FunctionType functionType =
+              abstractFieldElement.setter.computeType(
+                  compiler);
+          type = functionType.parameterTypes.head;
+          if (type == null) {
+            type = compiler.types.dynamicType;
+          }
+        }
+      } else {
+        type = element.computeType(compiler);
+      }
+      if (!declarer.element.typeVariables.isEmpty) {
+        type = type.subst(declarer.typeArguments,
+                          declarer.element.typeVariables);
+        type = type.subst(receiver.typeArguments,
+                          receiver.element.typeVariables);
+      }
+      cachedType = type;
+    }
+    return cachedType;
+  }
+
+  String toString() {
+    return '$receiver.${element.name.slowToString()}';
+  }
 }
 
 class Types {

@@ -865,8 +865,9 @@ abstract class Compiler implements DiagnosticListener {
       // is more complete.
       if (identical(message.message.kind, MessageKind.NOT_ASSIGNABLE)) return;
       if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.METHOD_NOT_FOUND)) return;
+      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) {
+        return;
+      }
     }
     SourceSpan span = spanFromNode(node);
 

@@ -266,7 +266,14 @@ void testMethodInvocationArgumentCount() {
 
 void testMethodInvocations() {
   compiler.parseScript(CLASS_WITH_METHODS);
-  final String header = "{ ClassWithMethods c; SubClass d; int i; int j; ";
+  final String header = """{
+      ClassWithMethods c; 
+      SubClass d; 
+      var e; 
+      int i; 
+      int j;
+      int localMethod(String str) { return 0; }
+      """;
 
   analyze("${header}int k = c.untypedNoArgumentMethod(); }");
   analyze("${header}ClassWithMethods x = c.untypedNoArgumentMethod(); }");
@@ -306,8 +313,71 @@ void testMethodInvocations() {
   analyze("${header}ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
           MessageKind.NOT_ASSIGNABLE);
 
-  analyze("${header}c.intField(); }", MessageKind.METHOD_NOT_FOUND);
-  analyze("${header}d.intField(); }", MessageKind.METHOD_NOT_FOUND);
+  analyze("${header}c.functionField(); }");
+  analyze("${header}d.functionField(); }");
+  analyze("${header}c.functionField(1); }");
+  analyze("${header}d.functionField('string'); }");
+
+  analyze("${header}c.intField(); }", MessageKind.NOT_CALLABLE);
+  analyze("${header}d.intField(); }", MessageKind.NOT_CALLABLE);
+
+  analyze("${header}c.untypedField(); }");
+  analyze("${header}d.untypedField(); }");
+  analyze("${header}c.untypedField(1); }");
+  analyze("${header}d.untypedField('string'); }");
+
+  // Invocation of dynamic variable.
+  analyze("${header}e(); }");
+  analyze("${header}e(1); }");
+  analyze("${header}e('string'); }");
+
+  // Invocation on local method.
+  analyze("${header}localMethod(); }", MessageKind.MISSING_ARGUMENT);
+  analyze("${header}localMethod(1); }", MessageKind.NOT_ASSIGNABLE);
+  analyze("${header}localMethod('string'); }");
+  analyze("${header}int k = localMethod('string'); }");
+  analyze("${header}String k = localMethod('string'); }",
+      MessageKind.NOT_ASSIGNABLE);
+
+  // Invocation on parenthesized expressions.
+  analyze("${header}(e)(); }");
+  analyze("${header}(e)(1); }");
+  analyze("${header}(e)('string'); }");
+  analyze("${header}(foo)(); }");
+  analyze("${header}(foo)(1); }");
+  analyze("${header}(foo)('string'); }");
+
+  // Invocations on function expressions.
+  analyze("${header}(foo){}(); }", MessageKind.MISSING_ARGUMENT);
+  analyze("${header}(foo){}(1); }");
+  analyze("${header}(foo){}('string'); }");
+  analyze("${header}(int foo){}('string'); }", MessageKind.NOT_ASSIGNABLE);
+  analyze("${header}(String foo){}('string'); }");
+  analyze("${header}int k = int bar(String foo){ return 0; }('string'); }");
+  analyze("${header}int k = String bar(String foo){ return foo; }('string'); }",
+      MessageKind.NOT_ASSIGNABLE);
+
+  // Static invocations.
+  analyze("${header}ClassWithMethods.staticMethod(); }",
+      MessageKind.MISSING_ARGUMENT);
+  analyze("${header}ClassWithMethods.staticMethod(1); }",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze("${header}ClassWithMethods.staticMethod('string'); }");
+  analyze("${header}int k = ClassWithMethods.staticMethod('string'); }");
+  analyze("${header}String k = ClassWithMethods.staticMethod('string'); }",
+      MessageKind.NOT_ASSIGNABLE);
+
+  // Invocation on dynamic variable.
+  analyze("${header}e.foo(); }");
+  analyze("${header}e.foo(1); }");
+  analyze("${header}e.foo('string'); }");
+
+  // Invocation on unresolved variable.
+  analyze("${header}foo(); }");
+  analyze("${header}foo(1); }");
+  analyze("${header}foo('string'); }");
+
+  // TODO(johnniwinther): Add tests of invocations using implicit this.
 }
 
 /** Tests analysis of returns (not required by the specification). */
@@ -589,6 +659,8 @@ class ClassWithMethods {
   Function functionField;
   var untypedField;
   int intField;
+
+  static int staticMethod(String str) {}
 }
 interface I {
   int intMethod();

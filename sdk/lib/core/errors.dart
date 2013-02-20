@@ -19,8 +19,9 @@ class Error {
     }
     if (object is String) {
       // TODO(ahe): Remove backslash when http://dartbug.com/4995 is fixed.
+      String string = object;
       const backslash = '\\';
-      String escaped = object
+      String escaped = string
         .replaceAll('$backslash', '$backslash$backslash')
         .replaceAll('\n', '${backslash}n')
         .replaceAll('\r', '${backslash}r')
