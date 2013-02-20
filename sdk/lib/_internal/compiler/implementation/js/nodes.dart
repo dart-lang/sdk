@@ -59,6 +59,8 @@ abstract class NodeVisitor<T> {
   T visitObjectInitializer(ObjectInitializer node);
   T visitProperty(Property node);
   T visitRegExpLiteral(RegExpLiteral node);
+
+  T visitComment(Comment node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -141,6 +143,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitObjectInitializer(ObjectInitializer node) => visitExpression(node);
   T visitProperty(Property node) => visitNode(node);
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
+
+  // Ignore comments by default.
+  T visitComment(Comment node) {}
 }
 
 abstract class Node {
@@ -929,6 +934,22 @@ class RegExpLiteral extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
+/**
+ * A comment.
+ *
+ * Extends [Statement] so we can add comments before statements in
+ * [Block] and [Program].
+ */
+class Comment extends Statement {
+  final String comment;
+
+  Comment(this.comment);
+
+  accept(NodeVisitor visitor) => visitor.visitComment(this);
+
+  void visitChildren(NodeVisitor visitor) {}
+}
+
 class JsBuilder {
   const JsBuilder();
 
@@ -1045,6 +1066,8 @@ class JsBuilder {
     if (finallyPart != null) finallyPart = toStatement(finallyPart);
     return new Try(toStatement(body), catchPart, finallyPart);
   }
+
+  Comment comment(String text) => new Comment(text);
 }
 
 const JsBuilder js = const JsBuilder();

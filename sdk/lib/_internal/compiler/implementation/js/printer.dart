@@ -851,6 +851,15 @@ class Printer implements NodeVisitor {
   visitLiteralStatement(LiteralStatement node) {
     outLn(node.code);
   }
+
+  void visitComment(Comment node) {
+    if (shouldCompressOutput) return;
+    String comment = node.comment.trim();
+    if (comment.isEmpty) return;
+    for (var line in comment.split('\n')) {
+      outIndentLn('// ${line.trim()}');
+    }
+  }
 }
 
 

@@ -118,6 +118,10 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
   }
 
+  void addComment(String comment, CodeBuffer buffer) {
+    buffer.add(jsAst.prettyPrint(js.comment(comment), compiler));
+  }
+
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null);
     checkedClasses = new Set<ClassElement>();
@@ -1477,6 +1481,9 @@ class CodeEmitterTask extends CompilerTask {
     emitClassGettersSetters(classElement, builder);
     emitInstanceMembers(classElement, builder);
 
+    addComment('''From "${classElement.getLibrary().canonicalUri}":
+                  class ${classElement.name.slowToString()}''',
+               buffer);
     jsAst.Expression init =
         js[classesCollector][className].assign(builder.toObjectInitializer());
     buffer.add(jsAst.prettyPrint(init, compiler));
@@ -1779,6 +1786,9 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = isDeferred(element) ? deferredBuffer : eagerBuffer;
       jsAst.Expression code = backend.generatedCode[element];
+      addComment('''From "${element.getLibrary().canonicalUri}":
+                    $element''',
+                 buffer);
       emitStaticFunction(buffer, namer.getName(element), code);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
@@ -2342,14 +2352,7 @@ class CodeEmitterTask extends CompilerTask {
     } else {
       mainCall = '${namer.isolateAccess(main)}()';
     }
-    if (!compiler.enableMinification) {
-      buffer.add("""
-
-//
-// BEGIN invoke [main].
-//
-""");
-    }
+    addComment('BEGIN invoke [main].', buffer);
     buffer.add("""
 if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   document.addEventListener('readystatechange', function () {
@@ -2369,14 +2372,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   }
 }
 """);
-    if (!compiler.enableMinification) {
-      buffer.add("""
-//
-// END invoke [main].
-//
-
-""");
-    }
+    addComment('END invoke [main].', buffer);
   }
 
   void emitGetInterceptorMethod(CodeBuffer buffer,
