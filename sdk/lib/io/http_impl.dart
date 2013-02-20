@@ -2026,7 +2026,7 @@ class _HttpClient implements HttpClient {
         }
       }
       if (socketConnections == null || socketConnections.isEmpty) {
-        Socket socket = secure ?
+        Socket socket = secure && proxy.isDirect ?
             new SecureSocket(connectHost,
                              connectPort,
                              sendClientCertificate: _sendClientCertificate,

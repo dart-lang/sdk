@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,14 +7,17 @@ import "dart:uri";
 
 class Server {
   HttpServer server;
+  bool secure;
   int proxyHops;
   List<String> directRequestPaths;
   int requestCount = 0;
 
-  Server(this.proxyHops, this.directRequestPaths) : server = new HttpServer();
+  Server(this.proxyHops, this.directRequestPaths, this.secure) {
+    server = secure ? new HttpsServer() : new HttpServer();
+  }
 
   void start() {
-    server.listen("127.0.0.1", 0);
+    server.listen("127.0.0.1", 0, certificate_name: 'CN=localhost');
     server.defaultRequestHandler =
         (HttpRequest request, HttpResponse response) {
           requestCount++;
@@ -52,8 +55,9 @@ class Server {
 }
 
 Server setupServer(int proxyHops,
-                   [List<String> directRequestPaths = const <String>[]]) {
-  Server server = new Server(proxyHops, directRequestPaths);
+                   {List<String> directRequestPaths: const <String>[],
+                    secure: false}) {
+  Server server = new Server(proxyHops, directRequestPaths, secure);
   server.start();
   return server;
 }
@@ -171,7 +175,8 @@ void testDirectProxy() {
 int testProxyDoneCount = 0;
 void testProxy() {
   ProxyServer proxyServer = setupProxyServer();
-  Server server = setupServer(1, ["/4"]);
+  Server server = setupServer(1, directRequestPaths: ["/4"]);
+  Server secureServer = setupServer(1, directRequestPaths: ["/4"], secure: true);
   HttpClient client = new HttpClient();
 
   List<String> proxy =
@@ -189,26 +194,34 @@ void testProxy() {
   };
 
   for (int i = 0; i < proxy.length; i++) {
-    HttpClientConnection conn =
-        client.postUrl(
-            Uri.parse("http://127.0.0.1:${server.port}/$i"));
-    conn.onRequest = (HttpClientRequest clientRequest) {
-      String content = "$i$i$i";
-      clientRequest.outputStream.writeString(content);
-      clientRequest.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onData = () => response.inputStream.read();
-      response.inputStream.onClosed = () {
-        testProxyDoneCount++;
-        if (testProxyDoneCount == proxy.length) {
-          Expect.equals(proxy.length, server.requestCount);
-          proxyServer.shutdown();
-          server.shutdown();
-          client.shutdown();
-        }
+    test(bool secure) {
+      String url = secure
+          ? "https://localhost:${secureServer.port}/$i"
+          : "http://127.0.0.1:${server.port}/$i";
+
+      HttpClientConnection conn = client.postUrl(Uri.parse(url));
+      conn.onRequest = (HttpClientRequest clientRequest) {
+        String content = "$i$i$i";
+        clientRequest.outputStream.writeString(content);
+        clientRequest.outputStream.close();
       };
-    };
+      conn.onResponse = (HttpClientResponse response) {
+        response.inputStream.onData = () => response.inputStream.read();
+        response.inputStream.onClosed = () {
+          testProxyDoneCount++;
+          if (testProxyDoneCount == proxy.length * 2) {
+            Expect.equals(proxy.length, server.requestCount);
+            proxyServer.shutdown();
+            server.shutdown();
+            secureServer.shutdown();
+            client.shutdown();
+          }
+        };
+      };
+    }
+
+    test(false);
+    test(true);
   }
 }
 
@@ -219,7 +232,7 @@ void testProxyChain() {
   ProxyServer proxyServer2 = setupProxyServer();
   proxyServer1.client.findProxy = (_) => "PROXY 127.0.0.1:${proxyServer2.port}";
 
-  Server server = setupServer(2, ["/4"]);
+  Server server = setupServer(2, directRequestPaths: ["/4"]);
   HttpClient client = new HttpClient();
 
   List<String> proxy =
@@ -301,7 +314,15 @@ void testRealProxy() {
   }
 }
 
+void InitializeSSL() {
+  var testPkcertDatabase =
+      new Path(new Options().script).directoryPath.append('pkcert/');
+  SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
+                          password: 'dartdart');
+}
+
 main() {
+  InitializeSSL();
   testInvalidProxy();
   testDirectProxy();
   testProxy();
