@@ -774,14 +774,9 @@ class JavaScriptBackend extends Backend {
     if (intercepted == null) return null;
     Set<ClassElement> result = new Set<ClassElement>();
     for (Element element in intercepted) {
-      ClassElement enclosing = element.getEnclosingClass();
-      // We have to treat null as a bottom type, so we use the untyped
-      // applies method for those elements that are implemented on the
-      // null class.
-      bool applies = (enclosing == jsNullClass)
-          ? selector.appliesUntyped(element, compiler)
-          : selector.applies(element, compiler);
-      if (applies) result.add(enclosing);
+      if (selector.applies(element, compiler)) {
+        result.add(element.getEnclosingClass());
+      }
     }
     if (result.isEmpty) return null;
     return result;

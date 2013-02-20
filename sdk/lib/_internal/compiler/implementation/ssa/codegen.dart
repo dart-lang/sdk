@@ -1564,11 +1564,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
     var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    Selector selector = node.selector;
     String methodName = backend.namer.oneShotInterceptorName(selector);
     push(jsPropertyCall(isolate, methodName, arguments), node);
-    backend.registerSpecializedGetInterceptor(
-        backend.getInterceptedClassesOn(selector));
+    backend.registerSpecializedGetInterceptor(node.interceptedClasses);
     backend.addOneShotInterceptor(selector);
     if (selector.isGetter()) {
       registerGetter(node);
