@@ -805,7 +805,9 @@ unwrapException(ex) {
     // we're dealing with we fall back on looking at the exception
     // message if it is available and a string.
     if (message is String) {
-      if (message.endsWith('is null') ||
+      if (message == 'null has no properties' ||
+          message == "'null' is not an object" ||
+          message.endsWith('is null') ||
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined') ||
           message.endsWith('of undefined') ||
