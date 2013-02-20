@@ -2541,6 +2541,146 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     return Comparable.compare(getInterceptor1, getInterceptor2);
   }
 
+  // Optimize performance critical one shot interceptors.
+  jsAst.Statement tryOptimizeOneShotInterceptor(Selector selector,
+                                                Set<ClassElement> classes) {
+    jsAst.Expression isNumber(String variable) {
+      return js[variable].typeof.equals(js.string('number'));
+    }
+
+    jsAst.Expression isNotObject(String variable) {
+      return js[variable].typeof.equals(js.string('object')).not;
+    }
+
+    jsAst.Expression isInt(String variable) {
+      jsAst.Expression receiver = js[variable];
+      return isNumber(variable).binary('&&',
+          js['Math']['floor'](receiver).equals(receiver));
+    }
+    
+    jsAst.Expression tripleShiftZero(jsAst.Expression receiver) {
+      return receiver.binary('>>>', js.toExpression(0));
+    }
+
+    if (selector.isOperator()) {
+      String name = selector.name.stringValue;
+      if (name == '==') {
+        // Unfolds to:
+        // [: if (receiver == null) return a0 == null;
+        //    if (typeof receiver != 'object') {
+        //      return a0 != null && receiver === a0;
+        //    }
+        // :].
+        List<jsAst.Statement> body = <jsAst.Statement>[];
+        body.add(js.if_(js['receiver'].equals(new jsAst.LiteralNull()),
+                        js.return_(js['a0'].equals(new jsAst.LiteralNull()))));
+        body.add(js.if_(
+            isNotObject('receiver'),
+            js.return_(js['a0'].equals(new jsAst.LiteralNull()).not.binary(
+                '&&', js['receiver'].strictEquals(js['a0'])))));
+        return new jsAst.Block(body);
+      }
+      if (!classes.contains(backend.jsIntClass)
+          && !classes.contains(backend.jsNumberClass)
+          && !classes.contains(backend.jsDoubleClass)) {
+        return null;
+      }
+      if (selector.argumentCount == 1) {
+        // The following operators do not map to a JavaScript
+        // operator.
+        if (name != '~/' && name != '<<' && name != '%' && name != '>>') {
+          jsAst.Expression result = js['receiver'].binary(name, js['a0']);
+          if (name == '&' || name == '|' || name == '^') {
+            result = tripleShiftZero(result);
+          }
+          // Unfolds to:
+          // [: if (typeof receiver == "number" && typeof a0 == "number")
+          //      return receiver op a0;
+          // :].
+          return js.if_(
+              isNumber('receiver').binary('&&', isNumber('a0')),
+              js.return_(result));
+        }
+      } else if (name == 'unary-') {
+        // operator~ does not map to a JavaScript operator.
+        // Unfolds to:
+        // [: if (typeof receiver == "number") return -receiver:].
+        return js.if_(
+            isNumber('receiver'),
+            js.return_(new jsAst.Prefix('-', js['receiver'])));
+      } else {
+        assert(name == '~');
+        return js.if_(
+            isInt('receiver'),
+            js.return_(
+                tripleShiftZero(new jsAst.Prefix(name, js['receiver']))));
+      }
+    } else if (selector.isIndex() || selector.isIndexSet()) {
+      // For an index operation, this code generates:
+      //
+      // [: if (receiver.constructor == Array || typeof receiver == "string") {
+      //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
+      //        return receiver[a0];
+      //      }
+      //    }
+      // :]
+      //
+      // For an index set operation, this code generates:
+      //
+      // [: if (receiver.constructor == Array && !receiver.immutable$list) {
+      //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
+      //        return receiver[a0] = a1;
+      //      }
+      //    }
+      // :]
+      bool containsArray = classes.contains(backend.jsArrayClass);
+      bool containsString = classes.contains(backend.jsStringClass);
+      // The index set operator requires a check on its set value in
+      // checked mode, so we don't optimize the interceptor if the
+      // compiler has type assertions enabled.
+      if (selector.isIndexSet()
+          && (compiler.enableTypeAssertions || !containsArray)) {
+        return null;
+      }
+      if (!containsArray && !containsString) {
+        return null;
+      }
+      jsAst.Expression receiver = js['receiver'];
+      jsAst.Expression arg0 = js['a0'];
+      jsAst.Expression isIntAndAboveZero =
+          arg0.binary('>>>', js.toExpression(0)).strictEquals(arg0);
+      jsAst.Expression belowLength = arg0.binary('<', receiver['length']);
+      jsAst.Expression arrayCheck = receiver['constructor'].equals('Array');
+
+      if (selector.isIndex()) {
+        jsAst.Expression stringCheck =
+            receiver.typeof.equals(js.string('string'));
+        jsAst.Expression typeCheck;
+        if (containsArray) {
+          if (containsString) {
+            typeCheck = arrayCheck.binary('||', stringCheck);
+          } else {
+            typeCheck = arrayCheck;
+          }
+        } else {
+          assert(containsString);
+          typeCheck = stringCheck;
+        }
+
+        return js.if_(typeCheck,
+                      js.if_(isIntAndAboveZero.binary('&&', belowLength),
+                             js.return_(receiver[arg0])));
+      } else {
+        jsAst.Expression isImmutableArray = arrayCheck.binary(
+            '&&', receiver[r'immutable$list'].not);
+        return js.if_(isImmutableArray.binary(
+                      '&&', isIntAndAboveZero.binary('&&', belowLength)),
+                      js.return_(receiver[arg0].assign(js['a1'])));
+      }
+    }
+    return null;
+  }
+
   void emitOneShotInterceptors(CodeBuffer buffer) {
     for (Selector selector in
          backend.oneShotInterceptors.toList()..sort(_compareSelectors)) {
@@ -2565,10 +2705,19 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
         }
       }
 
+      List<jsAst.Statement> body = <jsAst.Statement>[];
+      jsAst.Statement optimizedPath =
+          tryOptimizeOneShotInterceptor(selector, classes);
+      if (optimizedPath != null) {
+        body.add(optimizedPath);
+      }
+
       String invocationName = backend.namer.invocationName(selector);
-      jsAst.Fun function = js.fun(parameters, js.return_(
+      body.add(js.return_(
           js[isolateProperties][getInterceptorName]('receiver')[invocationName](
               arguments)));
+
+      jsAst.Fun function = js.fun(parameters, body);
 
       jsAst.PropertyAccess property =
           js[isolateProperties][oneShotInterceptorName];
