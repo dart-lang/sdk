@@ -28,12 +28,14 @@ class PathBuffer {
   int length;
 
   bool Add(const char* name) {
-    size_t written = snprintf(data + length,
-                              PATH_MAX - length,
-                              "%s",
-                              name);
+    int written = snprintf(data + length,
+                           PATH_MAX - length,
+                           "%s",
+                           name);
     data[PATH_MAX] = '\0';
-    if (written == strnlen(name, PATH_MAX + 1)) {
+    if (written <= PATH_MAX - length &&
+        written >= 0 &&
+        static_cast<size_t>(written) == strnlen(name, PATH_MAX + 1)) {
       length += written;
       return true;
     } else {

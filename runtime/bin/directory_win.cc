@@ -23,12 +23,14 @@ class PathBuffer {
   int length;
 
   bool Add(const wchar_t* name) {
-    size_t written = _snwprintf(data + length,
-                               MAX_PATH - length,
-                               L"%s",
-                               name);
+    int written = _snwprintf(data + length,
+                             MAX_PATH - length,
+                             L"%s",
+                             name);
     data[MAX_PATH] = L'\0';
-    if (written == wcsnlen(name, MAX_PATH + 1)) {
+    if (written <= MAX_PATH - length &&
+        written >= 0 &&
+        static_cast<size_t>(written) == wcsnlen(name, MAX_PATH + 1)) {
       length += written;
       return true;
     } else {
