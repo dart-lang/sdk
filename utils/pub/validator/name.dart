@@ -28,12 +28,14 @@ class NameValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"');
+    _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"',
+        isPackage: true);
 
     return _libraries.then((libraries) {
       for (var library in libraries) {
         var libName = path.basenameWithoutExtension(library);
-        _checkName(libName, 'The name of "$library", "$libName",');
+        _checkName(libName, 'The name of "$library", "$libName",',
+            isPackage: false);
       }
 
       if (libraries.length == 1) {
@@ -62,18 +64,19 @@ class NameValidator extends Validator {
     });
   }
 
-  void _checkName(String name, String description) {
+  void _checkName(String name, String description, {bool isPackage}) {
     if (name == "") {
       errors.add("$description may not be empty.");
     } else if (!new RegExp(r"^[a-zA-Z0-9_]*$").hasMatch(name)) {
-      errors.add("$description may only contain letters, numbers, and "
+      warnings.add("$description may only contain letters, numbers, and "
           "underscores.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (!new RegExp(r"^[a-zA-Z]").hasMatch(name)) {
-      errors.add("$description must begin with letter.\n"
+      warnings.add("$description must begin with letter.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (_RESERVED_WORDS.contains(name.toLowerCase())) {
-      errors.add("$description may not be a reserved word in Dart.\n"
+      var messages = isPackage ? errors : warnings;
+      messages.add("$description may not be a reserved word in Dart.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (new RegExp(r"[A-Z]").hasMatch(name)) {
       warnings.add('$description should be lower-case. Maybe use '

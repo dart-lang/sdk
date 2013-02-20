@@ -284,12 +284,12 @@ main() {
 
     integration('has a package name with an invalid character', () {
       dir(appPath, [libPubspec("test-pkg", "1.0.0")]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a package name that begins with a number', () {
       dir(appPath, [libPubspec("8ball", "1.0.0")]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a package name that contains upper-case letters', () {
@@ -307,7 +307,7 @@ main() {
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("test-pkg.dart", "int i = 0;")])
       ]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a library name that begins with a number', () {
@@ -315,7 +315,7 @@ main() {
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("8ball.dart", "int i = 0;")])
       ]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a library name that contains upper-case letters', () {
@@ -331,7 +331,7 @@ main() {
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("for.dart", "int i = 0;")])
       ]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a single library named differently than the package', () {
