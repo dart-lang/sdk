@@ -764,21 +764,41 @@ class JavaScriptBackend extends Backend {
     oneShotInterceptors.add(selector);
   }
 
+  final Map<Selector, Set<ClassElement>> interceptedClassesCache =
+      new Map<Selector, Set<ClassElement>>();
+  final Map<Selector, Set<ClassElement>> interceptedClassesNonNullCache =
+      new Map<Selector, Set<ClassElement>>();
+
   /**
    * Returns a set of interceptor classes that contain a member whose
    * signature matches the given [selector]. Returns [:null:] if there
    * is no class.
    */
-  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
+  Set<ClassElement> getInterceptedClassesOn(Selector selector,
+                                            {bool canBeNull: true}) {
     Set<Element> intercepted = interceptedElements[selector.name];
     if (intercepted == null) return null;
+    // Pick the right cache and query it.
+    Map<Selector, Set<ClassElement>> cache = canBeNull
+        ? interceptedClassesCache
+        : interceptedClassesNonNullCache;
+    if (cache.containsKey(selector)) return cache[selector];
+    // Populate the cache by running through all the elements and
+    // determine if the given selector applies to them.
     Set<ClassElement> result = new Set<ClassElement>();
     for (Element element in intercepted) {
-      if (selector.applies(element, compiler)) {
-        result.add(element.getEnclosingClass());
-      }
+      ClassElement enclosing = element.getEnclosingClass();
+      // We have to treat null as a bottom type, so we use the untyped
+      // applies method for those elements that are implemented on the
+      // null class.
+      bool applies = (enclosing == jsNullClass)
+          ? canBeNull && selector.appliesUntyped(element, compiler)
+          : selector.applies(element, compiler);
+      if (applies) result.add(enclosing);
     }
-    if (result.isEmpty) return null;
+    if (result.isEmpty) result = null;
+    cache[selector] = result;
+    assert(cache.containsKey(selector));
     return result;
   }
 

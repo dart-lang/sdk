@@ -93,9 +93,9 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <=(other) => true;
     operator ==(other) => true;
   }
-  class JSInt {
+  class JSInt extends JSNumber {
   }
-  class JSDouble {
+  class JSDouble extends JSNumber {
   }
   class JSNull {
   }

@@ -58,6 +58,7 @@ String compile(String code, {String entry: 'main',
   compiler.phase = Compiler.PHASE_RESOLVING;
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
+  compiler.world.populate();
   var context = new js.JavaScriptItemCompilationContext();
   leg.ResolutionWorkItem resolutionWork =
       new leg.ResolutionWorkItem(element, context);

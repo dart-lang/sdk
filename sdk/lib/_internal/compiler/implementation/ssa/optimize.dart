@@ -211,7 +211,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return null;
   }
 
-  HInstruction optimizeLengthInterceptedGetter(HInvokeDynamic node) {
+  HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
     if (actualReceiver.isIndexablePrimitive()) {
       if (actualReceiver.isConstantString()) {
@@ -241,7 +241,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       MapConstant constant = constantInput.constant;
       return graph.addConstantInt(constant.length, constantSystem);
     }
-    return node;
+    return null;
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
@@ -261,45 +261,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     Selector selector = node.selector;
     var interceptor = node.inputs[0];
-
-    // If the intercepted call is through a constant interceptor, we
-    // know which element to call.
-    if (node is !HOneShotInterceptor
-        && interceptor.isConstant()
-        && selector.isCall()) {
-      DartType type = interceptor.instructionType.computeType(compiler);
-      ClassElement cls = type.element;
-      node.element = cls.lookupSelector(selector);
-    }
-
     HInstruction input = node.inputs[1];
-    HType type = input.instructionType;
-    // Check if this call does not need to be intercepted.
-    if (interceptor is !HThis && !type.canBePrimitive()) {
-      // If the type can be null, and the intercepted method can be in
-      // the object class, keep the interceptor.
-      if (type.canBeNull()) {
-        Set<ClassElement> interceptedClasses;
-        if (interceptor is HInterceptor) {
-          interceptedClasses = interceptor.interceptedClasses;
-        } else if (node is HOneShotInterceptor) {
-          var oneShotInterceptor = node;
-          interceptedClasses = oneShotInterceptor.interceptedClasses;
-        }
-        if (interceptedClasses.contains(compiler.objectClass)) return node;
-      }
-      if (selector.isGetter()) {
-        // Change the call to a regular invoke dynamic call.
-        return new HInvokeDynamicGetter(selector, null, input, false);
-      } else if (selector.isSetter()) {
-        return new HInvokeDynamicSetter(
-            selector, null, input, node.inputs[2], false);
-      } else {
-        // Change the call to a regular invoke dynamic call.
-        return new HInvokeDynamicMethod(
-            selector, node.inputs.getRange(1, node.inputs.length - 1));
-      }
-    }
 
     if (selector.isCall()) {
       Element target;
@@ -331,7 +293,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // and this optimization that the dynamic invoke does not need an
         // interceptor. We currently need to keep a
         // HInvokeDynamicMethod and not create a HForeign because
-        // HForeign is too opaque for the SssaCheckInserter (that adds a
+        // HForeign is too opaque for the SsaCheckInserter (that adds a
         // bounds check on removeLast). Once we start inlining, the
         // bounds check will become explicit, so we won't need this
         // optimization.
@@ -342,8 +304,40 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     } else if (selector.isGetter()) {
       if (selector.applies(backend.jsArrayLength, compiler)) {
-        return optimizeLengthInterceptedGetter(node);
+        HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
+        if (optimized != null) return optimized;
       }
+    }
+
+    // Check if this call does not need to be intercepted.
+    HType type = input.instructionType;
+    // TODO(kasperl): Get rid of this refinement once the receiver
+    // specialization phase takes care of it.
+    Selector refined = type.refine(selector, compiler);
+    Set<ClassElement> classes = backend.getInterceptedClassesOn(
+        refined, canBeNull: type.canBeNull());
+    if (classes == null) {
+      if (selector.isGetter()) {
+        // Change the call to a regular invoke dynamic call.
+        return new HInvokeDynamicGetter(selector, null, input, false);
+      } else if (selector.isSetter()) {
+        return new HInvokeDynamicSetter(
+            selector, null, input, node.inputs[2], false);
+      } else {
+        // Change the call to a regular invoke dynamic call.
+        return new HInvokeDynamicMethod(
+            selector, node.inputs.getRange(1, node.inputs.length - 1));
+      }
+    }
+
+    // If the intercepted call is through a constant interceptor, we
+    // know which element to call.
+    if (node is !HOneShotInterceptor
+        && interceptor.isConstant()
+        && selector.isCall()) {
+      DartType type = interceptor.instructionType.computeType(compiler);
+      ClassElement cls = type.element;
+      node.element = cls.lookupSelector(selector);
     }
     return node;
   }
@@ -1469,7 +1463,12 @@ class SsaReceiverSpecialization extends HBaseVisitor
         // double class.
         if (otherIntercepted.contains(backend.jsIntClass)
             || otherIntercepted.contains(backend.jsDoubleClass)) {
-          interceptor.interceptedClasses.addAll(user.interceptedClasses);
+          // We cannot modify the intercepted classes set without
+          // copying because it may be shared by multiple interceptors
+          // because of caching in the backend.
+          Set<ClassElement> copy = interceptor.interceptedClasses.toSet();
+          copy.addAll(user.interceptedClasses);
+          interceptor.interceptedClasses = copy;
         }
         user.interceptedClasses = interceptor.interceptedClasses;
       }
