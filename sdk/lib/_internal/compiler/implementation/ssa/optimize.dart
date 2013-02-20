@@ -331,7 +331,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // and this optimization that the dynamic invoke does not need an
         // interceptor. We currently need to keep a
         // HInvokeDynamicMethod and not create a HForeign because
-        // HForeign is too opaque for the SssaCheckInserter (that adds a
+        // HForeign is too opaque for the SsaCheckInserter (that adds a
         // bounds check on removeLast). Once we start inlining, the
         // bounds check will become explicit, so we won't need this
         // optimization.

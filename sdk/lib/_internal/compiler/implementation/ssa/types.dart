@@ -48,7 +48,7 @@ abstract class HType {
       return canBeNull
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
-    } else if (!isExact) {
+    } else if (isInterfaceType) {
       if (element == compiler.listClass
           || Elements.isListSupertype(element, compiler)) {
         return new HBoundedPotentialPrimitiveArray(
@@ -65,14 +65,15 @@ abstract class HType {
             type,
             canBeNull: canBeNull,
             isInterfaceType: isInterfaceType);
-      } else if (element == compiler.objectClass
-                 || element == compiler.dynamicClass) {
-        return new HBoundedPotentialPrimitiveType(
-            compiler.objectClass.computeType(compiler),
-            true,
-            canBeNull: canBeNull,
-            isInterfaceType: isInterfaceType);
       }
+    }
+    if (!isExact && (element == compiler.objectClass ||
+                     element == compiler.dynamicClass)) {
+      return new HBoundedPotentialPrimitiveType(
+          compiler.objectClass.computeType(compiler),
+          true,
+          canBeNull: canBeNull,
+          isInterfaceType: isInterfaceType);
     }
     return new HBoundedType(
         type,
