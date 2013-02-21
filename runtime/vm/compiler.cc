@@ -159,7 +159,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        isolate);
       // Transform to SSA (virtual register 0 and no inlining arguments).
       flow_graph->ComputeSSA(0, NULL);
-      DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      flow_graph->ComputeUseLists();
     }
 
     if (FLAG_print_flow_graph ||

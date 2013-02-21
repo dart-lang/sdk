@@ -124,6 +124,7 @@ class FlowGraph : public ZoneAllocated {
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,
                   GrowableArray<Definition*>* inlining_parameters);
+  void ComputeUseLists();
 
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.
@@ -137,7 +138,8 @@ class FlowGraph : public ZoneAllocated {
   void InvalidateDominatorTree() { invalid_dominator_tree_ = true; }
 
 #ifdef DEBUG
-  // Verification methods for debugging.
+  // Validation methods for debugging.
+  bool ResetUseLists();
   bool VerifyUseLists();
 #endif  // DEBUG
 

@@ -125,6 +125,53 @@ static intptr_t MembershipCount(Value* use, Value* list) {
 }
 
 
+static void ResetUseListsInInstruction(Instruction* instr) {
+  Definition* defn = instr->AsDefinition();
+  if (defn != NULL) {
+    defn->set_input_use_list(NULL);
+    defn->set_env_use_list(NULL);
+  }
+  for (intptr_t i = 0; i < instr->InputCount(); ++i) {
+    Value* use = instr->InputAt(i);
+    use->set_instruction(NULL);
+    use->set_use_index(-1);
+    use->set_previous_use(NULL);
+    use->set_next_use(NULL);
+  }
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    use->set_instruction(NULL);
+    use->set_use_index(-1);
+    use->set_previous_use(NULL);
+    use->set_next_use(NULL);
+  }
+}
+
+
+bool FlowGraph::ResetUseLists() {
+  // Reset initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ResetUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
+  }
+
+  // Reset phis in join entries and the instructions in each block.
+  for (intptr_t i = 0; i < preorder_.length(); ++i) {
+    BlockEntryInstr* entry = preorder_[i];
+    JoinEntryInstr* join = entry->AsJoinEntry();
+    if (join != NULL && join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi != NULL) ResetUseListsInInstruction(phi);
+      }
+    }
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      ResetUseListsInInstruction(it.Current());
+    }
+  }
+  return true;  // Return true so we can ASSERT the reset code.
+}
+
+
 static void VerifyUseListsInInstruction(Instruction* instr) {
   ASSERT(instr != NULL);
   ASSERT(!instr->IsJoinEntry());
@@ -209,6 +256,108 @@ bool FlowGraph::VerifyUseLists() {
   return true;  // Return true so we can ASSERT validation.
 }
 #endif  // DEBUG
+
+
+static void ClearUseLists(Definition* defn) {
+  ASSERT(defn != NULL);
+  ASSERT(!defn->HasUses());
+  defn->set_input_use_list(NULL);
+  defn->set_env_use_list(NULL);
+}
+
+
+static void RecordInputUses(Instruction* instr) {
+  ASSERT(instr != NULL);
+  for (intptr_t i = 0; i < instr->InputCount(); ++i) {
+    Value* use = instr->InputAt(i);
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->previous_use() == NULL);
+    ASSERT(use->next_use() == NULL);
+    DEBUG_ASSERT(!FLAG_verify_compiler ||
+        (0 == MembershipCount(use, use->definition()->input_use_list())));
+    use->set_instruction(instr);
+    use->set_use_index(i);
+    use->definition()->AddInputUse(use);
+  }
+}
+
+
+static void RecordEnvUses(Instruction* instr) {
+  ASSERT(instr != NULL);
+  if (instr->env() == NULL) return;
+  intptr_t use_index = 0;
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    ASSERT(use->instruction() == NULL);
+    ASSERT(use->use_index() == -1);
+    ASSERT(use->previous_use() == NULL);
+    ASSERT(use->next_use() == NULL);
+    DEBUG_ASSERT(!FLAG_verify_compiler ||
+        (0 == MembershipCount(use, use->definition()->env_use_list())));
+    use->set_instruction(instr);
+    use->set_use_index(use_index++);
+    use->definition()->AddEnvUse(use);
+  }
+}
+
+
+static void ComputeUseListsRecursive(BlockEntryInstr* block) {
+  // Clear phi definitions.
+  JoinEntryInstr* join = block->AsJoinEntry();
+  if (join != NULL && join->phis() != NULL) {
+    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+      PhiInstr* phi = (*join->phis())[i];
+      if (phi != NULL) ClearUseLists(phi);
+    }
+  }
+  // Compute uses on normal instructions.
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->IsDefinition()) ClearUseLists(instr->AsDefinition());
+    RecordInputUses(instr);
+    RecordEnvUses(instr);
+  }
+  // Compute recursively on dominated blocks.
+  for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
+    ComputeUseListsRecursive(block->dominated_blocks()[i]);
+  }
+  // Add phi uses on successor edges.
+  if (block->last_instruction()->SuccessorCount() == 1 &&
+      block->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* join =
+        block->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = join->IndexOfPredecessor(block);
+    ASSERT(pred_index >= 0);
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi == NULL) continue;
+        Value* use = phi->InputAt(pred_index);
+        ASSERT(use->instruction() == NULL);
+        ASSERT(use->use_index() == -1);
+        ASSERT(use->previous_use() == NULL);
+        ASSERT(use->next_use() == NULL);
+        DEBUG_ASSERT(!FLAG_verify_compiler ||
+            (0 == MembershipCount(use, use->definition()->input_use_list())));
+        use->set_instruction(phi);
+        use->set_use_index(pred_index);
+        use->definition()->AddInputUse(use);
+      }
+    }
+  }
+}
+
+
+void FlowGraph::ComputeUseLists() {
+  DEBUG_ASSERT(ResetUseLists());
+  // Clear initial definitions.
+  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
+    ClearUseLists((*graph_entry_->initial_definitions())[i]);
+  }
+  ComputeUseListsRecursive(graph_entry_);
+  DEBUG_ASSERT(!FLAG_verify_compiler || VerifyUseLists());
+}
 
 
 void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
@@ -470,18 +619,9 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // at goto instructions. Optimizations like LICM expect an environment at
     // gotos.
     if (current->CanDeoptimize() || current->IsGoto()) {
-      Environment* deopt_env =
-          Environment::From(*env,
-                            num_non_copied_params_,
-                            parsed_function_.function());
-      current->set_env(deopt_env);
-      intptr_t use_index = 0;
-      for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
-        Value* use = it.CurrentValue();
-        use->set_instruction(current);
-        use->set_use_index(use_index++);
-        use->definition()->AddEnvUse(use);
-      }
+      current->set_env(Environment::From(*env,
+                                         num_non_copied_params_,
+                                         parsed_function_.function()));
     }
     if (current->CanDeoptimize()) {
       current->env()->set_deopt_id(current->deopt_id());
@@ -501,16 +641,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       Definition* input_defn = v->definition();
       if (input_defn->IsLoadLocal() || input_defn->IsStoreLocal()) {
         // Remove the load/store from the graph.
-        input_defn->UnuseAllInputs();
         input_defn->RemoveFromGraph();
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
-        v->set_definition(reaching_defn);
-        input_defn = reaching_defn;
+        current->SetInputAt(i, new Value(reaching_defn));
       }
-      v->set_instruction(current);
-      v->set_use_index(i);
-      input_defn->AddInputUse(v);
     }
 
     // Drop pushed arguments for calls.
@@ -548,7 +683,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           env->Add((*env)[index]);
           // We remove load/store instructions when we find their use in 2a.
         } else {
-          definition->UnuseAllInputs();
           it.RemoveCurrentFromGraph();
         }
       } else {
@@ -589,11 +723,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*successor->phis())[i];
         if (phi != NULL) {
           // Rename input operand.
-          Value* use = new Value((*env)[i]);
-          phi->SetInputAt(pred_index, use);
-          use->set_instruction(phi);
-          use->set_use_index(pred_index);
-          use->definition()->AddInputUse(use);
+          phi->SetInputAt(pred_index, new Value((*env)[i]));
         }
       }
     }

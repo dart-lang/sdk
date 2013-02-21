@@ -1114,7 +1114,7 @@ class PhiIterator : public ValueObject {
  public:
   explicit PhiIterator(JoinEntryInstr* join)
       : phis_(join->phis()), index_(-1) {
-    if (!Done()) Advance();  // Advance to the first phi.
+    if (!Done()) Advance();  // Advance to the first smi.
   }
 
   void Advance() {
@@ -1362,6 +1362,7 @@ class PhiInstr : public Definition {
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
   void mark_alive() { is_alive_ = true; }
+  void mark_dead() { is_alive_ = false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t i) const {
     return representation_;

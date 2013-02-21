@@ -136,7 +136,6 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
   } else if (num_exits == 1) {
     // For just one exit, replace the uses and remove the call from the graph.
     call->ReplaceUsesWith(ValueAt(0)->definition());
-    ValueAt(0)->RemoveFromUseList();
     call->previous()->LinkTo(callee_entry->next());
     LastInstructionAt(0)->LinkTo(call->next());
     // In case of control flow, locally update the predecessors, phis and
