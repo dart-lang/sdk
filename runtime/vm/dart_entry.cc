@@ -326,6 +326,7 @@ void ArgumentsDescriptor::InitOnce() {
 
 RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
                                              const String& class_name,
+                                             const String& constructor_name,
                                              const Array& arguments) {
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
@@ -343,10 +344,10 @@ RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
     constructor_arguments.SetAt((i + kNumExtraArgs), obj);
   }
 
-  String& constructor_name = String::Handle(
-      String::Concat(class_name, Symbols::Dot()));
-  Function& constructor =
-      Function::Handle(cls.LookupConstructor(constructor_name));
+  const String& function_name = String::Handle(
+      String::Concat(class_name, constructor_name));
+  const Function& constructor =
+      Function::Handle(cls.LookupConstructorAllowPrivate(function_name));
   ASSERT(!constructor.IsNull());
   const Object& retval =
     Object::Handle(DartEntry::InvokeStatic(constructor, constructor_arguments));

@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 
+#include "lib/invocation_mirror.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
@@ -614,7 +615,9 @@ class Parser : public ValueObject {
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
                                   const Class& cls,
-                                  const String& function_name);
+                                  const String& function_name,
+                                  InvocationMirror::Call call,
+                                  InvocationMirror::Type type);
 
   void CheckOperatorArity(const MemberDesc& member);
 

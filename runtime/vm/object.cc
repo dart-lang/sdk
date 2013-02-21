@@ -2355,6 +2355,16 @@ RawFunction* Class::LookupConstructor(const String& name) const {
 }
 
 
+RawFunction* Class::LookupConstructorAllowPrivate(const String& name) const {
+  Function& function = Function::Handle(LookupFunctionAllowPrivate(name));
+  if (function.IsNull() || !function.IsConstructor()) {
+    return Function::null();
+  }
+  ASSERT(!function.is_static());
+  return function.raw();
+}
+
+
 RawFunction* Class::LookupFactory(const String& name) const {
   Function& function = Function::Handle(LookupFunction(name));
   if (function.IsNull() || !function.IsFactory()) {

@@ -753,6 +753,7 @@ class Class : public Object {
   RawFunction* LookupStaticFunction(const String& name) const;
   RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupConstructor(const String& name) const;
+  RawFunction* LookupConstructorAllowPrivate(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;

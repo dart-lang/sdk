@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_builder.h"
 
+#include "lib/invocation_mirror.h"
 #include "vm/ast_printer.h"
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
@@ -2374,9 +2375,15 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
       // NoSuchMethodError.
 
       // Throw a NoSuchMethodError.
-      StaticCallInstr* call = BuildThrowNoSuchMethodError(node->token_pos(),
-                                                          node->cls(),
-                                                          getter_name);
+      StaticCallInstr* call = BuildThrowNoSuchMethodError(
+          node->token_pos(),
+          node->cls(),
+          getter_name,
+          InvocationMirror::EncodeType(
+              node->cls().IsTopLevel() ?
+                  InvocationMirror::kTopLevel :
+                  InvocationMirror::kStatic,
+              InvocationMirror::kGetter));
       ReturnDefinition(call);
       return;
     }
@@ -2418,9 +2425,15 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                          arguments);
     } else {
       // Throw a NoSuchMethodError.
-      call = BuildThrowNoSuchMethodError(node->token_pos(),
-                                         node->cls(),
-                                         setter_name);
+      call = BuildThrowNoSuchMethodError(
+          node->token_pos(),
+          node->cls(),
+          setter_name,
+          InvocationMirror::EncodeType(
+            node->cls().IsTopLevel() ?
+                InvocationMirror::kTopLevel :
+                InvocationMirror::kStatic,
+            InvocationMirror::kGetter));
     }
   } else {
     if (is_super_setter) {
@@ -3097,7 +3110,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
     const Class& function_class,
-    const String& function_name) {
+    const String& function_name,
+    int invocation_type) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
   // Object receiver.
@@ -3116,6 +3130,10 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   const String& member_name = String::ZoneHandle(Symbols::New(function_name));
   Value* member_name_value = Bind(new ConstantInstr(member_name));
   arguments->Add(PushArgument(member_name_value));
+  // Smi invocation_type.
+  Value* invocation_type_value = Bind(new ConstantInstr(
+      Smi::ZoneHandle(Smi::New(invocation_type))));
+  arguments->Add(PushArgument(invocation_type_value));
   // List arguments.
   Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
   arguments->Add(PushArgument(arguments_value));

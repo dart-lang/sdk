@@ -28,6 +28,7 @@ patch class Object {
 
   _noSuchMethod(bool isMethod,
                 String memberName,
+                int type,
                 List arguments,
                 Map<String, dynamic> namedArguments)
       native "Object_noSuchMethod";
@@ -35,6 +36,7 @@ patch class Object {
   /* patch */ noSuchMethod(InvocationMirror invocation) {
     return _noSuchMethod(invocation.isMethod,
                          invocation.memberName,
+                         invocation._type,
                          invocation.positionalArguments,
                          invocation.namedArguments);
   }

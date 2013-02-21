@@ -424,6 +424,7 @@ void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;
+  const String* constructor_name = &Symbols::Dot();
   switch (type) {
     case kNone:
       UNREACHABLE();
@@ -439,6 +440,7 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kNoSuchMethod:
       library = Library::CoreLibrary();
       class_name = &Symbols::NoSuchMethodError();
+      constructor_name = &String::Handle(Symbols::New("._withType"));
       break;
     case kFormat:
       library = Library::CoreLibrary();
@@ -478,7 +480,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       break;
   }
 
-  return DartLibraryCalls::ExceptionCreate(library, *class_name, arguments);
+  return DartLibraryCalls::ExceptionCreate(library,
+                                           *class_name,
+                                           *constructor_name,
+                                           arguments);
 }
 
 }  // namespace dart

@@ -4,6 +4,7 @@
 
 #include "vm/parser.h"
 
+#include "lib/invocation_mirror.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -2394,7 +2395,13 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // TODO(regis): For an instance function, pass the receiver to
     // NoSuchMethodError.
     current_block_->statements->Add(
-        ThrowNoSuchMethodError(TokenPos(), current_class(), function_name));
+        ThrowNoSuchMethodError(TokenPos(),
+                               current_class(),
+                               function_name,
+                               func.is_static() ?
+                                   InvocationMirror::kStatic :
+                                   InvocationMirror::kDynamic,
+                               InvocationMirror::kMethod));
   } else {
     UnexpectedToken();
   }
@@ -6849,7 +6856,9 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
 // argument values? Or should the spec specify a different evaluation order?
 AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
                                         const Class& cls,
-                                        const String& function_name) {
+                                        const String& function_name,
+                                        InvocationMirror::Call im_call,
+                                        InvocationMirror::Type im_type) {
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // Object receiver.
   // TODO(regis): For now, we pass a class literal of the unresolved
@@ -6862,6 +6871,14 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   // String memberName.
   arguments->Add(new LiteralNode(
       call_pos, String::ZoneHandle(Symbols::New(function_name))));
+  // Smi invocation_type.
+  if (cls.IsTopLevel()) {
+    ASSERT(im_call == InvocationMirror::kStatic ||
+           im_call == InvocationMirror::kTopLevel);
+    im_call = InvocationMirror::kTopLevel;
+  }
+  arguments->Add(new LiteralNode(call_pos, Smi::ZoneHandle(
+      Smi::New(InvocationMirror::EncodeType(im_call, im_type)))));
   // List arguments.
   arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
   // List argumentNames.
@@ -7173,7 +7190,9 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
     // TODO(tball): determine whether NoSuchMethod should be called instead.
     result = ThrowNoSuchMethodError(original->token_pos(),
                                     current_class(),
-                                    type_name);
+                                    type_name,
+                                    InvocationMirror::kStatic,
+                                    InvocationMirror::kSetter);
   }
   if ((result != NULL) &&
       (result->IsStoreIndexedNode() ||
@@ -7458,7 +7477,11 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       return new ClosureCallNode(call_pos, closure, arguments);
     }
     // Could not resolve static method: throw a NoSuchMethodError.
-    return ThrowNoSuchMethodError(ident_pos, cls, func_name);
+    return ThrowNoSuchMethodError(ident_pos,
+                                  cls,
+                                  func_name,
+                                  InvocationMirror::kStatic,
+                                  InvocationMirror::kMethod);
   }
   return new StaticCallNode(call_pos, func, arguments);
 }
@@ -7529,7 +7552,11 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                      Resolver::kIsQualified);
       if (func.IsNull()) {
         // No field or explicit setter function, throw a NoSuchMethodError.
-        return ThrowNoSuchMethodError(ident_pos, cls, field_name);
+        return ThrowNoSuchMethodError(ident_pos,
+                                      cls,
+                                      field_name,
+                                      InvocationMirror::kStatic,
+                                      InvocationMirror::kField);
       }
 
       // Explicit setter function for the field found, field does not exist.
@@ -7569,7 +7596,11 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         func = cls.LookupStaticFunction(field_name);
         if (func.IsNull()) {
           // No field or explicit getter function, throw a NoSuchMethodError.
-          return ThrowNoSuchMethodError(ident_pos, cls, field_name);
+          return ThrowNoSuchMethodError(ident_pos,
+                                        cls,
+                                        field_name,
+                                        InvocationMirror::kStatic,
+                                        InvocationMirror::kGetter);
         }
         access = CreateImplicitClosureNode(func, call_pos, NULL);
       } else {
@@ -7606,7 +7637,9 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
         current_function().IsInFactoryScope()) {
       return ThrowNoSuchMethodError(primary->token_pos(),
                                     current_class(),
-                                    name);
+                                    name,
+                                    InvocationMirror::kStatic,
+                                    InvocationMirror::kField);
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -7744,7 +7777,9 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (current_function().is_static()) {
             selector = ThrowNoSuchMethodError(primary->token_pos(),
                                               current_class(),
-                                              name);
+                                              name,
+                                              InvocationMirror::kStatic,
+                                              InvocationMirror::kMethod);
           } else {
             // Treat as call to unresolved (instance) method.
             AstNode* receiver = LoadReceiver(primary->token_pos());
@@ -8663,7 +8698,11 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
       // the unresolved name to an instance field access, since a
       // subclass might define a field with this name.
       if (current_function().is_static()) {
-        resolved = ThrowNoSuchMethodError(ident_pos, current_class(), ident);
+        resolved = ThrowNoSuchMethodError(ident_pos,
+                                          current_class(),
+                                          ident,
+                                          InvocationMirror::kStatic,
+                                          InvocationMirror::kField);
       } else {
         // Treat as call to unresolved instance field.
         resolved = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
@@ -9263,7 +9302,9 @@ AstNode* Parser::ParseNewOperator() {
       }
       return ThrowNoSuchMethodError(call_pos,
                                     type_class,
-                                    external_constructor_name);
+                                    external_constructor_name,
+                                    InvocationMirror::kConstructor,
+                                    InvocationMirror::kMethod);
     } else if (constructor.IsRedirectingFactory()) {
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
       if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
@@ -9323,7 +9364,9 @@ AstNode* Parser::ParseNewOperator() {
     }
     return ThrowNoSuchMethodError(call_pos,
                                   type_class,
-                                  external_constructor_name);
+                                  external_constructor_name,
+                                  InvocationMirror::kConstructor,
+                                  InvocationMirror::kMethod);
   }
 
   // Return a throw in case of a malformed type or report a compile-time error
