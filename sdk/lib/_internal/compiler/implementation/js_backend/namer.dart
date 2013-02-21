@@ -185,6 +185,7 @@ class Namer implements ClosureNamer {
    */
   final Compiler compiler;
   final Map<Element, String> globals;
+  final Map<Selector, String> oneShotInterceptorNames;
   final Map<String, LibraryElement> shortPrivateNameOwners;
 
   final Set<String> usedGlobalNames;
@@ -193,7 +194,7 @@ class Namer implements ClosureNamer {
   final Map<String, String> suggestedGlobalNames;
   final Map<String, String> instanceNameMap;
   final Map<String, String> suggestedInstanceNames;
-
+      
   final Map<String, String> operatorNameMap;
   final Map<String, int> popularNameCounters;
 
@@ -203,6 +204,7 @@ class Namer implements ClosureNamer {
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
+        oneShotInterceptorNames = new Map<Selector, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         bailoutNames = new Map<Element, String>(),
         usedGlobalNames = new Set<String>(),
@@ -532,39 +534,22 @@ class Namer implements ClosureNamer {
     return name;
   }
 
-  String getInterceptorSuffix(Collection<ClassElement> classes) {
-    String abbreviate(ClassElement cls) {
-      if (cls == compiler.objectClass) return "o";
-      if (cls == compiler.backend.jsStringClass) return "s";
-      if (cls == compiler.backend.jsArrayClass) return "a";
-      if (cls == compiler.backend.jsDoubleClass) return "d";
-      if (cls == compiler.backend.jsNumberClass) return "n";
-      if (cls == compiler.backend.jsNullClass) return "u";
-      if (cls == compiler.backend.jsFunctionClass) return "f";
-      if (cls == compiler.backend.jsBoolClass) return "b";
-      return cls.name.slowToString();
-    }
-    // Sort the names of the classes after abbreviating them to ensure
-    // the suffix is stable and predictable for the suggested names.
-    List<String> names = classes.map(abbreviate).toList();
-    names.sort();
-    return names.join();
-  }
-
   String getInterceptorName(Element element, Collection<ClassElement> classes) {
     if (classes.contains(compiler.objectClass)) {
       // If the object class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod.
       return getName(element);
     }
-    String suffix = getInterceptorSuffix(classes);
-    return getMappedGlobalName("${element.name.slowToString()}\$$suffix");
-  }
-
-  String getOneShotInterceptorName(Selector selector,
-                                   Collection<ClassElement> classes) {
-    String suffix = getInterceptorSuffix(classes);
-    return getMappedGlobalName("${invocationName(selector)}\$$suffix");
+    // Use the unminified names here to construct the interceptor names.  This
+    // helps ensure that they don't all suddenly change names due to a name
+    // clash in the minifier, which would affect the diff size.  Sort the names
+    // of the classes to ensure name is stable and predicatble for the suggested
+    // names.
+    StringBuffer buffer = new StringBuffer('${element.name.slowToString()}\$');
+    List<String> names = classes.map((cls) => cls.name.slowToString()).toList();
+    names.sort();
+    names.forEach(buffer.write);
+    return getMappedGlobalName(buffer.toString());
   }
 
   String getBailoutName(Element element) {
@@ -714,6 +699,19 @@ class Namer implements ClosureNamer {
 
   String safeName(String name) => _safeName(name, jsReserved);
   String safeVariableName(String name) => _safeName(name, jsVariableReserved);
+
+  String oneShotInterceptorName(Selector selector) {
+    // TODO(ngeoffray): What to do about typed selectors? We could
+    // filter them out, or keep them and hope the generated one shot
+    // interceptor takes advantage of the type.
+    String cached = oneShotInterceptorNames[selector];
+    if (cached != null) return cached;
+    SourceString name = operatorNameToIdentifier(selector.name);
+    String result = getFreshName(name.slowToString(), usedGlobalNames,
+                                 suggestedGlobalNames);
+    oneShotInterceptorNames[selector] = result;
+    return result;
+  }
 
   SourceString operatorNameToIdentifier(SourceString name) {
     if (name == null) return null;

@@ -682,7 +682,7 @@ class JavaScriptBackend extends Backend {
    * A collection of selectors that must have a one shot interceptor
    * generated.
    */
-  final Map<String, Selector> oneShotInterceptors;
+  final Set<Selector> oneShotInterceptors;
 
   /**
    * The members of instantiated interceptor classes: maps a member
@@ -727,7 +727,7 @@ class JavaScriptBackend extends Backend {
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         usedInterceptors = new Set<Selector>(),
-        oneShotInterceptors = new Map<String, Selector>(),
+        oneShotInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
         specializedGetInterceptors =
@@ -760,14 +760,8 @@ class JavaScriptBackend extends Backend {
     usedInterceptors.add(selector);
   }
 
-  String registerOneShotInterceptor(Selector selector) {
-    Set<ClassElement> classes = getInterceptedClassesOn(selector);
-    String name = namer.getOneShotInterceptorName(selector, classes);
-    if (!oneShotInterceptors.containsKey(name)) {
-      registerSpecializedGetInterceptor(classes);
-      oneShotInterceptors[name] = selector;
-    }
-    return name;
+  void addOneShotInterceptor(Selector selector) {
+    oneShotInterceptors.add(selector);
   }
 
   final Map<Selector, Set<ClassElement>> interceptedClassesCache =
@@ -806,6 +800,12 @@ class JavaScriptBackend extends Backend {
     cache[selector] = result;
     assert(cache.containsKey(selector));
     return result;
+  }
+
+  List<ClassElement> getListOfInterceptedClasses() {
+      return <ClassElement>[jsStringClass, jsArrayClass, jsIntClass,
+                            jsDoubleClass, jsNumberClass, jsNullClass,
+                            jsFunctionClass, jsBoolClass];
   }
 
   void initializeInterceptorElements() {

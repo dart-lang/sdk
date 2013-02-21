@@ -2678,12 +2678,10 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   }
 
   void emitOneShotInterceptors(CodeBuffer buffer) {
-    List<String> names = backend.oneShotInterceptors.keys.toList();
-    names.sort();
-    for (String name in names) {
-      Selector selector = backend.oneShotInterceptors[name];
-      Set<ClassElement> classes =
-          backend.getInterceptedClassesOn(selector);
+    for (Selector selector in
+         backend.oneShotInterceptors.toList()..sort(_compareSelectors)) {
+      Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);
+      String oneShotInterceptorName = namer.oneShotInterceptorName(selector);
       String getInterceptorName =
           namer.getInterceptorName(backend.getInterceptorMethod, classes);
 
@@ -2718,7 +2716,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       jsAst.Fun function = js.fun(parameters, body);
 
       jsAst.PropertyAccess property =
-          js[isolateProperties][name];
+          js[isolateProperties][oneShotInterceptorName];
 
       buffer.add(jsAst.prettyPrint(property.assign(function), compiler));
       buffer.add(N);
