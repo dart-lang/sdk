@@ -4142,14 +4142,23 @@ void ConstantPropagator::Transform() {
        !b.Done();
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
+    JoinEntryInstr* join = block->AsJoinEntry();
     if (!reachable_->Contains(block->preorder_number())) {
       if (FLAG_trace_constant_propagation) {
         OS::Print("Unreachable B%"Pd"\n", block->block_id());
       }
+      // Remove all uses in unreachable blocks.
+      if (join != NULL) {
+        for (PhiIterator it(join); !it.Done(); it.Advance()) {
+          it.Current()->UnuseAllInputs();
+        }
+      }
+      for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+        it.Current()->UnuseAllInputs();
+      }
       continue;
     }
 
-    JoinEntryInstr* join = block->AsJoinEntry();
     if (join != NULL) {
       // Remove phi inputs corresponding to unreachable predecessor blocks.
       // Predecessors will be recomputed (in block id order) after removing
@@ -4165,18 +4174,32 @@ void ConstantPropagator::Transform() {
               for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
                 PhiInstr* phi = (*phis)[phi_idx];
                 if (phi == NULL) continue;
-                phi->inputs_[live_count] = phi->inputs_[pred_idx];
+                Value* input = phi->inputs_[pred_idx];
+                input->set_use_index(live_count);
+                phi->inputs_[live_count] = input;
               }
             }
             ++live_count;
+          } else {
+            for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
+              PhiInstr* phi = (*phis)[phi_idx];
+              if (phi == NULL) continue;
+              phi->inputs_[pred_idx]->RemoveFromUseList();
+            }
           }
         }
         if (live_count < pred_count) {
           for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
             PhiInstr* phi = (*phis)[phi_idx];
             if (phi == NULL) continue;
-            phi->inputs_.TruncateTo(live_count);
-            if (live_count == 1) redundant_phis.Add(phi);
+            if (FLAG_remove_redundant_phis && (live_count == 1)) {
+              Value* input = phi->InputAt(0);
+              phi->ReplaceUsesWith(input->definition());
+              input->RemoveFromUseList();
+              (*phis)[phi_idx] = NULL;
+            } else {
+              phi->inputs_.TruncateTo(live_count);
+            }
           }
         }
       }
@@ -4238,6 +4261,7 @@ void ConstantPropagator::Transform() {
         // Replace the false target entry with the new join entry. We will
         // recompute the dominators after this pass.
         join->LinkTo(next);
+        branch->UnuseAllInputs();
       }
     }
   }
@@ -4245,15 +4269,6 @@ void ConstantPropagator::Transform() {
   graph_->DiscoverBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
-  graph_->ComputeUseLists();
-
-  if (FLAG_remove_redundant_phis) {
-    for (intptr_t i = 0; i < redundant_phis.length(); i++) {
-      PhiInstr* phi = redundant_phis[i];
-      phi->ReplaceUsesWith(phi->InputAt(0)->definition());
-      phi->mark_dead();
-    }
-  }
 
   if (FLAG_trace_constant_propagation) {
     OS::Print("\n==== After constant propagation ====\n");

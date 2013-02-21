@@ -136,6 +136,7 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
   } else if (num_exits == 1) {
     // For just one exit, replace the uses and remove the call from the graph.
     call->ReplaceUsesWith(ValueAt(0)->definition());
+    ValueAt(0)->RemoveFromUseList();
     call->previous()->LinkTo(callee_entry->next());
     LastInstructionAt(0)->LinkTo(call->next());
     // In case of control flow, locally update the predecessors, phis and
@@ -210,6 +211,12 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
       }
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);
+    } else {
+      // In the case that the result is unused, remove the return value uses
+      // from their definition's use list.
+      for (intptr_t i = 0; i < num_exits; ++i) {
+        ValueAt(i)->RemoveFromUseList();
+      }
     }
     // Remove the call from the graph.
     call->previous()->LinkTo(callee_entry->next());
