@@ -662,6 +662,64 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       return false;
   }
 
+  BuildStoreIndexed(call, value_check, class_id);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::TryInlineByteArraySetIndexed(InstanceCallInstr* call) {
+  const intptr_t class_id = ReceiverClassId(call);
+  ICData& value_check = ICData::ZoneHandle();
+  switch (class_id) {
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid: {
+      // Check that value is always smi.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      break;
+    }
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // We don't have ICData for the value stored, so we optimistically assume
+      // smis first. If we ever deoptimized here, we require to unbox the value
+      // before storing to handle the mint case, too.
+      if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
+        value_check = ICData::New(Function::Handle(),
+                                  String::Handle(),
+                                  Isolate::kNoDeoptId,
+                                  1);
+        value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      }
+      break;
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid: {
+      // Check that value is always double.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
+      break;
+    }
+    default:
+      return false;
+  }
+  BuildStoreIndexed(call, value_check, class_id);
+  return true;
+}
+
+
+void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
+                                           const ICData& value_check,
+                                           intptr_t class_id) {
   Definition* array = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
   Definition* stored_value = call->ArgumentAt(2);
@@ -729,7 +787,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
 
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
   // Check if store barrier is needed.
-  bool needs_store_barrier = true;
+  bool needs_store_barrier = !RawObject::IsByteArrayClassId(array_cid);
   if (!value_check.IsNull()) {
     needs_store_barrier = false;
     AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
@@ -743,7 +801,6 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
                                                array_cid,
                                                call->deopt_id());
   ReplaceCall(call, array_op);
-  return true;
 }
 
 
@@ -1360,6 +1417,20 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       return TryReplaceWithLoadIndexed(call);
+
+    case MethodRecognizer::kFloat32ArraySetIndexed:
+    case MethodRecognizer::kFloat64ArraySetIndexed:
+    case MethodRecognizer::kInt8ArraySetIndexed:
+    case MethodRecognizer::kUint8ArraySetIndexed:
+    case MethodRecognizer::kUint8ClampedArraySetIndexed:
+    case MethodRecognizer::kExternalUint8ArraySetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
+    case MethodRecognizer::kInt16ArraySetIndexed:
+    case MethodRecognizer::kUint16ArraySetIndexed:
+    case MethodRecognizer::kInt32ArraySetIndexed:
+    case MethodRecognizer::kUint32ArraySetIndexed:
+      return TryInlineByteArraySetIndexed(call);
+
     default:
       break;
   }

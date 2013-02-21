@@ -8120,7 +8120,6 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
 #endif  // DEBUG
   ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
   ASSERT(receiver_class_id != kIllegalCid);
-  ASSERT(!target.IsNull());
 
   const intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());

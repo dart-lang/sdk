@@ -62,6 +62,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                             Definition** array,
                             Definition** index);
   bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
+  bool TryInlineByteArraySetIndexed(InstanceCallInstr* call);
+  void BuildStoreIndexed(InstanceCallInstr* call,
+                         const ICData& value_check,
+                         intptr_t class_id);
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);

@@ -202,7 +202,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // RAX, RCX, R13
   // and the newly allocated object is returned in RAX.
@@ -440,63 +440,6 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
 }
 
 
-// Tests if index is a valid length (Smi and within valid index range),
-// jumps to fall_through if it is not.
-// Returns index in R12, array in RAX.
-// This should be used only for setIndexed intrinsics.
-static void TestByteArraySetIndex(Assembler* assembler, Label* fall_through) {
-  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
-  __ movq(R12, Address(RSP, + 2 * kWordSize));  // Index.
-  __ testq(R12, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpq(R12, FieldAddress(RAX, ByteArray::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
-}
-
-
-bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movsxb(RAX, FieldAddress(RAX,
-                              R12,
-                              TIMES_1,
-                              Int8Array::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
-  __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
-  __ SmiUntag(RDI);
-  // Check that the value is a byte. Add 128 to the value to bring it into
-  // the range 0..FF.
-  __ addq(RDI, Immediate(128));
-  __ cmpq(RDI, Immediate(0xFF));
-  __ j(ABOVE, &fall_through, Assembler::kNearJump);
-  // Undo addition.
-  __ subq(RDI, Immediate(128));
-  __ movb(FieldAddress(RAX, R12, TIMES_1, Uint8Array::data_offset()), RDI);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 #define TYPED_ARRAY_ALLOCATION(type_name, scale_factor)                        \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
@@ -594,90 +537,8 @@ bool Intrinsifier::Int8Array_new(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movzxb(RAX, FieldAddress(RAX,
-                              R12,
-                              TIMES_1,
-                              Uint8Array::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
-  __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
-  __ SmiUntag(RDI);
-  // Check that value is a byte.
-  __ cmpq(RDI, Immediate(0xFF));
-  __ j(ABOVE, &fall_through, Assembler::kNearJump);
-  __ movb(FieldAddress(RAX, R12, TIMES_1, Uint8Array::data_offset()), RDI);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 bool Intrinsifier::Uint8Array_new(Assembler* assembler) {
   TYPED_ARRAY_ALLOCATION(Uint8Array, TIMES_1);
-  return false;
-}
-
-
-bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movzxb(RAX, FieldAddress(RAX,
-                              R12,
-                              TIMES_1,
-                              Uint8ClampedArray::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
-  Label fall_through, store_value, load_0xff;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
-  __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
-
-  __ SmiUntag(RDI);
-  __ cmpq(RDI, Immediate(0xFF));
-  __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
-  __ j(GREATER, &load_0xff,  Assembler::kNearJump);
-  __ xorq(RDI, RDI);  // Zero.
-  __ jmp(&store_value, Assembler::kNearJump);
-  __ Bind(&load_0xff);
-  __ movq(RDI, Immediate(0xFF));
-
-  __ Bind(&store_value);
-  __ movb(
-      FieldAddress(RAX, R12, TIMES_1, Uint8ClampedArray::data_offset()), RDI);
-  __ ret();
-  __ Bind(&fall_through);
   return false;
 }
 
@@ -688,57 +549,8 @@ bool Intrinsifier::Uint8ClampedArray_new(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movsxw(RAX, FieldAddress(RAX,
-                              R12,
-                              TIMES_1,
-                              Int16Array::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 bool Intrinsifier::Int16Array_new(Assembler* assembler) {
   TYPED_ARRAY_ALLOCATION(Int16Array, TIMES_2);
-  return false;
-}
-
-
-bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movzxw(RAX, FieldAddress(RAX,
-                              R12,
-                              TIMES_1,
-                              Uint16Array::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Uint16Array_setIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RDI, Address(RSP, + 1 * kWordSize));
-  __ SmiUntag(RDI);
-  // RDI: untagged value.
-  __ testl(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
-  __ movw(FieldAddress(RAX, R12, TIMES_1, Uint16Array::data_offset()), RDI);
-  __ ret();
-  __ Bind(&fall_through);
   return false;
 }
 
@@ -749,40 +561,8 @@ bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movsxl(RAX, FieldAddress(RAX,
-                              R12,
-                              TIMES_2,
-                              Int32Array::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 bool Intrinsifier::Int32Array_new(Assembler* assembler) {
   TYPED_ARRAY_ALLOCATION(Int32Array, TIMES_4);
-  return false;
-}
-
-
-bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movl(RAX, FieldAddress(RAX,
-                            R12,
-                            TIMES_2,
-                            Uint32Array::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
   return false;
 }
 
@@ -850,165 +630,14 @@ bool Intrinsifier::Uint64Array_new(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  // Load single precision float into XMM7.
-  __ movss(XMM7, FieldAddress(RAX, R12, TIMES_2,
-                              Float32Array::data_offset()));
-  // Convert into a double precision float.
-  __ cvtss2sd(XMM7, XMM7);
-  // Allocate a double instance.
-  const Class& double_class = Class::Handle(
-                          Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump, RAX);
-  // Store XMM7 into double instance.
-  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM7);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
-  // If RDX is not an instance of double, jump to fall through.
-  __ testq(RDX, Immediate(kSmiTagMask));
-  __ j(ZERO, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(RDX, kDoubleCid);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  // Load double value into XMM7.
-  __ movsd(XMM7, FieldAddress(RDX, Double::value_offset()));
-  // Convert from double precision float to single precision float.
-  __ cvtsd2ss(XMM7, XMM7);
-  // Store into array.
-  __ movss(FieldAddress(RAX, R12, TIMES_2, Float32Array::data_offset()), XMM7);
-  // End fast path.
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 bool Intrinsifier::Float32Array_new(Assembler* assembler) {
   TYPED_ARRAY_ALLOCATION(Float32Array, TIMES_4);
   return false;
 }
 
 
-bool Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  // Load double precision float into XMM7.
-  __ movsd(XMM7, FieldAddress(RAX, R12, TIMES_4,
-                              Float64Array::data_offset()));
-  // Allocate a double instance.
-  const Class& double_class = Class::Handle(
-    Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump, RAX);
-  // Store XMM7 into double instance.
-  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM7);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
-  // If RDX is not an instance of double, jump to fall through.
-  __ testq(RDX, Immediate(kSmiTagMask));
-  __ j(ZERO, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(RDX, kDoubleCid);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  // Load double value into XMM7.
-  __ movsd(XMM7, FieldAddress(RDX, Double::value_offset()));
-  // Store into array.
-  __ movsd(FieldAddress(RAX, R12, TIMES_4, Float64Array::data_offset()), XMM7);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 bool Intrinsifier::Float64Array_new(Assembler* assembler) {
   TYPED_ARRAY_ALLOCATION(Float64Array, TIMES_8);
-  return false;
-}
-
-
-bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movq(RAX, FieldAddress(RAX, ExternalUint8Array::data_offset()));
-  __ movzxb(RAX, Address(RAX, R12, TIMES_1, 0));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::ExternalUint8ClampedArray_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movq(RAX, FieldAddress(RAX, ExternalUint8ClampedArray::data_offset()));
-  __ movzxb(RAX, Address(RAX, R12, TIMES_1, 0));
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::ExternalUint8ClampedArray_setIndexed(Assembler* assembler) {
-  Label fall_through, store_value, load_0xff;
-  TestByteArraySetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ SmiUntag(R12);
-  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
-  __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
-
-  __ SmiUntag(RDI);
-  __ cmpq(RDI, Immediate(0xFF));
-  __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
-  __ j(GREATER, &load_0xff,  Assembler::kNearJump);
-  __ xorq(RDI, RDI);  // Zero.
-  __ jmp(&store_value, Assembler::kNearJump);
-  __ Bind(&load_0xff);
-  __ movq(RDI, Immediate(0xFF));
-
-  __ Bind(&store_value);
-  __ movq(RAX, FieldAddress(RAX, ExternalUint8ClampedArray::data_offset()));
-  __ movb(Address(RAX, R12, TIMES_1, 0), RDI);
-  __ ret();
-  __ Bind(&fall_through);
   return false;
 }
 

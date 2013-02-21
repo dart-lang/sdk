@@ -57,6 +57,18 @@ class Range;
   V(_Uint16Array, _getIndexed, Uint16ArrayGetIndexed, 539701175)               \
   V(_Int32Array, _getIndexed, Int32ArrayGetIndexed, 655321526)                 \
   V(_Uint32Array, _getIndexed, Uint32ArrayGetIndexed, 1060443550)              \
+  V(_Float32Array, _setIndexed, Float32ArraySetIndexed, 1040992157)            \
+  V(_Float64Array, _setIndexed, Float64ArraySetIndexed, 330158324)             \
+  V(_Int8Array, _setIndexed, Int8ArraySetIndexed, 680713569)                   \
+  V(_Uint8Array, _setIndexed, Uint8ArraySetIndexed, 785627791)                 \
+  V(_Uint8ClampedArray, _setIndexed, Uint8ClampedArraySetIndexed, 464766374)   \
+  V(_ExternalUint8Array, _setIndexed, ExternalUint8ArraySetIndexed, 159706697) \
+  V(_ExternalUint8ClampedArray, _setIndexed,                                   \
+    ExternalUint8ClampedArraySetIndexed, 335716123)                            \
+  V(_Int16Array, _setIndexed, Int16ArraySetIndexed, 12169534)                  \
+  V(_Uint16Array, _setIndexed, Uint16ArraySetIndexed, 36054302)                \
+  V(_Int32Array, _setIndexed, Int32ArraySetIndexed, 306194131)                 \
+  V(_Uint32Array, _setIndexed, Uint32ArraySetIndexed, 410753485)               \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
