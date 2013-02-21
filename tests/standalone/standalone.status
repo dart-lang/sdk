@@ -20,6 +20,9 @@ io/https_client_certificate_test: Pass, Timeout # Issue 8674
 io/raw_socket_test: Pass, Timeout # Issue 8675
 io/socket_test: Pass, Timeout # Issue 8676
 io/socket_exception_test: Pass, Timeout # Issue 8677
+io/https_client_test: Pass, Timeout # Issue 8674
+io/https_server_test: Pass, Timeout # Issue 8674
+io/https_client_socket_reuse_test: Pass, Timeout # Issue 8674
 
 ####################################################
 
