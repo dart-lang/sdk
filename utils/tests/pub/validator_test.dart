@@ -284,12 +284,12 @@ main() {
 
     integration('has a package name with an invalid character', () {
       dir(appPath, [libPubspec("test-pkg", "1.0.0")]).scheduleCreate();
-      expectValidationWarning(name);
+      expectValidationError(name);
     });
 
     integration('has a package name that begins with a number', () {
       dir(appPath, [libPubspec("8ball", "1.0.0")]).scheduleCreate();
-      expectValidationWarning(name);
+      expectValidationError(name);
     });
 
     integration('has a package name that contains upper-case letters', () {

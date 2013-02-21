@@ -65,17 +65,19 @@ class NameValidator extends Validator {
   }
 
   void _checkName(String name, String description, {bool isPackage}) {
+    // Packages names are more stringent than libraries.
+    var messages = isPackage ? errors : warnings;
+
     if (name == "") {
       errors.add("$description may not be empty.");
     } else if (!new RegExp(r"^[a-zA-Z0-9_]*$").hasMatch(name)) {
-      warnings.add("$description may only contain letters, numbers, and "
+      messages.add("$description may only contain letters, numbers, and "
           "underscores.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (!new RegExp(r"^[a-zA-Z]").hasMatch(name)) {
-      warnings.add("$description must begin with letter.\n"
+      messages.add("$description must begin with letter.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (_RESERVED_WORDS.contains(name.toLowerCase())) {
-      var messages = isPackage ? errors : warnings;
       messages.add("$description may not be a reserved word in Dart.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (new RegExp(r"[A-Z]").hasMatch(name)) {
