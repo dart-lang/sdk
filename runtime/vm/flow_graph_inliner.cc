@@ -491,7 +491,7 @@ class CallSiteInliner : public ValueObject {
         // Compute SSA on the callee graph, catching bailouts.
         callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                  &param_stubs);
-        callee_graph->ComputeUseLists();
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       {
