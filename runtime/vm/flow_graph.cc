@@ -131,7 +131,7 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     Value* use = instr->InputAt(i);
     ASSERT(use->definition() != NULL);
-    ASSERT(use->definition() != instr);
+    ASSERT((use->definition() != instr) || use->definition()->IsPhi());
     ASSERT(use->instruction() == instr);
     ASSERT(use->use_index() == i);
     ASSERT(!FLAG_verify_compiler ||
@@ -142,7 +142,7 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
     for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
       Value* use = it.CurrentValue();
       ASSERT(use->definition() != NULL);
-      ASSERT(use->definition() != instr);
+      ASSERT((use->definition() != instr) || use->definition()->IsPhi());
       ASSERT(use->instruction() == instr);
       ASSERT(use->use_index() == use_index++);
       ASSERT(!FLAG_verify_compiler ||
