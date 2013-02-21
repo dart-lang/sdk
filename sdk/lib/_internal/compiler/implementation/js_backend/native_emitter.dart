@@ -249,11 +249,10 @@ function(cls, desc) {
       jsAst.Statement body,
       List<jsAst.Parameter> parameters) {
     return js.if_(
-        js['Object']['getPrototypeOf']('this')['hasOwnProperty'](
-            js.string(methodName)),
+        js['(Object.getPrototypeOf(this)).hasOwnProperty("$methodName")'],
         body,
         js.return_(
-            js['Object']['prototype'][methodName]['call'](
+            js['Object.prototype.$methodName.call'](
                 <jsAst.Expression>[js['this']]..addAll(
                     parameters.map((param) => js[param.name])))));
   }
@@ -479,13 +478,13 @@ function(cls, desc) {
         if (element.isObject(compiler)) continue;
         String name = backend.namer.operatorIs(element);
         addProperty(name,
-            js.fun([], js.return_(new jsAst.LiteralBool(false))));
+            js.fun([], js.return_(js['false'])));
       }
     }
     emitIsChecks();
 
     jsAst.Expression makeCallOnThis(String functionName) {
-      return js.fun([], js.return_(js[functionName]('this')));
+      return js.fun([], js.return_(js['$functionName(this)']));
     }
 
     // In order to have the toString method on every native class,
@@ -503,7 +502,7 @@ function(cls, desc) {
     String equalsName = backend.namer.publicInstanceMethodNameByArity(
         const SourceString('=='), 1);
     addProperty(equalsName, js.fun(['a'],
-        js.return_(js.strictEquals(new jsAst.This(), js['a']))));
+        js.return_(js['this === a'])));
 
     // If the native emitter has been asked to take care of the
     // noSuchMethod handlers, we do that now.
@@ -523,11 +522,7 @@ function(cls, desc) {
                           null)]),
                   js['table'],
                   new jsAst.ExpressionStatement(
-                      js[defPropName](
-                          [js['Object']['prototype'],
-                           js['key'],
-                           new jsAst.PropertyAccess(js['table'],
-                                                    js['key'])]))))(
+                      js['$defPropName(Object.prototype, key, table[key])'])))(
               new jsAst.ObjectInitializer(objectProperties));
 
       if (emitter.compiler.enableMinification) targetBuffer.add(';');

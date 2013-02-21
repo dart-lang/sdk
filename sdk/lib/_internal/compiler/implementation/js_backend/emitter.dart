@@ -177,86 +177,45 @@ class CodeEmitterTask extends CompilerTask {
   const GETTER_SETTER_CODE = 0x3d;
   const GETTER_CODE = 0x3e;
   const RENAMING_FLAG = 0x40;
-
-  jsAst.Expression needsGetterCode(String variable) {
-    // ($variable & 3) > 0
-    return (js[variable] & 3) > 0;
-  }
-
-  jsAst.Expression needsSetterCode(String variable) {
-    // ($variable & 2) == 0
-    return (js[variable] & 2).equals(0);
-  }
-
-  jsAst.Expression isRenaming(String variable) {
-    // ($variable & $RENAMING_FLAG) != 0
-    return (js[variable] & RENAMING_FLAG).notEquals(0);
-  }
+  String needsGetterCode(String variable) => '($variable & 3) > 0';
+  String needsSetterCode(String variable) => '($variable & 2) == 0';
+  String isRenaming(String variable) => '($variable & $RENAMING_FLAG) != 0';
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
     // function generateAccessor(field, prototype) {
     jsAst.Fun fun = js.fun(['field', 'prototype'], [
-
-      // var len = field.length;
-      js['len'].def(js['field']['length']),
-
-      // var lastCharCode = field.charCodeAt(len - 1);
-      js['lastCharCode'].def(js['field']['charCodeAt'](js['len'] - 1)),
-
-      // var needsAccessor =
-      //     (lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE;
-      js['needsAccessor'].def(
-          (js['lastCharCode'] & SUFFIX_MASK) >= FIRST_SUFFIX_CODE),
+      js['var len = field.length'],
+      js['var lastCharCode = field.charCodeAt(len - 1)'],
+      js['var needsAccessor = '
+                '(lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE'],
 
       // if (needsAccessor) {
       js.if_('needsAccessor', [
-        // var needsGetter = ${needsGetterCode('lastCharCode')};
-        js['needsGetter'].def(needsGetterCode('lastCharCode')),
-
-        // var needsSetter = ${needsSetterCode('lastCharCode')};
-        js['needsSetter'].def(needsSetterCode('lastCharCode')),
-
-        // var renaming = ${isRenaming('lastCharCode')};
-        js['renaming'].def(isRenaming('lastCharCode')),
-
-        // var accessorName = field = field.substring(0, len - 1);
-        js['accessorName'].def(
-            js['field'].assign(js['field']['substring']([0, js['len'] - 1]))),
+        js['var needsGetter = ${needsGetterCode("lastCharCode")}'],
+        js['var needsSetter = ${needsSetterCode("lastCharCode")}'],
+        js['var renaming = ${isRenaming("lastCharCode")}'],
+        js['var accessorName = field = field.substring(0, len - 1)'],
 
         // if (renaming) {
         js.if_('renaming', [
-          // var divider = field.indexOf(":");
-          js['divider'].def(js['field']['indexOf'](js.string(':'))),
-
-          // accessorName = field.substring(0, divider);
-          js['accessorName'].assign(js['field']['substring']([0, 'divider'])),
-
-          // field = field.substring(divider + 1);
-          js['field'].assign(js['field']['substring'](js['divider'] + 1))
+          js['var divider = field.indexOf(":")'],
+          js['accessorName = field.substring(0, divider)'],
+          js['field = field.substring(divider + 1)']
         ]),
 
         // if (needsGetter) {
         js.if_('needsGetter', [
-          // var getterString = "return this." + field + ";";
-          js['getterString'].def(js.string('return this.') + 'field'),
-
-          // prototype["${namer.getterPrefix}" + accessorName] =
-          //     new Function(getterString);
-          js['prototype'][js.string(namer.getterPrefix) + 'accessorName']
-              .assign(js['Function'].newWith([js['getterString']]))
+          js['var getterString = "return this." + field'],
+          js['prototype["${namer.getterPrefix}" + accessorName] = '
+                 'new Function(getterString)']
         ]),
 
         // if (needsSetter) {
         js.if_('needsSetter', [
           // var setterString = "this." + field + " = v;";
-          js['setterString'].def(
-              js.string('this.') + 'field' + js.string('$_=${_}v')),
-
-          // prototype["${namer.setterPrefix}" + accessorName] =
-          //     new Function("v", setterString);
-          js['prototype'][js.string(namer.setterPrefix) + 'accessorName']
-              .assign(js['Function'].newWith([js.string('v'),
-                                              js['setterString']]))
+          js['var setterString = "this." + field + "$_=${_}v"'],
+          js['prototype["${namer.setterPrefix}" + accessorName] = '
+                 'new Function("v", setterString)']
         ]),
 
       ]),
@@ -287,57 +246,33 @@ class CodeEmitterTask extends CompilerTask {
 
     // function(cls, fields, prototype) {
     return js.fun(['cls', 'fields', 'prototype'], [
-
-      // var constructor;
-      js['constructor'].def(),
+      js['var constructor'],
 
       // if (typeof fields == 'function') {
-      js.if_(js['fields'].typeof.equals(js.string('function')), [
-        // constructor = fields;
-        js['constructor'].assign('fields')
+      js.if_(js["typeof fields == 'function'"], [
+        js['constructor = fields']
       ], /* else */ [
-        // var str = "function " + cls + "(";
-        js['str'].def(js.string('function ') + 'cls' + js.string('(')),
-
-        // var body = "";
-        js['body'].def(js.string('')),
+        js['var str = "function " + cls + "("'],
+        js['var body = ""'],
 
         // for (var i = 0; i < fields.length; i++) {
-        js.for_(js['i'].def(0),
-                js['i'] < js['fields']['length'],
-                js['i'].plusPlus, [
+        js.for_(js['var i = 0'], js['i < fields.length'], js['i++'], [
           // if (i != 0) str += ", ";
-          js.if_(js['i'].notEquals(0), js['str'].update('+', js.string(', '))),
+          js.if_(js['i != 0'], js['str += ", "']),
 
-          // var field = fields[i];
-          js['field'].def(js['fields'][js['i']]),
-
-          // field = generateAccessor(field, prototype);
-          js['field'].assign(js['generateAccessor'](['field', 'prototype'])),
-
-          // str += field;
-          js['str'].update('+', 'field'),
-
-          // body += "this." + field + " = " + field + ";\\n";
-          js['body'].update('+',
-                            js.string('this.') + 'field' + js.string(" = ") +
-                            'field' + js.string(r';\n'))
+          js['var field = fields[i]'],
+          js['field = generateAccessor(field, prototype)'],
+          js['str += field'],
+          js['body += ("this." + field + " = " + field + ";\\n")']
         ]),
 
-        // str += ") {" + body + "}\\nreturn " + cls;
-        js['str'].update(
-            '+',
-            js.string(') {') + 'body' + js.string(r'}\nreturn ') + 'cls'),
+        js['str += (") {" + body + "}\\nreturn " + cls)'],
 
-        // constructor = new Function(str)();
-        js['constructor'].assign(js['Function'].newWith([js['str']])())
+        js['constructor = (new Function(str))()']
       ]),
 
-      // constructor.prototype = prototype;
-      js['constructor']['prototype'].assign('prototype'),
-
-      // constructor.builtin\$cls = cls;
-      js['constructor'][r'builtin$cls'].assign('cls'),
+      js['constructor.prototype = prototype'],
+      js['constructor.builtin\$cls = cls'],
 
       // return constructor;
       js.return_('constructor')
@@ -357,24 +292,19 @@ class CodeEmitterTask extends CompilerTask {
     // TODO(8541): Remove this work around.
 
     return [
-      // var $supportsProtoName = false;
-      js[supportsProtoName].def(false),
+      js['var $supportsProtoName = false, tmp'],
 
-      // var tmp = defineClass('c', ['f?'], {}).prototype;
-      js['tmp'].def(
+      // tmp = defineClass('c', ['f?'], {}).prototype;
+      js['tmp'].assign(
           js['defineClass'](
               [js.string('c'),
                new jsAst.ArrayInitializer.from([js.string('f?')]),
                {}])['prototype']),
 
-      // if (tmp.__proto__) {
-      js.if_(js['tmp']['__proto__'], [
-        // tmp.__proto__ = {};
-        js['tmp']['__proto__'].assign({}),
-
-        // if (typeof tmp.get\$f != 'undefined') $supportsProtoName = true;
-        js.if_(js['tmp'][r'get$f'].typeof.notEquals(js.string('undefined')),
-               js[supportsProtoName].assign(true))
+      js.if_(js['tmp.__proto__'], [
+        js['tmp.__proto__ = {}'],
+        js.if_(js[r"typeof tmp.get$f != 'undefined'"],
+               js['$supportsProtoName = true'])
 
       ])
     ];
@@ -396,22 +326,16 @@ class CodeEmitterTask extends CompilerTask {
 
     // function(collectedClasses) {
     return js.fun(['collectedClasses'], [
-      // var isolateProperties = $isolatePropertiesName;
-      js['isolateProperties'].def(isolatePropertiesName),
+      js['var isolateProperties = $isolatePropertiesName'],
+      js['var pendingClasses = {}'],
 
-      // var pendingClasses = {};
-      js['pendingClasses'].def({}),
-
-      // var hasOwnProperty = Object.prototype.hasOwnProperty;
-      js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
+      js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
 
       // for (var cls in collectedClasses) {
       js.forIn('cls', 'collectedClasses', [
         // if (hasOwnProperty.call(collectedClasses, cls)) {
-        js.if_(js['hasOwnProperty']['call'](['collectedClasses', 'cls']),[
-
-          // var desc = collectedClasses[cls];
-          js['desc'].def(js['collectedClasses'][js['cls']]),
+        js.if_(js['hasOwnProperty.call(collectedClasses, cls)'], [
+          js['var desc = collectedClasses[cls]'],
 
           /* The 'fields' are either a constructor function or a
            * string encoding fields, constructor and superclass.  Get
@@ -420,45 +344,30 @@ class CodeEmitterTask extends CompilerTask {
            * descriptor.
            */
           // var fields = desc[''], supr;
-          (() {
-            var fields = js['desc'][''];
-            var supr = js['supr'].def(null).declarations.single;
-            var fieldsAndSupr = js['fields'].def(fields);
-            fieldsAndSupr.declarations.add(supr);
-            return fieldsAndSupr;
-          })(),
+          js["var fields = desc[''], supr"],
 
-          // if (typeof fields == 'string') {
-          js.if_(js['fields'].typeof.equals(js.string('string')), [
-            // var s = fields.split(';');
-            js['s'].def(js['fields']['split'](js.string(';'))),
-
-            // supr = s[0];
-            js['supr'].assign(js['s'][0]),
+          js.if_(js["typeof fields == 'string'"], [
+            js['var s = fields.split(";")'],
+            js['supr = s[0]'],
 
             // fields = s[1] == '' ? [] : s[1].split(',');
             js['fields'].assign(
                 new jsAst.Conditional(
-                    js['s'][1].equals(js.string('')),
+                    js['s[1] == ""'],
                     new jsAst.ArrayInitializer(0, []),
-                    js['s'][1]['split'](js.string(',')))),
+                    js['s[1].split(",")']))
           ], /* else */ [
-            // supr = desc['super'];
-            js['supr'].assign(js['desc']['super'])
+            js['supr = desc.super']
           ]),
 
-          // isolateProperties[cls] = defineClass(cls, fields, desc);
-          js['isolateProperties'][js['cls']].assign(
-              js['defineClass'](['cls', 'fields', 'desc'])),
+          js['isolateProperties[cls] = defineClass(cls, fields, desc)'],
 
           // if (supr) pendingClasses[cls] = supr;
-          js.if_(js['supr'],
-                 js['pendingClasses'][js['cls']].assign(js['supr']))
+          js.if_(js['supr'], js['pendingClasses[cls] = supr'])
         ])
       ]),
 
-      // var finishedClasses = {};
-      js['finishedClasses'].def({}),
+      js['var finishedClasses = {}'],
 
       // function finishClass(cls) { ... }
       buildFinishClass(),
@@ -475,43 +384,27 @@ class CodeEmitterTask extends CompilerTask {
       // TODO(8540): Remove this work around.
       /* Opera does not support 'getOwnPropertyNames'. Therefore we use
          hasOwnProperty instead. */
-
-      // var hasOwnProperty = Object.prototype.hasOwnProperty;
-      js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
+      js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
 
       // if (hasOwnProperty.call(finishedClasses, cls)) return;
-      js.if_(js['hasOwnProperty']['call'](['finishedClasses', 'cls']),
+      js.if_(js['hasOwnProperty.call(finishedClasses, cls)'],
              js.return_()),
 
-      // finishedClasses[cls] = true;
-      js['finishedClasses'][js['cls']].assign(true),
-
-      // var superclass = pendingClasses[cls];
-      js['superclass'].def(js['pendingClasses'][js['cls']]),
+      js['finishedClasses[cls] = true'],
+      js['var superclass = pendingClasses[cls]'],
 
       /* The superclass is only false (empty string) for Dart's Object class. */
       // if (!superclass) return;
-      js.if_(js['superclass'].not, js.return_()),
-
-      // finishClass(superclass);
-      js['finishClass']('superclass'),
-
-      // var constructor = isolateProperties[cls];
-      js['constructor'].def(js['isolateProperties'][js['cls']]),
-
-      // var superConstructor = isolateProperties[superclass];
-      js['superConstructor'].def(js['isolateProperties'][js['superclass']]),
-
-      // var prototype = constructor.prototype;
-      js['prototype'].def(js['constructor']['prototype']),
+      js.if_(js['!superclass'], js.return_()),
+      js['finishClass(superclass)'],
+      js['var constructor = isolateProperties[cls]'],
+      js['var superConstructor = isolateProperties[superclass]'],
+      js['var prototype = constructor.prototype'],
 
       // if ($supportsProtoName) {
       js.if_(supportsProtoName, [
-        // prototype.__proto__ = superConstructor.prototype;
-        js['prototype']['__proto__'].assign(js['superConstructor']['prototype']),
-
-        // prototype.constructor = constructor;
-        js['prototype']['constructor'].assign('constructor')
+        js['prototype.__proto__ = superConstructor.prototype'],
+        js['prototype.constructor = constructor'],
 
       ], /* else */ [
         // function tmp() {};
@@ -519,29 +412,21 @@ class CodeEmitterTask extends CompilerTask {
             new jsAst.VariableDeclaration('tmp'),
             js.fun([], [])),
 
-        // tmp.prototype = superConstructor.prototype;
-        js['tmp']['prototype'].assign(js['superConstructor']['prototype']),
+        js['tmp.prototype = superConstructor.prototype'],
+        js['var newPrototype = new tmp()'],
 
-        // var newPrototype = new tmp();
-        js['newPrototype'].def(js['tmp'].newWith([])),
-
-        // constructor.prototype = newPrototype;
-        js['constructor']['prototype'].assign('newPrototype'),
-
-        // newPrototype.constructor = constructor;
-        js['newPrototype']['constructor'].assign('constructor'),
+        js['constructor.prototype = newPrototype'],
+        js['newPrototype.constructor = constructor'],
 
         // for (var member in prototype) {
         js.forIn('member', 'prototype', [
           /* Short version of: if (member == '') */
           // if (!member) continue;
-          js.if_(js['member'].not, new jsAst.Continue(null)),
+          js.if_(js['!member'], new jsAst.Continue(null)),
 
           // if (hasOwnProperty.call(prototype, member)) {
-          js.if_(js['hasOwnProperty']['call'](['prototype', 'member']), [
-            // newPrototype[member] = prototype[member];
-            js['newPrototype'][js['member']].assign(
-                js['prototype'][js['member']])
+          js.if_(js['hasOwnProperty.call(prototype, member)'], [
+            js['newPrototype[member] = prototype[member]']
           ])
         ])
 
@@ -578,66 +463,39 @@ class CodeEmitterTask extends CompilerTask {
 
     // function(oldIsolate) {
     return js.fun('oldIsolate', [
-      // var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
-      js['isolateProperties'].def(
-                   js['oldIsolate'][namer.isolatePropertiesName]),
+      js['var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'],
 
       // isolateProperties.$currentScript =
       //    (typeof document == "object") ?
       //        (document.currentScript ||
       //         document.scripts[document.scripts.length - 1]) : null;
-      js['isolateProperties'][r'$currentScript'].assign(
+      js[r'isolateProperties.$currentScript'].assign(
           new jsAst.Conditional(
-              js['document'].typeof.equals(js.string('object')),
-              js['document']['currentScript'].binary(
-                  '||',
-                  js['document']['scripts'][
-                      js['document']['scripts']['length'] - 1]),
-              new jsAst.LiteralNull())),
+              js['typeof document == "object"'],
+              js['document.currentScript ||'
+                     'document.scripts[document.scripts.length - 1]'],
+              js['null'])),
 
-      // var isolatePrototype = oldIsolate.prototype;
-      js['isolatePrototype'].def(js['oldIsolate']['prototype']),
-
-      // var str = "{\\n";
-      js['str'].def(js.string(r'{\n')),
-
-      // str += "var properties = $isolate.${namer.isolatePropertiesName};\\n";
-      js['str'].update('+', js.string('var properties = '
-                                      '$isolate.${namer.isolatePropertiesName};'
-                                      r'\n')),
-
-      // var hasOwnProperty = Object.prototype.hasOwnProperty;
-      js['hasOwnProperty'].def(js['Object']['prototype']['hasOwnProperty']),
+      js['var isolatePrototype = oldIsolate.prototype'],
+      js['var str = "{\\n"'],
+      js['str += '
+             '"var properties = $isolate.${namer.isolatePropertiesName};\\n"'],
+      js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
 
       // for (var staticName in isolateProperties) {
       js.forIn('staticName', 'isolateProperties', [
-
-        // if (hasOwnProperty.call(isolateProperties, staticName)) {
-        js.if_(js['hasOwnProperty']['call'](['isolateProperties',
-                                             'staticName']), [
-
-          //str += "this." + staticName + "= properties." + staticName + ";\\n";
-          js['str'].update(
-              '+',
-              js.string("this.") + 'staticName' + js.string("= properties.") +
-              'staticName' + js.string(r';\n'))
+        js.if_(js['hasOwnProperty.call(isolateProperties, staticName)'], [
+          js['str += ("this." + staticName + "= properties." + staticName + '
+                          '";\\n")']
         ])
       ]),
 
-      // str += "}\\n";
-      js['str'].update('+', js.string(r'}\n')),
+      js['str += "}\\n"'],
 
-      // var newIsolate = new Function(str);
-      js['newIsolate'].def(js['Function'].newWith([js['str']])),
-
-      // newIsolate.prototype = isolatePrototype;
-      js['newIsolate']['prototype'].assign('isolatePrototype'),
-
-      // isolatePrototype.constructor = newIsolate;
-      js['isolatePrototype']['constructor'].assign('newIsolate'),
-
-      // newIsolate.${namer.isolatePropertiesName} = isolateProperties;
-      js['newIsolate'][namer.isolatePropertiesName].assign('isolateProperties'),
+      js['var newIsolate = new Function(str)'],
+      js['newIsolate.prototype = isolatePrototype'],
+      js['isolatePrototype.constructor = newIsolate'],
+      js['newIsolate.${namer.isolatePropertiesName} = isolateProperties'],
 
       // return newIsolate;
       js.return_('newIsolate')
@@ -651,9 +509,7 @@ class CodeEmitterTask extends CompilerTask {
     var parameters = <String>['prototype', 'staticName', 'fieldName',
                               'getterName', 'lazyValue'];
     return js.fun(parameters, [
-      // var getter = new Function("{ return $isolate." + fieldName + ";}");
-      js['getter'].def(js['Function'].newWith([
-          js.string("{ return $isolate.") + 'fieldName' + js.string('}')]))
+      js['var getter = new Function("{ return $isolate." + fieldName + ";}")'],
     ]..addAll(addLazyInitializerLogic())
     );
   }
@@ -663,54 +519,38 @@ class CodeEmitterTask extends CompilerTask {
     String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
 
     return [
-      // var sentinelUndefined = {};
-      js['sentinelUndefined'].def({}),
-
-      // var sentinelInProgress = {};
-      js['sentinelInProgress'].def({}),
-
-      // prototype[fieldName] = sentinelUndefined;
-      js['prototype'][js['fieldName']].assign('sentinelUndefined'),
+      js['var sentinelUndefined = {}'],
+      js['var sentinelInProgress = {}'],
+      js['prototype[fieldName] = sentinelUndefined'],
 
       // prototype[getterName] = function() {
       js['prototype'][js['getterName']].assign(js.fun([], [
-        // var result = $isolate[fieldName];
-        js['result'].def(js[isolate][js['fieldName']]),
+        js['var result = $isolate[fieldName]'],
 
         // try {
         js.try_([
-          // if (result === sentinelUndefined) {
-          js.if_(js['result'].strictEquals('sentinelUndefined'), [
-
-            // $isolate[fieldName] = sentinelInProgress;
-            js[isolate][js['fieldName']].assign('sentinelInProgress'),
+          js.if_(js['result === sentinelUndefined'], [
+            js['$isolate[fieldName] = sentinelInProgress'],
 
             // try {
             js.try_([
-              // result = $isolate[fieldName] = lazyValue();
-              js['result'].assign(
-                  js[isolate][js['fieldName']].assign(js['lazyValue']()))
+              js['result = ($isolate[fieldName] = lazyValue())'],
 
             ], finallyPart: [
               // Use try-finally, not try-catch/throw as it destroys the
               // stack trace.
 
               // if (result === sentinelUndefined) {
-              js.if_(js['result'].strictEquals('sentinelUndefined'), [
+              js.if_(js['result === sentinelUndefined'], [
                 // if ($isolate[fieldName] === sentinelInProgress) {
-                js.if_(js[isolate][js['fieldName']]
-                       .strictEquals('sentinelInProgress'), [
-
-                  // $isolate[fieldName] = null;
-                  js[isolate][js['fieldName']].assign(new jsAst.LiteralNull())
+                js.if_(js['$isolate[fieldName] === sentinelInProgress'], [
+                  js['$isolate[fieldName] = null'],
                 ])
               ])
             ])
           ], /* else */ [
-            // } else if (result === sentinelInProgress) {
-            js.if_(js['result'].strictEquals('sentinelInProgress'),
-              // $cyclicThrow(staticName);
-              js[cyclicThrow]('staticName')
+            js.if_(js['result === sentinelInProgress'],
+              js['$cyclicThrow(staticName)']
             )
           ]),
 
@@ -718,8 +558,7 @@ class CodeEmitterTask extends CompilerTask {
           js.return_('result')
 
         ], finallyPart: [
-          // $isolate[getterName] = getter;
-          js[isolate][js['getterName']].assign('getter')
+          js['$isolate[getterName] = getter']
         ])
       ]))
     ];
@@ -732,8 +571,7 @@ class CodeEmitterTask extends CompilerTask {
       // defineClassFunction (it's a local declaration in init()).
       generateAccessorFunction,
 
-      // $generateAccessorHolder = generateAccessor;
-      js[generateAccessorHolder].assign('generateAccessor'),
+      js['$generateAccessorHolder = generateAccessor'],
 
       // function defineClass ...
       new jsAst.FunctionDeclaration(
@@ -2725,8 +2563,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
 
   void emitInitFunction(CodeBuffer buffer) {
     jsAst.Fun fun = js.fun([], [
-      // $isolateProperties = {};
-      js[isolateProperties].assign({}),
+      js['$isolateProperties = {}'],
     ]
     ..addAll(buildDefineClassAndFinishClassFunctionsIfNecessary())
     ..addAll(buildLazyInitializerFunctionIfNecessary())
