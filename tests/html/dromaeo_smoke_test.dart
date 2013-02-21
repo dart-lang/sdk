@@ -24,7 +24,7 @@ void main() {
   useHtmlConfiguration();
 
   var scriptSrc = new ScriptElement();
-  scriptSrc.src = '../../../../pkg/browser/lib/dart.js';
+  scriptSrc.src = '/root_dart/pkg/browser/lib/dart.js';
   document.head.children.add(scriptSrc);
   document.body.innerHtml = '''${document.body.innerHtml}
   <div id="main">

@@ -17,7 +17,7 @@ void fail(message) {
 
 main() {
   useHtmlIndividualConfiguration();
-  var url = "/tests/html/xhr_cross_origin_data.txt";
+  var url = "/root_dart/tests/html/xhr_cross_origin_data.txt";
 
   void validate200Response(xhr) {
     expect(xhr.status, equals(200));
