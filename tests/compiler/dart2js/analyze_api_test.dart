@@ -28,8 +28,6 @@ import '../../../sdk/lib/_internal/libraries.dart';
 const Map<String,List<String>> WHITE_LIST = const {
   'io/http_impl.dart': const ['Warning: no method named'], // Issue 8394.
   'io/http_headers.dart': const ['Warning: no method named'], // Issue 8394.
-  'io/socket_stream_impl.dart':
-       const ['Warning: no method named'], // Issue 8394.
   'io/timer_impl.dart': const ['Warning: no method named'], // Issue 8394.
 };
 
