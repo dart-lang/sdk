@@ -101,6 +101,8 @@ abstract class DartType {
   bool get isRaw => true;
 
   DartType asRaw() => this;
+
+  accept(DartTypeVisitor visitor, var argument);
 }
 
 /**
@@ -159,6 +161,10 @@ class TypeVariableType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitTypeVariableType(this, argument);
+  }
+
   int get hashCode => 17 * element.hashCode;
 
   bool operator ==(other) {
@@ -199,6 +205,10 @@ class StatementType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitStatementType(this, argument);
+  }
+
   int get hashCode => 17 * stringName.hashCode;
 
   bool operator ==(other) {
@@ -224,6 +234,10 @@ class VoidType extends DartType {
   }
 
   DartType unalias(Compiler compiler) => this;
+
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitVoidType(this, argument);
+  }
 
   int get hashCode => 1729;
 
@@ -271,6 +285,10 @@ class MalformedType extends DartType {
   bool forEachMalformedType(bool f(MalformedType type)) => f(this);
 
   DartType unalias(Compiler compiler) => this;
+
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitMalformedType(this, argument);
+  }
 
   String toString() {
     var sb = new StringBuffer();
@@ -459,6 +477,10 @@ class InterfaceType extends GenericType {
   }
 
   InterfaceType asRaw() => super.asRaw();
+
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitInterfaceType(this, argument);
+  }
 }
 
 class FunctionType extends DartType {
@@ -586,6 +608,10 @@ class FunctionType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitFunctionType(this, argument);
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('(');
@@ -696,6 +722,10 @@ class TypedefType extends GenericType {
   }
 
   TypedefType asRaw() => super.asRaw();
+
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitTypedefType(this, argument);
+  }
 }
 
 /**
@@ -706,6 +736,10 @@ class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
   SourceString get name => const SourceString('dynamic');
+
+  accept(DartTypeVisitor visitor, var argument) {
+    return visitor.visitDynamicType(this, argument);
+  }
 }
 
 /**
@@ -776,23 +810,43 @@ class Member {
   }
 }
 
-class Types {
+abstract class DartTypeVisitor<R, A> {
+  R visitType(DartType type, A argument);
+
+  R visitVoidType(VoidType type, A argument) =>
+      visitType(type, argument);
+
+  R visitTypeVariableType(TypeVariableType type, A argument) =>
+      visitType(type, argument);
+
+  R visitFunctionType(FunctionType type, A argument) =>
+      visitType(type, argument);
+
+  R visitMalformedType(MalformedType type, A argument) =>
+      visitType(type, argument);
+
+  R visitStatementType(StatementType type, A argument) =>
+      visitType(type, argument);
+
+  R visitGenericType(GenericType type, A argument) =>
+      visitType(type, argument);
+
+  R visitInterfaceType(InterfaceType type, A argument) =>
+      visitGenericType(type, argument);
+
+  R visitTypedefType(TypedefType type, A argument) =>
+      visitGenericType(type, argument);
+
+  R visitDynamicType(DynamicType type, A argument) =>
+      visitInterfaceType(type, argument);
+}
+
+class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
-  // TODO(karlklose): should we have a class Void?
-  final VoidType voidType;
   final DynamicType dynamicType;
 
-  factory Types(Compiler compiler, ClassElement dynamicElement) {
-    LibraryElement library = new LibraryElementX(new Script(null, null));
-    VoidType voidType = new VoidType(new VoidElementX(library));
-    DynamicType dynamicType = new DynamicType(dynamicElement);
-    dynamicElement.rawType = dynamicElement.thisType = dynamicType;
-    return new Types.internal(compiler, voidType, dynamicType);
-  }
+  SubtypeVisitor(Compiler this.compiler, DynamicType this.dynamicType);
 
-  Types.internal(this.compiler, this.voidType, this.dynamicType);
-
-  /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {
     if (identical(t, s) ||
         identical(t, dynamicType) ||
@@ -806,97 +860,138 @@ class Types {
     t = t.unalias(compiler);
     s = s.unalias(compiler);
 
-    if (t is VoidType) {
-      return false;
-    } else if (t is InterfaceType) {
-      if (s is !InterfaceType) return false;
+    return t.accept(this, s);
+  }
 
-      bool checkTypeArguments(InterfaceType instance) {
-        Link<DartType> tTypeArgs = instance.typeArguments;
-        Link<DartType> sTypeArgs = s.typeArguments;
-        while (!tTypeArgs.isEmpty) {
-          assert(!sTypeArgs.isEmpty);
-          if (!isSubtype(tTypeArgs.head, sTypeArgs.head)) {
-            return false;
-          }
-          tTypeArgs = tTypeArgs.tail;
-          sTypeArgs = sTypeArgs.tail;
-        }
-        assert(sTypeArgs.isEmpty);
-        return true;
-      }
+  bool isAssignable(DartType t, DartType s) {
+    return isSubtype(t, s) || isSubtype(s, t);
+  }
 
-      // TODO(johnniwinther): Currently needed since literal types like int,
-      // double, bool etc. might not have been resolved yet.
-      t.element.ensureResolved(compiler);
+  bool visitType(DartType t, DartType s) {
+    throw 'internal error: unknown type kind ${t.kind}';
+  }
 
-      InterfaceType instance = t.asInstanceOf(s.element);
-      return instance != null && checkTypeArguments(instance);
-    } else if (t is FunctionType) {
-      if (identical(s.element, compiler.functionClass)) return true;
-      if (s is !FunctionType) return false;
-      FunctionType tf = t;
-      FunctionType sf = s;
-      Link<DartType> tps = tf.parameterTypes;
-      Link<DartType> sps = sf.parameterTypes;
-      while (!tps.isEmpty && !sps.isEmpty) {
-        if (!isAssignable(tps.head, sps.head)) return false;
-        tps = tps.tail;
-        sps = sps.tail;
-      }
-      if (!tps.isEmpty || !sps.isEmpty) return false;
-      if (!isAssignable(sf.returnType, tf.returnType)) return false;
-      if (!sf.namedParameters.isEmpty) {
-        // Since named parameters are globally ordered we can determine the
-        // subset relation with a linear search for [:sf.NamedParameters:]
-        // within [:tf.NamedParameters:].
-        Link<SourceString> tNames = tf.namedParameters;
-        Link<DartType> tTypes = tf.namedParameterTypes;
-        Link<SourceString> sNames = sf.namedParameters;
-        Link<DartType> sTypes = sf.namedParameterTypes;
-        while (!tNames.isEmpty && !sNames.isEmpty) {
-          if (sNames.head == tNames.head) {
-            if (!isAssignable(tTypes.head, sTypes.head)) return false;
+  bool visitVoidType(VoidType t, DartType s) {
+    assert(s is! VoidType);
+    return false;
+  }
 
-            sNames = sNames.tail;
-            sTypes = sTypes.tail;
-          }
-          tNames = tNames.tail;
-          tTypes = tTypes.tail;
-        }
-        if (!sNames.isEmpty) {
-          // We didn't find all names.
+  bool visitInterfaceType(InterfaceType t, DartType s) {
+    if (s is !InterfaceType) return false;
+
+    bool checkTypeArguments(InterfaceType instance) {
+      Link<DartType> tTypeArgs = instance.typeArguments;
+      Link<DartType> sTypeArgs = s.typeArguments;
+      while (!tTypeArgs.isEmpty) {
+        assert(!sTypeArgs.isEmpty);
+        if (!isSubtype(tTypeArgs.head, sTypeArgs.head)) {
           return false;
         }
+        tTypeArgs = tTypeArgs.tail;
+        sTypeArgs = sTypeArgs.tail;
       }
-      if (!sf.optionalParameterTypes.isEmpty) {
-        Link<DartType> tOptionalParameterType = tf.optionalParameterTypes;
-        Link<DartType> sOptionalParameterType = sf.optionalParameterTypes;
-        while (!tOptionalParameterType.isEmpty &&
-               !sOptionalParameterType.isEmpty) {
-          if (!isAssignable(tOptionalParameterType.head,
-                            sOptionalParameterType.head)) {
-            return false;
-          }
-          sOptionalParameterType = sOptionalParameterType.tail;
-          tOptionalParameterType = tOptionalParameterType.tail;
-        }
-        if (!sOptionalParameterType.isEmpty) {
-          // We didn't find enough optional parameters.
-          return false;
-        }
-      }
+      assert(sTypeArgs.isEmpty);
       return true;
-    } else if (t is TypeVariableType) {
-      if (s is !TypeVariableType) return false;
-      return (identical(t.element, s.element));
-    } else {
-      throw 'internal error: unknown type kind';
     }
+
+    // TODO(johnniwinther): Currently needed since literal types like int,
+    // double, bool etc. might not have been resolved yet.
+    t.element.ensureResolved(compiler);
+
+    InterfaceType instance = t.asInstanceOf(s.element);
+    return instance != null && checkTypeArguments(instance);
+  }
+
+  bool visitFunctionType(FunctionType t, DartType s) {
+    if (identical(s.element, compiler.functionClass)) return true;
+    if (s is !FunctionType) return false;
+    FunctionType tf = t;
+    FunctionType sf = s;
+    Link<DartType> tps = tf.parameterTypes;
+    Link<DartType> sps = sf.parameterTypes;
+    while (!tps.isEmpty && !sps.isEmpty) {
+      if (!isAssignable(tps.head, sps.head)) return false;
+      tps = tps.tail;
+      sps = sps.tail;
+    }
+    if (!tps.isEmpty || !sps.isEmpty) return false;
+    // TODO(johnniwinther): Handle the void type correctly.
+    if (!isAssignable(tf.returnType, sf.returnType)) return false;
+    if (!sf.namedParameters.isEmpty) {
+      // Since named parameters are globally ordered we can determine the
+      // subset relation with a linear search for [:sf.NamedParameters:]
+      // within [:tf.NamedParameters:].
+      Link<SourceString> tNames = tf.namedParameters;
+      Link<DartType> tTypes = tf.namedParameterTypes;
+      Link<SourceString> sNames = sf.namedParameters;
+      Link<DartType> sTypes = sf.namedParameterTypes;
+      while (!tNames.isEmpty && !sNames.isEmpty) {
+        if (sNames.head == tNames.head) {
+          if (!isAssignable(tTypes.head, sTypes.head)) return false;
+
+          sNames = sNames.tail;
+          sTypes = sTypes.tail;
+        }
+        tNames = tNames.tail;
+        tTypes = tTypes.tail;
+      }
+      if (!sNames.isEmpty) {
+        // We didn't find all names.
+        return false;
+      }
+    }
+    if (!sf.optionalParameterTypes.isEmpty) {
+      Link<DartType> tOptionalParameterType = tf.optionalParameterTypes;
+      Link<DartType> sOptionalParameterType = sf.optionalParameterTypes;
+      while (!tOptionalParameterType.isEmpty &&
+             !sOptionalParameterType.isEmpty) {
+        if (!isAssignable(tOptionalParameterType.head,
+                          sOptionalParameterType.head)) {
+          return false;
+        }
+        sOptionalParameterType = sOptionalParameterType.tail;
+        tOptionalParameterType = tOptionalParameterType.tail;
+      }
+      if (!sOptionalParameterType.isEmpty) {
+        // We didn't find enough optional parameters.
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool visitTypeVariableType(TypeVariableType t, DartType s) {
+    if (s is !TypeVariableType) return false;
+    return (identical(t.element, s.element));
+  }
+}
+
+class Types {
+  final Compiler compiler;
+  // TODO(karlklose): should we have a class Void?
+  final VoidType voidType;
+  final DynamicType dynamicType;
+  final SubtypeVisitor subtypeVisitor;
+
+  factory Types(Compiler compiler, ClassElement dynamicElement) {
+    LibraryElement library = new LibraryElementX(new Script(null, null));
+    VoidType voidType = new VoidType(new VoidElementX(library));
+    DynamicType dynamicType = new DynamicType(dynamicElement);
+    dynamicElement.rawType = dynamicElement.thisType = dynamicType;
+    SubtypeVisitor subtypeVisitor = new SubtypeVisitor(compiler, dynamicType);
+    return new Types.internal(compiler, voidType, dynamicType, subtypeVisitor);
+  }
+
+  Types.internal(this.compiler, this.voidType, this.dynamicType,
+                 this.subtypeVisitor);
+
+  /** Returns true if t is a subtype of s */
+  bool isSubtype(DartType t, DartType s) {
+    return subtypeVisitor.isSubtype(t, s);
   }
 
   bool isAssignable(DartType r, DartType s) {
-    return isSubtype(r, s) || isSubtype(s, r);
+    return subtypeVisitor.isAssignable(r, s);
   }
 
 
