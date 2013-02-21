@@ -185,20 +185,21 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
 
   intptr_t total_bytes_written = 0;
   intptr_t bytes_written = 0;
-  if (Dart_IsByteArrayExternal(buffer_obj)) {
-    void* buffer = NULL;
-    result = Dart_ExternalByteArrayGetData(buffer_obj, &buffer);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
-    buffer = static_cast<void*>(static_cast<uint8_t*>(buffer) + offset);
+  Dart_TypedData_Type type;
+  uint8_t* buffer = NULL;
+  intptr_t len;
+  result = Dart_TypedDataAcquireData(buffer_obj, &type,
+                                     reinterpret_cast<void**>(&buffer), &len);
+  if (!Dart_IsError(result)) {
+    buffer += offset;
     bytes_written = Socket::Write(socket, buffer, length);
     if (bytes_written > 0) total_bytes_written = bytes_written;
+    Dart_TypedDataReleaseData(buffer_obj);
   } else {
     // Send data in chunks of maximum 16KB.
     const intptr_t max_chunk_length =
         dart::Utils::Minimum(length, static_cast<intptr_t>(16 * KB));
-    uint8_t* buffer = new uint8_t[max_chunk_length];
+    buffer = new uint8_t[max_chunk_length];
     do {
       intptr_t chunk_length =
           dart::Utils::Minimum(max_chunk_length, length - total_bytes_written);

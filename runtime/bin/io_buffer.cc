@@ -6,7 +6,8 @@
 
 Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t **buffer) {
   uint8_t* data = Allocate(size);
-  Dart_Handle result = Dart_NewExternalByteArray(data, size,
+  Dart_Handle result = Dart_NewExternalTypedData(kUint8,
+                                                 data, size,
                                                  data, IOBuffer::Finalizer);
   if (Dart_IsError(result)) {
     Free(data);

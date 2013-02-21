@@ -312,7 +312,7 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
         Dart_NewPersistentHandle(Dart_ListGetAt(dart_buffers_object, i)));
     buffers_[i] = new uint8_t[size];
     Dart_Handle data = ThrowIfError(
-      Dart_NewExternalByteArray(buffers_[i], size, NULL, NULL));
+        Dart_NewExternalTypedData(kUint8, buffers_[i], size, NULL, NULL));
     ThrowIfError(Dart_SetField(dart_buffer_objects_[i],
                                data_identifier,
                                data));
