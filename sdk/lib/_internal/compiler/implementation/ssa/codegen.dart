@@ -1267,13 +1267,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void emitIdentityComparison(HInstruction left, HInstruction right) {
+  void emitIdentityComparison(HInstruction left,
+                              HInstruction right,
+                              bool inverse) {
     String op = singleIdentityComparison(left, right);
     if (op != null) {
       use(left);
       js.Expression jsLeft = pop();
       use(right);
-      push(new js.Binary(op, jsLeft, pop()));
+      push(new js.Binary(mapRelationalOperator(op, inverse), jsLeft, pop()));
     } else {
       assert(NullConstant.JsNull == 'null');
       use(left);
@@ -1281,17 +1283,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.Binary("==", pop(), new js.LiteralNull());
       use(right);
       js.Binary rightEqualsNull =
-          new js.Binary("==", pop(), new js.LiteralNull());
+          new js.Binary(mapRelationalOperator("==", inverse),
+                        pop(), new js.LiteralNull());
       use(right);
       use(left);
-      js.Binary tripleEq = new js.Binary("===", pop(), pop());
+      js.Binary tripleEq = new js.Binary(mapRelationalOperator("===", inverse),
+                                         pop(), pop());
 
       push(new js.Conditional(leftEqualsNull, rightEqualsNull, tripleEq));
     }
   }
 
   visitIdentity(HIdentity node) {
-    emitIdentityComparison(node.left, node.right);
+    emitIdentityComparison(node.left, node.right, false);
   }
 
   visitAdd(HAdd node)               => visitInvokeBinary(node, '+');
@@ -1844,6 +1848,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     attachLocationToLast(node);
   }
 
+  static String mapRelationalOperator(String op, bool inverse) {
+    Map<String, String> inverseOperator = const <String, String>{
+      "==" : "!=",
+      "!=" : "==",
+      "===": "!==",
+      "!==": "===",
+      "<"  : ">=",
+      "<=" : ">",
+      ">"  : "<=",
+      ">=" : "<"
+    };
+    return inverse ? inverseOperator[op] : op;
+  }
+
   void generateNot(HInstruction input) {
     bool canGenerateOptimizedComparison(HInstruction instruction) {
       if (instruction is !HRelational) return false;
@@ -1856,24 +1874,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           && right.instructionType.isUseful() && right.isInteger();
     }
 
-    if (input is HBoolify && isGenerateAtUseSite(input)) {
+    bool generateAtUseSite = isGenerateAtUseSite(input);
+    if (input is HIdentity && generateAtUseSite) {
+      emitIdentityComparison(input.left, input.right, true);
+    } else if (input is HBoolify && generateAtUseSite) {
       use(input.inputs[0]);
       push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
-    } else if (canGenerateOptimizedComparison(input) &&
-               isGenerateAtUseSite(input)) {
-      Map<String, String> inverseOperator = const <String, String>{
-        "==" : "!=",
-        "!=" : "==",
-        "===": "!==",
-        "!==": "===",
-        "<"  : ">=",
-        "<=" : ">",
-        ">"  : "<=",
-        ">=" : "<"
-      };
+    } else if (canGenerateOptimizedComparison(input) && generateAtUseSite) {
       HRelational relational = input;
       BinaryOperation operation = relational.operation(backend.constantSystem);
-      visitRelational(input, inverseOperator[operation.name.stringValue]);
+      String op = mapRelationalOperator(operation.name.stringValue, true);
+      visitRelational(input, op);
     } else {
       use(input);
       push(new js.Prefix("!", pop()));
