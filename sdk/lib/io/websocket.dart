@@ -24,145 +24,25 @@ abstract class WebSocketStatus {
 }
 
 /**
- * The web socket protocol is implemented by a HTTP or HTTPS server handler
- * which can be instantiated like this:
+ * The [WebSocketTransformer] is implemented as a stream transformer that
+ * transforms a stream of HttpRequest into a stream of WebSockets by upgrading
+ * each HttpRequest from the HTTP or HTTPS server, to the WebSocket protocol.
  *
- *     WebSocketHandler wsHandler = new WebSocketHandler();
+ * Example of usage:
  *
- * and then its onRequest method can be assigned to the HTTP server, e.g.
- *
- *     server.defaultHandler = wsHandler.onRequest;
+ *     server.transform(new WebSocketTransformer()).listen((webSocket) => ...);
  *
  * or
  *
- *     server.addRequestHandler((req) => req.path == "/ws",
- *                              wsHandler.onRequest);
+ *     server
+ *         .where((request) => request.uri.scheme == "ws")
+ *         .transform(new WebSocketTransformer()).listen((webSocket) => ...);
  *
- * This handler strives to implement web sockets as specified by RFC6455.
+ * This transformer strives to implement web sockets as specified by RFC6455.
  */
-abstract class WebSocketHandler {
-  factory WebSocketHandler() => new _WebSocketHandler();
-
-  /**
-   * Request handler to be registered with the HTTP server.
-   */
-  void onRequest(HttpRequest request, HttpResponse response);
-
-  /**
-   * Sets the callback to be called when a new web socket connection
-   * has been established.
-   */
-  void set onOpen(callback(WebSocketConnection connection));
-}
-
-
-/**
- * Server web socket connection.
- */
-abstract class WebSocketConnection {
-  /**
-   * Sets the callback to be called when a message has been
-   * received. The type on [message] is either [:String:] or
-   * [:List<int>:] depending on whether it is a text or binary
-   * message. If the message is empty [message] will be [:null:].
-   * If [message] is a [:List<int>:] then it will contain byte values
-   * from 0 to 255.
-   */
-  void set onMessage(void callback(message));
-
-  /**
-   * Sets the callback to be called when the web socket connection is
-   * closed. [status] indicate the reason for closing. For network
-   * errors the value of [status] will be
-   * WebSocketStatus.ABNORMAL_CLOSURE]. In this callback it is
-   * possible to call [close] if [close] has not already been called.
-   * If [close] has still not been called after the close callback
-   * returns the received close status will automatically be echoed
-   * back to the other end to finish the close handshake.
-   */
-  void set onClosed(void callback(int status, String reason));
-
-  /**
-   * Sends a message. The [message] must be a [:String:], a
-   * [:List<int>:] containing bytes, or [:null:].
-   */
-  send(Object message);
-
-  /**
-   * Close the web socket connection. The default value for [status]
-   * and [reason] are [:null:].
-   */
-  close([int status, String reason]);
-}
-
-
-/**
- * Client web socket connection.
- */
-abstract class WebSocketClientConnection {
-  /**
-   * Creates a new web socket client connection based on a HTTP(S) client
-   * connection. The HTTP or HTTPS client connection must be freshly opened.
-   */
-  factory WebSocketClientConnection(HttpClientConnection conn,
-                                    [List<String> protocols]) {
-    return new _WebSocketClientConnection(conn, protocols);
-  }
-
-  /**
-   * Sets the callback to be called when the request object for the
-   * opening handshake request is ready. This callback can be used if
-   * one needs to add additional headers to the opening handshake
-   * request.
-   */
-  void set onRequest(void callback(HttpClientRequest request));
-
-  /**
-   * Sets the callback to be called when a web socket connection has
-   * been established.
-   */
-  void set onOpen(void callback());
-
-  /**
-   * Sets the callback to be called when a message has been
-   * received. The type of [message] is either [:String:] or
-   * [:List<int>:], depending on whether it is a text or binary
-   * message. If the message is empty [message] will be [:null:].
-   * If the message is a [:List<int>:] then it will contain byte values
-   * from 0 to 255.
-   */
-  void set onMessage(void callback(message));
-
-  /**
-   * Sets the callback to be called when the web socket connection is
-   * closed. [status] indicates the reason for closing. For network
-   * errors the value of [status] will be
-   * WebSocketStatus.ABNORMAL_CLOSURE].
-   */
-  void set onClosed(void callback(int status, String reason));
-
-  /**
-   * Sets the callback to be called when the response object for the
-   * opening handshake did not cause a web socket connection
-   * upgrade. This will be called in case the response status code is
-   * not 101 (Switching Protocols). If this callback is not set and the
-   * server does not upgrade the connection, the [:onError:] callback will
-   * be called.
-   */
-  void set onNoUpgrade(void callback(HttpClientResponse response));
-
-  /**
-   * Sends a message. The [message] must be a [:String:] or a
-   * [:List<int>:] containing bytes. To send an empty message send either
-   * an empty [:String:] or an empty [:List<int>:]. [:null:] cannot be sent.
-   */
-  send(message);
-
-  /**
-   * Close the web socket connection. The default value for [status]
-   * and [reason] are [:null:].
-   */
-  close([int status, String reason]);
+abstract class WebSocketTransformer
+    implements StreamTransformer<HttpRequest, WebSocket> {
+  factory WebSocketTransformer() => new _WebSocketTransformerImpl();
 }
 
 
@@ -182,7 +62,6 @@ abstract class MessageEvent extends Event {
    * message is empty [message] will be [:null:]
    * If the message is a [:List<int>:] then it will contain byte values
    * from 0 to 255.
-
    */
   get data;
 }
@@ -216,7 +95,7 @@ abstract class CloseEvent extends Event {
  * with the W3C browser API for web sockets specified in
  * http://dev.w3.org/html5/websockets/.
  */
-abstract class WebSocket {
+abstract class WebSocket implements Stream<Event> {
   /**
    * Possible states of the connection.
    */
@@ -227,11 +106,12 @@ abstract class WebSocket {
 
   /**
    * Create a new web socket connection. The URL supplied in [url]
-   * must use the scheme [:ws:]. The [protocols] argument is either a
-   * [:String:] or [:List<String>:] specifying the subprotocols the
+   * must use the scheme [:ws:] or [:wss:]. The [protocols] argument is either
+   * a [:String:] or [:List<String>:] specifying the subprotocols the
    * client is willing to speak.
    */
-  factory WebSocket(String url, [protocols]) => new _WebSocket(url, protocols);
+  static Future<WebSocket> connect(String url, [protocols]) =>
+      _WebSocketImpl.connect(url, protocols);
 
   /**
    * Returns the current state of the connection.
@@ -242,24 +122,6 @@ abstract class WebSocket {
    * Returns the number of bytes currently buffered for transmission.
    */
   int get bufferedAmount;
-
-  /**
-   * Sets the callback to be called when a web socket connection has
-   * been established.
-   */
-  void set onopen(void callback());
-
-  /**
-   * Sets the callback to be called when the web socket connection
-   * encountered an error.
-   */
-  void set onerror(void callback(e));
-
-  /**
-   * Sets the callback to be called when the web socket connection is
-   * closed.
-   */
-  void set onclose(void callback(CloseEvent event));
 
   /**
    * The extensions property is initially the empty string. After the
@@ -279,13 +141,7 @@ abstract class WebSocket {
   /**
    * Closes the web socket connection.
    */
-  void close(int code, String reason);
-
-  /**
-   * Sets the callback to be called when a message has been
-   * received.
-   */
-  void set onmessage(void callback(MessageEvent event));
+  void close([int code, String reason]);
 
   /**
    * Sends data on the web socket connection. The data in [data] must

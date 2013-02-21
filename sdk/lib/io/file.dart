@@ -19,11 +19,14 @@ class FileMode {
 /**
  * [File] objects are references to files.
  *
- * To operate on the underlying file data you need to either get
- * streams using [openInputStream] and [openOutputStream] or open the
- * file for random access operations using [open].
+ * To operate on the underlying file data there are two options:
+ *
+ *  * use streaming by getting a [Stream] for the contents of the file
+ *    with [openRead] and by getting a [IOSink] for
+ *    writing contents to the file using [openWrite], or
+ *  * open the file for random access operations using [open].
  */
-abstract class File {
+abstract class File extends FileSystemEntity {
   /**
    * Create a File object.
    */
@@ -151,26 +154,27 @@ abstract class File {
   String fullPathSync();
 
   /**
-   * Create a new independent input stream for the file. The file
-   * input stream must be closed when no longer used to free up system
-   * resources.
+   * Create a new independent [Stream] for the contents of this
+   * file.
+   *
+   * In order to make sure that system resources are freed, the stream
+   * must be read to completion or the subscription on the stream must
+   * be cancelled.
    */
-  InputStream openInputStream();
+  Stream<List<int>> openRead();
+
 
   /**
-   * Creates a new independent output stream for the file. The file
-   * output stream must be closed when no longer used to free up
+   * Creates a new independent [IOSink] for the file. The
+   * stream consumer must be closed when no longer used to free up
    * system resources.
    *
-   * An output stream can be opened in two modes:
+   * A IOSink can be opened for a file in two modes:
    *
-   * FileMode.WRITE: create the stream and truncate the underlying
-   * file to length zero.
-   *
-   * FileMode.APPEND: create the stream and set the position to the end of
-   * the underlying file.
+   * * FileMode.WRITE: truncates the underlying file to length zero.
+   * * FileMode.APPEND: sets the position to the end of the underlying file.
    */
-  OutputStream openOutputStream([FileMode mode = FileMode.WRITE]);
+  IOSink<File> openWrite([FileMode mode = FileMode.WRITE]);
 
   /**
    * Read the entire file contents as a list of bytes. Returns a

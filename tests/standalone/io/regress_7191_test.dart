@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,12 +19,10 @@ main() {
   var scriptDir = new Path(options.script).directoryPath;
   var script = scriptDir.append('regress_7191_script.dart').toNativePath();
   Process.start(executable, [script]).then((process) {
-    process.stdin.write([0]);
-    process.stdout.onData = process.stdout.read;
-    process.stderr.onData = process.stderr.read;
-    process.stdout.onClosed = () {
-      process.stdin.write([0]);
-    };
-    process.onExit = (exitCode) => port.close();
+    process.stdin.add([0]);
+      process.stdout.listen((_) { },
+                            onDone: () { process.stdin.add([0]); });
+    process.stderr.listen((_) { });
+    process.exitCode.then((exitCode) => port.close());
   });
 }

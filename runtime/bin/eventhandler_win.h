@@ -36,11 +36,12 @@ struct InterruptMessage {
 // socket for the client.
 class IOBuffer {
  public:
-  enum Operation { kAccept, kRead, kWrite };
+  enum Operation { kAccept, kRead, kWrite, kDisconnect };
 
   static IOBuffer* AllocateAcceptBuffer(int buffer_size);
   static IOBuffer* AllocateReadBuffer(int buffer_size);
   static IOBuffer* AllocateWriteBuffer(int buffer_size);
+  static IOBuffer* AllocateDisconnectBuffer();
   static void DisposeBuffer(IOBuffer* buffer);
 
   // Find the IO buffer from the OVERLAPPED address.
@@ -177,7 +178,8 @@ class Handle {
 
   bool CreateCompletionPort(HANDLE completion_port);
 
-  void close();
+  void Close();
+  virtual void DoClose();
   virtual bool IsClosed() = 0;
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
@@ -216,7 +218,6 @@ class Handle {
   explicit Handle(HANDLE handle);
   Handle(HANDLE handle, Dart_Port port);
 
-  virtual void AfterClose() = 0;
   virtual void HandleIssueError();
 
   Type type_;
@@ -247,9 +248,6 @@ class FileHandle : public Handle {
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
-
- private:
-  virtual void AfterClose();
 };
 
 
@@ -284,6 +282,7 @@ class ListenSocket : public SocketHandle {
 
   // Socket interface exposing normal socket operations.
   ClientSocket* Accept();
+  bool CanAccept();
 
   // Internal interface used by the event handler.
   bool HasPendingAccept() { return pending_accept_count_ > 0; }
@@ -292,13 +291,13 @@ class ListenSocket : public SocketHandle {
 
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler);
+  virtual void DoClose();
   virtual bool IsClosed();
 
   int pending_accept_count() { return pending_accept_count_; }
 
  private:
   bool LoadAcceptEx();
-  virtual void AfterClose();
 
   LPFN_ACCEPTEX AcceptEx_;
   int pending_accept_count_;
@@ -312,11 +311,17 @@ class ListenSocket : public SocketHandle {
 // Information on connected sockets.
 class ClientSocket : public SocketHandle {
  public:
-  explicit ClientSocket(SOCKET s) : SocketHandle(s), next_(NULL) {
+  explicit ClientSocket(SOCKET s) : SocketHandle(s),
+                                    DisconnectEx_(NULL),
+                                    next_(NULL) {
+    LoadDisconnectEx();
     type_ = kClientSocket;
   }
 
-  ClientSocket(SOCKET s, Dart_Port port) : SocketHandle(s, port), next_(NULL) {
+  ClientSocket(SOCKET s, Dart_Port port) : SocketHandle(s, port),
+                                           DisconnectEx_(NULL),
+                                           next_(NULL) {
+    LoadDisconnectEx();
     type_ = kClientSocket;
   }
 
@@ -332,17 +337,21 @@ class ClientSocket : public SocketHandle {
   // Internal interface used by the event handler.
   virtual bool IssueRead();
   virtual bool IssueWrite();
+  void IssueDisconnect();
+  void DisconnectComplete(IOBuffer* buffer);
 
   virtual void EnsureInitialized(
     EventHandlerImplementation* event_handler);
+  virtual void DoClose();
   virtual bool IsClosed();
 
   ClientSocket* next() { return next_; }
   void set_next(ClientSocket* next) { next_ = next; }
 
  private:
-  virtual void AfterClose();
+  bool LoadDisconnectEx();
 
+  LPFN_DISCONNECTEX DisconnectEx_;
   ClientSocket* next_;
 };
 
@@ -367,7 +376,9 @@ class EventHandlerImplementation {
   void HandleError(Handle* handle);
   void HandleRead(Handle* handle, int bytes, IOBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, IOBuffer* buffer);
-  void HandleClose(ClientSocket* client_socket);
+  void HandleDisconnect(ClientSocket* client_socket,
+                        int bytes,
+                        IOBuffer* buffer);
   void HandleIOCompletion(DWORD bytes, ULONG_PTR key, OVERLAPPED* overlapped);
 
   HANDLE completion_port() { return completion_port_; }

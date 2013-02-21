@@ -58,9 +58,9 @@ static char** ExtractCStringList(Dart_Handle strings,
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle process =  Dart_GetNativeArgument(args, 0);
-  intptr_t in;
-  intptr_t out;
-  intptr_t err;
+  intptr_t process_stdin;
+  intptr_t process_stdout;
+  intptr_t process_stderr;
   intptr_t exit_event;
   Dart_Handle status_handle = Dart_GetNativeArgument(args, 9);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
@@ -119,9 +119,9 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
       return;
     }
   }
-  Dart_Handle in_handle = Dart_GetNativeArgument(args, 5);
-  Dart_Handle out_handle = Dart_GetNativeArgument(args, 6);
-  Dart_Handle err_handle = Dart_GetNativeArgument(args, 7);
+  Dart_Handle stdin_handle = Dart_GetNativeArgument(args, 5);
+  Dart_Handle stdout_handle = Dart_GetNativeArgument(args, 6);
+  Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 7);
   Dart_Handle exit_handle = Dart_GetNativeArgument(args, 8);
   intptr_t pid = -1;
   char* os_error_message = NULL;
@@ -132,16 +132,16 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                                   working_directory,
                                   string_environment,
                                   environment_length,
-                                  &in,
-                                  &out,
-                                  &err,
+                                  &process_stdout,
+                                  &process_stdin,
+                                  &process_stderr,
                                   &pid,
                                   &exit_event,
                                   &os_error_message);
   if (error_code == 0) {
-    Socket::SetSocketIdNativeField(in_handle, in);
-    Socket::SetSocketIdNativeField(out_handle, out);
-    Socket::SetSocketIdNativeField(err_handle, err);
+    Socket::SetSocketIdNativeField(stdin_handle, process_stdin);
+    Socket::SetSocketIdNativeField(stdout_handle, process_stdout);
+    Socket::SetSocketIdNativeField(stderr_handle, process_stderr);
     Socket::SetSocketIdNativeField(exit_handle, exit_event);
     Process::SetProcessIdNativeField(process, pid);
   } else {

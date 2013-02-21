@@ -1,180 +1,213 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Tests socket exceptions.
 
+import "dart:async";
 import "dart:isolate";
 import "dart:io";
 
 class SocketExceptionTest {
 
-  static const PORT = 0;
-  static const HOST = "127.0.0.1";
-
   static void serverSocketExceptionTest() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
 
-    ServerSocket server = new ServerSocket(HOST, PORT, 10);
-    Expect.equals(true, server != null);
-    server.close();
-    try {
+    ServerSocket.bind().then((server) {
+      Expect.isNotNull(server);
       server.close();
-    } on SocketIOException catch(ex) {
-      exceptionCaught = true;
-    } on Exception catch (ex) {
-      wrongExceptionCaught = true;
-    }
-    Expect.equals(false, exceptionCaught);
-    Expect.equals(true, !wrongExceptionCaught);
+      try {
+        server.close();
+      } on SocketIOException catch(ex) {
+        exceptionCaught = true;
+      } catch (ex) {
+        wrongExceptionCaught = true;
+      }
+      Expect.equals(false, exceptionCaught);
+      Expect.equals(true, !wrongExceptionCaught);
 
-    // Test invalid host.
-    Expect.throws(() => new ServerSocket("__INVALID_HOST__", PORT, 10),
-                  (e) => e is SocketIOException);
+      // Test invalid host.
+      ServerSocket.bind("__INVALID_HOST__")
+        .then((server) { })
+        .catchError((e) => e is SocketIOException);
+    });
+  }
+
+  static void serverSocketCloseListenTest() {
+    var port = new ReceivePort();
+    ServerSocket.bind().then((server) {
+      Socket.connect("127.0.0.1", server.port).then((socket) {
+        server.close();
+        server.listen(
+          (incoming) => Expect.fail("Unexpected socket"),
+          onDone: port.close);
+      });
+    });
+  }
+
+  static void serverSocketListenCloseTest() {
+    var port = new ReceivePort();
+    ServerSocket.bind().then((server) {
+      Socket.connect("127.0.0.1", server.port).then((socket) {
+        server.listen(
+          (incoming) => server.close(),
+          onDone: port.close());
+      });
+    });
   }
 
   static void clientSocketExceptionTest() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
 
-    ServerSocket server = new ServerSocket(HOST, PORT, 10);
-    Expect.equals(true, server != null);
-    int port = server.port;
-    Socket client = new Socket(HOST, port);
-    client.onConnect = () {
-      Expect.equals(true, client != null);
-      InputStream input = client.inputStream;
-      OutputStream output = client.outputStream;
-      client.close();
-      try {
+    ServerSocket.bind().then((server) {
+      Expect.isNotNull(server);
+     int port = server.port;
+      Socket.connect("127.0.0.1", port).then((client) {
+       Expect.isNotNull(client);
         client.close();
-      } on SocketIOException catch(ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(false, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
-      try {
-        client.available();
-      } on SocketIOException catch(ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
-      try {
-        List<int> buffer = new List<int>.fixedLength(10);
-        client.readList(buffer, 0 , 10);
-      } on SocketIOException catch(ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
-      try {
-        List<int> buffer = new List<int>.fixedLength(10);
-        client.writeList(buffer, 0, 10);
-      } on SocketIOException catch(ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
-      try {
-        List<int> buffer = new List<int>.fixedLength(42);
-        input.readInto(buffer, 0, 12);
-      } on SocketIOException catch(ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
-      try {
-        List<int> buffer = new List<int>.fixedLength(42);
-        output.writeFrom(buffer, 0, 12);
-      } on SocketIOException catch(ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
+        try {
+          client.close();
+        } on SocketIOException catch(ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          wrongExceptionCaught = true;
+        }
+        Expect.isFalse(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
+        try {
+          client.destroy();
+        } on SocketIOException catch(ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          print(ex);
+          wrongExceptionCaught = true;
+        }
+        Expect.isFalse(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
+        try {
+          List<int> buffer = new List<int>.fixedLength(10);
+          client.add(buffer);
+        } on StateError catch (ex) {
+          exceptionCaught = true;
+        } catch (ex) {
+          wrongExceptionCaught = true;
+        }
+        Expect.isTrue(exceptionCaught);
+        Expect.isFalse(wrongExceptionCaught);
 
-      server.close();
-    };
+        server.close();
+      });
+    });
   }
 
-  static void indexOutOfRangeExceptionTest() {
-    bool exceptionCaught = false;
-    bool wrongExceptionCaught = false;
+  static void clientSocketDestroyNoErrorTest() {
+    ServerSocket.bind().then((server) {
+      server.listen((socket) {
+        socket.pipe(socket);
+      });
+      Socket.connect("127.0.0.1", server.port).then((client) {
+        client.listen((data) {}, onDone: server.close);
+        client.destroy();
+      });
+    });
+  }
 
-    ServerSocket server = new ServerSocket(HOST, PORT, 10);
-    Expect.equals(true, server != null);
-    int port = server.port;
-    Socket client = new Socket(HOST, port);
-    client.onConnect = () {
-      Expect.equals(true, client != null);
-      try {
-        List<int> buffer = new List<int>.fixedLength(10);
-        client.readList(buffer, -1, 1);
-      } on RangeError catch (ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
+  static void clientSocketAddDestroyNoErrorTest() {
+    ServerSocket.bind().then((server) {
+      server.listen((socket) {
+        // Passive block data by not sobscribing to socket.
+      });
+      Socket.connect("127.0.0.1", server.port).then((client) {
+        client.listen((data) {}, onDone: server.close);
+        client.add(new List.fixedLength(1024 * 1024, fill: 0));
+        client.destroy();
+      });
+    });
+  }
 
-      try {
-        List<int> buffer = new List<int>.fixedLength(10);
-        client.readList(buffer, 0, -1);
-      } on RangeError catch (ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
+  static void clientSocketAddCloseNoErrorTest() {
+    ServerSocket.bind().then((server) {
+      var completer = new Completer();
+      server.listen((socket) {
+        // The socket is 'paused' until the future completes.
+        completer.future.then((_) => socket.pipe(socket));
+      });
+      Socket.connect("127.0.0.1", server.port).then((client) {
+        const int SIZE = 1024 * 1024;
+        int count = 0;
+        client.listen(
+            (data) => count += data.length,
+            onDone: () {
+              Expect.equals(SIZE, count);
+              server.close();
+            });
+        client.add(new List.fixedLength(SIZE, fill: 0));
+        client.close();
+        // Start piping now.
+        completer.complete(null);
+      });
+    });
+  }
 
-      try {
-        List<int> buffer = new List<int>.fixedLength(10);
-        client.writeList(buffer, -1, 1);
-      } on RangeError catch (ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-      exceptionCaught = false;
+  static void clientSocketAddCloseErrorTest() {
+    ServerSocket.bind().then((server) {
+      var completer = new Completer();
+      server.listen((socket) {
+        completer.future.then((_) => socket.destroy());
+      });
+      Socket.connect("127.0.0.1", server.port).then((client) {
+        const int SIZE = 1024 * 1024;
+        int errors = 0;
+        client.listen(
+            (data) => Expect.fail("Unexpected data"),
+            onError: (error) {
+              Expect.isTrue(error.error is SocketIOException);
+              errors++;
+            },
+            onDone: () {
+              // We get either a close or an error followed by a close
+              // on the socket.  Whether we get both depends on
+              // whether the system notices the error for the read
+              // event or only for the write event.
+              Expect.isTrue(errors <= 1);
+              server.close();
+            });
+        client.add(new List.fixedLength(SIZE, fill: 0));
+        // Destroy other socket now.
+        completer.complete(null);
+        var port = new ReceivePort();
+        client.done.then(
+            (_) {
+              Expect.fail("Expected error");
+            },
+            onError: (error) {
+              Expect.isTrue(error.error is SocketIOException);
+              port.close();
+            });
+      });
+    });
+  }
 
-      try {
-        List<int> buffer = new List<int>.fixedLength(10);
-        client.writeList(buffer, 0, -1);
-      } on RangeError catch (ex) {
-        exceptionCaught = true;
-      } on Exception catch (ex) {
-        wrongExceptionCaught = true;
-      }
-      Expect.equals(true, exceptionCaught);
-      Expect.equals(true, !wrongExceptionCaught);
-
-      server.close();
-      client.close();
-    };
+  static void clientSocketAddCloseResultErrorTest() {
+    ServerSocket.bind().then((server) {
+      var completer = new Completer();
+      server.listen((socket) {
+        completer.future.then((_) => socket.destroy());
+      });
+      Socket.connect("127.0.0.1", server.port).then((client) {
+        const int SIZE = 1024 * 1024;
+        int errors = 0;
+        client.add(new List.fixedLength(SIZE, fill: 0));
+        client.close();
+        client.done.catchError((error) {
+          server.close();
+        });
+        // Destroy other socket now.
+        completer.complete(null);
+      });
+    });
   }
 
   static void unknownHostTest() {
@@ -182,15 +215,22 @@ class SocketExceptionTest {
     var port = new ReceivePort();
     port.receive((message, replyTo) => null);
 
-    Socket s =  new Socket("hede.hule.hest", 1234);
-    s.onError = (e) => port.close();
-    s.onConnect = () => Expect.fail("Connection completed");
+    Socket.connect("hede.hule.hest", 1234)
+        .then((socket) => Expect.fail("Connection completed"))
+        .catchError((e) => port.close(), test: (e) => e is SocketIOException);
+
   }
 
   static void testMain() {
     serverSocketExceptionTest();
+    serverSocketCloseListenTest();
+    serverSocketListenCloseTest();
     clientSocketExceptionTest();
-    indexOutOfRangeExceptionTest();
+    clientSocketDestroyNoErrorTest();
+    clientSocketAddDestroyNoErrorTest();
+    clientSocketAddCloseNoErrorTest();
+    clientSocketAddCloseErrorTest();
+    clientSocketAddCloseResultErrorTest();
     unknownHostTest();
   }
 }

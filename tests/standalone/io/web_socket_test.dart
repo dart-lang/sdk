@@ -1,16 +1,188 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
-import "dart:async";
 import "dart:io";
 import "dart:isolate";
 import "dart:scalarlist";
-import "dart:uri";
 
-const SERVER_ADDRESS = "127.0.0.1";
-const HOST_NAME = "localhost";
+void testRequestResponseClientCloses(
+    int totalConnections, int closeStatus, String closeReason) {
+  HttpServer.bind().then((server) {
+
+    server.transform(new WebSocketTransformer()).listen((webSocket) {
+      webSocket.listen((event) {
+        if (event is MessageEvent) {
+          webSocket.send(event.data);
+        } else if (event is CloseEvent) {
+          Expect.equals(closeStatus == null
+                        ? WebSocketStatus.NO_STATUS_RECEIVED
+                        : closeStatus, event.code);
+          Expect.equals(closeReason == null ? "" : closeReason, event.reason);
+        }
+      });
+    });
+
+    int closeCount = 0;
+    String messageText = "Hello, world!";
+    for (int i = 0; i < totalConnections; i++) {
+      int messageCount = 0;
+       WebSocket.connect("ws://127.0.0.1:${server.port}/")
+        .then((webSocket) {
+          webSocket.send(messageText);
+          webSocket.listen((event) {
+            if (event is MessageEvent) {
+              messageCount++;
+              if (messageCount < 1 ) {
+                Expect.equals(messageText, event.data);
+                webSocket.send(event.data);
+              } else {
+                webSocket.close(closeStatus, closeReason);
+              }
+            } else if (event is CloseEvent) {
+              Expect.equals(closeStatus == null
+                            ? WebSocketStatus.NO_STATUS_RECEIVED
+                            : closeStatus, event.code);
+              Expect.equals("", event.reason);
+              closeCount++;
+              if (closeCount == totalConnections) {
+                server.close();
+              }
+            }
+          });
+        });
+    }
+
+  });
+}
+
+
+void testRequestResponseServerCloses(
+    int totalConnections, int closeStatus, String closeReason) {
+  HttpServer.bind().then((server) {
+
+    int closeCount = 0;
+    server.transform(new WebSocketTransformer()).listen((webSocket) {
+      String messageText = "Hello, world!";
+      int messageCount = 0;
+      webSocket.listen((event) {
+        if (event is MessageEvent) {
+          messageCount++;
+          if (messageCount < 10) {
+            Expect.equals(messageText, event.data);
+            webSocket.send(event.data);
+          } else {
+            webSocket.close(closeStatus, closeReason);
+          }
+        } else if (event is CloseEvent) {
+          Expect.equals(closeStatus == null
+                        ? WebSocketStatus.NO_STATUS_RECEIVED
+                        : closeStatus, event.code);
+          Expect.equals("", event.reason);
+          closeCount++;
+          if (closeCount == totalConnections) {
+            server.close();
+          }
+        }
+      });
+      webSocket.send(messageText);
+    });
+
+    for (int i = 0; i < totalConnections; i++) {
+      WebSocket.connect("ws://127.0.0.1:${server.port}/")
+        .then((webSocket) {
+          webSocket.listen((event) {
+            if (event is MessageEvent) {
+              webSocket.send(event.data);
+            } else if (event is CloseEvent) {
+              Expect.equals(closeStatus == null
+                            ? WebSocketStatus.NO_STATUS_RECEIVED
+                            : closeStatus, event.code);
+              Expect.equals(
+                  closeReason == null ? "" : closeReason, event.reason);
+            }
+          });
+        });
+    }
+
+  });
+}
+
+
+void testMessageLength(int messageLength) {
+  HttpServer.bind().then((server) {
+
+    Uint8List originalMessage = new Uint8List(messageLength);
+    server.transform(new WebSocketTransformer()).listen((webSocket) {
+      webSocket.listen((event) {
+        if (event is MessageEvent) {
+          Expect.listEquals(originalMessage, event.data);
+          webSocket.send(event.data);
+        } else if (event is CloseEvent) {
+        }
+      });
+    });
+
+    WebSocket.connect("ws://127.0.0.1:${server.port}/")
+      .then((webSocket) {
+        webSocket.listen((event) {
+          if (event is MessageEvent) {
+            Expect.listEquals(originalMessage, event.data);
+            webSocket.close();
+          } else if (event is CloseEvent) {
+            server.close();
+          }
+        });
+        webSocket.send(originalMessage);
+      });
+
+  });
+}
+
+
+void testNoUpgrade() {
+  HttpServer.bind().then((server) {
+
+    // Create a server which always responds with NOT_FOUND.
+    server.listen((request) {
+      request.response.statusCode = HttpStatus.NOT_FOUND;
+      request.response.close();
+    });
+
+    WebSocket.connect("ws://127.0.0.1:${server.port}/").catchError((error) {
+      server.close();
+    });
+
+  });
+}
+
+
+void testUsePOST() {
+  HttpServer.bind().then((server) {
+
+    var errorPort = new ReceivePort();
+    server.transform(new WebSocketTransformer()).listen((webSocket) {
+      Expect.fail("No connection expected");
+    }, onError: (e) {
+      errorPort.close();
+    });
+
+    HttpClient client = new HttpClient();
+    client.post("127.0.0.1", server.port, "/")
+      .then((request) => request.close())
+      .then((response) {
+        Expect.equals(HttpStatus.BAD_REQUEST, response.statusCode);
+        client.close();
+        server.close();
+      });
+
+  });
+}
 
 
 class WebSocketInfo {
@@ -18,362 +190,89 @@ class WebSocketInfo {
 }
 
 
-/**
- * A SecurityConfiguration lets us run the tests over HTTP or HTTPS.
- */
-class SecurityConfiguration {
-  final bool secure;
-  HttpClient client;
-
-  SecurityConfiguration({bool this.secure}) : client = new HttpClient();
-
-  HttpServer createServer({int backlog}) {
-    HttpServer server = secure ? new HttpsServer() : new HttpServer();
-    server.listen(SERVER_ADDRESS,
-                  0,
-                  backlog: backlog,
-                  certificate_name: "CN=$HOST_NAME");
-    return server;
-  }
-
-  WebSocketClientConnection createClient(int port,
-                                         {bool followRedirects,
-                                          String method: "GET"}) {
-    HttpClientConnection conn = client.openUrl(method, Uri.parse(
-        '${secure ? "https" : "http"}://$HOST_NAME:$port/'));
-    if (followRedirects != null) {
-      conn.followRedirects = followRedirects;
-    }
-    return new WebSocketClientConnection(conn);
-  }
-
-  void testRequestResponseClientCloses(
-      int totalConnections, int closeStatus, String closeReason) {
-    HttpServer server = createServer(backlog: totalConnections);
-    HttpClient client = new HttpClient();
-
-    // Make a web socket handler and set it as the HTTP server default handler.
-    WebSocketHandler wsHandler = new WebSocketHandler();
-    wsHandler.onOpen = (WebSocketConnection conn) {
-      var count = 0;
-      conn.onMessage = (Object message) => conn.send(message);
-      conn.onClosed = (status, reason) {
-        Expect.equals(closeStatus == null
-                      ? WebSocketStatus.NO_STATUS_RECEIVED
-                      : closeStatus, status);
-        Expect.equals(closeReason == null ? "" : closeReason, reason);
-      };
-    };
-    server.defaultRequestHandler = wsHandler.onRequest;
+void testW3CInterface(
+    int totalConnections, int closeStatus, String closeReason) {
+  HttpServer.bind().then((server) {
 
     int closeCount = 0;
-    String messageText = "Hello, world!";
-    for (int i = 0; i < totalConnections; i++) {
-      int messageCount = 0;
-      WebSocketClientConnection wsconn = createClient(server.port);
-      wsconn.onOpen = () => wsconn.send(messageText);
-      wsconn.onMessage = (message) {
-        messageCount++;
-        if (messageCount < 10) {
-          Expect.equals(messageText, message);
-          wsconn.send(message);
-        } else {
-          wsconn.close(closeStatus, closeReason);
-        }
-      };
-      wsconn.onClosed = (status, reason) {
-        Expect.equals(closeStatus == null
-                      ? WebSocketStatus.NO_STATUS_RECEIVED
-                      : closeStatus, status);
-        Expect.equals("", reason);
-        closeCount++;
-        if (closeCount == totalConnections) {
-          client.shutdown();
-          server.close();
-        }
-      };
-    }
-  }
-
-
-  void testRequestResponseServerCloses(
-      int totalConnections, int closeStatus, String closeReason) {
-    ReceivePort keepAlive = new ReceivePort();
-    HttpServer server = createServer(backlog: totalConnections);
-
-    // Create a web socket handler and set is as the HTTP server default
-    // handler.
-    int closeCount = 0;
-    WebSocketHandler wsHandler = new WebSocketHandler();
-    wsHandler.onOpen = (WebSocketConnection conn) {
+    server.transform(new WebSocketTransformer()).listen((webSocket) {
       String messageText = "Hello, world!";
       int messageCount = 0;
-      conn.onMessage = (Object message) {
-        messageCount++;
-        if (messageCount < 10) {
-          Expect.equals(messageText, message);
-          conn.send(message);
-        } else {
-        conn.close(closeStatus, closeReason);
+      webSocket.listen((event) {
+        if (event is MessageEvent) {
+          messageCount++;
+          if (messageCount < 10) {
+            Expect.equals(messageText, event.data);
+            webSocket.send(event.data);
+          } else {
+            webSocket.close(closeStatus, closeReason);
+          }
+        } else if (event is CloseEvent) {
+          Expect.equals(closeStatus, event.code);
+          Expect.equals("", event.reason);
+          closeCount++;
+          if (closeCount == totalConnections) {
+            server.close();
+          }
         }
-      };
-      conn.onClosed = (status, reason) {
-        Expect.equals(closeStatus == null
-                      ? WebSocketStatus.NO_STATUS_RECEIVED
-                      : closeStatus, status);
-        Expect.equals("", reason);
-        closeCount++;
-        if (closeCount == totalConnections) {
-          client.shutdown();
-          server.close();
-          keepAlive.close();
-      }
-      };
-      conn.send(messageText);
-    };
-    server.defaultRequestHandler = wsHandler.onRequest;
-
-    for (int i = 0; i < totalConnections; i++) {
-      WebSocketClientConnection wsconn = createClient(server.port);
-      wsconn.onMessage = (message) => wsconn.send(message);
-      wsconn.onClosed = (status, reason) {
-        Expect.equals(closeStatus == null
-                      ? WebSocketStatus.NO_STATUS_RECEIVED
-                      : closeStatus, status);
-        Expect.equals(closeReason == null ? "" : closeReason, reason);
-      };
-    }
-  }
-
-
-  void testMessageLength(int messageLength) {
-    HttpServer server = createServer(backlog: 1);
-    bool serverReceivedMessage = false;
-    bool clientReceivedMessage = false;
-
-    // Create a web socket handler and set is as the HTTP server default
-    // handler.
-    Uint8List originalMessage = new Uint8List(messageLength);
-    WebSocketHandler wsHandler = new WebSocketHandler();
-    wsHandler.onOpen = (WebSocketConnection conn) {
-      conn.onMessage = (Object message) {
-        serverReceivedMessage = true;
-        Expect.listEquals(originalMessage, message);
-        conn.send(message);
-      };
-      conn.onClosed = (status, reason) {
-      };
-    };
-    server.defaultRequestHandler = wsHandler.onRequest;
-
-    WebSocketClientConnection wsconn = createClient(server.port);
-    wsconn.onMessage = (message) {
-      clientReceivedMessage = true;
-      Expect.listEquals(originalMessage, message);
-      wsconn.close();
-    };
-    wsconn.onClosed = (status, reason) {
-      Expect.isTrue(serverReceivedMessage);
-      Expect.isTrue(clientReceivedMessage);
-      client.shutdown();
-      server.close();
-    };
-    wsconn.onOpen = () {
-      wsconn.send(originalMessage);
-    };
-  }
-
-
-  void testNoUpgrade() {
-    HttpServer server = createServer(backlog: 5);
-
-    // Create a server which always responds with a redirect.
-    server.defaultRequestHandler = (request, response) {
-      response.statusCode = HttpStatus.MOVED_PERMANENTLY;
-      response.outputStream.close();
-    };
-
-    WebSocketClientConnection wsconn = createClient(server.port,
-                                                    followRedirects: false);
-    wsconn.onNoUpgrade = (response) {
-      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
-      client.shutdown();
-      server.close();
-    };
-  }
-
-
-  void testUsePOST() {
-    HttpServer server = createServer(backlog: 5);
-
-    // Create a web socket handler and set is as the HTTP server default
-    // handler.
-    int closeCount = 0;
-    WebSocketHandler wsHandler = new WebSocketHandler();
-    wsHandler.onOpen = (WebSocketConnection conn) {
-      Expect.fail("No connection expected");
-    };
-    server.defaultRequestHandler = wsHandler.onRequest;
-
-    WebSocketClientConnection wsconn = createClient(server.port,
-                                                    method: "POST");
-    wsconn.onNoUpgrade = (response) {
-      Expect.equals(HttpStatus.BAD_REQUEST, response.statusCode);
-      client.shutdown();
-      server.close();
-    };
-  }
-
-
-  void testHashCode(int totalConnections) {
-    ReceivePort keepAlive = new ReceivePort();
-    HttpServer server = createServer(backlog: totalConnections);
-    Map connections = new Map();
-
-    void handleMessage(conn, message) {
-      var info = connections[conn];
-      Expect.isNotNull(info);
-      info.messageCount++;
-      if (info.messageCount < 10) {
-        conn.send(message);
-      } else {
-        conn.close();
-      }
-    }
-
-    // Create a web socket handler and set is as the HTTP server default
-    // handler.
-    int closeCount = 0;
-    WebSocketHandler wsHandler = new WebSocketHandler();
-    wsHandler.onOpen = (WebSocketConnection conn) {
-      connections[conn] = new WebSocketInfo();
-      String messageText = "Hello, world!";
-      conn.onMessage = (Object message) {
-        handleMessage(conn, message);
-      };
-      conn.onClosed = (status, reason) {
-        closeCount++;
-        var info = connections[conn];
-        Expect.equals(10, info.messageCount);
-        if (closeCount == totalConnections) {
-          client.shutdown();
-          server.close();
-          keepAlive.close();
-        }
-      };
-      conn.send(messageText);
-    };
-    server.defaultRequestHandler = wsHandler.onRequest;
-
-    for (int i = 0; i < totalConnections; i++) {
-      WebSocketClientConnection wsconn = createClient(server.port);
-      wsconn.onMessage = (message) => wsconn.send(message);
-    }
-  }
-
-
-  void testW3CInterface(
-      int totalConnections, int closeStatus, String closeReason) {
-    HttpServer server = createServer(backlog: totalConnections);
-
-    // Create a web socket handler and set is as the HTTP server default
-    // handler.
-    int closeCount = 0;
-    WebSocketHandler wsHandler = new WebSocketHandler();
-    wsHandler.onOpen = (WebSocketConnection conn) {
-      String messageText = "Hello, world!";
-      int messageCount = 0;
-      conn.onMessage = (Object message) {
-        messageCount++;
-        if (messageCount < 10) {
-          Expect.equals(messageText, message);
-          conn.send(message);
-        } else {
-          conn.close(closeStatus, closeReason);
-        }
-      };
-      conn.onClosed = (status, reason) {
-        Expect.equals(closeStatus, status);
-        Expect.equals("", reason);
-        closeCount++;
-        if (closeCount == totalConnections) {
-          server.close();
-        }
-      };
-      conn.send(messageText);
-    };
-    server.defaultRequestHandler = wsHandler.onRequest;
+      });
+      webSocket.send(messageText);
+    });
 
     void webSocketConnection() {
       bool onopenCalled = false;
       int onmessageCalled = 0;
       bool oncloseCalled = false;
 
-      var websocket =
-          new WebSocket('${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}');
-      Expect.equals(WebSocket.CONNECTING, websocket.readyState);
-      websocket.onopen = () {
+      WebSocket.connect("ws://127.0.0.1:${server.port}").then((webSocket) {
         Expect.isFalse(onopenCalled);
         Expect.equals(0, onmessageCalled);
         Expect.isFalse(oncloseCalled);
         onopenCalled = true;
-        Expect.equals(WebSocket.OPEN, websocket.readyState);
-      };
-      websocket.onmessage = (event) {
-        onmessageCalled++;
-        Expect.isTrue(onopenCalled);
-        Expect.isFalse(oncloseCalled);
-        Expect.equals(WebSocket.OPEN, websocket.readyState);
-        websocket.send(event.data);
-      };
-      websocket.onclose = (event) {
-        Expect.isTrue(onopenCalled);
-        Expect.equals(10, onmessageCalled);
-        Expect.isFalse(oncloseCalled);
-        oncloseCalled = true;
-        Expect.isTrue(event.wasClean);
-        Expect.equals(3002, event.code);
-        Expect.equals("Got tired", event.reason);
-        Expect.equals(WebSocket.CLOSED, websocket.readyState);
-      };
+        Expect.equals(WebSocket.OPEN, webSocket.readyState);
+        webSocket.listen((event) {
+         if (event is MessageEvent) {
+            onmessageCalled++;
+            Expect.isTrue(onopenCalled);
+            Expect.isFalse(oncloseCalled);
+            Expect.equals(WebSocket.OPEN, webSocket.readyState);
+            webSocket.send(event.data);
+          } else if (event is CloseEvent) {
+            Expect.isTrue(onopenCalled);
+            Expect.equals(10, onmessageCalled);
+            Expect.isFalse(oncloseCalled);
+            oncloseCalled = true;
+            Expect.isTrue(event.wasClean);
+            Expect.equals(3002, event.code);
+            Expect.equals("Got tired", event.reason);
+            Expect.equals(WebSocket.CLOSED, webSocket.readyState);
+          }
+        });
+      });
     }
 
     for (int i = 0; i < totalConnections; i++) {
       webSocketConnection();
     }
-  }
 
-
-  runTests() {
-    testRequestResponseClientCloses(2, null, null);
-    testRequestResponseClientCloses(2, 3001, null);
-    testRequestResponseClientCloses(2, 3002, "Got tired");
-    testRequestResponseServerCloses(2, null, null);
-    testRequestResponseServerCloses(2, 3001, null);
-    testRequestResponseServerCloses(2, 3002, "Got tired");
-    testMessageLength(125);
-    testMessageLength(126);
-    testMessageLength(127);
-    testMessageLength(65535);
-    testMessageLength(65536);
-    testNoUpgrade();
-    testUsePOST();
-    testHashCode(2);
-    testW3CInterface(2, 3002, "Got tired");
-  }
-}
-
-
-void initializeSSL() {
-  var testPkcertDatabase =
-      new Path(new Options().script).directoryPath.append("pkcert/");
-  SecureSocket.initialize(database: testPkcertDatabase.toNativePath(),
-                          password: "dartdart");
+  });
 }
 
 
 main() {
-  new SecurityConfiguration(secure: false).runTests();
-  initializeSSL();
-  new SecurityConfiguration(secure: true).runTests();
+  testRequestResponseClientCloses(2, null, null);
+  testRequestResponseClientCloses(2, 3001, null);
+  testRequestResponseClientCloses(2, 3002, "Got tired");
+  testRequestResponseServerCloses(2, null, null);
+  testRequestResponseServerCloses(2, 3001, null);
+  testRequestResponseServerCloses(2, 3002, "Got tired");
+  testMessageLength(125);
+  testMessageLength(126);
+  testMessageLength(127);
+  testMessageLength(65535);
+  testMessageLength(65536);
+  testNoUpgrade();
+  testUsePOST();
+
+  testW3CInterface(2, 3002, "Got tired");
 }

@@ -3,45 +3,39 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class _StdIOUtils {
-  static InputStream _getStdioInputStream() {
+  static Stream<List<int>> _getStdioInputStream() {
     switch (_getStdioHandleType(0)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        Socket s = new _Socket._internalReadOnly();
-        _getStdioHandle(s, 0);
-        s._closed = false;
-        return s.inputStream;
+        return new _Socket._readPipe(0);
       case _STDIO_HANDLE_TYPE_FILE:
-        return new _FileInputStream.fromStdio(0);
+        return new _FileStream.forStdin();
       default:
         throw new FileIOException("Unsupported stdin type");
     }
   }
 
-  static OutputStream _getStdioOutputStream(int fd) {
+  static IOSink _getStdioOutputStream(int fd) {
     assert(fd == 1 || fd == 2);
     switch (_getStdioHandleType(fd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        Socket s = new _Socket._internalWriteOnly();
-        _getStdioHandle(s, fd);
-        s._closed = false;
-        return s.outputStream;
+        return new _Socket._writePipe(fd);
       case _STDIO_HANDLE_TYPE_FILE:
-        return new _FileOutputStream.fromStdio(fd);
+        return new IOSink(new _FileStreamConsumer.fromStdio(fd));
       default:
         throw new FileIOException("Unsupported stdin type");
     }
   }
 
-  static int _socketType(Socket socket) {
-    return _getSocketType(socket);
+  static int _socketType(nativeSocket) {
+    return _getSocketType(nativeSocket);
   }
 }
 
 
-_getStdioHandle(Socket socket, int num) native "Socket_GetStdioHandle";
+_getStdioHandle(_NativeSocket socket, int num) native "Socket_GetStdioHandle";
 _getStdioHandleType(int num) native "File_GetStdioHandleType";
-_getSocketType(Socket socket) native "Socket_GetType";
+_getSocketType(_NativeSocket nativeSocket) native "Socket_GetType";

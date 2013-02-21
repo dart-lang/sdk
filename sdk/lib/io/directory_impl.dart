@@ -226,8 +226,65 @@ class _Directory implements Directory {
     return new Directory(newPath);
   }
 
-  DirectoryLister list({bool recursive: false}) {
-    return new _DirectoryLister(_path, recursive);
+  Stream<FileSystemEntity> list({bool recursive: false}) {
+    const int LIST_FILE = 0;
+    const int LIST_DIRECTORY = 1;
+    const int LIST_ERROR = 2;
+    const int LIST_DONE = 3;
+
+    const int RESPONSE_TYPE = 0;
+    const int RESPONSE_PATH = 1;
+    const int RESPONSE_COMPLETE = 1;
+    const int RESPONSE_ERROR = 2;
+
+    var controller = new StreamController<FileSystemEntity>();
+
+    List request = [ _Directory.LIST_REQUEST, path, recursive ];
+    ReceivePort responsePort = new ReceivePort();
+    // Use a separate directory service port for each listing as
+    // listing operations on the same directory can run in parallel.
+    _Directory._newServicePort().send(request, responsePort.toSendPort());
+    responsePort.receive((message, replyTo) {
+      if (message is !List || message[RESPONSE_TYPE] is !int) {
+        responsePort.close();
+        controller.signalError(new DirectoryIOException("Internal error"));
+        return;
+      }
+      switch (message[RESPONSE_TYPE]) {
+        case LIST_FILE:
+          controller.add(new File(message[RESPONSE_PATH]));
+          break;
+        case LIST_DIRECTORY:
+          controller.add(new Directory(message[RESPONSE_PATH]));
+          break;
+        case LIST_ERROR:
+          var errorType =
+              message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
+          if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
+            controller.signalError(new ArgumentError());
+          } else if (errorType == _OSERROR_RESPONSE) {
+            var responseError = message[RESPONSE_ERROR];
+            var err = new OSError(
+                responseError[_OSERROR_RESPONSE_MESSAGE],
+                responseError[_OSERROR_RESPONSE_ERROR_CODE]);
+            var errorPath = message[RESPONSE_PATH];
+            if (errorPath == null) errorPath = path;
+            controller.signalError(
+                new DirectoryIOException("Directory listing failed",
+                                         errorPath,
+                                         err));
+          } else {
+            controller.signalError(new DirectoryIOException("Internal error"));
+          }
+          break;
+        case LIST_DONE:
+          responsePort.close();
+          controller.close();
+          break;
+      }
+    });
+
+    return controller.stream;
   }
 
   List listSync({bool recursive: false}) {
@@ -267,94 +324,4 @@ class _Directory implements Directory {
 
   final String _path;
   SendPort _directoryService;
-}
-
-class _DirectoryLister implements DirectoryLister {
-  _DirectoryLister(String path, bool recursive) {
-    const int LIST_DIRECTORY = 0;
-    const int LIST_FILE = 1;
-    const int LIST_ERROR = 2;
-    const int LIST_DONE = 3;
-
-    final int RESPONSE_TYPE = 0;
-    final int RESPONSE_PATH = 1;
-    final int RESPONSE_COMPLETE = 1;
-    final int RESPONSE_ERROR = 2;
-
-    List request = new List.fixedLength(3);
-    request[0] = _Directory.LIST_REQUEST;
-    request[1] = path;
-    request[2] = recursive;
-    ReceivePort responsePort = new ReceivePort();
-    // Use a separate directory service port for each listing as
-    // listing operations on the same directory can run in parallel.
-    _Directory._newServicePort().send(request, responsePort.toSendPort());
-    responsePort.receive((message, replyTo) {
-      if (message is !List || message[RESPONSE_TYPE] is !int) {
-        responsePort.close();
-        _reportError(new DirectoryIOException("Internal error"));
-        return;
-      }
-      switch (message[RESPONSE_TYPE]) {
-        case LIST_DIRECTORY:
-          if (_onDir != null) _onDir(message[RESPONSE_PATH]);
-          break;
-        case LIST_FILE:
-          if (_onFile != null) _onFile(message[RESPONSE_PATH]);
-          break;
-        case LIST_ERROR:
-          var errorType =
-              message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
-          if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
-            _reportError(new ArgumentError());
-          } else if (errorType == _OSERROR_RESPONSE) {
-            var responseError = message[RESPONSE_ERROR];
-            var err = new OSError(
-                responseError[_OSERROR_RESPONSE_MESSAGE],
-                responseError[_OSERROR_RESPONSE_ERROR_CODE]);
-            var errorPath = message[RESPONSE_PATH];
-            if (errorPath == null) errorPath = path;
-            _reportError(new DirectoryIOException("Directory listing failed",
-                                                  errorPath,
-                                                  err));
-          } else {
-            _reportError(new DirectoryIOException("Internal error"));
-          }
-          break;
-        case LIST_DONE:
-          responsePort.close();
-          if (_onDone != null) _onDone(message[RESPONSE_COMPLETE]);
-          break;
-      }
-    });
-  }
-
-  void set onDir(void onDir(String dir)) {
-    _onDir = onDir;
-  }
-
-  void set onFile(void onFile(String file)) {
-    _onFile = onFile;
-  }
-
-  void set onDone(void onDone(bool completed)) {
-    _onDone = onDone;
-  }
-
-  void set onError(void onError(e)) {
-    _onError = onError;
-  }
-
-  void _reportError(e) {
-    if (_onError != null) {
-      _onError(e);
-    } else {
-      throw e;
-    }
-  }
-
-  Function _onDir;
-  Function _onFile;
-  Function _onDone;
-  Function _onError;
 }

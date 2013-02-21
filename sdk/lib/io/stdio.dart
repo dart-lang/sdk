@@ -21,12 +21,12 @@ class StdioType {
 }
 
 
-InputStream _stdin;
-OutputStream _stdout;
-OutputStream _stderr;
+Stream<List<int>> _stdin;
+IOSink _stdout;
+IOSink _stderr;
 
 
-InputStream get stdin {
+Stream<List<int>> get stdin {
   if (_stdin == null) {
     _stdin = _StdIOUtils._getStdioInputStream();
   }
@@ -34,7 +34,7 @@ InputStream get stdin {
 }
 
 
-OutputStream get stdout {
+IOSink get stdout {
   if (_stdout == null) {
     _stdout = _StdIOUtils._getStdioOutputStream(1);
   }
@@ -42,7 +42,7 @@ OutputStream get stdout {
 }
 
 
-OutputStream get stderr {
+IOSink get stderr {
   if (_stderr == null) {
     _stderr = _StdIOUtils._getStdioOutputStream(2);
   }
@@ -51,23 +51,31 @@ OutputStream get stderr {
 
 
 StdioType stdioType(object) {
-  if (object is _FileOutputStream || object is _FileInputStream) {
+  if (object is _FileStream) {
     return StdioType.FILE;
   }
-  if (object is !_SocketOutputStream && object is !_SocketInputStream) {
-    return StdioType.OTHER;
+  if (object is Socket) {
+    switch (_StdIOUtils._socketType(object._nativeSocket)) {
+      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+    }
   }
-  switch (_StdIOUtils._socketType(object._socket)) {
-    case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
-    case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
-    case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
-    default: return StdioType.OTHER;
+  if (object is IOSink) {
+    try {
+      if (object._sink.target is _FileStreamConsumer) {
+        return StdioType.FILE;
+      }
+    } catch (e) {
+      // Only the interface implemented, _sink not available.
+    }
   }
+  return StdioType.OTHER;
 }
 
 
 class _StdIOUtils {
   external static OutputStream _getStdioOutputStream(int fd);
   external static InputStream _getStdioInputStream();
-  external static int _socketType(Socket socket);
+  external static int _socketType(nativeSocket);
 }

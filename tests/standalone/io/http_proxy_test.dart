@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:io";
 import "dart:uri";
 
@@ -12,39 +13,48 @@ class Server {
   List<String> directRequestPaths;
   int requestCount = 0;
 
-  Server(this.proxyHops, this.directRequestPaths, this.secure) {
-    server = secure ? new HttpsServer() : new HttpServer();
-  }
+  Server(this.proxyHops, this.directRequestPaths, this.secure);
 
-  void start() {
-    server.listen("127.0.0.1", 0, certificate_name: 'CN=localhost');
-    server.defaultRequestHandler =
-        (HttpRequest request, HttpResponse response) {
-          requestCount++;
-          // Check whether a proxy or direct connection is expected.
-          bool direct = directRequestPaths.reduce(
-              false,
-              (prev, path) => prev ? prev : path == request.path);
-          if (!direct && proxyHops > 0) {
-            Expect.isNotNull(request.headers[HttpHeaders.VIA]);
-            Expect.equals(1, request.headers[HttpHeaders.VIA].length);
-            Expect.equals(
-                proxyHops,
-                request.headers[HttpHeaders.VIA][0].split(",").length);
-          } else {
-            Expect.isNull(request.headers[HttpHeaders.VIA]);
-          }
-          StringInputStream stream = new StringInputStream(request.inputStream);
-          StringBuffer body = new StringBuffer();
-          stream.onData = () => body.add(stream.read());
-          stream.onClosed = () {
-            String path = request.path.substring(1);
-            String content = "$path$path$path";
-            Expect.equals(content, body.toString());
-            response.outputStream.writeString(request.path);
-            response.outputStream.close();
-          };
-        };
+  Future<Server> start() {
+    var x = new Completer();
+    Future f = secure
+        ? HttpServer.bindSecure(
+            "127.0.0.1", 0, certificateName: 'localhost_cert')
+        : HttpServer.bind();
+    return f.then((s) {
+      server = s;
+      x.complete(this);
+      server.listen((request) {
+        var response = request.response;
+        requestCount++;
+        // Check whether a proxy or direct connection is expected.
+        bool direct = directRequestPaths.reduce(
+            false,
+            (prev, path) => prev ? prev : path == request.uri.path);
+        if (!direct && proxyHops > 0) {
+          Expect.isNotNull(request.headers[HttpHeaders.VIA]);
+          Expect.equals(1, request.headers[HttpHeaders.VIA].length);
+          Expect.equals(
+              proxyHops,
+              request.headers[HttpHeaders.VIA][0].split(",").length);
+        } else {
+          Expect.isNull(request.headers[HttpHeaders.VIA]);
+        }
+        var body = new StringBuffer();
+        request.listen(
+            (data) {
+              body.add(new String.fromCharCodes(data));
+            },
+            onDone: () {
+              String path = request.uri.path.substring(1);
+              String content = "$path$path$path";
+              Expect.equals(content, body.toString());
+              response.addString(request.uri.path);
+              response.close();
+            });
+      });
+      return x.future;
+    });
   }
 
   void shutdown() {
@@ -54,12 +64,11 @@ class Server {
   int get port => server.port;
 }
 
-Server setupServer(int proxyHops,
+Future<Server> setupServer(int proxyHops,
                    {List<String> directRequestPaths: const <String>[],
                     secure: false}) {
   Server server = new Server(proxyHops, directRequestPaths, secure);
-  server.start();
-  return server;
+  return server.start();
 }
 
 class ProxyServer {
@@ -67,17 +76,18 @@ class ProxyServer {
   HttpClient client;
   int requestCount = 0;
 
-  ProxyServer() : server = new HttpServer(), client = new HttpClient();
+  ProxyServer() : client = new HttpClient();
 
-  void start() {
-    server.listen("127.0.0.1", 0);
-    server.defaultRequestHandler =
-        (HttpRequest request, HttpResponse response) {
-          requestCount++;
-          // Open the connection from the proxy.
-          HttpClientConnection conn =
-              client.openUrl(request.method, Uri.parse(request.path));
-          conn.onRequest = (HttpClientRequest clientRequest) {
+  Future<ProxyServer> start() {
+    var x = new Completer();
+    HttpServer.bind().then((s) {
+      server = s;
+      x.complete(this);
+      server.listen((HttpRequest request) {
+        requestCount++;
+        // Open the connection from the proxy.
+        client.openUrl(request.method, request.uri)
+          .then((HttpClientRequest clientRequest) {
             // Forward all headers.
             request.headers.forEach((String name, List<String> values) {
               values.forEach((String value) {
@@ -93,225 +103,228 @@ class ProxyServer {
             clientRequest.headers.add(
                 HttpHeaders.VIA, "${viaPrefix}1.1 localhost:$port");
             // Copy all content.
-            request.inputStream.pipe(clientRequest.outputStream);
-          };
-          conn.onResponse = (HttpClientResponse clientResponse) {
-            clientResponse.inputStream.pipe(response.outputStream);
-          };
-        };
+            request.pipe(clientRequest);
+            return clientRequest.response;
+          })
+          .then((HttpClientResponse clientResponse) {
+            clientResponse.pipe(request.response);
+          });
+      });
+    });
+    return x.future;
   }
 
   void shutdown() {
     server.close();
-    client.shutdown();
+    client.close();
   }
 
   int get port => server.port;
 }
 
-ProxyServer setupProxyServer() {
+Future<ProxyServer> setupProxyServer() {
   ProxyServer proxyServer = new ProxyServer();
-  proxyServer.start();
-  return proxyServer;
+  return proxyServer.start();
 }
 
 testInvalidProxy() {
   HttpClient client = new HttpClient();
 
-  // TODO(sgjesse): This should not throw errors, but call
-  // HttpClientConnection onError.
+  client.findProxy = (Uri uri) => "";
+  client.getUrl(Uri.parse("http://www.google.com/test"))
+    .catchError((error) {}, test: (e) => e is HttpException);
+
   client.findProxy = (Uri uri) => "XXX";
-  Expect.throws(
-      () => client.getUrl(Uri.parse("http://www.google.com/test")),
-      (e) => e is HttpException);
+  client.getUrl(Uri.parse("http://www.google.com/test"))
+    .catchError((error) {}, test: (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "PROXY www.google.com";
-  Expect.throws(
-      () => client.getUrl(Uri.parse("http://www.google.com/test")),
-      (e) => e is HttpException);
+  client.getUrl(Uri.parse("http://www.google.com/test"))
+    .catchError((error) {}, test: (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "PROXY www.google.com:http";
-  Expect.throws(
-      () => client.getUrl(Uri.parse("http://www.google.com/test")),
-      (e) => e is HttpException);
+  client.getUrl(Uri.parse("http://www.google.com/test"))
+    .catchError((error) {}, test: (e) => e is HttpException);
 }
 
 int testDirectDoneCount = 0;
 void testDirectProxy() {
-  Server server = setupServer(0);
-  HttpClient client = new HttpClient();
-  List<String> proxy =
-      ["DIRECT", " DIRECT ", "DIRECT ;", " DIRECT ; ",
-       ";DIRECT", " ; DIRECT ", ";;DIRECT;;"];
+  setupServer(0).then((server) {
+    HttpClient client = new HttpClient();
+    List<String> proxy =
+        ["DIRECT", " DIRECT ", "DIRECT ;", " DIRECT ; ",
+         ";DIRECT", " ; DIRECT ", ";;DIRECT;;"];
 
-  client.findProxy = (Uri uri) {
-    int index = int.parse(uri.path.substring(1));
-    return proxy[index];
-  };
+    client.findProxy = (Uri uri) {
+      int index = int.parse(uri.path.substring(1));
+      return proxy[index];
+    };
 
-  for (int i = 0; i < proxy.length; i++) {
-    HttpClientConnection conn =
-        client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"));
-    conn.onRequest = (HttpClientRequest clientRequest) {
-      String content = "$i$i$i";
-      clientRequest.contentLength = content.length;
-      clientRequest.outputStream.writeString(content);
-      clientRequest.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onData = () => response.inputStream.read();
-      response.inputStream.onClosed = () {
-        testDirectDoneCount++;
-        if (testDirectDoneCount == proxy.length) {
-          Expect.equals(proxy.length, server.requestCount);
-          server.shutdown();
-          client.shutdown();
-        }
-      };
-    };
-  }
+    for (int i = 0; i < proxy.length; i++) {
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
+        .then((HttpClientRequest clientRequest) {
+          String content = "$i$i$i";
+          clientRequest.contentLength = content.length;
+          clientRequest.addString(content);
+          return clientRequest.close();
+        })
+       .then((HttpClientResponse response) {
+          response.listen((_) {}, onDone: () {
+            testDirectDoneCount++;
+            if (testDirectDoneCount == proxy.length) {
+              Expect.equals(proxy.length, server.requestCount);
+              server.shutdown();
+              client.close();
+            }
+          });
+        });
+    }
+  });
 }
 
 int testProxyDoneCount = 0;
 void testProxy() {
-  ProxyServer proxyServer = setupProxyServer();
-  Server server = setupServer(1, directRequestPaths: ["/4"]);
-  Server secureServer = setupServer(1, directRequestPaths: ["/4"], secure: true);
-  HttpClient client = new HttpClient();
+  setupProxyServer().then((proxyServer) {
+  setupServer(1, directRequestPaths: ["/4"]).then((server) {
+  setupServer(1, directRequestPaths: ["/4"], secure: true).then((secureServer) {
+    HttpClient client = new HttpClient();
 
-  List<String> proxy =
-      ["PROXY localhost:${proxyServer.port}",
-       "PROXY localhost:${proxyServer.port}; PROXY hede.hule.hest:8080",
-       "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer.port}",
-       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; PROXY localhost:${proxyServer.port}",
-       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
-       "PROXY localhost:${proxyServer.port}; DIRECT"];
+    List<String> proxy =
+        ["PROXY localhost:${proxyServer.port}",
+         "PROXY localhost:${proxyServer.port}; PROXY hede.hule.hest:8080",
+         "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer.port}",
+         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181;"
+             " PROXY localhost:${proxyServer.port}",
+         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
+         "PROXY localhost:${proxyServer.port}; DIRECT"];
 
-  client.findProxy = (Uri uri) {
-    // Pick the proxy configuration based on the request path.
-    int index = int.parse(uri.path.substring(1));
-    return proxy[index];
-  };
+    client.findProxy = (Uri uri) {
+      // Pick the proxy configuration based on the request path.
+      int index = int.parse(uri.path.substring(1));
+      return proxy[index];
+    };
 
-  for (int i = 0; i < proxy.length; i++) {
-    test(bool secure) {
-      String url = secure
-          ? "https://localhost:${secureServer.port}/$i"
-          : "http://127.0.0.1:${server.port}/$i";
+    for (int i = 0; i < proxy.length; i++) {
+      test(bool secure) {
+        String url = secure
+            ? "https://localhost:${secureServer.port}/$i"
+            : "http://127.0.0.1:${server.port}/$i";
 
-      HttpClientConnection conn = client.postUrl(Uri.parse(url));
-      conn.onRequest = (HttpClientRequest clientRequest) {
-        String content = "$i$i$i";
-        clientRequest.outputStream.writeString(content);
-        clientRequest.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        response.inputStream.onData = () => response.inputStream.read();
-        response.inputStream.onClosed = () {
-          testProxyDoneCount++;
-          if (testProxyDoneCount == proxy.length * 2) {
-            Expect.equals(proxy.length, server.requestCount);
-            proxyServer.shutdown();
-            server.shutdown();
-            secureServer.shutdown();
-            client.shutdown();
-          }
-        };
-      };
+        client.postUrl(Uri.parse(url))
+          .then((HttpClientRequest clientRequest) {
+            String content = "$i$i$i";
+            clientRequest.addString(content);
+            return clientRequest.close();
+          })
+          .then((HttpClientResponse response) {
+            response.listen((_) {}, onDone: () {
+              testProxyDoneCount++;
+              if (testProxyDoneCount == proxy.length * 2) {
+                Expect.equals(proxy.length, server.requestCount);
+                proxyServer.shutdown();
+                server.shutdown();
+                secureServer.shutdown();
+                client.close();
+              }
+            });
+          });
+      }
+
+      test(false);
+      test(true);
     }
-
-    test(false);
-    test(true);
-  }
+  });
+  });
+  });
 }
 
 int testProxyChainDoneCount = 0;
 void testProxyChain() {
   // Setup two proxy servers having the first using the second as its proxy.
-  ProxyServer proxyServer1 = setupProxyServer();
-  ProxyServer proxyServer2 = setupProxyServer();
+  setupProxyServer().then((proxyServer1) {
+  setupProxyServer().then((proxyServer2) {
   proxyServer1.client.findProxy = (_) => "PROXY 127.0.0.1:${proxyServer2.port}";
 
-  Server server = setupServer(2, directRequestPaths: ["/4"]);
-  HttpClient client = new HttpClient();
+  setupServer(2, directRequestPaths: ["/4"]).then((server) {
+    HttpClient client = new HttpClient();
 
-  List<String> proxy =
-      ["PROXY localhost:${proxyServer1.port}",
-       "PROXY localhost:${proxyServer1.port}; PROXY hede.hule.hest:8080",
-       "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer1.port}",
-       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; PROXY localhost:${proxyServer1.port}",
-       "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
-       "PROXY localhost:${proxyServer1.port}; DIRECT"];
+    List<String> proxy =
+        ["PROXY localhost:${proxyServer1.port}",
+         "PROXY localhost:${proxyServer1.port}; PROXY hede.hule.hest:8080",
+         "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer1.port}",
+         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; PROXY localhost:${proxyServer1.port}",
+         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
+         "PROXY localhost:${proxyServer1.port}; DIRECT"];
 
-  client.findProxy = (Uri uri) {
-    // Pick the proxy configuration based on the request path.
-    int index = int.parse(uri.path.substring(1));
-    return proxy[index];
-  };
-
-  for (int i = 0; i < proxy.length; i++) {
-    HttpClientConnection conn =
-        client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"));
-    conn.onRequest = (HttpClientRequest clientRequest) {
-      String content = "$i$i$i";
-      clientRequest.contentLength = content.length;
-      clientRequest.outputStream.writeString(content);
-      clientRequest.outputStream.close();
+    client.findProxy = (Uri uri) {
+      // Pick the proxy configuration based on the request path.
+      int index = int.parse(uri.path.substring(1));
+      return proxy[index];
     };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onData = () => response.inputStream.read();
-      response.inputStream.onClosed = () {
-        testProxyChainDoneCount++;
-        if (testProxyChainDoneCount == proxy.length) {
-          Expect.equals(proxy.length, server.requestCount);
-          proxyServer1.shutdown();
-          proxyServer2.shutdown();
-          server.shutdown();
-          client.shutdown();
-        }
-      };
-    };
-  }
+
+    for (int i = 0; i < proxy.length; i++) {
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
+        .then((HttpClientRequest clientRequest) {
+          String content = "$i$i$i";
+          clientRequest.contentLength = content.length;
+          clientRequest.addString(content);
+          return clientRequest.close();
+        })
+        .then((HttpClientResponse response) {
+          response.listen((_) {}, onDone: () {
+            testProxyChainDoneCount++;
+            if (testProxyChainDoneCount == proxy.length) {
+              Expect.equals(proxy.length, server.requestCount);
+              proxyServer1.shutdown();
+              proxyServer2.shutdown();
+              server.shutdown();
+              client.close();
+            }
+          });
+        });
+    }
+  });
+  });
+  });
 }
 
 int testRealProxyDoneCount = 0;
 void testRealProxy() {
-  Server server = setupServer(1);
-  HttpClient client = new HttpClient();
+  setupServer(1).then((server) {
+    HttpClient client = new HttpClient();
 
-  List<String> proxy =
-      ["PROXY localhost:8080",
-       "PROXY localhost:8080; PROXY hede.hule.hest:8080",
-       "PROXY hede.hule.hest:8080; PROXY localhost:8080",
-       "PROXY localhost:8080; DIRECT"];
+    List<String> proxy =
+        ["PROXY localhost:8080",
+         "PROXY localhost:8080; PROXY hede.hule.hest:8080",
+         "PROXY hede.hule.hest:8080; PROXY localhost:8080",
+         "PROXY localhost:8080; DIRECT"];
 
-  client.findProxy = (Uri uri) {
-    // Pick the proxy configuration based on the request path.
-    int index = int.parse(uri.path.substring(1));
-    return proxy[index];
-  };
-
-  for (int i = 0; i < proxy.length; i++) {
-    HttpClientConnection conn =
-       client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"));
-    conn.onRequest = (HttpClientRequest clientRequest) {
-      String content = "$i$i$i";
-      clientRequest.contentLength = content.length;
-      clientRequest.outputStream.writeString(content);
-      clientRequest.outputStream.close();
+    client.findProxy = (Uri uri) {
+      // Pick the proxy configuration based on the request path.
+      int index = int.parse(uri.path.substring(1));
+      return proxy[index];
     };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onData = () => response.inputStream.read();
-      response.inputStream.onClosed = () {
-        testRealProxyDoneCount++;
-        if (testRealProxyDoneCount == proxy.length) {
-          Expect.equals(proxy.length, server.requestCount);
-          server.shutdown();
-          client.shutdown();
-        }
-      };
-    };
-  }
+
+    for (int i = 0; i < proxy.length; i++) {
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
+        .then((HttpClientRequest clientRequest) {
+          String content = "$i$i$i";
+          clientRequest.contentLength = content.length;
+          clientRequest.addString(content);
+          return clientRequest.close();
+        })
+        .then((HttpClientResponse response) {
+          response.listen((_) {}, onDone: () {
+            testRealProxyDoneCount++;
+            if (testRealProxyDoneCount == proxy.length) {
+              Expect.equals(proxy.length, server.requestCount);
+              server.shutdown();
+              client.close();
+            }
+          });
+        });
+    }
+  });
 }
 
 void InitializeSSL() {
@@ -329,5 +342,5 @@ main() {
   testProxyChain();
   // This test is not normally run. It can be used for locally testing
   // with a real proxy server (e.g. Apache).
-  // testRealProxy();
+  //testRealProxy();
 }

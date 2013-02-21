@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:isolate";
 
 
 createLink(String dst, String link, bool symbolic, void callback()) {
@@ -66,16 +67,16 @@ testFileWriteRead() {
   new File(x).createSync();
   createLink(x, y, true, () {
     var data = "asdf".charCodes;
-    var output = new File(y).openOutputStream(FileMode.WRITE);
-    output.write(data);
-    output.onNoPendingWrites = () {
-      output.close();
+    var output = new File(y).openWrite(FileMode.WRITE);
+    output.add(data);
+    output.close();
+    output.done.then((_) {
       var read = new File(y).readAsBytesSync();
       Expect.listEquals(data, read);
       var read2 = new File(x).readAsBytesSync();
       Expect.listEquals(data, read2);
       temp.deleteSync(recursive: true);
-    };
+    });
   });
 }
 
@@ -119,6 +120,7 @@ testDirectoryDelete() {
 
 
 testDirectoryListing() {
+  var keepAlive = new ReceivePort();
   var temp = new Directory('').createTempSync();
   var temp2 = new Directory('').createTempSync();
   var y = '${temp.path}${Platform.pathSeparator}y';
@@ -142,23 +144,30 @@ testDirectoryListing() {
 
     files = [];
     dirs = [];
-    var lister = temp.list(recursive: true);
-    lister.onFile = (f) => files.add(f);
-    lister.onDir = (d) => dirs.add(d);
-    lister.onDone = (success) {
-      Expect.isTrue(success);
-      Expect.equals(1, files.length);
-      Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
-      Expect.equals(1, dirs.length);
-      Expect.isTrue(dirs[0].endsWith(y));
-      temp.deleteSync(recursive: true);
-      temp2.deleteSync(recursive: true);
-    };
+    var lister = temp.list(recursive: true).listen(
+        (entity) {
+          if (entity is File) {
+            files.add(entity.name);
+          } else {
+            Expect.isTrue(entity is Directory);
+            dirs.add(entity.path);
+          }
+        },
+        onDone: () {
+          Expect.equals(1, files.length);
+          Expect.isTrue(files[0].endsWith('$y${Platform.pathSeparator}x'));
+          Expect.equals(1, dirs.length);
+          Expect.isTrue(dirs[0].endsWith(y));
+          temp.deleteSync(recursive: true);
+          temp2.deleteSync(recursive: true);
+          keepAlive.close();
+        });
   });
 }
 
 
 testDirectoryListingBrokenLink() {
+  var keepAlive = new ReceivePort();
   var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var link = '${temp.path}${Platform.pathSeparator}link';
@@ -170,19 +179,25 @@ testDirectoryListingBrokenLink() {
     var files = [];
     var dirs = [];
     var errors = [];
-    var lister = temp.list(recursive: true);
-    lister.onFile = (f) => files.add(f);
-    lister.onDir = (d) => dirs.add(d);
-    lister.onError = (d) => errors.add(d);
-    lister.onDone = (success) {
-      Expect.isFalse(success);
-      Expect.equals(1, files.length);
-      Expect.isTrue(files[0].endsWith(x));
-      Expect.equals(0, dirs.length);
-      Expect.equals(1, errors.length);
-      Expect.isTrue(errors[0].toString().contains(link));
-      temp.deleteSync(recursive: true);
-    };
+    temp.list(recursive: true).listen(
+        (entity) {
+          if (entity is File) {
+            files.add(entity.name);
+          } else {
+            Expect.isTrue(entity is Directory);
+            dirs.add(entity.path);
+          }
+        },
+        onError: (e) => errors.add(e),
+        onDone: () {
+          Expect.equals(1, files.length);
+          Expect.isTrue(files[0].endsWith(x));
+          Expect.equals(0, dirs.length);
+          Expect.equals(1, errors.length);
+          Expect.isTrue(errors[0].toString().contains(link));
+          temp.deleteSync(recursive: true);
+          keepAlive.close();
+        });
   });
 }
 

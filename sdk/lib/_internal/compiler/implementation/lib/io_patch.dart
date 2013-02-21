@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -166,23 +166,43 @@ patch class Process {
   }
 }
 
+patch class RawServerSocket {
+  patch static Future<RawServerSocket> bind([String address = "127.0.0.1",
+                                             int port = 0,
+                                             int backlog = 0]) {
+    throw new UnsupportedError("RawServerSocket.bind");
+  }
+}
+
 patch class ServerSocket {
-  patch factory ServerSocket(String bindAddress, int port, int backlog) {
-    throw new UnsupportedError("ServerSocket constructor");
+  patch static Future<ServerSocket> bind([String address = "127.0.0.1",
+                                          int port = 0,
+                                          int backlog = 0]) {
+    throw new UnsupportedError("ServerSocket.bind");
+  }
+}
+
+patch class RawSocket {
+  patch static Future<RawSocket> connect(String host, int port) {
+    throw new UnsupportedError("RawSocket constructor");
   }
 }
 
 patch class Socket {
-  patch factory Socket(String host, int port) {
+  patch static Future<Socket> connect(String host, int port) {
     throw new UnsupportedError("Socket constructor");
   }
 }
 
 patch class SecureSocket {
+  patch factory SecureSocket._(RawSecureSocket rawSocket) {
+    throw new UnsupportedError("SecureSocket constructor");
+  }
+
   patch static void initialize({String database,
                                 String password,
                                 bool useBuiltinRoots: true}) {
-    throw new UnsupportedError("SecureSocket.setCertificateDatabase");
+    throw new UnsupportedError("SecureSocket.initialize");
   }
 }
 
@@ -199,7 +219,7 @@ patch class _StdIOUtils {
   patch static OutputStream _getStdioOutputStream(int fd) {
     throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
-  patch static int _socketType(Socket socket) {
+  patch static int _socketType(nativeSocket) {
     throw new UnsupportedError("StdIOUtils._socketType");
   }
 }

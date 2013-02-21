@@ -170,35 +170,37 @@ Future<Client> _authorize() {
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as
   // the code is received.
-  var completer = new Completer();
-  var server = new HttpServer();
-  server.addRequestHandler((request) => request.path == "/",
-      (request, response) {
-    chainToCompleter(defer(() {
-      log.message('Authorization received, processing...');
-      var queryString = request.queryString;
-      if (queryString == null) queryString = '';
-      response.statusCode = 302;
-      response.headers.set('location', 'http://pub.dartlang.org/authorized');
-      response.outputStream.close();
-      return grant.handleAuthorizationResponse(queryToMap(queryString));
-    }).then((client) {
-      server.close();
-      return client;
-    }), completer);
-  });
-  server.listen('127.0.0.1', 0);
+  return HttpServer.bind('127.0.0.1', 0).then((server) {
+    var authUrl = grant.getAuthorizationUrl(
+        Uri.parse('http://localhost:${server.port}'), scopes: _scopes);
 
-  var authUrl = grant.getAuthorizationUrl(
-      Uri.parse('http://localhost:${server.port}'), scopes: _scopes);
-
-  log.message(
-      'Pub needs your authorization to upload packages on your behalf.\n'
-      'In a web browser, go to $authUrl\n'
-      'Then click "Allow access".\n\n'
-      'Waiting for your authorization...');
-
-  return completer.future.then((client) {
+    log.message(
+        'Pub needs your authorization to upload packages on your behalf.\n'
+        'In a web browser, go to $authUrl\n'
+        'Then click "Allow access".\n\n'
+        'Waiting for your authorization...');
+    return server.first.then((request) {
+      var response = request.response;
+      if (request.uri.path == "/") {
+        log.message('Authorization received, processing...');
+        var queryString = request.uri.query;
+        if (queryString == null) queryString = '';
+        response.statusCode = 302;
+        response.headers.set('location',
+                             'http://pub.dartlang.org/authorized');
+        response.close();
+        return grant.handleAuthorizationResponse(queryToMap(queryString))
+        .then((client) {
+          server.close();
+          return client;
+        });
+      } else {
+        response.statusCode = 404;
+        response.close();
+      }
+    });
+  })
+  .then((client) {
     log.message('Successfully authorized.\n');
     return client;
   });

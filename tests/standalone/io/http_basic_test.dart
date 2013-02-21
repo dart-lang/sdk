@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -34,7 +34,7 @@ class TestServerMain {
     _serverPort.send(command, _statusPort.toSendPort());
   }
 
-  void shutdown() {
+  void close() {
     // Send server stop message to the server.
     _serverPort.send(new TestServerCommand.stop(), _statusPort.toSendPort());
     _statusPort.close();
@@ -98,45 +98,49 @@ void startTestServer() {
 
 class TestServer {
   // Echo the request content back to the response.
-  void _echoHandler(HttpRequest request, HttpResponse response) {
+  void _echoHandler(HttpRequest request) {
+    var response = request.response;
     Expect.equals("POST", request.method);
     response.contentLength = request.contentLength;
-    request.inputStream.pipe(response.outputStream);
+    request.pipe(response);
   }
 
   // Echo the request content back to the response.
-  void _zeroToTenHandler(HttpRequest request, HttpResponse response) {
+  void _zeroToTenHandler(HttpRequest request) {
+    var response = request.response;
     Expect.equals("GET", request.method);
-    request.inputStream.onData = () {};
-    request.inputStream.onClosed = () {
-      response.outputStream.writeString("01234567890");
-      response.outputStream.close();
-    };
+    request.listen((_) {}, onDone: () {
+        response.addString("01234567890");
+        response.close();
+      });
   }
 
   // Return a 404.
-  void _notFoundHandler(HttpRequest request, HttpResponse response) {
+  void _notFoundHandler(HttpRequest request) {
+    var response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
-    response.outputStream.writeString("Page not found");
-    response.outputStream.close();
+    response.addString("Page not found");
+    response.close();
   }
 
   // Return a 301 with a custom reason phrase.
-  void _reasonForMovingHandler(HttpRequest request, HttpResponse response) {
+  void _reasonForMovingHandler(HttpRequest request) {
+    var response = request.response;
     response.statusCode = HttpStatus.MOVED_PERMANENTLY;
     response.reasonPhrase = "Don't come looking here any more";
-    response.outputStream.close();
+    response.close();
   }
 
   // Check the "Host" header.
-  void _hostHandler(HttpRequest request, HttpResponse response) {
+  void _hostHandler(HttpRequest request) {
+    var response = request.response;
     Expect.equals(1, request.headers["Host"].length);
     Expect.equals("www.dartlang.org:1234", request.headers["Host"][0]);
     Expect.equals("www.dartlang.org", request.headers.host);
     Expect.equals(1234, request.headers.port);
     response.statusCode = HttpStatus.OK;
-    response.outputStream.close();
+    response.close();
   }
 
   void init() {
@@ -150,11 +154,12 @@ class TestServer {
 
   void dispatch(var message, SendPort replyTo) {
     if (message.isStart) {
-      _server = new HttpServer();
       try {
-        _server.listen("127.0.0.1", 0);
-        _server.defaultRequestHandler = _requestReceivedHandler;
-        replyTo.send(new TestServerStatus.started(_server.port), null);
+        HttpServer.bind().then((server) {
+          _server = server;
+          _server.listen(_requestReceivedHandler);
+          replyTo.send(new TestServerStatus.started(_server.port), null);
+        });
       } catch (e) {
         replyTo.send(new TestServerStatus.error(), null);
       }
@@ -167,12 +172,12 @@ class TestServer {
     }
   }
 
-  void _requestReceivedHandler(HttpRequest request, HttpResponse response) {
-    var requestHandler =_requestHandlers[request.path];
+  void _requestReceivedHandler(HttpRequest request) {
+    var requestHandler =_requestHandlers[request.uri.path];
     if (requestHandler != null) {
-      requestHandler(request, response);
+      requestHandler(request);
     } else {
-      _notFoundHandler(request, response);
+      _notFoundHandler(request);
     }
   }
 
@@ -184,7 +189,7 @@ class TestServer {
 void testStartStop() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
-    testServerMain.shutdown();
+    testServerMain.close();
   });
   testServerMain.start();
 }
@@ -193,19 +198,19 @@ void testGET() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    HttpClientConnection conn =
-        httpClient.get("127.0.0.1", port, "/0123456789");
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.equals(HttpStatus.OK, response.statusCode);
-      StringInputStream stream = new StringInputStream(response.inputStream);
-      StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () {
-        Expect.equals("01234567890", body.toString());
-        httpClient.shutdown();
-        testServerMain.shutdown();
-      };
-    };
+    httpClient.get("127.0.0.1", port, "/0123456789")
+        .then((request) => request.close())
+        .then((response) {
+          Expect.equals(HttpStatus.OK, response.statusCode);
+          StringBuffer body = new StringBuffer();
+          response.listen(
+            (data) => body.add(new String.fromCharCodes(data)),
+            onDone: () {
+              Expect.equals("01234567890", body.toString());
+              httpClient.close();
+              testServerMain.close();
+            });
+        });
   });
   testServerMain.start();
 }
@@ -220,34 +225,33 @@ void testPOST(bool chunkedEncoding) {
     int count = 0;
     HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      HttpClientConnection conn =
-          httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
-        if (chunkedEncoding) {
-          request.outputStream.writeString(data.substring(0, 10));
-          request.outputStream.writeString(data.substring(10, data.length));
-        } else {
-          request.contentLength = data.length;
-          request.outputStream.write(data.charCodes);
-        }
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        Expect.equals(HttpStatus.OK, response.statusCode);
-        StringInputStream stream = new StringInputStream(response.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          Expect.equals(data, body.toString());
-          count++;
-          if (count < kMessageCount) {
-            sendRequest();
-          } else {
-            httpClient.shutdown();
-            testServerMain.shutdown();
-          }
-        };
-      };
+      httpClient.post("127.0.0.1", port, "/echo")
+          .then((request) {
+            if (chunkedEncoding) {
+              request.addString(data.substring(0, 10));
+              request.addString(data.substring(10, data.length));
+            } else {
+              request.contentLength = data.length;
+              request.addString(data);
+            }
+            return request.close();
+          })
+          .then((response) {
+            Expect.equals(HttpStatus.OK, response.statusCode);
+            StringBuffer body = new StringBuffer();
+            response.listen(
+              (data) => body.add(new String.fromCharCodes(data)),
+              onDone: () {
+                Expect.equals(data, body.toString());
+                count++;
+                if (count < kMessageCount) {
+                  sendRequest();
+                } else {
+                  httpClient.close();
+                  testServerMain.close();
+                }
+              });
+          });
     }
 
     sendRequest();
@@ -264,19 +268,19 @@ void test404() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    HttpClientConnection conn =
-        httpClient.get("127.0.0.1", port, "/thisisnotfound");
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
-      var body = new StringBuffer();
-      var stream = response.inputStream;
-      stream.onData = () => body.add(new String.fromCharCodes(stream.read()));
-      stream.onClosed = () {
-        Expect.equals("Page not found", body.toString());
-        httpClient.shutdown();
-        testServerMain.shutdown();
-      };
-    };
+    httpClient.get("127.0.0.1", port, "/thisisnotfound")
+        .then((request) => request.close())
+        .then((response) {
+          Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
+          var body = new StringBuffer();
+          response.listen(
+              (data) => body.add(new String.fromCharCodes(data)),
+              onDone: () {
+                Expect.equals("Page not found", body.toString());
+                httpClient.close();
+                testServerMain.close();
+              });
+        });
   });
   testServerMain.start();
 }
@@ -285,19 +289,22 @@ void testReasonPhrase() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HttpClient httpClient = new HttpClient();
-    HttpClientConnection conn =
-        httpClient.get("127.0.0.1", port, "/reasonformoving");
-    conn.followRedirects = false;
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
-      Expect.equals("Don't come looking here any more", response.reasonPhrase);
-      var stream = response.inputStream;
-      stream.onData = () => Expect.fail("No data expected");
-      stream.onClosed = () {
-        httpClient.shutdown();
-        testServerMain.shutdown();
-      };
-    };
+    httpClient.get("127.0.0.1", port, "/reasonformoving")
+        .then((request) {
+          request.followRedirects = false;
+          return request.close();
+        })
+        .then((response) {
+          Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+          Expect.equals("Don't come looking here any more",
+                        response.reasonPhrase);
+          response.listen(
+              (data) => Expect.fail("No data expected"),
+              onDone: () {
+                httpClient.close();
+                testServerMain.close();
+              });
+        });
   });
   testServerMain.start();
 }

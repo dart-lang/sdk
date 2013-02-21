@@ -7,16 +7,16 @@ import "dart:io";
 import "dart:isolate";
 
 void sendData(List<int> data, int port) {
-  Socket socket = new Socket("127.0.0.1", port);
-  socket.onConnect = () {
-    socket.onData = () {
-      Expect.fail("No data response was expected");
-    };
-    socket.outputStream.onNoPendingWrites = () {
-      socket.close(true);
-    };
-    socket.outputStream.write(data);
-  };
+  Socket.connect("127.0.0.1", port).then((socket) {
+    socket.listen((data) {
+        Expect.fail("No data response was expected");
+      });
+    socket.add(data);
+    socket.close();
+    socket.done.then((_) {
+      socket.destroy();
+    });
+  });
 }
 
 class EarlyCloseTest {
@@ -29,22 +29,31 @@ class EarlyCloseTest {
 
     bool calledOnRequest = false;
     bool calledOnError = false;
-    server.defaultRequestHandler =
-        (HttpRequest request, HttpResponse response) {
+    ReceivePort port = new ReceivePort();
+    server.listen(
+        (request) {
           Expect.isTrue(expectRequest);
           Expect.isFalse(calledOnError);
           Expect.isFalse(calledOnRequest, "onRequest called multiple times");
           calledOnRequest = true;
-        };
-    ReceivePort port = new ReceivePort();
-    server.onError = (error) {
-      Expect.isFalse(calledOnError);
-      Expect.equals(exception, error.message);
-      Expect.equals(expectRequest, calledOnRequest);
-      calledOnError = true;
-      port.close();
-      c.complete(null);
-    };
+          request.listen(
+              (_) {},
+              onError: (e) {
+                Expect.isFalse(calledOnError);
+                Expect.equals(exception, e.error.message);
+                calledOnError = true;
+                port.close();
+                c.complete(null);
+              });
+        },
+        onError: (e) {
+          Expect.isFalse(calledOnError);
+          Expect.equals(exception, e.error.message);
+          Expect.equals(expectRequest, calledOnRequest);
+          calledOnError = true;
+          port.close();
+          c.complete(null);
+        });
 
     List<int> d;
     if (data is List<int>) d = data;
@@ -68,7 +77,7 @@ void testEarlyClose1() {
   // The empty packet is valid.
 
   // Close while sending header
-  String message = "Connection closed before full request header was received";
+  String message = "Connection closed before full header was received";
   add("G", message);
   add("GET /", message);
   add("GET / HTTP/1.1", message);
@@ -76,54 +85,55 @@ void testEarlyClose1() {
 
   // Close while sending content
   add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n",
-      "Connection closed before full request body was received",
+      "Connection closed while receiving data",
       expectRequest: true);
   add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n1",
-      "Connection closed before full request body was received",
+      "Connection closed while receiving data",
       expectRequest: true);
 
-
-  HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0);
   void runTest(Iterator it) {
     if (it.moveNext()) {
-      it.current.execute(server).then((_) => runTest(it));
-    } else {
-      server.close();
+      HttpServer.bind("127.0.0.1", 0).then((server) {
+        it.current.execute(server).then((_) {
+          runTest(it);
+          server.close();
+        });
+      });
     }
   }
   runTest(tests.iterator);
 }
 
 testEarlyClose2() {
-  var server = new HttpServer();
-  server.listen("127.0.0.1", 0);
-  server.onError = (e) { /* ignore */ };
-  server.defaultRequestHandler = (request, response) {
-    String name = new Options().script;
-    new File(name).openInputStream().pipe(response.outputStream);
-  };
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.listen(
+      (request) {
+        String name = new Options().script;
+        new File(name).openRead().pipe(request.response);
+      },
+      onError: (e) { /* ignore */ });
 
-  var count = 0;
-  var makeRequest;
-  makeRequest = () {
-    Socket socket = new Socket("127.0.0.1", server.port);
-    socket.onConnect = () {
-      var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n".charCodes;
-      socket.writeList(data, 0, data.length);
-      socket.close();
-      if (++count < 10) {
-        makeRequest();
-      } else {
-        server.close();
-      }
-    };
-  };
-
-  makeRequest();
+    var count = 0;
+    makeRequest() {
+      Socket.connect("127.0.0.1", server.port).then((socket) {
+        var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n".charCodes;
+        socket.add(data);
+        socket.close();
+        socket.done.then((_) {
+          socket.destroy();
+          if (++count < 10) {
+            makeRequest();
+          } else {
+            server.close();
+          }
+        });
+      });
+    }
+    makeRequest();
+  });
 }
 
 void main() {
   testEarlyClose1();
-  testEarlyClose2();
+//  testEarlyClose2();
 }

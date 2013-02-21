@@ -9,9 +9,9 @@ import "dart:io";
 
 writeData(data, encoding, stream) {
   if (stream == "stdout") {
-    stdout.writeString(data, encoding);
+    stdout.addString(data, encoding);
   } else if (stream == "stderr") {
-    stderr.writeString(data, encoding);
+    stderr.addString(data, encoding);
   }
 }
 

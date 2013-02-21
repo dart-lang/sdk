@@ -14,10 +14,11 @@
 
 static const int kMSPerSecond = 1000;
 
-dart::Mutex File::mutex_;
-int File::service_ports_size_ = 0;
-Dart_Port* File::service_ports_ = NULL;
-int File::service_ports_index_ = 0;
+
+// Forward declaration.
+static void FileService(Dart_Port, Dart_Port, Dart_CObject*);
+
+NativeService File::file_service_("FileService", FileService, 16);
 
 
 // The file pointer has been passed into Dart as an intptr_t and it is safe
@@ -890,10 +891,10 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
 }
 
 
-void FileService(Dart_Port dest_port_id,
+static void FileService(Dart_Port dest_port_id,
                  Dart_Port reply_port_id,
                  Dart_CObject* message) {
-  CObject* response = CObject::False();
+  CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
   if (message->type == Dart_CObject::kArray) {
     if (request.Length() > 1 && request[0]->IsInt32()) {
@@ -967,27 +968,7 @@ void FileService(Dart_Port dest_port_id,
 
 
 Dart_Port File::GetServicePort() {
-  MutexLocker lock(&mutex_);
-  if (service_ports_size_ == 0) {
-    ASSERT(service_ports_ == NULL);
-    service_ports_size_ = 16;
-    service_ports_ = new Dart_Port[service_ports_size_];
-    service_ports_index_ = 0;
-    for (int i = 0; i < service_ports_size_; i++) {
-      service_ports_[i] = ILLEGAL_PORT;
-    }
-  }
-
-  Dart_Port result = service_ports_[service_ports_index_];
-  if (result == ILLEGAL_PORT) {
-    result = Dart_NewNativePort("FileService",
-                                FileService,
-                                true);
-    ASSERT(result != ILLEGAL_PORT);
-    service_ports_[service_ports_index_] = result;
-  }
-  service_ports_index_ = (service_ports_index_ + 1) % service_ports_size_;
-  return result;
+  return file_service_.GetServicePort();
 }
 
 

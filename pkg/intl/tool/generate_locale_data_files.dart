@@ -29,23 +29,24 @@ main() {
 
 void writeLocaleList() {
   var file = new File('${dataDirectory}localeList.dart');
-  var outputStream = file.openOutputStream();
-  outputStream.writeString(
+  var output = file.openWrite();
+  output.addString(
       '// Copyright (c) 2012, the Dart project authors.  Please see the '
       'AUTHORS file\n// for details. All rights reserved. Use of this source'
       'code is governed by a\n// BSD-style license that can be found in the'
       ' LICENSE file.\n\n'
       '/// Hard-coded list of all available locales for dates.\n');
-  outputStream.writeString('final availableLocalesForDateFormatting = const [');
+  output.addString('final availableLocalesForDateFormatting = const [');
   List<String> allLocales = DateFormat.allLocalesWithSymbols();
   allLocales.forEach((locale) {
-    outputStream.writeString('"$locale"');
+    output.addString('"$locale"');
     if (locale == allLocales.last) {
-      outputStream.writeString('];');
+      output.addString('];');
     } else {
-      outputStream.writeString(',\n    ');
+      output.addString(',\n    ');
     }
   });
+  output.close();
 }
 
 void writeSymbolData() {
@@ -60,18 +61,18 @@ void writePatternData() {
 
 void writeSymbols(locale, symbols) {
   var file = new File('${dataDirectory}symbols/${locale}.json');
-  var outputStream = file.openOutputStream();
-  writeToJSON(symbols, outputStream);
-  outputStream.close();
+  var output = file.openWrite();
+  writeToJSON(symbols, output);
+  output.close();
 }
 
 void writePatterns(locale, patterns) {
   var file = new File('${dataDirectory}patterns/${locale}.json');
-  var outputStream = file.openOutputStream();
-  outputStream.writeString(json.stringify(patterns));
-  outputStream.close();
+  var output = file.openWrite();
+  output.addString(json.stringify(patterns));
+  output.close();
 }
 
-void writeToJSON(dynamic data, OutputStream out) {
-  out.writeString(json.stringify(data.serializeToMap()));
+void writeToJSON(dynamic data, IOSink out) {
+  out.addString(json.stringify(data.serializeToMap()));
 }

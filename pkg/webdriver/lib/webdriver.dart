@@ -52,17 +52,11 @@ part 'src/base64decoder.dart';
  */
 
 void writeStringToFile(String fileName, String contents) {
-  var file = new File(fileName);
-  var ostream = file.openOutputStream(FileMode.WRITE);
-  ostream.writeString(contents);
-  ostream.close();
+  new File(fileName).writeAsStringSync(contents);
 }
 
 void writeBytesToFile(String fileName, List<int> contents) {
-  var file = new File(fileName);
-  var ostream = file.openOutputStream(FileMode.WRITE);
-  ostream.write(contents);
-  ostream.close();
+  new File(fileName).writeAsBytesSync(contents);
 }
 
 class WebDriverError {

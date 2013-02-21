@@ -12,11 +12,11 @@ testExit() {
   var future = Process.start(getProcessTestFileName(),
                              const ["0", "0", "1", "1"]);
   future.then((process) {
-    process.onExit = (int exitCode) {
+    process.exitCode.then((int exitCode) {
       Expect.isTrue(exitCode != 0);
-    };
-    process.stdout.onData = process.stdout.read;
-    process.stderr.onData = process.stderr.read;
+    });
+    process.stdout.listen((_) {});
+    process.stderr.listen((_) {});
   });
 }
 

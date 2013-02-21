@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/native_service.h"
 #include "platform/globals.h"
 #include "platform/thread.h"
 
@@ -22,8 +23,8 @@ class DirectoryListing {
 class AsyncDirectoryListing : public DirectoryListing {
  public:
   enum Response {
-    kListDirectory = 0,
-    kListFile = 1,
+    kListFile = 0,
+    kListDirectory = 1,
     kListError = 2,
     kListDone = 3
   };
@@ -99,10 +100,7 @@ class Directory {
   static Dart_Port GetServicePort();
 
  private:
-  static dart::Mutex mutex_;
-  static int service_ports_size_;
-  static Dart_Port* service_ports_;
-  static int service_ports_index_;
+  static NativeService directory_service_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);

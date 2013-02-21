@@ -11,29 +11,30 @@ var client = new HttpClient();
 var clientRequest;
 
 void main() {
-  var server = new HttpServer();
-  server.listen("127.0.0.1", 0);
-  server.defaultRequestHandler = (req, rsp) {
-    req.inputStream.onData = () {
-      req.inputStream.read();
-      rsp.outputStream.close();
-    };
-  };
+  HttpServer.bind("127.0.0.1", 0)
+      .then((server) {
+        server.listen(
+            (req) {
+              req.pipe(req.response);
+            });
 
-  var connection = client.openUrl(
-      "POST",
-      Uri.parse("http://localhost:${server.port}/"));
-  connection.onRequest = (request) {
-    // Keep a reference to the client request object.
-    clientRequest = request;
-    request.outputStream.write([0]);
-  };
-  connection.onResponse = (response) {
-    response.inputStream.onClosed = () {
-      // Wait with closing the client request until the response is done.
-      clientRequest.outputStream.close();
-      client.shutdown();
-      server.close();
-    };
-  };
+        client.openUrl("POST", Uri.parse("http://localhost:${server.port}/"))
+            .then((request) {
+              // Keep a reference to the client request object.
+              clientRequest = request;
+              request.add([0]);
+              return request.response;
+            })
+            .then((response) {
+              // Wait with closing the client request until the response headers
+              // are done.
+              clientRequest.close();
+              response.listen(
+                  (_) {},
+                  onDone: () {
+                    client.close();
+                    server.close();
+                  });
+            });
+      });
 }

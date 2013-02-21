@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart.utf;
+import "dart:async";
 part "utf_core.dart";
+part "utf_stream.dart";
 part "utf8.dart";
 part "utf16.dart";
 part "utf32.dart";

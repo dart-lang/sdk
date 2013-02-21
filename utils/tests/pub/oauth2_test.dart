@@ -28,7 +28,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
-      response.outputStream.close();
+      response.close();
     });
 
     // After we give pub an invalid response, it should crash. We wait for it to
@@ -48,7 +48,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));
 
-      response.outputStream.close();
+      response.close();
     });
 
     pub.kill();
@@ -66,17 +66,17 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request, response) {
-      return wrapInputStream(request.inputStream).toBytes().then((bytes) {
+      return new ByteStream(request).toBytes().then((bytes) {
         var body = new String.fromCharCodes(bytes);
         expect(body, matches(
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.outputStream.writeString(json.stringify({
+        response.addString(json.stringify({
           "access_token": "new access token",
           "token_type": "bearer"
         }));
-        response.outputStream.close();
+        response.close();
       });
     });
 
@@ -84,7 +84,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      response.outputStream.close();
+      response.close();
     });
 
     pub.shouldExit();
@@ -111,7 +111,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      response.outputStream.close();
+      response.close();
     });
 
     // After we give pub an invalid response, it should crash. We wait for it to
@@ -136,7 +136,7 @@ main() {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 
-      response.outputStream.close();
+      response.close();
     });
 
 
@@ -159,10 +159,10 @@ main() {
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
           ' error_description="your token sucks"');
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'error': {'message': 'your token sucks'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('OAuth2 authorization failed (your '
@@ -205,16 +205,16 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request, response) {
-    return wrapInputStream(request.inputStream).toBytes().then((bytes) {
+    return new ByteStream(request).toBytes().then((bytes) {
       var body = new String.fromCharCodes(bytes);
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         "access_token": accessToken,
         "token_type": "bearer"
       }));
-      response.outputStream.close();
+      response.close();
     });
   });
 }

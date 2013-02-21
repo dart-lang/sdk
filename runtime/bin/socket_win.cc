@@ -12,11 +12,15 @@
 #include "bin/socket.h"
 
 bool Socket::Initialize() {
+  static bool socket_initialized = false;
+  if (socket_initialized) return true;
   int err;
   WSADATA winsock_data;
-  WORD version_requested = MAKEWORD(1, 0);
+  WORD version_requested = MAKEWORD(2, 2);
   err = WSAStartup(version_requested, &winsock_data);
-  if (err != 0) {
+  if (err == 0) {
+    socket_initialized = true;
+  } else {
     Log::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
   }
   return err == 0;
@@ -190,6 +194,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 
 const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
   // Perform a name lookup for an IPv4 address.
+  Initialize();
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
@@ -265,7 +270,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
     return -1;
   }
 
-  status = listen(s, backlog);
+  status = listen(s, backlog > 0 ? backlog : SOMAXCONN);
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -280,7 +285,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
 
 void Socket::Close(intptr_t fd) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
-  client_socket->close();
+  client_socket->Close();
 }
 
 #endif  // defined(TARGET_OS_WINDOWS)

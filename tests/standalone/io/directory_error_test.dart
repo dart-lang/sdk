@@ -4,6 +4,7 @@
 //
 // Dart test program for testing error handling in directory I/O.
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
@@ -133,14 +134,21 @@ bool checkListNonExistentFileException(e) {
 }
 
 
+bool checkAsyncListNonExistentFileException(e) {
+  Expect.isTrue(e is AsyncError);
+  return checkListNonExistentFileException(e.error);
+}
+
+
 void testListNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   Expect.throws(() => nonExistent.listSync(), (e) => e is DirectoryIOException);
-  var lister = nonExistent.list();
-  lister.onError = (e) {
-    checkListNonExistentFileException(e);
-    done();
-  };
+  nonExistent.list().listen(
+      (_) => Expect.fail("listing should not succeed"),
+      onError: (e) {
+        checkAsyncListNonExistentFileException(e);
+        done();
+      });
 }
 
 

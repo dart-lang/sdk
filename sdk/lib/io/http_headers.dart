@@ -5,7 +5,8 @@
 part of dart.io;
 
 class _HttpHeaders implements HttpHeaders {
-  _HttpHeaders() : _headers = new Map<String, List<String>>();
+  _HttpHeaders(String this.protocolVersion)
+      : _headers = new Map<String, List<String>>();
 
   List<String> operator[](String name) {
     name = name.toLowerCase();
@@ -65,6 +66,29 @@ class _HttpHeaders implements HttpHeaders {
   void noFolding(String name) {
     if (_noFoldingHeaders == null) _noFoldingHeaders = new List<String>();
     _noFoldingHeaders.add(name);
+  }
+
+  bool get persistentConnection {
+    List<String> connection = this[HttpHeaders.CONNECTION];
+    if (protocolVersion == "1.1") {
+      if (connection == null) return true;
+      return !connection.any((value) => value.toLowerCase() == "close");
+    } else {
+      if (connection == null) return false;
+      return connection.any((value) => value.toLowerCase() == "keep-alive");
+    }
+  }
+
+  void set persistentConnection(bool persistentConnection) {
+    _checkMutable();
+    // Determine the value of the "Connection" header.
+    remove(HttpHeaders.CONNECTION, "close");
+    remove(HttpHeaders.CONNECTION, "keep-alive");
+    if (protocolVersion == "1.1" && !persistentConnection) {
+      add(HttpHeaders.CONNECTION, "close");
+    } else if (protocolVersion == "1.0" && persistentConnection) {
+      add(HttpHeaders.CONNECTION, "keep-alive");
+    }
   }
 
   int get contentLength => _contentLength;
@@ -290,7 +314,7 @@ class _HttpHeaders implements HttpHeaders {
     return true;
   }
 
-  void _finalize(String protocolVersion) {
+  void _finalize() {
     // If the content length is not known make sure chunked transfer
     // encoding is used for HTTP 1.1.
     if (contentLength < 0 && protocolVersion == "1.1") {
@@ -306,7 +330,7 @@ class _HttpHeaders implements HttpHeaders {
     _mutable = false;
   }
 
-  _write(_HttpConnectionBase connection) {
+  _write(IOSink sink) {
     final COLONSP = const [_CharCode.COLON, _CharCode.SP];
     final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
     final CRLF = const [_CharCode.CR, _CharCode.LF];
@@ -316,7 +340,7 @@ class _HttpHeaders implements HttpHeaders {
     var bufferPos = 0;
 
     void writeBuffer() {
-      connection._writeFrom(buffer, 0, bufferPos);
+      sink.add(buffer.getRange(0, bufferPos));
       bufferPos = 0;
     }
 
@@ -381,12 +405,78 @@ class _HttpHeaders implements HttpHeaders {
     return sb.toString();
   }
 
+  List<Cookie> _parseCookies() {
+    // Parse a Cookie header value according to the rules in RFC 6265.
+    var cookies = new List<Cookie>();
+    void parseCookieString(String s) {
+      int index = 0;
+
+      bool done() => index == s.length;
+
+      void skipWS() {
+        while (!done()) {
+         if (s[index] != " " && s[index] != "\t") return;
+         index++;
+        }
+      }
+
+      String parseName() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == " " || s[index] == "\t" || s[index] == "=") break;
+          index++;
+        }
+        return s.substring(start, index).toLowerCase();
+      }
+
+      String parseValue() {
+        int start = index;
+        while (!done()) {
+          if (s[index] == " " || s[index] == "\t" || s[index] == ";") break;
+          index++;
+        }
+        return s.substring(start, index).toLowerCase();
+      }
+
+      void expect(String expected) {
+        if (done()) {
+          throw new HttpException("Failed to parse header value [$s]");
+        }
+        if (s[index] != expected) {
+          throw new HttpException("Failed to parse header value [$s]");
+        }
+        index++;
+      }
+
+      while (!done()) {
+        skipWS();
+        if (done()) return;
+        String name = parseName();
+        skipWS();
+        expect("=");
+        skipWS();
+        String value = parseValue();
+        cookies.add(new _Cookie(name, value));
+        skipWS();
+        if (done()) return;
+        expect(";");
+      }
+    }
+    List<String> values = this["cookie"];
+    if (values != null) {
+      values.forEach((headerValue) => parseCookieString(headerValue));
+    }
+    return cookies;
+  }
+
+
   bool _mutable = true;  // Are the headers currently mutable?
   Map<String, List<String>> _headers;
   List<String> _noFoldingHeaders;
 
   int _contentLength = -1;
   bool _chunkedTransferEncoding = false;
+  final String protocolVersion;
   String _host;
   int _port;
 }

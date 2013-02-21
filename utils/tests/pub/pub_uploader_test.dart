@@ -54,14 +54,14 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      expect(wrapInputStream(request.inputStream).toBytes().then((bodyBytes) {
+      expect(new ByteStream(request).toBytes().then((bodyBytes) {
         expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.outputStream.writeString(json.stringify({
+        response.addString(json.stringify({
           'success': {'message': 'Good job!'}
         }));
-        response.outputStream.close();
+        response.close();
       }), completes);
     });
 
@@ -77,10 +77,10 @@ main() {
     server.handle('DELETE', '/packages/pkg/uploaders/email.json',
         (request, response) {
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'success': {'message': 'Good job!'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextLine(), equals('Good job!'));
@@ -97,10 +97,10 @@ main() {
     server.handle('POST', '/packages/test_pkg/uploaders.json',
         (request, response) {
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'success': {'message': 'Good job!'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextLine(), equals('Good job!'));
@@ -115,10 +115,10 @@ main() {
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
       response.statusCode = 400;
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Bad job!'));
@@ -135,10 +135,10 @@ main() {
         (request, response) {
       response.statusCode = 400;
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Bad job!'));
@@ -151,8 +151,8 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      response.outputStream.writeString("{not json");
-      response.outputStream.close();
+      response.addString("{not json");
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -167,8 +167,8 @@ main() {
 
     server.handle('DELETE', '/packages/pkg/uploaders/email.json',
         (request, response) {
-      response.outputStream.writeString("{not json");
-      response.outputStream.close();
+      response.addString("{not json");
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));

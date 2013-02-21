@@ -11,14 +11,15 @@ import "dart:isolate";
 String getFilename(String path) =>
     new File(path).existsSync() ? path : '../$path';
 
-void testStringInputStreamSync() {
+void testStringLineTransformer() {
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   int linesRead = 0;
-  StringInputStream x = new StringInputStream(file.openInputStream());
-  x.onLine = () {
-    String line = x.readLine();
+  var lineStream = file.openRead()
+    .transform(new StringDecoder())
+    .transform(new LineTransformer());
+  lineStream.listen((line) {
     linesRead++;
     if (linesRead == 1) {
       Expect.equals("Hello Dart", line);
@@ -27,101 +28,179 @@ void testStringInputStreamSync() {
     } else {
       Expect.fail("More or less than 2 lines read ($linesRead lines read).");
     }
-  };
+  });
 }
 
-void testInputStreamAsync() {
+
+void testOpenStreamAsync() {
+  var keepAlive = new ReceivePort();
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".charCodes;
-  InputStream x = (new File(fileName)).openInputStream();
   var byteCount = 0;
-  x.onData = () {
-    Expect.equals(expected[byteCount], x.read(1)[0]);
-    byteCount++;
-  };
-  x.onClosed = () {
-    Expect.equals(expected.length, byteCount);
-  };
+  (new File(fileName)).openRead().listen(
+      (d) => byteCount += d.length,
+      onDone: () {
+        Expect.equals(expected.length, byteCount);
+        keepAlive.close();
+      });
 }
 
-void testStringInputStreamAsync(String name, int length) {
+
+// Create a file that is big enough that a file stream will
+// read it in multiple chunks.
+int writeLongFileSync(File file) {
+  file.createSync();
+  StringBuffer buffer = new StringBuffer();
+  for (var i = 0; i < 10000; i++) {
+    buffer.add("Hello, world");
+  }
+  file.writeAsStringSync(buffer.toString());
+  var length = file.lengthSync();
+  Expect.equals(buffer.length, length);
+  return length;
+}
+
+
+void testInputStreamTruncate() {
+  var keepAlive = new ReceivePort();
+  var temp = new Directory('').createTempSync();
+  var file = new File('${temp.path}/input_stream_truncate.txt');
+  var originalLength = writeLongFileSync(file);
+  // Start streaming the file. Pause after first chunk. Truncate
+  // underlying file and check that the streaming stops with or
+  // without getting all data.
+  var streamedBytes = 0;
+  var subscription;
+  subscription = file.openRead().listen(
+      (d) {
+        if (streamedBytes == 0) {
+          subscription.pause();
+          // Truncate the file by opening it for writing.
+          file.open(FileMode.WRITE).then((opened) {
+            opened.close().then((_) {
+                Expect.equals(0, file.lengthSync());
+                subscription.resume();
+            });
+          });
+        }
+        streamedBytes += d.length;
+      },
+      onDone: () {
+        Expect.isTrue(streamedBytes > 0 && streamedBytes <= originalLength);
+        temp.delete(recursive: true).then((_) => keepAlive.close());
+      },
+      onError: (e) {
+        Expect.fail("Unexpected error");
+      });
+}
+
+
+void testInputStreamDelete() {
+  var keepAlive = new ReceivePort();
+  var temp = new Directory('').createTempSync();
+  var file = new File('${temp.path}/input_stream_delete.txt');
+  var originalLength = writeLongFileSync(file);
+  // Start streaming the file. Pause after first chunk. Truncate
+  // underlying file and check that the streaming stops with or
+  // without getting all data.
+  var streamedBytes = 0;
+  var subscription;
+  subscription = file.openRead().listen(
+      (d) {
+        if (streamedBytes == 0) {
+          subscription.pause();
+          // Delete the underlying file by opening it for writing.
+          file.delete()
+            .then((deleted) {
+              Expect.isFalse(deleted.existsSync());
+              subscription.resume();
+            })
+            .catchError((e) {
+              // On Windows, you cannot delete a file that is open
+              // somewhere else. The stream has this file open
+              // and therefore we get an error on deletion on Windows.
+              Expect.equals('windows', Platform.operatingSystem);
+              subscription.resume();
+            });
+        }
+        streamedBytes += d.length;
+      },
+      onDone: () {
+        Expect.equals(originalLength, streamedBytes);
+        temp.delete(recursive: true).then((_) => keepAlive.close());
+      },
+      onError: (e) {
+        Expect.fail("Unexpected error");
+      });
+}
+
+
+void testInputStreamAppend() {
+  var keepAlive = new ReceivePort();
+  var temp = new Directory('').createTempSync();
+  var file = new File('${temp.path}/input_stream_append.txt');
+  var originalLength = writeLongFileSync(file);
+  // Start streaming the file. Pause after first chunk. Append to
+  // underlying file and check that the stream gets all the data.
+  var streamedBytes = 0;
+  var subscription;
+  subscription = file.openRead().listen(
+      (d) {
+        if (streamedBytes == 0) {
+          subscription.pause();
+          // Double the length of the underlying file.
+          file.readAsBytes().then((bytes) {
+            file.writeAsBytes(bytes, FileMode.APPEND).then((_) {
+              Expect.equals(2 * originalLength, file.lengthSync());
+              subscription.resume();
+            });
+          });
+        }
+        streamedBytes += d.length;
+      },
+      onDone: () {
+        Expect.equals(2 * originalLength, streamedBytes);
+        temp.delete(recursive: true).then((_) => keepAlive.close());
+      },
+      onError: (e) {
+        Expect.fail("Unexpected error");
+      });
+}
+
+
+void testStringLineTransformerEnding(String name, int length) {
   String fileName = getFilename("tests/standalone/io/$name");
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.openSync().lengthSync());
-  StringInputStream x = new StringInputStream(file.openInputStream());
+  var lineStream = file.openRead()
+    .transform(new StringDecoder())
+    .transform(new LineTransformer());
   int lineCount = 0;
-  x.onLine = () {
-    var line = x.readLine();
-    lineCount++;
-    Expect.isTrue(lineCount <= 10);
-    if (line[0] != "#") {
-      Expect.equals("Line $lineCount", line);
-    }
-  };
-  x.onClosed = () {
-    Expect.equals(10, lineCount);
-  };
-}
-
-void testChunkedInputStream() {
-  // Force the test to timeout if it does not finish.
-  ReceivePort done = new ReceivePort();
-  done.receive((message, replyTo) { done.close(); });
-
-  String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
-  // File contains 19 bytes ("Hello Dart\nwassup!")
-  File file = new File(fileName);
-  ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());
-  x.chunkSize = 9;
-  x.onData = () {
-    List<int> chunk = x.read();
-    Expect.equals(9, chunk.length);
-    x.chunkSize = 5;
-    x.onData = () {
-      chunk = x.read();
-      Expect.equals(5, chunk.length);
-      x.onData = () {
-        chunk = x.read();
-        Expect.equals(5, chunk.length);
-        chunk = x.read();
-        Expect.equals(null, chunk);
-        done.toSendPort().send(null);
-      };
-    };
-  };
-}
-
-void testUnreadyInputStream() {
-  String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
-  var expected = "Hello Dart\nwassup!\n".charCodes;
-  InputStream x = (new File(fileName)).openInputStream();
-  List<int> buffer = new List<int>.fixedLength(100);
-
-  x.onData = () {
-    Expect.fail("Input stream closed before opening called onData handler.");
-  };
-
-  x.onClosed = () { };
-
-  // Called before stream is ready.
-  int read = x.readInto(buffer);
-  Expect.equals(0, read);
-
-  // Called before stream is ready.
-  x.close();
+  lineStream.listen(
+      (line) {
+        lineCount++;
+        Expect.isTrue(lineCount <= 10);
+        if (line[0] != "#") {
+          Expect.equals("Line $lineCount", line);
+        }
+      },
+      onDone: () {
+        Expect.equals(10, lineCount);
+      });
 }
 
 
 main() {
-  testStringInputStreamSync();
-  testInputStreamAsync();
+  testStringLineTransformer();
+  testOpenStreamAsync();
+  testInputStreamTruncate();
+  testInputStreamDelete();
+  testInputStreamAppend();
   // Check the length of these files as both are text files where one
   // is without a terminating line separator which can easily be added
   // back if accidentally opened in a text editor.
-  testStringInputStreamAsync("readline_test1.dat", 111);
-  testStringInputStreamAsync("readline_test2.dat", 114);
-  testChunkedInputStream();
-  testUnreadyInputStream();
+  testStringLineTransformerEnding("readline_test1.dat", 111);
+  testStringLineTransformerEnding("readline_test2.dat", 114);
 }

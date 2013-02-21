@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,18 @@ const String _DART_SESSION_ID = "DARTSESSID";
 // A _HttpSession is a node in a double-linked list, with _next and _prev being
 // the previous and next pointers.
 class _HttpSession implements HttpSession {
+  // Destroyed marked. Used by the http connection to see if a session is valid.
+  bool _destroyed = false;
+  bool _isNew = true;
+  DateTime _lastSeen;
+  Function _timeoutCallback;
+  _HttpSessionManager _sessionManager;
+  // Pointers in timeout queue.
+  _HttpSession _prev;
+  _HttpSession _next;
+
+  final Map _data = new Map();
+
   _HttpSession(_HttpSessionManager this._sessionManager, String this.id)
     : _lastSeen = new DateTime.now();
 
@@ -25,9 +37,9 @@ class _HttpSession implements HttpSession {
     _sessionManager._bumpToEnd(this);
   }
 
-  dynamic data;
-
   DateTime get lastSeen => _lastSeen;
+
+  bool get isNew => _isNew;
 
   final String id;
 
@@ -35,14 +47,19 @@ class _HttpSession implements HttpSession {
     _timeoutCallback = callback;
   }
 
-  // Destroyed marked. Used by the http connection to see if a session is valid.
-  bool _destroyed = false;
-  DateTime _lastSeen;
-  Function _timeoutCallback;
-  _HttpSessionManager _sessionManager;
-  // Pointers in timeout queue.
-  _HttpSession _prev;
-  _HttpSession _next;
+  // Map implementation:
+  bool containsValue(value) => _data.containsValue(value);
+  bool containsKey(key) => _data.containsKey(key);
+  operator [](key) => _data[key];
+  void operator []=(key, value) { _data[key] = value; }
+  putIfAbsent(key, ifAbsent) => _data.putIfAbsent(key, ifAbsent);
+  remove(key) => _data.remove(key);
+  void clear() => _data.clear();
+  void forEach(void f(key, value)) => _data.forEach(f);
+  Iterable get keys => _data.keys;
+  Iterable get values => _data.values;
+  int get length => _data.length;
+  bool get isEmpty => _data.isEmpty;
 }
 
 // Private class used to manage all the active sessions. The sessions are stored
@@ -63,7 +80,7 @@ class _HttpSessionManager {
     return _sessions[id];
   }
 
-  _HttpSession createSession(init(HttpSession session)) {
+  _HttpSession createSession() {
     var id = createSessionId();
     // TODO(ajohnsen): Consider adding a limit and throwing an exception.
     // Should be very unlikely however.
@@ -71,7 +88,6 @@ class _HttpSessionManager {
       id = createSessionId();
     }
     var session = _sessions[id] = new _HttpSession(this, id);
-    if (init != null) init(session);
     _addToTimeoutQueue(session);
     return session;
   }

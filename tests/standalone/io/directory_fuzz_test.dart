@@ -30,7 +30,6 @@ fuzzSyncMethods() {
       typeMapping.forEach((k2, v2) {
         doItSync(() => d.renameSync(v2));
         doItSync(() => d.listSync(recursive: v2));
-        doItSync(() => d.list(recursive: v2).onError = (e) => null);
       });
     });
   });
@@ -57,6 +56,9 @@ fuzzAsyncMethods() {
     }));
     typeMapping.forEach((k2, v2) {
       futures.add(doItAsync(() => d.rename(v2)));
+      futures.add(doItAsync(() {
+        d.list(recursive: v2).listen((_) {}, onError: (e) => null);
+      }));
     });
   });
   Future.wait(futures).then((ignore) => port.close());

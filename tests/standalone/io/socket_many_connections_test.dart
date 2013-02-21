@@ -28,19 +28,18 @@ class SocketManyConnectionsTest {
       _connections++;
       if (_connections == CONNECTIONS) {
         for (int i = 0; i < CONNECTIONS; i++) {
-          _sockets[i].close();
+          _sockets[i].destroy();
         }
-        shutdown();
+        close();
       }
     }
 
     for (int i = 0; i < CONNECTIONS; i++) {
-      _sockets[i] = new Socket(TestingServer.HOST, _port);
-      if (_sockets[i] != null) {
-        _sockets[i].onConnect = connectHandler;
-      } else {
-        Expect.fail("socket creation failed");
-      }
+      Socket.connect(TestingServer.HOST, _port).then((socket) {
+        Expect.isNotNull(socket);
+        _sockets[i] = socket;
+        connectHandler();
+      });
     }
   }
 
@@ -52,7 +51,7 @@ class SocketManyConnectionsTest {
     _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
   }
 
-  void shutdown() {
+  void close() {
     _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
     _receivePort.close();
   }
@@ -79,14 +78,16 @@ class TestServer extends TestingServer {
       connection.close();
     }
 
-    void errorHandler(Exception e) {
+    void errorHandler(e) {
       print("Socket error $e");
       connection.close();
     }
 
     _connections++;
-    connection.onClosed = closeHandler;
-    connection.onError = errorHandler;
+    connection.listen(
+        (data) {},
+        onDone: closeHandler,
+        onError: errorHandler);
   }
 
   int _connections = 0;

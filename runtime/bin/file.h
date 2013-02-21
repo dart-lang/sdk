@@ -12,6 +12,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/native_service.h"
 #include "platform/globals.h"
 #include "platform/thread.h"
 
@@ -138,10 +139,7 @@ class File {
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
 
-  static dart::Mutex mutex_;
-  static int service_ports_size_;
-  static Dart_Port* service_ports_;
-  static int service_ports_index_;
+  static NativeService file_service_;
 
   DISALLOW_COPY_AND_ASSIGN(File);
 };

@@ -24,7 +24,6 @@ static const int kInfinityTimeout = -1;
 static const int kTimeoutId = -1;
 static const int kShutdownId = -2;
 
-
 IOBuffer* IOBuffer::AllocateBuffer(int buffer_size, Operation operation) {
   IOBuffer* buffer = new(buffer_size) IOBuffer(buffer_size, operation);
   return buffer;
@@ -44,6 +43,11 @@ IOBuffer* IOBuffer::AllocateReadBuffer(int buffer_size) {
 
 IOBuffer* IOBuffer::AllocateWriteBuffer(int buffer_size) {
   return AllocateBuffer(buffer_size, kWrite);
+}
+
+
+IOBuffer* IOBuffer::AllocateDisconnectBuffer() {
+  return AllocateBuffer(0, kDisconnect);
 }
 
 
@@ -140,25 +144,22 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
 }
 
 
-void Handle::close() {
+void Handle::Close() {
   ScopedLock lock(this);
   if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be
     // called again if this socket has pending IO operations in flight.
     ASSERT(handle_ != INVALID_HANDLE_VALUE);
     MarkClosing();
-    // According to the documentation from Microsoft socket handles should
-    // not be closed using CloseHandle but using closesocket.
-    if (is_socket()) {
-      closesocket(reinterpret_cast<SOCKET>(handle_));
-    } else {
-      CloseHandle(handle_);
-    }
-    handle_ = INVALID_HANDLE_VALUE;
+    // Perform handle type specific closing.
+    DoClose();
   }
+}
 
-  // Perform socket type specific close handling.
-  AfterClose();
+
+void Handle::DoClose() {
+  CloseHandle(handle_);
+  handle_ = INVALID_HANDLE_VALUE;
 }
 
 
@@ -313,10 +314,6 @@ bool FileHandle::IsClosed() {
 }
 
 
-void FileHandle::AfterClose() {
-}
-
-
 void SocketHandle::HandleIssueError() {
   int error = WSAGetLastError();
   if (error == WSAECONNRESET) {
@@ -330,12 +327,6 @@ void SocketHandle::HandleIssueError() {
 
 bool ListenSocket::LoadAcceptEx() {
   // Load the AcceptEx function into memory using WSAIoctl.
-  // The WSAIoctl function is an extension of the ioctlsocket()
-  // function that can use overlapped I/O. The function's 3rd
-  // through 6th parameters are input and output buffers where
-  // we pass the pointer to our AcceptEx function. This is used
-  // so that we can call the AcceptEx function directly, rather
-  // than refer to the Mswsock.lib library.
   GUID guid_accept_ex = WSAID_ACCEPTEX;
   DWORD bytes;
   int status = WSAIoctl(socket(),
@@ -403,17 +394,6 @@ void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
                         SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
-      linger l;
-      l.l_onoff = 1;
-      l.l_linger = 10;
-      int status = setsockopt(buffer->client(),
-                              SOL_SOCKET,
-                              SO_LINGER,
-                              reinterpret_cast<char*>(&l),
-                              sizeof(l));
-      if (status != NO_ERROR) {
-        FATAL("Failed setting SO_LINGER on socket");
-      }
       // Insert the accepted socket into the list.
       ClientSocket* client_socket = new ClientSocket(buffer->client(), 0);
       client_socket->CreateCompletionPort(completion_port);
@@ -433,6 +413,27 @@ void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
 
   pending_accept_count_--;
   IOBuffer::DisposeBuffer(buffer);
+}
+
+
+void ListenSocket::DoClose() {
+  closesocket(socket());
+  handle_ = INVALID_HANDLE_VALUE;
+  while (CanAccept()) {
+    // Get rid of connections already accepted.
+    ClientSocket *client = Accept();
+    if (client != NULL) {
+      client->Close();
+    } else {
+      break;
+    }
+  }
+}
+
+
+bool ListenSocket::CanAccept() {
+  ScopedLock lock(this);
+  return accepted_head_ != NULL;
 }
 
 
@@ -456,20 +457,6 @@ void ListenSocket::EnsureInitialized(
     event_handler_ = event_handler;
     CreateCompletionPort(event_handler_->completion_port());
     LoadAcceptEx();
-  }
-}
-
-
-void ListenSocket::AfterClose() {
-  ScopedLock lock(this);
-  while (true) {
-    // Get rid of connections already accepted.
-    ClientSocket *client = Accept();
-    if (client != NULL) {
-      client->close();
-    } else {
-      break;
-    }
   }
 }
 
@@ -527,17 +514,42 @@ int Handle::Write(const void* buffer, int num_bytes) {
 }
 
 
+bool ClientSocket::LoadDisconnectEx() {
+  // Load the DisconnectEx function into memory using WSAIoctl.
+  GUID guid_disconnect_ex = WSAID_DISCONNECTEX;
+  DWORD bytes;
+  int status = WSAIoctl(socket(),
+                        SIO_GET_EXTENSION_FUNCTION_POINTER,
+                        &guid_disconnect_ex,
+                        sizeof(guid_disconnect_ex),
+                        &DisconnectEx_,
+                        sizeof(DisconnectEx_),
+                        &bytes,
+                        NULL,
+                        NULL);
+  if (status == SOCKET_ERROR) {
+    Log::PrintErr("Error WSAIoctl failed: %d\n", WSAGetLastError());
+    return false;
+  }
+  return true;
+}
+
+
 void ClientSocket::Shutdown(int how) {
   int rc = shutdown(socket(), how);
-  if (rc == SOCKET_ERROR) {
-    Log::PrintErr("shutdown failed: %d %d\n", socket(), WSAGetLastError());
-  }
   if (how == SD_RECEIVE) MarkClosedRead();
   if (how == SD_SEND) MarkClosedWrite();
   if (how == SD_BOTH) {
     MarkClosedRead();
     MarkClosedWrite();
   }
+}
+
+
+void ClientSocket::DoClose() {
+  // Always do a suhtdown before initiating a disconnect.
+  shutdown(socket(), SD_BOTH);
+  IssueDisconnect();
 }
 
 
@@ -591,6 +603,27 @@ bool ClientSocket::IssueWrite() {
 }
 
 
+void ClientSocket::IssueDisconnect() {
+  IOBuffer* buffer = IOBuffer::AllocateDisconnectBuffer();
+  BOOL ok = DisconnectEx_(
+    socket(), buffer->GetCleanOverlapped(), TF_REUSE_SOCKET, 0);
+  if (!ok && WSAGetLastError() != WSA_IO_PENDING) {
+    DisconnectComplete(buffer);
+  }
+}
+
+
+void ClientSocket::DisconnectComplete(IOBuffer* buffer) {
+  IOBuffer::DisposeBuffer(buffer);
+  closesocket(socket());
+  if (data_ready_ != NULL) {
+    IOBuffer::DisposeBuffer(data_ready_);
+  }
+  // When disconnect is complete get rid of the object.
+  delete this;
+}
+
+
 void ClientSocket::EnsureInitialized(
     EventHandlerImplementation* event_handler) {
   ScopedLock lock(this);
@@ -602,17 +635,8 @@ void ClientSocket::EnsureInitialized(
 }
 
 
-void ClientSocket::AfterClose() {
-  ScopedLock lock(this);
-  if (data_ready_ != NULL) {
-    IOBuffer::DisposeBuffer(data_ready_);
-    data_ready_ = NULL;
-  }
-}
-
-
 bool ClientSocket::IsClosed() {
-  return IsClosing() && !HasPendingRead() && !HasPendingWrite();
+  return false;
 }
 
 
@@ -636,49 +660,61 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       Handle::ScopedLock lock(listen_socket);
 
-      // If incomming connections are requested make sure that pending accepts
-      // are issued.
+      // If incomming connections are requested make sure to post already
+      // accepted connections.
       if ((msg->data & (1 << kInEvent)) != 0) {
+        if (listen_socket->CanAccept()) {
+          int event_mask = (1 << kInEvent);
+          handle->set_mask(handle->mask() & ~event_mask);
+          DartUtils::PostInt32(handle->port(), event_mask);
+        }
+        // Always keep 5 outstanding accepts going, to enhance performance.
         while (listen_socket->pending_accept_count() < 5) {
           listen_socket->IssueAccept();
         }
       }
 
       if ((msg->data & (1 << kCloseCommand)) != 0) {
-        listen_socket->close();
+        listen_socket->Close();
         if (listen_socket->IsClosed()) {
           delete_handle = true;
         }
       }
     } else {
-      handle->SetPortAndMask(msg->dart_port, msg->data);
       handle->EnsureInitialized(this);
 
       Handle::ScopedLock lock(handle);
 
       if (!handle->IsError()) {
-        // If in events (data available events) have been requested, and data
-        // is available, post an in event immediately. Otherwise make sure
-        // that a pending read is issued, unless the socket is already closed
-        // for read.
-        if ((msg->data & (1 << kInEvent)) != 0) {
-          if (handle->Available() > 0) {
-            int event_mask = (1 << kInEvent);
-            handle->set_mask(handle->mask() & ~event_mask);
-            DartUtils::PostInt32(handle->port(), event_mask);
-          } else if (!handle->HasPendingRead() &&
-                     !handle->IsClosedRead()) {
-            handle->IssueRead();
-          }
-        }
+        if ((msg->data & ((1 << kInEvent) | (1 << kOutEvent))) != 0) {
+          // Only set mask if we turned on kInEvent or kOutEvent.
+          handle->SetPortAndMask(msg->dart_port, msg->data);
 
-        // If out events (can write events) have been requested, and there
-        // are no pending writes, post an out event immediately.
-        if ((msg->data & (1 << kOutEvent)) != 0) {
-          if (!handle->HasPendingWrite()) {
-            int event_mask = (1 << kOutEvent);
-            handle->set_mask(handle->mask() & ~event_mask);
-            DartUtils::PostInt32(handle->port(), event_mask);
+          // If in events (data available events) have been requested, and data
+          // is available, post an in event immediately. Otherwise make sure
+          // that a pending read is issued, unless the socket is already closed
+          // for read.
+          if ((msg->data & (1 << kInEvent)) != 0) {
+            if (handle->Available() > 0) {
+              int event_mask = (1 << kInEvent);
+              handle->set_mask(handle->mask() & ~event_mask);
+              DartUtils::PostInt32(handle->port(), event_mask);
+            } else if (handle->IsClosedRead()) {
+              int event_mask = (1 << kCloseEvent);
+              DartUtils::PostInt32(handle->port(), event_mask);
+            } else if (!handle->HasPendingRead()) {
+              handle->IssueRead();
+            }
+          }
+
+          // If out events (can write events) have been requested, and there
+          // are no pending writes, post an out event immediately.
+          if ((msg->data & (1 << kOutEvent)) != 0) {
+            if (!handle->HasPendingWrite()) {
+              int event_mask = (1 << kOutEvent);
+              handle->set_mask(handle->mask() & ~event_mask);
+              DartUtils::PostInt32(handle->port(), event_mask);
+            }
           }
         }
 
@@ -695,7 +731,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       }
 
       if ((msg->data & (1 << kCloseCommand)) != 0) {
-        handle->close();
+        handle->Close();
         if (handle->IsClosed()) {
           delete_handle = true;
         }
@@ -794,6 +830,13 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
 }
 
 
+void EventHandlerImplementation::HandleDisconnect(
+    ClientSocket* client_socket,
+    int bytes,
+    IOBuffer* buffer) {
+  client_socket->DisconnectComplete(buffer);
+}
+
 void EventHandlerImplementation::HandleTimeout() {
   // TODO(sgjesse) check if there actually is a timeout.
   DartUtils::PostNull(timeout_port_);
@@ -820,6 +863,11 @@ void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
     case IOBuffer::kWrite: {
       Handle* handle = reinterpret_cast<Handle*>(key);
       HandleWrite(handle, bytes, buffer);
+      break;
+    }
+    case IOBuffer::kDisconnect: {
+      ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(key);
+      HandleDisconnect(client_socket, bytes, buffer);
       break;
     }
     default:

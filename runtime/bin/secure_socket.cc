@@ -446,17 +446,28 @@ void SSLFilter::Connect(const char* host_name,
   SECStatus status;
   if (is_server) {
     PK11_SetPasswordFunc(PasswordCallback);
-    CERTCertDBHandle* certificate_database = CERT_GetDefaultCertDB();
-    if (certificate_database == NULL) {
-      ThrowPRException("Certificate database cannot be loaded");
-    }
-    // TODO(whesse): Switch to a function that looks up certs by nickname,
-    // so that server and client uses of certificateName agree.
-    CERTCertificate* certificate = CERT_FindCertByNameString(
-        certificate_database,
-        const_cast<char*>(certificate_name));
-    if (certificate == NULL) {
-      ThrowPRException("Cannot find server certificate by name");
+
+    CERTCertificate* certificate = NULL;
+    if (strstr(certificate_name, "CN=") != NULL) {
+      // Look up certificate using the distinguished name (DN) certificate_name.
+      CERTCertDBHandle* certificate_database = CERT_GetDefaultCertDB();
+      if (certificate_database == NULL) {
+        ThrowPRException("Certificate database cannot be loaded");
+      }
+      certificate = CERT_FindCertByNameString(certificate_database,
+          const_cast<char*>(certificate_name));
+      if (certificate == NULL) {
+        ThrowPRException(
+            "Cannot find server certificate by distinguished name");
+      }
+    } else {
+      // Look up certificate using the nickname certificate_name.
+      certificate = PK11_FindCertFromNickname(
+          const_cast<char*>(certificate_name),
+          static_cast<void*>(const_cast<char*>(password_)));
+      if (certificate == NULL) {
+        ThrowPRException("Cannot find server certificate by nickname");
+      }
     }
     SECKEYPrivateKey* key = PK11_FindKeyByAnyCert(
         certificate,

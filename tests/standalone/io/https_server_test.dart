@@ -11,52 +11,46 @@ const HOST_NAME = "localhost";
 
 void testListenOn() {
   void test(void onDone()) {
-    HttpsServer server = new HttpsServer();
-    Expect.throws(() => server.port);
-
-    ReceivePort serverPort = new ReceivePort();
-    server.defaultRequestHandler =
-        (HttpRequest request, HttpResponse response) {
-          request.inputStream.onClosed = () {
-            response.outputStream.close();
+    HttpServer.bindSecure(SERVER_ADDRESS,
+                          0,
+                          backlog: 5,
+                          certificateName: 'localhost_cert').then((server) {
+      ReceivePort serverPort = new ReceivePort();
+      server.listen((HttpRequest request) {
+        request.listen(
+          (_) { },
+          onDone: () {
+            request.response.close();
             serverPort.close();
-          };
-        };
+          });
+      });
 
-    server.onError = (Exception e) {
-      Expect.fail("Unexpected error in Https Server: $e");
-    };
-
-    server.listen(SERVER_ADDRESS,
-                  0,
-                  backlog: 5,
-                  certificate_name: 'CN=$HOST_NAME');
-
-    HttpClient client = new HttpClient();
-    HttpClientConnection conn =
-        client.getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"));
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.close();
-    };
-    ReceivePort clientPort = new ReceivePort();
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onClosed = () {
-        client.shutdown();
-        clientPort.close();
-        server.close();
-        Expect.throws(() => server.port);
-        onDone();
-      };
-    };
-    conn.onError = (Exception e) {
-      Expect.fail("Unexpected error in Https Client: $e");
-    };
-  };
-
-  // Test two connection after each other.
-  test(() {
-    test(() {
+      HttpClient client = new HttpClient();
+      ReceivePort clientPort = new ReceivePort();
+      client.getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
+        .then((HttpClientRequest request) {
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+            response.listen(
+              (_) { },
+              onDone: () {
+                client.close();
+                clientPort.close();
+                server.close();
+                Expect.throws(() => server.port);
+                onDone();
+              });
+        })
+        .catchError((error) {
+          Expect.fail("Unexpected error in Https client: $error");
+        });
     });
+  }
+
+  // Test two servers in succession.
+  test(() {
+    test(() { });
   });
 }
 

@@ -1,26 +1,31 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 part of dart.io;
 
-abstract class ServerSocket {
+/**
+ * The RawServerSocket is a server socket, providing a stream of low-level
+ * [RawSocket]s.
+ *
+ * See [RawSocket] for more info.
+ */
+abstract class RawServerSocket implements Stream<RawSocket> {
   /**
-   * Constructs a new server socket, binds it to a given address and port,
-   * and listens on it.
+   * Returns a future for a [:RawServerSocket:]. When the future
+   * completes the server socket is bound to the given [address] and
+   * [port] and has started listening on it.
+   *
+   * If [port] has the value [:0:] (the default) an ephemeral port will
+   * be chosen by the system. The actual port used can be retrieved
+   * using the [:port:] getter.
+   *
+   * If [backlog] has the value of [:0:] a reasonable value will be
+   * chosen by the system.
    */
-  external factory ServerSocket(String bindAddress, int port, int backlog);
-
-  /**
-   * The connection handler gets called when there is a new incoming
-   * connection on the socket.
-   */
-  void set onConnection(void callback(Socket connection));
-
-  /**
-   * The error handler gets called when a socket error occurs.
-   */
-  void set onError(void callback(e));
+  external static Future<RawServerSocket> bind([String address = "127.0.0.1",
+                                               int port = 0,
+                                               int backlog = 0]);
 
   /**
    * Returns the port used by this socket.
@@ -34,13 +39,79 @@ abstract class ServerSocket {
 }
 
 
-abstract class Socket {
+/**
+ * The [ServerSocket] is server socket, providing a stream of high-level
+ * [Socket]s.
+ *
+ * See [Socket] for more info.
+ */
+abstract class ServerSocket implements Stream<Socket> {
   /**
-   * Constructs a new socket and initiate connecting it to the given
-   * host on the given port. The returned socket is not yet connected
-   * but ready for registration of callbacks.
+   * Returns a future for a [:ServerSocket:]. When the future
+   * completes the server socket is bound to the given [address] and
+   * [port] and has started listening on it.
+   *
+   * If [port] has the value [:0:] (the default) an ephemeral port will
+   * be chosen by the system. The actual port used can be retrieved
+   * using the [port] getter.
+   *
+   * If [backlog] has the value of [:0:] a reasonable value will be
+   * chosen by the system.
    */
-  external factory Socket(String host, int port);
+  external static Future<ServerSocket> bind([String address = "127.0.0.1",
+                                             int port = 0,
+                                             int backlog = 0]);
+
+  /**
+   * Returns the port used by this socket.
+   */
+  int get port;
+
+  /**
+   * Closes the socket.
+   */
+  void close();
+}
+
+/**
+ * The [SocketDirection] is used as a parameter to [Socket.close] and
+ * [RawSocket.close] to close a socket in the specified direction(s).
+ */
+class SocketDirection {
+  static const SocketDirection RECEIVE = const SocketDirection._(0);
+  static const SocketDirection SEND = const SocketDirection._(1);
+  static const SocketDirection BOTH = const SocketDirection._(2);
+  const SocketDirection._(this._value);
+  final _value;
+}
+
+/**
+ * Events for the [RawSocket].
+ */
+class RawSocketEvent {
+  static const RawSocketEvent READ = const RawSocketEvent._(0);
+  static const RawSocketEvent WRITE = const RawSocketEvent._(1);
+  static const RawSocketEvent READ_CLOSED = const RawSocketEvent._(2);
+  const RawSocketEvent._(this._value);
+  final int _value;
+  String toString() {
+    return ['RawSocketEvent:READ',
+            'RawSocketEvent:WRITE',
+            'RawSocketEvent:READ_CLOSED'][_value];
+  }
+}
+
+/**
+ * The [RawSocket] is a low-level interface to a socket, exposing the raw
+ * events signaled by the system. It's a [Stream] of [RawSocketEvent]s.
+ */
+abstract class RawSocket implements Stream<RawSocketEvent> {
+  /**
+   * Creats a new socket connection to the host and port and returns a [Future]
+   * that will complete with either a [RawSocket] once connected or an error
+   * if the host-lookup or connection failed.
+   */
+  external static Future<RawSocket> connect(String host, int port);
 
   /**
    * Returns the number of received and non-read bytes in the socket that
@@ -58,61 +129,12 @@ abstract class Socket {
   List<int> read([int len]);
 
   /**
-   * Reads up to [count] bytes of data from the socket and stores them into
-   * buffer after buffer offset [offset]. The number of successfully read
-   * bytes is returned. This function is non-blocking and will only read data
-   * if data is available.
-   */
-  int readList(List<int> buffer, int offset, int count);
-
-  /**
    * Writes up to [count] bytes of the buffer from [offset] buffer offset to
    * the socket. The number of successfully written bytes is returned. This
    * function is non-blocking and will only write data if buffer space is
    * available in the socket.
    */
-  int writeList(List<int> buffer, int offset, int count);
-
-  /**
-   * The connect handler gets called when connection to a given host
-   * succeeded.
-   */
-  void set onConnect(void callback());
-
-  /**
-   * The data handler gets called when data becomes available at the socket.
-   */
-  void set onData(void callback());
-
-  /**
-   * The write handler gets called once when the socket becomes
-   * available for writing. Then the handler is automatically reset to null.
-   * This handler is mainly used when writeList has reported an incomplete
-   * write, to schedule writing the remaining data to the socket.
-   */
-  void set onWrite(void callback());
-
-  /**
-   * The close handler gets called when a the last byte have been read
-   * from a socket. At this point the socket might still be open for
-   * writing for sending more data.
-   */
-  void set onClosed(void callback());
-
-  /**
-   * The error handler gets called when a socket error occurs.
-   */
-  void set onError(void callback(e));
-
-  /**
-   * Returns input stream to the socket.
-   */
-  InputStream get inputStream;
-
-  /**
-   * Returns output stream of the socket.
-   */
-  OutputStream get outputStream;
+  int write(List<int> buffer, [int offset, int count]);
 
   /**
    * Returns the port used by this socket.
@@ -131,12 +153,61 @@ abstract class Socket {
 
   /**
    * Closes the socket. Calling [close] will never throw an exception
-   * and calling it several times is supported. If [halfClose] is true
-   * the socket will only be closed for writing and it might still be
-   * possible to read data. Calling [close] will not trigger a call to
-   * [onClosed].
+   * and calling it several times is supported. Calling [close] can result in
+   * a [RawSocketEvent.READ_CLOSED] event.
    */
-  void close([bool halfClose = false]);
+  void close();
+
+  /**
+   * Shutdown the socket in the [direction]. Calling [shutdown] will never
+   * throw an exception and calling it several times is supported. Calling
+   * shutdown with either [SocketDirection.BOTH] or [SocketDirection.RECEIVE]
+   * can result in a [RawSocketEvent.READ_CLOSED] event.
+   */
+  void shutdown(SocketDirection direction);
+
+  /**
+   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.READ]
+   * events. Default is [true].
+   */
+  bool readEventsEnabled;
+
+  /**
+   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.WRITE]
+   * events. Default is [true].
+   * This is a one-shot listener, and writeEventsEnabled must be set
+   * to true again to receive another write event.
+   */
+  bool writeEventsEnabled;
+}
+
+/**
+ * A high-level class for communicating over a TCP socket. The [Socket] exposes
+ * both a [Stream] and a [IOSink] interface, making it ideal for
+ * using together with other [Stream]s.
+ */
+abstract class Socket implements Stream<List<int>>,
+                                 IOSink<Socket> {
+  /**
+   * Creats a new socket connection to the host and port and returns a [Future]
+   * that will complete with either a [RawSocket] once connected or an error
+   * if the host-lookup or connection failed.
+   */
+  external static Future<Socket> connect(String host, int port);
+
+  /**
+   * Destroy the socket in both directions. Calling [destroy] will make the
+   * send a close event on the stream and will no longer react on data being
+   * piped to it.
+   *
+   * Call [close](inherited by [IOSink]) to only close the [Socket]
+   * for sending data.
+   */
+  void destroy();
+
+  int get port;
+  String get remoteHost;
+  int get remotePort;
 }
 
 

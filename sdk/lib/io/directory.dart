@@ -7,7 +7,7 @@ part of dart.io;
 /**
  * [Directory] objects are used for working with directories.
  */
-abstract class Directory {
+abstract class Directory extends FileSystemEntity {
   /**
    * Creates a directory object. The path is either an absolute path,
    * or it is a relative path which is interpreted relative to the directory
@@ -131,20 +131,22 @@ abstract class Directory {
   Directory renameSync(String newPath);
 
   /**
-   * List the sub-directories and files of this
-   * [Directory]. Optionally recurse into sub-directories. Returns a
-   * [DirectoryLister] object representing the active listing
-   * operation. Handlers for files and directories should be
-   * registered on this DirectoryLister object.
+   * List the sub-directories and files of this [Directory].
+   * Optionally recurse into sub-directories.
+   *
+   * The result is a stream of [FileSystemEntity] objects
+   * for the directories and files.
    */
-  DirectoryLister list({bool recursive: false});
+  Stream<FileSystemEntity> list({bool recursive: false});
 
   /**
-   * List the sub-directories and files of this
-   * [Directory]. Optionally recurse into sub-directories. Returns a
-   * List containing Directory and File objects.
+   * List the sub-directories and files of this [Directory].
+   * Optionally recurse into sub-directories.
+   *
+   * Returns a [List] containing [FileSystemEntity] objects for the
+   * directories and files.
    */
-  List listSync({bool recursive: false});
+  List<FileSystemEntity> listSync({bool recursive: false});
 
   /**
    * Returns a human readable string for this Directory instance.
@@ -155,49 +157,6 @@ abstract class Directory {
    * Gets the path of this directory.
    */
   final String path;
-}
-
-
-/**
- * A [DirectoryLister] represents an actively running listing operation.
- *
- * A [DirectoryLister] is obtained from a [Directory] object by calling
- * the [:Directory.list:] method.
- *
- *     Directory dir = new Directory('path/to/my/dir');
- *     DirectoryLister lister = dir.list();
- *
- * For each file and directory, the file or directory handler is
- * called. When all directories have been listed the done handler is
- * called. If the listing operation is recursive, the error handler is
- * called if a subdirectory cannot be opened for listing.
- */
-abstract class DirectoryLister {
-  /**
-   * Sets the directory handler that is called for all directories
-   * during listing. The directory handler is called with the full
-   * path of the directory.
-   */
-  void set onDir(void onDir(String dir));
-
-  /**
-   * Sets the handler that is called for all files during listing. The
-   * file handler is called with the full path of the file.
-   */
-  void set onFile(void onFile(String file));
-
-  /**
-   * Set the handler that is called when a listing is done. The
-   * handler is called with an indication of whether or not the
-   * listing operation completed.
-   */
-  void set onDone(void onDone(bool completed));
-
-  /**
-   * Sets the handler that is called if there is an error while
-   * listing directories.
-   */
-  void set onError(void onError(e));
 }
 
 

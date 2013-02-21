@@ -70,21 +70,24 @@ void buildFileList(List dirs, RegExp filePat, bool recurse,
       Directory d = new Directory(path);
       if (d.existsSync()) {
         ++dirCount;
-        var lister = d.list(recursive: recurse);
-        lister.onFile = (file) {
-          if (filePat.hasMatch(file)) {
-            if (excludePat == null || !excludePat.hasMatch(file)) {
-              if (includeSymLinks || file.startsWith(path)) {
-                files.add(file);
+        d.list(recursive: recurse).listen(
+            (entity) {
+              if (entity is File) {
+                var file = entity.name;
+                if (filePat.hasMatch(file)) {
+                  if (excludePat == null || !excludePat.hasMatch(file)) {
+                    if (includeSymLinks || file.startsWith(path)) {
+                      files.add(file);
+                    }
+                  }
+                }
               }
-            }
-          }
-        };
-        lister.onDone = (complete) {
-          if (complete && --dirCount == 0) {
-            onComplete(files);
-          }
-        };
+            },
+            onDone: () {
+              if (complete && --dirCount == 0) {
+                onComplete(files);
+              }
+            });
       } else { // Does not exist.
         print('$path does not exist.');
       }

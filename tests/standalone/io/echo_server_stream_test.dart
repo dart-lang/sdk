@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -34,83 +34,44 @@ class EchoServerGame {
   }
 
   void sendData() {
+    int offset = 0;
+    List<int> data;
 
-    void errorHandler(Exception e) {
+    void onData(List<int> data) {
+      int bytesRead = data.length;
+      for (int i = 0; i < data.length; i++) {
+        Expect.equals(FIRSTCHAR + i + offset, data[i]);
+      }
+      offset += bytesRead;
+    }
+
+    void onClosed() {
+      Expect.equals(MSGSIZE, offset);
+      _messages++;
+      if (_messages < MESSAGES) {
+        sendData();
+      } else {
+        shutdown();
+      }
+    }
+
+    void errorHandler(e) {
       Expect.fail("Socket error $e");
     }
 
     void connectHandler() {
-
-      OutputStream stream = _socket.outputStream;
-
-      void dataSent() {
-        InputStream inputStream = _socket.inputStream;
-        int offset = 0;
-        List<int> data;
-
-        void onClosed() {
-          Expect.equals(MSGSIZE, offset);
-          _messages++;
-          if (_messages < MESSAGES) {
-            sendData();
-          } else {
-            shutdown();
-          }
-        }
-
-        void onData() {
-          // Test both read and readInto.
-          int bytesRead = 0;
-          if (_messages % 2 == 0) {
-            bytesRead = inputStream.readInto(data, offset, MSGSIZE - offset);
-            for (int i = 0; i < offset + bytesRead; i++) {
-              Expect.equals(FIRSTCHAR + i, data[i]);
-            }
-          } else {
-            data = inputStream.read();
-            bytesRead = data.length;
-            for (int i = 0; i < data.length; i++) {
-              Expect.equals(FIRSTCHAR + i + offset, data[i]);
-            }
-          }
-
-          offset += bytesRead;
-        }
-
-        if (_messages % 2 == 0) data = new List<int>.fixedLength(MSGSIZE);
-        inputStream.onData = onData;
-        inputStream.onClosed = onClosed;
-      }
-
-      _socket.onError = errorHandler;
-
-      // Test both write and writeFrom in different forms.
-      switch (_messages % 4) {
-        case 0:
-          stream.write(_buffer);
-          break;
-        case 1:
-          stream.write(_buffer, false);
-          break;
-        case 2:
-          stream.writeFrom(_buffer);
-          break;
-        case 3:
-          Expect.equals(0, _buffer.length % 2);
-          stream.writeFrom(_buffer, 0, _buffer.length ~/ 2);
-          stream.writeFrom(_buffer, _buffer.length ~/ 2);
-          break;
-      }
-      stream.close();
-      dataSent();
+      _socket.listen(onData,
+                     onError: errorHandler,
+                     onDone: onClosed);
+      _socket.add(_buffer);
+      _socket.close();
+      data = new List<int>.fixedLength(MSGSIZE);
     }
 
-    _socket = new Socket(TestingServer.HOST, _port);
-    if (_socket != null) {
-      _socket.onConnect = connectHandler;
-    } else {
-      Expect.fail("socket creation failed");
-    }
+    Socket.connect(TestingServer.HOST, _port).then((s) {
+      _socket = s;
+      connectHandler();
+    });
   }
 
   void initialize() {
@@ -146,33 +107,30 @@ class EchoServer extends TestingServer {
   static const int MSGSIZE = EchoServerGame.MSGSIZE;
 
   void onConnection(Socket connection) {
-    InputStream inputStream;
     List<int> buffer = new List<int>.fixedLength(MSGSIZE);
     int offset = 0;
 
-    void dataReceived() {
+    void dataReceived(List<int> data) {
       int bytesRead;
-      OutputStream outputStream = connection.outputStream;
-      bytesRead = inputStream.readInto(buffer, offset, MSGSIZE - offset);
+      bytesRead = data.length;
       if (bytesRead > 0) {
+        buffer.setRange(offset, data.length, data);
         offset += bytesRead;
         for (int i = 0; i < offset; i++) {
           Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
         }
         if (offset == MSGSIZE) {
-          outputStream.write(buffer);
-          outputStream.close();
+          connection.add(buffer);
+          connection.close();
         }
       }
     }
 
-    void errorHandler(Exception e) {
+    void errorHandler(e) {
       Expect.fail("Socket error $e");
     }
 
-    inputStream = connection.inputStream;
-    inputStream.onData = dataReceived;
-    connection.onError = errorHandler;
+    connection.listen(dataReceived, onError: errorHandler);
   }
 }
 

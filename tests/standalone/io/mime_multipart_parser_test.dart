@@ -1,11 +1,16 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math';
 
+part '../../../sdk/lib/io/io_stream_consumer.dart';
+part "../../../sdk/lib/io/http.dart";
+part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
 part "../../../sdk/lib/io/mime_multipart_parser.dart";
+part '../../../sdk/lib/io/socket.dart';
 
 void testParse(String message,
                String boundary,

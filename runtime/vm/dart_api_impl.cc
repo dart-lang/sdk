@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2060,7 +2060,85 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
 }
 
 
-// TODO(hpayer): value should always be smaller then 0xff. Add error handling.
+static RawObject* ResolveConstructor(const char* current_func,
+                                     const Class& cls,
+                                     const String& class_name,
+                                     const String& dotted_name,
+                                     int num_args);
+
+
+static RawObject* ThrowArgumentError(const char* exception_message) {
+  Isolate* isolate = Isolate::Current();
+  // Lookup the class ArgumentError in dart:core.
+  const String& lib_url = String::Handle(String::New("dart:core"));
+  const String& class_name =
+      String::Handle(String::New("ArgumentError"));
+  const Library& lib =
+      Library::Handle(isolate, Library::LookupLibrary(lib_url));
+  if (lib.IsNull()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: library '%s' not found.",
+                             CURRENT_FUNC, lib_url.ToCString()));
+    return ApiError::New(message);
+  }
+  const Class& cls = Class::Handle(isolate,
+                                   lib.LookupClassAllowPrivate(class_name));
+  if (cls.IsNull()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: class '%s' not found in library '%s'.",
+                             CURRENT_FUNC, class_name.ToCString(),
+                             lib_url.ToCString()));
+    return ApiError::New(message);
+  }
+  String& dot_name = String::Handle(String::New("."));
+  Object& result = Object::Handle(isolate);
+  result = ResolveConstructor(CURRENT_FUNC, cls, class_name, dot_name, 1);
+  if (result.IsError()) return result.raw();
+  ASSERT(result.IsFunction());
+  Function& constructor = Function::Handle(isolate);
+  constructor ^= result.raw();
+  if (!constructor.IsConstructor()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: class '%s' is not a constructor.",
+                             CURRENT_FUNC, class_name.ToCString()));
+    return ApiError::New(message);
+  }
+  Instance& exception = Instance::Handle(isolate);
+  exception = Instance::New(cls);
+  const Array& args = Array::Handle(isolate, Array::New(3));
+  args.SetAt(0, exception);
+  args.SetAt(1,
+             Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
+  args.SetAt(2, String::Handle(String::New(exception_message)));
+  result = DartEntry::InvokeStatic(constructor, args);
+  if (result.IsError()) return result.raw();
+  ASSERT(result.IsNull());
+
+  if (isolate->top_exit_frame_info() == 0) {
+    // There are no dart frames on the stack so it would be illegal to
+    // throw an exception here.
+    const String& message = String::Handle(
+            String::New("No Dart frames on stack, cannot throw exception"));
+    return ApiError::New(message);
+  }
+  // Unwind all the API scopes till the exit frame before throwing an
+  // exception.
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  const Instance* saved_exception;
+  {
+    NoGCScope no_gc;
+    RawInstance* raw_exception = exception.raw();
+    state->UnwindScopes(isolate->top_exit_frame_info());
+    saved_exception = &Instance::Handle(raw_exception);
+  }
+  Exceptions::Throw(*saved_exception);
+  const String& message = String::Handle(
+          String::New("Exception was not thrown, internal error"));
+  return ApiError::New(message);
+}
+
+// TODO(sgjesse): value should always be smaller then 0xff. Add error handling.
 #define GET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
                                   length)                                      \
   const type& array = type::Cast(obj);                                         \
@@ -2069,8 +2147,9 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     for (int i = 0; i < length; i++) {                                         \
       element = array.At(offset + i);                                          \
       if (!element.IsInteger()) {                                              \
-        return Api::NewError("%s expects the argument 'list' to be "           \
-                             "a List of int", CURRENT_FUNC);                   \
+        return Api::NewHandle(                                                 \
+            isolate, ThrowArgumentError("List contains non-int elements"));    \
+                                                                               \
       }                                                                        \
       const Integer& integer = Integer::Cast(element);                         \
       native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \

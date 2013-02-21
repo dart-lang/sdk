@@ -17,20 +17,18 @@ import "process_test_util.dart";
 
 void test(Future<Process> future, int expectedExitCode) {
   future.then((process) {
-    process.onExit = (exitCode) {
+    process.exitCode.then((exitCode) {
       Expect.equals(expectedExitCode, exitCode);
-    };
+    });
 
     List<int> data = "ABCDEFGHI\n".charCodes;
     final int dataSize = data.length;
 
-    InputStream err = process.stderr;
-
     int received = 0;
     List<int> buffer = [];
 
-    void readData() {
-      buffer.addAll(err.read());
+    void readData(data) {
+      buffer.addAll(data);
       for (int i = received;
            i < min(data.length, buffer.length) - 1;
            i++) {
@@ -47,10 +45,10 @@ void test(Future<Process> future, int expectedExitCode) {
       }
     }
 
-    process.stdout.onData = process.stdout.read;
-    process.stdin.write(data);
+    process.stdout.listen((_) {});
+    process.stdin.add(data);
     process.stdin.close();
-    err.onData = readData;
+    process.stderr.listen(readData);
   });
 }
 

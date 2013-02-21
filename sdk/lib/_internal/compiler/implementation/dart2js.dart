@@ -290,7 +290,8 @@ void compile(List<String> argv) {
     if (uri.scheme != 'file') {
       fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
     }
-    var outputStream = new File(uriPathToNative(uri.path)).openOutputStream();
+    IOSink output =
+        new File(uriPathToNative(uri.path)).openWrite();
 
     CountingSink sink;
 
@@ -298,16 +299,16 @@ void compile(List<String> argv) {
       if (sourceMapFileName != null) {
         String sourceMapTag = '//@ sourceMappingURL=$sourceMapFileName\n';
         sink.count += sourceMapTag.length;
-        outputStream.writeString(sourceMapTag);
+        output.addString(sourceMapTag);
       }
-      outputStream.close();
+      output.close();
       if (isPrimaryOutput) {
         charactersWritten += sink.count;
       }
     }
 
     var controller = new StreamController<String>();
-    controller.stream.listen(outputStream.writeString, onDone: onDone);
+    controller.stream.listen(output.addString, onDone: onDone);
     sink = new CountingSink(controller);
     return sink;
   }

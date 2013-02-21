@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -41,7 +41,7 @@ class SocketClose {
 
   void sendData() {
 
-    void dataHandler() {
+    void dataHandler(bytes) {
       switch (_mode) {
         case 0:
         case 1:
@@ -52,8 +52,7 @@ class SocketClose {
         case 4:
         case 5:
         case 6:
-          List<int> b = new List<int>.fixedLength(5);
-          _readBytes += _socket.readList(b, 0, 5);
+          _readBytes += bytes.length;
           if ((_readBytes % 5) == 0) {
             _dataEvents++;
           }
@@ -63,23 +62,23 @@ class SocketClose {
       }
     }
 
-    void closeHandler() {
+    void closeHandler(socket) {
       _closeEvents++;
       switch (_mode) {
         case 0:
         case 1:
-          Expect.fail("No close expected");
+          socket.close();
           break;
         case 2:
         case 3:
-          _socket.close();
+          socket.close();
           proceed();
           break;
         case 4:
           proceed();
           break;
         case 5:
-          _socket.close();
+          socket.close();
           proceed();
           break;
         case 6:
@@ -92,32 +91,28 @@ class SocketClose {
 
     void errorHandler(Exception e) {
       _errorEvents++;
-      _socket.close();
+      socket.close();
     }
 
-    void connectHandler() {
-      _socket.onData = dataHandler;
-      _socket.onClosed = closeHandler;
-      _socket.onError = errorHandler;
+    void connectHandler(socket) {
+      socket.listen(
+          dataHandler,
+          onDone: () => closeHandler(socket),
+          onError: (error) => errorHandler(socket));
 
       void writeHello() {
-        int bytesWritten = 0;
-        while (bytesWritten != 5) {
-          bytesWritten += _socket.writeList("Hello".charCodes,
-                                            bytesWritten,
-                                            5 - bytesWritten);
-        }
+        socket.add("Hello".charCodes);
       }
 
       _iterations++;
       switch (_mode) {
         case 0:
-          _socket.close();
+          socket.destroy();
           proceed();
           break;
         case 1:
           writeHello();
-          _socket.close();
+          socket.destroy();
           proceed();
           break;
         case 2:
@@ -126,23 +121,21 @@ class SocketClose {
           break;
         case 4:
           writeHello();
-          _socket.close(true);
+          socket.close();  // Half close.
           break;
         case 5:
           writeHello();
           break;
         case 6:
           writeHello();
-          _socket.close(true);
+          socket.close();  // Half close.
           break;
         default:
           Expect.fail("Unknown test mode");
       }
     }
 
-    _socket = new Socket(SocketCloseServer.HOST, _port);
-    Expect.equals(true, _socket != null);
-    _socket.onConnect = connectHandler;
+    Socket.connect(SocketCloseServer.HOST, _port).then(connectHandler);
   }
 
   void initialize() {
@@ -164,7 +157,7 @@ class SocketClose {
       case 0:
       case 1:
         Expect.equals(0, _dataEvents);
-        Expect.equals(0, _closeEvents);
+        Expect.equals(ITERATIONS, _closeEvents);
         break;
       case 2:
         Expect.equals(0, _dataEvents);
@@ -172,6 +165,10 @@ class SocketClose {
         break;
       case 3:
       case 4:
+        Expect.isTrue(_dataEvents <= ITERATIONS);
+        Expect.isTrue(_dataEvents >= 0);
+        Expect.equals(ITERATIONS, _closeEvents);
+        break;
       case 5:
       case 6:
         Expect.equals(ITERATIONS, _dataEvents);
@@ -186,7 +183,6 @@ class SocketClose {
   int _port;
   ReceivePort _receivePort;
   SendPort _sendPort;
-  Socket _socket;
   List<int> _buffer;
   int _readBytes;
   int _dataEvents;
@@ -219,56 +215,51 @@ class SocketCloseServer {
   void connectionHandler(ConnectionData data) {
     var connection = data.connection;
 
-    void readBytes(whenFiveBytes) {
-      List<int> b = new List<int>.fixedLength(5);
-      data.readBytes += connection.readList(b, 0, 5);
+    void readBytes(bytes, whenFiveBytes) {
+      data.readBytes += bytes.length;
+      Expect.isTrue(data.readBytes <= 5);
       if (data.readBytes == 5) {
         whenFiveBytes();
       }
     }
 
     void writeHello() {
-      int bytesWritten = 0;
-      while (bytesWritten != 5) {
-        bytesWritten += connection.writeList("Hello".charCodes,
-                                             bytesWritten,
-                                             5 - bytesWritten);
-      }
+      connection.add("Hello".charCodes);
     }
 
-    void dataHandler() {
+    void dataHandler(bytes) {
       switch (_mode) {
         case 0:
           Expect.fail("No data expected");
           break;
         case 1:
-          readBytes(() { _dataEvents++; });
+          readBytes(bytes, () { _dataEvents++; });
           break;
         case 2:
-          readBytes(() {
+          readBytes(bytes, () {
             _dataEvents++;
-            connection.close();
+            connection.destroy();
           });
           break;
         case 3:
-          readBytes(() {
+          readBytes(bytes, () {
             _dataEvents++;
             writeHello();
-            connection.close();
+            connection.destroy();
           });
           break;
         case 4:
-          readBytes(() {
+          readBytes(bytes, () {
             _dataEvents++;
             writeHello();
           });
           break;
         case 5:
         case 6:
-          readBytes(() {
+          readBytes(bytes, () {
             _dataEvents++;
             writeHello();
-            connection.close(true);
+            connection.close();  // Half close.
           });
           break;
         default:
@@ -281,18 +272,19 @@ class SocketCloseServer {
       connection.close();
     }
 
-    void errorHandler(Exception e) {
+    void errorHandler(e) {
       Expect.fail("Socket error $e");
     }
 
     _iterations++;
 
-    connection.onData = dataHandler;
-    connection.onClosed = closeHandler;
-    connection.onError = errorHandler;
+    connection.listen(
+        dataHandler,
+        onDone: closeHandler,
+        onError: errorHandler);
   }
 
-  void errorHandlerServer(Exception e) {
+  void errorHandlerServer(e) {
     Expect.fail("Server socket error");
   }
 
@@ -310,13 +302,14 @@ class SocketCloseServer {
           Expect.equals(ITERATIONS, _closeEvents);
           break;
         case 1:
-          Expect.equals(ITERATIONS, _dataEvents);
+          Expect.isTrue(_dataEvents <= ITERATIONS);
+          Expect.isTrue(_dataEvents >= 0);
           Expect.equals(ITERATIONS, _closeEvents);
           break;
         case 2:
         case 3:
           Expect.equals(ITERATIONS, _dataEvents);
-          Expect.equals(0, _closeEvents);
+          Expect.equals(ITERATIONS, _closeEvents);
           break;
         case 4:
         case 5:
@@ -345,14 +338,17 @@ class SocketCloseServer {
       _closeEvents = 0;
       _iterations = 0;
       _mode = message;
-      _server = new ServerSocket(HOST, 0, 10);
-      Expect.equals(true, _server != null);
-      _server.onConnection = (connection) {
-        var data = new ConnectionData(connection);
-        connectionHandler(data);
-      };
-      _server.onError = errorHandlerServer;
-      replyTo.send(_server.port, null);
+      ServerSocket.bind().then((server) {
+        _server = server;
+        _server.listen(
+          (socket) {
+            var data = new ConnectionData(socket);
+            connectionHandler(data);
+          },
+          onError: errorHandlerServer
+        );
+        replyTo.send(_server.port, null);
+      });
     } else {
       Timer.run(waitForResult);
     }
@@ -372,10 +368,10 @@ class SocketCloseServer {
 main() {
   // Run the close test in these different "modes".
   // 0: Client closes without sending at all.
-  // 1: Client sends and closes.
-  // 2: Client sends. Server closes.
-  // 3: Client sends. Server responds and closes.
-  // 4: Client sends and half-closes. Server responds and closes.
+  // 1: Client sends and destroys.
+  // 2: Client sends. Server destroys.
+  // 3: Client sends. Server responds and destroys.
+  // 4: Client sends and half-closes. Server responds and destroys.
   // 5: Client sends. Server responds and half closes.
   // 6: Client sends and half-closes. Server responds and half closes.
   var tests = 7;

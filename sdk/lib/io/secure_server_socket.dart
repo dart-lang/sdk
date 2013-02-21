@@ -4,16 +4,135 @@
 
 part of dart.io;
 
-abstract class SecureServerSocket implements ServerSocket {
+/**
+ * The [SecureServerSocket] is a server socket, providing a stream of high-level
+ * [Socket]s.
+ *
+ * See [SecureSocket] for more info.
+ */
+class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
+  final RawSecureServerSocket _socket;
+
+  SecureServerSocket._(RawSecureServerSocket this._socket);
+
   /**
-   * Constructs a new secure server socket, binds it to a given address
-   * and port, and listens on it.  Incoming client connections are
-   * promoted to secure connections, using the server certificate given by
-   * certificate_name.  The bindAddress must be given as a numeric address,
-   * not a host name.  The certificate name is the distinguished name (DN) of
-   * the certificate, such as "CN=localhost" or "CN=myserver.mydomain.com".
-   * The certificate is looked up in the NSS certificate database set by
-   * SecureSocket.setCertificateDatabase.
+   * Returns a future for a [SecureServerSocket]. When the future
+   * completes the server socket is bound to the given [address] and
+   * [port] and has started listening on it.
+   *
+   * If [port] has the value [:0:] (the default) an ephemeral port will
+   * be chosen by the system. The actual port used can be retrieved
+   * using the [port] getter.
+   *
+   * If [backlog] has the value of [:0:] a reasonable value will be
+   * chosen by the system.
+   *
+   * Incoming client connections are promoted to secure connections, using
+   * the server certificate given by [certificateName].
+   *
+   * [address] must be given as a numeric address, not a host name.
+   *
+   * [certificateName] is the nickname or the distinguished name (DN) of
+   * the certificate in the certificate database. It is looked up in the
+   * NSS certificate database set by SecureSocket.setCertificateDatabase.
+   * If [certificateName] contains "CN=", it is assumed to be a distinguished
+   * name.  Otherwise, it is looked up as a nickname.
+   *
+   * To request or require that clients authenticate by providing an SSL (TLS)
+   * client certificate, set the optional parameter [requestClientCertificate]
+   * or [requireClientCertificate] to true.  Requiring a certificate implies
+   * requesting a certificate, so one doesn't need to set both to true.
+   * To check whether a client certificate was received, check
+   * SecureSocket.peerCertificate after connecting.  If no certificate
+   * was received, the result will be null.
+   */
+  static Future<SecureServerSocket> bind(
+      String address,
+      int port,
+      int backlog,
+      String certificateName,
+      {bool requestClientCertificate: false,
+       bool requireClientCertificate: false}) {
+    return RawSecureServerSocket.bind(
+        address,
+        port,
+        backlog,
+        certificateName,
+        requestClientCertificate: requestClientCertificate,
+        requireClientCertificate: requireClientCertificate).then(
+            (serverSocket) => new SecureServerSocket._(serverSocket));
+  }
+
+  StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket),
+                                          {void onError(AsyncError error),
+                                           void onDone(),
+                                           bool unsubscribeOnError}) {
+    return _socket.map((rawSocket) => new SecureSocket._(rawSocket))
+                  .listen(onData,
+                          onError: onError,
+                          onDone: onDone,
+                          unsubscribeOnError: unsubscribeOnError);
+  }
+
+  /**
+   * Returns the port used by this socket.
+   */
+  int get port => _socket.port;
+
+  /**
+   * Closes the socket.
+   */
+  void close() => _socket.close();
+}
+
+
+/**
+ * The RawSecureServerSocket is a server socket, providing a stream of low-level
+ * [RawSecureSocket]s.
+ *
+ * See [RawSecureSocket] for more info.
+ */
+class RawSecureServerSocket extends Stream<RawSecureSocket> {
+  RawServerSocket _socket;
+  StreamController<RawSecureSocket> _controller;
+  StreamSubscription<RawSocket> _subscription;
+  final String certificateName;
+  final bool requestClientCertificate;
+  final bool requireClientCertificate;
+  bool _closed = false;
+
+  RawSecureServerSocket._(RawServerSocket serverSocket,
+                          String this.certificateName,
+                          bool this.requestClientCertificate,
+                          bool this.requireClientCertificate) {
+    _socket = serverSocket;
+    _controller = new StreamController<RawSecureSocket>(
+        onPauseStateChange: _onPauseStateChange,
+        onSubscriptionStateChange: _onSubscriptionStateChange);
+  }
+
+  /**
+   * Returns a future for a [RawSecureServerSocket]. When the future
+   * completes the server socket is bound to the given [address] and
+   * [port] and has started listening on it.
+   *
+   * If [port] has the value [:0:] (the default) an ephemeral port will
+   * be chosen by the system. The actual port used can be retrieved
+   * using the [port] getter.
+   *
+   * If [backlog] has the value of [:0:] a reasonable value will be
+   * chosen by the system.
+   *
+   * Incoming client connections are promoted to secure connections,
+   * using the server certificate given by [certificateName].
+   *
+   * [address] must be given as a numeric address, not a host name.
+   *
+   * [certificateName] is the nickname or the distinguished name (DN) of
+   * the certificate in the certificate database. It is looked up in the
+   * NSS certificate database set by SecureSocket.setCertificateDatabase.
+   * If [certificateName] contains "CN=", it is assumed to be a distinguished
+   * name.  Otherwise, it is looked up as a nickname.
    *
    * To request or require that clients authenticate by providing an SSL (TLS)
    * client certificate, set the optional parameters requestClientCertificate or
@@ -22,79 +141,95 @@ abstract class SecureServerSocket implements ServerSocket {
    * check SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
    */
-  factory SecureServerSocket(String bindAddress,
-                             int port,
-                             int backlog,
-                             String certificate_name,
-                             {bool requestClientCertificate: false,
-                              bool requireClientCertificate: false}) {
-    return new _SecureServerSocket(bindAddress,
-                                   port,
-                                   backlog,
-                                   certificate_name,
-                                   requestClientCertificate,
-                                   requireClientCertificate);
-  }
-}
-
-
-class _SecureServerSocket implements SecureServerSocket {
-
-  _SecureServerSocket(String bindAddress,
-                      int port,
-                      int backlog,
-                      String this.certificate_name,
-                      bool this.requestClientCertificate,
-                      bool this.requireClientCertificate) {
-    socket = new ServerSocket(bindAddress, port, backlog);
-    socket.onConnection = this._onConnectionHandler;
+  static Future<RawSecureServerSocket> bind(
+      String address,
+      int port,
+      int backlog,
+      String certificateName,
+      {bool requestClientCertificate: false,
+       bool requireClientCertificate: false}) {
+    return RawServerSocket.bind(address, port, backlog)
+        .then((serverSocket) => new RawSecureServerSocket._(
+            serverSocket,
+            certificateName,
+            requestClientCertificate,
+            requireClientCertificate));
   }
 
-  void set onConnection(void callback(Socket connection)) {
-    _onConnectionCallback = callback;
-  }
-
-  void set onError(void callback(e)) {
-    socket.onError = callback;
+  StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s),
+                                             {void onError(AsyncError error),
+                                              void onDone(),
+                                              bool unsubscribeOnError}) {
+    return _controller.stream.listen(onData,
+                                     onError: onError,
+                                     onDone: onDone,
+                                     unsubscribeOnError: unsubscribeOnError);
   }
 
   /**
    * Returns the port used by this socket.
    */
-  int get port => socket.port;
+  int get port => _socket.port;
 
   /**
    * Closes the socket.
    */
   void close() {
-    socket.close();
+    _closed = true;
+    _socket.close();
   }
 
-  void _onConnectionHandler(Socket connection) {
-    if (_onConnectionCallback == null) {
-      connection.close();
-      throw new SocketIOException(
-          "SecureServerSocket with no onConnection callback connected to");
-    }
-    if (certificate_name == null) {
-      connection.close();
-      throw new SocketIOException(
-          "SecureServerSocket with server certificate not set connected to");
-    }
-    var secure_connection = new _SecureSocket(
+  void _onData(RawSocket connection) {
+    _RawSecureSocket.connect(
         connection.remoteHost,
         connection.remotePort,
-        certificate_name,
+        certificateName,
         is_server: true,
         socket: connection,
         requestClientCertificate: requestClientCertificate,
-        requireClientCertificate: requireClientCertificate);
-    _onConnectionCallback(secure_connection);
+        requireClientCertificate: requireClientCertificate)
+    .then((RawSecureSocket secureConnection) {
+      if (_closed) {
+        secureConnection.close();
+      } else {
+        _controller.add(secureConnection);
+      }
+    }).catchError((e) {
+      if (_closed) {
+        throw e;
+      } else {
+        _controller.signalError(e);
+        close();
+      }
+    });
   }
 
-  ServerSocket socket;
-  var _onConnectionCallback;
-  final String certificate_name;
-  final bool requestClientCertificate;
-  final bool requireClientCertificate;
+  void _onError(e) {
+    _controller.signalError(e);
+    close();
+  }
+
+  void _onDone() {
+    _controller.close();
+  }
+
+  void _onPauseStateChange() {
+    if (_controller.isPaused) {
+      _subscription.pause();
+    } else {
+      _subscription.resume();
+    }
+  }
+
+  void _onSubscriptionStateChange() {
+    if (_controller.hasSubscribers) {
+      _subscription = _socket.listen(_onData,
+                                     onDone: _onDone,
+                                     onError: _onError);
+    } else {
+      close();
+    }
+  }
 }
+
+

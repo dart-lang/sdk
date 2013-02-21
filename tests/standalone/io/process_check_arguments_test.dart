@@ -8,12 +8,12 @@ import "process_test_util.dart";
 test(args) {
   var future = Process.start(new Options().executable, args);
   future.then((process) {
-    process.onExit = (exitCode) {
+    process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);
-    };
+    });
     // Drain stdout and stderr.
-    process.stdout.onData = process.stdout.read;
-    process.stderr.onData = process.stderr.read;
+    process.stdout.listen((_) {});
+    process.stderr.listen((_) {});
   });
 }
 

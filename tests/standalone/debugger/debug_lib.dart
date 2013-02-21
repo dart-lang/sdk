@@ -310,8 +310,6 @@ class Debugger {
   Process targetProcess;
   int portNumber;
   Socket socket;
-  OutputStream to;
-  StringInputStream from;
   JsonBuffer responses = new JsonBuffer();
 
   DebugScript script;
@@ -324,22 +322,33 @@ class Debugger {
   String scriptUrl = null;
   bool shutdownEventSeen = false;
   int isolateId = 0;
-  
+
+  // stdin subscription to allow terminating the test via command-line.
+  var stdinSubscription;
+
   Debugger(this.targetProcess, this.portNumber) {
-    var targetStdout = new StringInputStream(targetProcess.stdout);
-    targetStdout.onLine = () {
-      var s = targetStdout.readLine();
+    stdinSubscription =
+        stdin.listen((d) {},
+                     onError: (error) => close(killDebugee: true),
+                     onDone: () => close(killDebugee: true));
+
+    var stdoutStringStream = targetProcess.stdout
+        .transform(new StringDecoder())
+        .transform(new LineTransformer());
+    stdoutStringStream.listen((line) {
       if (showDebuggeeOutput) {
-        print("TARG: $s");
+        print("TARG: $line");
       }
-    };
-    var targetStderr = new StringInputStream(targetProcess.stderr);
-    targetStderr.onLine = () {
-      var s = targetStderr.readLine();
+    });
+
+    var stderrStringStream = targetProcess.stderr
+        .transform(new StringDecoder())
+        .transform(new LineTransformer());
+    stderrStringStream.listen((line) {
       if (showDebuggeeOutput) {
-        print("TARG: $s");
+        print("TARG: $line");
       }
-    };
+    });
   }
 
   // Handle debugger events for which there is no explicit
@@ -451,7 +460,7 @@ class Debugger {
   void sendMessage(Map<String,dynamic> msg) {
     String jsonMsg = JSON.stringify(msg);
     if (verboseWire) print("SEND: $jsonMsg");
-    to.writeString(jsonMsg, Encoding.UTF_8);
+    socket.addString(jsonMsg);
   }
 
   bool get errorsDetected => errors.length > 0;
@@ -462,34 +471,36 @@ class Debugger {
   }
 
   void openConnection() {
-    socket = new Socket("127.0.0.1", portNumber);
-    to = socket.outputStream;
-    from = new StringInputStream(socket.inputStream, Encoding.UTF_8);
-    from.onData = () {
-      try {
-        responses.append(from.read());
-        handleMessages();
-      } catch(e, trace) {
-        print("Unexpected exception:\n$e\n$trace");
-        close(killDebugee: true);
-      }
-    };
-    from.onClosed = () {
-      print("Connection closed by debug target");
-      close(killDebugee: true);
-    };
-    from.onError = (e) {
-      print("Error '$e' detected in input stream from debug target");
-      close(killDebugee: true);
-    };
+    Socket.connect("127.0.0.1", portNumber).then((s) {
+      socket = s;
+      var stringStream = socket.transform(new StringDecoder());
+      stringStream.listen(
+          (str) {
+            try {
+              responses.append(str);
+              handleMessages();
+            } catch(e, trace) {
+              print("Unexpected exception:\n$e\n$trace");
+              close(killDebugee: true);
+            }
+          },
+          onDone: () {
+            print("Connection closed by debug target");
+            close(killDebugee: true);
+          },
+          onError: (e) {
+            print("Error '$e' detected in input stream from debug target");
+            close(killDebugee: true);
+          });
+      });
   }
 
   void close({killDebugee: false}) {
     if (errorsDetected) {
       for (int i = 0; i < errors.length; i++) print(errors[i]);
     }
-    to.close();
     socket.close();
+    stdinSubscription.cancel();
     if (killDebugee) {
       targetProcess.kill();
       print("Target process killed");
@@ -518,15 +529,12 @@ bool RunScript(List script) {
   Process.start(options.executable, targetOpts).then((Process process) {
     print("Debug target process started");
     process.stdin.close();
-    process.stdout.onData = process.stdout.read;
-    process.stderr.onData = process.stderr.read;
-    process.onExit = (int exitCode) {
+    process.exitCode.then((int exitCode) {
+      Expect.equals(0, exitCode);
       Expect.equals(0, exitCode);
       print("Debug target process exited with exit code $exitCode");
-    };
+    });
     var debugger = new Debugger(process, debugPort);
-    stdin.onClosed = () => debugger.close(killDebugee: true);
-    stdin.onError = (error) => debugger.close(killDebugee: true);
     debugger.runScript(script);
   });
   return true;

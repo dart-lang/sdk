@@ -28,12 +28,7 @@ const char* Platform::OperatingSystem() {
 
 
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
-  static bool socket_initialized = false;
-  if (!socket_initialized) {
-    // Initialize Socket for gethostname.
-    if (!Socket::Initialize()) return false;
-    socket_initialized = true;
-  }
+  if (!Socket::Initialize()) return false;
   return gethostname(buffer, buffer_length) == 0;
 }
 

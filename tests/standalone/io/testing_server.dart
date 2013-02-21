@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,17 +12,19 @@ abstract class TestingServer {
 
   void onConnection(Socket connection);  // Abstract.
 
-  void errorHandlerServer(Exception e) {
+  void errorHandlerServer(e) {
     Expect.fail("Server socket error $e");
   }
 
   void dispatch(message, SendPort replyTo) {
     if (message == INIT) {
-      _server = new ServerSocket(HOST, 0, 10);
-      Expect.equals(true, _server != null);
-      _server.onConnection = onConnection;
-      _server.onError = errorHandlerServer;
-      replyTo.send(_server.port, null);
+      ServerSocket.bind(HOST, 0, 10).then((server) {
+        _server = server;
+        _server.listen(
+            onConnection,
+            onError: errorHandlerServer);
+        replyTo.send(_server.port, null);
+      });
     } else if (message == SHUTDOWN) {
       _server.close();
       port.close();

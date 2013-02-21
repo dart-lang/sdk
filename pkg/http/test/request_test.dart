@@ -13,23 +13,24 @@ import 'utils.dart';
 
 void main() {
   test('.send', () {
-    startServer();
+    expect(startServer().then((_) {
 
-    var request = new http.Request('POST', serverUrl);
-    request.body = "hello";
+      var request = new http.Request('POST', serverUrl);
+      request.body = "hello";
 
-    expect(request.send().then((response) {
-      expect(response.statusCode, equals(200));
-      return response.stream.bytesToString();
-    }).whenComplete(stopServer), completion(parse(equals({
-      'method': 'POST',
-      'path': '/',
-      'headers': {
-        'content-type': ['text/plain; charset=UTF-8'],
-        'content-length': ['5']
-      },
-      'body': 'hello'
-    }))));
+      expect(request.send().then((response) {
+        expect(response.statusCode, equals(200));
+        return response.stream.bytesToString();
+      }).whenComplete(stopServer), completion(parse(equals({
+        'method': 'POST',
+        'path': '/',
+        'headers': {
+          'content-type': ['text/plain; charset=UTF-8'],
+          'content-length': ['5']
+        },
+        'body': 'hello'
+      }))));
+    }), completes);
   });
 
   group('#contentLength', () {
@@ -183,47 +184,49 @@ void main() {
     print("This test is known to be flaky, please ignore "
           "(debug prints below added by sgjesse@)");
     print("#followRedirects test starting server...");
-    startServer();
-    print("#followRedirects test server running");
+    expect(startServer().then((_) {
+      print("#followRedirects test server running");
 
-    var request = new http.Request('POST', serverUrl.resolve('/redirect'))
-        ..followRedirects = false;
-    var future = request.send().then((response) {
-      print("#followRedirects test response received");
-      expect(response.statusCode, equals(302));
-    });
-    future.catchError((_) {}).then(expectAsync1((_) {
-      print("#followRedirects test stopping server...");
-      stopServer();
-      print("#followRedirects test server stopped");
-    }));
+      var request = new http.Request('POST', serverUrl.resolve('/redirect'))
+          ..followRedirects = false;
+      var future = request.send().then((response) {
+        print("#followRedirects test response received");
+        expect(response.statusCode, equals(302));
+      });
+      expect(future.catchError((_) {}).then((_) {
+        print("#followRedirects test stopping server...");
+        stopServer();
+        print("#followRedirects test server stopped");
+      }), completes);
 
-    expect(future, completes);
-    print("#followRedirects test started");
+      expect(future, completes);
+      print("#followRedirects test started");
+    }), completes);
   });
 
   test('#maxRedirects', () {
     print("This test is known to be flaky, please ignore "
           "(debug prints below added by sgjesse@)");
     print("#maxRedirects test starting server...");
-    startServer();
-    print("#maxRedirects test server running");
+    expect(startServer().then((_) {
+      print("#maxRedirects test server running");
 
-    var request = new http.Request('POST', serverUrl.resolve('/loop?1'))
-      ..maxRedirects = 2;
-    var future = request.send().catchError((e) {
-      print("#maxRedirects test exception received");
-      expect(e.error, isRedirectLimitExceededException);
-      expect(e.error.redirects.length, equals(2));
-    });
-    future.catchError((_) {}).then(expectAsync1((_) {
-      print("#maxRedirects test stopping server...");
-      stopServer();
-      print("#maxRedirects test server stopped");
-    }));
+      var request = new http.Request('POST', serverUrl.resolve('/loop?1'))
+        ..maxRedirects = 2;
+      var future = request.send().catchError((e) {
+        print("#maxRedirects test exception received");
+        expect(e.error, isRedirectLimitExceededException);
+        expect(e.error.redirects.length, equals(2));
+      });
+      expect(future.catchError((_) {}).then((_) {
+        print("#maxRedirects test stopping server...");
+        stopServer();
+        print("#maxRedirects test server stopped");
+      }), completes);
 
-    expect(future, completes);
-    print("#maxRedirects test started");
+      expect(future, completes);
+      print("#maxRedirects test started");
+    }), completes);
   });
 
   group('content-type header', () {

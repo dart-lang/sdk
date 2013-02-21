@@ -28,8 +28,8 @@ class _SecureFilterImpl
     extends NativeFieldWrapperClass1
     implements _SecureFilter {
   _SecureFilterImpl() {
-    buffers = new List<_ExternalBuffer>(_SecureSocket.NUM_BUFFERS);
-    for (int i = 0; i < _SecureSocket.NUM_BUFFERS; ++i) {
+    buffers = new List<_ExternalBuffer>(_RawSecureSocket.NUM_BUFFERS);
+    for (int i = 0; i < _RawSecureSocket.NUM_BUFFERS; ++i) {
       buffers[i] = new _ExternalBuffer();
     }
   }

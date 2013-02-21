@@ -13,48 +13,51 @@ import 'package:http/src/utils.dart';
 import 'utils.dart';
 
 void main() {
-  setUp(startServer);
   tearDown(stopServer);
 
   test('#send a StreamedRequest', () {
-    var client = new http.Client();
-    var request = new http.StreamedRequest("POST", serverUrl);
-    request.headers[HttpHeaders.CONTENT_TYPE] =
-      'application/json; charset=utf-8';
+    expect(startServer().then((_) {
+      var client = new http.Client();
+      var request = new http.StreamedRequest("POST", serverUrl);
+      request.headers[HttpHeaders.CONTENT_TYPE] =
+        'application/json; charset=utf-8';
 
-    expect(client.send(request).then((response) {
-      expect(response.request, equals(request));
-      expect(response.statusCode, equals(200));
-      expect(response.headers['single'], equals('value'));
-      // dart:io internally normalizes outgoing headers so that they never have
-      // multiple headers with the same name, so there's no way to test whether
-      // we handle that case correctly.
+      expect(client.send(request).then((response) {
+        expect(response.request, equals(request));
+        expect(response.statusCode, equals(200));
+        expect(response.headers['single'], equals('value'));
+        // dart:io internally normalizes outgoing headers so that they never
+        // have multiple headers with the same name, so there's no way to test
+        // whether we handle that case correctly.
 
-      return response.stream.bytesToString();
-    }).whenComplete(client.close), completion(parse(equals({
-      'method': 'POST',
-      'path': '/',
-      'headers': {
-        'content-type': ['application/json; charset=utf-8'],
-        'transfer-encoding': ['chunked']
-      },
-      'body': '{"hello": "world"}'
-    }))));
+        return response.stream.bytesToString();
+      }).whenComplete(client.close), completion(parse(equals({
+        'method': 'POST',
+        'path': '/',
+        'headers': {
+          'content-type': ['application/json; charset=utf-8'],
+          'transfer-encoding': ['chunked']
+        },
+        'body': '{"hello": "world"}'
+      }))));
 
-    request.sink.add('{"hello": "world"}'.charCodes);
-    request.sink.close();
+      request.sink.add('{"hello": "world"}'.charCodes);
+      request.sink.close();
+    }), completes);
   });
 
   test('#send with an invalid URL', () {
-    var client = new http.Client();
-    var url = Uri.parse('http://http.invalid');
-    var request = new http.StreamedRequest("POST", url);
-    request.headers[HttpHeaders.CONTENT_TYPE] =
-        'application/json; charset=utf-8';
+    expect(startServer().then((_) {
+      var client = new http.Client();
+      var url = Uri.parse('http://http.invalid');
+      var request = new http.StreamedRequest("POST", url);
+      request.headers[HttpHeaders.CONTENT_TYPE] =
+          'application/json; charset=utf-8';
 
-    expect(client.send(request), throwsSocketIOException);
+      expect(client.send(request), throwsSocketIOException);
 
-    request.sink.add('{"hello": "world"}'.charCodes);
-    request.sink.close();
+      request.sink.add('{"hello": "world"}'.charCodes);
+      request.sink.close();
+    }), completes);
   });
 }

@@ -42,7 +42,7 @@ void test(String shellScript, String dartScript, String type) {
       [executable, dartScript, type, pipeOutFile, redirectOutFile];
   var future = Process.start(shellScript, args);
   future.then((process) {
-    process.onExit = (exitCode) {
+    process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);
 
       // Check the expected file contents.
@@ -66,10 +66,10 @@ void test(String shellScript, String dartScript, String type) {
 
       // Cleanup test directory.
       dir.deleteSync(recursive: true);
-    };
+    });
     // Drain out and err streams so they close.
-    process.stdout.onData = process.stdout.read;
-    process.stderr.onData = process.stderr.read;
+    process.stdout.listen((_) {});
+    process.stderr.listen((_) {});
   });
   future.catchError((error) {
     dir.deleteSync(recursive: true);

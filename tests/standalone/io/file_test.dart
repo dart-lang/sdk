@@ -46,27 +46,27 @@ class FileTest {
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
     Expect.isTrue('$file'.contains(file.name));
-    InputStream input = file.openInputStream();
-    input.onData = () {
-      List<int> buffer = new List<int>.fixedLength(42);
-      int bytesRead = input.readInto(buffer, 0, 12);
-      Expect.equals(12, bytesRead);
-      bytesRead = input.readInto(buffer, 12, 30);
-      input.close();
-      Expect.equals(30, bytesRead);
-      Expect.equals(47, buffer[0]);  // represents '/' in the file.
-      Expect.equals(47, buffer[1]);  // represents '/' in the file.
-      Expect.equals(32, buffer[2]);  // represents ' ' in the file.
-      Expect.equals(67, buffer[3]);  // represents 'C' in the file.
-      Expect.equals(111, buffer[4]);  // represents 'o' in the file.
-      Expect.equals(112, buffer[5]);  // represents 'p' in the file.
-      Expect.equals(121, buffer[6]);  // represents 'y' in the file.
-      Expect.equals(114, buffer[7]);  // represents 'r' in the file.
-      Expect.equals(105, buffer[8]);  // represents 'i' in the file.
-      Expect.equals(103, buffer[9]);  // represents 'g' in the file.
-      Expect.equals(104, buffer[10]);  // represents 'h' in the file.
-      Expect.equals(116, buffer[11]);  // represents 't' in the file.
-    };
+    var subscription;
+    List<int> buffer = new List<int>();
+    subscription = file.openRead().listen(
+        (d) {
+          buffer.addAll(d);
+          if (buffer.length >= 12) {
+            subscription.cancel();
+            Expect.equals(47, buffer[0]);  // represents '/' in the file.
+            Expect.equals(47, buffer[1]);  // represents '/' in the file.
+            Expect.equals(32, buffer[2]);  // represents ' ' in the file.
+            Expect.equals(67, buffer[3]);  // represents 'C' in the file.
+            Expect.equals(111, buffer[4]);  // represents 'o' in the file.
+            Expect.equals(112, buffer[5]);  // represents 'p' in the file.
+            Expect.equals(121, buffer[6]);  // represents 'y' in the file.
+            Expect.equals(114, buffer[7]);  // represents 'r' in the file.
+            Expect.equals(105, buffer[8]);  // represents 'i' in the file.
+            Expect.equals(103, buffer[9]);  // represents 'g' in the file.
+            Expect.equals(104, buffer[10]);  // represents 'h' in the file.
+            Expect.equals(116, buffer[11]);  // represents 't' in the file.
+          }
+        });
   }
 
   // Test for file read and write functionality.
@@ -79,91 +79,42 @@ class FileTest {
     InputStream input;
     int bytesRead;
 
-    // Test reading all using readInto.
     var file1 = new File(inFilename);
-    var input1 = file1.openInputStream();
-    List<int> buffer1;
-    input1.onData = () {
-      buffer1 = new List<int>.fixedLength(42);
-      bytesRead = input1.readInto(buffer1, 0, 42);
-      Expect.equals(42, bytesRead);
-    };
-    input1.onError = (e) { throw e; };
-    input1.onClosed = () {
-      Expect.isTrue(input1.closed);
-
-      // Test reading all using readInto and read.
-      var file2 = new File(inFilename);
-      var input2 = file2.openInputStream();
-      input2.onData = () {
-        bytesRead = input2.readInto(buffer1, 0, 21);
-        Expect.equals(21, bytesRead);
-        buffer1 = input2.read();
-        Expect.equals(21, buffer1.length);
-      };
-      input2.onError = (e) { throw e; };
-      input2.onClosed = () {
-        Expect.isTrue(input2.closed);
-
-        // Test reading all using read and readInto.
-        var file3 = new File(inFilename);
-        var input3 = file3.openInputStream();
-        input3.onData = () {
-          buffer1 = input3.read(21);
-          Expect.equals(21, buffer1.length);
-          bytesRead = input3.readInto(buffer1, 0, 21);
-          Expect.equals(21, bytesRead);
-        };
-        input3.onError = (e) { throw e; };
-        input3.onClosed = () {
-          Expect.isTrue(input3.closed);
-
-          // Test reading all using read.
-          var file4 = new File(inFilename);
-          var input4 = file4.openInputStream();
-          input4.onData = () {
-            buffer1 = input4.read();
-            Expect.equals(42, buffer1.length);
-          };
-          input4.onError = (e) { throw e; };
-          input4.onClosed = () {
-            Expect.isTrue(input4.closed);
-
-            // Write the contents of the file just read into another file.
-            String outFilename =
-                tempDirectory.path.concat("/out_read_write_stream");
-            file = new File(outFilename);
-            OutputStream output = file.openOutputStream();
-            bool writeDone = output.writeFrom(buffer1, 0, 42);
-            Expect.equals(false, writeDone);
-            output.onNoPendingWrites = () {
-              output.close();
-              output.onClosed = () {
-                // Now read the contents of the file just written.
-                List<int> buffer2 = new List<int>.fixedLength(42);
-                var file6 = new File(outFilename);
-                var input6 = file6.openInputStream();
-                input6.onData = () {
-                  bytesRead = input6.readInto(buffer2, 0, 42);
-                  Expect.equals(42, bytesRead);
-                  // Now compare the two buffers to check if they are identical.
-                  for (int i = 0; i < buffer1.length; i++) {
-                    Expect.equals(buffer1[i],  buffer2[i]);
-                  }
-                };
-                input6.onError = (e) { throw e; };
-                input6.onClosed = () {
-                  // Delete the output file.
-                  file6.deleteSync();
-                  Expect.isFalse(file6.existsSync());
-                  asyncTestDone("testReadWriteStream");
-                };
-              };
-            };
-          };
-        };
-      };
-    };
+    List<int> buffer = new List<int>();
+    file1.openRead().listen(
+      (d) {
+        buffer.addAll(d);
+      },
+      onDone: () {
+        Expect.equals(42, buffer.length);
+        // Write the contents of the file just read into another file.
+        String outFilename =
+            tempDirectory.path.concat("/out_read_write_stream");
+        var file2 = new File(outFilename);
+        var output = file2.openWrite();
+        output.add(buffer);
+        output.close();
+        output.done.then((_) {
+          // Now read the contents of the file just written.
+          List<int> buffer2 = new List<int>();
+          new File(outFilename).openRead().listen(
+              (d) {
+                buffer2.addAll(d);
+              },
+              onDone: () {
+                Expect.equals(42, buffer2.length);
+                // Now compare the two buffers to check if they are
+                // identical.
+                for (int i = 0; i < buffer.length; i++) {
+                  Expect.equals(buffer[i],  buffer2[i]);
+                }
+                // Delete the output file.
+                file2.deleteSync();
+                Expect.isFalse(file2.existsSync());
+                asyncTestDone("testReadWriteStream");
+              });
+          });
+      });
   }
 
   // Test for file stream buffered handling of large files.
@@ -178,22 +129,12 @@ class FileTest {
     String filename =
         tempDirectory.path.concat("/out_read_write_stream_large_file");
     File file = new File(filename);
-    OutputStream output = file.openOutputStream();
-    // Test a write immediately after the output stream is created.
-    output.writeFrom(buffer, 0, 20000);
-
-    output.onNoPendingWrites = () {
-      output.writeFrom(buffer, 20000, 60000);
-      output.writeFrom(buffer, 80000, 20000);
-      output.onNoPendingWrites = () {
-        output.writeFrom(buffer, 0, 0);
-        output.writeFrom(buffer, 0, 0);
-        output.writeFrom(buffer, 0, 100000);
-        output.close();
-      };
-    };
-    output.onClosed = () {
-      InputStream input = file.openInputStream();
+    IOSink output = file.openWrite();
+    output.add(buffer);
+    output.add(buffer);
+    output.close();
+    output.done.then((_) {
+      Stream input = file.openRead();
       int position = 0;
       final int expectedLength = 200000;
       // Start an independent asynchronous check on the length.
@@ -203,86 +144,55 @@ class FileTest {
         asyncTestDone('testReadWriteStreamLargeFile: length check');
       });
 
-      List<int> inputBuffer =
-          new List<int>.fixedLength(expectedLength + 100000);
       // Immediate read should read 0 bytes.
-      Expect.equals(0, input.available());
-      Expect.equals(false, input.closed);
-      int bytesRead = input.readInto(inputBuffer);
-      Expect.equals(0, bytesRead);
-      Expect.equals(0, input.available());
-      Expect.isFalse(input.closed);
-      input.onError = (e) {
-        print('Error handler called on input in testReadWriteStreamLargeFile');
-        print('with error $e');
-        throw e;
-      };
-      input.onData = () {
-        Expect.isFalse(input.closed);
-        bytesRead = input.readInto(inputBuffer, position,
-                                   inputBuffer.length - position);
-        position += bytesRead;
-        // The buffer is large enough to hold all available data.
-        // So there should be no data left to read.
-        Expect.equals(0, input.available());
-        bytesRead = input.readInto(inputBuffer, position,
-                                   expectedLength - position);
-        Expect.equals(0, bytesRead);
-        Expect.equals(0, input.available());
-        Expect.isFalse(input.closed);
-      };
-      input.onClosed = () {
-        Expect.equals(0, input.available());
-        Expect.isTrue(input.closed);
-        input.close();  // This should be safe to call.
-
-        Expect.equals(expectedLength, position);
-        for (int i = 0; i < position; ++i) {
-          Expect.equals(buffer[i % buffer.length], inputBuffer[i]);
-        }
-
-        Future testPipeDone = testPipe(file, buffer);
-
-        Future futureDeleted = testPipeDone.then((ignored) => file.delete());
-        futureDeleted.then((ignored) {
-            asyncTestDone('testReadWriteStreamLargeFile: main test');
-        }).catchError((e) {
-          print('Exception while deleting ReadWriteStreamLargeFile file');
-          print('Exception $e');
+      input.listen(
+        (d) {
+          for (int i = 0; i < d.length; ++i) {
+            Expect.equals(buffer[(i + position) % buffer.length], d[i]);
+          }
+          position += d.length;
+        },
+        onError: (e) {
+          print('Error on input in testReadWriteStreamLargeFile');
+          print('with error $e');
+          throw e;
+        },
+        onDone: () {
+          Expect.equals(expectedLength, position);
+          testPipe(file, buffer)
+              .then((_) => file.delete())
+              .then((_) {
+                  asyncTestDone('testReadWriteStreamLargeFile: main test');
+              })
+              .catchError((e) {
+                print('Exception while deleting ReadWriteStreamLargeFile file');
+                print('Exception $e');
+              });
         });
-      };
-      // Try a read again after handlers are set.
-      bytesRead = input.readInto(inputBuffer);
-      Expect.equals(0, bytesRead);
-      Expect.equals(0, input.available());
-      Expect.isFalse(input.closed);
-    };
+    });
   }
 
   static Future testPipe(File file, buffer) {
     String outputFilename = '${file.name}_copy';
     File outputFile = new File(outputFilename);
-    InputStream input = file.openInputStream();
-    OutputStream output = outputFile.openOutputStream();
-    input.pipe(output);
+    var input = file.openRead();
+    var output = outputFile.openWrite();
     Completer done = new Completer();
-    output.onClosed = () {
-      InputStream copy = outputFile.openInputStream();
+    input.pipe(output).then((_) {
+      var copy = outputFile.openRead();
       int position = 0;
-      copy.onData = () {
-        var data;
-        while ((data = copy.read()) != null) {
-          for (int value in data) {
-            Expect.equals(buffer[position % buffer.length], value);
-            position++;
-          }
-        }
-      };
-      copy.onClosed = () {
-        Expect.equals(2 * buffer.length, position);
-        outputFile.delete().then((ignore) { done.complete(null); });
-      };
-    };
+      copy.listen(
+          (d) {
+            for (int i = 0; i < d.length; i++) {
+              Expect.equals(buffer[(position + i) % buffer.length], d[i]);
+            }
+            position += d.length;
+          },
+          onDone: () {
+            Expect.equals(2 * buffer.length, position);
+            outputFile.delete().then((ignore) { done.complete(); });
+          });
+      });
     return done.future;
   }
 
@@ -423,33 +333,28 @@ class FileTest {
     File file = new File(filename);
     file.createSync();
     List<int> buffer = content.charCodes;
-    OutputStream outStream = file.openOutputStream();
-    outStream.write(buffer);
-    outStream.onNoPendingWrites = () {
-      outStream.close();
-      outStream.onClosed = () {
-        File file2 = new File(filename);
-        OutputStream appendingOutput =
-            file2.openOutputStream(FileMode.APPEND);
-        appendingOutput.write(buffer);
-        appendingOutput.onNoPendingWrites = () {
-          appendingOutput.close();
-          appendingOutput.onClosed = () {
-            File file3 = new File(filename);
-            file3.open(FileMode.READ).then((RandomAccessFile openedFile) {
-              openedFile.length().then((int length) {
-                Expect.equals(content.length * 2, length);
-                openedFile.close().then((ignore) {
-                  file3.delete().then((ignore) {
-                    asyncTestDone("testOutputStreamWriteAppend");
-                  });
-                });
+    var output = file.openWrite();
+    output.add(buffer);
+    output.close();
+    output.done.then((_) {
+      File file2 = new File(filename);
+      var appendingOutput = file2.openWrite(FileMode.APPEND);
+      appendingOutput.add(buffer);
+      appendingOutput.close();
+      appendingOutput.done.then((_) {
+        File file3 = new File(filename);
+        file3.open(FileMode.READ).then((RandomAccessFile openedFile) {
+          openedFile.length().then((int length) {
+            Expect.equals(content.length * 2, length);
+            openedFile.close().then((ignore) {
+              file3.delete().then((ignore) {
+                asyncTestDone("testOutputStreamWriteAppend");
               });
             });
-          };
-        };
-      };
-    };
+          });
+        });
+      });
+    });
     asyncTestStarted();
   }
 
@@ -460,22 +365,20 @@ class FileTest {
     File file = new File(filename);
     file.createSync();
     List<int> buffer = content.charCodes;
-    OutputStream outStream = file.openOutputStream();
-    outStream.writeString("abcdABCD");
-    outStream.writeString("abcdABCD", Encoding.UTF_8);
-    outStream.writeString("abcdABCD", Encoding.ISO_8859_1);
-    outStream.writeString("abcdABCD", Encoding.ASCII);
-    outStream.writeString("æøå", Encoding.UTF_8);
-    outStream.onNoPendingWrites = () {
-      outStream.close();
-      outStream.onClosed = () {
-        RandomAccessFile raf = file.openSync();
-        Expect.equals(38, raf.lengthSync());
-        raf.close().then((ignore) {
-          asyncTestDone("testOutputStreamWriteString");
-        });
-      };
-    };
+    var output = file.openWrite();
+    output.addString("abcdABCD");
+    output.addString("abcdABCD", Encoding.UTF_8);
+    output.addString("abcdABCD", Encoding.ISO_8859_1);
+    output.addString("abcdABCD", Encoding.ASCII);
+    output.addString("æøå", Encoding.UTF_8);
+    output.close();
+    output.done.then((_) {
+      RandomAccessFile raf = file.openSync();
+      Expect.equals(38, raf.lengthSync());
+      raf.close().then((ignore) {
+        asyncTestDone("testOutputStreamWriteString");
+      });
+    });
     asyncTestStarted();
   }
 
@@ -846,18 +749,13 @@ class FileTest {
     File file =
         new File(tempDirectory.path.concat("/out_close_exception_stream"));
     file.createSync();
-    InputStream input = file.openInputStream();
-    input.onClosed = () {
-      Expect.isTrue(input.closed);
-      Expect.equals(0, input.readInto(buffer, 0, 12));
-      OutputStream output = file.openOutputStream();
-      output.close();
-      Expect.throws(() => output.writeFrom(buffer, 0, 12));
-      output.onClosed = () {
-        file.deleteSync();
-        asyncTestDone("testCloseExceptionStream");
-      };
-    };
+    var output = file.openWrite();
+    output.close();
+    Expect.throws(() => output.add(buffer));
+    output.done.then((_) {
+      file.deleteSync();
+      asyncTestDone("testCloseExceptionStream");
+    });
   }
 
   // Tests buffer out of bounds exception.
@@ -1083,7 +981,10 @@ class FileTest {
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.charCodes);
-    Expect.throws(() { new File(name).readAsStringSync(Encoding.ASCII); });
+    text = new File(name).readAsStringSync(Encoding.ASCII);
+    // Default replacement character is '?', char code 63.
+    expected = [63, 63, 120, 46, 32, 120, 10];
+    Expect.listEquals(expected, text.charCodes);
     text = new File(name).readAsStringSync(Encoding.ISO_8859_1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);

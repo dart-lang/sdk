@@ -6,18 +6,18 @@ import 'dart:async';
 import 'dart:math';
 
 part "../../../sdk/lib/io/input_stream.dart";
+part "../../../sdk/lib/io/io_stream_consumer.dart";
 part "../../../sdk/lib/io/output_stream.dart";
-part "../../../sdk/lib/io/chunked_stream.dart";
 part "../../../sdk/lib/io/string_stream.dart";
-part "../../../sdk/lib/io/stream_util.dart";
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/http_headers.dart";
 part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
 part "../../../sdk/lib/io/http_utils.dart";
+part "../../../sdk/lib/io/socket.dart";
 
 void testMultiValue() {
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers[HttpHeaders.PRAGMA]);
   headers.add(HttpHeaders.PRAGMA, "pragma1");
   Expect.equals(1, headers[HttpHeaders.PRAGMA].length);
@@ -59,7 +59,7 @@ void testDate() {
   DateTime date2 = new DateTime.utc(2000, DateTime.AUG, 16, 12, 34, 56, 0);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers.date);
   headers.date = date1;
   Expect.equals(date1, headers.date);
@@ -85,7 +85,7 @@ void testExpires() {
   DateTime date2 = new DateTime.utc(2000, DateTime.AUG, 16, 12, 34, 56, 0);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers.expires);
   headers.expires = date1;
   Expect.equals(date1, headers.expires);
@@ -111,7 +111,7 @@ void testIfModifiedSince() {
   DateTime date2 = new DateTime.utc(2000, DateTime.AUG, 16, 12, 34, 56, 0);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers.ifModifiedSince);
   headers.ifModifiedSince = date1;
   Expect.equals(date1, headers.ifModifiedSince);
@@ -133,7 +133,7 @@ void testIfModifiedSince() {
 
 void testHost() {
   String host = "www.google.com";
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers.host);
   Expect.isNull(headers.port);
   headers.host = host;
@@ -143,7 +143,7 @@ void testHost() {
   headers.port = HttpClient.DEFAULT_HTTP_PORT;
   Expect.equals(host, headers.value(HttpHeaders.HOST));
 
-  headers = new _HttpHeaders();
+  headers = new _HttpHeaders("1.1");
   headers.add(HttpHeaders.HOST, host);
   Expect.equals(host, headers.host);
   Expect.equals(HttpClient.DEFAULT_HTTP_PORT, headers.port);
@@ -152,13 +152,13 @@ void testHost() {
   Expect.equals(host, headers.host);
   Expect.equals(4567, headers.port);
 
-  headers = new _HttpHeaders();
+  headers = new _HttpHeaders("1.1");
   headers.add(HttpHeaders.HOST, "$host:xxx");
   Expect.equals("$host:xxx", headers.value(HttpHeaders.HOST));
   Expect.equals(host, headers.host);
   Expect.isNull(headers.port);
 
-  headers = new _HttpHeaders();
+  headers = new _HttpHeaders("1.1");
   headers.add(HttpHeaders.HOST, ":1234");
   Expect.equals(":1234", headers.value(HttpHeaders.HOST));
   Expect.isNull(headers.host);
@@ -166,7 +166,7 @@ void testHost() {
 }
 
 void testEnumeration() {
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers[HttpHeaders.PRAGMA]);
   headers.add("My-Header-1", "value 1");
   headers.add("My-Header-2", "value 2");
@@ -287,7 +287,7 @@ void testContentType() {
 }
 
 void testContentTypeCache() {
-  _HttpHeaders headers = new _HttpHeaders();
+  _HttpHeaders headers = new _HttpHeaders("1.1");
   headers.set(HttpHeaders.CONTENT_TYPE, "text/html");
   Expect.equals("text", headers.contentType.primaryType);
   Expect.equals("html", headers.contentType.subType);

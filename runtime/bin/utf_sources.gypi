@@ -16,6 +16,7 @@
     '../lib/utf/utf_vm.dart',
 
     '../../sdk/lib/utf/utf_core.dart',
+    '../../sdk/lib/utf/utf_stream.dart',
     '../../sdk/lib/utf/utf8.dart',
     '../../sdk/lib/utf/utf16.dart',
     '../../sdk/lib/utf/utf32.dart',

@@ -6,3 +6,5 @@
 // remove this file and update runtime/bin/utf_sources.gypi .
 
 library utf;
+
+import "dart:async";

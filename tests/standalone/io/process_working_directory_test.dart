@@ -25,12 +25,12 @@ class ProcessWorkingDirectoryTest {
     var processFuture =
         Process.start(fullTestFilePath, const ["0", "0", "99", "0"], options);
     processFuture.then((process) {
-      process.onExit = (int exitCode) {
+      process.exitCode.then((int exitCode) {
         Expect.equals(exitCode, 99);
         directory.deleteSync();
-      };
-      process.stdout.onData = process.stdout.read;
-      process.stderr.onData = process.stderr.read;
+      });
+      process.stdout.listen((_) {});
+      process.stderr.listen((_) {});
     }).catchError((error) {
       directory.deleteSync();
       Expect.fail("Couldn't start process");

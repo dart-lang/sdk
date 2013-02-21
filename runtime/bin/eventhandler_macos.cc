@@ -227,9 +227,13 @@ void EventHandlerImplementation::HandleInterruptFd() {
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
       } else {
-        // Setup events to wait for.
-        sd->SetPortAndMask(msg.dart_port, msg.data);
-        UpdateKqueue(kqueue_fd_, sd);
+        if ((msg.data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
+          DartUtils::PostInt32(msg.dart_port, 1 << kCloseEvent);
+        } else {
+          // Setup events to wait for.
+          sd->SetPortAndMask(msg.dart_port, msg.data);
+          UpdateKqueue(kqueue_fd_, sd);
+        }
       }
     }
   }
