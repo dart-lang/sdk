@@ -57,6 +57,7 @@ const String DEFAULT_HELPERLIB = r'''
   class LinkedHashMap {}
   S() {}
   assertHelper(a){}
+  createRuntimeType(a) {}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
   throwAbstractClassInstantiationError(className) {}''';
 
@@ -111,7 +112,10 @@ const String DEFAULT_CORELIB = r'''
   print(var obj) {}
   abstract class num {}
   abstract class int extends num { }
-  abstract class double extends num { }
+  abstract class double extends num {
+    static var NAN = 0;
+    static parse(s) {}
+  }
   class bool {}
   class String {}
   class Object {
@@ -122,6 +126,10 @@ const String DEFAULT_CORELIB = r'''
   class Function {}
   class List<E> {}
   abstract class Map<K,V> {}
+  class DateTime {
+    DateTime(year);
+    DateTime.utc(year);
+  }
   bool identical(Object a, Object b) {}''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
@@ -188,11 +196,12 @@ class MockCompiler extends Compiler {
    * is fixed to export its top-level declarations.
    */
   LibraryElement createLibrary(String name, String source) {
-    Uri uri = new Uri.fromComponents(scheme: "source", path: name);
+    Uri uri = new Uri.fromComponents(scheme: "dart", path: name);
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElementX(script);
     parseScript(source, library);
     library.setExports(library.localScope.values.toList());
+    registerSource(uri, source);
     return library;
   }
 

@@ -1568,6 +1568,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
   bool typeRequired = false;
+  bool sendIsMemberAccess = false;
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
@@ -1685,7 +1686,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (!Elements.isUnresolved(element) && element.isClass()) {
         ClassElement classElement = element;
         classElement.ensureResolved(compiler);
-        compiler.backend.registerTypeLiteral();
       }
       return useElement(node, element);
     }
@@ -2097,16 +2097,23 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitSend(Send node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = node.isPropertyAccess || node.isCall;
     Element target = resolveSend(node);
-    if (!Elements.isUnresolved(target)
-        && target.kind == ElementKind.ABSTRACT_FIELD) {
-      AbstractFieldElement field = target;
-      target = field.getter;
-      if (target == null && !inInstanceContext) {
-        compiler.backend.registerThrowNoSuchMethod();
-        target =
-            warnAndCreateErroneousElement(node.selector, field.name,
-                                          MessageKind.CANNOT_RESOLVE_GETTER);
+    sendIsMemberAccess = oldSendIsMemberAccess;
+
+    if (!Elements.isUnresolved(target)) {
+      if (target.isAbstractField()) {
+        AbstractFieldElement field = target;
+        target = field.getter;
+        if (target == null && !inInstanceContext) {
+          compiler.backend.registerThrowNoSuchMethod();
+          target =
+              warnAndCreateErroneousElement(node.selector, field.name,
+                                            MessageKind.CANNOT_RESOLVE_GETTER);
+        }
+      } else if (target.impliesType() && !sendIsMemberAccess) {
+        compiler.backend.registerTypeLiteral();
       }
     }
 
@@ -2399,7 +2406,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = false;
     visit(node.expression);
+    sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
   visitNewExpression(NewExpression node) {
