@@ -1029,6 +1029,33 @@ testIsCheck() {
   result.checkNodeHasType('x', [result.bool]);
 }
 
+testSeenClasses() {
+  final String source = r"""
+      class A {
+        witness() => 42;
+      }
+      class B {
+        witness() => "abc";
+      }
+      class AFactory {
+        onlyCalledInAFactory() => new A();
+      }
+      class BFactory {
+        onlyCalledInAFactory() => new B();
+      }
+
+      main() {
+        new AFactory().onlyCalledInAFactory();
+        new BFactory();
+        // should be of type {int} and not {int, String} since B is unreachable
+        var foo = "__dynamic_for_test".witness();
+        foo;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.int]);
+}
+
 void main() {
   testDynamicBackDoor();
   testLiterals();
@@ -1070,4 +1097,5 @@ void main() {
   testListWithCapacity();
   testEmptyList();
   testIsCheck();
+  testSeenClasses();
 }
