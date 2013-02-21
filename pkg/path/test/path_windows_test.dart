@@ -180,6 +180,26 @@ main() {
     });
   });
 
+  group('joinAll', () {
+    test('allows more than eight parts', () {
+      expect(builder.joinAll(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']),
+          r'a\b\c\d\e\f\g\h\i');
+    });
+
+    test('does not add separator if a part ends or begins in one', () {
+      expect(builder.joinAll([r'a\', 'b', r'c\', 'd']), r'a\b\c\d');
+      expect(builder.joinAll(['a/', 'b']), r'a/b');
+      expect(builder.joinAll(['a', '/b']), 'a/b');
+      expect(builder.joinAll(['a', r'\b']), r'a\b');
+    });
+
+    test('ignores parts before an absolute path', () {
+      expect(builder.joinAll(['a', '/b', '/c', 'd']), r'a/b/c\d');
+      expect(builder.joinAll(['a', r'c:\b', 'c', 'd']), r'c:\b\c\d');
+      expect(builder.joinAll(['a', r'\\b', r'\\c', 'd']), r'\\c\d');
+    });
+  });
+
   group('split', () {
     test('simple cases', () {
       expect(builder.split(''), []);

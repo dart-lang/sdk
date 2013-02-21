@@ -112,6 +112,23 @@ String join(String part1, [String part2, String part3, String part4,
             String part5, String part6, String part7, String part8]) =>
   _builder.join(part1, part2, part3, part4, part5, part6, part7, part8);
 
+/// Joins the given path parts into a single path using the current platform's
+/// [separator]. Example:
+///
+///     path.joinAll(['path', 'to', 'foo']); // -> 'path/to/foo'
+///
+/// If any part ends in a path separator, then a redundant separator will not
+/// be added:
+///
+///     path.joinAll(['path/', 'to', 'foo']); // -> 'path/to/foo
+///
+/// If a part is an absolute path, then anything before that will be ignored:
+///
+///     path.joinAll(['path', '/to', 'foo']); // -> '/to/foo'
+///
+/// For a fixed number of parts, [join] is usually terser.
+String joinAll(Iterable<String> parts) => _builder.joinAll(parts);
+
 // TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
 /// Splits [path] into its components using the current platform's [separator].
 ///
@@ -321,15 +338,30 @@ class Builder {
   ///
   String join(String part1, [String part2, String part3, String part4,
               String part5, String part6, String part7, String part8]) {
+    var parts = [part1, part2, part3, part4, part5, part6, part7, part8];
+    _validateArgList("join", parts);
+    return joinAll(parts.where((part) => part != null));
+  }
+
+  /// Joins the given path parts into a single path. Example:
+  ///
+  ///     builder.joinAll(['path', 'to', 'foo']); // -> 'path/to/foo'
+  ///
+  /// If any part ends in a path separator, then a redundant separator will not
+  /// be added:
+  ///
+  ///     builder.joinAll(['path/', 'to', 'foo']); // -> 'path/to/foo
+  ///
+  /// If a part is an absolute path, then anything before that will be ignored:
+  ///
+  ///     builder.joinAll(['path', '/to', 'foo']); // -> '/to/foo'
+  ///
+  /// For a fixed number of parts, [join] is usually terser.
+  String joinAll(Iterable<String> parts) {
     var buffer = new StringBuffer();
     var needsSeparator = false;
 
-    var parts = [part1, part2, part3, part4, part5, part6, part7, part8];
-    _validateArgList("join", parts);
-
     for (var part in parts) {
-      if (part == null) continue;
-
       if (this.isAbsolute(part)) {
         // An absolute path discards everything before it.
         buffer.clear();
