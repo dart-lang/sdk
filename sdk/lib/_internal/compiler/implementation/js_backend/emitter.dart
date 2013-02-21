@@ -149,8 +149,10 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.CURRENT_ISOLATE}.\$generateAccessor';
   String get generateAccessorHolder
       => '$isolatePropertiesName.\$generateAccessor';
+  String get finishClassesProperty
+      => r'$finishClasses';
   String get finishClassesName
-      => '${namer.isolateName}.\$finishClasses';
+      => '${namer.isolateName}.$finishClassesProperty';
   String get finishIsolateConstructorName
       => '${namer.isolateName}.\$finishIsolateConstructor';
   String get isolatePropertiesName
@@ -318,9 +320,11 @@ class CodeEmitterTask extends CompilerTask {
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
 
-    // function(collectedClasses) {
-    return js.fun(['collectedClasses'], [
-      js['var isolateProperties = $isolatePropertiesName'],
+    // function(collectedClasses,
+    //          isolateProperties,
+    //          existingIsolateProperties) {
+    return js.fun(['collectedClasses', 'isolateProperties',
+                   'existingIsolateProperties'], [
       js['var pendingClasses = {}'],
 
       js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
@@ -382,11 +386,17 @@ class CodeEmitterTask extends CompilerTask {
       js['var superclass = pendingClasses[cls]'],
 
       /* The superclass is only false (empty string) for Dart's Object class. */
-      // if (!superclass) return;
       js.if_(js['!superclass'], js.return_()),
       js['finishClass(superclass)'],
       js['var constructor = isolateProperties[cls]'],
       js['var superConstructor = isolateProperties[superclass]'],
+
+      // if (!superConstructor)
+      //   superConstructor = existingIsolateProperties[superclass];
+      js.if_(js['superConstructor'].not,
+             js['superConstructor'].assign(
+                 js['existingIsolateProperties'][js['superclass']])),
+
       js['var prototype = constructor.prototype'],
 
       // if ($supportsProtoName) {
@@ -449,6 +459,14 @@ class CodeEmitterTask extends CompilerTask {
     // We also copy over old values like the prototype, and the
     // isolateProperties themselves.
 
+    List copyFinishClasses = [];
+    if (needsDefineClass) {
+      copyFinishClasses.add(
+          // newIsolate.$finishClasses = oldIsolate.\$finishClasses;
+          js['newIsolate'][finishClassesProperty].assign(
+              js['oldIsolate'][finishClassesProperty]));
+    }
+
     // function(oldIsolate) {
     return js.fun('oldIsolate', [
       js['var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'],
@@ -479,10 +497,12 @@ class CodeEmitterTask extends CompilerTask {
       js['newIsolate.prototype = isolatePrototype'],
       js['isolatePrototype.constructor = newIsolate'],
       js['newIsolate.${namer.isolatePropertiesName} = isolateProperties'],
+    ]..addAll(copyFinishClasses)
+     ..addAll([
 
       // return newIsolate;
       js.return_('newIsolate')
-    ]);
+    ]));
   }
 
   jsAst.Fun get lazyInitializerFunction {
@@ -1560,25 +1580,23 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     for (ClassElement element in sortedClasses) {
-      if (isDeferred(element)) {
-        warnNotImplemented(
-            element,
-            'Warning: deferred loading of classes is not implemented yet.');
-      }
-      generateClass(element, buffer);
+      generateClass(element, bufferForElement(element, buffer));
     }
 
     // The closure class could have become necessary because of the generation
     // of stubs.
     ClassElement closureClass = compiler.closureClass;
     if (needsClosureClass && !instantiatedClasses.contains(closureClass)) {
-      generateClass(closureClass, buffer);
+      generateClass(closureClass, bufferForElement(closureClass, buffer));
     }
   }
 
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
-      buffer.add("$finishClassesName($classesCollector)$N");
+      buffer.add('$finishClassesName($classesCollector,'
+                 '$_$isolateProperties,'
+                 '${_}null)$N');
+
       // Reset the map.
       buffer.add("$classesCollector$_=$_{}$N");
     }
@@ -1605,7 +1623,7 @@ class CodeEmitterTask extends CompilerTask {
             .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      CodeBuffer buffer = isDeferred(element) ? deferredBuffer : eagerBuffer;
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression code = backend.generatedCode[element];
       addComment('''From "${element.getLibrary().canonicalUri}":
                     $element''',
@@ -1621,7 +1639,7 @@ class CodeEmitterTask extends CompilerTask {
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
-      CodeBuffer buffer = isDeferred(element) ? deferredBuffer : eagerBuffer;
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
     }
@@ -2596,8 +2614,10 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // The following code should not use the short-hand for the
       // initialStatics.
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_=${_}null$N');
-      mainBuffer.add(boundClosureBuffer);
-      emitFinishClassesInvocationIfNecessary(mainBuffer);
+      if (!boundClosureBuffer.isEmpty) {
+        mainBuffer.add(boundClosureBuffer);
+        emitFinishClassesInvocationIfNecessary(mainBuffer);
+      }
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
@@ -2610,18 +2630,54 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);
       compiler.assembledCode = mainBuffer.getText();
-
-      if (!deferredBuffer.isEmpty) {
-        String code = deferredBuffer.getText();
-        compiler.outputProvider('part', 'js')
-            ..add(code)
-            ..close();
-        outputSourceMap(deferredBuffer, compiler.assembledCode, 'part');
-      }
-
       outputSourceMap(mainBuffer, compiler.assembledCode, '');
+
+      emitDeferredCode(deferredBuffer);
+
     });
     return compiler.assembledCode;
+  }
+
+  CodeBuffer bufferForElement(Element element, CodeBuffer eagerBuffer) {
+    if (!isDeferred(element)) return eagerBuffer;
+    emitDeferredPreambleWhenEmpty(deferredBuffer);
+    return deferredBuffer;
+  }
+
+  void emitDeferredCode(CodeBuffer buffer) {
+    if (buffer.isEmpty) return;
+
+    if (needsDefineClass) {
+      buffer.add('$finishClassesName(\$\$,'
+                 '$_${namer.CURRENT_ISOLATE},'
+                 '$_$isolatePropertiesName)$N');
+      // Reset the map.
+      buffer.add("\$\$$_=$_{}$N");
+    }
+
+    buffer.add('${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+
+    String code = buffer.getText();
+    compiler.outputProvider('part', 'js')
+      ..add(code)
+      ..close();
+    outputSourceMap(buffer, compiler.assembledCode, 'part');
+  }
+
+  void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
+    if (!buffer.isEmpty) return;
+    final classesCollector = r"$$";
+
+    buffer.add('$classesCollector$_=$_{}$N');
+    buffer.add('var old${namer.CURRENT_ISOLATE}$_='
+               '$_${namer.CURRENT_ISOLATE}$N');
+
+    // TODO(ahe): This defines a lot of properties on the
+    // Isolate.prototype object.  We know this will turn it into a
+    // slow object in V8, so instead we should do something similar to
+    // Isolate.$finishIsolateConstructor.
+    buffer.add('${namer.CURRENT_ISOLATE}$_='
+               '$_${namer.isolateName}.prototype$N$n');
   }
 
   String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {
