@@ -517,7 +517,9 @@ void CatchEntryInstr::PrintOperandsTo(BufferFormatter* f) const {
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');
+  f->Print(" %ct", is_truncating() ? '+' : '-');
 }
+
 
 void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));

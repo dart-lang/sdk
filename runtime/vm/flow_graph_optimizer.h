@@ -29,6 +29,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
 
+  // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
+  // shift can be a truncating Smi shift-left and result is always Smi.
+  void TryOptimizeLeftShiftWithBitAndPattern();
+
   void Canonicalize();
 
   void EliminateDeadPhis();
@@ -97,6 +101,12 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                      Environment* deopt_environment,
                      Instruction* insert_before);
 
+  // Insert a Smi check if needed.
+  void AddCheckSmi(Definition* to_check,
+                   intptr_t deopt_id,
+                   Environment* deopt_environment,
+                   Instruction* insert_before);
+
   // Add a class check for a call's first argument immediately before the
   // call, using the call's IC data to determine the check, and the call's
   // deopt ID and deoptimization environment if the check fails.
@@ -137,6 +147,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   template <typename T>
   void HandleEqualityCompare(EqualityCompareInstr* comp,
                              T current_instruction);
+
+  void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
+                                    Definition* left_instr,
+                                    Definition* right_instr);
 
   FlowGraph* flow_graph_;
 

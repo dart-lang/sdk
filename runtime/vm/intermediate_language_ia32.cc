@@ -1999,6 +1999,131 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
+                             BinarySmiOpInstr* shift_left) {
+  const bool is_truncating = shift_left->is_truncating();
+  const LocationSummary& locs = *shift_left->locs();
+  Register left = locs.in(0).reg();
+  Register result = locs.out().reg();
+  ASSERT(left == result);
+  Label* deopt = shift_left->CanDeoptimize() ?
+      compiler->AddDeoptStub(shift_left->deopt_id(), kDeoptBinarySmiOp) : NULL;
+  if (locs.in(1).IsConstant()) {
+    const Object& constant = locs.in(1).constant();
+    ASSERT(constant.IsSmi());
+    // shll operation masks the count to 5 bits.
+    const intptr_t kCountLimit = 0x1F;
+    const intptr_t value = Smi::Cast(constant).Value();
+    if (value == 0) {
+      // No code needed.
+    } else if ((value < 0) || (value >= kCountLimit)) {
+      // This condition may not be known earlier in some cases because
+      // of constant propagation, inlining, etc.
+      if ((value >=kCountLimit) && is_truncating) {
+        __ xorl(result, result);
+      } else {
+        // Result is Mint or exception.
+        __ jmp(deopt);
+      }
+    } else {
+      if (!is_truncating) {
+        // Check for overflow.
+        Register temp = locs.temp(0).reg();
+        __ movl(temp, left);
+        __ shll(left, Immediate(value));
+        __ sarl(left, Immediate(value));
+        __ cmpl(left, temp);
+        __ j(NOT_EQUAL, deopt);  // Overflow.
+      }
+      // Shift for result now we know there is no overflow.
+      __ shll(left, Immediate(value));
+    }
+    return;
+  }
+
+  // Right (locs.in(1)) is not constant.
+  Register right = locs.in(1).reg();
+  Range* right_range = shift_left->right()->definition()->range();
+  if (shift_left->left()->BindsToConstant() && !is_truncating) {
+    // TODO(srdjan): Implement code below for is_truncating().
+    // If left is constant, we know the maximal allowed size for right.
+    const Object& obj = shift_left->left()->BoundConstant();
+    if (obj.IsSmi()) {
+      const intptr_t left_int = Smi::Cast(obj).Value();
+      if (left_int == 0) {
+        __ cmpl(right, Immediate(0));
+        __ j(NEGATIVE, deopt);
+        return;
+      }
+      intptr_t tmp = (left_int > 0) ? left_int : ~left_int;
+      intptr_t max_right = kSmiBits;
+      while ((tmp >>= 1) != 0) {
+        max_right--;
+      }
+      const bool right_needs_check =
+          (right_range == NULL) ||
+          !right_range->IsWithin(0, max_right - 1);
+      if (right_needs_check) {
+        __ cmpl(right,
+            Immediate(reinterpret_cast<int32_t>(Smi::New(max_right))));
+        __ j(ABOVE_EQUAL, deopt);
+      }
+      __ SmiUntag(right);
+      __ shll(left, right);
+    }
+    return;
+  }
+
+  const bool right_needs_check =
+      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+  ASSERT(right == ECX);  // Count must be in ECX
+  if (is_truncating) {
+    if (right_needs_check) {
+      const bool right_may_be_negative =
+          (right_range == NULL) ||
+          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+      if (right_may_be_negative) {
+        ASSERT(shift_left->CanDeoptimize());
+        __ cmpl(right, Immediate(0));
+        __ j(NEGATIVE, deopt);
+      }
+      Label done, is_not_zero;
+      __ cmpl(right,
+          Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
+      __ j(BELOW, &is_not_zero, Assembler::kNearJump);
+      __ xorl(left, left);
+      __ jmp(&done, Assembler::kNearJump);
+      __ Bind(&is_not_zero);
+      __ SmiUntag(right);
+      __ shll(left, right);
+      __ Bind(&done);
+    } else {
+      __ SmiUntag(right);
+      __ shll(left, right);
+    }
+  } else {
+    if (right_needs_check) {
+      ASSERT(shift_left->CanDeoptimize());
+      __ cmpl(right,
+        Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
+      __ j(ABOVE_EQUAL, deopt);
+    }
+    // Left is not a constant.
+    Register temp = locs.temp(0).reg();
+    // Check if count too large for handling it inlined.
+    __ movl(temp, left);
+    __ SmiUntag(right);
+    // Overflow test (preserve temp and right);
+    __ shll(left, right);
+    __ sarl(left, right);
+    __ cmpl(left, temp);
+    __ j(NOT_EQUAL, deopt);  // Overflow.
+    // Shift for result now we know there is no overflow.
+    __ shll(left, right);
+  }
+}
+
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (op_kind() == Token::kTRUNCDIV) {
@@ -2029,12 +2154,14 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = 1;
+    const intptr_t kNumTemps = 0;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-    summary->set_temp(0, Location::RequiresRegister());
+    if (!is_truncating()) {
+      summary->AddTemp(Location::RequiresRegister());
+    }
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   } else {
@@ -2050,6 +2177,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
 
 
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (op_kind() == Token::kSHL) {
+    EmitSmiShiftLeft(compiler, this);
+    return;
+  }
+
+  ASSERT(!is_truncating());
   Register left = locs()->in(0).reg();
   Register result = locs()->out().reg();
   ASSERT(left == result);
@@ -2147,27 +2280,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiTag(left);
         break;
       }
-      case Token::kSHL: {
-        // shll operation masks the count to 5 bits.
-        const intptr_t kCountLimit = 0x1F;
-        intptr_t value = Smi::Cast(constant).Value();
-        if (value == 0) break;
-        if ((value < 0) || (value >= kCountLimit)) {
-          // This condition may not be known earlier in some cases because
-          // of constant propagation, inlining, etc.
-          __ jmp(deopt);
-          break;
-        }
-        Register temp = locs()->temp(0).reg();
-        __ movl(temp, left);
-        __ shll(left, Immediate(value));
-        __ sarl(left, Immediate(value));
-        __ cmpl(left, temp);
-        __ j(NOT_EQUAL, deopt);  // Overflow.
-        // Shift for result now we know there is no overflow.
-        __ shll(left, Immediate(value));
-        break;
-      }
 
       default:
         UNREACHABLE();
@@ -2249,57 +2361,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(left);
       __ sarl(left, right);
       __ SmiTag(left);
-      break;
-    }
-    case Token::kSHL: {
-      Range* right_range = this->right()->definition()->range();
-      if (this->left()->BindsToConstant()) {
-        // If left is constant, we know the maximal allowed size for right.
-        const Object& obj = this->left()->BoundConstant();
-        if (obj.IsSmi()) {
-          const intptr_t left_int = Smi::Cast(obj).Value();
-          if (left_int == 0) {
-            __ cmpl(right, Immediate(0));
-            __ j(NEGATIVE, deopt);
-            break;
-          }
-          intptr_t tmp = (left_int > 0) ? left_int : ~left_int;
-          intptr_t max_right = kSmiBits;
-          while ((tmp >>= 1) != 0) {
-            max_right--;
-          }
-          const bool right_needs_check =
-              (right_range == NULL) ||
-              !right_range->IsWithin(0, max_right - 1);
-          if (right_needs_check) {
-            __ cmpl(right,
-              Immediate(reinterpret_cast<int32_t>(Smi::New(max_right))));
-            __ j(ABOVE_EQUAL, deopt);
-          }
-          __ SmiUntag(right);
-          __ shll(left, right);
-          break;
-        }
-      }
-      Register temp = locs()->temp(0).reg();
-      // Check if count too large for handling it inlined.
-      __ movl(temp, left);
-      const bool right_needs_check =
-          (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
-      if (right_needs_check) {
-        __ cmpl(right,
-          Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-        __ j(ABOVE_EQUAL, deopt);
-      }
-      ASSERT(right == ECX);  // Count must be in ECX
-      __ SmiUntag(right);
-      // Overflow test (preserve temp and right);
-      __ shll(left, right);
-      __ sarl(left, right);
-      __ cmpl(left, temp);
-      __ j(NOT_EQUAL, deopt);  // Overflow.
-      // Shift for result now we know there is no overflow.
-      __ shll(left, right);
       break;
     }
     case Token::kDIV: {

@@ -66,7 +66,6 @@ bool Value::Equals(Value* other) const {
 }
 
 
-
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
@@ -138,7 +137,8 @@ bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
   ASSERT(other_op != NULL);
   return (op_kind() == other_op->op_kind()) &&
-      (overflow_ == other_op->overflow_);
+      (overflow_ == other_op->overflow_) &&
+      (is_truncating_ == other_op->is_truncating_);
 }
 
 
@@ -881,6 +881,14 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
       Range* right_range = this->right()->definition()->range();
       return (right_range == NULL)
           || !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+    }
+    case Token::kSHL: {
+      Range* right_range = this->right()->definition()->range();
+      if ((right_range != NULL) && is_truncating()) {
+        // Can deoptimize if right can be negative.
+        return !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+      }
+      return true;
     }
     default:
       return overflow_;

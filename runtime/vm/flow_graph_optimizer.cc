@@ -33,6 +33,8 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
+DEFINE_FLAG(bool, truncating_left_shift, true,
+    "Optimize left shift to truncate if possible");
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -164,6 +166,93 @@ void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
                                        ic_data,
                                        with_checks);
   call->ReplaceWith(specialized, current_iterator());
+}
+
+
+static BinarySmiOpInstr* AsSmiShiftLeftInstruction(Definition* d) {
+  BinarySmiOpInstr* instr = d->AsBinarySmiOp();
+  if ((instr != NULL) && (instr->op_kind() == Token::kSHL)) {
+    return instr;
+  }
+  return NULL;
+}
+
+
+static bool IsPositiveOrZeroSmiConst(Definition* d) {
+  ConstantInstr* const_instr = d->AsConstant();
+  if ((const_instr != NULL) && (const_instr->value().IsSmi())) {
+    return Smi::Cast(const_instr->value()).Value() >= 0;
+  }
+  return false;
+}
+
+
+void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
+    Definition* bit_and_instr,
+    Definition* left_instr,
+    Definition* right_instr) {
+  ASSERT(bit_and_instr != NULL);
+  ASSERT((left_instr != NULL) && (right_instr != NULL));
+
+  // Check for pattern, smi_shift_left must be single-use.
+  bool is_positive_or_zero = IsPositiveOrZeroSmiConst(left_instr);
+  if (!is_positive_or_zero) {
+    is_positive_or_zero = IsPositiveOrZeroSmiConst(right_instr);
+  }
+  if (!is_positive_or_zero) return;
+
+  BinarySmiOpInstr* smi_shift_left = NULL;
+  if (bit_and_instr->InputAt(0)->IsSingleUse()) {
+    smi_shift_left = AsSmiShiftLeftInstruction(left_instr);
+  }
+  if ((smi_shift_left == NULL) && (bit_and_instr->InputAt(1)->IsSingleUse())) {
+    smi_shift_left = AsSmiShiftLeftInstruction(right_instr);
+  }
+  if (smi_shift_left == NULL) return;
+
+  // Pattern recognized.
+  smi_shift_left->set_is_truncating(true);
+  ASSERT(bit_and_instr->IsBinarySmiOp() || bit_and_instr->IsBinaryMintOp());
+  if (bit_and_instr->IsBinaryMintOp()) {
+    // Replace Mint op with Smi op.
+    BinarySmiOpInstr* smi_op = new BinarySmiOpInstr(
+        Token::kBIT_AND,
+        bit_and_instr->AsBinaryMintOp()->instance_call(),
+        new Value(left_instr),
+        new Value(right_instr));
+    bit_and_instr->ReplaceWith(smi_op, current_iterator());
+  }
+}
+
+
+// Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
+// shift can be a truncating Smi shift-left and result is always Smi.
+void FlowGraphOptimizer::TryOptimizeLeftShiftWithBitAndPattern() {
+  if (!FLAG_truncating_left_shift) return;
+  ASSERT(current_iterator_ == NULL);
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+    ForwardInstructionIterator it(entry);
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      if (it.Current()->IsBinarySmiOp()) {
+        BinarySmiOpInstr* binop = it.Current()->AsBinarySmiOp();
+        if (binop->op_kind() == Token::kBIT_AND) {
+          OptimizeLeftShiftBitAndSmiOp(binop,
+                                       binop->left()->definition(),
+                                       binop->right()->definition());
+        }
+      } else if (it.Current()->IsBinaryMintOp()) {
+        BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
+        if (mintop->op_kind() == Token::kBIT_AND) {
+          OptimizeLeftShiftBitAndSmiOp(mintop,
+                                       mintop->left()->definition(),
+                                       mintop->right()->definition());
+        }
+      }
+    }
+    current_iterator_ = NULL;
+  }
 }
 
 
@@ -497,6 +586,19 @@ static intptr_t ReceiverClassId(InstanceCallInstr* call) {
   intptr_t class_id;
   ic_data.GetOneClassCheckAt(0, &class_id, &target);
   return class_id;
+}
+
+
+void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
+                                     intptr_t deopt_id,
+                                     Environment* deopt_environment,
+                                     Instruction* insert_before) {
+  if (to_check->Type()->ToCid() != kSmiCid) {
+    InsertBefore(insert_before,
+                 new CheckSmiInstr(new Value(to_check), deopt_id),
+                 deopt_environment,
+                 Definition::kEffect);
+  }
 }
 
 
@@ -1011,14 +1113,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     ASSERT(operands_type == kSmiCid);
     // Insert two smi checks and attach a copy of the original
     // environment because the smi operation can still deoptimize.
-    InsertBefore(call,
-                 new CheckSmiInstr(new Value(left), call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    InsertBefore(call,
-                 new CheckSmiInstr(new Value(right), call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
+    AddCheckSmi(left, call->deopt_id(), call->env(), call);
+    AddCheckSmi(right, call->deopt_id(), call->env(), call);
     if (left->IsConstant() &&
         ((op_kind == Token::kADD) || (op_kind == Token::kMUL))) {
       // Constant should be on the right side.

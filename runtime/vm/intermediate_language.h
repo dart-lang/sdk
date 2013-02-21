@@ -253,6 +253,10 @@ class Value : public ZoneAllocated {
   Value* next_use() const { return next_use_; }
   void set_next_use(Value* next) { next_use_ = next; }
 
+  bool IsSingleUse() const {
+    return (next_use_ == NULL) && (previous_use_ == NULL);
+  }
+
   Instruction* instruction() const { return instruction_; }
   void set_instruction(Instruction* instruction) { instruction_ = instruction; }
 
@@ -3686,7 +3690,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
                            Value* left,
                            Value* right,
                            InstanceCallInstr* instance_call)
-      : op_kind_(op_kind) {
+      : op_kind_(op_kind),
+        instance_call_(instance_call) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -3699,6 +3704,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
+  InstanceCallInstr* instance_call() const { return instance_call_; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
@@ -3710,6 +3717,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBinaryMintOp());
     return op_kind() == other->AsBinaryMintOp()->op_kind();
   }
 
@@ -3736,6 +3744,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
 
  private:
   const Token::Kind op_kind_;
+  InstanceCallInstr* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryMintOpInstr);
 };
@@ -3861,7 +3870,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
                    Value* right)
       : op_kind_(op_kind),
         instance_call_(instance_call),
-        overflow_(true) {
+        overflow_(true),
+        is_truncating_(false) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
@@ -3895,6 +3905,11 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
     overflow_ = overflow;
   }
 
+  void set_is_truncating(bool value) {
+    is_truncating_ = value;
+  }
+  bool is_truncating() const { return is_truncating_; }
+
   void PrintTo(BufferFormatter* f) const;
 
   virtual void InferRange();
@@ -3909,6 +3924,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   const Token::Kind op_kind_;
   InstanceCallInstr* instance_call_;
   bool overflow_;
+  bool is_truncating_;
 
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
 };
