@@ -73,7 +73,7 @@ class CPUFeatures : public AllStatic {
 class ShifterOperand : public ValueObject {
  public:
   // Data-processing operands - Uninitialized.
-  ShifterOperand() : type_(-1) { }
+  ShifterOperand() : type_(-1), encoding_(-1) { }
 
   // Data-processing operands - Copy constructor.
   ShifterOperand(const ShifterOperand& other)
