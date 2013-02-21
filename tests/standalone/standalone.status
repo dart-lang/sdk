@@ -16,6 +16,10 @@ io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
 io/secure_server_client_certificate_test: fail
 io/web_socket_test: Fail, Pass # Issue 8495.
+io/https_client_certificate_test: Pass, Timeout # Issue 8674
+io/raw_socket_test: Pass, Timeout # Issue 8675
+io/socket_test: Pass, Timeout # Issue 8676
+io/socket_exception_test: Pass, Timeout # Issue 8677
 
 ####################################################
 
