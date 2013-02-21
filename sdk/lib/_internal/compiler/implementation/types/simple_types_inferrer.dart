@@ -96,12 +96,6 @@ class SimpleTypesInferrer extends TypesInferrer {
       new Map<Element, Element>();
 
   /**
-   * Maps a name to elements in the universe that have that name.
-   */
-  final Map<SourceString, Set<Element>> methodCache =
-      new Map<SourceString, Set<Element>>();
-
-  /**
    * Maps an element to the number of times this type inferrer
    * analyzed it.
    */
@@ -132,8 +126,6 @@ class SimpleTypesInferrer extends TypesInferrer {
 
   final Compiler compiler;
 
-  // Times the computation of the call graph.
-  final Stopwatch memberWatch = new Stopwatch();
   // Times the computation of re-analysis of methods.
   final Stopwatch recomputeWatch = new Stopwatch();
   // Number of re-analysis.
@@ -286,8 +278,6 @@ class SimpleTypesInferrer extends TypesInferrer {
         interestingTypes++;
       }
     });
-    compiler.log('Type inferrer spent ${memberWatch.elapsedMilliseconds} ms '
-                 'computing a call graph.');
     compiler.log('Type inferrer re-analyzed methods $recompiles times '
                  'in ${recomputeWatch.elapsedMilliseconds} ms.');
     compiler.log('Type inferrer found $interestingTypes interesting '
@@ -469,39 +459,9 @@ class SimpleTypesInferrer extends TypesInferrer {
    * [selector]. If [f] returns false, aborts the iteration.
    */
   void iterateOverElements(Selector selector, bool f(Element element)) {
-    SourceString name = selector.name;
-
-    // The following is already computed by the resolver, but it does
-    // not save it yet.
-    Set<Element> methods = methodCache[name];
-    if (methods == null) {
-      memberWatch.start();
-      methods = new Set<Element>();
-      void add(element) {
-        if (!element.isInstanceMember()) return;
-        if (element.isAbstract(compiler)) return;
-        if (!compiler.enqueuer.resolution.isProcessed(element)) return;
-        methods.add(element.implementation);
-      }
-      for (ClassElement cls in compiler.enqueuer.resolution.seenClasses) {
-        var element = cls.lookupLocalMember(name);
-        if (element != null) {
-          if (element.isAbstractField()) {
-            if (element.getter != null) add(element.getter);
-            if (element.setter != null) add(element.setter);
-          } else {
-            add(element);
-          }
-        }
-      }
-      methodCache[name] = methods;
-      memberWatch.stop();
-    }
-
-    for (Element element in methods) {
-      if (selector.appliesUnnamed(element, compiler)) {
-        if (!f(element)) return;
-      }
+    Iterable<Element> elements = compiler.world.allFunctions.filter(selector);
+    for (Element e in elements) {
+      if (!f(e.implementation)) return;
     }
   }
 
