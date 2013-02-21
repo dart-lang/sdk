@@ -104,8 +104,6 @@ void main() {
   testExpression('x &= ~mask');
   // Adjacent tokens.
   testExpression('foo[x[bar]]');
-  // *We don't do array literals.
-  testError('beebop([1, 2, 3])');
   // Prefix ++ etc.
   testExpression("++x");
   testExpression("++foo.bar");
@@ -134,4 +132,25 @@ void main() {
   testExpression("x << 5");
   testExpression("x << y + 1");
   testExpression("x <<= y + 1");
+  // Array initializers.
+  testExpression("x = ['foo', 'bar', x[4]]");
+  testExpression("[]");
+  testError("[42 42]");
+  testExpression('beebop([1, 2, 3])');
+  // *We can't parse array literals with holes in them.
+  testError("[1,, 2]");
+  testError("[1,]");
+  testError("[,]");
+  testError("[, 42]");
+  // Ternary operator.
+  testExpression("x = a ? b : c");
+  testExpression("y = a == null ? b : a");
+  testExpression("y = a == null ? b + c : a + c");
+  testExpression("foo = a ? b : c ? d : e");
+  testExpression("foo = a ? b ? c : d : e");
+  testExpression("foo = (a = v) ? b = w : c = x ? d = y : e = z");
+  testExpression("foo = (a = v) ? b = w ? c = x : d = y : e = z");
+  // Stacked assignment.
+  testExpression("a = b = c");
+  testExpression("var a = b = c");
 }

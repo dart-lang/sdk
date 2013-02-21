@@ -871,8 +871,8 @@ class ArrayInitializer extends Expression {
 }
 
 /**
- * An expression inside an [ArrayInitialization]. An [ArrayElement] knows
- * its position in the containing [ArrayInitialization].
+ * An expression inside an [ArrayInitializer]. An [ArrayElement] knows
+ * its position in the containing [ArrayInitializer].
  */
 class ArrayElement extends Node {
   int index;
@@ -1094,13 +1094,13 @@ class MiniJsParserError {
 /// * dot access.
 /// * method calls.
 /// * [] access.
-/// * string, boolean, null and numeric literals (no hex).
+/// * array, string, boolean, null and numeric literals (no hex).
 /// * most operators.
 /// * brackets.
 /// * var declarations.
 /// Notable things it can't do yet include:
 /// * operator precedence.
-/// * array and non-empty object literals.
+/// * non-empty object literals.
 /// * throw, return.
 /// * statements, including any flow control (if, while, for, etc.)
 /// * the 'in' keyword.
@@ -1143,7 +1143,9 @@ class MiniJsParser {
   static const LSQUARE = 10;
   static const RSQUARE = 11;
   static const COMMA = 12;
-  static const OTHER = 13;
+  static const QUERY = 13;
+  static const COLON = 14;
+  static const OTHER = 15;
 
   // Make sure that ]] is two symbols.
   bool singleCharCategory(int category) => category >= DOT;
@@ -1163,6 +1165,8 @@ class MiniJsParser {
       case RSQUARE: return "RSQUARE";
       case STRING: return "STRING";
       case COMMA: return "COMMA";
+      case QUERY: return "QUERY";
+      case COLON: return "COLON";
       case OTHER: return "OTHER";
     }
     return "Unknown: $cat";
@@ -1177,7 +1181,7 @@ class MiniJsParser {
       LPAREN, RPAREN, SYMBOL, SYMBOL, COMMA, SYMBOL, DOT, SYMBOL,   // ()*+,-./
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 01234
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 56789
-      OTHER, OTHER, RELATION, RELATION, RELATION, OTHER, OTHER,     // :;<=>?@
+      COLON, OTHER, RELATION, RELATION, RELATION, QUERY, OTHER,     // :;<=>?@
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // ABCDEFGH
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // IJKLMNOP
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // QRSTUVWX
@@ -1310,6 +1314,15 @@ class MiniJsParser {
     } else if (acceptCategory(LBRACE)) {
       expectCategory(RBRACE);
       return new ObjectInitializer([]);
+    } else if (acceptCategory(LSQUARE)) {
+      var values = <ArrayElement>[];
+      if (!acceptCategory(RSQUARE)) {
+        do {
+          values.add(new ArrayElement(values.length, parseExpression()));
+        } while (acceptCategory(COMMA));
+        expectCategory(RSQUARE);
+      }
+      return new ArrayInitializer(values.length, values);
     } else {
       throw new MiniJsParserError(this, "Expected primary expression");
     }
@@ -1414,11 +1427,12 @@ class MiniJsParser {
   Expression parseRelation() {
     Expression lhs = parseBinary();
     String relation = lastToken;
-    if (!acceptCategory(RELATION)) return lhs;
+    // The lexer returns "=" as a relational operator because it looks a bit
+    // like ==, <=, etc.  But we don't want to handle it here (that would give
+    // it the wrong prescedence), so we just return if we see it.
+    if (relation == "=" || !acceptCategory(RELATION)) return lhs;
     Expression rhs = parseBinary();
-    if (relation == "=") {
-      return new Assignment(lhs, rhs);
-    } else if (relation == "<<=" || relation == ">>=") {
+    if (relation == "<<=" || relation == ">>=") {
       return new Assignment.compound(lhs,
                                      relation.substring(0, relation.length - 1),
                                      rhs);
@@ -1428,7 +1442,25 @@ class MiniJsParser {
     }
   }
 
-  Expression parseExpression() => parseRelation();
+  Expression parseConditional() {
+    Expression lhs = parseRelation();
+    if (!acceptCategory(QUERY)) return lhs;
+    Expression ifTrue = parseAssignment();
+    expectCategory(COLON);
+    Expression ifFalse = parseAssignment();
+    return new Conditional(lhs, ifTrue, ifFalse);
+  }
+
+
+  Expression parseAssignment() {
+    Expression lhs = parseConditional();
+    if (acceptString("=")) {
+      return new Assignment(lhs, parseAssignment());
+    }
+    return lhs;
+  }
+
+  Expression parseExpression() => parseAssignment();
 
   Expression parseVarDeclarationOrExpression() {
     if (acceptString("var")) {

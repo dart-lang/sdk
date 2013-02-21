@@ -292,14 +292,8 @@ class CodeEmitterTask extends CompilerTask {
     // TODO(8541): Remove this work around.
 
     return [
-      js['var $supportsProtoName = false, tmp'],
-
-      // tmp = defineClass('c', ['f?'], {}).prototype;
-      js['tmp'].assign(
-          js['defineClass'](
-              [js.string('c'),
-               new jsAst.ArrayInitializer.from([js.string('f?')]),
-               {}])['prototype']),
+      js['var $supportsProtoName = false'],
+      js["var tmp = (defineClass('c', ['f?'], {})).prototype"],
 
       js.if_(js['tmp.__proto__'], [
         js['tmp.__proto__ = {}'],
@@ -349,13 +343,7 @@ class CodeEmitterTask extends CompilerTask {
           js.if_(js["typeof fields == 'string'"], [
             js['var s = fields.split(";")'],
             js['supr = s[0]'],
-
-            // fields = s[1] == '' ? [] : s[1].split(',');
-            js['fields'].assign(
-                new jsAst.Conditional(
-                    js['s[1] == ""'],
-                    new jsAst.ArrayInitializer(0, []),
-                    js['s[1].split(",")']))
+            js["fields = s[1] == '' ? [] : s[1].split(',')"],
           ], /* else */ [
             js['supr = desc.super']
           ]),
@@ -465,16 +453,11 @@ class CodeEmitterTask extends CompilerTask {
     return js.fun('oldIsolate', [
       js['var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'],
 
-      // isolateProperties.$currentScript =
-      //    (typeof document == "object") ?
-      //        (document.currentScript ||
-      //         document.scripts[document.scripts.length - 1]) : null;
-      js[r'isolateProperties.$currentScript'].assign(
-          new jsAst.Conditional(
-              js['typeof document == "object"'],
-              js['document.currentScript ||'
-                     'document.scripts[document.scripts.length - 1]'],
-              js['null'])),
+      js[r'isolateProperties.$currentScript ='
+              'typeof document == "object" ?'
+              '(document.currentScript ||'
+                     'document.scripts[document.scripts.length - 1]) :'
+              'null'],
 
       js['var isolatePrototype = oldIsolate.prototype'],
       js['var str = "{\\n"'],
@@ -534,7 +517,7 @@ class CodeEmitterTask extends CompilerTask {
 
             // try {
             js.try_([
-              js['result = ($isolate[fieldName] = lazyValue())'],
+              js['result = $isolate[fieldName] = lazyValue()'],
 
             ], finallyPart: [
               // Use try-finally, not try-catch/throw as it destroys the
@@ -2052,7 +2035,7 @@ class CodeEmitterTask extends CompilerTask {
       String createInvocationMirror = namer.getName(
           compiler.createInvocationMirrorElement);
 
-      jsAst.Expression expression = js['this'][noSuchMethodName](
+      jsAst.Expression expression = js['this.$noSuchMethodName'](
           js[namer.CURRENT_ISOLATE][createInvocationMirror]([
               js.string(methodName),
               js.string(internalName),
