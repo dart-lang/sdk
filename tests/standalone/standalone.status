@@ -23,6 +23,7 @@ io/socket_exception_test: Pass, Timeout # Issue 8677
 io/https_client_test: Pass, Timeout # Issue 8674
 io/https_server_test: Pass, Timeout # Issue 8674
 io/https_client_socket_reuse_test: Pass, Timeout # Issue 8674
+io/http_client_request_test: Pass, Fail # Issue 8681
 
 ####################################################
 
