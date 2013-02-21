@@ -2229,6 +2229,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         }
       } else if (target.impliesType()) {
         compiler.backend.registerThrowNoSuchMethod();
+      } else if (target.modifiers.isFinal() || target.modifiers.isConst()) {
+        setter =
+            warnAndCreateErroneousElement(node.selector, target.name,
+                                          MessageKind.CANNOT_RESOLVE_SETTER);
+        compiler.backend.registerThrowNoSuchMethod();
       }
     }
 

@@ -3592,7 +3592,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      if (element == null) return generateSuperNoSuchMethodSend(node);
+      if (Elements.isUnresolved(element)) {
+        return generateSuperNoSuchMethodSend(node);
+      }
       HInstruction target = new HStatic(element);
       HInstruction context = localsHandler.readThis();
       add(target);

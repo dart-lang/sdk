@@ -266,8 +266,6 @@ field4_negative_test: Fail # Negative language test.
 field5_negative_test: Fail # Negative language test.
 field6a_negative_test: Fail # Negative language test.
 final_for_in_variable_test/01: Fail # Negative language test
-final_param_negative_test: Fail # Negative language test.
-final_var_negative_test: Fail # Negative language test.
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 interface_factory3_negative_test: Fail # Negative language test.
 interface_factory_constructor_negative_test: Fail # Negative language test.
@@ -283,7 +281,6 @@ prefix23_negative_test: Fail # Negative language test.
 pseudo_kw_illegal_test/03: Fail # Negative language test.
 pseudo_kw_illegal_test/14: Fail # Negative language test.
 scope_negative_test: Fail # Negative language test.
-static_final_field2_negative_test: Fail # Negative language test.too
 static_final_field_negative_test: Fail # Negative language test.
 static_top_level_test/00: Fail # Negative language test.
 static_top_level_test/01: Fail # Negative language test.
