@@ -4,7 +4,8 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-
+io/raw_secure_server_socket_test: Pass, Timeout # Issue 8673
+io/secure_server_socket_test: Pass, Timeout # Issue 8673
 
 ### Temporary IO library change disables, fail ###
 
