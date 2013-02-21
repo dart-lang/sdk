@@ -163,7 +163,9 @@ const String CORELIB = r'''
   class Null {}
   class Type {}
   class Dynamic_ {}
-  bool identical(Object a, Object b) {}''';
+  bool identical(Object a, Object b) {}
+  dynamic JS(String typeDescription, String codeTemplate,
+             [var arg0, var arg1, var arg2]) {}''';
 
 AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
@@ -1018,6 +1020,17 @@ testDynamicIsAbsorbing() {
   result.checkNodeHasUnknownType('x');
 }
 
+testJsCall() {
+  final String source = r"""
+    main () {
+      var x = JS('', '', null);
+      x;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasUnknownType('x');
+}
+
 testIsCheck() {
   final String source = r"""
     main () {
@@ -1096,6 +1109,7 @@ void main() {
   testLists();
   testListWithCapacity();
   testEmptyList();
+  testJsCall();
   testIsCheck();
   testSeenClasses();
 }
