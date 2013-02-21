@@ -95,6 +95,14 @@
       ],
     },
     {
+      'target_name': 'analyzer',
+      'type': 'none',
+      'dependencies': [
+        'create_sdk',
+        'editor/analyzer.gyp:analyzer',
+      ],
+    },
+    {
       # This is the target that is built on the dartc bots.
       # It must depend on anything that is required by dartc
       # tests.
