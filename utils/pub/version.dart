@@ -11,18 +11,25 @@ import 'dart:math';
 
 import 'utils.dart';
 
+
+/// Regex that matches a version number at the beginning of a string.
+final _START_VERSION = new RegExp(
+    r'^'                                        // Start at beginning.
+    r'(\d+).(\d+).(\d+)'                        // Version number.
+    r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'    // Pre-release.
+    r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'); // Build.
+
+/// Like [_START_VERSION] but matches the entire string.
+final _COMPLETE_VERSION = new RegExp("${_START_VERSION.pattern}\$");
+
+/// Parses a comparison operator ("<", ">", "<=", or ">=") at the beginning of
+/// a string.
+final _START_COMPARISON = new RegExp(r"^[<>]=?");
+
 /// A parsed semantic version number.
 class Version implements Comparable<Version>, VersionConstraint {
   /// No released version: i.e. "0.0.0".
   static Version get none => new Version(0, 0, 0);
-
-  static final _PARSE_REGEX = new RegExp(
-      r'^'                                       // Start at beginning.
-      r'(\d+).(\d+).(\d+)'                       // Version number.
-      r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'   // Pre-release.
-      r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'  // Build.
-      r'$');                                     // Consume entire string.
-
   /// The major version number: "1" in "1.2.3".
   final int major;
 
@@ -51,7 +58,7 @@ class Version implements Comparable<Version>, VersionConstraint {
 
   /// Creates a new [Version] by parsing [text].
   factory Version.parse(String text) {
-    final match = _PARSE_REGEX.firstMatch(text);
+    final match = _COMPLETE_VERSION.firstMatch(text);
     if (match == null) {
       throw new FormatException('Could not parse "$text".');
     }
@@ -146,9 +153,9 @@ class Version implements Comparable<Version>, VersionConstraint {
 
   String toString() {
     var buffer = new StringBuffer();
-    buffer.add('$major.$minor.$patch');
-    if (preRelease != null) buffer.add('-$preRelease');
-    if (build != null) buffer.add('+$build');
+    buffer.write('$major.$minor.$patch');
+    if (preRelease != null) buffer.write('-$preRelease');
+    if (build != null) buffer.write('+$build');
     return buffer.toString();
   }
 
@@ -214,28 +221,92 @@ abstract class VersionConstraint {
   /// A [VersionConstraint] that allows no versions: i.e. the empty set.
   static VersionConstraint empty = const _EmptyVersion();
 
-  /// Parses a version constraint. This string is a space-separated series of
+  /// Parses a version constraint. This string is either "any" or a series of
   /// version parts. Each part can be one of:
   ///
   ///   * A version string like `1.2.3`. In other words, anything that can be
   ///     parsed by [Version.parse()].
   ///   * A comparison operator (`<`, `>`, `<=`, or `>=`) followed by a version
-  ///     string. There cannot be a space between the operator and the version.
+  ///     string.
+  ///
+  /// Whitespace is ignored.
   ///
   /// Examples:
   ///
+  ///     any
   ///     1.2.3-alpha
   ///     <=5.1.4
-  ///     >2.0.4 <=2.4.6
+  ///     >2.0.4 <= 2.4.6
   factory VersionConstraint.parse(String text) {
-    if (text.trim() == '') {
-      throw new FormatException('Cannot parse an empty string.');
+    // Handle the "any" constraint.
+    if (text.trim() == "any") return new VersionRange();
+
+    var originalText = text;
+    var constraints = <VersionConstraint>[];
+
+    void skipWhitespace() {
+      text = text.trim();
     }
 
-    // Split it into space-separated parts.
-    var constraints = <VersionConstraint>[];
-    for (var part in text.split(' ')) {
-      constraints.add(_parseSingleConstraint(part));
+    // Try to parse and consume a version number.
+    Version matchVersion() {
+      var version = _START_VERSION.firstMatch(text);
+      if (version == null) return null;
+
+      text = text.substring(version.end);
+      return new Version.parse(version[0]);
+    }
+
+    // Try to parse and consume a comparison operator followed by a version.
+    VersionConstraint matchComparison() {
+      var comparison = _START_COMPARISON.firstMatch(text);
+      if (comparison == null) return null;
+
+      var op = comparison[0];
+      text = text.substring(comparison.end);
+      skipWhitespace();
+
+      var version = matchVersion();
+      if (version == null) {
+        throw new FormatException('Expected version number after "$op" in '
+            '"$originalText", got "$text".');
+      }
+
+      switch (op) {
+        case '<=':
+          return new VersionRange(max: version, includeMax: true);
+        case '<':
+          return new VersionRange(max: version, includeMax: false);
+        case '>=':
+          return new VersionRange(min: version, includeMin: true);
+        case '>':
+          return new VersionRange(min: version, includeMin: false);
+      }
+    }
+
+    while (true) {
+      skipWhitespace();
+      if (text.isEmpty) break;
+
+      var version = matchVersion();
+      if (version != null) {
+        constraints.add(version);
+        continue;
+      }
+
+      var comparison = matchComparison();
+      if (comparison != null) {
+        constraints.add(comparison);
+        continue;
+      }
+
+      // If we got here, we couldn't parse the remaining string.
+      throw new FormatException('Could not parse version "$originalText". '
+          'Unknown text at "$text".');
+    }
+
+    if (constraints.isEmpty) {
+      throw new FormatException('Cannot parse an empty string.');
     }
 
     return new VersionConstraint.intersection(constraints);
@@ -266,32 +337,6 @@ abstract class VersionConstraint {
   /// Creates a new [VersionConstraint] that only allows [Version]s allowed by
   /// both this and [other].
   VersionConstraint intersect(VersionConstraint other);
-
-  static VersionConstraint _parseSingleConstraint(String text) {
-    if (text == 'any') {
-      return new VersionRange();
-    }
-
-    // TODO(rnystrom): Consider other syntaxes for version constraints. This
-    // one is whitespace sensitive (you can't do "< 1.2.3") and "<" is
-    // unfortunately meaningful in YAML, requiring it to be quoted in a
-    // pubspec.
-    // See if it's a comparison operator followed by a version, like ">1.2.3".
-    var match = new RegExp(r"^([<>]=?)?(.*)$").firstMatch(text);
-    if (match != null) {
-      var comparison = match[1];
-      var version = new Version.parse(match[2]);
-      switch (match[1]) {
-        case '<=': return new VersionRange(max: version, includeMax: true);
-        case '<': return new VersionRange(max: version, includeMax: false);
-        case '>=': return new VersionRange(min: version, includeMin: true);
-        case '>': return new VersionRange(min: version, includeMin: false);
-      }
-    }
-
-    // Otherwise, it must be an explicit version.
-    return new Version.parse(text);
-  }
 }
 
 /// Constrains versions to a fall within a given range. If there is a minimum,
@@ -402,17 +447,17 @@ class VersionRange implements VersionConstraint {
     var buffer = new StringBuffer();
 
     if (min != null) {
-      buffer.add(includeMin ? '>=' : '>');
-      buffer.add(min);
+      buffer.write(includeMin ? '>=' : '>');
+      buffer.write(min);
     }
 
     if (max != null) {
-      if (min != null) buffer.add(' ');
-      buffer.add(includeMax ? '<=' : '<');
-      buffer.add(max);
+      if (min != null) buffer.write(' ');
+      buffer.write(includeMax ? '<=' : '<');
+      buffer.write(max);
     }
 
-    if (min == null && max == null) buffer.add('any');
+    if (min == null && max == null) buffer.write('any');
     return buffer.toString();
   }
 }
