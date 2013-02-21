@@ -1,4 +1,4 @@
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -65,7 +65,6 @@ Language/05_Variables/05_Variables_A05_t07: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t08: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t09: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t10: Fail # Inherited from dart2js
-Language/05_Variables/05_Variables_A05_t11: Fail # Inherited from VM (assignment to final variable does not throw NSME).
 Language/05_Variables/05_Variables_A05_t13: Fail # Inherited from VM (assignment to final variable does not throw NSME).
 Language/05_Variables/05_Variables_A05_t14: Fail # Inherited from VM (assignment to final variable does not throw NSME).
 Language/05_Variables/05_Variables_A05_t15: Fail # Inherited from VM (assignment to final variable does not throw NSME).
