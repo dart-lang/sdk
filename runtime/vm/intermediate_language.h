@@ -1676,7 +1676,7 @@ class BranchInstr : public ControlInstruction {
   virtual bool HasSideEffect() const;
 
   ComparisonInstr* comparison() const { return comparison_; }
-  void set_comparison(ComparisonInstr* value) { comparison_ = value; }
+  void SetComparison(ComparisonInstr* comp);
 
   bool is_checked() const { return is_checked_; }
 
@@ -1684,11 +1684,13 @@ class BranchInstr : public ControlInstruction {
   virtual intptr_t DeoptimizationTarget() const;
   virtual Representation RequiredInputRepresentation(intptr_t i) const;
 
-  // Replace the comparison with another, leaving the branch intact.
+  // A misleadingly named function for use in template functions that also
+  // replace definitions.  In this case, leave the branch intact and replace
+  // its comparison with another comparison that has been removed from the
+  // graph but still has uses properly linked into their definition's use
+  // list.
   void ReplaceWith(ComparisonInstr* other,
-                   ForwardInstructionIterator* ignored) {
-    comparison_ = other;
-  }
+                   ForwardInstructionIterator* ignored);
 
   virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 

@@ -570,6 +570,38 @@ void Definition::ReplaceWith(Definition* other,
 }
 
 
+// A misleadingly named function for use in template functions that replace
+// both definitions with definitions and branch comparisons with
+// comparisons.  In the branch case, leave the branch intact and replace its
+// comparison with another comparison.
+void BranchInstr::ReplaceWith(ComparisonInstr* other,
+                              ForwardInstructionIterator* ignored) {
+  // Record the new comparison's input uses.
+  for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
+    Value* input = other->InputAt(i);
+    input->definition()->AddInputUse(input);
+  }
+  SetComparison(other);
+}
+
+
+void BranchInstr::SetComparison(ComparisonInstr* comp) {
+  // The new comparison's input uses are already recorded in their
+  // definition's use lists.
+  for (intptr_t i = comp->InputCount() - 1; i >= 0; --i) {
+    Value* input = comp->InputAt(i);
+    input->set_instruction(this);
+    input->set_use_index(i);
+  }
+  // There should be no need to copy or unuse an environment.
+  ASSERT(comparison()->env() == NULL);
+  // Remove the current comparison's input uses.
+  comparison()->UnuseAllInputs();
+  ASSERT(!comp->HasUses());
+  comparison_ = comp;
+}
+
+
 // ==== Postorder graph traversal.
 static bool IsMarked(BlockEntryInstr* block,
                      GrowableArray<BlockEntryInstr*>* preorder) {
@@ -1159,16 +1191,11 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     if ((comp->input_use_list()->instruction() == this) &&
         (comp->input_use_list()->next_use() == NULL) &&
         (comp->env_use_list() == NULL)) {
-      comparison()->UnuseAllInputs();
       comp->RemoveFromGraph();
       // It is safe to pass a NULL iterator because we're replacing the
       // comparison wrapped in a BranchInstr which does not modify the
       // linked list of instructions.
-      ReplaceWith(comp, NULL /* ignored */);
-      for (intptr_t i = 0; i < comp->InputCount(); ++i) {
-        Value* operand = comp->InputAt(i);
-        operand->set_instruction(this);
-      }
+      SetComparison(comp);
       if (FLAG_trace_optimization) {
         OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
       }

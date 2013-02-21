@@ -21,6 +21,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
         flow_graph_(flow_graph) { }
   virtual ~FlowGraphOptimizer() {}
 
+  FlowGraph* flow_graph() const { return flow_graph_; }
+
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
