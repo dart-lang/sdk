@@ -294,7 +294,7 @@ class LocalsHandler {
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
         parameter.instructionType =
-            builder.getGuaranteedTypeOfElement(parameterElement);
+            new HType.inferredForElement(parameterElement, compiler);
       });
     }
 
@@ -2887,7 +2887,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     native.NativeBehavior nativeBehavior =
         compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-    HType ssaType = mapNativeBehaviorType(nativeBehavior);
+    HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
     if (code is StringNode) {
       StringNode codeString = code;
       if (!codeString.isInterpolation) {
@@ -3374,7 +3374,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       HInvokeStatic instruction = new HInvokeStatic(inputs, HType.UNKNOWN);
-      HType returnType = getGuaranteedTypeOfElement(element);
+      HType returnType = new HType.inferredForElement(element, compiler);
       if (returnType.isUnknown()) {
         // TODO(ngeoffray): Only do this if knowing the return type is
         // useful.
@@ -3574,8 +3574,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.addAll(arguments);
     HInstruction invoke = new HInvokeDynamicMethod(
         selector, inputs, isIntercepted);
-    HType returnType = mapInferredType(
-        compiler.typesTask.getGuaranteedTypeOfNode(currentElement, node));
+    HType returnType =
+        new HType.inferredForNode(currentElement, node, compiler);
+
     if (returnType != null) {
       invoke.instructionType = returnType;
     }
@@ -4654,64 +4655,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitTypeVariable(TypeVariable node) {
     compiler.internalError('SsaBuilder.visitTypeVariable');
-  }
-
-  HType mapBaseType(BaseType baseType) {
-    if (!baseType.isClass()) return HType.UNKNOWN;
-    ClassBaseType classBaseType = baseType;
-    ClassElement cls = classBaseType.element;
-    // Special case the list and map classes that are used as types
-    // for literals in the type inferrer.
-    if (cls == compiler.listClass) {
-      return HType.READABLE_ARRAY;
-    } else if (cls == compiler.mapClass) {
-      // TODO(ngeoffray): get the actual implementation of a map
-      // literal.
-      return new HType.nonNullSubtype(
-          compiler.mapLiteralClass.computeType(compiler), compiler);
-    } else {
-      return new HType.nonNullExactClass(
-          cls.computeType(compiler), compiler);
-    }
-  }
-
-  HType mapInferredType(ConcreteType concreteType) {
-    if (concreteType == null) return HType.UNKNOWN;
-    HType ssaType = HType.CONFLICTING;
-    for (BaseType baseType in concreteType.baseTypes) {
-      ssaType = ssaType.union(mapBaseType(baseType), compiler);
-    }
-    if (ssaType.isConflicting()) return HType.UNKNOWN;
-    return ssaType;
-  }
-
-  HType getGuaranteedTypeOfElement(Element element) {
-    return mapInferredType(
-        compiler.typesTask.getGuaranteedTypeOfElement(element));
-  }
-
-  // [type] is either an instance of [DartType] or special objects
-  // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
-  HType mapNativeType(type) {
-    if (type == native.SpecialType.JsObject) {
-      return new HType.nonNullExactClass(
-          compiler.objectClass.computeType(compiler), compiler);
-    } else if (type == native.SpecialType.JsArray) {
-      return HType.READABLE_ARRAY;
-    } else {
-      return new HType.nonNullSubclass(type, compiler);
-    }
-  }
-
-  HType mapNativeBehaviorType(native.NativeBehavior nativeBehavior) {
-    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
-
-    HType ssaType = HType.CONFLICTING;
-    for (final type in nativeBehavior.typesInstantiated) {
-      ssaType = ssaType.union(mapNativeType(type), compiler);
-    }
-    assert(!ssaType.isConflicting());
-    return ssaType;
   }
 }
 

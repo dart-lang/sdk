@@ -90,8 +90,8 @@ abstract class Enqueuer {
     if (universe.instantiatedClasses.contains(cls)) return;
     if (!cls.isAbstract(compiler)) {
       universe.instantiatedClasses.add(cls);
-      onRegisterInstantiatedClass(cls);
     }
+    onRegisterInstantiatedClass(cls);
     compiler.backend.registerInstantiatedClass(cls, this);
   }
 

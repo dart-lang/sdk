@@ -620,10 +620,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       result.instructionType =
           new HType.subtype(field.computeType(compiler), compiler);
     } else {
-      HType type = backend.optimisticFieldType(field);
+      HType type = new HType.inferredForElement(field, compiler);
+      if (type.isUnknown()) {
+        type = backend.optimisticFieldType(field);
+        if (type != null) {
+          backend.registerFieldTypesOptimization(
+              work.element, field, result.instructionType);
+        }
+      }
       if (type != null) {
-        backend.registerFieldTypesOptimization(
-            work.element, field, result.instructionType);
         result.instructionType = type;
       }
     }

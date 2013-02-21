@@ -35,6 +35,53 @@ class WorkSet<E extends Element> {
   bool get isEmpty => queue.isEmpty;
 }
 
+/**
+ * Placeholder for type information of final fields of classes.
+ */
+class ClassInfoForFinalFields {
+  /**
+   * Maps a final field to a map from generative constructor to the
+   * inferred type of the field in that generative constructor.
+   */
+  final Map<Element, Map<Element, Element>> typesOfFinalFields =
+      new Map<Element, Map<Element, Element>>();
+
+  /**
+   * The number of generative constructors that need to be visited
+   * before we can take any decision on the type of the fields.
+   * Given that all generative constructors must be analyzed before
+   * re-analyzing one, we know that once [constructorsToVisitCount]
+   * reaches to 0, all generative constructors have been analyzed.
+   */
+  int constructorsToVisitCount;
+
+  ClassInfoForFinalFields(this.constructorsToVisitCount);
+
+  /**
+   * Records that the generative [constructor] has inferred [type]
+   * for the final [field].
+   */
+  void recordFinalFieldType(Element constructor, Element field, Element type) {
+    Map<Element, Element> typesFor = typesOfFinalFields.putIfAbsent(
+        field, () => new Map<Element, Element>());
+    typesFor[constructor] = type;
+  }
+
+  /**
+   * Records that [constructor] has been analyzed. If not at 0,
+   * decrement [constructorsToVisitCount].
+   */ 
+  void doneAnalyzingGenerativeConstructor(Element constructor) {
+    if (constructorsToVisitCount != 0) constructorsToVisitCount--;
+  }
+
+  /**
+   * Returns whether all generative constructors of the class have
+   * been analyzed.
+   */
+  bool get isDone => constructorsToVisitCount == 0;
+}
+
 class SimpleTypesInferrer extends TypesInferrer {
   /**
    * Maps an element to its callers.
@@ -59,6 +106,13 @@ class SimpleTypesInferrer extends TypesInferrer {
    * analyzed it.
    */
   final Map<Element, int> analyzeCount = new Map<Element, int>();
+
+  /**
+   * Maps a class to a [ClassInfoForFinalFields] to help collect type
+   * information of final fields.
+   */
+  final Map<ClassElement, ClassInfoForFinalFields> classInfoForFinalFields =
+      new Map<ClassElement, ClassInfoForFinalFields>();
 
   /**
    * The work list of the inferrer.
@@ -205,6 +259,21 @@ class SimpleTypesInferrer extends TypesInferrer {
         set.forEach((e) { workSet.add(e); });
       }
     }
+
+    // Build the [classInfoForFinalFields] map by iterating over all
+    // seen classes and counting the number of their generative
+    // constructors.
+    // We iterate over the seen classes and not the instantiated ones,
+    // because we also need to analyze the final fields of super
+    // classes that are not instantiated.
+    compiler.enqueuer.resolution.seenClasses.forEach((ClassElement cls) {
+      int constructorCount = 0;
+      cls.forEachMember((_, member) {
+        if (member.isGenerativeConstructor()) constructorCount++;
+      });
+      classInfoForFinalFields[cls.implementation] =
+          new ClassInfoForFinalFields(constructorCount);
+    });
   }
 
   dump() {
@@ -231,16 +300,33 @@ class SimpleTypesInferrer extends TypesInferrer {
   void clear() {
     callersOf.clear();
     analyzeCount.clear();
+    classInfoForFinalFields.clear();
   }
 
   bool analyze(Element element) {
-    if (element.isField()) {
-      // TODO(ngeoffray): Analyze its initializer.
+    SimpleTypeInferrerVisitor visitor =
+        new SimpleTypeInferrerVisitor(element, compiler, this);
+    Element returnType = visitor.run();
+    if (analyzeCount.containsKey(element)) {
+      analyzeCount[element]++;
+    } else {
+      analyzeCount[element] = 1;
+    }
+    if (element.isGenerativeConstructor()) {
+      // We always know the return type of a generative constructor.
+      return false;
+    } else if (element.isField()) {
+      if (element.modifiers.isFinal() || element.modifiers.isConst()) {
+        if (element.parseNode(compiler).asSendSet() != null) {
+          // If [element] is final and has an initializer, we record
+          // the inferred type.
+          return recordReturnType(element, returnType);
+        }
+      }
+      // We don't record anything for non-final fields.
       return false;
     } else {
-      SimpleTypeInferrerVisitor visitor =
-          new SimpleTypeInferrerVisitor(element, compiler, this);
-      return visitor.run();
+      return recordReturnType(element, returnType);
     }
   }
 
@@ -252,30 +338,14 @@ class SimpleTypesInferrer extends TypesInferrer {
   bool recordReturnType(analyzedElement, returnType) {
     assert(returnType != null);
     Element existing = returnTypeOf[analyzedElement];
-    if (existing == null) {
-      // First time we analyzed [analyzedElement]. Initialize the
-      // return type.
-      assert(!analyzeCount.containsKey(analyzedElement));
-      returnTypeOf[analyzedElement] = returnType;
-      // If the return type is useful, say it has changed.
-      return returnType != compiler.dynamicClass
-          && returnType != compiler.nullClass;
-    } else if (existing == compiler.dynamicClass) {
-      // Previous analysis did not find any type.
-      returnTypeOf[analyzedElement] = returnType;
-      // If the return type is useful, say it has changed.
-      return returnType != compiler.dynamicClass
-          && returnType != compiler.nullClass;
-    } else if (existing == giveUpType) {
-      // If we already gave up on the return type, we don't change it.
-      return false;
-    } else if (existing != returnType) {
-      // The method is returning two different types. Give up for now.
-      // TODO(ngeoffray): Compute LUB.
-      returnTypeOf[analyzedElement] = giveUpType;
-      return true;
-    }
-    return false;
+    Element newType = existing == compiler.dynamicClass
+        ? returnType // Previous analysis did not find any type.
+        : computeLUB(existing, returnType);
+    returnTypeOf[analyzedElement] = newType;
+    // If the return type is useful, say it has changed.
+    return existing != newType
+        && newType != compiler.dynamicClass
+        && newType != compiler.nullClass;
   }
 
   /**
@@ -289,6 +359,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (returnType == null || returnType == giveUpType) {
       return compiler.dynamicClass;
     }
+    assert(returnType != null);
     return returnType;
   }
 
@@ -317,6 +388,9 @@ class SimpleTypesInferrer extends TypesInferrer {
         return true;
       }
     });
+    if (result == null) {
+      result = compiler.dynamicClass;
+    }
     return result;
   }
 
@@ -329,8 +403,8 @@ class SimpleTypesInferrer extends TypesInferrer {
                              ArgumentsTypes arguments) {
     if (analyzeCount.containsKey(caller)) return;
     callee = callee.implementation;
-    Set<FunctionElement> callers = callersOf.putIfAbsent(
-        callee, () => new Set<FunctionElement>());
+    Set<Element> callers = callersOf.putIfAbsent(
+        callee, () => new Set<Element>());
     callers.add(caller);
   }
 
@@ -342,8 +416,8 @@ class SimpleTypesInferrer extends TypesInferrer {
                                Element callee) {
     if (analyzeCount.containsKey(caller)) return;
     callee = callee.implementation;
-    Set<FunctionElement> callers = callersOf.putIfAbsent(
-        callee, () => new Set<FunctionElement>());
+    Set<Element> callers = callersOf.putIfAbsent(
+        callee, () => new Set<Element>());
     callers.add(caller);
   }
 
@@ -357,8 +431,8 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
-      Set<FunctionElement> callers = callersOf.putIfAbsent(
-          element, () => new Set<FunctionElement>());
+      Set<Element> callers = callersOf.putIfAbsent(
+          element, () => new Set<Element>());
       callers.add(caller);
       return true;
     });
@@ -372,8 +446,8 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
-      Set<FunctionElement> callers = callersOf.putIfAbsent(
-          element, () => new Set<FunctionElement>());
+      Set<Element> callers = callersOf.putIfAbsent(
+          element, () => new Set<Element>());
       callers.add(caller);
       return true;
     });
@@ -430,6 +504,73 @@ class SimpleTypesInferrer extends TypesInferrer {
       }
     }
   }
+
+  /**
+   * Records in [classInfoForFinalFields] that [constructor] has
+   * inferred [type] for the final [field].
+   */
+  void recordFinalFieldType(Element constructor, Element field, Element type) {
+    // If the field is being set at its declaration site, it is not
+    // being tracked in the [classInfoForFinalFields] map.
+    if (constructor == field) return;
+    assert(field.modifiers.isFinal() || field.modifiers.isConst());
+    ClassElement cls = constructor.getEnclosingClass();
+    ClassInfoForFinalFields info = classInfoForFinalFields[cls.implementation];
+    info.recordFinalFieldType(constructor, field, type);
+  }
+
+  /**
+   * Records that we are done analyzing [constructor]. If all
+   * generative constructors of its enclosing class have already been
+   * analyzed, this method updates the types of final fields.
+   */
+  void doneAnalyzingGenerativeConstructor(Element constructor) {
+    ClassElement cls = constructor.getEnclosingClass();
+    ClassInfoForFinalFields info = classInfoForFinalFields[cls.implementation];
+    info.doneAnalyzingGenerativeConstructor(constructor);
+    if (info.isDone) {
+      updateFieldTypes(info);
+    }
+  }
+
+  /**
+   * Updates types of final fields listed in [info].
+   */
+  void updateFieldTypes(ClassInfoForFinalFields info) {
+    assert(info.isDone);
+    info.typesOfFinalFields.forEach((Element field,
+                                     Map<Element, Element> types) {
+      assert(field.modifiers.isFinal());
+      Element fieldType;
+      types.forEach((_, type) {
+        fieldType = computeLUB(fieldType, type);
+      });
+      returnTypeOf[field] = fieldType;
+    });
+  }
+
+  /**
+   * Returns the least upper bound between [firstType] and
+   * [secondType].
+   */
+  Element computeLUB(Element firstType, Element secondType) {
+    assert(secondType != null);
+    if (firstType == null) {
+      return secondType;
+    } else if (firstType == giveUpType) {
+      return firstType;
+    } else if (secondType == compiler.dynamicClass) {
+      return secondType;
+    } else if (firstType == compiler.dynamicClass) {
+      return firstType;
+    } else if (firstType != secondType) {
+      // TODO(ngeoffray): Actually compute the least upper bound.
+      return giveUpType;
+    } else {
+      assert(firstType == secondType);
+      return firstType;
+    }
+  }
 }
 
 /**
@@ -444,12 +585,12 @@ class ArgumentsTypes {
 }
 
 class SimpleTypeInferrerVisitor extends ResolvedVisitor {
-  final FunctionElement analyzedElement;
+  final Element analyzedElement;
   final SimpleTypesInferrer inferrer;
   final Compiler compiler;
   Element returnType;
 
-  SimpleTypeInferrerVisitor(FunctionElement element,
+  SimpleTypeInferrerVisitor(Element element,
                             Compiler compiler,
                             this.inferrer)
     : super(compiler.enqueuer.resolution.resolvedElements[element.declaration]),
@@ -458,49 +599,42 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     assert(elements != null);
   }
 
-  bool run() {
-    FunctionExpression node =
-        analyzedElement.implementation.parseNode(compiler);
-    bool changed;
-    if (analyzedElement.isGenerativeConstructor()) {
-      FunctionSignature signature = analyzedElement.computeSignature(compiler);
-      // TODO(ngeoffray): handle initializing formals.
-      // TODO(ngeoffray): handle initializers.
-      node.body.accept(this);
-      // We always know the return type of a generative constructor.
-      changed = false;
+  Element run() {
+    var node = analyzedElement.implementation.parseNode(compiler);
+    if (analyzedElement.isField()) {
+      returnType = visit(node);
+    } else if (analyzedElement.isGenerativeConstructor()) {
+      FunctionElement function = analyzedElement;
+      FunctionSignature signature = function.computeSignature(compiler);
+      signature.forEachParameter((element) {
+        if (element.kind == ElementKind.FIELD_PARAMETER
+            && element.modifiers.isFinal()) {
+          // We don't track argument types yet, so just set the field
+          // as dynamic.
+          inferrer.recordFinalFieldType(
+              analyzedElement, element.fieldElement, compiler.dynamicClass);
+        }
+      });
+      visit(node.initializers);
+      visit(node.body);
+      inferrer.doneAnalyzingGenerativeConstructor(analyzedElement);
+      returnType = analyzedElement.getEnclosingClass();
     } else if (analyzedElement.isNative()) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
-      inferrer.recordReturnType(analyzedElement, compiler.dynamicClass);
-      changed = false;
+      returnType = compiler.dynamicClass;
     } else {
-      node.body.accept(this);
+      visit(node.body);
       if (returnType == null) {
         // No return in the body.
         returnType = compiler.nullClass;
       }
-      changed = inferrer.recordReturnType(analyzedElement, returnType);
     }
-    if (inferrer.analyzeCount.containsKey(analyzedElement)) {
-      inferrer.analyzeCount[analyzedElement]++;
-    } else {
-      inferrer.analyzeCount[analyzedElement] = 1;
-    }
-    return changed;
+    return returnType;
   }
 
   recordReturnType(ClassElement cls) {
-    if (returnType == null) {
-      returnType = cls;
-    } else if (returnType != inferrer.giveUpType
-               && cls == compiler.dynamicClass) {
-      returnType = cls;
-    } else if (returnType == compiler.dynamicClass) {
-      // Nothing to do. Stay dynamic.
-    } else if (leastUpperBound(cls, returnType) == compiler.dynamicClass) {
-      returnType = inferrer.giveUpType;
-    }
+    returnType = inferrer.computeLUB(returnType, cls);
   }
 
   visitNode(Node node) {
@@ -510,6 +644,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
 
   visitNewExpression(NewExpression node) {
     return node.send.accept(this);
+  }
+
+  visit(Node node) {
+    return node == null ? compiler.dynamicClass : node.accept(this);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -563,9 +701,52 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   }
 
   visitSendSet(SendSet node) {
-    // TODO(ngeoffray): return the right hand side's type.
-    node.visitChildren(this);
-    return compiler.dynamicClass;
+    Element element = elements[node];
+    if (!Elements.isUnresolved(element) && element.impliesType()) {
+      node.visitChildren(this);
+      return compiler.dynamicClass;
+    }
+
+    Operator op = node.assignmentOperator;
+    if (node.isSuperCall) {
+      // [: super.foo = 42 :] or [: super.foo++ :] or [: super.foo += 1 :].
+      node.visitChildren(this);
+      return compiler.dynamicClass;
+    } else if (node.isIndex) {
+      if (const SourceString("=") == op.source) {
+        // [: foo[0] = 42 :]
+        visit(node.receiver);
+        Element returnType;
+        for (Node argument in node.arguments) {
+          returnType = argument.accept(this);
+        }
+        return returnType;
+      } else {
+        // [: foo[0] += 42 :] or [: foo[0]++ :].
+        node.visitChildren(this);
+        return compiler.dynamicClass;
+      }
+    } else if (const SourceString("=") == op.source) {
+      // [: foo = 42 :]
+      visit(node.receiver);
+      Link<Node> link = node.arguments;
+      assert(!link.isEmpty && link.tail.isEmpty);
+      Element type = link.head.accept(this);
+
+      if (!Elements.isUnresolved(element)
+          && element.isField()
+          && element.modifiers.isFinal()) {
+        inferrer.recordFinalFieldType(analyzedElement, element, type);
+      }
+      return type;
+    } else {
+      // [: foo++ :] or [: foo += 1 :].
+      assert(const SourceString("++") == op.source ||
+             const SourceString("--") == op.source ||
+             node.assignmentOperator.source.stringValue.endsWith("="));
+      node.visitChildren(this);
+      return compiler.dynamicClass;
+    }
   }
 
   visitIdentifier(Identifier node) {
@@ -712,14 +893,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   visitGetterSend(Send node) {
     Element element = elements[node];
     if (Elements.isStaticOrTopLevelField(element)) {
-      if (element.isGetter()) {
-        inferrer.registerGetterOnElement(analyzedElement, element);
-        return inferrer.returnTypeOfElement(element);
-      } else {
-        // Nothing yet.
-        // TODO: Analyze initializer of element.
-        return compiler.dynamicClass;
-      }
+      inferrer.registerGetterOnElement(analyzedElement, element);
+      return inferrer.returnTypeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
       ClassElement receiverType;
       if (node.receiver == null) {
@@ -768,12 +943,9 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     node.condition.accept(this);
     Element firstType = node.thenExpression.accept(this);
     Element secondType = node.elseExpression.accept(this);
-    return leastUpperBound(firstType, secondType);
-  }
-
-  leastUpperBound(Element firstType, Element secondType) {
-    if (firstType == secondType) return firstType;
-    return compiler.dynamicClass;
+    Element type = inferrer.computeLUB(firstType, secondType);
+    if (type == inferrer.giveUpType) type = compiler.dynamicClass;
+    return type;
   }
 
   internalError(String reason, {Node node}) {

@@ -118,6 +118,75 @@ abstract class HType {
         isInterfaceType: true);
   }
 
+  factory HType.fromBaseType(BaseType baseType, Compiler compiler) {
+    if (!baseType.isClass()) return HType.UNKNOWN;
+    ClassBaseType classBaseType = baseType;
+    ClassElement cls = classBaseType.element;
+    // Special case the list and map classes that are used as types
+    // for literals in the type inferrer.
+    if (cls == compiler.listClass) {
+      return HType.READABLE_ARRAY;
+    } else if (cls == compiler.mapClass) {
+      // TODO(ngeoffray): get the actual implementation of a map
+      // literal.
+      return new HType.nonNullSubtype(
+          compiler.mapLiteralClass.computeType(compiler), compiler);
+    } else {
+      return new HType.nonNullExactClass(
+          cls.computeType(compiler), compiler);
+    }
+  }
+
+  factory HType.fromInferredType(ConcreteType concreteType, Compiler compiler) {
+    if (concreteType == null) return HType.UNKNOWN;
+    HType ssaType = HType.CONFLICTING;
+    for (BaseType baseType in concreteType.baseTypes) {
+      ssaType = ssaType.union(
+          new HType.fromBaseType(baseType, compiler), compiler);
+    }
+    if (ssaType.isConflicting()) return HType.UNKNOWN;
+    return ssaType;
+  }
+
+  factory HType.inferredForElement(Element element, Compiler compiler) {
+    return new HType.fromInferredType(
+        compiler.typesTask.getGuaranteedTypeOfElement(element),
+        compiler);
+  }
+
+  factory HType.inferredForNode(
+      Element owner, Node node, Compiler compiler) {
+    return new HType.fromInferredType(
+        compiler.typesTask.getGuaranteedTypeOfNode(owner, node),
+        compiler);
+  }
+
+  // [type] is either an instance of [DartType] or special objects
+  // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
+  factory HType.fromNativeType(type, Compiler compiler) {
+    if (type == native.SpecialType.JsObject) {
+      return new HType.nonNullExactClass(
+          compiler.objectClass.computeType(compiler), compiler);
+    } else if (type == native.SpecialType.JsArray) {
+      return HType.READABLE_ARRAY;
+    } else {
+      return new HType.nonNullSubclass(type, compiler);
+    }
+  }
+
+  factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
+                                   Compiler compiler) {
+    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
+
+    HType ssaType = HType.CONFLICTING;
+    for (final type in nativeBehavior.typesInstantiated) {
+      ssaType = ssaType.union(
+          new HType.fromNativeType(type, compiler), compiler);
+    }
+    assert(!ssaType.isConflicting());
+    return ssaType;
+  }
+
   static const HType CONFLICTING = const HConflictingType();
   static const HType UNKNOWN = const HUnknownType();
   static const HType BOOLEAN = const HBooleanType();
