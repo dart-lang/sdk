@@ -130,6 +130,14 @@ class World {
     return subclasses.contains(type.element);
   }
 
+  // Returns whether a subclass of [superclass] mixes in [other].
+  bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement other) {
+    Set<MixinApplicationElement> uses = mixinUses[other];
+    return (uses != null)
+        ? uses.any((each) => each.isSubclassOf(superclass))
+        : false;
+  }
+
   void registerUsedElement(Element element) {
     if (element.isInstanceMember() && !element.isAbstract(compiler)) {
       allFunctions.add(element);
