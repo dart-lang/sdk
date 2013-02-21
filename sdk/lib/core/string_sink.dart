@@ -7,8 +7,8 @@ part of dart.core;
 abstract class StringSink {
 
   /**
-   * Converts [obj] to a String by invoking [:toString:] and adds the result to
-   * this [StringSink].
+   * Converts [obj] to a String by invoking `toString` and adds the result to
+   * `this`.
    */
   void write(Object obj);
 
@@ -18,15 +18,15 @@ abstract class StringSink {
   void writeAll(Iterable objects);
 
   /**
-   * Converts [obj] to a String by invoking [:toString:] and adds the result to
-   * this [StringSink]. Then adds a new line.
+   * Converts [obj] to a String by invoking `toString` and adds the result to
+   * `this`. Then adds a new line.
    */
   void writeln(Object obj);
 
   /**
-   * Writes the [charCode] to this [StringSink].
+   * Writes the [charCode] to `this`.
    *
-   * This method is equivalent to [:write(new String.fromCharCode(charCode)):].
+   * This method is equivalent to `write(new String.fromCharCode(charCode))`.
    */
   void writeCharCode(int charCode);
 }
