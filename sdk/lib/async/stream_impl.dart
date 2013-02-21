@@ -123,7 +123,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
    * should be the last message sent.
    */
   void _close() {
-    if (_isClosed) throw new StateError("Sending on closed stream");
+    if (_isClosed) return;
     _state |= _STREAM_CLOSED;
     if (!_canFireEvent) {
       // You can't enqueue an event after the Done, so make it const.
