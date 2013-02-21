@@ -114,6 +114,7 @@ medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
+left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
