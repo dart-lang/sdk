@@ -2429,17 +2429,23 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       warnArgumentMismatch(node.send, constructor);
       compiler.backend.registerThrowNoSuchMethod();
     }
-    // [constructor] might be the implementation element and only declaration
-    // elements may be registered.
-    world.registerStaticUse(constructor.declaration);
     compiler.withCurrentElement(constructor, () {
       FunctionExpression tree = constructor.parseNode(compiler);
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
     });
+
+    if (constructor.defaultImplementation != constructor) {
+      // Support for deprecated interface support.
+      // TODO(ngeoffray): Remove once we remove such support.
+      world.registerStaticUse(constructor.declaration);
+      world.registerInstantiatedClass(
+          constructor.getEnclosingClass().declaration);
+      constructor = constructor.defaultImplementation;
+    }
     // [constructor.defaultImplementation] might be the implementation element
     // and only declaration elements may be registered.
-    world.registerStaticUse(constructor.defaultImplementation.declaration);
-    ClassElement cls = constructor.defaultImplementation.getEnclosingClass();
+    world.registerStaticUse(constructor.declaration);
+    ClassElement cls = constructor.getEnclosingClass();
     // [cls] might be the implementation element and only declaration elements
     // may be registered.
     world.registerInstantiatedClass(cls.declaration);
