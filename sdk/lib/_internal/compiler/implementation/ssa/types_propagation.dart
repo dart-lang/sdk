@@ -126,6 +126,22 @@ abstract class SsaTypePropagator extends HBaseVisitor
   }
 
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
+    int receiverIndex = instruction.isInterceptorCall ? 1 : 0;
+    HType receiverType = instruction.inputs[receiverIndex].instructionType;
+    Selector refined = receiverType.refine(instruction.selector, compiler);
+    // TODO(kasperl): Ask the type inferrer about the type of the
+    // selector not the individual elements. This is basically code
+    // lifted out of the inferrer. Not good.
+    HType type = HType.CONFLICTING;
+    DartType functionType = compiler.functionClass.computeType(compiler);
+    for (Element each in compiler.world.allFunctions.filter(refined)) {
+      HType inferred = (refined.isGetter() && each.isFunction())
+          ? new HType.nonNullExactClass(functionType, compiler)
+          : new HType.inferredForElement(each, compiler);
+      type = type.union(inferred, compiler);
+      if (type.isUnknown()) break;
+    }
+    if (type.isUseful()) return type;
     return instruction.specializer.computeTypeFromInputTypes(
         instruction, compiler);
   }

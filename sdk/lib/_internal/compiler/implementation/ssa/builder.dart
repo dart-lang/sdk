@@ -2371,22 +2371,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
 
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
+    HInstruction instruction;
     if (interceptedClasses != null) {
       // If we're using an interceptor class, emit a call to the
       // interceptor method and then the actual dynamic call on the
       // interceptor object.
-      HInstruction instruction =
+      instruction =
           invokeInterceptor(interceptedClasses, receiver, send);
       instruction = new HInvokeDynamicGetter(
           selector, null, instruction, !hasGetter);
       // Add the receiver as an argument to the getter call on the
       // interceptor.
       instruction.inputs.add(receiver);
-      pushWithPosition(instruction, send);
     } else {
-      pushWithPosition(
-          new HInvokeDynamicGetter(selector, null, receiver, !hasGetter), send);
+      instruction = new HInvokeDynamicGetter(
+          selector, null, receiver, !hasGetter);
     }
+    pushWithPosition(instruction, send);
   }
 
   void generateGetter(Send send, Element element) {
@@ -3572,15 +3573,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
-    HInstruction invoke = new HInvokeDynamicMethod(
-        selector, inputs, isIntercepted);
-    HType returnType =
-        new HType.inferredForNode(currentElement, node, compiler);
-
-    if (returnType != null) {
-      invoke.instructionType = returnType;
-    }
-    return invoke;
+    return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
   }
 
   visitSendSet(SendSet node) {
