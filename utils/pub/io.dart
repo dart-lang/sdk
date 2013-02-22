@@ -11,7 +11,7 @@ import 'dart:isolate';
 import 'dart:json';
 import 'dart:uri';
 
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 import '../../pkg/http/lib/http.dart' show ByteStream;
 import 'error_group.dart';
 import 'exit_codes.dart' as exit_codes;

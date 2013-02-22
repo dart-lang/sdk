@@ -19,9 +19,9 @@ scheduled_test/lib/*: Skip
 [ $compiler == dart2js || $compiler == dart2dart ]
 http/test/*: Skip
 oauth2/test/*: Skip
-path/test/*: Skip
+pathos/test/*: Skip
 
-# Issue 8440 forces us to use path in the scheduled_test tests, which would
+# Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
 scheduled_test/test/*: Skip
 
@@ -29,7 +29,7 @@ scheduled_test/test/*: Skip
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
 http/test/*: Skip
 oauth2/test/*: Skip
-path/test/*: Skip
+pathos/test/*: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
@@ -39,7 +39,7 @@ analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/element_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/ast_test: Skip # Imports dart:io.
 
-# Issue 8440 forces us to use path in the scheduled_test tests, which would
+# Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
 scheduled_test/test/*: Skip
 

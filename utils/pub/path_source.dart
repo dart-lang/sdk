@@ -7,7 +7,7 @@ library path_source;
 import 'dart:async';
 import 'dart:io';
 
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 
 import 'io.dart';
 import 'package.dart';

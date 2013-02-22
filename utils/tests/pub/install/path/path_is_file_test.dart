@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../../../pkg/path/lib/path.dart' as path;
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../../../pub/exit_codes.dart' as exit_codes;
 import '../../test_pub.dart';

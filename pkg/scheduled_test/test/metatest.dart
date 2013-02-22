@@ -12,7 +12,7 @@ library metatest;
 import 'dart:async';
 import 'dart:isolate';
 
-import '../../../pkg/path/lib/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';

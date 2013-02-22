@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library path_test;
+library pathos_posix_test;
 
 import 'dart:io' as io;
 
 import 'package:unittest/unittest.dart';
-import 'package:path/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 
 main() {
   var builder = new path.Builder(style: path.Style.posix, root: '/root/path');

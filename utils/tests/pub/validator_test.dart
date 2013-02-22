@@ -11,7 +11,7 @@ import 'dart:math' as math;
 
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/http/lib/testing.dart';
-import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/pathos/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 
 import 'test_pub.dart';

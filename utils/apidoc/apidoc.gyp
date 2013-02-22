@@ -52,7 +52,7 @@
             '--exclude-lib=dartdoc',
             '--exclude-lib=http',
             '--exclude-lib=oauth2',
-            '--exclude-lib=path',
+            '--exclude-lib=pathos',
             '--exclude-lib=webdriver',
             '--exclude-lib=yaml',
             '--include-lib=matcher',

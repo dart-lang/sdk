@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library all_test;
+library pathos_test;
 
 import 'dart:io' as io;
 
 import 'package:unittest/unittest.dart';
-import 'package:path/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 
 main() {
   group('path.Style', () {

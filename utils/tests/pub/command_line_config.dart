@@ -6,7 +6,7 @@ library command_line_config;
 
 import 'dart:io';
 
-import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/pathos/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/utils.dart';
 

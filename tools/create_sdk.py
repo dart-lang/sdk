@@ -222,7 +222,7 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
   #
 
-  for library in ['args', 'http', 'intl', 'logging', 'meta', 'oauth2', 'path',
+  for library in ['args', 'http', 'intl', 'logging', 'meta', 'oauth2', 'pathos',
                   'serialization', 'unittest', 'yaml']:
 
     copytree(join(HOME, 'pkg', library), join(PKG, library),

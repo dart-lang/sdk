@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import '../../../../../pkg/path/lib/path.dart' as path;
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../test_pub.dart';
 

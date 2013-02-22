@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:math';
 
 import '../../pkg/args/lib/args.dart';
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 
 import 'command_help.dart';
 import 'command_install.dart';

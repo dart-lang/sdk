@@ -18,7 +18,7 @@ import 'dart:utf';
 
 import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
-import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/pathos/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/yaml/lib/yaml.dart';
 import '../../lib/file_system.dart' as fs;
@@ -430,7 +430,7 @@ String _packageName(String sourceName, description) {
   case "git":
     var url = description is String ? description : description['url'];
     // TODO(rnystrom): Using path.basename on a URL is hacky. If we add URL
-    // support to pkg/path, should use an explicit builder for that.
+    // support to pkg/pathos, should use an explicit builder for that.
     return path.basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;
