@@ -422,24 +422,15 @@ static void SetupForUriResolution() {
   Dart_Handle library =
       LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
   VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
-  VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
-  VerifyLoaded(library);
 }
 
 
 static void SetupForGenericSnapshotCreation() {
   SetupForUriResolution();
 
-  Dart_Handle library =
-      LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
-  VerifyLoaded(library);
-  library = LoadGenericSnapshotCreationScript(Builtin::kCryptoLibrary);
-  VerifyLoaded(library);
   // TODO(regis): Reenable this code for arm and mips when possible.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-  library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
+  Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   VerifyLoaded(library);
 #endif
 }

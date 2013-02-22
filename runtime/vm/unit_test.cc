@@ -78,14 +78,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     // Handle imports of other built-in libraries present in the SDK.
     if (DartUtils::IsDartIOLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-    } else if (DartUtils::IsDartJsonLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kJsonLibrary);
-    } else if (DartUtils::IsDartUriLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kUriLibrary);
-    } else if (DartUtils::IsDartUtfLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kUtfLibrary);
-    } else if (DartUtils::IsDartCryptoLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kCryptoLibrary);
     } else if (DartUtils::IsDartBuiltinLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     } else {

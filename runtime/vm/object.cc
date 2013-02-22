@@ -631,6 +631,16 @@ void Object::RegisterPrivateClass(const Class& cls,
   lib.AddClass(cls);
 }
 
+#define INIT_LIBRARY(name, raw_script, raw_lib)                                \
+  script ^= raw_script;                                                        \
+  Library::Init##name##Library(isolate);                                       \
+  lib ^= raw_lib;                                                              \
+  ASSERT(!lib.IsNull());                                                       \
+  error = Bootstrap::Compile(lib, script);                                     \
+  if (!error.IsNull()) {                                                       \
+    return error.raw();                                                        \
+  }                                                                            \
+
 
 RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(time_bootstrap);
@@ -761,7 +771,7 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
-  const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
+  Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
   // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
@@ -1084,6 +1094,19 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  Library& lib = Library::Handle();
+  INIT_LIBRARY(Crypto,
+               Bootstrap::LoadCryptoScript(false),
+               Library::CryptoLibrary());
+  INIT_LIBRARY(Json,
+               Bootstrap::LoadJsonScript(false),
+               Library::JsonLibrary());
+  INIT_LIBRARY(Utf,
+               Bootstrap::LoadUtfScript(false),
+               Library::UtfLibrary());
+  INIT_LIBRARY(Uri,
+               Bootstrap::LoadUriScript(false),
+               Library::UriLibrary());
   Bootstrap::SetupNativeResolver();
 
   // Remove the Object superclass cycle by setting the super type to null (not
@@ -6383,11 +6406,15 @@ void Library::InitCollectionDevLibrary(Isolate* isolate) {
 }
 
 
-void Library::InitMathLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartMath();
+void Library::InitCryptoLibrary(Isolate* isolate) {
+  const String& url = Symbols::DartCrypto();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
-  isolate->object_store()->set_math_library(lib);
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  const Namespace& math_ns = Namespace::Handle(
+      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(math_ns);
+  isolate->object_store()->set_crypto_library(lib);
 }
 
 
@@ -6400,6 +6427,22 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
       Namespace::New(async_lib, Array::Handle(), Array::Handle()));
   lib.AddImport(async_ns);
   isolate->object_store()->set_isolate_library(lib);
+}
+
+
+void Library::InitJsonLibrary(Isolate* isolate) {
+  const String& url = Symbols::DartJson();
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  isolate->object_store()->set_json_library(lib);
+}
+
+
+void Library::InitMathLibrary(Isolate* isolate) {
+  const String& url = Symbols::DartMath();
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  isolate->object_store()->set_math_library(lib);
 }
 
 
@@ -6421,19 +6464,6 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
       Namespace::New(wrappers_lib, Array::Handle(), Array::Handle()));
   lib.AddImport(wrappers_ns);
   isolate->object_store()->set_mirrors_library(lib);
-}
-
-
-void Library::InitScalarlistLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartScalarlist();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  const Namespace& collection_ns = Namespace::Handle(
-      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(collection_ns);
-  isolate->object_store()->set_scalarlist_library(lib);
 }
 
 
@@ -6459,6 +6489,47 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
     cls_name = Symbols::New(name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
+}
+
+
+void Library::InitScalarlistLibrary(Isolate* isolate) {
+  const String& url = Symbols::DartScalarlist();
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  const Namespace& collection_ns = Namespace::Handle(
+      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(collection_ns);
+  isolate->object_store()->set_scalarlist_library(lib);
+}
+
+
+void Library::InitUriLibrary(Isolate* isolate) {
+  const String& url = Symbols::DartUri();
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  const Namespace& math_ns = Namespace::Handle(
+      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  const Library& utf_lib = Library::Handle(Library::UtfLibrary());
+  const Namespace& utf_ns = Namespace::Handle(
+      Namespace::New(utf_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(math_ns);
+  lib.AddImport(utf_ns);
+  isolate->object_store()->set_uri_library(lib);
+}
+
+
+void Library::InitUtfLibrary(Isolate* isolate) {
+  const String& url = Symbols::DartUtf();
+  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
+  lib.Register();
+  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
+  const Namespace& async_ns = Namespace::Handle(
+      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
+  lib.AddImport(async_ns);
+  isolate->object_store()->set_utf_library(lib);
 }
 
 
@@ -6575,8 +6646,8 @@ RawLibrary* Library::CollectionDevLibrary() {
 }
 
 
-RawLibrary* Library::MathLibrary() {
-  return Isolate::Current()->object_store()->math_library();
+RawLibrary* Library::CryptoLibrary() {
+  return Isolate::Current()->object_store()->crypto_library();
 }
 
 
@@ -6585,8 +6656,23 @@ RawLibrary* Library::IsolateLibrary() {
 }
 
 
+RawLibrary* Library::JsonLibrary() {
+  return Isolate::Current()->object_store()->json_library();
+}
+
+
+RawLibrary* Library::MathLibrary() {
+  return Isolate::Current()->object_store()->math_library();
+}
+
+
 RawLibrary* Library::MirrorsLibrary() {
   return Isolate::Current()->object_store()->mirrors_library();
+}
+
+
+RawLibrary* Library::NativeWrappersLibrary() {
+  return Isolate::Current()->object_store()->native_wrappers_library();
 }
 
 
@@ -6595,8 +6681,13 @@ RawLibrary* Library::ScalarlistLibrary() {
 }
 
 
-RawLibrary* Library::NativeWrappersLibrary() {
-  return Isolate::Current()->object_store()->native_wrappers_library();
+RawLibrary* Library::UriLibrary() {
+  return Isolate::Current()->object_store()->uri_library();
+}
+
+
+RawLibrary* Library::UtfLibrary() {
+  return Isolate::Current()->object_store()->utf_library();
 }
 
 

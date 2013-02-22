@@ -39,13 +39,25 @@ RawScript* Bootstrap::LoadCollectionDevScript(bool is_patch) {
 }
 
 
-RawScript* Bootstrap::LoadMathScript(bool is_patch) {
+RawScript* Bootstrap::LoadCryptoScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }
 
 
 RawScript* Bootstrap::LoadIsolateScript(bool is_patch) {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
+RawScript* Bootstrap::LoadJsonScript(bool is_patch) {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
+RawScript* Bootstrap::LoadMathScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }
@@ -58,6 +70,18 @@ RawScript* Bootstrap::LoadMirrorsScript(bool is_patch) {
 
 
 RawScript* Bootstrap::LoadScalarlistScript(bool is_patch) {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
+RawScript* Bootstrap::LoadUriScript(bool is_patch) {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
+RawScript* Bootstrap::LoadUtfScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }

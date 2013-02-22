@@ -2117,21 +2117,29 @@ class Library : public Object {
   static void InitCoreLibrary(Isolate* isolate);
   static void InitCollectionLibrary(Isolate* isolate);
   static void InitCollectionDevLibrary(Isolate* isolate);
-  static void InitMathLibrary(Isolate* isolate);
+  static void InitCryptoLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
+  static void InitJsonLibrary(Isolate* isolate);
+  static void InitMathLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
-  static void InitScalarlistLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
+  static void InitScalarlistLibrary(Isolate* isolate);
+  static void InitUriLibrary(Isolate* isolate);
+  static void InitUtfLibrary(Isolate* isolate);
 
   static RawLibrary* ASyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
-  static RawLibrary* MathLibrary();
+  static RawLibrary* CryptoLibrary();
   static RawLibrary* IsolateLibrary();
+  static RawLibrary* JsonLibrary();
+  static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
-  static RawLibrary* ScalarlistLibrary();
   static RawLibrary* NativeWrappersLibrary();
+  static RawLibrary* ScalarlistLibrary();
+  static RawLibrary* UriLibrary();
+  static RawLibrary* UtfLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();

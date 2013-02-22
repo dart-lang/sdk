@@ -5,8 +5,8 @@
 # This file contains all sources for the dart:uri library.
 {
   'sources': [
-    '../../sdk/lib/uri/uri.dart',
-    '../../sdk/lib/uri/helpers.dart',
-    '../../sdk/lib/uri/encode_decode.dart',
+    'uri_base.dart',
+    'helpers.dart',
+    'encode_decode.dart',
   ],
 }

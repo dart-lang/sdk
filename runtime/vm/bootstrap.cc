@@ -56,9 +56,9 @@ RawScript* Bootstrap::LoadCollectionDevScript(bool patch) {
 }
 
 
-RawScript* Bootstrap::LoadMathScript(bool patch) {
-  const char* url = patch ? "dart:math-patch" : "dart:math";
-  const char* source = patch ? math_patch_ : math_source_;
+RawScript* Bootstrap::LoadCryptoScript(bool patch) {
+  const char* url = patch ? "dart:crypto-patch" : "dart:crypto";
+  const char* source = patch ? crypto_source_ : crypto_source_;
   return LoadScript(url, source, patch);
 }
 
@@ -66,6 +66,20 @@ RawScript* Bootstrap::LoadMathScript(bool patch) {
 RawScript* Bootstrap::LoadIsolateScript(bool patch)  {
   const char* url = patch ? "dart:isolate-patch" : "dart:isolate";
   const char* source = patch ? isolate_patch_ : isolate_source_;
+  return LoadScript(url, source, patch);
+}
+
+
+RawScript* Bootstrap::LoadJsonScript(bool patch) {
+  const char* url = patch ? "dart:json-patch" : "dart:json";
+  const char* source = patch ? json_source_ : json_source_;
+  return LoadScript(url, source, patch);
+}
+
+
+RawScript* Bootstrap::LoadMathScript(bool patch) {
+  const char* url = patch ? "dart:math-patch" : "dart:math";
+  const char* source = patch ? math_patch_ : math_source_;
   return LoadScript(url, source, patch);
 }
 
@@ -80,6 +94,20 @@ RawScript* Bootstrap::LoadMirrorsScript(bool patch)  {
 RawScript* Bootstrap::LoadScalarlistScript(bool patch) {
   const char* url = patch ? "dart:scalarlist_patch" : "dart:scalarlist";
   const char* source = patch ? scalarlist_patch_ : scalarlist_source_;
+  return LoadScript(url, source, patch);
+}
+
+
+RawScript* Bootstrap::LoadUriScript(bool patch) {
+  const char* url = patch ? "dart:uri-patch" : "dart:uri";
+  const char* source = patch ? uri_source_ : uri_source_;
+  return LoadScript(url, source, patch);
+}
+
+
+RawScript* Bootstrap::LoadUtfScript(bool patch) {
+  const char* url = patch ? "dart:utf-patch" : "dart:utf";
+  const char* source = patch ? utf_source_ : utf_source_;
   return LoadScript(url, source, patch);
 }
 

@@ -18,14 +18,10 @@ const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kASyncLibURL = "dart:async";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
-const char* DartUtils::kCryptoLibURL = "dart:crypto";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
-const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kUtfLibURL = "dart:utf";
-const char* DartUtils::kIsolateLibURL = "dart:isolate";
-
 
 const char* DartUtils::kIdFieldName = "_id";
 
@@ -149,11 +145,6 @@ bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
 }
 
 
-bool DartUtils::IsDartCryptoLibURL(const char* url_name) {
-  return (strcmp(url_name, kCryptoLibURL) == 0);
-}
-
-
 bool DartUtils::IsDartIOLibURL(const char* url_name) {
   return (strcmp(url_name, kIOLibURL) == 0);
 }
@@ -161,21 +152,6 @@ bool DartUtils::IsDartIOLibURL(const char* url_name) {
 
 bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
   return (strcmp(url_name, kBuiltinLibURL) == 0);
-}
-
-
-bool DartUtils::IsDartJsonLibURL(const char* url_name) {
-  return (strcmp(url_name, kJsonLibURL) == 0);
-}
-
-
-bool DartUtils::IsDartUriLibURL(const char* url_name) {
-  return (strcmp(url_name, kUriLibURL) == 0);
-}
-
-
-bool DartUtils::IsDartUtfLibURL(const char* url_name) {
-  return (strcmp(url_name, kUtfLibURL) == 0);
 }
 
 
@@ -314,16 +290,8 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     if (tag == kImportTag) {
       // Handle imports of other built-in libraries present in the SDK.
       Builtin::BuiltinLibraryId id;
-      if (DartUtils::IsDartCryptoLibURL(url_string)) {
-        id = Builtin::kCryptoLibrary;
-      } else if (DartUtils::IsDartIOLibURL(url_string)) {
+      if (DartUtils::IsDartIOLibURL(url_string)) {
         id = Builtin::kIOLibrary;
-      } else if (DartUtils::IsDartJsonLibURL(url_string)) {
-        id = Builtin::kJsonLibrary;
-      } else if (DartUtils::IsDartUriLibURL(url_string)) {
-        id = Builtin::kUriLibrary;
-      } else if (DartUtils::IsDartUtfLibURL(url_string)) {
-        id = Builtin::kUtfLibrary;
       } else {
         return Dart_Error("Do not know how to load '%s'", url_string);
       }

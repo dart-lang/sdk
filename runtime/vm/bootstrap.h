@@ -21,10 +21,14 @@ class Bootstrap : public AllStatic {
   static RawScript* LoadCoreScript(bool patch);
   static RawScript* LoadCollectionScript(bool patch);
   static RawScript* LoadCollectionDevScript(bool patch);
-  static RawScript* LoadMathScript(bool patch);
+  static RawScript* LoadCryptoScript(bool patch);
   static RawScript* LoadIsolateScript(bool patch);
+  static RawScript* LoadJsonScript(bool patch);
+  static RawScript* LoadMathScript(bool patch);
   static RawScript* LoadMirrorsScript(bool patch);
   static RawScript* LoadScalarlistScript(bool patch);
+  static RawScript* LoadUriScript(bool patch);
+  static RawScript* LoadUtfScript(bool patch);
   static RawError* Compile(const Library& library, const Script& script);
   static void SetupNativeResolver();
 
@@ -37,14 +41,18 @@ class Bootstrap : public AllStatic {
   static const char corelib_patch_[];
   static const char collection_source_[];
   static const char collection_dev_source_[];
-  static const char math_source_[];
-  static const char math_patch_[];
+  static const char crypto_source_[];
   static const char isolate_source_[];
   static const char isolate_patch_[];
+  static const char json_source_[];
+  static const char math_source_[];
+  static const char math_patch_[];
   static const char mirrors_source_[];
   static const char mirrors_patch_[];
   static const char scalarlist_source_[];
   static const char scalarlist_patch_[];
+  static const char uri_source_[];
+  static const char utf_source_[];
 };
 
 }  // namespace dart

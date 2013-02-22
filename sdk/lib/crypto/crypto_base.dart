@@ -1,38 +1,34 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(ager, iposva): Get rid of this file when the VM snapshot
-// generation can deal with normal library structure.
-
-library crypto;
-
-import 'dart:math';
+part of dart.crypto;
 
 /**
  * Interface for cryptographic hash functions.
  *
- * The [update] method is used to add data to the hash. The [digest] method
+ * The [add] method is used to add data to the hash. The [close] method
  * is used to extract the message digest.
  *
- * Once the [digest] method has been called no more data can be added using the
- * [update] method. If [update] is called after the first call to [digest] a
+ * Once the [close] method has been called no more data can be added using the
+ * [add] method. If [add] is called after the first call to [close] a
  * HashException is thrown.
  *
  * If multiple instances of a given Hash is needed the [newInstance]
  * method can provide a new instance.
  */
+// TODO(floitsch): make Hash implement Sink, StreamSink or similar.
 abstract class Hash {
   /**
    * Add a list of bytes to the hash computation.
    */
-  Hash update(List<int> data);
+  add(List<int> data);
 
   /**
    * Finish the hash computation and extract the message digest as
    * a list of bytes.
    */
-  List<int> digest();
+  List<int> close();
 
   /**
    * Returns a new instance of this hash function.
@@ -40,7 +36,10 @@ abstract class Hash {
   Hash newInstance();
 
   /**
-   * Block size of the hash in bytes.
+   * Internal block size of the hash in bytes.
+   *
+   * This is exposed for use by the HMAC class which needs to know the
+   * block size for the [Hash] it is using.
    */
   int get blockSize;
 }
@@ -72,9 +71,10 @@ abstract class MD5 implements Hash {
 /**
  * Hash-based Message Authentication Code support.
  *
- * The [update] method is used to add data to the message. The [digest] method
- * is used to extract the message authentication code.
+ * The [add] method is used to add data to the message. The [digest] and
+ * [close] methods are used to extract the message authentication code.
  */
+// TODO(floitsch): make Hash implement Sink, StreamSink or similar.
 abstract class HMAC {
   /**
    * Create an [HMAC] object from a [Hash] and a key.
@@ -84,13 +84,30 @@ abstract class HMAC {
   /**
    * Add a list of bytes to the message.
    */
-  HMAC update(List<int> data);
+  add(List<int> data);
 
   /**
    * Perform the actual computation and extract the message digest
    * as a list of bytes.
    */
-  List<int> digest();
+  List<int> close();
+
+  /**
+   * Extract the message digest as a list of bytes without closing [this].
+   */
+  List<int> get digest;
+
+  /**
+   * Verify that the HMAC computed for the data so far matches the
+   * given message digest.
+   *
+   * This method should be used instead of memcmp-style comparisons
+   * to avoid leaking information via timing.
+   *
+   * Throws an exception if the given digest does not have the same
+   * size as the digest computed by this HMAC instance.
+   */
+  bool verify(List<int> digest);
 }
 
 /**
