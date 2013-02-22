@@ -314,6 +314,9 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
         event_mask = (1 << kCloseEvent);
         sd->MarkClosedRead();
       }
+    } else {
+      // Assert we never get an EPOLLHUP on a non-pipe file-descriptor.
+      ASSERT(events != EPOLLHUP);
     }
 
     if ((events & EPOLLOUT) != 0) {
@@ -323,6 +326,12 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
       } else {
         event_mask |= (1 << kOutEvent);
       }
+    }
+
+    if (events == (EPOLLHUP | EPOLLERR)) {
+      event_mask = (1 << kErrorEvent);
+      sd->MarkClosedWrite();
+      sd->MarkClosedRead();
     }
   }
 
