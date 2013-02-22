@@ -566,7 +566,7 @@ class _HttpParser
             } else if (_transferLength == 0 ||
                          (_messageType == _MessageType.RESPONSE &&
                           (_noMessageBody || _responseToMethod == "HEAD"))) {
-              _state = _State.START;
+              _reset();
               var tmp = _incoming;
               _closeIncoming();
               _controller.add(tmp);
@@ -625,7 +625,7 @@ class _HttpParser
 
           case _State.CHUNKED_BODY_DONE_LF:
             _expect(byte, _CharCode.LF);
-            _state = _State.START;
+            _reset();
             _closeIncoming();
             break;
 
@@ -650,7 +650,7 @@ class _HttpParser
             _index += data.length;
             if (_remainingContent == 0) {
               if (!_chunked) {
-                _state = _State.START;
+                _reset();
                 _closeIncoming();
               } else {
                 _state = _State.CHUNK_SIZE_STARTING_CR;
