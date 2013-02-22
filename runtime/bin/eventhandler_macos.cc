@@ -273,6 +273,8 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
         }
       }
       if (event_mask == 0) event_mask |= (1 << kInEvent);
+    } else {
+      UNREACHABLE();
     }
   } else {
     // Prioritize data events over close and error events.
@@ -287,9 +289,7 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
         }
         sd->MarkClosedRead();
       }
-    }
-
-    if (event->filter == EVFILT_WRITE) {
+    } else if (event->filter == EVFILT_WRITE) {
       if ((event->flags & EV_EOF) != 0) {
         if (event->fflags != 0) {
           event_mask |= (1 << kErrorEvent);
@@ -304,6 +304,8 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
       } else {
         event_mask |= (1 << kOutEvent);
       }
+    } else {
+      UNREACHABLE();
     }
   }
 
