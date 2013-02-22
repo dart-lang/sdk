@@ -29,6 +29,7 @@ String entryMatchingPattern(String type, String parent, Pattern pattern) {
       .map((entry) => entry is File ? entry.fullPathSync() : entry.path)
       .where((entry) => entry.contains(pattern))
       .toList();
+  matchingEntries.sort();
 
   if (matchingEntries.length == 0) {
     throw "No entry found in '$parent' matching ${describePattern(pattern)}.";
