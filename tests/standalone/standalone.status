@@ -4,9 +4,6 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-io/raw_secure_server_socket_test: Pass, Timeout # Issue 8673
-io/secure_server_socket_test: Pass, Timeout # Issue 8673
-
 [ $runtime == vm ]
 # Temporarily disabled until the test scripts are rewritten for
 # dart:io v2.

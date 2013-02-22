@@ -671,7 +671,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                                   encrypted.start,
                                   encrypted.length);
         encrypted.advanceStart(bytes);
-        if (encrypted.start < encrypted.length) {
+        if (encrypted.length > 0) {
           // The socket has blocked while we have data to write.
           // We must be notified when it becomes unblocked.
           _socket.writeEventsEnabled = true;
