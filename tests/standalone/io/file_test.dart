@@ -76,7 +76,6 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     File file;
-    InputStream input;
     int bytesRead;
 
     var file1 = new File(inFilename);

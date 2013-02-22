@@ -75,7 +75,7 @@ StdioType stdioType(object) {
 
 
 class _StdIOUtils {
-  external static OutputStream _getStdioOutputStream(int fd);
-  external static InputStream _getStdioInputStream();
+  external static IOSink _getStdioOutputStream(int fd);
+  external static Stream<List<int>> _getStdioInputStream();
   external static int _socketType(nativeSocket);
 }

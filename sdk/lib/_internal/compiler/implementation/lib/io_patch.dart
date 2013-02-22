@@ -213,10 +213,10 @@ patch class _SecureFilter {
 }
 
 patch class _StdIOUtils {
-  patch static InputStream _getStdioInputStream() {
+  patch static Stream<List<int>> _getStdioInputStream() {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
-  patch static OutputStream _getStdioOutputStream(int fd) {
+  patch static IOSink _getStdioOutputStream(int fd) {
     throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
   patch static int _socketType(nativeSocket) {

@@ -5,6 +5,23 @@
 part of dart.io;
 
 /**
+ * String encodings.
+ */
+class Encoding {
+  static const Encoding UTF_8 = const Encoding._internal("UTF-8");
+  static const Encoding ISO_8859_1 = const Encoding._internal("ISO-8859-1");
+  static const Encoding ASCII = const Encoding._internal("ASCII");
+  /**
+   * SYSTEM encoding is the current code page on Windows and UTF-8 on
+   * Linux and Mac.
+   */
+  static const Encoding SYSTEM = const Encoding._internal("SYSTEM");
+  const Encoding._internal(String this.name);
+  final String name;
+}
+
+
+/**
  * Stream transformer that can decode a stream of bytes into a stream of
  * strings using [encoding].
  *
