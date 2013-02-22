@@ -732,7 +732,7 @@ void main() {
       ]);
 
       expect(dir.load('subdir').toList(),
-          throwsA(equals("Can't load the contents of 'subdir': is a "
+          throwsA(equals("Can't read the contents of 'subdir': is a "
               "directory.")));
     });
   });
