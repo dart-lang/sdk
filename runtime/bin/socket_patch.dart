@@ -831,7 +831,8 @@ class _Socket extends Stream<List<int>> implements Socket {
   void _onData(event) {
     switch (event) {
       case RawSocketEvent.READ:
-        _controller.add(_raw.read());
+        var buffer = _raw.read();
+        if (buffer != null) _controller.add(buffer);
         break;
       case RawSocketEvent.WRITE:
         _consumer.write();

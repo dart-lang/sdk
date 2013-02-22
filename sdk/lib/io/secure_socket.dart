@@ -411,7 +411,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       throw new SocketIOException("Reading from a closed socket");
     }
     if (_status != CONNECTED) {
-      return new List<int>(0);
+      return null;
     }
     var buffer = _secureFilter.buffers[READ_PLAINTEXT];
     _readEncryptedData();
