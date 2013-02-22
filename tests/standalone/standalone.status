@@ -13,6 +13,7 @@ io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
 
 [ $runtime == vm ]
+io/secure_client_raw_server_test: Pass, Fail, OK # Issue 8736.
 io/raw_secure_server_socket_test: Pass, Fail, OK # Issue 8736.
 io/secure_server_client_certificate_test: fail
 
