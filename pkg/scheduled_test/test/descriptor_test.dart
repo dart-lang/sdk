@@ -123,7 +123,7 @@ void main() {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
       expect(errors.first.error,
-          matches(r"^File not found: '[^']+/name\.txt'\.$"));
+          matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -222,9 +222,9 @@ void main() {
       expect(errors.first.error,
           matches(
               r"^Multiple entries found in '[^']+' matching /na\.\.\\\.txt/:\n"
-              r"\* .*/nail\.txt\n"
-              r"\* .*/name\.txt\n"
-              r"\* .*/nape\.txt"));
+              r"\* .*[\\/]nail\.txt\n"
+              r"\* .*[\\/]name\.txt\n"
+              r"\* .*[\\/]nape\.txt"));
     });
   }, passing: ['test 2']);
 
@@ -443,7 +443,7 @@ void main() {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
       expect(errors.first.error,
-          matches(r"^Directory not found: '[^']+/dir/subdir'\.$"));
+          matches(r"^Directory not found: '[^']+[\\/]dir[\\/]subdir'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -485,7 +485,7 @@ void main() {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
       expect(errors.first.error,
-          matches(r"^File not found: '[^']+/dir/file2\.txt'\.$"));
+          matches(r"^File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -609,7 +609,7 @@ void main() {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
       expect(errors.first.error,
-          matches(r"^File not found: '[^']+/dir/file2\.txt'\.$"));
+          matches(r"^File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -686,9 +686,9 @@ void main() {
       expect(errors.first.error,
           matches(
               r"^Multiple entries found in '[^']+' matching /d\.r/:\n"
-              r"\* .*/dar\n"
-              r"\* .*/dir\n"
-              r"\* .*/dor"));
+              r"\* .*[\\/]dar\n"
+              r"\* .*[\\/]dir\n"
+              r"\* .*[\\/]dor"));
     });
   }, passing: ['test 2']);
 
