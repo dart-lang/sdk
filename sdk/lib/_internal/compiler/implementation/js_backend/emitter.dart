@@ -250,8 +250,8 @@ class CodeEmitterTask extends CompilerTask {
     return js.fun(['cls', 'fields', 'prototype'], [
       js['var constructor'],
 
-      // if (typeof fields == 'function') {
-      js.if_(js["typeof fields == 'function'"], [
+      // if (typeof fields == "function") {
+      js.if_(js['typeof fields == "function"'], [
         js['constructor = fields']
       ], /* else */ [
         js['var str = "function " + cls + "("'],
@@ -295,11 +295,11 @@ class CodeEmitterTask extends CompilerTask {
 
     return [
       js['var $supportsProtoName = false'],
-      js["var tmp = (defineClass('c', ['f?'], {})).prototype"],
+      js['var tmp = (defineClass("c", ["f?"], {})).prototype'],
 
       js.if_(js['tmp.__proto__'], [
         js['tmp.__proto__ = {}'],
-        js.if_(js[r"typeof tmp.get$f != 'undefined'"],
+        js.if_(js[r'typeof tmp.get$f != "undefined"'],
                js['$supportsProtoName = true'])
 
       ])
@@ -341,13 +341,13 @@ class CodeEmitterTask extends CompilerTask {
            * Super;field1,field2 from the null-string property on the
            * descriptor.
            */
-          // var fields = desc[''], supr;
-          js["var fields = desc[''], supr"],
+          // var fields = desc[""], supr;
+          js['var fields = desc[""], supr'],
 
-          js.if_(js["typeof fields == 'string'"], [
+          js.if_(js['typeof fields == "string"'], [
             js['var s = fields.split(";")'],
             js['supr = s[0]'],
-            js["fields = s[1] == '' ? [] : s[1].split(',')"],
+            js['fields = s[1] == "" ? [] : s[1].split(",")'],
           ], /* else */ [
             js['supr = desc.super']
           ]),
@@ -1013,7 +1013,7 @@ class CodeEmitterTask extends CompilerTask {
       if (!needsHolder(cls)) return;
       String holder = namer.isolateAccess(cls);
       String name = namer.getName(cls);
-      buffer.add("$holder$_=$_{builtin\$cls:$_'$name'");
+      buffer.add('$holder$_=$_{builtin\$cls:$_"$name"');
       buffer.add('}$N');
     }
 
@@ -2187,10 +2187,10 @@ class CodeEmitterTask extends CompilerTask {
     }
     addComment('BEGIN invoke [main].', buffer);
     buffer.add("""
-if (typeof document !== 'undefined' && document.readyState !== 'complete') {
-  document.addEventListener('readystatechange', function () {
-    if (document.readyState == 'complete') {
-      if (typeof dartMainRunner === 'function') {
+if (typeof document !== "undefined" && document.readyState !== "complete") {
+  document.addEventListener("readystatechange", function () {
+    if (document.readyState == "complete") {
+      if (typeof dartMainRunner === "function") {
         dartMainRunner(function() { ${mainCall}; });
       } else {
         ${mainCall};
@@ -2198,7 +2198,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }, false);
 } else {
-  if (typeof dartMainRunner === 'function') {
+  if (typeof dartMainRunner === "function") {
     dartMainRunner(function() { ${mainCall}; });
   } else {
     ${mainCall};

@@ -157,7 +157,7 @@ class Primitives {
     // This is somewhat nasty, but we don't want to drag in a bunch of
     // dependencies to handle a situation that cannot happen. So we
     // avoid using Dart [:throw:] and Dart [toString].
-    JS('void', "throw 'Unable to print message: ' + String(#)", string);
+    JS('void', 'throw "Unable to print message: " + String(#)', string);
   }
 
   static void _throwFormatException(String string) {
@@ -845,7 +845,7 @@ unwrapException(ex) {
 
   // Check for the Firefox specific stack overflow signal.
   if (JS('bool',
-         r"typeof InternalError == 'function' && # instanceof InternalError",
+         r'typeof InternalError == "function" && # instanceof InternalError',
          ex)) {
     if (message is String && message == 'too much recursion') {
       return new StackOverflowError();
@@ -1494,7 +1494,7 @@ String getRuntimeTypeString(var object) {
   return "$className<${joinArguments(typeInfo, 0)}>";
 }
 
-bool isJsFunction(var o) => JS('bool', r"typeof # == 'function'", o);
+bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);
 
 Object invoke(function, arguments) {
   return JS('var', r'#.apply(null, #)', function, arguments);

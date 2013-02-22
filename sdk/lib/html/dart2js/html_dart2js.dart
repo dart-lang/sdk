@@ -1622,7 +1622,7 @@ class Console {
 
   static Console safeConsole = new Console();
 
-  bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
+  bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
   @DomName('Console.memory')
   MemoryInfo get memory => _isConsoleDefined ?
