@@ -194,11 +194,11 @@ _validateArgList(String method, List<String> args) {
 
     // Show the arguments.
     var message = new StringBuffer();
-    message.add("$method(");
-    message.add(args.take(numArgs)
+    message.write("$method(");
+    message.write(args.take(numArgs)
         .map((arg) => arg == null ? "null" : '"$arg"')
         .join(", "));
-    message.add("): part ${i - 1} was null, but part $i was not.");
+    message.write("): part ${i - 1} was null, but part $i was not.");
     throw new ArgumentError(message.toString());
   }
 }
@@ -364,16 +364,16 @@ class Builder {
     for (var part in parts) {
       if (this.isAbsolute(part)) {
         // An absolute path discards everything before it.
-        buffer.clear();
-        buffer.add(part);
+        buffer = new StringBuffer();
+        buffer.write(part);
       } else {
         if (part.length > 0 && part[0].contains(style.separatorPattern)) {
           // The part starts with a separator, so we don't need to add one.
         } else if (needsSeparator) {
-          buffer.add(separator);
+          buffer.write(separator);
         }
 
-        buffer.add(part);
+        buffer.write(part);
       }
 
       // Unless this part ends with a separator, we'll need to add one before
@@ -701,10 +701,10 @@ class _ParsedPath {
 
   String toString() {
     var builder = new StringBuffer();
-    if (root != null) builder.add(root);
+    if (root != null) builder.write(root);
     for (var i = 0; i < parts.length; i++) {
-      builder.add(parts[i]);
-      builder.add(separators[i]);
+      builder.write(parts[i]);
+      builder.write(separators[i]);
     }
 
     return builder.toString();
