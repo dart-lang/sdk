@@ -1612,7 +1612,9 @@ abstract class _HttpClientCredentials implements HttpClientCredentials {
 }
 
 
-class _HttpClientBasicCredentials implements HttpClientBasicCredentials {
+class _HttpClientBasicCredentials
+    extends _HttpClientCredentials
+    implements HttpClientBasicCredentials {
   _HttpClientBasicCredentials(this.username,
                               this.password);
 
@@ -1635,7 +1637,9 @@ class _HttpClientBasicCredentials implements HttpClientBasicCredentials {
 }
 
 
-class _HttpClientDigestCredentials implements HttpClientDigestCredentials {
+class _HttpClientDigestCredentials
+    extends _HttpClientCredentials
+    implements HttpClientDigestCredentials {
   _HttpClientDigestCredentials(this.username,
                                this.password);
 
