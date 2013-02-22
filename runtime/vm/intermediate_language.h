@@ -113,7 +113,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
 // operation for the lattice.
-class CompileType : public ZoneAllocated {
+class CompileType {
  public:
   static const bool kNullable = true;
   static const bool kNonNullable = false;
@@ -150,34 +150,34 @@ class CompileType : public ZoneAllocated {
 
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.
-  static CompileType* New(intptr_t cid, const AbstractType& type);
+  static CompileType Create(intptr_t cid, const AbstractType& type);
 
   // Create a new CompileType representing given abstract type. By default
   // values as assumed to be nullable.
-  static CompileType* FromAbstractType(const AbstractType& type,
+  static CompileType FromAbstractType(const AbstractType& type,
                                        bool is_nullable = kNullable);
 
   // Create a new CompileType representing an value with the given class id.
   // Resulting CompileType is nullable only if cid is kDynamicCid or kNullCid.
-  static CompileType* FromCid(intptr_t cid);
+  static CompileType FromCid(intptr_t cid);
 
   // Create None CompileType. It is the bottom of the lattice and is used to
   // represent type of the phi that was not yet inferred.
-  static CompileType* None() {
-    return new CompileType(true, kIllegalCid, NULL);
+  static CompileType None() {
+    return CompileType(true, kIllegalCid, NULL);
   }
 
   // Create Dynamic CompileType. It is the top of the lattice and is used to
   // represent unknown type.
-  static CompileType* Dynamic();
+  static CompileType Dynamic();
 
-  static CompileType* Null();
+  static CompileType Null();
 
   // Create non-nullable Bool type.
-  static CompileType* Bool();
+  static CompileType Bool();
 
   // Create non-nullable Int type.
-  static CompileType* Int();
+  static CompileType Int();
 
   // Perform a join operation over the type lattice.
   void Union(CompileType* other);
@@ -187,13 +187,6 @@ class CompileType : public ZoneAllocated {
     return (is_nullable_ == other->is_nullable_) &&
         (ToNullableCid() == other->ToNullableCid()) &&
         (ToAbstractType()->Equals(*other->ToAbstractType()));
-  }
-
-  // Replaces this type with other.
-  void ReplaceWith(CompileType* other) {
-    is_nullable_ = other->is_nullable_;
-    cid_ = other->cid_;
-    type_ = other->type_;
   }
 
   bool IsNone() const {
@@ -214,6 +207,21 @@ class CompileType : public ZoneAllocated {
   bool is_nullable_;
   intptr_t cid_;
   const AbstractType* type_;
+};
+
+
+// Zone allocated wrapper for the CompileType value.
+class ZoneCompileType : public ZoneAllocated {
+ public:
+  static CompileType* Wrap(const CompileType& type) {
+    ZoneCompileType* zone_type = new ZoneCompileType(type);
+    return &zone_type->type_;
+  }
+
+ private:
+  explicit ZoneCompileType(const CompileType& type) : type_(type) { }
+
+  CompileType type_;
 };
 
 
@@ -1249,15 +1257,33 @@ class Definition : public Instruction {
     return type_;
   }
 
-  // Compute initial compile type for this definition. It is safe to use this
+  virtual CompileType* ComputeInitialType() const {
+    return ZoneCompileType::Wrap(ComputeType());
+  }
+
+  // Compute compile type for this definition. It is safe to use this
   // approximation even before type propagator was run (e.g. during graph
   // building).
-  virtual CompileType* ComputeInitialType() const {
+  virtual CompileType ComputeType() const {
     return CompileType::Dynamic();
   }
 
   // Update CompileType of the definition. Returns true if the type has changed.
   virtual bool RecomputeType() {
+    return false;
+  }
+
+  bool UpdateType(CompileType new_type) {
+    if (type_ == NULL) {
+      type_ = ZoneCompileType::Wrap(new_type);
+      return true;
+    }
+
+    if (type_->IsNone() || !type_->IsEqualTo(&new_type)) {
+      *type_ = new_type;
+      return true;
+    }
+
     return false;
   }
 
@@ -1360,7 +1386,7 @@ class PhiInstr : public Definition {
   virtual BlockEntryInstr* GetBlock() const { return block(); }
   JoinEntryInstr* block() const { return block_; }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
   virtual intptr_t ArgumentCount() const { return 0; }
@@ -1456,7 +1482,7 @@ class ParameterInstr : public Definition {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
  private:
   const intptr_t index_;
@@ -1487,7 +1513,7 @@ class PushArgumentInstr : public Definition {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   Value* value() const { return value_; }
 
@@ -1933,7 +1959,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
     return (inputs_[1] == NULL) ? 1 : 2;
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -1980,7 +2006,7 @@ class ConstantInstr : public TemplateDefinition<0> {
       : value_(value) { }
 
   DECLARE_INSTRUCTION(Constant)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   const Object& value() const { return value_; }
 
@@ -2067,7 +2093,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(AssertBoolean)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
@@ -2100,7 +2126,7 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(ArgumentDefinitionTest)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t formal_parameter_index() const {
@@ -2132,7 +2158,7 @@ class CurrentContextInstr : public TemplateDefinition<0> {
   CurrentContextInstr() { }
 
   DECLARE_INSTRUCTION(CurrentContext)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -2369,7 +2395,7 @@ class StrictCompareInstr : public ComparisonInstr {
   StrictCompareInstr(Token::Kind kind, Value* left, Value* right);
 
   DECLARE_INSTRUCTION(StrictCompare)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2412,7 +2438,8 @@ class EqualityCompareInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2481,7 +2508,8 @@ class RelationalOpInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(RelationalOp)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2554,7 +2582,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
   }
 
   DECLARE_INSTRUCTION(StaticCall)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
@@ -2600,7 +2628,7 @@ class LoadLocalInstr : public TemplateDefinition<0> {
         context_level_(context_level) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   const LocalVariable& local() const { return local_; }
   intptr_t context_level() const { return context_level_; }
@@ -2735,7 +2763,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   explicit LoadStaticFieldInstr(const Field& field) : field_(field) {}
 
   DECLARE_INSTRUCTION(LoadStaticField);
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
 
@@ -2799,7 +2827,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(LoadIndexed)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
@@ -2840,7 +2868,7 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(StringFromCharCode)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   Value* char_code() const { return inputs_[0]; }
 
@@ -2919,7 +2947,7 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(BooleanNegate)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
 
@@ -2953,7 +2981,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator() const { return inputs_[1]; }
@@ -2993,7 +3021,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
@@ -3067,7 +3095,7 @@ class CreateArrayInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(CreateArray)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   intptr_t num_elements() const { return num_elements_; }
 
@@ -3100,7 +3128,7 @@ class CreateClosureInstr : public TemplateDefinition<0> {
         token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(CreateClosure)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   intptr_t token_pos() const { return token_pos_; }
   const Function& function() const { return function_; }
@@ -3142,7 +3170,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(LoadField)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -3328,7 +3356,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
         num_context_variables_(num_context_variables) {}
 
   DECLARE_INSTRUCTION(AllocateContext);
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
@@ -3381,7 +3409,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
   Value* context_value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(CloneContext)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -3481,7 +3509,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(BoxDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
  private:
   const intptr_t token_pos_;
@@ -3512,7 +3540,7 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(BoxInteger)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
@@ -3544,7 +3572,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(UnboxDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
@@ -3568,7 +3596,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3619,7 +3647,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(MathSqrt)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
@@ -3673,7 +3701,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
@@ -3721,7 +3749,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsBinaryMintOp()->op_kind();
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3782,7 +3810,7 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsShiftMintOp()->op_kind();
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3836,7 +3864,7 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
     return op_kind() == other->AsUnaryMintOp()->op_kind();
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3892,7 +3920,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(BinarySmiOp)
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const;
 
@@ -3949,7 +3977,7 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_INSTRUCTION(UnarySmiOp)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
 
@@ -3992,7 +4020,7 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
   InstanceCallInstr* instance_call() const { return instance_call_; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
@@ -4019,7 +4047,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   InstanceCallInstr* instance_call() const { return instance_call_; }
 
   DECLARE_INSTRUCTION(DoubleToInteger)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
@@ -4047,7 +4075,7 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(DoubleToSmi)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -4081,7 +4109,7 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
   DECLARE_INSTRUCTION(DoubleToDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -4122,7 +4150,7 @@ class InvokeMathCFunctionInstr : public Definition {
   MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
   DECLARE_INSTRUCTION(InvokeMathCFunction)
-  virtual CompileType* ComputeInitialType() const;
+  virtual CompileType ComputeType() const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }

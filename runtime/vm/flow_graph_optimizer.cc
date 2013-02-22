@@ -2754,7 +2754,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   current->value()->set_definition(non_smi_input_defn);
   non_smi_input_defn->AddInputUse(current->value());
 
-  phi->Type()->ReplaceWith(CompileType::FromCid(kSmiCid));
+  phi->UpdateType(CompileType::FromCid(kSmiCid));
 }
 
 

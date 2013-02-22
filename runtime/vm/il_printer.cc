@@ -112,8 +112,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
   } else {
     f->Print("?, ");
   }
-  f->Print("%s}", (type_ != NULL) ? String::Handle(type_->Name()).ToCString()
-                                  : "?");
+  f->Print("%s}", (type_ != NULL) ? type_->ToCString() : "?");
 }
 
 

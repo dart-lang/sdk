@@ -959,7 +959,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-CompileType* LoadIndexedInstr::ComputeInitialType() const {
+CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
@@ -984,7 +984,7 @@ CompileType* LoadIndexedInstr::ComputeInitialType() const {
 
     default:
       UNIMPLEMENTED();
-      return NULL;
+      return CompileType::Dynamic();
   }
 }
 
