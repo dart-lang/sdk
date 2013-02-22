@@ -265,8 +265,9 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
     }
   } else {
     // Prioritize data events over close and error events.
-    if ((events & EPOLLIN) != 0) {
-      if (FDUtils::AvailableBytes(sd->fd()) != 0) {
+    if ((events & (EPOLLIN | EPOLLHUP | EPOLLERR)) != 0) {
+      // If we have EPOLLIN and we have available bytes, report that.
+      if ((events & EPOLLIN) && FDUtils::AvailableBytes(sd->fd()) != 0) {
         event_mask = (1 << kInEvent);
       } else if ((events & EPOLLHUP) != 0) {
         // If both EPOLLHUP and EPOLLERR are reported treat it as an
@@ -306,19 +307,6 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
       }
     }
 
-    // On pipes EPOLLHUP is reported without EPOLLIN when there is no
-    // more data to read.
-    if (sd->IsPipe()) {
-      if (((events & EPOLLIN) == 0) &&
-          ((events & EPOLLHUP) != 0)) {
-        event_mask = (1 << kCloseEvent);
-        sd->MarkClosedRead();
-      }
-    } else {
-      // Assert we never get an EPOLLHUP on a non-pipe file-descriptor.
-      ASSERT(events != EPOLLHUP);
-    }
-
     if ((events & EPOLLOUT) != 0) {
       if ((events & EPOLLERR) != 0) {
         event_mask = (1 << kErrorEvent);
@@ -326,12 +314,6 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
       } else {
         event_mask |= (1 << kOutEvent);
       }
-    }
-
-    if (events == (EPOLLHUP | EPOLLERR)) {
-      event_mask = (1 << kErrorEvent);
-      sd->MarkClosedWrite();
-      sd->MarkClosedRead();
     }
   }
 
