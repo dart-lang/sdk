@@ -89,24 +89,24 @@ class CompactVMConfiguration extends VMConfiguration {
     var duration = (new DateTime.now()).difference(startTime);
     var buffer = new StringBuffer();
     // \r moves back to the beginnig of the current line.
-    buffer.add('\r${_timeString(duration)} ');
-    buffer.add(_GREEN);
-    buffer.add('+');
-    buffer.add(passed);
-    buffer.add(_NONE);
-    if (failed != 0) buffer.add(_RED);
-    buffer.add(' -');
-    buffer.add(failed);
-    if (failed != 0) buffer.add(_NONE);
-    buffer.add(': ');
-    buffer.add(color);
+    buffer.write('\r${_timeString(duration)} ');
+    buffer.write(_GREEN);
+    buffer.write('+');
+    buffer.write(passed);
+    buffer.write(_NONE);
+    if (failed != 0) buffer.write(_RED);
+    buffer.write(' -');
+    buffer.write(failed);
+    if (failed != 0) buffer.write(_NONE);
+    buffer.write(': ');
+    buffer.write(color);
 
     int nonVisible = _nonVisiblePrefix + color.length  +
         (failed != 0 ? (_RED.length + _NONE.length) : 0);
     int len = buffer.length - nonVisible;
     var mx = MAX_LINE - len;
-    buffer.add(_snippet(message, MAX_LINE - len));
-    buffer.add(_NONE);
+    buffer.write(_snippet(message, MAX_LINE - len));
+    buffer.write(_NONE);
 
     // Pad the rest of the line so that it looks erased.
     len = buffer.length - nonVisible - _NONE.length;
@@ -114,11 +114,11 @@ class CompactVMConfiguration extends VMConfiguration {
       _lastLength = len;
     } else {
       while (len < _lastLength) {
-        buffer.add(' ');
+        buffer.write(' ');
         _lastLength--;
       }
     }
-    stdout.writeString(buffer.toString());
+    stdout.addString(buffer.toString());
   }
 
   String _padTime(int time) =>
@@ -146,11 +146,11 @@ class CompactVMConfiguration extends VMConfiguration {
       if (i < words.length - 4) {
         // Require at least 3 words at the end.
         var buffer = new StringBuffer();
-        buffer.add(words.first);
-        buffer.add(' ...');
+        buffer.write(words.first);
+        buffer.write(' ...');
         for (; i < words.length; i++) {
-          buffer.add(' ');
-          buffer.add(words[i]);
+          buffer.write(' ');
+          buffer.write(words[i]);
         }
         return buffer.toString();
       }

@@ -18,17 +18,17 @@ void _showResultsInPage(int passed, int failed, int errors,
     document.body.innerHtml = "PASS";
   } else {
     var newBody = new StringBuffer();
-    newBody.add("<table class='unittest-table'><tbody>");
-    newBody.add(passed == results.length && uncaughtError == null
+    newBody.write("<table class='unittest-table'><tbody>");
+    newBody.write(passed == results.length && uncaughtError == null
         ? "<tr><td colspan='3' class='unittest-pass'>PASS</td></tr>"
         : "<tr><td colspan='3' class='unittest-fail'>FAIL</td></tr>");
 
     for (final test_ in results) {
-      newBody.add(_toHtml(test_));
+      newBody.write(_toHtml(test_));
     }
 
     if (uncaughtError != null) {
-        newBody.add('''<tr>
+        newBody.write('''<tr>
           <td>--</td>
           <td class="unittest-error">ERROR</td>
           <td>Uncaught error: $uncaughtError</td>
@@ -36,12 +36,12 @@ void _showResultsInPage(int passed, int failed, int errors,
     }
 
     if (passed == results.length && uncaughtError == null) {
-      newBody.add("""
+      newBody.write("""
           <tr><td colspan='3' class='unittest-pass'>
             All ${passed} tests passed
           </td></tr>""");
     } else {
-      newBody.add("""
+      newBody.write("""
           <tr><td colspan='3'>Total
             <span class='unittest-pass'>${passed} passed</span>,
             <span class='unittest-fail'>${failed} failed</span>
@@ -49,7 +49,7 @@ void _showResultsInPage(int passed, int failed, int errors,
             ${errors + (uncaughtError == null ? 0 : 1)} errors</span>
           </td></tr>""");
     }
-    newBody.add("</tbody></table>");
+    newBody.write("</tbody></table>");
     document.body.innerHtml = newBody.toString();
   }
 }
