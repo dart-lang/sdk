@@ -790,6 +790,11 @@ bool FlowGraphOptimizer::TryInlineByteArraySetIndexed(InstanceCallInstr* call) {
     }
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+      // Check if elements fit into a smi or the platform supports unboxed
+      // mints.
+      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+        return false;
+      }
       // We don't have ICData for the value stored, so we optimistically assume
       // smis first. If we ever deoptimized here, we require to unbox the value
       // before storing to handle the mint case, too.
@@ -1622,9 +1627,19 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
         break;
       case MethodRecognizer::kByteArrayBaseGetInt32:
+        // Check if elements fit into a smi or the platform supports unboxed
+        // mints.
+        if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+          return false;
+        }
         array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
         break;
       case MethodRecognizer::kByteArrayBaseGetUint32:
+        // Check if elements fit into a smi or the platform supports unboxed
+        // mints.
+        if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+          return false;
+        }
         array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
         break;
       case MethodRecognizer::kByteArrayBaseGetFloat32:
