@@ -13,14 +13,10 @@ interactive_test: Skip # Must be run manually.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 *layout_test: Skip
 
-[ $runtime == drt || $runtime == dartium ]
-input_element_test/supported_datetime: Fail
-
 [ $runtime == chrome ]
 element_types_test/supported_content: Pass, Fail # Issue 8700
 element_types_test/supported_shadow: Pass, Fail # Issue 8700
 input_element_test/supported_date: Pass, Fail      # Chrome stable does not support this input type.
-input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Pass, Fail # Issue 8700
 input_element_test/supported_month: Pass, Fail # Issue 8700
 input_element_test/supported_week: Pass, Fail # Issue 8700
@@ -72,7 +68,6 @@ fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail
@@ -151,7 +146,6 @@ history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_number: Fail
@@ -222,7 +216,6 @@ fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_month: Fail, Crash
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
@@ -303,7 +296,6 @@ fileapi_test/supported: Fail
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail

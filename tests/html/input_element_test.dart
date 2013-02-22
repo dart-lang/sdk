@@ -39,12 +39,6 @@ main() {
     });
   });
 
-  group('supported_datetime', () {
-    test('supported', () {
-      expect(DateTimeInputElement.supported, true);
-    });
-  });
-
   group('supported_date', () {
     test('supported', () {
       expect(DateInputElement.supported, true);
@@ -115,11 +109,6 @@ main() {
 
     test('password', () {
       check(new PasswordInputElement(), 'password');
-    });
-
-    test('datetime', () {
-      check(new DateTimeInputElement(), 'datetime',
-          DateTimeInputElement.supported);
     });
 
     test('date', () {

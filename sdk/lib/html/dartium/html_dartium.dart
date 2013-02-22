@@ -14261,7 +14261,6 @@ class InputElement extends _Element_Merged implements
     TelephoneInputElement,
     EmailInputElement,
     PasswordInputElement,
-    DateTimeInputElement,
     DateInputElement,
     MonthInputElement,
     WeekInputElement,
@@ -15016,32 +15015,6 @@ abstract class RangeInputElementBase implements InputElementBase {
 
   @DomName('HTMLInputElement.stepUp')
   void stepUp([int n]);
-}
-
-/**
- * A date and time (year, month, day, hour, minute, second, fraction of a
- * second) with the time zone set to UTC.
- *
- * Use [supported] to check if this is supported on the current platform.
- */
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental
-abstract class DateTimeInputElement implements RangeInputElementBase {
-  factory DateTimeInputElement() => new InputElement(type: 'datetime');
-
-  @DomName('HTMLInputElement.valueAsDate')
-  DateTime valueAsDate;
-
-  @DomName('HTMLInputElement.readOnly')
-  bool readOnly;
-
-  @DomName('HTMLInputElement.required')
-  bool required;
-
-  /// Returns true if this input type is supported on the current platform.
-  static bool get supported {
-    return (new InputElement(type: 'datetime')).type == 'datetime';
-  }
 }
 
 /**
