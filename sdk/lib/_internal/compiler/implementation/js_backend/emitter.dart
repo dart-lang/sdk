@@ -1324,8 +1324,8 @@ class CodeEmitterTask extends CompilerTask {
 
     jsAst.Expression init =
         js[classesCollector][className].assign(builder.toObjectInitializer());
-    buffer.add(jsAst.prettyPrint(init.toStatement(), compiler));
-    buffer.add(n);
+    buffer.add(jsAst.prettyPrint(init, compiler));
+    buffer.add('$N$n');
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
@@ -1604,8 +1604,8 @@ class CodeEmitterTask extends CompilerTask {
                           jsAst.Expression functionExpression) {
     jsAst.Expression assignment =
         js[isolateProperties][name].assign(functionExpression);
-    buffer.add(jsAst.prettyPrint(assignment.toStatement(), compiler));
-    buffer.add(n);
+    buffer.add(jsAst.prettyPrint(assignment, compiler));
+    buffer.add('$N$n');
   }
 
   void emitStaticFunctions(CodeBuffer eagerBuffer) {
@@ -1663,6 +1663,7 @@ class CodeEmitterTask extends CompilerTask {
             js[isolateProperties][staticName][name].assign(value);
         buffer.add(
             jsAst.prettyPrint(assignment.toStatement(), compiler));
+        buffer.add('$N');
       });
 
       // If a static function is used as a closure we need to add its name
@@ -1804,7 +1805,8 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression init =
           js[classesCollector][mangledName].assign(
               boundClosureBuilder.toObjectInitializer());
-      boundClosureBuffer.add(jsAst.prettyPrint(init.toStatement(), compiler));
+      boundClosureBuffer.add(jsAst.prettyPrint(init, compiler));
+      boundClosureBuffer.add("$N");
 
       closureClass = namer.isolateAccess(closureClassElement);
 
@@ -1912,7 +1914,8 @@ class CodeEmitterTask extends CompilerTask {
         jsAst.Expression init =
           js[isolateProperties][namer.getName(element)].assign(
               constantEmitter.referenceInInitializationContext(initialValue));
-        buffer.add(jsAst.prettyPrint(init.toStatement(), compiler));
+        buffer.add(jsAst.prettyPrint(init, compiler));
+        buffer.add('$N');
       });
     }
   }
@@ -1943,7 +1946,8 @@ class CodeEmitterTask extends CompilerTask {
           arguments.add(getter);
         }
         jsAst.Expression init = js[lazyInitializerName](arguments);
-        buffer.add(jsAst.prettyPrint(init.toStatement(), compiler));
+        buffer.add(jsAst.prettyPrint(init, compiler));
+        buffer.add("$N");
       }
     }
   }
@@ -1974,7 +1978,8 @@ class CodeEmitterTask extends CompilerTask {
       }
       jsAst.Expression init = js[isolateProperties][name].assign(
           constantInitializerExpression(constant));
-      buffer.add(jsAst.prettyPrint(init.toStatement(), compiler));
+      buffer.add(jsAst.prettyPrint(init, compiler));
+      buffer.add('$N');
     }
   }
 
@@ -2315,9 +2320,9 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     block.statements.add(js.return_(js[objectName]['prototype']));
 
     buffer.add(jsAst.prettyPrint(
-        js[isolateProperties][key].assign(
-            js.fun(['receiver'], block)).toStatement(),
+        js[isolateProperties][key].assign(js.fun(['receiver'], block)),
         compiler));
+    buffer.add(N);
   }
 
   /**
@@ -2548,8 +2553,8 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       jsAst.PropertyAccess property =
           js[isolateProperties][name];
 
-      buffer.add(jsAst.prettyPrint(property.assign(function).toStatement(),
-                                   compiler));
+      buffer.add(jsAst.prettyPrint(property.assign(function), compiler));
+      buffer.add(N);
     }
   }
 
