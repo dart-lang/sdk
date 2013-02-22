@@ -7,13 +7,15 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 io/raw_secure_server_socket_test: Pass, Timeout # Issue 8673
 io/secure_server_socket_test: Pass, Timeout # Issue 8673
 
-### Temporary IO library change disables, fail ###
-
 [ $runtime == vm ]
+# Temporarily disabled until the test scripts are rewritten for
+# dart:io v2.
 io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
 io/status_file_parser_test: fail
 io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
+
+[ $runtime == vm ]
 io/secure_server_client_certificate_test: fail
 io/web_socket_test: Fail, Pass # Issue 8495.
 io/https_client_certificate_test: Pass, Timeout # Issue 8674
@@ -24,16 +26,10 @@ io/https_client_test: Pass, Timeout # Issue 8674
 io/https_server_test: Pass, Timeout # Issue 8674
 io/https_client_socket_reuse_test: Pass, Timeout # Issue 8674
 io/http_client_request_test: Pass, Fail # Issue 8681
-
-####################################################
-
-
+io/http_proxy_test: Pass, Timeout # Issue 7773
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
-
-[ $runtime == vm && $system == linux ]
-io/http_proxy_test: Pass, Timeout # Issue 7773
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
