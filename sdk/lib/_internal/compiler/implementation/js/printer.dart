@@ -857,7 +857,11 @@ class Printer implements NodeVisitor {
     String comment = node.comment.trim();
     if (comment.isEmpty) return;
     for (var line in comment.split('\n')) {
-      outIndentLn('// ${line.trim()}');
+      if (comment.startsWith('//')) {
+        outIndentLn(line.trim());
+      } else {
+        outIndentLn('// ${line.trim()}');
+      }
     }
   }
 }

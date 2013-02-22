@@ -1322,9 +1322,6 @@ class CodeEmitterTask extends CompilerTask {
     emitClassGettersSetters(classElement, builder);
     emitInstanceMembers(classElement, builder);
 
-    addComment('''From "${classElement.getLibrary().canonicalUri}":
-                  class ${classElement.name.slowToString()}''',
-               buffer);
     jsAst.Expression init =
         js[classesCollector][className].assign(builder.toObjectInitializer());
     buffer.add(jsAst.prettyPrint(init, compiler));
@@ -1625,9 +1622,6 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression code = backend.generatedCode[element];
-      addComment('''From "${element.getLibrary().canonicalUri}":
-                    $element''',
-                 buffer);
       emitStaticFunction(buffer, namer.getName(element), code);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
@@ -2582,7 +2576,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       computeNeededClasses();
 
       mainBuffer.add(GENERATED_BY);
-      if (!compiler.enableMinification) mainBuffer.add(HOOKS_API_USAGE);
+      addComment(HOOKS_API_USAGE, mainBuffer);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
       // Shorten the code by using "$$" as temporary.
