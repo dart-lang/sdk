@@ -66,8 +66,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       dart2jsPatchPath: "_internal/compiler/implementation/lib/isolate_patch.dart"),
 
   "json": const LibraryInfo(
-      "json/json.dart",
-      dart2jsPatchPath: "_internal/compiler/implementation/lib/json_patch.dart"),
+      "json/json.dart"),
 
   "math": const LibraryInfo(
       "math/math.dart",

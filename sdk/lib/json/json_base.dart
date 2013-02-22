@@ -47,9 +47,7 @@ class JsonUnsupportedObjectError implements Error {
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-external parse(String json, [reviver(var key, var value)]);
-
-_parse(String json, reviver(var key, var value)) {
+parse(String json, [reviver(var key, var value)]) {
   BuildJsonListener listener;
   if (reviver == null) {
     listener = new BuildJsonListener();

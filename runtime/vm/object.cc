@@ -1101,11 +1101,6 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Json,
                Bootstrap::LoadJsonScript(false),
                Library::JsonLibrary());
-  patch_script = Bootstrap::LoadJsonScript(true);
-  error = lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
   INIT_LIBRARY(Utf,
                Bootstrap::LoadUtfScript(false),
                Library::UtfLibrary());
