@@ -10727,13 +10727,13 @@ int32_t String::CharAt(intptr_t index) const {
   ASSERT(RawObject::IsStringClassId(class_id));
   NoGCScope no_gc;
   if (class_id == kOneByteStringCid) {
-      return *OneByteString::CharAddr(*this, index);
+    return *OneByteString::CharAddr(*this, index);
   }
   if (class_id == kTwoByteStringCid) {
-      return *TwoByteString::CharAddr(*this, index);
+    return *TwoByteString::CharAddr(*this, index);
   }
   if (class_id == kExternalOneByteStringCid) {
-      return *ExternalOneByteString::CharAddr(*this, index);
+    return *ExternalOneByteString::CharAddr(*this, index);
   }
   ASSERT(class_id == kExternalTwoByteStringCid);
   return *ExternalTwoByteString::CharAddr(*this, index);
@@ -11206,7 +11206,30 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
-  intptr_t len = Utf8::Length(*this);
+  if (IsOneByteString()) {
+    // Quick conversion if OneByteString contains only ASCII characters.
+    intptr_t len = Length();
+    if (len == 0) {
+      return "";
+    }
+    Zone* zone = Isolate::Current()->current_zone();
+    uint8_t* result = zone->Alloc<uint8_t>(len + 1);
+    NoGCScope no_gc;
+    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
+    for (intptr_t i = 0; i < len; i++) {
+      if (original_str[i] <= Utf8::kMaxOneByteChar) {
+        result[i] = original_str[i];
+      } else {
+        len = -1;
+        break;
+      }
+    }
+    if (len > 0) {
+      result[len] = 0;
+      return reinterpret_cast<const char*>(result);
+    }
+  }
+  const intptr_t len = Utf8::Length(*this);
   Zone* zone = Isolate::Current()->current_zone();
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
   ToUTF8(result, len);

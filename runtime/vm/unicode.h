@@ -79,12 +79,12 @@ class Utf8 : AllStatic {
                                    int32_t* dst,
                                    intptr_t len);
 
- private:
   static const int32_t kMaxOneByteChar   = 0x7F;
   static const int32_t kMaxTwoByteChar   = 0x7FF;
   static const int32_t kMaxThreeByteChar = 0xFFFF;
   static const int32_t kMaxFourByteChar  = Utf::kMaxCodePoint;
 
+ private:
   static bool IsTrailByte(uint8_t code_unit) {
     return (code_unit & 0xC0) == 0x80;
   }
