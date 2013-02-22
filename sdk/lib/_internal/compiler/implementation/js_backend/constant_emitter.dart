@@ -46,17 +46,14 @@ class ConstantEmitter  {
 class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   final Compiler compiler;
   final Namer namer;
-  bool inIsolateInitializationContext = false;
 
   ConstantReferenceEmitter(this.compiler, this.namer);
 
   jsAst.Expression generate(Constant constant) {
-    inIsolateInitializationContext = false;
     return _visit(constant);
   }
 
   jsAst.Expression generateInInitializationContext(Constant constant) {
-    inIsolateInitializationContext = true;
     return _visit(constant);
   }
 
@@ -69,9 +66,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitFunction(FunctionConstant constant) {
-    return inIsolateInitializationContext
-        ? new jsAst.VariableUse(namer.isolatePropertiesAccess(constant.element))
-        : new jsAst.VariableUse(namer.isolateAccess(constant.element));
+    return new jsAst.VariableUse(namer.isolateAccess(constant.element));
   }
 
   jsAst.Expression visitNull(NullConstant constant) {
@@ -129,18 +124,8 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
 
   jsAst.Expression emitCanonicalVersion(Constant constant) {
     String name = namer.constantName(constant);
-    if (inIsolateInitializationContext) {
-      //  $isolateName.$isolatePropertiesName.$name
-      return new jsAst.PropertyAccess.field(
-          new jsAst.PropertyAccess.field(
-              new jsAst.VariableUse(namer.isolateName),
-              namer.isolatePropertiesName),
-          name);
-    } else {
-      return new jsAst.PropertyAccess.field(
-          new jsAst.VariableUse(namer.CURRENT_ISOLATE),
-          name);
-    }
+    return new jsAst.PropertyAccess.field(
+        new jsAst.VariableUse(namer.CURRENT_ISOLATE), name);
   }
 
   jsAst.Expression visitList(ListConstant constant) {
@@ -227,7 +212,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   String getJsConstructor(ClassElement element) {
-    return namer.isolatePropertiesAccess(element);
+    return namer.isolateAccess(element);
   }
 
   jsAst.Expression visitMap(MapConstant constant) {
