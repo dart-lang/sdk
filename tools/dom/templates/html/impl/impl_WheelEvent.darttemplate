@@ -134,20 +134,11 @@ $if DART2JS
         'deltaX is not supported');
   }
 
-  int get deltaMode {
-    if (JS('bool', '!!#.deltaMode', this)) {
-      // If not available then we're poly-filling and doing pixel scroll.
-      return 0;
-    }
-    return this._deltaMode;
-  }
-
   num get _deltaY => JS('num', '#.deltaY', this);
   num get _deltaX => JS('num', '#.deltaX', this);
   num get _wheelDelta => JS('num', '#.wheelDelta', this);
   num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
   num get _detail => JS('num', '#.detail', this);
-  int get _deltaMode => JS('int', '#.deltaMode', this);
 
   bool get _hasInitMouseScrollEvent =>
       JS('bool', '!!(#.initMouseScrollEvent)', this);

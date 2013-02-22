@@ -2195,6 +2195,8 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
 
   static const int CSS_VH = 27;
 
+  static const int CSS_VMAX = 29;
+
   static const int CSS_VMIN = 28;
 
   static const int CSS_VW = 26;
@@ -11511,6 +11513,21 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 
 @DocsEditable
+@DomName('FocusEvent')
+class FocusEvent extends UIEvent native "*FocusEvent" {
+
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
+  @JSName('relatedTarget')
+  @DomName('FocusEvent.relatedTarget')
+  @DocsEditable
+  final dynamic _relatedTarget;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('FormData')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -14845,6 +14862,10 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
   @DomName('JavaScriptCallFrame.scopeType')
   @DocsEditable
   int scopeType(int scopeIndex) native;
+
+  @DomName('JavaScriptCallFrame.setVariableValue')
+  @DocsEditable
+  Object setVariableValue(int scopeIndex, String variableName, Object newValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19050,12 +19071,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   final RtcSessionDescription localDescription;
 
-  @DomName('RTCPeerConnection.localStreams')
-  @DocsEditable
-  @Returns('_MediaStreamList')
-  @Creates('_MediaStreamList')
-  final List<MediaStream> localStreams;
-
   @DomName('RTCPeerConnection.readyState')
   @DocsEditable
   final String readyState;
@@ -19063,12 +19078,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.remoteDescription')
   @DocsEditable
   final RtcSessionDescription remoteDescription;
-
-  @DomName('RTCPeerConnection.remoteStreams')
-  @DocsEditable
-  @Returns('_MediaStreamList')
-  @Creates('_MediaStreamList')
-  final List<MediaStream> remoteStreams;
 
   @DomName('RTCPeerConnection.signalingState')
   @DocsEditable
@@ -19127,6 +19136,11 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
+  @JSName('createDTMFSender')
+  @DomName('RTCPeerConnection.createDTMFSender')
+  @DocsEditable
+  RtcdtmfSender createDtmfSender(MediaStreamTrack track) native;
+
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable
   RtcDataChannel createDataChannel(String label, [Map options]) {
@@ -19168,6 +19182,14 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event event) native;
+
+  @DomName('RTCPeerConnection.getLocalStreams')
+  @DocsEditable
+  List<MediaStream> getLocalStreams() native;
+
+  @DomName('RTCPeerConnection.getRemoteStreams')
+  @DocsEditable
+  List<MediaStream> getRemoteStreams() native;
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable
@@ -19328,6 +19350,68 @@ class RtcStatsResponse native "*RTCStatsResponse" {
   @DomName('RTCStatsResponse.result')
   @DocsEditable
   List<RtcStatsReport> result() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RTCDTMFSender')
+class RtcdtmfSender extends EventTarget native "*RTCDTMFSender" {
+
+  @JSName('canInsertDTMF')
+  @DomName('RTCDTMFSender.canInsertDTMF')
+  @DocsEditable
+  final bool canInsertDtmf;
+
+  @DomName('RTCDTMFSender.duration')
+  @DocsEditable
+  final int duration;
+
+  @DomName('RTCDTMFSender.interToneGap')
+  @DocsEditable
+  final int interToneGap;
+
+  @DomName('RTCDTMFSender.toneBuffer')
+  @DocsEditable
+  final String toneBuffer;
+
+  @DomName('RTCDTMFSender.track')
+  @DocsEditable
+  final MediaStreamTrack track;
+
+  @JSName('addEventListener')
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @JSName('insertDTMF')
+  @DomName('RTCDTMFSender.insertDTMF')
+  @DocsEditable
+  void insertDtmf(String tones, [int duration, int interToneGap]) native;
+
+  @JSName('removeEventListener')
+  @DomName('RTCDTMFSender.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RTCDTMFToneChangeEvent')
+class RtcdtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
+
+  @DomName('RTCDTMFToneChangeEvent.tone')
+  @DocsEditable
+  final String tone;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25269,6 +25353,16 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   }
 
 
+  static const int DOM_DELTA_LINE = 0x01;
+
+  static const int DOM_DELTA_PAGE = 0x02;
+
+  static const int DOM_DELTA_PIXEL = 0x00;
+
+  @DomName('WheelEvent.deltaMode')
+  @DocsEditable
+  final int deltaMode;
+
   @JSName('webkitDirectionInvertedFromDevice')
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable
@@ -25341,20 +25435,11 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
         'deltaX is not supported');
   }
 
-  int get deltaMode {
-    if (JS('bool', '!!#.deltaMode', this)) {
-      // If not available then we're poly-filling and doing pixel scroll.
-      return 0;
-    }
-    return this._deltaMode;
-  }
-
   num get _deltaY => JS('num', '#.deltaY', this);
   num get _deltaX => JS('num', '#.deltaX', this);
   num get _wheelDelta => JS('num', '#.wheelDelta', this);
   num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
   num get _detail => JS('num', '#.detail', this);
-  int get _deltaMode => JS('int', '#.deltaMode', this);
 
   bool get _hasInitMouseScrollEvent =>
       JS('bool', '!!(#.initMouseScrollEvent)', this);
@@ -28025,203 +28110,6 @@ class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
 @DocsEditable
 @DomName('HTMLMarqueeElement')
 class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('MediaStreamList')
-class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
-
-  @DomName('MediaStreamList.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
-
-  void operator[]=(int index, MediaStream value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<MediaStream> mixins.
-  // MediaStream is the element type.
-
-  // From Iterable<MediaStream>:
-
-  Iterator<MediaStream> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<MediaStream>(this);
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  bool contains(MediaStream element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(MediaStream element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(MediaStream element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<MediaStream> where(bool f(MediaStream element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(MediaStream element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
-
-  List<MediaStream> toList() => new List<MediaStream>.from(this);
-  Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
-  }
-
-  MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
-  }
-
-  MediaStream singleMatching(bool test(MediaStream value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
-  }
-
-  MediaStream elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<MediaStream>:
-
-  void add(MediaStream value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(MediaStream value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<MediaStream> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<MediaStream>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<MediaStream> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(MediaStream a, MediaStream b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(MediaStream element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(MediaStream element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  MediaStream get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  MediaStream get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  MediaStream get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
-  MediaStream removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  MediaStream removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeMatching(bool test(MediaStream element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainMatching(bool test(MediaStream element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [MediaStream initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<MediaStream> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <MediaStream>[]);
-
-  // -- end List<MediaStream> mixins.
-
-  @DomName('MediaStreamList.item')
-  @DocsEditable
-  MediaStream item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
