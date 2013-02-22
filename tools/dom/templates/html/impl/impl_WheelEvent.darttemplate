@@ -134,6 +134,15 @@ $if DART2JS
         'deltaX is not supported');
   }
 
+  @DomName('WheelEvent.deltaMode')
+  int get deltaMode {
+    if (JS('bool', '!!(#.deltaMode)', this)) {
+      return JS('int', '#.deltaMode', this);
+    }
+    // If not available then we're poly-filling and doing pixel scroll.
+    return 0;
+  }
+
   num get _deltaY => JS('num', '#.deltaY', this);
   num get _deltaX => JS('num', '#.deltaX', this);
   num get _wheelDelta => JS('num', '#.wheelDelta', this);
@@ -188,6 +197,5 @@ $else
   num get deltaX => $dom_wheelDeltaX;
   @DomName('WheelEvent.deltaY')
   num get deltaY => $dom_wheelDeltaY;
-
 $endif
 }

@@ -27873,7 +27873,6 @@ class WheelEvent extends MouseEvent {
   num get deltaX => $dom_wheelDeltaX;
   @DomName('WheelEvent.deltaY')
   num get deltaY => $dom_wheelDeltaY;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

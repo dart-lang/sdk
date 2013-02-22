@@ -20,6 +20,7 @@ main() {
       expect(e.screenX, 100);
       expect(e.deltaX, 0);
       expect(e.deltaY, 240);
+      expect(e.deltaMode, isNotNull);
     }));
     var event = new WheelEvent(eventType,
       deltaX: 0,
