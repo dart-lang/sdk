@@ -53,6 +53,7 @@ audiobuffersourcenode_test: Pass, Fail
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
+crypto_test: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
@@ -106,6 +107,7 @@ history_test/history: Pass, Fail # issue 8183
 canvasrenderingcontext2d_test: Fail # issue 8678
 
 [ $runtime == ie9 ]
+crypto_test: Fail
 document_test/supports_cssCanvasContext: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
@@ -238,6 +240,7 @@ element_test/elements: Crash, Fail # Issue: 7414
 wheelevent_test: Fail # Issue: 7414
 
 [ $runtime == opera ]
+crypto_test: Fail
 document_test/supports_cssCanvasContext: Fail
 document_test/document: Fail # Issue: 7413
 form_data_test: Fail # Issue: 7413
@@ -281,6 +284,7 @@ websql_test/supported: Fail
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
+crypto_test: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
