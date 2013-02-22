@@ -65,8 +65,8 @@ abstract class Directory extends FileSystemEntity {
 
   /**
    * Creates a temporary directory with a name based on the current
-   * path.  This name and path is used as a template, and additional
-   * characters are appended to it by the call to make a unique
+   * path.  The path is used as a template, and additional
+   * characters are appended to it to make a unique temporary
    * directory name.  If the path is the empty string, a default
    * system temp directory and name are used for the template.
    *
@@ -77,15 +77,15 @@ abstract class Directory extends FileSystemEntity {
 
   /**
    * Synchronously creates a temporary directory with a name based on the
-   * current path. This name and path is used as a template, and additional
-   * characters are appended to it by the call to make a unique directory name.
+   * current path. The path is used as a template, and additional
+   * characters are appended to it to make a unique temporary directory name.
    * If the path is the empty string, a default system temp directory and name
    * are used for the template. Returns the newly created temporary directory.
    */
   Directory createTempSync();
 
   /**
-   * Deletes the directory with this name.
+   * Deletes this directory.
    *
    * If [recursive] is false, the directory must be empty.
    *
@@ -99,7 +99,7 @@ abstract class Directory extends FileSystemEntity {
   Future<Directory> delete({recursive: false});
 
   /**
-   * Synchronously deletes the directory with this name.
+   * Synchronously deletes this directory.
    *
    * If [recursive] is false, the directory must be empty.
    *
@@ -111,17 +111,17 @@ abstract class Directory extends FileSystemEntity {
   void deleteSync({recursive: false});
 
   /**
-   * Rename this directory. Returns a [:Future<Directory>:] that completes
+   * Renames this directory. Returns a [:Future<Directory>:] that completes
    * with a [Directory] instance for the renamed directory.
    *
    * If newPath identifies an existing directory, that directory is
-   * replaced. If newPath identifies an existing file the operation
+   * replaced. If newPath identifies an existing file, the operation
    * fails and the future completes with an exception.
    */
   Future<Directory> rename(String newPath);
 
   /**
-   * Synchronously rename this directory. Returns a [Directory]
+   * Synchronously renames this directory. Returns a [Directory]
    * instance for the renamed directory.
    *
    * If newPath identifies an existing directory, that directory is
@@ -131,8 +131,8 @@ abstract class Directory extends FileSystemEntity {
   Directory renameSync(String newPath);
 
   /**
-   * List the sub-directories and files of this [Directory].
-   * Optionally recurse into sub-directories.
+   * Lists the sub-directories and files of this [Directory].
+   * Optionally recurses into sub-directories.
    *
    * The result is a stream of [FileSystemEntity] objects
    * for the directories and files.
@@ -140,8 +140,8 @@ abstract class Directory extends FileSystemEntity {
   Stream<FileSystemEntity> list({bool recursive: false});
 
   /**
-   * List the sub-directories and files of this [Directory].
-   * Optionally recurse into sub-directories.
+   * Lists the sub-directories and files of this [Directory].
+   * Optionally recurses into sub-directories.
    *
    * Returns a [List] containing [FileSystemEntity] objects for the
    * directories and files.

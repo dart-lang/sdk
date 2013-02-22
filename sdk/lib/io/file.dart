@@ -21,10 +21,10 @@ class FileMode {
  *
  * To operate on the underlying file data there are two options:
  *
- *  * use streaming by getting a [Stream] for the contents of the file
- *    with [openRead] and by getting a [IOSink] for
- *    writing contents to the file using [openWrite], or
- *  * open the file for random access operations using [open].
+ *  * Use streaming: read the contents of the file from the [Stream]
+ *    this.[openRead]() and write to the file by writing to the [IOSink]
+ *    this.[openWrite]().
+ *  * Open the file for random access operations using [open].
  */
 abstract class File extends FileSystemEntity {
   /**
@@ -38,8 +38,8 @@ abstract class File extends FileSystemEntity {
   factory File.fromPath(Path path) => new _File.fromPath(path);
 
   /**
-   * Check if the file exists. Does not block and returns a
-   * [:Future<bool>:].
+   * Check if the file exists. Returns a
+   * [:Future<bool>:] that completes when the answer is known.
    */
   Future<bool> exists();
 
@@ -52,7 +52,7 @@ abstract class File extends FileSystemEntity {
    * Create the file. Returns a [:Future<File>:] that completes with
    * the file when it has been created.
    *
-   * Existing files are left untouched by create. Calling create on an
+   * Existing files are left untouched by [create]. Calling [create] on an
    * existing file might fail if there are restrictive permissions on
    * the file.
    */
@@ -60,8 +60,8 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Synchronously create the file. Existing files are left untouched
-   * by create. Calling create on an existing file might fail if there
-   * are restrictive permissions on the file.
+   * by [createSync]. Calling [createSync] on an existing file might fail
+   * if there are restrictive permissions on the file.
    */
   void createSync();
 
@@ -77,14 +77,14 @@ abstract class File extends FileSystemEntity {
   void deleteSync();
 
   /**
-   * Get a Directory object for the directory containing this
+   * Get a [Directory] object for the directory containing this
    * file. Returns a [:Future<Directory>:] that completes with the
    * directory.
    */
   Future<Directory> directory();
 
   /**
-   * Synchronously get a Directory object for the directory containing
+   * Synchronously get a [Directory] object for the directory containing
    * this file.
    */
   Directory directorySync();
@@ -116,27 +116,27 @@ abstract class File extends FileSystemEntity {
   /**
    * Open the file for random access operations. Returns a
    * [:Future<RandomAccessFile>:] that completes with the opened
-   * random access file. RandomAccessFiles must be closed using the
-   * [close] method.
+   * random access file. [RandomAccessFile]s must be closed using the
+   * [RandomAccessFile.close] method.
    *
    * Files can be opened in three modes:
    *
-   * FileMode.READ: open the file for reading.
+   * [FileMode.READ]: open the file for reading.
    *
-   * FileMode.WRITE: open the file for both reading and writing and
+   * [FileMode.WRITE]: open the file for both reading and writing and
    * truncate the file to length zero. If the file does not exist the
    * file is created.
    *
-   * FileMode.APPEND: same as FileMode.WRITE except that the file is
+   * [FileMode.APPEND]: same as [FileMode.WRITE] except that the file is
    * not truncated.
    */
   Future<RandomAccessFile> open([FileMode mode = FileMode.READ]);
 
   /**
    * Synchronously open the file for random access operations. The
-   * result is a RandomAccessFile on which random access operations
-   * can be performed. Opened RandomAccessFiles must be closed using
-   * the [close] method.
+   * result is a [RandomAccessFile] on which random access operations
+   * can be performed. Opened [RandomAccessFile]s must be closed using
+   * the [RandomAccessFile.close] method.
    *
    * See [open] for information on the [mode] argument.
    */
@@ -154,8 +154,8 @@ abstract class File extends FileSystemEntity {
   String fullPathSync();
 
   /**
-   * Create a new independent [Stream] for the contents of this
-   * file.
+   * Create a new independent [Stream](../dart_async/Stream.html) for the
+   * contents of this file.
    *
    * In order to make sure that system resources are freed, the stream
    * must be read to completion or the subscription on the stream must
@@ -166,13 +166,14 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Creates a new independent [IOSink] for the file. The
-   * stream consumer must be closed when no longer used to free up
+   * [IOSink] must be closed when no longer used, to free
    * system resources.
    *
-   * A IOSink can be opened for a file in two modes:
+   * An [IOSink] for a file can be opened in two modes:
    *
-   * * FileMode.WRITE: truncates the underlying file to length zero.
-   * * FileMode.APPEND: sets the position to the end of the underlying file.
+   * * [FileMode.WRITE]: truncates the file to length zero.
+   * * [FileMode.APPEND]: sets the initial write position to the end
+   *   of the file.
    */
   IOSink<File> openWrite([FileMode mode = FileMode.WRITE]);
 
@@ -190,7 +191,7 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Read the entire file contents as a string using the given
-   * [encoding].
+   * [Encoding].
    *
    * Returns a [:Future<String>:] that completes with the string once
    * the file contents has been read.
@@ -199,13 +200,13 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Synchronously read the entire file contents as a string using the
-   * given [encoding].
+   * given [Encoding].
    */
   String readAsStringSync([Encoding encoding = Encoding.UTF_8]);
 
   /**
-   * Read the entire file contents as lines of text using the give
-   * [encoding].
+   * Read the entire file contents as lines of text using the given
+   * [Encoding].
    *
    * Returns a [:Future<List<String>>:] that completes with the lines
    * once the file contents has been read.
@@ -214,7 +215,7 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Synchronously read the entire file contents as lines of text
-   * using the given [encoding].
+   * using the given [Encoding].
    */
   List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]);
 
@@ -227,18 +228,18 @@ abstract class File extends FileSystemEntity {
    *
    * By default [writeAsBytes] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
-   * file pass [:FileMode.APPEND:] as the optional mode parameter.
+   * file, pass [FileMode.APPEND] as the optional mode parameter.
    */
   Future<File> writeAsBytes(List<int> bytes, [FileMode mode = FileMode.WRITE]);
 
   /**
    * Synchronously write a list of bytes to a file.
    *
-   * Opens the file, writes the list of bytes to it and closses the file.
+   * Opens the file, writes the list of bytes to it and closes the file.
    *
    * By default [writeAsBytesSync] creates the file for writing and truncates
    * the file if it already exists. In order to append the bytes to an existing
-   * file pass [:FileMode.APPEND:] as the optional mode parameter.
+   * file, pass [FileMode.APPEND] as the optional mode parameter.
    */
   void writeAsBytesSync(List<int> bytes, [FileMode mode = FileMode.WRITE]);
 
@@ -251,7 +252,7 @@ abstract class File extends FileSystemEntity {
    *
    * By default [writeAsString] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
-   * file pass [:FileMode.APPEND:] as the optional mode parameter.
+   * file, pass [FileMode.APPEND] as the optional mode parameter.
    */
   Future<File> writeAsString(String contents,
                              {FileMode mode: FileMode.WRITE,
@@ -265,7 +266,7 @@ abstract class File extends FileSystemEntity {
    *
    * By default [writeAsStringSync] creates the file for writing and
    * truncates the file if it already exists. In order to append the bytes
-   * to an existing file pass [:FileMode.APPEND:] as the optional mode
+   * to an existing file, pass [FileMode.APPEND] as the optional mode
    * parameter.
    */
   void writeAsStringSync(String contents,
@@ -286,79 +287,85 @@ abstract class File extends FileSystemEntity {
  */
 abstract class RandomAccessFile {
   /**
-   * Close the file. Returns a [:Future<RandomAccessFile>:] that
+   * Closes the file. Returns a [:Future<RandomAccessFile>:] that
    * completes with this RandomAccessFile when it has been closed.
    */
   Future<RandomAccessFile> close();
 
   /**
-   * Synchronously close the file.
+   * Synchronously closes the file.
    */
   void closeSync();
 
   /**
-   * Read a byte from the file. Returns a [:Future<int>:] that
-   * completes with the byte or -1 if end of file has been reached.
+   * Reads a byte from the file. Returns a [:Future<int>:] that
+   * completes with the byte, or with -1 if end-of-file has been reached.
    */
   Future<int> readByte();
 
   /**
-   * Synchronously read a single byte from the file. If end of file
+   * Synchronously reads a single byte from the file. If end-of-file
    * has been reached -1 is returned.
    */
   int readByteSync();
 
   /**
-   * Reads from a file and returns the result as a list of bytes.
+   * Reads [bytes] bytes from a file and returns the result as a list of bytes.
    */
   Future<List<int>> read(int bytes);
 
   /**
-   * Synchronously reads from a file and returns the result in a
+   * Synchronously reads a maximum of [bytes] bytes from a file
+   * and returns the result in a
    * list of bytes.
    */
   List<int> readSync(int bytes);
 
   /**
-   * Read a List<int> from the file. Returns a [:Future<int>:] that
-   * completes with an indication of how much was read.
+   * Reads into an existing List<int> from the file. A maximum of [bytes] bytes
+   * is read into [buffer], starting at position [offset] in the buffer.
+   * Returns a [:Future<int>:] that completes with the number of bytes read.
    */
   Future<int> readList(List<int> buffer, int offset, int bytes);
 
   /**
-   * Synchronously read a List<int> from the file. Returns the number
-   * of bytes read.
+   * Synchronously reads from a file into [buffer].  A maximum of [bytes] bytes
+   * is read into [buffer], starting at position [offset] in the buffer.
+   * Returns the number of bytes read.
    */
   int readListSync(List<int> buffer, int offset, int bytes);
 
   /**
-   * Write a single byte to the file. Returns a
+   * Writes a single byte to the file. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the write completes.
    */
   Future<RandomAccessFile> writeByte(int value);
 
   /**
-   * Synchronously write a single byte to the file. Returns the
+   * Synchronously writes a single byte to the file. Returns the
    * number of bytes successfully written.
    */
   int writeByteSync(int value);
 
   /**
-   * Write a List<int> to the file. Returns a
+   * Writes from a List<int> to the file. [bytes] bytes are written from
+   * [buffer], starting at position [offset] in the buffer. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the write completes.
    */
   Future<RandomAccessFile> writeList(List<int> buffer, int offset, int bytes);
 
   /**
-   * Synchronously write a List<int> to the file. Returns the number
+   * Synchronously writes a List<int> to the file.
+   * [bytes] bytes are written from
+   * [buffer], starting at position [offset] in the buffer. Returns the number
    * of bytes successfully written.
    */
   int writeListSync(List<int> buffer, int offset, int bytes);
 
   /**
-   * Write a string to the file using the given [encoding]. Returns a
+   * Writes a string to the file using the given [Encoding]. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the write completes.
    */
@@ -366,78 +373,78 @@ abstract class RandomAccessFile {
                                        [Encoding encoding = Encoding.UTF_8]);
 
   /**
-   * Synchronously write a single string to the file using the given
-   * [encoding]. Returns the number of characters successfully
+   * Synchronously writes a single string to the file using the given
+   * [Encoding]. Returns the number of characters successfully
    * written.
    */
   int writeStringSync(String string,
                       [Encoding encoding = Encoding.UTF_8]);
 
   /**
-   * Get the current byte position in the file. Returns a
+   * Gets the current byte position in the file. Returns a
    * [:Future<int>:] that completes with the position.
    */
   Future<int> position();
 
   /**
-   * Synchronously get the current byte position in the file.
+   * Synchronously gets the current byte position in the file.
    */
   int positionSync();
 
   /**
-   * Set the byte position in the file. Returns a
+   * Sets the byte position in the file. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the position has been set.
    */
   Future<RandomAccessFile> setPosition(int position);
 
   /**
-   * Synchronously set the byte position in the file.
+   * Synchronously sets the byte position in the file.
    */
   void setPositionSync(int position);
 
   /**
-   * Truncate (or extend) the file to [length] bytes. Returns a
+   * Truncates (or extends) the file to [length] bytes. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the truncation has been performed.
    */
   Future<RandomAccessFile> truncate(int length);
 
   /**
-   * Synchronously truncate (or extend) the file to [length] bytes.
+   * Synchronously truncates (or extends) the file to [length] bytes.
    */
   void truncateSync(int length);
 
   /**
-   * Get the length of the file. Returns a [:Future<int>:] that
+   * Gets the length of the file. Returns a [:Future<int>:] that
    * completes with the length in bytes.
    */
   Future<int> length();
 
   /**
-   * Synchronously get the length of the file.
+   * Synchronously gets the length of the file.
    */
   int lengthSync();
 
   /**
-   * Flush the contents of the file to disk. Returns a
+   * Flushes the contents of the file to disk. Returns a
    * [:Future<RandomAccessFile>:] that completes with this
    * RandomAccessFile when the flush operation completes.
    */
   Future<RandomAccessFile> flush();
 
   /**
-   * Synchronously flush the contents of the file to disk.
+   * Synchronously flushes the contents of the file to disk.
    */
   void flushSync();
 
   /**
-   * Returns a human readable string for this File instance.
+   * Returns a human-readable string for this RandomAccessFile instance.
    */
   String toString();
 
   /**
-   * Get the name of the file.
+   * Gets the name of the file underlying this RandomAccessFile.
    */
   String get name;
 }

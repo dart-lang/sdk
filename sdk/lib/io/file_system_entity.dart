@@ -9,10 +9,10 @@ part of dart.io;
  * [Directory] objects.
  *
  * [FileSystemEntity] objects are returned from directory listing
- * operations. To determine if a FileSystemEntity is a File or a
- * directory, perform a type check:
+ * operations. To determine if a FileSystemEntity is a [File] or a
+ * [Directory], perform a type check:
  *
- *    if (entity is File) (entity as File).readAsStringSync();
+ *     if (entity is File) (entity as File).readAsStringSync();
  */
 abstract class FileSystemEntity {
 }
