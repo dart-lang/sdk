@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -247,27 +247,31 @@ class _HttpHeaders implements HttpHeaders {
         throw new HttpException("Unexpected type for header named $name");
       }
     } else if (lowerCaseName == "host") {
-      int pos = value.indexOf(":");
-      if (pos == -1) {
-        _host = value;
-        _port = HttpClient.DEFAULT_HTTP_PORT;
-      } else {
-        if (pos > 0) {
-          _host = value.substring(0, pos);
-        } else {
-          _host = null;
-        }
-        if (pos + 1 == value.length) {
+      if (value is String) {
+        int pos = (value as String).indexOf(":");
+        if (pos == -1) {
+          _host = value;
           _port = HttpClient.DEFAULT_HTTP_PORT;
         } else {
-          try {
-            _port = int.parse(value.substring(pos + 1));
-          } on FormatException catch (e) {
-            _port = null;
+          if (pos > 0) {
+            _host = (value as String).substring(0, pos);
+          } else {
+            _host = null;
+          }
+          if (pos + 1 == value.length) {
+            _port = HttpClient.DEFAULT_HTTP_PORT;
+          } else {
+            try {
+              _port = int.parse(value.substring(pos + 1));
+            } on FormatException catch (e) {
+              _port = null;
+            }
           }
         }
+        _set("host", value);
+      } else {
+        throw new HttpException("Unexpected type for header named $name");
       }
-      _set("host", value);
     } else if (lowerCaseName == "content-type") {
       _set("content-type", value);
     } else {

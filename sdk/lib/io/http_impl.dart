@@ -1597,7 +1597,7 @@ class _Credentials {
   bool used = false;
   Uri uri;
   String realm;
-  HttpClientCredentials credentials;
+  _HttpClientCredentials credentials;
 
   // Digest specific fields.
   String nonce;
@@ -1608,7 +1608,7 @@ class _Credentials {
 
 abstract class _HttpClientCredentials implements HttpClientCredentials {
   _AuthenticationScheme get scheme;
-  void authorize(HttpClientRequest request);
+  void authorize(_Credentials credentials, HttpClientRequest request);
 }
 
 

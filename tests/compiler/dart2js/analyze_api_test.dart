@@ -25,11 +25,7 @@ import '../../../sdk/lib/_internal/libraries.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
-const Map<String,List<String>> WHITE_LIST = const {
-  'io/http_impl.dart': const ['Warning: no method named'], // Issue 8394.
-  'io/http_headers.dart': const ['Warning: no method named'], // Issue 8394.
-  'io/timer_impl.dart': const ['Warning: no method named'], // Issue 8394.
-};
+const Map<String,List<String>> WHITE_LIST = const { };
 
 class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool hasWarnings = false;
