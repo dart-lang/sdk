@@ -525,7 +525,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       } catch (e) { _reportError(e, "RawSecureSocket error"); }
       if (!_filterReadEmpty) {
         if (_readEventsEnabled) {
-          _controller.add(RawSocketEvent.READ);
+          if (_secureFilter.buffers[READ_PLAINTEXT].length > 0) {
+            _controller.add(RawSocketEvent.READ);
+          }
           if (_socketClosedRead) {
             // Keep firing read events until we are paused or buffer is empty.
             new Timer(0, (_) => _readHandler());
