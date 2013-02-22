@@ -171,8 +171,14 @@ void testSimpleReadWrite() {
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
             var buffer = client.read();
-            data.setRange(bytesRead, buffer.length, buffer);
-            bytesRead += buffer.length;
+            if (buffer != null) {
+              data.setRange(bytesRead, buffer.length, buffer);
+              bytesRead += buffer.length;
+              for (var value in buffer) {
+                Expect.isTrue(value is int);
+                Expect.isTrue(value < 256 && value >= 0);
+              }
+            }
             if (bytesRead == data.length) {
               verifyTestData(data);
               client.writeEventsEnabled = true;
@@ -180,6 +186,11 @@ void testSimpleReadWrite() {
             break;
           case RawSocketEvent.WRITE:
             Expect.isFalse(client.writeEventsEnabled);
+            Expect.equals(bytesRead, data.length);
+            for (int i = bytesWritten; i < data.length; ++i) {
+              Expect.isTrue(data[i] is int);
+              Expect.isTrue(data[i] < 256 && data[i] >= 0);
+            }
             bytesWritten += client.write(
                 data, bytesWritten, data.length - bytesWritten);
             if (bytesWritten < data.length) {
@@ -207,8 +218,10 @@ void testSimpleReadWrite() {
           case RawSocketEvent.READ:
             Expect.isTrue(socket.available() > 0);
             var buffer = socket.read();
-            dataReceived.setRange(bytesRead, buffer.length, buffer);
-            bytesRead += buffer.length;
+            if (buffer != null) {
+              dataReceived.setRange(bytesRead, buffer.length, buffer);
+              bytesRead += buffer.length;
+            }
             break;
           case RawSocketEvent.WRITE:
             Expect.isTrue(bytesRead == 0);
