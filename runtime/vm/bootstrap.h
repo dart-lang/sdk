@@ -45,6 +45,7 @@ class Bootstrap : public AllStatic {
   static const char isolate_source_[];
   static const char isolate_patch_[];
   static const char json_source_[];
+  static const char json_patch_[];
   static const char math_source_[];
   static const char math_patch_[];
   static const char mirrors_source_[];

@@ -97,8 +97,11 @@ testNumbers() {
 
   // Integer part cannot be omitted:
   testError(integers: "");
-  // Initial zero only allowed for zero integer part.
-  testError(integers: ["00", "01"]);
+
+  // Test for "Initial zero only allowed for zero integer part" moved to
+  // json_leading_zeros_test.dart because IE's JSON.parse accepts additional
+  // initial zeros.
+
   // Only minus allowed as sign.
   testError(signs: "+");
   // Requires digits after decimal point.
