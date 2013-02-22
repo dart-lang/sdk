@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/file.h"
 
-#include <fcntl.h>
-#include <io.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
+#include <fcntl.h>  // NOLINT
+#include <io.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -266,3 +269,5 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   // socket code will handle the different handle types.
   return kPipe;
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

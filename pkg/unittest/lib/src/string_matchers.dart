@@ -74,11 +74,11 @@ String collapseWhitespace(_string) {
     var character = _string[i];
     if (isWhitespace(character)) {
       if (!skipSpace) {
-        result.add(' ');
+        result.write(' ');
         skipSpace = true;
       }
     } else {
-      result.add(character);
+      result.write(character);
       skipSpace = false;
     }
   }

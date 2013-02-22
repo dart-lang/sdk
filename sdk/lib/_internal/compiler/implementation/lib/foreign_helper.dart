@@ -96,7 +96,13 @@ dynamic JS(String typeDescription, String codeTemplate,
 /**
  * Returns the isolate in which this code is running.
  */
-dynamic JS_CURRENT_ISOLATE() {}
+IsolateContext JS_CURRENT_ISOLATE() {}
+
+abstract class IsolateContext {
+  /// Holds a (native) JavaScript instance of Isolate, see
+  /// finishIsolateConstructorFunction in emitter.dart.
+  get isolateStatics;
+}
 
 /**
  * Invokes [function] in the context of [isolate].

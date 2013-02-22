@@ -204,6 +204,10 @@ class ObjectPointerVisitor;
   V(DartScalarlist, "dart:scalarlist")                                         \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartAsync, "dart:async")                                                   \
+  V(DartUri, "dart:uri")                                                       \
+  V(DartUtf, "dart:utf")                                                       \
+  V(DartCrypto, "dart:crypto")                                                 \
+  V(DartJson, "dart:json")                                                     \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

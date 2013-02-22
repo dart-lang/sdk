@@ -13,16 +13,20 @@ class FunctionSet {
       new Map<SourceString, FunctionSetNode>();
   FunctionSet(this.compiler);
 
+  FunctionSetNode newNode(SourceString name)
+      => new FunctionSetNode(name);
+
   void add(Element element) {
-    assert(element.isMember());
+    assert(element.isInstanceMember());
+    assert(!element.isAbstract(compiler));
     SourceString name = element.name;
-    FunctionSetNode node = nodes.putIfAbsent(
-        name, () => new FunctionSetNode(name));
+    FunctionSetNode node = nodes.putIfAbsent(name, () => newNode(name));
     node.add(element);
   }
 
   void remove(Element element) {
-    assert(element.isMember());
+    assert(element.isInstanceMember());
+    assert(!element.isAbstract(compiler));
     SourceString name = element.name;
     FunctionSetNode node = nodes[name];
     if (node != null) {
@@ -31,7 +35,8 @@ class FunctionSet {
   }
 
   bool contains(Element element) {
-    assert(element.isMember());
+    assert(element.isInstanceMember());
+    assert(!element.isAbstract(compiler));
     SourceString name = element.name;
     FunctionSetNode node = nodes[name];
     return (node != null)
@@ -40,22 +45,15 @@ class FunctionSet {
   }
 
   /**
-   * Returns all elements that may be invoked with the given [selector].
+   * Returns an object that allows iterating over all the functions
+   * that may be invoked with the given [selector].
    */
-  Iterable<Element> filterBySelector(Selector selector) {
+  Iterable<Element> filter(Selector selector) {
     SourceString name = selector.name;
     FunctionSetNode node = nodes[name];
     return (node != null)
-        ? node.filter(selector, compiler)
+        ? node.query(selector, compiler).functions
         : const <Element>[];
-  }
-
-  /**
-   * Returns whether the set has any element matching the given
-   * [selector].
-   */
-  bool hasAnyElementMatchingSelector(Selector selector) {
-    return !filterBySelector(selector).isEmpty;
   }
 
   void forEach(Function action) {
@@ -65,9 +63,11 @@ class FunctionSet {
   }
 }
 
+
 class FunctionSetNode {
   final SourceString name;
-  final Map<Selector, List<Element>> cache = new Map<Selector, List<Element>>();
+  final Map<Selector, FunctionSetQuery> cache =
+      new Map<Selector, FunctionSetQuery>();
 
   // Initially, we keep the elements in a list because it is more
   // compact than a hash set. Once we get enough elements, we change
@@ -124,23 +124,36 @@ class FunctionSetNode {
     elements.forEach(action);
   }
 
-  Iterable<Element> filter(Selector selector, Compiler compiler) {
+  FunctionSetQuery query(Selector selector, Compiler compiler) {
     assert(selector.name == name);
-    List<Element> result = cache[selector];
+    FunctionSetQuery result = cache[selector];
     if (result != null) return result;
+    List<Element> functions;
     for (Element element in elements) {
       if (selector.appliesUnnamed(element, compiler)) {
-        if (result == null) {
-          // Defer the allocation of the resulting list until we are
+        if (functions == null) {
+          // Defer the allocation of the functions list until we are
           // sure we need it. This allows us to return immutable empty
           // lists when the filtering produced no results.
-          result = <Element>[];
+          functions = <Element>[];
         }
-        result.add(element);
+        functions.add(element);
       }
     }
-    if (result == null) result = const <Element>[];
-    cache[selector] = result;
+    cache[selector] = result = (functions != null)
+        ? newQuery(functions, selector, compiler)
+        : const FunctionSetQuery(const <Element>[]);
     return result;
   }
+
+  FunctionSetQuery newQuery(List<Element> functions,
+                            Selector selector,
+                            Compiler compiler) {
+    return new FunctionSetQuery(functions);
+  }
+}
+
+class FunctionSetQuery {
+  final List<Element> functions;
+  const FunctionSetQuery(this.functions);
 }

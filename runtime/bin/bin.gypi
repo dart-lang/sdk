@@ -4,12 +4,8 @@
 
 {
   'variables': {
-    'crypto_cc_file': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.cc',
     'io_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_gen.cc',
     'io_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_patch_gen.cc',
-    'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
-    'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
-    'utf_cc_file': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.cc',
     'builtin_in_cc_file': 'builtin_in.cc',
     'builtin_cc_file': '<(SHARED_INTERMEDIATE_DIR)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
@@ -44,55 +40,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(builtin_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_crypto_cc_file',
-      'type': 'none',
-      'variables': {
-        'crypto_dart': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.dart',
-      },
-      'includes': [
-        'crypto_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_crypto_dart',
-          'inputs': [
-            '../tools/concat_library.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(crypto_dart)',
-          ],
-          'action': [
-            'python',
-            '<@(_inputs)',
-            '--output', '<(crypto_dart)',
-          ],
-          'message': 'Generating ''<(crypto_dart)'' file.',
-        },
-        {
-          'action_name': 'generate_crypto_cc',
-          'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
-            '<(crypto_dart)',
-          ],
-          'outputs': [
-            '<(crypto_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_string_literal.py',
-            '--output', '<(crypto_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
-            '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::crypto_source_',
-            '<(crypto_dart)',
-          ],
-          'message': 'Generating ''<(crypto_cc_file)'' file.'
         },
       ]
     },
@@ -179,163 +126,12 @@
       ]
     },
     {
-      'target_name': 'generate_json_cc_file',
-      'type': 'none',
-      'variables': {
-        'json_dart': '<(SHARED_INTERMEDIATE_DIR)/json_gen.dart',
-      },
-      'includes': [
-        'json_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_json_dart',
-          'inputs': [
-            '../tools/concat_library.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(json_dart)',
-          ],
-          'action': [
-            'python',
-            '<@(_inputs)',
-            '--output', '<(json_dart)',
-          ],
-          'message': 'Generating ''<(json_dart)'' file.',
-        },
-        {
-          'action_name': 'generate_json_cc',
-          'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
-            '<(json_dart)',
-          ],
-          'outputs': [
-            '<(json_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_string_literal.py',
-            '--output', '<(json_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
-            '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::json_source_',
-            '<(json_dart)',
-          ],
-          'message': 'Generating ''<(json_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_uri_cc_file',
-      'type': 'none',
-      'variables': {
-        'uri_dart': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.dart',
-      },
-      'includes': [
-        'uri_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_uri_dart',
-          'inputs': [
-            '../tools/concat_library.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(uri_dart)',
-          ],
-          'action': [
-            'python',
-            '<@(_inputs)',
-            '--output', '<(uri_dart)',
-          ],
-          'message': 'Generating ''<(uri_dart)'' file.'
-        },
-        {
-          'action_name': 'generate_uri_cc',
-          'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
-            '<(uri_dart)',
-          ],
-          'outputs': [
-            '<(uri_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_string_literal.py',
-            '--output', '<(uri_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
-            '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::uri_source_',
-            '<(uri_dart)',
-          ],
-          'message': 'Generating ''<(uri_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_utf_cc_file',
-      'type': 'none',
-      'variables': {
-        'utf_dart': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.dart',
-      },
-      'includes': [
-        'utf_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_utf_dart',
-          'inputs': [
-            '../tools/concat_library.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(utf_dart)',
-          ],
-          'action': [
-            'python',
-            '<@(_inputs)',
-            '--output', '<(utf_dart)',
-          ],
-          'message': 'Generating ''<(utf_dart)'' file.',
-        },
-        {
-          'action_name': 'generate_utf_cc',
-          'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
-            '<(utf_dart)',
-          ],
-          'outputs': [
-            '<(utf_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_string_literal.py',
-            '--output', '<(utf_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
-            '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::utf_source_',
-            '<(utf_dart)',
-          ],
-          'message': 'Generating ''<(utf_cc_file)'' file.'
-        },
-      ]
-    },
-    {
       'target_name': 'libdart_builtin',
       'type': 'static_library',
       'dependencies': [
         'generate_builtin_cc_file',
-        'generate_crypto_cc_file',
         'generate_io_cc_file',
         'generate_io_patch_cc_file',
-        'generate_json_cc_file',
-        'generate_uri_cc_file',
-        'generate_utf_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -459,12 +255,8 @@
         'builtin_gen_snapshot.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
-        '<(crypto_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
-        '<(json_cc_file)',
-        '<(uri_cc_file)',
-        '<(utf_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -594,12 +386,8 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
-        '<(crypto_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
-        '<(json_cc_file)',
-        '<(uri_cc_file)',
-        '<(utf_cc_file)',
         'snapshot_empty.cc',
       ],
       'conditions': [
@@ -649,12 +437,8 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
-        '<(crypto_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
-        '<(json_cc_file)',
-        '<(uri_cc_file)',
-        '<(utf_cc_file)',
       ],
       'includes': [
         'builtin_impl_sources.gypi',

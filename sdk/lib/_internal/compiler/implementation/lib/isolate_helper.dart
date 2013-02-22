@@ -12,7 +12,9 @@ import 'dart:_js_helper' show convertDartClosureToJS,
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
-                                   JS_SET_CURRENT_ISOLATE;
+                                   JS_CURRENT_ISOLATE,
+                                   JS_SET_CURRENT_ISOLATE,
+                                   IsolateContext;
 
 ReceivePort lazyPort;
 
@@ -202,7 +204,7 @@ class _Manager {
 }
 
 /** Context information tracked for each isolate. */
-class _IsolateContext {
+class _IsolateContext implements IsolateContext {
   /** Current isolate id. */
   int id;
 
@@ -406,23 +408,46 @@ class IsolateNatives {
    * JavaScript workers.
    */
   static String computeThisScript() {
-    // TODO(7369): Find a cross-platform non-brittle way of getting the
-    // currently running script.
-    var scripts = JS('', r"document.getElementsByTagName('script')");
-    // The scripts variable only contains the scripts that have already been
-    // executed. The last one is the currently running script.
-    for (int i = 0, len = JS('int', '#.length', scripts); i < len; i++) {
-      var script = JS('', '#[#]', scripts, i);
-      var src = JS('String|Null', '# && #.src', script, script);
-      // Filter out the test controller script, and the Dart
-      // bootstrap script.
-      if (src != null
-          && !src.endsWith('test_controller.js')
-          && !src.endsWith('dart.js')) {
-        return src;
-      }
+    var currentScript = JS('', r'$.$currentScript');
+    if (currentScript != null) {
+      return JS('String', 'String(#.src)', currentScript);
     }
-    return null;
+
+    // TODO(ahe): The following is for supporting command-line engines
+    // such as d8 and jsshell. We should move this code to a helper
+    // library that is only loaded when testing on those engines.
+
+    var stack = JS('String|Null', 'new Error().stack');
+    if (stack == null) {
+      // According to Internet Explorer documentation, the stack
+      // property is not set until the exception is thrown. The stack
+      // property was not provided until IE10.
+      stack = JS('String',
+                 '(function() {'
+                 'try { throw new Error() } catch(e) { return e.stack }'
+                 '})()');
+    }
+    var pattern, matches;
+
+    // This pattern matches V8, Chrome, and Internet Explorer stack
+    // traces that look like this:
+    // Error
+    //     at methodName (URI:LINE:COLUMN)
+    pattern = JS('',
+                 r'new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m")');
+
+
+    matches = JS('=List|Null', '#.match(#)', stack, pattern);
+    if (matches != null) return JS('String', '#[1]', matches);
+
+    // This pattern matches Firefox stack traces that look like this:
+    // methodName@URI:LINE
+    pattern = JS('', r'new RegExp("^[^@]*@(.*):[0-9]*$", "m")');
+
+    matches = JS('=List|Null', '#.match(#)', stack, pattern);
+    if (matches != null) return JS('String', '#[1]', matches);
+
+    throw new UnsupportedError('Cannot extract URI from "$stack"');
   }
 
   static computeGlobalThis() => JS('', 'function() { return this; }()');

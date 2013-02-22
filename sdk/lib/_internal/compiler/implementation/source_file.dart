@@ -76,7 +76,7 @@ class SourceFile {
     var buf = new StringBuffer(
         '${filename}:${line + 1}:${column + 1}: $message');
     if (includeText) {
-      buf.add('\n');
+      buf.write('\n');
       var textLine;
       // +1 for 0-indexing, +1 again to avoid the last line of the file
       if ((line + 2) < _lineStarts.length) {
@@ -86,17 +86,17 @@ class SourceFile {
       }
 
       int toColumn = min(column + (end-start), textLine.length);
-      buf.add(textLine.substring(0, column));
-      buf.add(color(textLine.substring(column, toColumn)));
-      buf.add(textLine.substring(toColumn));
+      buf.write(textLine.substring(0, column));
+      buf.write(color(textLine.substring(column, toColumn)));
+      buf.write(textLine.substring(toColumn));
 
       int i = 0;
       for (; i < column; i++) {
-        buf.add(' ');
+        buf.write(' ');
       }
 
       for (; i < toColumn; i++) {
-        buf.add(color('^'));
+        buf.write(color('^'));
       }
     }
 

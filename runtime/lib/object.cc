@@ -19,18 +19,20 @@ DEFINE_NATIVE_ENTRY(Object_toString, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 5) {
+DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, is_method, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, member_name, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_args, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, invocation_type, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_args, arguments->NativeArgAt(4));
   GET_NON_NULL_NATIVE_ARGUMENT(
-      Instance, func_named_args, arguments->NativeArgAt(4));
-  const Array& dart_arguments = Array::Handle(Array::New(5));
+      Instance, func_named_args, arguments->NativeArgAt(5));
+  const Array& dart_arguments = Array::Handle(Array::New(6));
   dart_arguments.SetAt(0, instance);
   dart_arguments.SetAt(1, member_name);
-  dart_arguments.SetAt(2, func_args);
-  dart_arguments.SetAt(3, func_named_args);
+  dart_arguments.SetAt(2, invocation_type);
+  dart_arguments.SetAt(3, func_args);
+  dart_arguments.SetAt(4, func_named_args);
 
   if (is_method.value()) {
     // Report if a function with same name (but different arguments) has been
@@ -50,7 +52,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 5) {
       for (int i = 1; i < total_num_parameters; i++) {
         array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
       }
-      dart_arguments.SetAt(4, array);
+      dart_arguments.SetAt(5, array);
     }
   }
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);

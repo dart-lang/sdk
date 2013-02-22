@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_ANDROID)
+
+#include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
+#include <unistd.h>  // NOLINT
+#include <sys/ioctl.h>  // NOLINT
 
 #include "bin/fdutils.h"
 
@@ -132,3 +135,5 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
   }
   return count;
 }
+
+#endif  // defined(TARGET_OS_ANDROID)

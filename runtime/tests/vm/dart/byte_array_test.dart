@@ -179,6 +179,82 @@ class ByteArrayTest {
     testUint8ListImpl(array);
   }
 
+  static testUint8ClampedListImpl(Uint8ClampedList array) {
+    Expect.isTrue(array is List<int>);
+    Expect.equals(10, array.length);
+    Expect.equals(1, array.bytesPerElement());
+    Expect.equals(10, array.lengthInBytes());
+    Expect.listEquals([0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0],
+                      array);
+    Expect.throws(() { array[-1] = 0; },
+                  (e) { return e is RangeError; });
+    Expect.throws(() { return array[-1]; },
+                  (e) { return e is RangeError; });
+    Expect.throws(() { array[10]; },
+                  (e) { return e is RangeError; });
+    Expect.throws(() { array[10] = 0; },
+                  (e) { return e is RangeError; });
+    Expect.throws(() { array.add(0); },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.addAll([0]); },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.addLast(0); },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.clear(); },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.insertRange(0, array.length, 0); },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.length = 0; },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.removeLast(); },
+                  (e) { return e is UnsupportedError; });
+    Expect.throws(() { array.removeRange(0, array.length - 1); },
+                  (e) { return e is UnsupportedError; });
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = -1 + i;
+    }
+    Expect.listEquals([0, 0, 1, 2, 3, 4, 5, 6, 7, 8], array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0x100 + i;
+    }
+    Expect.listEquals([255, 255, 255, 255, 255, 255, 255, 255, 255, 255],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = 0xFF - i;
+    }
+    Expect.listEquals([0xFF, 0xFE, 0xFD, 0xFC, 0xFB,
+                       0xFA, 0xF9, 0xF8, 0xF7, 0xF6],
+                      array);
+    for (int i = 0; i < array.length; ++i) {
+      array[i] = i;
+    }
+    var copy = array.getRange(0, array.length);
+    Expect.isFalse(copy === array);
+    Expect.isTrue(copy is Uint8ClampedList);
+    Expect.equals(10, copy.length);
+    Expect.listEquals(array, copy);
+    var empty = array.getRange(array.length, 0);
+    Expect.equals(0, empty.length);
+    var region = array.getRange(3, array.length - 6);
+    Expect.isTrue(copy is Uint8ClampedList);
+    Expect.equals(4, region.length);
+    Expect.listEquals([3, 4, 5, 6], region);
+    array.setRange(3, 4, [257, 0, 1, 255]);
+    Expect.listEquals([0, 1, 2, 255, 0, 1, 255, 7, 8, 9], array);
+  }
+
+  static testUint8ClampedList() {
+    Expect.throws(() { new Uint8ClampedList(-1); },
+                  (e) { return e is ArgumentError; });
+    Expect.throws(() { new Uint8ClampedList.transferable(-1); },
+                  (e) { return e is ArgumentError; });
+    var array = new Uint8ClampedList(10);
+    testUint8ClampedListImpl(array);
+    array = new Uint8ClampedList.transferable(10);
+    testUint8ClampedListImpl(array);
+  }
+
   static testInt16ListImpl(Int16List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
@@ -2382,6 +2458,7 @@ class ByteArrayTest {
   static testMain() {
     testInt8List();
     testUint8List();
+    testUint8ClampedList();
     testInt16List();
     testUint16List();
     testInt32List();

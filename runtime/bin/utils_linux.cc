@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <netdb.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
+#include <errno.h>  // NOLINT
+#include <netdb.h>  // NOLINT
+#include <sys/time.h>  // NOLINT
 
 #include "bin/utils.h"
 #include "platform/assert.h"
@@ -69,3 +73,18 @@ wchar_t** ShellUtils::GetUnicodeArgv(int* argc) {
 
 void ShellUtils::FreeUnicodeArgv(wchar_t** argv) {
 }
+
+int64_t TimerUtils::GetCurrentTimeMilliseconds() {
+  return GetCurrentTimeMicros() / 1000;
+}
+
+int64_t TimerUtils::GetCurrentTimeMicros() {
+  struct timeval tv;
+  if (gettimeofday(&tv, NULL) < 0) {
+    UNREACHABLE();
+    return 0;
+  }
+  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+}
+
+#endif  // defined(TARGET_OS_LINUX)

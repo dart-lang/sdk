@@ -151,6 +151,12 @@ void compile(List<String> argv) {
     return passThrough('--categories=${categories.join(",")}');
   }
 
+  // TODO(8522): Remove this method once option is restored.
+  complainAboutDisallowUnsafeEval(String argument) {
+    fail('Error: $argument is currently not supported, '
+         'see http://dartbug.com/8522');
+  }
+
   handleShortOptions(String argument) {
     var shortOptions = argument.substring(1).split("");
     for (var shortOption in shortOptions) {
@@ -196,7 +202,8 @@ void compile(List<String> argv) {
                       (_) => passThrough('--enable-concrete-type-inference')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
-    new OptionHandler('--disallow-unsafe-eval', passThrough),
+    new OptionHandler('--disallow-unsafe-eval',
+                      complainAboutDisallowUnsafeEval),
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
@@ -283,7 +290,8 @@ void compile(List<String> argv) {
     if (uri.scheme != 'file') {
       fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
     }
-    var outputStream = new File(uriPathToNative(uri.path)).openOutputStream();
+    IOSink output =
+        new File(uriPathToNative(uri.path)).openWrite();
 
     CountingSink sink;
 
@@ -291,16 +299,16 @@ void compile(List<String> argv) {
       if (sourceMapFileName != null) {
         String sourceMapTag = '//@ sourceMappingURL=$sourceMapFileName\n';
         sink.count += sourceMapTag.length;
-        outputStream.writeString(sourceMapTag);
+        output.addString(sourceMapTag);
       }
-      outputStream.close();
+      output.close();
       if (isPrimaryOutput) {
         charactersWritten += sink.count;
       }
     }
 
     var controller = new StreamController<String>();
-    controller.stream.listen(outputStream.writeString, onDone: onDone);
+    controller.stream.listen(output.addString, onDone: onDone);
     sink = new CountingSink(controller);
     return sink;
   }
@@ -434,12 +442,18 @@ be removed in a future version:
     Disable the optimization that removes unused native types from dart:html
     and related libraries.
 
+'''
+/* TODO(8522): Restore this comment once option is restored.
+'''
   --disallow-unsafe-eval
     Disable dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
     This flag is not continuously tested. Please report breakages and we
     will fix them as soon as possible.
 
+'''
+*/
+'''
   --reject-deprecated-language-features
     Reject deprecated language features.  Without this option, the
     compiler will accept language features that are no longer valid

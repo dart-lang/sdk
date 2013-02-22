@@ -67,6 +67,7 @@ abstract class Enqueuer {
     // runtime type.
     if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
       compiler.enabledRuntimeType = true;
+      compiler.backend.registerRuntimeType();
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
     } else if (element == compiler.invokeOnMethod) {
@@ -89,8 +90,8 @@ abstract class Enqueuer {
     if (universe.instantiatedClasses.contains(cls)) return;
     if (!cls.isAbstract(compiler)) {
       universe.instantiatedClasses.add(cls);
-      onRegisterInstantiatedClass(cls);
     }
+    onRegisterInstantiatedClass(cls);
     compiler.backend.registerInstantiatedClass(cls, this);
   }
 
@@ -120,9 +121,12 @@ abstract class Enqueuer {
     if (isProcessed(member)) return;
     if (!member.isInstanceMember()) return;
     if (member.isField()) {
-      // Native fields need to go into instanceMembersByName as they are virtual
-      // instantiation points and escape points.
-      // Test the enclosing class, since the metadata has not been parsed yet.
+      // Fields are implicitly used by the constructor of the
+      // instantiated class they are part of.
+      compiler.world.registerUsedElement(member);
+      // Native fields need to go into instanceMembersByName as they
+      // are virtual instantiation points and escape points. Test the
+      // enclosing class, since the metadata has not been parsed yet.
       if (!member.enclosingElement.isNative()) return;
     }
 
@@ -182,7 +186,7 @@ abstract class Enqueuer {
     }
 
     // The element is not yet used. Add it to the list of instance
-    // members to still be processed. 
+    // members to still be processed.
     Link<Element> members = instanceMembersByName.putIfAbsent(
         memberName, () => const Link<Element>());
     instanceMembersByName[memberName] = members.prepend(member);
@@ -204,22 +208,6 @@ abstract class Enqueuer {
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
           compiler.resolver.checkClass(cls);
-        }
-
-        if (compiler.enableTypeAssertions) {
-          // We need to register is checks and helpers for checking
-          // assignments to fields.
-          // TODO(ngeoffray): This should really move to the backend.
-          cls.forEachLocalMember((Element member) {
-            if (!member.isInstanceMember() || !member.isField()) return;
-            DartType type = member.computeType(compiler);
-            registerIsCheck(type);
-            SourceString helper = compiler.backend.getCheckedModeHelper(type);
-            if (helper != null) {
-              Element helperElement = compiler.findHelper(helper);
-              registerStaticUse(helperElement);
-            }
-          });
         }
       }
       processClass(cls);
@@ -364,6 +352,12 @@ abstract class Enqueuer {
 
   void registerIsCheck(DartType type) {
     universe.isChecks.add(type);
+    compiler.backend.registerIsCheck(type, this);
+  }
+
+  void registerAsCheck(DartType type) {
+    registerIsCheck(type);
+    compiler.backend.registerAsCheck(type);
   }
 
   void forEach(f(WorkItem work));
@@ -473,11 +467,8 @@ class ResolutionEnqueuer extends Enqueuer {
 
   void enableNoSuchMethod(Element element) {
     if (compiler.enabledNoSuchMethod) return;
+    if (element.getEnclosingClass() == compiler.objectClass) return;
     Selector selector = new Selector.noSuchMethod();
-    if (identical(element.getEnclosingClass(), compiler.objectClass)) {
-      registerDynamicInvocationOf(element, selector);
-      return;
-    }
     compiler.enabledNoSuchMethod = true;
     registerInvocation(Compiler.NO_SUCH_METHOD, selector);
 
@@ -513,7 +504,8 @@ class CodegenEnqueuer extends Enqueuer {
       : super('codegen enqueuer', compiler, itemCompilationContextCreator),
         queue = new Queue<CodegenWorkItem>();
 
-  bool isProcessed(Element member) => generatedCode.containsKey(member);
+  bool isProcessed(Element member) =>
+      member.isAbstract(compiler) || generatedCode.containsKey(member);
 
   bool addElementToWorkList(Element element, [TreeElements elements]) {
     if (queueIsClosed) {

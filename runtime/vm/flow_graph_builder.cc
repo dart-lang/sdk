@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_builder.h"
 
+#include "lib/invocation_mirror.h"
 #include "vm/ast_printer.h"
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
@@ -136,6 +137,7 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
   } else if (num_exits == 1) {
     // For just one exit, replace the uses and remove the call from the graph.
     call->ReplaceUsesWith(ValueAt(0)->definition());
+    ValueAt(0)->RemoveFromUseList();
     call->previous()->LinkTo(callee_entry->next());
     LastInstructionAt(0)->LinkTo(call->next());
     // In case of control flow, locally update the predecessors, phis and
@@ -210,6 +212,12 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
       }
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);
+    } else {
+      // In the case that the result is unused, remove the return value uses
+      // from their definition's use list.
+      for (intptr_t i = 0; i < num_exits; ++i) {
+        ValueAt(i)->RemoveFromUseList();
+      }
     }
     // Remove the call from the graph.
     call->previous()->LinkTo(callee_entry->next());
@@ -2367,9 +2375,15 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
       // NoSuchMethodError.
 
       // Throw a NoSuchMethodError.
-      StaticCallInstr* call = BuildThrowNoSuchMethodError(node->token_pos(),
-                                                          node->cls(),
-                                                          getter_name);
+      StaticCallInstr* call = BuildThrowNoSuchMethodError(
+          node->token_pos(),
+          node->cls(),
+          getter_name,
+          InvocationMirror::EncodeType(
+              node->cls().IsTopLevel() ?
+                  InvocationMirror::kTopLevel :
+                  InvocationMirror::kStatic,
+              InvocationMirror::kGetter));
       ReturnDefinition(call);
       return;
     }
@@ -2411,9 +2425,15 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                          arguments);
     } else {
       // Throw a NoSuchMethodError.
-      call = BuildThrowNoSuchMethodError(node->token_pos(),
-                                         node->cls(),
-                                         setter_name);
+      call = BuildThrowNoSuchMethodError(
+          node->token_pos(),
+          node->cls(),
+          setter_name,
+          InvocationMirror::EncodeType(
+            node->cls().IsTopLevel() ?
+                InvocationMirror::kTopLevel :
+                InvocationMirror::kStatic,
+            InvocationMirror::kGetter));
     }
   } else {
     if (is_super_setter) {
@@ -3090,7 +3110,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
     const Class& function_class,
-    const String& function_name) {
+    const String& function_name,
+    int invocation_type) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
   // Object receiver.
@@ -3109,6 +3130,10 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   const String& member_name = String::ZoneHandle(Symbols::New(function_name));
   Value* member_name_value = Bind(new ConstantInstr(member_name));
   arguments->Add(PushArgument(member_name_value));
+  // Smi invocation_type.
+  Value* invocation_type_value = Bind(new ConstantInstr(
+      Smi::ZoneHandle(Smi::New(invocation_type))));
+  arguments->Add(PushArgument(invocation_type_value));
   // List arguments.
   Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
   arguments->Add(PushArgument(arguments_value));
@@ -3219,7 +3244,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
                            CatchClauseNode::kInvalidTryIndex);
-  graph_entry_ = new GraphEntryInstr(normal_entry);
+  graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry);
   EffectGraphVisitor for_effect(this, 0);
   // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
   // stack check on entry for leaf routines).

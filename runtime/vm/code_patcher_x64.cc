@@ -126,32 +126,37 @@ class StaticCall : public ValueObject {
 };
 
 
-uword CodePatcher::GetStaticCallTargetAt(uword return_address) {
+uword CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                         const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   return call.target();
 }
 
 
-void CodePatcher::PatchStaticCallAt(uword return_address, uword new_target) {
+void CodePatcher::PatchStaticCallAt(uword return_address,
+                                    const Code& code,
+                                    uword new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   call.set_target(new_target);
 }
 
 
-void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
+void CodePatcher::PatchInstanceCallAt(uword return_address,
+                                      const Code& code,
+                                      uword new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   call.set_target(new_target);
 }
 
 
-bool CodePatcher::IsDartCall(uword return_address) {
-  return DartCallPattern::IsValid(return_address);
-}
-
-
 uword CodePatcher::GetInstanceCallAt(uword return_address,
+                                     const Code& code,
                                      ICData* ic_data,
                                      Array* arguments_descriptor) {
+  ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (ic_data != NULL) {
     *ic_data ^= call.ic_data();

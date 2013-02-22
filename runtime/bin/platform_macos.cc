@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_MACOS)
+
 #include "bin/platform.h"
 
-#include <crt_externs.h>
-#include <signal.h>
-#include <string.h>
-#include <unistd.h>
+#include <crt_externs.h>  // NOLINT
+#include <signal.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 
 bool Platform::Initialize() {
@@ -70,3 +73,5 @@ char** Platform::Environment(intptr_t* count) {
 void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
 }
+
+#endif  // defined(TARGET_OS_MACOS)

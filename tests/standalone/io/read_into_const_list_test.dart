@@ -17,13 +17,14 @@ void main() {
 
   String filename = getFilename("bin/file_test.cc");
   File file = new File(filename);
-  InputStream input = file.openInputStream();
-  try {
-    input.readInto(a, 0, 1);
-    Expect.fail("no exception thrown");
-  } catch (e) {
-    Expect.isTrue(e is UnsupportedError);
-  }
-  Expect.equals(0, a[0]);
-  Expect.equals(0, b[0]);
+  file.open().then((input) {
+      try {
+        input.readListSync(a, 0, 1);
+        Expect.fail("no exception thrown");
+      } catch (e) {
+        Expect.isTrue(e is UnsupportedError);
+      }
+      Expect.equals(0, a[0]);
+      Expect.equals(0, b[0]);
+    });
 }

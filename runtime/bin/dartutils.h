@@ -97,12 +97,8 @@ class DartUtils {
                              const char* val);
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
-  static bool IsDartCryptoLibURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
-  static bool IsDartJsonLibURL(const char* url_name);
-  static bool IsDartUriLibURL(const char* url_name);
-  static bool IsDartUtfLibURL(const char* url_name);
   static Dart_Handle CanonicalizeURL(CommandLineOptions* url_mapping,
                                      Dart_Handle library,
                                      const char* url_str);
@@ -166,10 +162,8 @@ class DartUtils {
   static const char* kASyncLibURL;
   static const char* kBuiltinLibURL;
   static const char* kCoreLibURL;
-  static const char* kCryptoLibURL;
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;
-  static const char* kJsonLibURL;
   static const char* kUriLibURL;
   static const char* kUtfLibURL;
   static const char* kIsolateLibURL;

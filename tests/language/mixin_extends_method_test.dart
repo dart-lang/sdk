@@ -8,7 +8,8 @@ class S {
 }
 
 class M1 {
-  bar() => "M1-bar";
+  static m1bar() => "M1-bar";
+  bar() => m1bar();
 }
 
 class M2 {

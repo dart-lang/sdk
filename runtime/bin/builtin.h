@@ -25,11 +25,7 @@ class Builtin {
   // the builtin_libraries_ array in builtin.cc and builtin_nolib.cc.
   enum BuiltinLibraryId {
     kBuiltinLibrary = 0,
-    kJsonLibrary,
-    kUriLibrary,
-    kCryptoLibrary,
     kIOLibrary,
-    kUtfLibrary,
 
     kInvalidLibrary,
   };
@@ -45,14 +41,9 @@ class Builtin {
   static Dart_NativeFunction BuiltinNativeLookup(Dart_Handle name,
                                                  int argument_count);
 
-  static const char async_source_[];
   static const char builtin_source_[];
-  static const char crypto_source_[];
   static const char io_source_[];
   static const char io_patch_[];
-  static const char json_source_[];
-  static const char uri_source_[];
-  static const char utf_source_[];
   static const char web_source_[];
 
   typedef struct {

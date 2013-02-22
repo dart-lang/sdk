@@ -109,7 +109,8 @@
 /// It's important that errors in these callbacks are still registered, though,
 /// and that [Schedule.onException] and [Schedule.onComplete] still run after
 /// they finish. When using `unittest`, you wrap these callbacks with
-/// `expectAsyncN`; when using `scheduled_test`, you use [wrapAsync].
+/// `expectAsyncN`; when using `scheduled_test`, you use [wrapAsync] or
+/// [wrapFuture].
 ///
 /// [wrapAsync] has two important functions. First, any errors that occur in it
 /// will be passed into the [Schedule] instead of causing the whole test to
@@ -133,6 +134,25 @@
 ///         startServer(wrapAsync((request) {
 ///           expect(request.body, equals('payload'));
 ///           request.response.close();
+///         }));
+///
+///         schedule(() => sendRequest('payload'));
+///       });
+///     }
+///
+/// [wrapFuture] works similarly to [wrapAsync], but instead of wrapping a
+/// single callback it wraps a whole [Future] chain. Like [wrapAsync], it
+/// ensures that the task queue doesn't complete until the out-of-band chain has
+/// finished, and that any errors in the chain are piped back into the scheduled
+/// test. For example:
+///
+///     import 'package:scheduled_test/scheduled_test.dart';
+///
+///     void main() {
+///       test('sendRequest sends a request', () {
+///         wrapFuture(server.nextRequest.then((request) {
+///           expect(request.body, equals('payload'));
+///           expect(request.headers['content-type'], equals('text/plain'));
 ///         }));
 ///
 ///         schedule(() => sendRequest('payload'));
@@ -244,7 +264,10 @@ void group(String description, void body()) {
 /// If [description] is passed, it's used to describe the task for debugging
 /// purposes when an error occurs.
 ///
-/// This function is identical to [currentSchedule.tasks.schedule].
+/// If this is called when a task queue is currently running, it will run [fn]
+/// on the next event loop iteration rather than adding it to a queue. The
+/// current task will not complete until [fn] (and any [Future] it returns) has
+/// finished running. Any errors in [fn] will automatically be handled.
 Future schedule(fn(), [String description]) =>
   currentSchedule.tasks.schedule(fn, description);
 
@@ -301,4 +324,19 @@ void _ensureInitialized() {
 
     return currentSchedule.wrapAsync(f);
   };
+}
+
+/// Like [wrapAsync], this ensures that the current task queue waits for
+/// out-of-band asynchronous code, and that errors raised in that code are
+/// handled correctly. However, [wrapFuture] wraps a [Future] chain rather than
+/// a single callback.
+///
+/// The returned [Future] completes to the same value or error as [future].
+Future wrapFuture(Future future) {
+  if (currentSchedule == null) {
+    throw new StateError("Unexpected call to wrapFuture with no current "
+        "schedule.");
+  }
+
+  return currentSchedule.wrapFuture(future);
 }

@@ -127,19 +127,22 @@ class Schedule {
       try {
         setUp();
       } catch (e, stackTrace) {
+        // Even though the scheduling failed, we need to run the onException and
+        // onComplete queues, so we set the schedule state to RUNNING.
+        _state = ScheduleState.RUNNING;
         throw new ScheduleError.from(this, e, stackTrace: stackTrace);
       }
 
       _state = ScheduleState.RUNNING;
       return tasks._run();
     }).catchError((e) {
-      errors.add(e);
+      _addError(e);
       return onException._run().catchError((innerError) {
         // If an error occurs in a task in the onException queue, make sure it's
         // registered in the error list and re-throw it. We could also re-throw
         // `e`; ultimately, all the errors will be shown to the user if any
         // ScheduleError is thrown.
-        errors.add(innerError);
+        _addError(innerError);
         throw innerError;
       }).then((_) {
         // If there are no errors in the onException queue, re-throw the
@@ -150,7 +153,7 @@ class Schedule {
       return onComplete._run().catchError((e) {
         // If an error occurs in a task in the onComplete queue, make sure it's
         // registered in the error list and re-throw it.
-        errors.add(e);
+        _addError(e);
         throw e;
       });
     }).whenComplete(() {
@@ -189,7 +192,7 @@ class Schedule {
   void _signalPostTimeoutError(error, [stackTrace]) {
     var scheduleError = new ScheduleError.from(this, error,
         stackTrace: stackTrace);
-    errors.add(scheduleError);
+    _addError(scheduleError);
     if (_state == ScheduleState.DONE) {
       throw new StateError(
         "An out-of-band error was caught after the test timed out.\n"
@@ -203,7 +206,7 @@ class Schedule {
   /// out-of-band callbacks are properly handled by the scheduled test.
   ///
   /// The top-level `wrapAsync` function should usually be used in preference to
-  /// this.
+  /// this in test code.
   Function wrapAsync(fn(arg)) {
     if (_state == ScheduleState.DONE) {
       throw new StateError("wrapAsync called after the schedule has finished "
@@ -235,6 +238,35 @@ class Schedule {
         }
       }
     };
+  }
+
+  /// Like [wrapAsync], this ensures that the current task queue waits for
+  /// out-of-band asynchronous code, and that errors raised in that code are
+  /// handled correctly. However, [wrapFuture] wraps a [Future] chain rather
+  /// than a single callback.
+  ///
+  /// The returned [Future] completes to the same value or error as [future].
+  ///
+  /// The top-level `wrapFuture` function should usually be used in preference
+  /// to this in test code.
+  Future wrapFuture(Future future) {
+    var doneCallback = wrapAsync((_) => null);
+    done() => new Future.immediate(null).then(doneCallback);
+
+    future = future.then((result) {
+      done();
+      return result;
+    }).catchError((e) {
+      signalError(e);
+      done();
+      throw e;
+    });
+
+    // Don't top-level the error, since it's already been signaled to the
+    // schedule.
+    future.catchError((_) => null);
+
+    return future;
   }
 
   /// Returns a string representation of all errors registered on this schedule.
@@ -285,6 +317,14 @@ class Schedule {
     if (_noPendingCallbacks == null) _noPendingCallbacks = new Completer();
     return _noPendingCallbacks.future;
   }
+
+  /// Register an error in the schedule's error list. This ensures that there
+  /// are no duplicate errors, and that all errors are wrapped in
+  /// [ScheduleError].
+  void _addError(error) {
+    if (errors.contains(error)) return;
+    errors.add(new ScheduleError.from(this, error));
+  }
 }
 
 /// An enum of states for a [Schedule].
@@ -333,6 +373,10 @@ class TaskQueue {
 
   TaskQueue._(this.name, this._schedule);
 
+  /// Whether this queue is currently running.
+  bool get isRunning => _schedule.state == ScheduleState.RUNNING &&
+      _schedule.currentQueue == this;
+
   /// Schedules a task, [fn], to run asynchronously as part of this queue. Tasks
   /// will be run in the order they're scheduled. In [fn] returns a [Future],
   /// tasks after it won't be run until that [Future] completes.
@@ -343,8 +387,23 @@ class TaskQueue {
   ///
   /// If [description] is passed, it's used to describe the task for debugging
   /// purposes when an error occurs.
+  ///
+  /// If this is called when this queue is currently running, it will run [fn]
+  /// on the next event loop iteration rather than adding it to a queue--this is
+  /// known as a "nested task". The current task will not complete until [fn]
+  /// (and any [Future] it returns) has finished running. Any errors in [fn]
+  /// will automatically be handled. Nested tasks run in parallel, unlike
+  /// top-level tasks which run in sequence.
   Future schedule(fn(), [String description]) {
-    var task = new Task(fn, this, description);
+    if (isRunning) {
+      var task = _schedule.currentTask;
+      var wrappedFn = () => _schedule.wrapFuture(
+          new Future.immediate(null).then((_) => fn()));
+      if (task == null) return wrappedFn();
+      return task.runChild(wrappedFn, description);
+    }
+
+    var task = new Task(fn, description, this);
     _contents.add(task);
     return task.result;
   }
@@ -362,7 +421,7 @@ class TaskQueue {
         _taskFuture = null;
         _schedule.heartbeat();
       }).catchError((e) {
-        if (_error != null) _schedule.errors.add(_error);
+        if (_error != null) _schedule._addError(_error);
         throw new ScheduleError.from(_schedule, e);
       });
     }).whenComplete(() {
@@ -379,7 +438,7 @@ class TaskQueue {
   void _signalError(ScheduleError error) {
     // If multiple errors are detected while a task is running, make sure the
     // earlier ones are recorded in the schedule.
-    if (_error != null) _schedule.errors.add(_error);
+    if (_error != null) _schedule._addError(_error);
     _error = error;
   }
 

@@ -50,4 +50,4 @@ void StackFrameIterator::SetupNextExitFrameData() {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_ARM
+#endif  // defined(TARGET_ARCH_ARM)

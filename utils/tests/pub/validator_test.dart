@@ -298,7 +298,7 @@ main() {
     });
 
     integration('has a package name that is a Dart reserved word', () {
-      dir(appPath, [libPubspec("operator", "1.0.0")]).scheduleCreate();
+      dir(appPath, [libPubspec("final", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
     });
 
@@ -307,7 +307,7 @@ main() {
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("test-pkg.dart", "int i = 0;")])
       ]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a library name that begins with a number', () {
@@ -315,7 +315,7 @@ main() {
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("8ball.dart", "int i = 0;")])
       ]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a library name that contains upper-case letters', () {
@@ -329,9 +329,9 @@ main() {
     integration('has a library name that is a Dart reserved word', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [file("operator.dart", "int i = 0;")])
+        dir("lib", [file("for.dart", "int i = 0;")])
       ]).scheduleCreate();
-      expectValidationError(name);
+      expectValidationWarning(name);
     });
 
     integration('has a single library named differently than the package', () {

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -57,54 +57,56 @@ abstract class HttpStatus {
 /**
  * HTTP server.
  */
-abstract class HttpServer {
-  factory HttpServer() => new _HttpServer();
-
+abstract class HttpServer implements Stream<HttpRequest> {
+  // TODO(ajohnsen): Document with example, once the stream API is final.
+  // TODO(ajohnsen): Add HttpServer.secure.
   /**
    * Start listening for HTTP requests on the specified [host] and
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
-   * specify the listen backlog for the underlying OS listen.
-   * The optional arguments [certificate_name] and [requestClientCertificate]
-   * are used by the HttpsServer class, which shares the same interface.
-   * See [addRequestHandler] and [defaultRequestHandler] for
-   * information on how incoming HTTP requests are handled.
+   * specify the listen backlog for the underlying OS listen
+   * setup.
    */
-  void listen(String host,
-              int port,
-              {int backlog: 128,
-               String certificate_name,
-               bool requestClientCertificate: false});
+  static Future<HttpServer> bind([String address = "127.0.0.1",
+                                  int port = 0,
+                                  int backlog = 0])
+      => _HttpServer.bind(address, port, backlog);
 
   /**
-   * Attach the HTTP server to an existing [:ServerSocket:]. If the
+   * Start listening for HTTPS requests on the specified [host] and
+   * [port]. If a [port] of 0 is specified the server will choose an
+   * ephemeral port. The optional argument [backlog] can be used to
+   * specify the listen backlog for the underlying OS listen
+   * setup.
+   *
+   * The certificate with Distinguished Name [certificate_name] is looked
+   * up in the certificate database, and is used as the server certificate.
+   * if [requestClientCertificate] is true, the server will request clients
+   * to authenticate with a client certificate.
+   */
+
+  static Future<HttpServer> bindSecure(String address,
+                                       int port,
+                                       {int backlog: 0,
+                                        String certificateName,
+                                        bool requestClientCertificate: false})
+      => _HttpServer.bindSecure(address,
+                                port,
+                                backlog,
+                                certificateName,
+                                requestClientCertificate);
+
+  /**
+   * Attach the HTTP server to an existing [:ServerSocket:]. When the
    * [HttpServer] is closed, the [HttpServer] will just detach itself,
-   * and not close [serverSocket].
+   * close current connections but not close [serverSocket].
    */
-  void listenOn(ServerSocket serverSocket);
+  factory HttpServer.listenOn(ServerSocket serverSocket)
+      => new _HttpServer.listenOn(serverSocket);
 
   /**
-   * Adds a request handler to the list of request handlers. The
-   * function [matcher] is called with the request and must return
-   * [:true:] if the [handler] should handle the request. The first
-   * handler for which [matcher] returns [:true:] will be handed the
-   * request.
-   */
-  addRequestHandler(bool matcher(HttpRequest request),
-                    void handler(HttpRequest request, HttpResponse response));
-
-  /**
-   * Sets the default request handler. This request handler will be
-   * called if none of the request handlers registered by
-   * [addRequestHandler] matches the current request. If no default
-   * request handler is set the server will just respond with status
-   * code [:NOT_FOUND:] (404).
-   */
-  void set defaultRequestHandler(
-      void handler(HttpRequest request, HttpResponse response));
-
-  /**
-   * Stop server listening.
+   * Stop server listening. This will make the [Stream] close with a done
+   * event.
    */
   void close();
 
@@ -116,11 +118,6 @@ abstract class HttpServer {
   int get port;
 
   /**
-   * Sets the error handler that is called when a connection error occurs.
-   */
-  void set onError(void callback(e));
-
-  /**
    * Set the timeout, in seconds, for sessions of this HTTP server. Default
    * is 20 minutes.
    */
@@ -128,17 +125,9 @@ abstract class HttpServer {
 
   /**
    * Returns a [:HttpConnectionsInfo:] object with an overview of the
-   * current connection handled by the server.
+   * current connections handled by the server.
    */
   HttpConnectionsInfo connectionsInfo();
-}
-
-
-/**
- * HTTPS server.
- */
-abstract class HttpsServer implements HttpServer {
-  factory HttpsServer() => new _HttpServer.httpsServer();
 }
 
 
@@ -445,16 +434,11 @@ abstract class HeaderValue {
   String toString();
 }
 
-abstract class HttpSession {
+abstract class HttpSession implements Map {
   /**
    * Get the id for the current session.
    */
   String get id;
-
-  /**
-   * Access the user-data associated with the session.
-   */
-  dynamic data;
 
   /**
    * Destroy the session. This will terminate the session and any further
@@ -466,6 +450,11 @@ abstract class HttpSession {
    * Set a callback that will be called when the session is timed out.
    */
   void set onTimeout(void callback());
+
+  /**
+   * Is true if the session have not been sent to the client yet.
+   */
+  bool get isNew;
 }
 
 
@@ -590,19 +579,16 @@ abstract class Cookie {
 
 
 /**
- * Http request delivered to the HTTP server callback.
+ * Http request delivered to the HTTP server callback. The [HttpRequest] is a
+ * [Stream] of the body content of the request. Listen to the body to handle the
+ * data and be notified once the entire body is received.
  */
-abstract class HttpRequest {
+abstract class HttpRequest implements Stream<List<int>> {
   /**
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
    */
   int get contentLength;
-
-  /**
-   * Returns the persistent connection state signaled by the client.
-   */
-  bool get persistentConnection;
 
   /**
    * Returns the method for the request.
@@ -612,17 +598,7 @@ abstract class HttpRequest {
   /**
    * Returns the URI for the request.
    */
-  String get uri;
-
-  /**
-   * Returns the path part of the URI.
-   */
-  String get path;
-
-  /**
-   * Returns the query string.
-   */
-  String get queryString;
+  Uri get uri;
 
   /**
    * Returns the parsed query string.
@@ -640,6 +616,11 @@ abstract class HttpRequest {
   List<Cookie> get cookies;
 
   /**
+   * Returns the persistent connection state signaled by the client.
+   */
+  bool get persistentConnection;
+
+  /**
    * Returns the client certificate of the client making the request.
    * Returns null if the connection is not a secure TLS or SSL connection,
    * or if the server does not request a client certificate, or if the client
@@ -648,19 +629,12 @@ abstract class HttpRequest {
   X509Certificate get certificate;
 
   /**
-   * Returns, or initialize, a session for the given request. If the session is
-   * being initialized by this call, [init] will be called with the
-   * newly create session. Here the [:HttpSession.data:] field can be set, if
-   * needed.
+   * Get the session for the given request. If the session is
+   * being initialized by this call, [:isNew:] will be true for the returned
+   * session.
    * See [:HttpServer.sessionTimeout:] on how to change default timeout.
    */
-  HttpSession session([init(HttpSession session)]);
-
-  /**
-   * Returns the input stream for the request. This is used to read
-   * the request data.
-   */
-  InputStream get inputStream;
+  HttpSession get session;
 
   /**
    * Returns the HTTP protocol version used in the request. This will
@@ -673,13 +647,20 @@ abstract class HttpRequest {
    * isn't available.
    */
   HttpConnectionInfo get connectionInfo;
+
+  /**
+   * Get the [HttpResponse] object, used for sending back the response to the
+   * client.
+   */
+  HttpResponse get response;
 }
 
 
 /**
  * HTTP response to be send back to the client.
  */
-abstract class HttpResponse {
+abstract class HttpResponse implements IOSink<HttpResponse> {
+  // TODO(ajohnsen): Add documentation of how to pipe a file to the response.
   /**
    * Gets and sets the content length of the response. If the size of
    * the response is not known in advance set the content length to
@@ -719,17 +700,6 @@ abstract class HttpResponse {
   List<Cookie> get cookies;
 
   /**
-   * Returns the output stream for the response. This is used to write
-   * the response data. When all response data has been written close
-   * the stream to indicate the end of the response.
-   *
-   * When this is accessed for the first time the response header is
-   * send. Calling any methods that will change the header after
-   * having retrieved the output stream will throw an exception.
-   */
-  OutputStream get outputStream;
-
-  /**
    * Detach the underlying socket from the HTTP server. When the
    * socket is detached the HTTP server will no longer perform any
    * operations on it.
@@ -737,7 +707,7 @@ abstract class HttpResponse {
    * This is normally used when a HTTP upgrade request is received
    * and the communication should continue with a different protocol.
    */
-  DetachedSocket detachSocket();
+  Future<Socket> detachSocket();
 
   /**
    * Get information about the client connection. Returns [null] if the socket
@@ -753,7 +723,7 @@ abstract class HttpResponse {
  * try to reuse opened sockets for several requests to support HTTP 1.1
  * persistent connections. This means that sockets will be kept open for some
  * time after a requests have completed, unless HTTP procedures indicate that it
- * must be closed as part of completing the request. Use [:HttpClient.shutdown:]
+ * must be closed as part of completing the request. Use [:HttpClient.close:]
  * to force close the idle sockets.
  */
 abstract class HttpClient {
@@ -763,50 +733,51 @@ abstract class HttpClient {
   factory HttpClient() => new _HttpClient();
 
   /**
-   * Opens a HTTP connection. The returned [HttpClientConnection] is
-   * used to register callbacks for asynchronous events on the HTTP
-   * connection. The "Host" header for the request will be set to the
-   * value [host]:[port]. This can be overridden through the
-   * HttpClientRequest interface before the request is sent. NOTE if
-   * [host] is an IP address this will still be set in the "Host"
+   * Opens a HTTP connection. The returned [HttpClientRequest] is used to
+   * fill in the content of the request before sending it. The "Host" header for
+   * the request will be set to the value [host]:[port]. This can be overridden
+   * through the [HttpClientRequest] interface before the request is sent.
+   * NOTE if [host] is an IP address this will still be set in the "Host"
    * header.
    */
-  HttpClientConnection open(String method, String host, int port, String path);
+  Future<HttpClientRequest> open(String method,
+                                 String host,
+                                 int port,
+                                 String path);
 
   /**
-   * Opens a HTTP connection. The returned [HttpClientConnection] is
-   * used to register callbacks for asynchronous events on the HTTP
-   * connection. The "Host" header for the request will be set based
-   * the host and port specified in [url]. This can be overridden
-   * through the HttpClientRequest interface before the request is
-   * sent. NOTE if the host is specified as an IP address this will
-   * still be set in the "Host" header.
+   * Opens a HTTP connection. The returned [HttpClientRequest] is used to
+   * fill in the content of the request before sending it. The "Host" header for
+   * the request will be set to the value [host]:[port]. This can be overridden
+   * through the [HttpClientRequest] interface before the request is sent.
+   * NOTE if [host] is an IP address this will still be set in the "Host"
+   * header.
    */
-  HttpClientConnection openUrl(String method, Uri url);
+  Future<HttpClientRequest> openUrl(String method, Uri url);
 
   /**
    * Opens a HTTP connection using the GET method. See [open] for
    * details. Using this method to open a HTTP connection will set the
    * content length to 0.
    */
-  HttpClientConnection get(String host, int port, String path);
+  Future<HttpClientRequest> get(String host, int port, String path);
 
   /**
    * Opens a HTTP connection using the GET method. See [openUrl] for
    * details. Using this method to open a HTTP connection will set the
    * content length to 0.
    */
-  HttpClientConnection getUrl(Uri url);
+  Future<HttpClientRequest> getUrl(Uri url);
 
   /**
    * Opens a HTTP connection using the POST method. See [open] for details.
    */
-  HttpClientConnection post(String host, int port, String path);
+  Future<HttpClientRequest> post(String host, int port, String path);
 
   /**
    * Opens a HTTP connection using the POST method. See [openUrl] for details.
    */
-  HttpClientConnection postUrl(Uri url);
+  Future<HttpClientRequest> postUrl(Uri url);
 
   /**
    * Sets the function to be called when a site is requesting
@@ -881,109 +852,23 @@ abstract class HttpClient {
    * trying to establish a new connection after calling [shutdown]
    * will throw an exception.
    */
-  void shutdown({bool force: false});
-}
-
-
-/**
- * A [HttpClientConnection] is returned by all [HttpClient] methods
- * that initiate a connection to an HTTP server. The handlers will be
- * called as the connection state progresses.
- *
- * The setting of all handlers is optional. If [onRequest] is not set
- * the request will be send without any additional headers and an
- * empty body. If [onResponse] is not set the response will be read
- * and discarded.
- */
-abstract class HttpClientConnection {
-  /**
-   * Sets the handler that is called when the connection is established.
-   */
-  void set onRequest(void callback(HttpClientRequest request));
-
-  /**
-   * Sets callback to be called when the request has been send and
-   * the response is ready for processing. The callback is called when
-   * all headers of the response are received and data is ready to be
-   * received.
-   */
-  void set onResponse(void callback(HttpClientResponse response));
-
-  /**
-   * Sets the handler that gets called if an error occurs while
-   * connecting or processing the HTTP request.
-   */
-  void set onError(void callback(e));
-
-  /**
-   * Set this property to [:true:] if this connection should
-   * automatically follow redirects. The default is
-   * [:true:].
-   *
-   * Automatic redirect will only happen for "GET" and "HEAD" requests
-   * and only for the status codes [:HttpStatus.MOVED_PERMANENTLY:]
-   * (301), [:HttpStatus.FOUND:] (302),
-   * [:HttpStatus.MOVED_TEMPORARILY:] (302, alias for
-   * [:HttpStatus.FOUND:]), [:HttpStatus.SEE_OTHER:] (303) and
-   * [:HttpStatus.TEMPORARY_REDIRECT:] (307). For
-   * [:HttpStatus.SEE_OTHER:] (303) autmatic redirect will also happen
-   * for "POST" requests with the method changed to "GET" when
-   * following the redirect.
-   *
-   * All headers added to the request will be added to the redirection
-   * request(s). However, any body send with the request will not be
-   * part of the redirection request(s).
-   */
-  bool followRedirects;
-
-  /**
-   * Set this property to the maximum number of redirects to follow
-   * when [followRedirects] is [:true:]. If this number is exceeded the
-   * [onError] callback will be called with a [RedirectLimitExceeded]
-   * exception. The default value is 5.
-   */
-  int maxRedirects;
-
-  /**
-   * Returns the series of redirects this connection has been through.
-   */
-  List<RedirectInfo> get redirects;
-
-  /**
-   * Redirect this connection to a new URL. The default value for
-   * [method] is the method for the current request. The default value
-   * for [url] is the value of the [:HttpHeaders.LOCATION:] header of
-   * the current response. All body data must have been read from the
-   * current response before calling [redirect].
-   *
-   * All headers added to the request will be added to the redirection
-   * request(s). However, any body send with the request will not be
-   * part of the redirection request(s).
-   */
-  void redirect([String method, Uri url]);
-
-  /**
-   * Detach the underlying socket from the HTTP client. When the
-   * socket is detached the HTTP client will no longer perform any
-   * operations on it.
-   *
-   * This is normally used when a HTTP upgrade is negotiated and the
-   * communication should continue with a different protocol.
-   */
-  DetachedSocket detachSocket();
-
-  /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
-   */
-  HttpConnectionInfo get connectionInfo;
+  void close({bool force: false});
 }
 
 
 /**
  * HTTP request for a client connection.
+ *
+ * The request is an [IOSink], used to write the request data. When
+ * all request data has been written, close the stream to indicate the end of
+ * the request.
+ *
+ * When this is accessed for the first time the request header is
+ * send. Calling any methods that will change the header after
+ * having retrieved the output stream will throw an exception.
  */
-abstract class HttpClientRequest {
+abstract class HttpClientRequest
+    implements IOSink<HttpClientRequest> {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
@@ -1008,22 +893,60 @@ abstract class HttpClientRequest {
   bool persistentConnection;
 
   /**
-   * Returns the output stream for the request. This is used to write
-   * the request data. When all request data has been written close
-   * the stream to indicate the end of the request.
-   *
-   * When this is accessed for the first time the request header is
-   * send. Calling any methods that will change the header after
-   * having retrieved the output stream will throw an exception.
+   * A [HttpClientResponse] future that will complete once the response is
+   * available. If an error occours before the response is available, this
+   * future will complete with an error.
    */
-  OutputStream get outputStream;
+  Future<HttpClientResponse> get response;
+
+  /**
+   * Close the request for input. Returns the value of [response].
+   */
+  Future<HttpClientResponse> close();
+
+  /**
+   * Set this property to [:true:] if this request should
+   * automatically follow redirects. The default is [:true:].
+   *
+   * Automatic redirect will only happen for "GET" and "HEAD" requests
+   * and only for the status codes [:HttpHeaders.MOVED_PERMANENTLY:]
+   * (301), [:HttpStatus.FOUND:] (302),
+   * [:HttpStatus.MOVED_TEMPORARILY:] (302, alias for
+   * [:HttpStatus.FOUND:]), [:HttpStatus.SEE_OTHER:] (303) and
+   * [:HttpStatus.TEMPORARY_REDIRECT:] (307). For
+   * [:HttpStatus.SEE_OTHER:] (303) autmatic redirect will also happen
+   * for "POST" requests with the method changed to "GET" when
+   * following the redirect.
+   *
+   * All headers added to the request will be added to the redirection
+   * request(s). However, any body send with the request will not be
+   * part of the redirection request(s).
+   */
+  bool followRedirects;
+
+  /**
+   * Set this property to the maximum number of redirects to follow
+   * when [followRedirects] is [:true:]. If this number is exceeded the
+   * [onError] callback will be called with a [RedirectLimitExceeded]
+   * exception. The default value is 5.
+   */
+  int maxRedirects;
+
+  /**
+   * Get information about the client connection. Returns [null] if the socket
+   * isn't available.
+   */
+  HttpConnectionInfo get connectionInfo;
 }
 
 
 /**
- * HTTP response for a client connection.
+ * HTTP response for a client connection. The [HttpClientResponse] is a
+ * [Stream] of the body content of the response. Listen to the body to handle
+ * the data and be notified once the entire body is received.
+
  */
-abstract class HttpClientResponse {
+abstract class HttpClientResponse implements Stream<List<int>> {
   /**
    * Returns the status code.
    */
@@ -1054,9 +977,47 @@ abstract class HttpClientResponse {
   bool get isRedirect;
 
   /**
+   * Returns the series of redirects this connection has been through. The
+   * list will be empty if no redirects was followed. [redirects] will be
+   * updated both in the case of an automatic and a manual redirect.
+   */
+  List<RedirectInfo> get redirects;
+
+  /**
+   * Redirect this connection to a new URL. The default value for
+   * [method] is the method for the current request. The default value
+   * for [url] is the value of the [:HttpHeaders.LOCATION:] header of
+   * the current response. All body data must have been read from the
+   * current response before calling [redirect].
+   *
+   * All headers added to the request will be added to the redirection
+   * request(s). However, any body send with the request will not be
+   * part of the redirection request(s).
+   *
+   * If [followLoops] is set to [true], redirect will follow the redirect,
+   * even if was already visited. Default value is [false].
+   *
+   * [redirect] will ignore [maxRedirects] and always perform the redirect.
+   */
+  Future<HttpClientResponse> redirect([String method,
+                                       Uri url,
+                                       bool followLoops]);
+
+
+  /**
    * Returns the response headers.
    */
   HttpHeaders get headers;
+
+  /**
+   * Detach the underlying socket from the HTTP client. When the
+   * socket is detached the HTTP client will no longer perform any
+   * operations on it.
+   *
+   * This is normally used when a HTTP upgrade is negotiated and the
+   * communication should continue with a different protocol.
+   */
+  Future<Socket> detachSocket();
 
   /**
    * Cookies set by the server (from the Set-Cookie header).
@@ -1070,10 +1031,10 @@ abstract class HttpClientResponse {
   X509Certificate get certificate;
 
   /**
-   * Returns the input stream for the response. This is used to read
-   * the response data.
+   * Get information about the client connection. Returns [null] if the socket
+   * isn't available.
    */
-  InputStream get inputStream;
+  HttpConnectionInfo get connectionInfo;
 }
 
 

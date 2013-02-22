@@ -157,6 +157,7 @@ class DartLibraryCalls : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* ExceptionCreate(const Library& library,
                                     const String& exception_name,
+                                    const String& constructor_name,
                                     const Array& arguments);
 
   // On success, returns a RawInstance.  On failure, a RawError.

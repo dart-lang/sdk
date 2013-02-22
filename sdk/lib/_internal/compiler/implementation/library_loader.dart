@@ -796,6 +796,9 @@ class LibraryDependencyHandler {
   void registerDependency(LibraryElement library,
                           LibraryDependency tag,
                           LibraryElement loadedLibrary) {
+    if (tag != null) {
+      library.recordResolvedTag(tag, loadedLibrary);
+    }
     if (tag is Export) {
       // [loadedLibrary] is exported by [library].
       LibraryDependencyNode exportingNode = nodeMap[library];

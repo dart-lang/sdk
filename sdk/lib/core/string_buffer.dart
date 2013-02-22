@@ -11,13 +11,16 @@ part of dart.core;
  */
 class StringBuffer implements StringSink {
 
-  /// Creates the string buffer with an initial content.
+  /** Creates the string buffer with an initial content. */
   external StringBuffer([Object content = ""]);
 
-  /// Returns the length of the buffer.
+  /**
+   * Returns the length of the content that has been accumulated so far.
+   * This is a constant-time operation.
+   */
   external int get length;
 
-  /// Returns whether the buffer is empty.
+  /** Returns whether the buffer is empty. This is a constant-time operation. */
   bool get isEmpty => length == 0;
 
   /**

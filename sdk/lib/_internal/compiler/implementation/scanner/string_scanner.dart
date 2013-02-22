@@ -75,7 +75,7 @@ class SubstringWrapper extends Iterable<int> implements SourceString {
   }
 
   void printOn(StringBuffer sb) {
-    sb.add(internalString.substring(begin, end));
+    sb.write(internalString.substring(begin, end));
   }
 
   String slowToString() {

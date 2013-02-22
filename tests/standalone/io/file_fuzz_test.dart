@@ -22,13 +22,13 @@ fuzzSyncMethods() {
       doItSync(f.lengthSync);
       doItSync(f.modifiedSync);
       doItSync(f.fullPathSync);
-      doItSync(() => f.openInputStream().onError = (e) => null);
+      doItSync(() => f.openRead().listen(() {}, onError: (e) {}));
       doItSync(f.readAsBytesSync);
       doItSync(f.readAsStringSync);
       doItSync(f.readAsLinesSync);
       typeMapping.forEach((k2, v2) {
         doItSync(() => f.openSync(v2));
-        doItSync(() => f.openOutputStream(v2).onError = (e) => null);
+        doItSync(() => f.openWrite(v2));
         doItSync(() => f.readAsStringSync(v2));
         doItSync(() => f.readAsLinesSync(v2));
       });

@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <fcntl.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_ANDROID)
+
+#include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/crypto.h"
@@ -16,3 +19,5 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   close(fd);
   return bytes_read == count;
 }
+
+#endif  // defined(TARGET_OS_ANDROID)

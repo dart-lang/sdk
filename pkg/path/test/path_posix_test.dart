@@ -161,6 +161,25 @@ main() {
     });
   });
 
+  group('joinAll', () {
+    test('allows more than eight parts', () {
+      expect(builder.joinAll(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']),
+          'a/b/c/d/e/f/g/h/i');
+    });
+
+    test('does not add separator if a part ends in one', () {
+      expect(builder.joinAll(['a/', 'b', 'c/', 'd']), 'a/b/c/d');
+      expect(builder.joinAll(['a\\', 'b']), r'a\/b');
+    });
+
+    test('ignores parts before an absolute path', () {
+      expect(builder.joinAll(['a', '/', 'b', 'c']), '/b/c');
+      expect(builder.joinAll(['a', '/b', '/c', 'd']), '/c/d');
+      expect(builder.joinAll(['a', r'c:\b', 'c', 'd']), r'a/c:\b/c/d');
+      expect(builder.joinAll(['a', r'\\b', 'c', 'd']), r'a/\\b/c/d');
+    });
+  });
+
   group('split', () {
     test('simple cases', () {
       expect(builder.split(''), []);

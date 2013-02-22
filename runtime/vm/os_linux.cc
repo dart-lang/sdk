@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "vm/os.h"
 
-#include <errno.h>
-#include <limits.h>
-#include <malloc.h>
-#include <time.h>
-#include <sys/resource.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <errno.h>  // NOLINT
+#include <limits.h>  // NOLINT
+#include <malloc.h>  // NOLINT
+#include <time.h>  // NOLINT
+#include <sys/resource.h>  // NOLINT
+#include <sys/time.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "platform/utils.h"
 #include "vm/code_observers.h"
@@ -422,3 +425,5 @@ void OS::Exit(int code) {
 }
 
 }  // namespace dart
+
+#endif  // defined(TARGET_OS_LINUX)

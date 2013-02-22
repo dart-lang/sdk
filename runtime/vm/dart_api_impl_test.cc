@@ -816,11 +816,13 @@ TEST_CASE(ListAccess) {
 }
 
 
-TEST_CASE(ByteArrayAccess) {
-  Dart_Handle byte_array1 = Dart_NewByteArray(10);
+TEST_CASE(TypedDataAccess) {
+  EXPECT_EQ(kInvalid, Dart_GetTypeOfTypedData(Dart_True()));
+  EXPECT_EQ(kInvalid, Dart_GetTypeOfExternalTypedData(Dart_False()));
+  Dart_Handle byte_array1 = Dart_NewTypedData(kUint8, 10);
   EXPECT_VALID(byte_array1);
-  EXPECT(Dart_IsByteArray(byte_array1));
-  EXPECT(!Dart_IsByteArrayExternal(byte_array1));
+  EXPECT_EQ(kUint8, Dart_GetTypeOfTypedData(byte_array1));
+  EXPECT_EQ(kInvalid, Dart_GetTypeOfExternalTypedData(byte_array1));
   EXPECT(Dart_IsList(byte_array1));
 
   intptr_t length = 0;
@@ -847,7 +849,7 @@ TEST_CASE(ByteArrayAccess) {
     EXPECT_EQ(i + 1, int64_t_value);
   }
 
-  Dart_Handle byte_array2 = Dart_NewByteArray(10);
+  Dart_Handle byte_array2 = Dart_NewTypedData(kUint8, 10);
   bool is_equal = false;
   Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
@@ -883,54 +885,54 @@ TEST_CASE(ByteArrayAccess) {
 }
 
 
-TEST_CASE(ScalarListDirectAccess) {
+TEST_CASE(TypedDataDirectAccess) {
   Dart_Handle str = Dart_NewStringFromCString("junk");
-  Dart_Handle byte_array = Dart_NewByteArray(10);
+  Dart_Handle byte_array = Dart_NewTypedData(kUint8, 10);
   EXPECT_VALID(byte_array);
   Dart_Handle result;
-  result = Dart_ScalarListAcquireData(byte_array, NULL, NULL, NULL);
-  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'type'"
+  result = Dart_TypedDataAcquireData(byte_array, NULL, NULL, NULL);
+  EXPECT_ERROR(result, "Dart_TypedDataAcquireData expects argument 'type'"
                        " to be non-null.");
-  Dart_Scalar_Type type;
-  result = Dart_ScalarListAcquireData(byte_array, &type, NULL, NULL);
-  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'data'"
+  Dart_TypedData_Type type;
+  result = Dart_TypedDataAcquireData(byte_array, &type, NULL, NULL);
+  EXPECT_ERROR(result, "Dart_TypedDataAcquireData expects argument 'data'"
                        " to be non-null.");
   void* data;
-  result = Dart_ScalarListAcquireData(byte_array, &type, &data, NULL);
-  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'len'"
+  result = Dart_TypedDataAcquireData(byte_array, &type, &data, NULL);
+  EXPECT_ERROR(result, "Dart_TypedDataAcquireData expects argument 'len'"
                        " to be non-null.");
   intptr_t len;
-  result = Dart_ScalarListAcquireData(Dart_Null(), &type, &data, &len);
-  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'array'"
+  result = Dart_TypedDataAcquireData(Dart_Null(), &type, &data, &len);
+  EXPECT_ERROR(result, "Dart_TypedDataAcquireData expects argument 'object'"
                        " to be non-null.");
-  result = Dart_ScalarListAcquireData(str, &type, &data, &len);
-  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'array'"
-                       " to be of type 'scalar list'.");
+  result = Dart_TypedDataAcquireData(str, &type, &data, &len);
+  EXPECT_ERROR(result, "Dart_TypedDataAcquireData expects argument 'object'"
+                       " to be of type 'TypedData'.");
 
-  result = Dart_ScalarListReleaseData(Dart_Null());
-  EXPECT_ERROR(result, "Dart_ScalarListReleaseData expects argument 'array'"
+  result = Dart_TypedDataReleaseData(Dart_Null());
+  EXPECT_ERROR(result, "Dart_TypedDataReleaseData expects argument 'object'"
                        " to be non-null.");
-  result = Dart_ScalarListReleaseData(str);
-  EXPECT_ERROR(result, "Dart_ScalarListReleaseData expects argument 'array'"
-                       " to be of type 'scalar list'.");
+  result = Dart_TypedDataReleaseData(str);
+  EXPECT_ERROR(result, "Dart_TypedDataReleaseData expects argument 'object'"
+                       " to be of type 'TypedData'.");
 }
 
 
 static void TestDirectAccess(Dart_Handle lib,
                              Dart_Handle array,
-                             Dart_Scalar_Type expected_type) {
+                             Dart_TypedData_Type expected_type) {
   // Invoke the dart function that sets initial values.
   Dart_Handle dart_args[1];
   dart_args[0] = array;
   Dart_Invoke(lib, NewString("setMain"), 1, dart_args);
 
-  // Now Get a direct access to this typed array and check it's contents.
+  // Now Get a direct access to this typed data object and check it's contents.
   const int kLength = 10;
   Dart_Handle result;
-  Dart_Scalar_Type type;
+  Dart_TypedData_Type type;
   void* data;
   intptr_t len;
-  result = Dart_ScalarListAcquireData(array, &type, &data, &len);
+  result = Dart_TypedDataAcquireData(array, &type, &data, &len);
   EXPECT_VALID(result);
   EXPECT_EQ(expected_type, type);
   EXPECT_EQ(kLength, len);
@@ -945,8 +947,8 @@ static void TestDirectAccess(Dart_Handle lib,
     dataP[i] += 10;
   }
 
-  // Release direct accesss to the typed array.
-  result = Dart_ScalarListReleaseData(array);
+  // Release direct accesss to the typed data object.
+  result = Dart_TypedDataReleaseData(array);
   EXPECT_VALID(result);
 
   // Invoke the dart function in order to check the modified values.
@@ -954,7 +956,7 @@ static void TestDirectAccess(Dart_Handle lib,
 }
 
 
-TEST_CASE(ScalarListDirectAccess1) {
+TEST_CASE(TypedDataDirectAccess1) {
   const char* kScriptChars =
       "import 'dart:scalarlist';\n"
       "void setMain(var a) {"
@@ -974,17 +976,18 @@ TEST_CASE(ScalarListDirectAccess1) {
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
-  // Test with an regular typed array object.
+  // Test with an regular typed data object.
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
   TestDirectAccess(lib, list_access_test_obj, kInt8);
 
-  // Test with an external typed array object.
+  // Test with an external typed data object.
   uint8_t data[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   intptr_t data_length = ARRAY_SIZE(data);
   Dart_Handle ext_list_access_test_obj;
-  ext_list_access_test_obj = Dart_NewExternalByteArray(data,
+  ext_list_access_test_obj = Dart_NewExternalTypedData(kUint8,
+                                                       data,
                                                        data_length,
                                                        NULL, NULL);
   EXPECT_VALID(ext_list_access_test_obj);
@@ -992,20 +995,26 @@ TEST_CASE(ScalarListDirectAccess1) {
 }
 
 
-static void ExternalByteArrayAccessTests(Dart_Handle obj,
+static void ExternalTypedDataAccessTests(Dart_Handle obj,
+                                         Dart_TypedData_Type expected_type,
                                          uint8_t data[],
                                          intptr_t data_length) {
   EXPECT_VALID(obj);
-  EXPECT(Dart_IsByteArray(obj));
-  EXPECT(Dart_IsByteArrayExternal(obj));
+  EXPECT_EQ(expected_type, Dart_GetTypeOfTypedData(obj));
+  EXPECT_EQ(expected_type, Dart_GetTypeOfExternalTypedData(obj));
   EXPECT(Dart_IsList(obj));
 
   void* raw_data = NULL;
-  EXPECT_VALID(Dart_ExternalByteArrayGetData(obj, &raw_data));
+  intptr_t len;
+  Dart_TypedData_Type type;
+  EXPECT_VALID(Dart_TypedDataAcquireData(obj, &type, &raw_data, &len));
   EXPECT(raw_data == data);
+  EXPECT_EQ(data_length, len);
+  EXPECT_EQ(expected_type, type);
+  EXPECT_VALID(Dart_TypedDataReleaseData(obj));
 
   void* peer = &data;  // just a non-NULL value
-  EXPECT_VALID(Dart_ExternalByteArrayGetPeer(obj, &peer));
+  EXPECT_VALID(Dart_ExternalTypedDataGetPeer(obj, &peer));
   EXPECT(peer == NULL);
 
   intptr_t list_length = 0;
@@ -1048,22 +1057,25 @@ static void ExternalByteArrayAccessTests(Dart_Handle obj,
 }
 
 
-TEST_CASE(ExternalByteArrayAccess) {
+TEST_CASE(ExternalTypedDataAccess) {
   uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
   intptr_t data_length = ARRAY_SIZE(data);
 
-  Dart_Handle obj = Dart_NewExternalByteArray(data, data_length, NULL, NULL);
-  ExternalByteArrayAccessTests(obj, data, data_length);
+  Dart_Handle obj = Dart_NewExternalTypedData(kUint8,
+                                              data, data_length,
+                                              NULL, NULL);
+  ExternalTypedDataAccessTests(obj, kUint8, data, data_length);
 }
 
 
-TEST_CASE(ExternalClampedByteArrayAccess) {
+TEST_CASE(ExternalClampedTypedDataAccess) {
   uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
   intptr_t data_length = ARRAY_SIZE(data);
 
-  Dart_Handle obj = Dart_NewExternalClampedByteArray(
-      data, data_length, NULL, NULL);
-  ExternalByteArrayAccessTests(obj, data, data_length);
+  Dart_Handle obj = Dart_NewExternalTypedData(kUint8Clamped,
+                                              data, data_length,
+                                              NULL, NULL);
+  ExternalTypedDataAccessTests(obj, kUint8Clamped, data, data_length);
 }
 
 
@@ -1082,8 +1094,9 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 
   uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
   intptr_t data_length = ARRAY_SIZE(data);
-  Dart_Handle obj = Dart_NewExternalClampedByteArray(
-      data, data_length, NULL, NULL);
+  Dart_Handle obj = Dart_NewExternalTypedData(kUint8Clamped,
+                                              data, data_length,
+                                              NULL, NULL);
   EXPECT_VALID(obj);
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
@@ -1102,25 +1115,27 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 }
 
 
-static void ExternalByteArrayCallbackFinalizer(Dart_Handle handle, void* peer) {
+static void ExternalTypedDataCallbackFinalizer(Dart_Handle handle,
+                                               void* peer) {
   Dart_DeletePersistentHandle(handle);
   *static_cast<int*>(peer) = 42;
 }
 
 
-TEST_CASE(ExternalByteArrayCallback) {
+TEST_CASE(ExternalTypedDataCallback) {
   int peer = 0;
   {
     Dart_EnterScope();
     uint8_t data[] = { 1, 2, 3, 4 };
-    Dart_Handle obj = Dart_NewExternalByteArray(
+    Dart_Handle obj = Dart_NewExternalTypedData(
+        kUint8,
         data,
         ARRAY_SIZE(data),
         &peer,
-        ExternalByteArrayCallbackFinalizer);
+        ExternalTypedDataCallbackFinalizer);
     EXPECT_VALID(obj);
     void* api_peer = NULL;
-    EXPECT_VALID(Dart_ExternalByteArrayGetPeer(obj, &api_peer));
+    EXPECT_VALID(Dart_ExternalTypedDataGetPeer(obj, &api_peer));
     EXPECT_EQ(api_peer, &peer);
     Dart_ExitScope();
   }

@@ -112,8 +112,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
   } else {
     f->Print("?, ");
   }
-  f->Print("%s}", (type_ != NULL) ? String::Handle(type_->Name()).ToCString()
-                                  : "?");
+  f->Print("%s}", (type_ != NULL) ? type_->ToCString() : "?");
 }
 
 
@@ -319,7 +318,7 @@ void ArgumentDefinitionTestInstr::PrintOperandsTo(BufferFormatter* f) const {
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -328,7 +327,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
   if (HasICData()) {
     PrintICData(f, *ic_data());
@@ -340,7 +339,7 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", instance_call()->function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
   PrintICData(f, ic_data());
 }
@@ -368,7 +367,7 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s ", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -440,7 +439,7 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -458,7 +457,7 @@ void AllocateObjectWithBoundsCheckInstr::PrintOperandsTo(
 void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < ArgumentCount(); ++i) {
     if (i != 0) f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
   if (ArgumentCount() > 0) f->Print(", ");
   element_type()->PrintTo(f);
@@ -469,7 +468,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    PushArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -517,7 +516,9 @@ void CatchEntryInstr::PrintOperandsTo(BufferFormatter* f) const {
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');
+  f->Print(" %ct", is_truncating() ? '+' : '-');
 }
+
 
 void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));

@@ -21,7 +21,7 @@ var url = '';
 
 main() {
   useHtmlConfiguration();
-  url = "http://localhost:${window.location.port}/pkg/intl/lib/src/data/dates/";
+  url = "http://localhost:${window.location.port}/root_dart/pkg/intl/lib/src/data/dates/";
   // Initialize one locale just so we know what the list is.
   test('Run everything', () {
     initializeDateFormatting("en_US", url).then(expectAsync1(runEverything));});

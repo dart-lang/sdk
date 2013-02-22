@@ -11,47 +11,46 @@ main() {
   bool clientOnClosed = false;
   bool requestOnClosed = false;
 
-  var server = new HttpServer();
-  var client = new HttpClient();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    var client = new HttpClient();
 
-  checkDone() {
-    if (serverOnClosed && clientOnClosed && requestOnClosed) {
-      server.close();
-      client.shutdown();
+    checkDone() {
+      if (serverOnClosed && clientOnClosed && requestOnClosed) {
+        server.close();
+        client.close();
+      }
     }
-  }
 
-  server.listen("127.0.0.1", 0);
-  server.defaultRequestHandler = (request, response) {
-    request.inputStream.onData = request.inputStream.read;
-    request.inputStream.onClosed = () {
-      response.outputStream.onClosed = () {
-        serverOnClosed = true;
-        checkDone();
-      };
-      response.outputStream.writeString("hello!");
-      response.outputStream.close();
-    };
-  };
+    server.listen((request) {
+      request.listen(
+          (_) {},
+          onDone: () {
+            request.response.done.then((_) {
+              serverOnClosed = true;
+              checkDone();
+            });
+            request.response.addString("hello!");
+            request.response.close();
+          });
+      });
 
-  var connection = client.postUrl(
-      Uri.parse("http://127.0.0.1:${server.port}"));
-  connection.onError = (e) { throw e; };
-  connection.onRequest = (request) {
-    request.contentLength = "hello!".length;
-    request.outputStream.onError = (e) { throw e; };
-    request.outputStream.onClosed = () {
-      clientOnClosed = true;
-      checkDone();
-    };
-    request.outputStream.writeString("hello!");
-    request.outputStream.close();
-  };
-  connection.onResponse = (response) {
-    response.inputStream.onData = response.inputStream.read;
-    response.inputStream.onClosed = () {
-      requestOnClosed = true;
-      checkDone();
-    };
-  };
+    client.postUrl(Uri.parse("http://127.0.0.1:${server.port}"))
+        .then((request) {
+          request.contentLength = "hello!".length;
+          request.done.then((_) {
+            clientOnClosed = true;
+            checkDone();
+          });
+          request.addString("hello!");
+          return request.close();
+        })
+        .then((response) {
+          response.listen(
+              (_) {},
+              onDone: () {
+                requestOnClosed = true;
+                checkDone();
+              });
+        });
+  });
 }

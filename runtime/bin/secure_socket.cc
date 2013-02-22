@@ -312,7 +312,7 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
         Dart_NewPersistentHandle(Dart_ListGetAt(dart_buffers_object, i)));
     buffers_[i] = new uint8_t[size];
     Dart_Handle data = ThrowIfError(
-      Dart_NewExternalByteArray(buffers_[i], size, NULL, NULL));
+        Dart_NewExternalTypedData(kUint8, buffers_[i], size, NULL, NULL));
     ThrowIfError(Dart_SetField(dart_buffer_objects_[i],
                                data_identifier,
                                data));
@@ -340,7 +340,6 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   bool report_duplicate_initialization) {
   MutexLocker locker(&mutex_);
   if (!library_initialized_) {
-    library_initialized_ = true;
     password_ = strdup(password);  // This one copy persists until Dart exits.
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
     // TODO(whesse): Verify there are no UTF-8 issues here.
@@ -362,20 +361,25 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                                       SECMOD_DB,
                                       init_flags);
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed NSS_Init call.");
     }
+    library_initialized_ = true;
 
     status = NSS_SetDomesticPolicy();
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed NSS_SetDomesticPolicy call.");
     }
     // Enable TLS, as well as SSL3 and SSL2.
     status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed SSL_OptionSetDefault enable TLS call.");
     }
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
+      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
       ThrowPRException("Failed SSL_ConfigServerSessionIDCache call.");
     }
 
@@ -442,17 +446,28 @@ void SSLFilter::Connect(const char* host_name,
   SECStatus status;
   if (is_server) {
     PK11_SetPasswordFunc(PasswordCallback);
-    CERTCertDBHandle* certificate_database = CERT_GetDefaultCertDB();
-    if (certificate_database == NULL) {
-      ThrowPRException("Certificate database cannot be loaded");
-    }
-    // TODO(whesse): Switch to a function that looks up certs by nickname,
-    // so that server and client uses of certificateName agree.
-    CERTCertificate* certificate = CERT_FindCertByNameString(
-        certificate_database,
-        const_cast<char*>(certificate_name));
-    if (certificate == NULL) {
-      ThrowPRException("Cannot find server certificate by name");
+
+    CERTCertificate* certificate = NULL;
+    if (strstr(certificate_name, "CN=") != NULL) {
+      // Look up certificate using the distinguished name (DN) certificate_name.
+      CERTCertDBHandle* certificate_database = CERT_GetDefaultCertDB();
+      if (certificate_database == NULL) {
+        ThrowPRException("Certificate database cannot be loaded");
+      }
+      certificate = CERT_FindCertByNameString(certificate_database,
+          const_cast<char*>(certificate_name));
+      if (certificate == NULL) {
+        ThrowPRException(
+            "Cannot find server certificate by distinguished name");
+      }
+    } else {
+      // Look up certificate using the nickname certificate_name.
+      certificate = PK11_FindCertFromNickname(
+          const_cast<char*>(certificate_name),
+          static_cast<void*>(const_cast<char*>(password_)));
+      if (certificate == NULL) {
+        ThrowPRException("Cannot find server certificate by nickname");
+      }
     }
     SECKEYPrivateKey* key = PK11_FindKeyByAnyCert(
         certificate,

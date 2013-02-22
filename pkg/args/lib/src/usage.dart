@@ -170,7 +170,7 @@ class Usage {
   writeLine(int column, String text) {
     // Write any pending newlines.
     while (newlinesNeeded > 0) {
-      buffer.add('\n');
+      buffer.write('\n');
       newlinesNeeded--;
     }
 
@@ -178,19 +178,19 @@ class Usage {
     // to the next line.
     while (currentColumn != column) {
       if (currentColumn < NUM_COLUMNS - 1) {
-        buffer.add(padRight('', columnWidths[currentColumn]));
+        buffer.write(padRight('', columnWidths[currentColumn]));
       } else {
-        buffer.add('\n');
+        buffer.write('\n');
       }
       currentColumn = (currentColumn + 1) % NUM_COLUMNS;
     }
 
     if (column < columnWidths.length) {
       // Fixed-size column, so pad it.
-      buffer.add(padRight(text, columnWidths[column]));
+      buffer.write(padRight(text, columnWidths[column]));
     } else {
       // The last column, so just write it.
-      buffer.add(text);
+      buffer.write(text);
     }
 
     // Advance to the next column.
@@ -210,17 +210,17 @@ class Usage {
 
   buildAllowedList(Option option) {
     var allowedBuffer = new StringBuffer();
-    allowedBuffer.add('[');
+    allowedBuffer.write('[');
     bool first = true;
     for (var allowed in option.allowed) {
-      if (!first) allowedBuffer.add(', ');
-      allowedBuffer.add(allowed);
+      if (!first) allowedBuffer.write(', ');
+      allowedBuffer.write(allowed);
       if (allowed == option.defaultValue) {
-        allowedBuffer.add(' (default)');
+        allowedBuffer.write(' (default)');
       }
       first = false;
     }
-    allowedBuffer.add(']');
+    allowedBuffer.write(']');
     return allowedBuffer.toString();
   }
 }
@@ -228,10 +228,10 @@ class Usage {
 /** Pads [source] to [length] by adding spaces at the end. */
 String padRight(String source, int length) {
   final result = new StringBuffer();
-  result.add(source);
+  result.write(source);
 
   while (result.length < length) {
-    result.add(' ');
+    result.write(' ');
   }
 
   return result.toString();

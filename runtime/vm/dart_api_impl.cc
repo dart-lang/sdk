@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2060,7 +2060,85 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
 }
 
 
-// TODO(hpayer): value should always be smaller then 0xff. Add error handling.
+static RawObject* ResolveConstructor(const char* current_func,
+                                     const Class& cls,
+                                     const String& class_name,
+                                     const String& dotted_name,
+                                     int num_args);
+
+
+static RawObject* ThrowArgumentError(const char* exception_message) {
+  Isolate* isolate = Isolate::Current();
+  // Lookup the class ArgumentError in dart:core.
+  const String& lib_url = String::Handle(String::New("dart:core"));
+  const String& class_name =
+      String::Handle(String::New("ArgumentError"));
+  const Library& lib =
+      Library::Handle(isolate, Library::LookupLibrary(lib_url));
+  if (lib.IsNull()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: library '%s' not found.",
+                             CURRENT_FUNC, lib_url.ToCString()));
+    return ApiError::New(message);
+  }
+  const Class& cls = Class::Handle(isolate,
+                                   lib.LookupClassAllowPrivate(class_name));
+  if (cls.IsNull()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: class '%s' not found in library '%s'.",
+                             CURRENT_FUNC, class_name.ToCString(),
+                             lib_url.ToCString()));
+    return ApiError::New(message);
+  }
+  String& dot_name = String::Handle(String::New("."));
+  Object& result = Object::Handle(isolate);
+  result = ResolveConstructor(CURRENT_FUNC, cls, class_name, dot_name, 1);
+  if (result.IsError()) return result.raw();
+  ASSERT(result.IsFunction());
+  Function& constructor = Function::Handle(isolate);
+  constructor ^= result.raw();
+  if (!constructor.IsConstructor()) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: class '%s' is not a constructor.",
+                             CURRENT_FUNC, class_name.ToCString()));
+    return ApiError::New(message);
+  }
+  Instance& exception = Instance::Handle(isolate);
+  exception = Instance::New(cls);
+  const Array& args = Array::Handle(isolate, Array::New(3));
+  args.SetAt(0, exception);
+  args.SetAt(1,
+             Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
+  args.SetAt(2, String::Handle(String::New(exception_message)));
+  result = DartEntry::InvokeStatic(constructor, args);
+  if (result.IsError()) return result.raw();
+  ASSERT(result.IsNull());
+
+  if (isolate->top_exit_frame_info() == 0) {
+    // There are no dart frames on the stack so it would be illegal to
+    // throw an exception here.
+    const String& message = String::Handle(
+            String::New("No Dart frames on stack, cannot throw exception"));
+    return ApiError::New(message);
+  }
+  // Unwind all the API scopes till the exit frame before throwing an
+  // exception.
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  const Instance* saved_exception;
+  {
+    NoGCScope no_gc;
+    RawInstance* raw_exception = exception.raw();
+    state->UnwindScopes(isolate->top_exit_frame_info());
+    saved_exception = &Instance::Handle(raw_exception);
+  }
+  Exceptions::Throw(*saved_exception);
+  const String& message = String::Handle(
+          String::New("Exception was not thrown, internal error"));
+  return ApiError::New(message);
+}
+
+// TODO(sgjesse): value should always be smaller then 0xff. Add error handling.
 #define GET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
                                   length)                                      \
   const type& array = type::Cast(obj);                                         \
@@ -2069,8 +2147,9 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     for (int i = 0; i < length; i++) {                                         \
       element = array.At(offset + i);                                          \
       if (!element.IsInteger()) {                                              \
-        return Api::NewError("%s expects the argument 'list' to be "           \
-                             "a List of int", CURRENT_FUNC);                   \
+        return Api::NewHandle(                                                 \
+            isolate, ThrowArgumentError("List contains non-int elements"));    \
+                                                                               \
       }                                                                        \
       const Integer& integer = Integer::Cast(element);                         \
       native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \
@@ -2240,30 +2319,147 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 }
 
 
-// --- Byte Arrays ---
+// --- Typed Data ---
 
 
-DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
-  return RawObject::IsByteArrayClassId(Api::ClassId(object));
+// Helper method to get the type of a TypedData object.
+static Dart_TypedData_Type GetType(intptr_t class_id) {
+  Dart_TypedData_Type type;
+  switch (class_id) {
+    case kByteArrayCid :
+      type = kByteData;
+      break;
+    case kInt8ArrayCid :
+    case kExternalInt8ArrayCid :
+      type = kInt8;
+      break;
+    case kUint8ArrayCid :
+    case kExternalUint8ArrayCid :
+      type = kUint8;
+      break;
+    case kUint8ClampedArrayCid :
+    case kExternalUint8ClampedArrayCid :
+      type = kUint8Clamped;
+      break;
+    case kInt16ArrayCid :
+    case kExternalInt16ArrayCid :
+      type = kInt16;
+      break;
+    case kUint16ArrayCid :
+    case kExternalUint16ArrayCid :
+      type = kUint16;
+      break;
+    case kInt32ArrayCid :
+    case kExternalInt32ArrayCid :
+      type = kInt32;
+      break;
+    case kUint32ArrayCid :
+    case kExternalUint32ArrayCid :
+      type = kUint32;
+      break;
+    case kInt64ArrayCid :
+    case kExternalInt64ArrayCid :
+      type = kInt64;
+      break;
+    case kUint64ArrayCid :
+    case kExternalUint64ArrayCid :
+      type = kUint64;
+      break;
+    case kFloat32ArrayCid :
+    case kExternalFloat32ArrayCid :
+      type = kFloat32;
+      break;
+    case kFloat64ArrayCid :
+    case kExternalFloat64ArrayCid :
+      type = kFloat64;
+      break;
+    default:
+      type = kInvalid;
+      break;
+  }
+  return type;
 }
 
 
-DART_EXPORT bool Dart_IsByteArrayExternal(Dart_Handle object) {
-  return RawObject::IsExternalByteArrayClassId(Api::ClassId(object));
+DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
+  intptr_t class_id = Api::ClassId(object);
+  return GetType(class_id);
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
+DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
+    Dart_Handle object) {
+  intptr_t class_id = Api::ClassId(object);
+  if (!RawObject::IsExternalByteArrayClassId(class_id)) {
+    return kInvalid;
+  }
+  return GetType(class_id);
+}
+
+
+template<typename type>
+static Dart_Handle NewTypedData(Isolate* isolate, intptr_t length) {
+  CHECK_LENGTH(length, type::kMaxElements);
+  return Api::NewHandle(isolate, type::New(length));
+}
+
+
+template<typename type, typename datatype>
+static Dart_Handle NewExternalTypedData(
+    void* data,
+    intptr_t length,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback) {
+  CHECK_LENGTH(length, type::kMaxElements);
+  const type& obj =
+      type::Handle(type::New(reinterpret_cast<datatype*>(data), length));
+  return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
+                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  CHECK_LENGTH(length, Uint8Array::kMaxElements);
   CHECK_CALLBACK_STATE(isolate);
-  return Api::NewHandle(isolate, Uint8Array::New(length));
+  switch (type) {
+    case kByteData :
+      // TODO(asiva): Add a new ByteArray::New() method.
+      break;
+    case kInt8 :
+      return NewTypedData<Int8Array>(isolate, length);
+    case kUint8 :
+      return NewTypedData<Uint8Array>(isolate, length);
+    case kUint8Clamped :
+      return NewTypedData<Uint8ClampedArray>(isolate, length);
+    case kInt16 :
+      return NewTypedData<Int16Array>(isolate, length);
+    case kUint16 :
+      return NewTypedData<Uint16Array>(isolate, length);
+    case kInt32 :
+      return NewTypedData<Int32Array>(isolate, length);
+    case kUint32 :
+      return NewTypedData<Uint32Array>(isolate, length);
+    case kInt64 :
+      return NewTypedData<Int64Array>(isolate, length);
+    case kUint64 :
+      return NewTypedData<Uint64Array>(isolate, length);
+    case kFloat32 :
+      return NewTypedData<Float32Array>(isolate, length);
+    case kFloat64 :
+      return NewTypedData<Float64Array>(isolate, length);
+    default:
+      return Api::NewError("%s expects argument 'type' to be of 'TypedData'",
+                           CURRENT_FUNC);
+  }
+  UNREACHABLE();
+  return Api::Null(isolate);
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalByteArray(
-    uint8_t* data,
+DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
+    Dart_TypedData_Type type,
+    void* data,
     intptr_t length,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
@@ -2272,57 +2468,83 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);
   }
-  CHECK_LENGTH(length, ExternalUint8Array::kMaxElements);
   CHECK_CALLBACK_STATE(isolate);
-  const ExternalUint8Array& obj = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data, length));
-  return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
+  switch (type) {
+    case kByteData :
+      // TODO(asiva): Allocate external ByteData object.
+      break;
+    case kInt8 :
+      return NewExternalTypedData<ExternalInt8Array, int8_t>(data,
+                                                             length,
+                                                             peer,
+                                                             callback);
+    case kUint8 :
+      return NewExternalTypedData<ExternalUint8Array, uint8_t>(data,
+                                                               length,
+                                                               peer,
+                                                               callback);
+    case kUint8Clamped :
+      return NewExternalTypedData<ExternalUint8ClampedArray, uint8_t>(data,
+                                                                      length,
+                                                                      peer,
+                                                                      callback);
+    case kInt16 :
+      return NewExternalTypedData<ExternalInt16Array, int16_t>(data,
+                                                               length,
+                                                               peer,
+                                                               callback);
+    case kUint16 :
+      return NewExternalTypedData<ExternalUint16Array, uint16_t>(data,
+                                                                 length,
+                                                                 peer,
+                                                                 callback);
+    case kInt32 :
+      return NewExternalTypedData<ExternalInt32Array, int32_t>(data,
+                                                               length,
+                                                               peer,
+                                                               callback);
+    case kUint32 :
+      return NewExternalTypedData<ExternalUint32Array, uint32_t>(data,
+                                                                 length,
+                                                                 peer,
+                                                                 callback);
+    case kInt64 :
+      return NewExternalTypedData<ExternalInt64Array, int64_t>(data,
+                                                               length,
+                                                               peer,
+                                                               callback);
+    case kUint64 :
+      return NewExternalTypedData<ExternalUint64Array, uint64_t>(data,
+                                                                 length,
+                                                                 peer,
+                                                                 callback);
+    case kFloat32 :
+      return NewExternalTypedData<ExternalFloat32Array, float>(data,
+                                                               length,
+                                                               peer,
+                                                               callback);
+    case kFloat64 :
+      return NewExternalTypedData<ExternalFloat64Array, double>(data,
+                                                                length,
+                                                                peer,
+                                                                callback);
+    default:
+      return Api::NewError("%s expects argument 'type' to be of"
+                           " 'external TypedData'", CURRENT_FUNC);
+  }
+  UNREACHABLE();
+  return Api::Null(isolate);
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalClampedByteArray(
-    uint8_t* data,
-    intptr_t length,
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  if (data == NULL && length != 0) {
-    RETURN_NULL_ERROR(data);
-  }
-  CHECK_LENGTH(length, ExternalUint8ClampedArray::kMaxElements);
-  CHECK_CALLBACK_STATE(isolate);
-  const ExternalUint8ClampedArray& obj = ExternalUint8ClampedArray::Handle(
-      ExternalUint8ClampedArray::New(data, length));
-  return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
-}
-
-
-DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetData(Dart_Handle object,
-                                                      void** data) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const ExternalUint8Array& array =
-      Api::UnwrapExternalUint8ArrayHandle(isolate, object);
-  if (array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, ExternalUint8Array);
-  }
-  if (data == NULL) {
-    RETURN_NULL_ERROR(data);
-  }
-  *data = array.GetData();
-  return Api::Success(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_ExternalTypedDataGetPeer(Dart_Handle object,
                                                       void** peer) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const ExternalUint8Array& array =
-      Api::UnwrapExternalUint8ArrayHandle(isolate, object);
+  const ByteArray& array =
+      Api::UnwrapByteArrayHandle(isolate, object);
   if (array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, ExternalUint8Array);
+    RETURN_TYPE_ERROR(isolate, object, ByteArray);
   }
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
@@ -2332,15 +2554,15 @@ DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
-                                                   Dart_Scalar_Type* type,
-                                                   void** data,
-                                                   intptr_t* len) {
+DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
+                                                  Dart_TypedData_Type* type,
+                                                  void** data,
+                                                  intptr_t* len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  intptr_t class_id = Api::ClassId(array);
+  intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsByteArrayClassId(class_id)) {
-    RETURN_TYPE_ERROR(isolate, array, 'scalar list');
+    RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (type == NULL) {
     RETURN_NULL_ERROR(type);
@@ -2351,64 +2573,16 @@ DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
   if (len == NULL) {
     RETURN_NULL_ERROR(len);
   }
-  // Get the type of typed array.
-  switch (class_id) {
-    case kByteArrayCid :
-      *type = kByteArray;
-      break;
-    case kInt8ArrayCid :
-    case kExternalInt8ArrayCid :
-      *type = kInt8;
-      break;
-    case kUint8ArrayCid :
-    case kExternalUint8ArrayCid :
-      *type = kUint8;
-      break;
-    case kUint8ClampedArrayCid :
-    case kExternalUint8ClampedArrayCid :
-      *type = kUint8Clamped;
-      break;
-    case kInt16ArrayCid :
-    case kExternalInt16ArrayCid :
-      *type = kInt16;
-      break;
-    case kUint16ArrayCid :
-    case kExternalUint16ArrayCid :
-      *type = kUint16;
-      break;
-    case kInt32ArrayCid :
-    case kExternalInt32ArrayCid :
-      *type = kInt32;
-      break;
-    case kUint32ArrayCid :
-    case kExternalUint32ArrayCid :
-      *type = kUint32;
-      break;
-    case kInt64ArrayCid :
-    case kExternalInt64ArrayCid :
-      *type = kInt64;
-      break;
-    case kUint64ArrayCid :
-    case kExternalUint64ArrayCid :
-      *type = kUint64;
-      break;
-    case kFloat32ArrayCid :
-    case kExternalFloat32ArrayCid :
-      *type = kFloat32;
-      break;
-    case kFloat64ArrayCid :
-    case kExternalFloat64ArrayCid :
-      *type = kFloat64;
-      break;
-  }
-  const ByteArray& obj = Api::UnwrapByteArrayHandle(isolate, array);
+  // Get the type of typed data object.
+  *type = GetType(class_id);
+  const ByteArray& obj = Api::UnwrapByteArrayHandle(isolate, object);
   ASSERT(!obj.IsNull());
   *len = obj.Length();
-  // If it is an external typed array object just return the data field.
+  // If it is an external typed data object just return the data field.
   if (RawObject::IsExternalByteArrayClassId(class_id)) {
     *data = reinterpret_cast<void*>(obj.ByteAddr(0));
   } else {
-    // Regular typed array object, set up some GC and API callback guards.
+    // Regular typed data object, set up some GC and API callback guards.
     isolate->IncrementNoGCScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
     *data = reinterpret_cast<void*>(obj.ByteAddr(0));
@@ -2417,12 +2591,12 @@ DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ScalarListReleaseData(Dart_Handle array) {
+DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  intptr_t class_id = Api::ClassId(array);
+  intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsByteArrayClassId(class_id)) {
-    RETURN_TYPE_ERROR(isolate, array, 'scalar list');
+    RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (!RawObject::IsExternalByteArrayClassId(class_id)) {
     isolate->DecrementNoGCScopeDepth();

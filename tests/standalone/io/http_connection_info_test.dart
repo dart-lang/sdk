@@ -1,44 +1,46 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
 
 void testHttpConnectionInfo() {
-  HttpServer server = new HttpServer();
-  server.listen("0.0.0.0", 0);
-  int clientPort;
-  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
-    Expect.isTrue(request.connectionInfo.remoteHost is String);
-    Expect.equals(request.connectionInfo.localPort, server.port);
-    Expect.isNotNull(clientPort);
-    Expect.equals(request.connectionInfo.remotePort, clientPort);
-    request.inputStream.onClosed = () {
-      response.outputStream.close();
-    };
-  };
-  server.onError = (Exception e) {
-    Expect.fail("Unexpected error: $e");
-  };
+  HttpServer.bind("0.0.0.0", 0).then((server) {
+    int clientPort;
 
+    server.listen((request) {
+      var response = request.response;
+      Expect.isTrue(request.connectionInfo.remoteHost is String);
+      Expect.isTrue(response.connectionInfo.remoteHost is String);
+      Expect.equals(request.connectionInfo.localPort, server.port);
+      Expect.equals(response.connectionInfo.localPort, server.port);
+      Expect.isNotNull(clientPort);
+      Expect.equals(request.connectionInfo.remotePort, clientPort);
+      Expect.equals(response.connectionInfo.remotePort, clientPort);
+      request.listen(
+          (_) { },
+          onDone: ()  { request.response.close(); });
+    });
 
-  HttpClient client = new HttpClient();
-  HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
-  conn.onRequest = (HttpClientRequest request) {
-    Expect.isTrue(conn.connectionInfo.remoteHost is String);
-    Expect.equals(conn.connectionInfo.remotePort, server.port);
-    clientPort = conn.connectionInfo.localPort;
-    request.outputStream.close();
-  };
-  conn.onResponse = (HttpClientResponse response) {
-    response.inputStream.onClosed = () {
-      client.shutdown();
-      server.close();
-    };
-  };
-  conn.onError = (Exception e) {
-    Expect.fail("Unexpected error: $e");
-  };
+    HttpClient client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+        .then((request) {
+          Expect.isTrue(request.connectionInfo.remoteHost is String);
+          Expect.equals(request.connectionInfo.remotePort, server.port);
+          clientPort = request.connectionInfo.localPort;
+          return request.close();
+        })
+        .then((response) {
+            Expect.equals(server.port, response.connectionInfo.remotePort);
+            Expect.equals(clientPort, response.connectionInfo.localPort);
+            response.listen(
+                (_) { },
+                onDone: () {
+                  client.close();
+                  server.close();
+                });
+        });
+    });
 }
 
 void main() {

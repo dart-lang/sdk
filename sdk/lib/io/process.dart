@@ -84,7 +84,7 @@ abstract class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  InputStream get stdout;
+  Stream<List<int>> get stdout;
 
   /**
    * Returns an input stream of the process stderr.
@@ -92,7 +92,7 @@ abstract class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  InputStream get stderr;
+  Stream<List<int>> get stderr;
 
   /**
    * Returns an output stream to the process stdin.
@@ -100,7 +100,7 @@ abstract class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  OutputStream get stdin;
+  IOSink<Process> get stdin;
 
   /**
    * Sets an exit handler which gets invoked when the process
@@ -109,7 +109,7 @@ abstract class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  void set onExit(void callback(int exitCode));
+  Future<int> exitCode;
 
   /**
    * On Windows, [kill] kills the process, ignoring the [signal]

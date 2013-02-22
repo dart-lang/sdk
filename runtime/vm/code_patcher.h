@@ -24,11 +24,15 @@ class CodePatcher : public AllStatic {
  public:
   // Dart static calls have a distinct, machine-dependent code pattern.
 
-  // Patch static call to the new target.
-  static void PatchStaticCallAt(uword addr, uword new_target_address);
+  // Patch static call before return_address in given code to the new target.
+  static void PatchStaticCallAt(uword return_address,
+                                const Code& code,
+                                uword new_target_address);
 
-  // Patch instance call to the new target.
-  static void PatchInstanceCallAt(uword addr, uword new_target_address);
+  // Patch instance call before return_address in given code to the new target.
+  static void PatchInstanceCallAt(uword return_address,
+                                  const Code& code,
+                                  uword new_target_address);
 
   // Patch entry point with a jump as specified in the code's patch region.
   static void PatchEntry(const Code& code);
@@ -40,16 +44,15 @@ class CodePatcher : public AllStatic {
   // that there are no conflicts with object pointers). Used in ASSERTs.
   static bool CodeIsPatchable(const Code& code);
 
-  // Returns true if the code before return_address is a static
-  // or dynamic Dart call.
-  static bool IsDartCall(uword return_address);
-
-  static uword GetStaticCallTargetAt(uword return_address);
+  // Return the target address of the static call before return_address
+  // in given code.
+  static uword GetStaticCallTargetAt(uword return_address, const Code& code);
 
   // Get instance call information.  Returns the call target and sets each
   // of the output parameters ic_data and arguments_descriptor if they are
   // non-NULL.
   static uword GetInstanceCallAt(uword return_address,
+                                 const Code& code,
                                  ICData* ic_data,
                                  Array* arguments_descriptor);
 

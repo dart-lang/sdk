@@ -51,15 +51,16 @@
 // The ASSEMBLER_TEST_RUN macro is used to execute the assembler unit
 // test generated using the ASSEMBLER_TEST_GENERATE macro.
 // C++ callee-saved registers are not preserved. Arguments may be passed in.
-#define ASSEMBLER_TEST_RUN(name, entry)                                        \
-  static void AssemblerTestRun##name(uword entry);                             \
+#define ASSEMBLER_TEST_RUN(name, test)                                         \
+  static void AssemblerTestRun##name(AssemblerTest* test);                     \
   TEST_CASE(name) {                                                            \
     Assembler __assembler__;                                                   \
-    AssemblerTest __test__(""#name, &__assembler__);                           \
-    AssemblerTestGenerate##name(__test__.assembler());                         \
-    AssemblerTestRun##name(__test__.Assemble());                               \
+    AssemblerTest test(""#name, &__assembler__);                               \
+    AssemblerTestGenerate##name(test.assembler());                             \
+    test.Assemble();                                                           \
+    AssemblerTestRun##name(&test);                                             \
   }                                                                            \
-  static void AssemblerTestRun##name(uword entry)
+  static void AssemblerTestRun##name(AssemblerTest* test)
 
 // Populate node list with AST nodes.
 #define CODEGEN_TEST_GENERATE(name, test)                                      \
@@ -271,7 +272,8 @@ class AssemblerTest {
  public:
   AssemblerTest(const char* name, Assembler* assembler)
       : name_(name),
-        assembler_(assembler) {
+        assembler_(assembler),
+        code_(Code::ZoneHandle()) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }
@@ -279,12 +281,18 @@ class AssemblerTest {
 
   Assembler* assembler() const { return assembler_; }
 
-  // Assemble test and return entry.
-  uword Assemble();
+  const Code& code() const { return code_; }
+
+  uword entry() const { return entry_; }
+
+  // Assemble test and set code_ and entry_.
+  void Assemble();
 
  private:
   const char* name_;
   Assembler* assembler_;
+  Code& code_;
+  uword entry_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
 };

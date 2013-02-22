@@ -21,17 +21,12 @@ class InterceptedElement extends ElementX {
 
 class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
-  // Loop tracking information.
-  final Set<FunctionElement> functionsCalledInLoop;
-  final Map<SourceString, Selector> selectorsCalledInLoop;
   final JavaScriptBackend backend;
 
   String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend)
     : emitter = backend.emitter,
-      functionsCalledInLoop = new Set<FunctionElement>(),
-      selectorsCalledInLoop = new Map<SourceString, Selector>(),
       backend = backend,
       super(backend.compiler);
 
@@ -58,12 +53,9 @@ class SsaBuilderTask extends CompilerTask {
       }
       assert(graph.isValid());
       if (!identical(kind, ElementKind.FIELD)) {
-        bool inLoop = functionsCalledInLoop.contains(element.declaration);
-        if (!inLoop) {
-          Selector selector = selectorsCalledInLoop[element.name];
-          inLoop = selector != null && selector.applies(element, compiler);
-        }
-        graph.calledInLoop = inLoop;
+        Set<Selector> selectors = backend.selectorsCalledInLoop[element.name];
+        graph.calledInLoop = selectors != null &&
+            selectors.any((selector) => selector.applies(element, compiler));
 
         // If there is an estimate of the parameter types assume these types
         // when compiling.
@@ -92,7 +84,7 @@ class SsaBuilderTask extends CompilerTask {
           if (!parameterTypes.allUnknown) {
             int i = 0;
             signature.forEachParameter((Element param) {
-              builder.parameters[param].guaranteedType = parameterTypes[i++];
+              builder.parameters[param].instructionType = parameterTypes[i++];
             });
           }
           backend.registerParameterTypesOptimization(
@@ -250,21 +242,27 @@ class LocalsHandler {
 
   HType cachedTypeOfThis;
 
-  HType computeTypeOfThis() {
-    Element element = closureData.thisElement;
-    ClassElement cls = element.enclosingElement.getEnclosingClass();
-    Compiler compiler = builder.compiler;
-    DartType type = cls.computeType(compiler);
-    if (compiler.world.isUsedAsMixin(cls)) {
-      // If the enclosing class is used as a mixin, [:this:] can be
-      // of the class that mixins the enclosing class. These two
-      // classes do not have a subclass relationship, so, for
-      // simplicity, we mark the type as an interface type.
-      cachedTypeOfThis = new HType.nonNullSubtype(type, compiler);
-    } else {
-      cachedTypeOfThis = new HType.nonNullSubclass(type, compiler);
+  HType getTypeOfThis() {
+    HType result = cachedTypeOfThis;
+    if (result == null) {
+      Element element = closureData.thisElement;
+      ClassElement cls = element.enclosingElement.getEnclosingClass();
+      Compiler compiler = builder.compiler;
+      // Use the raw type because we don't have the type context for the
+      // type parameters.
+      DartType type = cls.rawType;
+      if (compiler.world.isUsedAsMixin(cls)) {
+        // If the enclosing class is used as a mixin, [:this:] can be
+        // of the class that mixins the enclosing class. These two
+        // classes do not have a subclass relationship, so, for
+        // simplicity, we mark the type as an interface type.
+        result = new HType.nonNullSubtype(type, compiler);
+      } else {
+        result = new HType.nonNullSubclass(type, compiler);
+      }
+      cachedTypeOfThis = result;
     }
-    return cachedTypeOfThis;
+    return result;
   }
 
   /**
@@ -295,8 +293,8 @@ class LocalsHandler {
         HInstruction parameter = builder.addParameter(parameterElement);
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
-        parameter.guaranteedType =
-            builder.getGuaranteedTypeOfElement(parameterElement);
+        parameter.instructionType =
+            new HType.inferredForElement(parameterElement, compiler);
       });
     }
 
@@ -320,7 +318,7 @@ class LocalsHandler {
       // not have any thisElement if the closure was created inside a static
       // context.
       HThis thisInstruction = new HThis(
-          closureData.thisElement, computeTypeOfThis());
+          closureData.thisElement, getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
@@ -351,7 +349,7 @@ class LocalsHandler {
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
       directLocals[closureData.thisElement] = value;
-      value.guaranteedType = type;
+      value.instructionType = type;
     }
   }
 
@@ -434,11 +432,8 @@ class LocalsHandler {
 
   HInstruction readThis() {
     HInstruction res = readLocal(closureData.thisElement);
-    if (res.guaranteedType == null) {
-      if (cachedTypeOfThis == null) {
-        computeTypeOfThis();
-      }
-      res.guaranteedType = cachedTypeOfThis;
+    if (res.instructionType == null) {
+      res.instructionType = getTypeOfThis();
     }
     return res;
   }
@@ -1009,6 +1004,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   compiledArguments);
     assert(succeeded);
 
+    // Create the inlining state after evaluating the arguments, that
+    // may have an impact on the state of the current method.
+    InliningState state = new InliningState(
+        function, returnElement, returnType, elements, stack, localsHandler);
+    localsHandler = new LocalsHandler.from(localsHandler);
+
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
     signature.orderedForEachParameter((Element parameter) {
@@ -1036,8 +1037,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
     }
-    InliningState state =
-        new InliningState(function, returnElement, returnType, elements, stack);
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new ElementX(const SourceString("result"),
@@ -1063,6 +1062,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(stack.length == 1);
     state.oldStack.add(stack[0]);
     stack = state.oldStack;
+    localsHandler = state.oldLocalsHandler;
   }
 
   /**
@@ -1073,6 +1073,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                        Selector selector,
                        Link<Node> arguments,
                        Node currentNode) {
+    // We cannot inline a method from a deferred library into a method
+    // which isn't deferred.
+    // TODO(ahe): But we should still inline into the same
+    // connected-component of the deferred library.
+    if (compiler.deferredLoadTask.isDeferred(element)) return false;
+
     if (compiler.disableInlining) return false;
     // Ensure that [element] is an implementation element.
     element = element.implementation;
@@ -2322,9 +2328,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           buildInvokeDynamic(send, selector, left, [right]),
           op);
     if (op.source.stringValue == '!=') {
-      HBoolify bl = new HBoolify(pop());
-      add(bl);
-      pushWithPosition(new HNot(bl), op);
+      pushWithPosition(new HNot(popBoolified()), op);
     }
   }
 
@@ -2367,22 +2371,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
 
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
+    HInstruction instruction;
     if (interceptedClasses != null) {
       // If we're using an interceptor class, emit a call to the
       // interceptor method and then the actual dynamic call on the
       // interceptor object.
-      HInstruction instruction =
+      instruction =
           invokeInterceptor(interceptedClasses, receiver, send);
       instruction = new HInvokeDynamicGetter(
           selector, null, instruction, !hasGetter);
       // Add the receiver as an argument to the getter call on the
       // interceptor.
       instruction.inputs.add(receiver);
-      pushWithPosition(instruction, send);
     } else {
-      pushWithPosition(
-          new HInvokeDynamicGetter(selector, null, receiver, !hasGetter), send);
+      instruction = new HInvokeDynamicGetter(
+          selector, null, receiver, !hasGetter);
     }
+    pushWithPosition(instruction, send);
   }
 
   void generateGetter(Send send, Element element) {
@@ -2655,8 +2660,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
         void argumentsCheck() {
           HInstruction typeInfo = getRuntimeTypeInfo(expression);
-          Element helper =
-              compiler.findHelper(const SourceString('checkArguments'));
+          Element helper = backend.getCheckArguments();
           HInstruction helperCall = new HStatic(helper);
           add(helperCall);
           List<HInstruction> representations =
@@ -2789,26 +2793,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  visitDynamicSend(Send node) {
+  bool isThisSend(Send send) {
+    Node receiver = send.receiver;
+    if (receiver == null) return true;
+    Identifier identifier = receiver.asIdentifier();
+    return identifier != null && identifier.isThis();
+  }
+
+  visitDynamicSend(Send node, {bool inline: true}) {
     Selector selector = elements.getSelector(node);
 
-    SourceString dartMethodName;
-    bool isNotEquals = false;
-    if (node.isIndex && !node.arguments.tail.isEmpty) {
-      dartMethodName = Elements.constructOperatorName(
-          const SourceString('[]='), false);
-    } else if (node.selector.asOperator() != null) {
-      SourceString name = node.selector.asIdentifier().source;
-      isNotEquals = identical(name.stringValue, '!=');
-      dartMethodName = Elements.constructOperatorName(
-          name, node.argumentsNode is Prefix);
-    } else {
-      dartMethodName = node.selector.asIdentifier().source;
+    // TODO(kasperl): It would be much better to try to get the
+    // guaranteed type of the receiver after we've evaluated it, but
+    // because of the way inlining currently works that is hard to do
+    // with re-evaluating the receiver.
+    if (isThisSend(node)) {
+      HType receiverType = localsHandler.getTypeOfThis();
+      selector = receiverType.refine(selector, compiler);
     }
 
-    Element element = elements[node];
+    Element element = compiler.world.locateSingleElement(selector);
     bool isClosureCall = false;
-    if (element != null && compiler.world.hasNoOverridingMember(element)) {
+    if (inline && element != null) {
       if (tryInlineMethod(element, selector, node.arguments, node)) {
         if (element.isGetter()) {
           // If the element is a getter, we are doing a closure call
@@ -2845,11 +2851,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     pushWithPosition(invoke, node);
-
-    if (isNotEquals) {
-      HNot not = new HNot(popBoolified());
-      push(not);
-    }
   }
 
   visitClosureSend(Send node) {
@@ -2887,7 +2888,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     native.NativeBehavior nativeBehavior =
         compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-    HType ssaType = mapNativeBehaviorType(nativeBehavior);
+    HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
     if (code is StringNode) {
       StringNode codeString = code;
       if (!codeString.isInterpolation) {
@@ -3069,8 +3070,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Constant internalNameConstant =
         constantSystem.createString(new DartString.literal(internalName), node);
 
-    Element createInvocationMirror =
-        compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    Element createInvocationMirror = backend.getCreateInvocationMirror();
 
     var arguments = new List<HInstruction>();
     if (node.argumentsNode != null) {
@@ -3375,7 +3375,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       HInvokeStatic instruction = new HInvokeStatic(inputs, HType.UNKNOWN);
-      HType returnType = getGuaranteedTypeOfElement(element);
+      HType returnType = new HType.inferredForElement(element, compiler);
       if (returnType.isUnknown()) {
         // TODO(ngeoffray): Only do this if knowing the return type is
         // useful.
@@ -3383,7 +3383,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
                 currentElement, element);
       }
-      if (returnType != null) instruction.guaranteedType = returnType;
+      if (returnType != null) instruction.instructionType = returnType;
       pushWithPosition(instruction, node);
     } else {
       generateGetter(node, element);
@@ -3456,8 +3456,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                  {Link<Node> argumentNodes,
                                   List<HInstruction> argumentValues,
                                   List<String> existingArguments}) {
-    Element helper =
-        compiler.findHelper(const SourceString('throwNoSuchMethod'));
+    Element helper = backend.getThrowNoSuchMethod();
     Constant receiverConstant =
         constantSystem.createString(new DartString.empty(), diagnosticNode);
     HInstruction receiver = graph.addConstant(receiverConstant);
@@ -3574,14 +3573,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
-    HInstruction invoke = new HInvokeDynamicMethod(
-        selector, inputs, isIntercepted);
-    HType returnType = mapInferredType(
-        compiler.typesTask.getGuaranteedTypeOfNode(work.element, node));
-    if (returnType != null) {
-      invoke.guaranteedType = returnType;
-    }
-    return invoke;
+    return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
   }
 
   visitSendSet(SendSet node) {
@@ -3594,7 +3586,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      if (element == null) return generateSuperNoSuchMethodSend(node);
+      if (Elements.isUnresolved(element)) {
+        return generateSuperNoSuchMethodSend(node);
+      }
       HInstruction target = new HStatic(element);
       HInstruction context = localsHandler.readThis();
       add(target);
@@ -3607,7 +3601,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
       if (const SourceString("=") == op.source) {
-        visitDynamicSend(node);
+        // TODO(kasperl): We temporarily disable inlining because the
+        // code here cannot deal with it yet.
+        visitDynamicSend(node, inline: false);
         HInvokeDynamicMethod method = pop();
         // Push the value.
         stack.add(method.inputs.last);
@@ -3620,7 +3616,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // Compound assignments are considered as being prefix.
         bool isCompoundAssignment = op.source.stringValue.endsWith('=');
         bool isPrefix = !node.isPostfix;
-        Element getter = elements[node.selector];
         if (isCompoundAssignment) {
           value = pop();
           index = pop();
@@ -3644,7 +3639,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
     } else if (const SourceString("=") == op.source) {
-      Element element = elements[node];
       Link<Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       visit(link.head);
@@ -3656,13 +3650,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||
              node.assignmentOperator.source.stringValue.endsWith("="));
-      Element element = elements[node];
       bool isCompoundAssignment = !node.arguments.isEmpty;
       bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
 
       // [receiver] is only used if the node is an instance send.
       HInstruction receiver = null;
-      Element selectorElement = elements[node];
       if (Elements.isInstanceSend(node, elements)) {
         receiver = generateInstanceSendReceiver(node);
         generateInstanceGetterWithCompiledReceiver(node, receiver);
@@ -3932,12 +3924,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       if (interceptedClasses == null) {
         iterator =
-            new HInvokeDynamicGetter(selector, null, receiver, hasGetter);
+            new HInvokeDynamicGetter(selector, null, receiver, !hasGetter);
       } else {
         HInterceptor interceptor =
             invokeInterceptor(interceptedClasses, receiver, null);
         iterator =
-            new HInvokeDynamicGetter(selector, null, interceptor, hasGetter);
+            new HInvokeDynamicGetter(selector, null, interceptor, !hasGetter);
         // Add the receiver as an argument to the getter call on the
         // interceptor.
         iterator.inputs.add(receiver);
@@ -3948,7 +3940,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       SourceString name = const SourceString('moveNext');
       Selector selector = new Selector.call(
           name, currentElement.getLibrary(), 0);
-      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
       return popBoolified();
     }
@@ -3956,7 +3947,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       SourceString name = const SourceString('current');
       Selector call = new Selector.getter(name, currentElement.getLibrary());
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
-      push(new HInvokeDynamicGetter(call, null, iterator, hasGetter));
+      push(new HInvokeDynamicGetter(call, null, iterator, !hasGetter));
 
       Element variable;
       if (node.declaredIdentifier.asSend() != null) {
@@ -4186,8 +4177,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<List<Constant>> matchExpressions = <List<Constant>>[];
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
-    Element getFallThroughErrorElement =
-        compiler.findHelper(const SourceString("getFallThroughError"));
+    Element getFallThroughErrorElement = backend.getFallThroughError();
     HasNextIterator<Node> caseIterator =
         new HasNextIterator<Node>(node.cases.iterator);
     while (caseIterator.hasNext) {
@@ -4480,14 +4470,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (catchBlock.onKeyword != null) {
           DartType type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.cancel('On with unresolved type',
-                            node: catchBlock.type);
+            compiler.internalError('On with no type', node: catchBlock.type);
           }
-          HInstruction condition =
-              new HIs(type, <HInstruction>[unwrappedException]);
-          push(condition);
-        }
-        else {
+          if (type.isMalformed) {
+            // TODO(johnniwinther): Handle malformed types in [HIs] instead.
+            HInstruction condition =
+                graph.addConstantBool(true, constantSystem);
+            stack.add(condition);
+          } else {
+            HInstruction condition =
+                new HIs(type, <HInstruction>[unwrappedException]);
+            push(condition);
+          }
+        } else {
           VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
           if (declaration.type == null) {
@@ -4512,6 +4507,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
+
+        if (compiler.enableTypeAssertions) {
+          // In checked mode: throw a type error if the on-catch type is
+          // malformed.
+          if (catchBlock.onKeyword != null) {
+            DartType type = elements.getType(catchBlock.type);
+            if (type != null && type.isMalformed) {
+              String reasons = Types.fetchReasonsFromMalformedType(type);
+              generateMalformedSubtypeError(node,
+                  unwrappedException, type, reasons);
+              pop();
+              return;
+            }
+          }
+        }
         if (catchBlock.exception != null) {
           localsHandler.updateLocal(elements[catchBlock.exception],
                                     unwrappedException);
@@ -4638,64 +4648,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitTypeVariable(TypeVariable node) {
     compiler.internalError('SsaBuilder.visitTypeVariable');
-  }
-
-  HType mapBaseType(BaseType baseType) {
-    if (!baseType.isClass()) return HType.UNKNOWN;
-    ClassBaseType classBaseType = baseType;
-    ClassElement cls = classBaseType.element;
-    // Special case the list and map classes that are used as types
-    // for literals in the type inferrer.
-    if (cls == compiler.listClass) {
-      return HType.READABLE_ARRAY;
-    } else if (cls == compiler.mapClass) {
-      // TODO(ngeoffray): get the actual implementation of a map
-      // literal.
-      return new HType.nonNullSubtype(
-          compiler.mapLiteralClass.computeType(compiler), compiler);
-    } else {
-      return new HType.nonNullExactClass(
-          cls.computeType(compiler), compiler);
-    }
-  }
-
-  HType mapInferredType(ConcreteType concreteType) {
-    if (concreteType == null) return HType.UNKNOWN;
-    HType ssaType = HType.CONFLICTING;
-    for (BaseType baseType in concreteType.baseTypes) {
-      ssaType = ssaType.union(mapBaseType(baseType), compiler);
-    }
-    if (ssaType.isConflicting()) return HType.UNKNOWN;
-    return ssaType;
-  }
-
-  HType getGuaranteedTypeOfElement(Element element) {
-    return mapInferredType(
-        compiler.typesTask.getGuaranteedTypeOfElement(element));
-  }
-
-  // [type] is either an instance of [DartType] or special objects
-  // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
-  HType mapNativeType(type) {
-    if (type == native.SpecialType.JsObject) {
-      return new HType.nonNullExactClass(
-          compiler.objectClass.computeType(compiler), compiler);
-    } else if (type == native.SpecialType.JsArray) {
-      return HType.READABLE_ARRAY;
-    } else {
-      return new HType.nonNullSubclass(type, compiler);
-    }
-  }
-
-  HType mapNativeBehaviorType(native.NativeBehavior nativeBehavior) {
-    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
-
-    HType ssaType = HType.CONFLICTING;
-    for (final type in nativeBehavior.typesInstantiated) {
-      ssaType = ssaType.union(mapNativeType(type), compiler);
-    }
-    assert(!ssaType.isConflicting());
-    return ssaType;
   }
 }
 
@@ -4838,12 +4790,14 @@ class InliningState {
   final DartType oldReturnType;
   final TreeElements oldElements;
   final List<HInstruction> oldStack;
+  final LocalsHandler oldLocalsHandler;
 
   InliningState(this.function,
                 this.oldReturnElement,
                 this.oldReturnType,
                 this.oldElements,
-                this.oldStack) {
+                this.oldStack,
+                this.oldLocalsHandler) {
     assert(function.isImplementation);
   }
 }

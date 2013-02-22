@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "mock_compiler.dart";
 import "compiler_helper.dart";
 
 const String TEST = "main() => [];";
@@ -26,5 +25,5 @@ main() {
   var backend = compiler.backend;
 
   // Make sure no class is emitted.
-  Expect.isFalse(generated.contains(backend.emitter.defineClassName));
+  Expect.isFalse(generated.contains(backend.emitter.finishClassesName));
 }

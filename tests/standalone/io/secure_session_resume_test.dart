@@ -1,7 +1,7 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+//
 // This test tests TLS session resume, by making multiple client connections
 // on the same port to the same server, with a delay of 200 ms between them.
 // The unmodified secure_server_test creates all sessions simultaneously,
@@ -10,6 +10,11 @@
 //
 // Session resume is currently disabled - see issue
 // https://code.google.com/p/dart/issues/detail?id=7230
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 import "dart:async";
 import "dart:io";
@@ -17,119 +22,54 @@ import "dart:isolate";
 
 const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
-
-void WriteAndClose(Socket socket, String message) {
-  var data = message.charCodes;
-  int written = 0;
-  void write() {
-    written += socket.writeList(data, written, data.length - written);
-    if (written < data.length) {
-      socket.onWrite = write;
-    } else {
-      socket.close(true);
-    }
-  }
-  write();
+const CERTIFICATE = "localhost_cert";
+Future<SecureServerSocket> startServer() {
+  return SecureServerSocket.bind(SERVER_ADDRESS,
+                                 0,
+                                 5,
+                                 CERTIFICATE).then((server) {
+    server.listen((SecureSocket client) {
+      client.reduce(<int>[], (message, data) => message..addAll(data))
+          .then((message) {
+            String received = new String.fromCharCodes(message);
+            Expect.isTrue(received.contains("Hello from client "));
+            String name = received.substring(received.indexOf("client ") + 7);
+            client.add("Welcome, client $name".charCodes);
+            client.close();
+          });
+    });
+    return server;
+  });
 }
 
-class SecureTestServer {
-  void onConnection(Socket connection) {
-    connection.onConnect = () {
-      numConnections++;
-    };
-    String received = "";
-    connection.onData = () {
-      received = received.concat(new String.fromCharCodes(connection.read()));
-    };
-    connection.onClosed = () {
-      Expect.isTrue(received.contains("Hello from client "));
-      String name = received.substring(received.indexOf("client ") + 7);
-      WriteAndClose(connection, "Welcome, client $name");
-    };
-  }
-
-  void errorHandlerServer(Exception e) {
-    Expect.fail("Server socket error $e");
-  }
-
-  int start() {
-    server = new SecureServerSocket(SERVER_ADDRESS, 0, 10, "CN=$HOST_NAME");
-    Expect.isNotNull(server);
-    server.onConnection = onConnection;
-    server.onError = errorHandlerServer;
-    return server.port;
-  }
-
-  void stop() {
-    server.close();
-  }
-
-  int numConnections = 0;
-  SecureServerSocket server;
+Future testClient(server, name) {
+  return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
+    socket.add("Hello from client $name".charCodes);
+    socket.close();
+    return socket.reduce(<int>[], (message, data) => message..addAll(data))
+        .then((message) {
+          Expect.listEquals("Welcome, client $name".charCodes, message);
+          return server;
+        });
+  });
 }
-
-class SecureTestClient {
-  SecureTestClient(int this.port, String this.name) {
-    socket = new SecureSocket(HOST_NAME, port);
-    socket.onConnect = this.onConnect;
-    socket.onData = () {
-      reply = reply.concat(new String.fromCharCodes(socket.read()));
-    };
-    socket.onClosed = done;
-    reply = "";
-  }
-
-  void onConnect() {
-    numRequests++;
-    WriteAndClose(socket, "Hello from client $name");
-  }
-
-  void done() {
-    Expect.equals("Welcome, client $name", reply);
-    numReplies++;
-    if (numReplies == CLIENT_NAMES.length) {
-      Expect.equals(numRequests, numReplies);
-      EndTest();
-    }
-  }
-
-  static int numRequests = 0;
-  static int numReplies = 0;
-
-  int port;
-  String name;
-  SecureSocket socket;
-  String reply;
-}
-
-Function EndTest;
-
-const CLIENT_NAMES = const ['able', 'baker'];
 
 void main() {
-  ReceivePort keepAlive = new ReceivePort();
   Path scriptDir = new Path(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
-                          password: 'dartdart',
-                          useBuiltinRoots: false);
-
-  var server = new SecureTestServer();
-  int port = server.start();
-
-  EndTest = () {
-    Expect.equals(CLIENT_NAMES.length, server.numConnections);
-    server.stop();
-    keepAlive.close();
-  };
+                          password: 'dartdart');
 
   Duration delay = const Duration(milliseconds: 0);
   Duration delay_between_connections = const Duration(milliseconds: 300);
 
-  for (var x in CLIENT_NAMES) {
-    new Timer(delay, () {
-      new SecureTestClient(port, x);
-    });
-    delay += delay_between_connections;
-  }
+  startServer()
+      .then((server) => Future.wait(
+          ['able', 'baker', 'charlie', 'dozen', 'elapse']
+          .map((name) {
+            delay += delay_between_connections;
+            return new Future.delayed(delay, () => server)
+            .then((server) => testClient(server, name));
+          })))
+      .then((servers) => servers.first.close());
 }

@@ -2,17 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:uri";
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart" as leg;
 
 import "parser_helper.dart";
 import "compiler_helper.dart";
-import "mock_compiler.dart";
 
 /**
  * Finds the node corresponding to the last occurence of the substring
@@ -168,7 +163,9 @@ const String CORELIB = r'''
   class Null {}
   class Type {}
   class Dynamic_ {}
-  bool identical(Object a, Object b) {}''';
+  bool identical(Object a, Object b) {}
+  dynamic JS(String typeDescription, String codeTemplate,
+             [var arg0, var arg1, var arg2]) {}''';
 
 AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
@@ -1023,6 +1020,17 @@ testDynamicIsAbsorbing() {
   result.checkNodeHasUnknownType('x');
 }
 
+testJsCall() {
+  final String source = r"""
+    main () {
+      var x = JS('', '', null);
+      x;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasUnknownType('x');
+}
+
 testIsCheck() {
   final String source = r"""
     main () {
@@ -1032,6 +1040,33 @@ testIsCheck() {
     """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('x', [result.bool]);
+}
+
+testSeenClasses() {
+  final String source = r"""
+      class A {
+        witness() => 42;
+      }
+      class B {
+        witness() => "abc";
+      }
+      class AFactory {
+        onlyCalledInAFactory() => new A();
+      }
+      class BFactory {
+        onlyCalledInAFactory() => new B();
+      }
+
+      main() {
+        new AFactory().onlyCalledInAFactory();
+        new BFactory();
+        // should be of type {int} and not {int, String} since B is unreachable
+        var foo = "__dynamic_for_test".witness();
+        foo;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('foo', [result.int]);
 }
 
 void main() {
@@ -1074,5 +1109,7 @@ void main() {
   testLists();
   testListWithCapacity();
   testEmptyList();
+  testJsCall();
   testIsCheck();
+  testSeenClasses();
 }

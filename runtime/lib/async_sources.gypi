@@ -6,5 +6,6 @@
 {
   'sources': [
     'timer_patch.dart',
+    'deferred_load_patch.dart',
   ],
 }

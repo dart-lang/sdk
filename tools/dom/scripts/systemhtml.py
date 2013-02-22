@@ -58,6 +58,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Navigator.webkitGetUserMedia',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
+    'WheelEvent.deltaMode',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',
     'Window.cancelAnimationFrame',
@@ -260,6 +261,7 @@ _element_constructors = {
   'indexed_db': {},
   'svg': _svg_element_constructors,
   'web_audio': {},
+  'web_sql': {},
 }
 
 _factory_ctr_strings = {
@@ -276,6 +278,10 @@ _factory_ctr_strings = {
     'constructor_name': 'createSvgElement_tag',
   },
   'web_audio': {
+    'provider_name': 'document',
+    'constructor_name': '$dom_createElement'
+  },
+  'web_sql': {
     'provider_name': 'document',
     'constructor_name': '$dom_createElement'
   },

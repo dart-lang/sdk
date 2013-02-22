@@ -384,6 +384,14 @@ class ResolverTask extends CompilerTask {
     ResolverVisitor visitor = visitorFor(element);
     initializerDo(tree, visitor.visit);
 
+    if (Elements.isStaticOrTopLevelField(element)) {
+      if (tree.asSendSet() != null) {
+        // TODO(ngeoffray): We could do better here by using the
+        // constant handler to figure out if it's a lazy field or not.
+        compiler.backend.registerLazyField();
+      }
+    }
+
     // Perform various checks as side effect of "computing" the type.
     element.computeType(compiler);
 
@@ -923,12 +931,12 @@ class ResolverTask extends CompilerTask {
 
 class InitializerResolver {
   final ResolverVisitor visitor;
-  final Map<SourceString, Node> initialized;
+  final Map<Element, Node> initialized;
   Link<Node> initializers;
   bool hasSuper;
 
   InitializerResolver(this.visitor)
-    : initialized = new Map<SourceString, Node>(), hasSuper = false;
+    : initialized = new Map<Element, Node>(), hasSuper = false;
 
   error(Node node, MessageKind kind, [arguments = const {}]) {
     visitor.error(node, kind, arguments);
@@ -945,13 +953,31 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  void checkForDuplicateInitializers(SourceString name, Node init) {
-    if (initialized.containsKey(name)) {
-      error(init, MessageKind.DUPLICATE_INITIALIZER, {'fieldName': name});
-      warning(initialized[name], MessageKind.ALREADY_INITIALIZED,
-              {'fieldName': name});
+  reportDuplicateInitializerError(Element field, Node init, Node existing) {
+    visitor.compiler.reportError(
+        init,
+        new ResolutionError(MessageKind.DUPLICATE_INITIALIZER,
+                            {'fieldName': field.name}));
+    visitor.compiler.reportMessage(
+        visitor.compiler.spanFromNode(existing),
+        new ResolutionError(MessageKind.ALREADY_INITIALIZED,
+                            {'fieldName': field.name}),
+        Diagnostic.INFO);
+  }
+
+  void checkForDuplicateInitializers(Element field, Node init) {
+    // [field] can be null if it could not be resolved.
+    if (field == null) return;
+    SourceString name = field.name;
+    if (initialized.containsKey(field)) {
+      reportDuplicateInitializerError(field, init, initialized[field]);
+    } else if (field.modifiers.isFinal()) {
+      Node fieldNode = field.parseNode(visitor.compiler).asSendSet();
+      if (fieldNode != null) {
+        reportDuplicateInitializerError(field, init, fieldNode);
+      }
     }
-    initialized[name] = init;
+    initialized[field] = init;
   }
 
   void resolveFieldInitializer(FunctionElement constructor, SendSet init) {
@@ -974,7 +1000,7 @@ class InitializerResolver {
     }
     visitor.useElement(init, target);
     visitor.world.registerStaticUse(target);
-    checkForDuplicateInitializers(name, init);
+    checkForDuplicateInitializers(target, init);
     // Resolve initializing value.
     visitor.visitInStaticContext(init.arguments.head);
   }
@@ -1113,7 +1139,8 @@ class InitializerResolver {
         constructor.computeSignature(visitor.compiler);
     functionParameters.forEachParameter((Element element) {
       if (identical(element.kind, ElementKind.FIELD_PARAMETER)) {
-        checkForDuplicateInitializers(element.name,
+        FieldParameterElement fieldParameter = element;
+        checkForDuplicateInitializers(fieldParameter.fieldElement,
                                       element.parseNode(visitor.compiler));
       }
     });
@@ -1428,7 +1455,8 @@ class TypeResolver {
           type = new MalformedType(
               new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                   {'type': node}, typeName.source, enclosingElement),
-              new InterfaceType(cls.declaration, arguments.toLink()));
+              new InterfaceType.userProvidedBadType(cls.declaration,
+                                                    arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = cls.rawType;
@@ -1448,7 +1476,7 @@ class TypeResolver {
           type = new MalformedType(
               new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                   {'type': node}, typeName.source, enclosingElement),
-              new TypedefType(typdef, arguments.toLink()));
+              new TypedefType.userProvidedBadType(typdef, arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
             type = typdef.rawType;
@@ -1458,6 +1486,7 @@ class TypeResolver {
         }
       } else if (element.isTypeVariable()) {
         if (enclosingElement.isInStaticMember()) {
+          compiler.backend.registerThrowRuntimeError();
           compiler.reportWarning(node,
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message(
                   {'typeVariableName': node}));
@@ -1539,6 +1568,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
   bool typeRequired = false;
+  bool sendIsMemberAccess = false;
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
@@ -1642,6 +1672,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           element = warnAndCreateErroneousElement(node, node.source,
                                                   MessageKind.CANNOT_RESOLVE,
                                                   {'name': node});
+          compiler.backend.registerThrowNoSuchMethod();
         }
       } else if (element.isErroneous()) {
         // Use the erroneous element.
@@ -1652,8 +1683,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                 {'text': "is not an expression $element"});
         }
       }
-      if (!Elements.isUnresolved(element)
-          && element.kind == ElementKind.CLASS) {
+      if (!Elements.isUnresolved(element) && element.isClass()) {
         ClassElement classElement = element;
         classElement.ensureResolved(compiler);
       }
@@ -1833,7 +1863,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-
     FunctionElement function = new FunctionElementX.node(
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY,
         enclosingElement);
@@ -1925,9 +1954,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       target = currentClass.lookupSuperMember(name);
       // [target] may be null which means invoking noSuchMethod on
       // super.
+      if (target == null) {
+        compiler.backend.registerSuperNoSuchMethod();
+      }
     } else if (Elements.isUnresolved(resolvedReceiver)) {
       return null;
-    } else if (identical(resolvedReceiver.kind, ElementKind.CLASS)) {
+    } else if (resolvedReceiver.isClass()) {
       ClassElement receiverClass = resolvedReceiver;
       receiverClass.ensureResolved(compiler);
       if (node.isOperator) {
@@ -1941,6 +1973,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       target = receiverClass.lookupLocalMember(name);
       if (target == null || target.isInstanceMember()) {
+        compiler.backend.registerThrowNoSuchMethod();
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
         // try to resolve injected elements if [currentClass] is in the patch
         // library of [receiverClass].
@@ -1959,6 +1992,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       PrefixElement prefix = resolvedReceiver;
       target = prefix.lookupLocalMember(name);
       if (Elements.isUnresolved(target)) {
+        compiler.backend.registerThrowNoSuchMethod();
         return warnAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
             {'libraryName': prefix.name, 'memberName': name});
@@ -2063,26 +2097,38 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitSend(Send node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = node.isPropertyAccess || node.isCall;
     Element target = resolveSend(node);
-    if (!Elements.isUnresolved(target)
-        && target.kind == ElementKind.ABSTRACT_FIELD) {
-      AbstractFieldElement field = target;
-      target = field.getter;
-      if (target == null && !inInstanceContext) {
-        target =
-            warnAndCreateErroneousElement(node.selector, field.name,
-                                          MessageKind.CANNOT_RESOLVE_GETTER);
+    sendIsMemberAccess = oldSendIsMemberAccess;
+
+    if (!Elements.isUnresolved(target)) {
+      if (target.isAbstractField()) {
+        AbstractFieldElement field = target;
+        target = field.getter;
+        if (target == null && !inInstanceContext) {
+          compiler.backend.registerThrowNoSuchMethod();
+          target =
+              warnAndCreateErroneousElement(node.selector, field.name,
+                                            MessageKind.CANNOT_RESOLVE_GETTER);
+        }
+      } else if (target.impliesType() && !sendIsMemberAccess) {
+        compiler.backend.registerTypeLiteral();
       }
     }
 
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
-      if (identical(operatorString, 'is') || identical(operatorString, 'as')) {
+      if (operatorString == 'is' || operatorString == 'as') {
         assert(node.arguments.tail.isEmpty);
         DartType type = resolveTypeTest(node.arguments.head);
         if (type != null) {
-          compiler.enqueuer.resolution.registerIsCheck(type);
+          if (operatorString == 'as') {
+            compiler.enqueuer.resolution.registerAsCheck(type);
+          } else {
+            compiler.enqueuer.resolution.registerIsCheck(type);
+          }
         }
         resolvedArguments = true;
       } else if (identical(operatorString, '?')) {
@@ -2141,6 +2187,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void warnArgumentMismatch(Send node, Element target) {
+    compiler.backend.registerThrowNoSuchMethod();
     // TODO(karlklose): we can be more precise about the reason of the
     // mismatch.
     warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
@@ -2163,20 +2210,30 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     SourceString operatorName = node.assignmentOperator.source;
     String source = operatorName.stringValue;
     bool isComplex = !identical(source, '=');
-    if (!Elements.isUnresolved(target)
-        && target.kind == ElementKind.ABSTRACT_FIELD) {
-      AbstractFieldElement field = target;
-      setter = field.setter;
-      getter = field.getter;
-      if (setter == null && !inInstanceContext) {
+    if (!Elements.isUnresolved(target)) {
+      if (target.isAbstractField()) {
+        AbstractFieldElement field = target;
+        setter = field.setter;
+        getter = field.getter;
+        if (setter == null && !inInstanceContext) {
+          setter =
+              warnAndCreateErroneousElement(node.selector, field.name,
+                                            MessageKind.CANNOT_RESOLVE_SETTER);
+          compiler.backend.registerThrowNoSuchMethod();
+        }
+        if (isComplex && getter == null && !inInstanceContext) {
+          getter =
+              warnAndCreateErroneousElement(node.selector, field.name,
+                                            MessageKind.CANNOT_RESOLVE_GETTER);
+          compiler.backend.registerThrowNoSuchMethod();
+        }
+      } else if (target.impliesType()) {
+        compiler.backend.registerThrowNoSuchMethod();
+      } else if (target.modifiers.isFinal() || target.modifiers.isConst()) {
         setter =
-            warnAndCreateErroneousElement(node.selector, field.name,
+            warnAndCreateErroneousElement(node.selector, target.name,
                                           MessageKind.CANNOT_RESOLVE_SETTER);
-      }
-      if (isComplex && getter == null && !inInstanceContext) {
-        getter =
-            warnAndCreateErroneousElement(node.selector, field.name,
-                                          MessageKind.CANNOT_RESOLVE_GETTER);
+        compiler.backend.registerThrowNoSuchMethod();
       }
     }
 
@@ -2328,6 +2385,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (!inCatchBlock && node.expression == null) {
       error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
     }
+    compiler.backend.registerThrow();
     visit(node.expression);
   }
 
@@ -2353,7 +2411,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = false;
     visit(node.expression);
+    sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
   visitNewExpression(NewExpression node) {
@@ -2363,26 +2424,34 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
     if (Elements.isUnresolved(constructor)) return constructor;
-    // TODO(karlklose): handle optional arguments.
-    if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
-      // TODO(ngeoffray): resolution error with wrong number of
-      // parameters. We cannot do this rigth now because of the
-      // List constructor.
+    Selector callSelector = mapping.getSelector(node.send);
+    if (!callSelector.applies(constructor, compiler)) {
+      warnArgumentMismatch(node.send, constructor);
+      compiler.backend.registerThrowNoSuchMethod();
     }
-    // [constructor] might be the implementation element and only declaration
-    // elements may be registered.
-    world.registerStaticUse(constructor.declaration);
     compiler.withCurrentElement(constructor, () {
       FunctionExpression tree = constructor.parseNode(compiler);
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
     });
+
+    if (constructor.defaultImplementation != constructor) {
+      // Support for deprecated interface support.
+      // TODO(ngeoffray): Remove once we remove such support.
+      world.registerStaticUse(constructor.declaration);
+      world.registerInstantiatedClass(
+          constructor.getEnclosingClass().declaration);
+      constructor = constructor.defaultImplementation;
+    }
     // [constructor.defaultImplementation] might be the implementation element
     // and only declaration elements may be registered.
-    world.registerStaticUse(constructor.defaultImplementation.declaration);
-    ClassElement cls = constructor.defaultImplementation.getEnclosingClass();
+    world.registerStaticUse(constructor.declaration);
+    ClassElement cls = constructor.getEnclosingClass();
     // [cls] might be the implementation element and only declaration elements
     // may be registered.
     world.registerInstantiatedClass(cls.declaration);
+    if (cls.isAbstract(compiler)) {
+      compiler.backend.registerAbstractClassInstantiation();
+    }
     // [cls] might be the declaration element and we want to include injected
     // members.
     cls.implementation.forEachInstanceField(
@@ -2485,6 +2554,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitStringInterpolation(StringInterpolation node) {
     world.registerInstantiatedClass(compiler.stringClass);
+    compiler.backend.registerStringInterpolation();
     node.visitChildren(this);
   }
 
@@ -2625,6 +2695,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitLiteralMap(LiteralMap node) {
     world.registerInstantiatedClass(compiler.mapClass);
+    if (node.isConst()) {
+      compiler.backend.registerConstantMap();
+    }
     node.visitChildren(this);
   }
 
@@ -2702,6 +2775,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         mapping.remove(label.label);
       }
     });
+    // TODO(ngeoffray): We should check here instead of the SSA backend if
+    // there might be an error.
+    compiler.backend.registerFallThroughError();
   }
 
   visitSwitchCase(SwitchCase node) {
@@ -2725,17 +2801,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
+    compiler.backend.registerCatchStatement();
     // Check that if catch part is present, then
     // it has one or two formal parameters.
     if (node.formals != null) {
       if (node.formals.isEmpty) {
         error(node, MessageKind.EMPTY_CATCH_DECLARATION);
       }
-      if (!node.formals.nodes.tail.isEmpty &&
-          !node.formals.nodes.tail.tail.isEmpty) {
-        for (Node extra in node.formals.nodes.tail.tail) {
-          error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+      if (!node.formals.nodes.tail.isEmpty) {
+        if (!node.formals.nodes.tail.tail.isEmpty) {
+          for (Node extra in node.formals.nodes.tail.tail) {
+            error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+          }
         }
+        compiler.backend.registerStackTraceInCatch();
       }
 
       // Check that the formals aren't optional and that they have no
@@ -2749,7 +2828,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         if (nodeList != null) {
           error(nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
         } else {
-        VariableDefinitions declaration = link.head;
+          VariableDefinitions declaration = link.head;
           for (Node modifier in declaration.modifiers.nodes) {
             error(modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
           }
@@ -3514,6 +3593,11 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
                                SourceString targetName, MessageKind kind,
                                Map arguments) {
+    if (kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
+      compiler.backend.registerThrowNoSuchMethod();
+    } else {
+      compiler.backend.registerThrowRuntimeError();
+    }
     if (inConstContext) {
       error(diagnosticNode, kind, arguments);
     } else {

@@ -29,7 +29,7 @@ abstract class HType {
     JavaScriptBackend backend = compiler.backend;
     if (element == compiler.intClass || element == backend.jsIntClass) {
       return canBeNull ? HType.INTEGER_OR_NULL : HType.INTEGER;
-    } else if (element == compiler.numClass 
+    } else if (element == compiler.numClass
                || element == backend.jsNumberClass) {
       return canBeNull ? HType.NUMBER_OR_NULL : HType.NUMBER;
     } else if (element == compiler.doubleClass
@@ -48,7 +48,7 @@ abstract class HType {
       return canBeNull
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
-    } else if (!isExact) {
+    } else if (isInterfaceType) {
       if (element == compiler.listClass
           || Elements.isListSupertype(element, compiler)) {
         return new HBoundedPotentialPrimitiveArray(
@@ -65,14 +65,15 @@ abstract class HType {
             type,
             canBeNull: canBeNull,
             isInterfaceType: isInterfaceType);
-      } else if (element == compiler.objectClass
-                 || element == compiler.dynamicClass) {
-        return new HBoundedPotentialPrimitiveType(
-            compiler.objectClass.computeType(compiler),
-            true,
-            canBeNull: canBeNull,
-            isInterfaceType: isInterfaceType);
       }
+    }
+    if (!isExact && (element == compiler.objectClass ||
+                     element == compiler.dynamicClass)) {
+      return new HBoundedPotentialPrimitiveType(
+          compiler.objectClass.computeType(compiler),
+          true,
+          canBeNull: canBeNull,
+          isInterfaceType: isInterfaceType);
     }
     return new HBoundedType(
         type,
@@ -115,6 +116,75 @@ abstract class HType {
         canBeNull: false,
         isExact: false,
         isInterfaceType: true);
+  }
+
+  factory HType.fromBaseType(BaseType baseType, Compiler compiler) {
+    if (!baseType.isClass()) return HType.UNKNOWN;
+    ClassBaseType classBaseType = baseType;
+    ClassElement cls = classBaseType.element;
+    // Special case the list and map classes that are used as types
+    // for literals in the type inferrer.
+    if (cls == compiler.listClass) {
+      return HType.READABLE_ARRAY;
+    } else if (cls == compiler.mapClass) {
+      // TODO(ngeoffray): get the actual implementation of a map
+      // literal.
+      return new HType.nonNullSubtype(
+          compiler.mapLiteralClass.computeType(compiler), compiler);
+    } else {
+      return new HType.nonNullExactClass(
+          cls.computeType(compiler), compiler);
+    }
+  }
+
+  factory HType.fromInferredType(ConcreteType concreteType, Compiler compiler) {
+    if (concreteType == null) return HType.UNKNOWN;
+    HType ssaType = HType.CONFLICTING;
+    for (BaseType baseType in concreteType.baseTypes) {
+      ssaType = ssaType.union(
+          new HType.fromBaseType(baseType, compiler), compiler);
+    }
+    if (ssaType.isConflicting()) return HType.UNKNOWN;
+    return ssaType;
+  }
+
+  factory HType.inferredForElement(Element element, Compiler compiler) {
+    return new HType.fromInferredType(
+        compiler.typesTask.getGuaranteedTypeOfElement(element),
+        compiler);
+  }
+
+  factory HType.inferredForNode(
+      Element owner, Node node, Compiler compiler) {
+    return new HType.fromInferredType(
+        compiler.typesTask.getGuaranteedTypeOfNode(owner, node),
+        compiler);
+  }
+
+  // [type] is either an instance of [DartType] or special objects
+  // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
+  factory HType.fromNativeType(type, Compiler compiler) {
+    if (type == native.SpecialType.JsObject) {
+      return new HType.nonNullExactClass(
+          compiler.objectClass.computeType(compiler), compiler);
+    } else if (type == native.SpecialType.JsArray) {
+      return HType.READABLE_ARRAY;
+    } else {
+      return new HType.nonNullSubclass(type, compiler);
+    }
+  }
+
+  factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
+                                   Compiler compiler) {
+    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
+
+    HType ssaType = HType.CONFLICTING;
+    for (final type in nativeBehavior.typesInstantiated) {
+      ssaType = ssaType.union(
+          new HType.fromNativeType(type, compiler), compiler);
+    }
+    assert(!ssaType.isConflicting());
+    return ssaType;
   }
 
   static const HType CONFLICTING = const HConflictingType();
@@ -169,26 +239,22 @@ abstract class HType {
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
 
-  Element lookupSingleTarget(Selector selector, Compiler compiler) {
-    if (isInterfaceType()) return null;
-    DartType type = computeType(compiler);
-    if (type == null) return null;
-    ClassElement cls = type.element;
-    Element member = cls.lookupSelector(selector);
-    if (member == null) return null;
-    // [:ClassElement.lookupSelector:] may return an abstract field,
-    // and selctors don't work well with them.
-    // TODO(ngeoffray): Clean up lookupSelector and selectors to know
-    // if it's a getter or a setter that we're interested in.
-    if (!member.isFunction()) return null;
-    if (!selector.applies(member, compiler)) return null;
-    if (!isExact() && !compiler.world.hasNoOverridingMember(member)) {
-      return null;
-    }
-    return member;
-  }
-
   DartType computeType(Compiler compiler);
+
+  Selector refine(Selector selector, Compiler compiler) {
+    DartType receiverType = computeType(compiler);
+    if (receiverType != null && !receiverType.isMalformed) {
+      if (isExact()) {
+        return new TypedSelector.exact(receiverType, selector);
+      } else if (isInterfaceType()) {
+        return new TypedSelector.subtype(receiverType, selector);
+      } else {
+        return new TypedSelector.subclass(receiverType, selector);
+      }
+    } else {
+      return selector;
+    }
+  }
 
   /**
    * The intersection of two types is the intersection of its values. For
@@ -259,7 +325,7 @@ class HNullType extends HPrimitiveType {
   const HNullType();
   bool canBeNull() => true;
   bool isNull() => true;
-  String toString() => 'null';
+  String toString() => 'null type';
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -702,7 +768,7 @@ class HReadableArrayType extends HIndexablePrimitiveType {
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.jsArrayClass.computeType(compiler);
+    return backend.jsArrayClass.rawType;
   }
 
   HType union(HType other, Compiler compiler) {
@@ -1099,33 +1165,5 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
     if (other.isReadableArray()) return HType.CONFLICTING;
     if (other.isIndexablePrimitive()) return HType.STRING;
     return super.intersection(other, compiler);
-  }
-}
-
-class HTypeMap {
-  // Approximately 85% of methods in the sample "swarm" have less than
-  // 32 instructions.
-  static const int INITIAL_SIZE = 32;
-
-  List<HType> _list = new List<HType>()..length = INITIAL_SIZE;
-
-  operator [](HInstruction instruction) {
-    HType result;
-    if (instruction.id < _list.length) result = _list[instruction.id];
-    if (result == null) return instruction.guaranteedType;
-    return result;
-  }
-
-  operator []=(HInstruction instruction, HType value) {
-    int length = _list.length;
-    int id = instruction.id;
-    if (length <= id) {
-      if (id + 1 < length * 2) {
-        _list.length = length * 2;
-      } else {
-        _list.length = id + 1;
-      }
-    }
-    _list[id] = value;
   }
 }

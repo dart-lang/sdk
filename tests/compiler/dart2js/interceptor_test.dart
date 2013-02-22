@@ -41,14 +41,14 @@ main() {
   // Check that one-shot interceptors preserve variable names, see
   // https://code.google.com/p/dart/issues/detail?id=8106.
   generated = compile(TEST_TWO, entry: 'foo');
-  Expect.isTrue(generated.contains('\$.\$\$add(a, 42)'));
+  Expect.isTrue(generated.contains(r'$.$$add$n(a, 42)'));
   Expect.isTrue(generated.contains('myVariableName'));
 
   // Check that an intercepted getter that does not need to be
   // intercepted, is turned into a regular getter call or field
   // access.
   generated = compile(TEST_THREE, entry: 'foo');
-  Expect.isFalse(generated.contains(r'get$length'));
+  Expect.isFalse(generated.contains(r'a.get$length()'));
   Expect.isTrue(generated.contains(r'$.A$().length'));
-  Expect.isTrue(generated.contains(r'length(a)'));
+  Expect.isTrue(generated.contains(r'$.get$length$a(a)'));
 }

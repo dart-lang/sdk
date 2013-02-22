@@ -4,57 +4,29 @@
 //
 // VMOptions=
 // VMOptions=--short_socket_read
-// The --short_socket_write option does not work with external server
-// www.google.dk.  Add this to the test when we have secure server sockets.
-// See TODO below.
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 import "dart:isolate";
 import "dart:io";
 
-void WriteAndClose(Socket socket, String message) {
-  var data = message.charCodes;
-  int written = 0;
-  void write() {
-    written += socket.writeList(data, written, data.length - written);
-    if (written < data.length) {
-      socket.onWrite = write;
-    } else {
-      socket.close(true);
-    }
-  }
-  write();
-}
-
 void main() {
   ReceivePort keepAlive = new ReceivePort();
   SecureSocket.initialize();
-  // TODO(3593): Use a Dart HTTPS server for this test.
-  // When we use a Dart HTTPS server, allow --short_socket_write. The flag
-  // causes fragmentation of the client hello message, which doesn't seem to
-  // work with www.google.dk.
-  var secure = new SecureSocket("www.google.dk", 443);
   List<String> chunks = <String>[];
-  secure.onConnect = () {
-    WriteAndClose(secure, "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n");
-  };
-  var useReadList;  // Mutually recursive onData callbacks.
-  void useRead() {
-    var data = secure.read();
-    var received = new String.fromCharCodes(data);
-    chunks.add(received);
-    secure.onData = useReadList;
-  }
-  useReadList = () {
-    var buffer = new List.fixedLength(2000);
-    int len = secure.readList(buffer, 0, 2000);
-    var received = new String.fromCharCodes(buffer.getRange(0, len));
-    chunks.add(received);
-    secure.onData = useRead;
-  };
-  secure.onData = useRead;
-  secure.onClosed = () {
-    String fullPage = chunks.join();
-    Expect.isTrue(fullPage.contains('</body></html>'));
-    keepAlive.close();
-  };
+  SecureSocket.connect("www.google.dk", 443).then((socket) {
+    socket.add("GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".charCodes);
+    socket.close();
+    socket.listen(
+      (List<int> data) {
+        var received = new String.fromCharCodes(data);
+        chunks.add(received);
+      },
+      onDone: () {
+        String fullPage = chunks.join();
+        Expect.isTrue(fullPage.contains('</body></html>'));
+        keepAlive.close();
+      },
+      onError: (e) => Expect.fail("Unexpected error $e"));
+  });
 }

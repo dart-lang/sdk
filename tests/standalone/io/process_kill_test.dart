@@ -11,12 +11,12 @@ import "process_test_util.dart";
 testKill() {
   // Start a process that will hang waiting for input until killed.
   Process.start(getProcessTestFileName(), const ["0", "1", "0", "0"]).then((p) {
-    p.onExit = (exitCode) {
+    p.exitCode.then((exitCode) {
       // Process killed from the side so exit code is not 0.
       Expect.isTrue(exitCode != 0);
       // Killing a process that is already dead returns false.
       Expect.isFalse(p.kill());
-    };
+    });
     Expect.isTrue(p.kill());
   });
 }

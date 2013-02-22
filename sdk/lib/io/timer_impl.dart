@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ class _Timer implements Timer {
     if (_timers == null) {
       _timers = new DoubleLinkedQueue<_Timer>();
     }
-    Timer timer = new _Timer._internal();
+    _Timer timer = new _Timer._internal();
     timer._callback = callback;
     timer._milliSeconds = milliSeconds;
     timer._wakeupTime = (new DateTime.now()).millisecondsSinceEpoch + milliSeconds;

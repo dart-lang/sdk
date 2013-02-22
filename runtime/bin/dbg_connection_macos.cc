@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/event.h>
-#include <unistd.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_MACOS)
+
+#include <errno.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <stdlib.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/event.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/dbg_connection.h"
@@ -169,3 +172,5 @@ intptr_t DebuggerConnectionImpl::Send(intptr_t socket,
 intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
   return TEMP_FAILURE_RETRY(read(socket, buf, len));
 }
+
+#endif  // defined(TARGET_OS_MACOS)

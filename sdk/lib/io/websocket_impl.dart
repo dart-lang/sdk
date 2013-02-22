@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,7 +42,6 @@ class _WebSocketOpcode {
  *   [:onMessageData:]
  *   [:onMessageEnd:]
  *   [:onClosed:]
- *   [:onError:]
  *
  */
 class _WebSocketProtocolProcessor {
@@ -62,9 +61,9 @@ class _WebSocketProtocolProcessor {
   /**
    * Process data received from the underlying communication channel.
    */
-  void update(List<int> buffer) {
-    int index = 0;
-    int lastIndex = buffer.length;
+  void update(List<int> buffer, int offset, int count) {
+    int index = offset;
+    int lastIndex = offset + count;
     try {
       if (_state == CLOSED) {
         throw new WebSocketException("Data on closed connection");
@@ -296,10 +295,8 @@ class _WebSocketProtocolProcessor {
             throw new WebSocketException("Protocol error");
           }
           if (_controlPayload.length > 2) {
-            var decoder = _StringDecoders.decoder(Encoding.UTF_8);
-            decoder.write(
+            reason = _decodeString(
                 _controlPayload.getRange(2, _controlPayload.length - 2));
-            reason = decoder.decoded();
           }
         }
         if (onClosed != null) onClosed(status, reason);
@@ -360,253 +357,43 @@ class _WebSocketProtocolProcessor {
 }
 
 
-class _WebSocketConnectionBase {
-  void _socketConnected(Socket socket) {
-    _socket = socket;
-    _socket.onError = (e) => _socket.close();
-  }
+class _WebSocketTransformerImpl implements WebSocketTransformer {
+  final StreamController<WebSocket> _controller =
+      new StreamController<WebSocket>();
 
-  void _startProcessing(List<int> unparsedData) {
-    _WebSocketProtocolProcessor processor = new _WebSocketProtocolProcessor();
-    processor.onMessageStart = _onWebSocketMessageStart;
-    processor.onMessageData = _onWebSocketMessageData;
-    processor.onMessageEnd = _onWebSocketMessageEnd;
-    processor.onPing = _onWebSocketPing;
-    processor.onPong = _onWebSocketPong;
-    processor.onClosed = _onWebSocketClosed;
-    if (unparsedData != null) {
-      processor.update(unparsedData);
-    }
-    _socket.onData = () {
-      processor.update(_socket.read());
-    };
-    _socket.onClosed = () {
-      processor.closed();
-      if (_closeSent) {
-        // Got socket close in response to close frame. Don't treat
-        // that as an error.
-        if (_closeTimer != null) _closeTimer.cancel();
-      } else {
-        if (_onClosed != null) _onClosed(WebSocketStatus.ABNORMAL_CLOSURE,
-                                          "Unexpected close");
+  Stream<WebSocket> bind(Stream<HttpRequest> stream) {
+    stream.listen((request) {
+      var response = request.response;
+      if (!_isWebSocketUpgrade(request)) {
+        _controller.signalError(
+            new AsyncError(
+                new WebSocketException("Invalid WebSocket upgrade request")));
+        request.listen((_) {}, onDone: () {
+          response.statusCode = HttpStatus.BAD_REQUEST;
+          response.contentLength = 0;
+          response.close();
+        });
+        return;
       }
-      _socket.close();
-    };
-  }
+      // Send the upgrade response.
+      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
+      response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
+      response.headers.add(HttpHeaders.UPGRADE, "websocket");
+      String key = request.headers.value("Sec-WebSocket-Key");
+      SHA1 sha1 = new SHA1();
+      sha1.add("$key$_webSocketGUID".charCodes);
+      String accept = _Base64._encode(sha1.close());
+      response.headers.add("Sec-WebSocket-Accept", accept);
+      response.headers.contentLength = 0;
+      response.detachSocket()
+        .then((socket) {
+          _controller.add(new _WebSocketImpl._fromSocket(socket));
+        }, onError: (error) {
+          _controller.signalError(error);
+        });
+    });
 
-  void set onMessage(void callback(Object message)) {
-    _onMessage = callback;
-  }
-
-  void set onClosed(void callback(int status, String reason)) {
-    _onClosed = callback;
-  }
-
-  send(message) {
-    if (_closeSent) {
-      throw new WebSocketException("Connection closed");
-    }
-    List<int> data;
-    int opcode;
-    if (message != null) {
-      if (message is String) {
-        opcode = _WebSocketOpcode.TEXT;
-        data = _StringEncoders.encoder(Encoding.UTF_8).encodeString(message);
-      } else {
-        if (message is !List<int>) {
-          throw new ArgumentError(message);
-        }
-        opcode = _WebSocketOpcode.BINARY;
-        data = message;
-      }
-    } else {
-      opcode = _WebSocketOpcode.TEXT;
-    }
-    _sendFrame(opcode, data);
-  }
-
-  close([int status, String reason]) {
-    if (status == WebSocketStatus.RESERVED_1004 ||
-        status == WebSocketStatus.NO_STATUS_RECEIVED ||
-        status == WebSocketStatus.RESERVED_1015) {
-      throw new WebSocketException("Reserved status code $status");
-    }
-
-    if (_closeSent) return;
-    List<int> data;
-    if (status != null) {
-      data = new List<int>();
-      data.add((status >> 8) & 0xFF);
-      data.add(status & 0xFF);
-      if (reason != null) {
-        data.addAll(
-           _StringEncoders.encoder(Encoding.UTF_8).encodeString(reason));
-      }
-    }
-    _sendFrame(_WebSocketOpcode.CLOSE, data);
-
-    if (_closeReceived) {
-      // Close the socket when the close frame has been sent - if it
-      // does not take too long.
-      _socket.outputStream.close();
-      _socket.outputStream.onClosed = () {
-        if (_closeTimer != null) _closeTimer.cancel();
-        _socket.close();
-      };
-      _closeTimer = new Timer(const Duration(seconds: 5), _socket.close);
-    } else {
-      // Half close the socket and expect a close frame in response
-      // before closing the socket. If a close frame does not arrive
-      // within a reasonable amount of time just close the socket.
-      _socket.outputStream.close();
-      _closeTimer = new Timer(const Duration(seconds: 5), _socket.close);
-    }
-    _closeSent = true;
-  }
-
-  int get hashCode => _hash;
-
-  _onWebSocketMessageStart(int type) {
-    _currentMessageType = type;
-    if (_currentMessageType == _WebSocketMessageType.TEXT) {
-      _decoder = _StringDecoders.decoder(Encoding.UTF_8);
-    } else {
-      _outputStream = new ListOutputStream();
-    }
-  }
-
-  _onWebSocketMessageData(List<int> buffer, int offset, int count) {
-    if (_currentMessageType == _WebSocketMessageType.TEXT) {
-      _decoder.write(buffer.getRange(offset, count));
-    } else {
-      _outputStream.write(buffer.getRange(offset, count));
-    }
-  }
-
-  _onWebSocketMessageEnd() {
-    if (_onMessage != null) {
-      if (_currentMessageType == _WebSocketMessageType.TEXT) {
-        _onMessage(_decoder.decoded());
-      } else {
-        _onMessage(_outputStream.read());
-      }
-    }
-    _decoder = null;
-    _outputStream = null;
-  }
-
-  _onWebSocketPing(List<int> payload) {
-    _sendFrame(_WebSocketOpcode.PONG, payload);
-  }
-
-  _onWebSocketPong(List<int> payload) {
-    // Currently pong messages are ignored.
-  }
-
-  _onWebSocketClosed(int status, String reason) {
-    _closeReceived = true;
-    if (_onClosed != null) _onClosed(status, reason);
-    if (_closeSent) {
-      // Got close frame in response to close frame. Now close the socket.
-      if (_closeTimer != null) _closeTimer.cancel();
-      _socket.close();
-    } else {
-      if (status != WebSocketStatus.NO_STATUS_RECEIVED) {
-        close(status);
-      } else {
-        close();
-      }
-    }
-  }
-
-  _sendFrame(int opcode, [List<int> data]) {
-    bool mask = false;  // Masking not implemented for server.
-    int dataLength = data == null ? 0 : data.length;
-    // Determine the header size.
-    int headerSize = (mask) ? 6 : 2;
-    if (dataLength > 65535) {
-      headerSize += 8;
-    } else if (dataLength > 125) {
-      headerSize += 2;
-    }
-    List<int> header = new List<int>.fixedLength(headerSize);
-    int index = 0;
-    // Set FIN and opcode.
-    header[index++] = 0x80 | opcode;
-    // Determine size and position of length field.
-    int lengthBytes = 1;
-    int firstLengthByte = 1;
-    if (dataLength > 65535) {
-      header[index++] = 127;
-      lengthBytes = 8;
-    } else if (dataLength > 125) {
-      header[index++] = 126;
-      lengthBytes = 2;
-    }
-    // Write the length in network byte order into the header.
-    for (int i = 0; i < lengthBytes; i++) {
-      header[index++] = dataLength >> (((lengthBytes - 1) - i) * 8) & 0xFF;
-    }
-    assert(index == headerSize);
-    _socket.outputStream.write(header);
-    if (data != null) {
-      _socket.outputStream.write(data);
-    }
-  }
-
-  Socket _socket;
-  Timer _closeTimer;
-  int _hash;
-
-  Function _onMessage;
-  Function _onClosed;
-
-  int _currentMessageType = _WebSocketMessageType.NONE;
-  _StringDecoder _decoder;
-  ListOutputStream _outputStream;
-  bool _closeReceived = false;
-  bool _closeSent = false;
-}
-
-
-class _WebSocketConnection
-    extends _WebSocketConnectionBase implements WebSocketConnection {
-  _WebSocketConnection(DetachedSocket detached) {
-    _hash = detached.socket.hashCode;
-    _socketConnected(detached.socket);
-    _startProcessing(detached.unparsedData);
-  }
-}
-
-
-class _WebSocketHandler implements WebSocketHandler {
-  void onRequest(HttpRequest request, HttpResponse response) {
-    // Check that this is a web socket upgrade.
-    if (!_isWebSocketUpgrade(request)) {
-      response.statusCode = HttpStatus.BAD_REQUEST;
-      response.outputStream.close();
-      return;
-    }
-
-    // Send the upgrade response.
-    response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
-    response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
-    response.headers.add(HttpHeaders.UPGRADE, "websocket");
-    String key = request.headers.value("Sec-WebSocket-Key");
-    SHA1 sha1 = new SHA1();
-    sha1.add("$key$_webSocketGUID".charCodes);
-    String accept = _Base64._encode(sha1.close());
-    response.headers.add("Sec-WebSocket-Accept", accept);
-    response.contentLength = 0;
-
-    // Upgrade the connection and get the underlying socket.
-    WebSocketConnection conn =
-        new _WebSocketConnection(response.detachSocket());
-    if (_onOpen != null) _onOpen(conn);
-  }
-
-  void set onOpen(callback(WebSocketConnection connection)) {
-    _onOpen = callback;
+    return _controller.stream;
   }
 
   bool _isWebSocketUpgrade(HttpRequest request) {
@@ -635,222 +422,248 @@ class _WebSocketHandler implements WebSocketHandler {
     }
     return true;
   }
-
-  Function _onOpen;
 }
 
 
-class _WebSocketClientConnection
-    extends _WebSocketConnectionBase implements WebSocketClientConnection {
-  _WebSocketClientConnection(HttpClientConnection this._conn,
-                             [List<String> protocols]) {
-    _conn.onRequest = _onHttpClientRequest;
-    _conn.onResponse = _onHttpClientResponse;
-    _conn.onError = (e) {
-      if (_onClosed != null) {
-        _onClosed(WebSocketStatus.ABNORMAL_CLOSURE, "$e");
-      }
-    };
+class _WebSocketImpl extends Stream<Event> implements WebSocket {
+  final StreamController<Event> _controller = new StreamController<Event>();
 
-    // Generate the nonce now as it is also used to set the hash code.
-    _generateNonceAndHash();
-  }
+  final _WebSocketProtocolProcessor _processor =
+      new _WebSocketProtocolProcessor();
 
-  void set onRequest(void callback(HttpClientRequest request)) {
-    _onRequest = callback;
-  }
+  final Socket _socket;
+  int _readyState = WebSocket.CONNECTING;
 
-  void set onOpen(void callback()) {
-    _onOpen = callback;
-  }
+  static final HttpClient _httpClient = new HttpClient();
 
-  void set onNoUpgrade(void callback(HttpClientResponse request)) {
-    _onNoUpgrade = callback;
-  }
-
-  void _onHttpClientRequest(HttpClientRequest request) {
-    if (_onRequest != null) {
-      _onRequest(request);
-    }
-    // Setup the initial handshake.
-    request.headers.add(HttpHeaders.CONNECTION, "upgrade");
-    request.headers.set(HttpHeaders.UPGRADE, "websocket");
-    request.headers.set("Sec-WebSocket-Key", _nonce);
-    request.headers.set("Sec-WebSocket-Version", "13");
-    request.contentLength = 0;
-    request.outputStream.close();
-  }
-
-  void _onHttpClientResponse(HttpClientResponse response) {
-    if (response.statusCode != HttpStatus.SWITCHING_PROTOCOLS) {
-      if (_onNoUpgrade != null) {
-        _onNoUpgrade(response);
-      } else {
-        _conn.detachSocket().socket.close();
-        throw new WebSocketException("Protocol upgrade refused");
-      }
-      return;
-    }
-
-    if (!_isWebSocketUpgrade(response)) {
-      _conn.detachSocket().socket.close();
-      throw new WebSocketException("Protocol upgrade failed");
-    }
-
-    // Connection upgrade successful.
-    DetachedSocket detached = _conn.detachSocket();
-    _socketConnected(detached.socket);
-    if (_onOpen != null) _onOpen();
-    _startProcessing(detached.unparsedData);
-  }
-
-  void _generateNonceAndHash() {
-    Random random = new Random();
-    assert(_nonce == null);
-    void intToBigEndianBytes(int value, List<int> bytes, int offset) {
-      bytes[offset] = (value >> 24) & 0xFF;
-      bytes[offset + 1] = (value >> 16) & 0xFF;
-      bytes[offset + 2] = (value >> 8) & 0xFF;
-      bytes[offset + 3] = value & 0xFF;
-    }
-
-    // Generate 16 random bytes. Use the last four bytes for the hash code.
-    List<int> nonce = new List<int>.fixedLength(16);
-    for (int i = 0; i < 4; i++) {
-      int r = random.nextInt(0x100000000);
-      intToBigEndianBytes(r, nonce, i * 4);
-    }
-    _nonce = _Base64._encode(nonce);
-    _hash = random.nextInt(0x100000000);
-  }
-
-  bool _isWebSocketUpgrade(HttpClientResponse response) {
-    if (response.headers[HttpHeaders.CONNECTION] == null) {
-      return false;
-    }
-    bool isUpgrade = false;
-    response.headers[HttpHeaders.CONNECTION].forEach((String value) {
-      if (value.toLowerCase() == "upgrade") isUpgrade = true;
-    });
-    if (!isUpgrade) return false;
-    String upgrade = response.headers.value(HttpHeaders.UPGRADE);
-    if (upgrade == null || upgrade.toLowerCase() != "websocket") {
-      return false;
-    }
-    String accept = response.headers.value("Sec-WebSocket-Accept");
-    if (accept == null) {
-      return false;
-    }
-    SHA1 sha1 = new SHA1();
-    sha1.add("$_nonce$_webSocketGUID".charCodes);
-    List<int> expectedAccept = sha1.close();
-    List<int> receivedAccept = _Base64._decode(accept);
-    if (expectedAccept.length != receivedAccept.length) return false;
-    for (int i = 0; i < expectedAccept.length; i++) {
-      if (expectedAccept[i] != receivedAccept[i]) return false;
-    }
-    return true;
-  }
-
-  Function _onRequest;
-  Function _onOpen;
-  Function _onNoUpgrade;
-  HttpClientConnection _conn;
-  String _nonce;
-}
-
-
-class _WebSocket implements WebSocket {
-  _WebSocket(String url, [protocols]) {
+  static Future<WebSocket> connect(String url, [protocols]) {
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
-      throw new WebSocketException("Unsupported URL scheme ${uri.scheme}");
+      throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
     }
     if (uri.userInfo != "") {
-      throw new WebSocketException("Unsupported user info ${uri.userInfo}");
-    }
-    int port = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
-    String path = uri.path;
-    if (path.length == 0) path = "/";
-    if (uri.query != "") {
-      if (uri.fragment != "") {
-        path = "${path}?${uri.query}#${uri.fragment}";
-      } else {
-        path = "${path}?${uri.query}";
-      }
+      throw new WebSocketException("Unsupported user info '${uri.userInfo}'");
     }
 
-    HttpClient client = new HttpClient();
-    bool secure = (uri.scheme == 'wss');
-    HttpClientConnection conn = client.openUrl("GET",
-        new Uri.fromComponents(scheme: secure ? "https" : "http",
-                               domain: uri.domain,
-                               port: port,
-                               path: path));
-    if (protocols is String) protocols = [protocols];
-    _wsconn = new WebSocketClientConnection(conn, protocols);
-    _wsconn.onOpen = () {
-      // HTTP client not needed after socket have been detached.
-      client.shutdown();
-      client = null;
-      _readyState = WebSocket.OPEN;
-      if (_onopen != null) _onopen();
-    };
-    _wsconn.onMessage = (message) {
-      if (_onmessage != null) {
-        _onmessage(new _WebSocketMessageEvent(message));
+    Random random = new Random();
+    // Generate 16 random bytes.
+    List<int> nonceData = new List<int>.fixedLength(16);
+    for (int i = 0; i < 16; i++) {
+      nonceData[i] = random.nextInt(256);
+    }
+    String nonce = _Base64._encode(nonceData);
+
+    uri = new Uri.fromComponents(scheme: uri.scheme == "wss" ? "https" : "http",
+                                 userInfo: uri.userInfo,
+                                 domain: uri.domain,
+                                 port: uri.port,
+                                 path: uri.path,
+                                 query: uri.query,
+                                 fragment: uri.fragment);
+    return _httpClient.openUrl("GET", uri)
+      .then((request) {
+        // Setup the initial handshake.
+        request.headers.add(HttpHeaders.CONNECTION, "upgrade");
+        request.headers.set(HttpHeaders.UPGRADE, "websocket");
+        request.headers.set("Sec-WebSocket-Key", nonce);
+        request.headers.set("Sec-WebSocket-Version", "13");
+        return request.close();
+      })
+      .then((response) {
+        void error(String message) {
+          // Flush data.
+          response.detachSocket().then((socket) {
+            socket.destroy();
+          });
+          throw new WebSocketException(message);
+        }
+        if (response.statusCode != HttpStatus.SWITCHING_PROTOCOLS ||
+            response.headers[HttpHeaders.CONNECTION] == null ||
+            !response.headers[HttpHeaders.CONNECTION].any(
+                (value) => value.toLowerCase() == "upgrade") ||
+            response.headers.value(HttpHeaders.UPGRADE).toLowerCase() !=
+                "websocket") {
+          error("Connection to '$uri' was not upgraded to websocket");
+        }
+        String accept = response.headers.value("Sec-WebSocket-Accept");
+        if (accept == null) {
+          error("Response did not contain a 'Sec-WebSocket-Accept' header");
+        }
+        SHA1 sha1 = new SHA1();
+        sha1.add("$nonce$_webSocketGUID".charCodes);
+        List<int> expectedAccept = sha1.close();
+        List<int> receivedAccept = _Base64._decode(accept);
+        if (expectedAccept.length != receivedAccept.length) {
+          error("Reasponse header 'Sec-WebSocket-Accept' is the wrong length");
+        }
+        for (int i = 0; i < expectedAccept.length; i++) {
+          if (expectedAccept[i] != receivedAccept[i]) {
+            error("Bad response 'Sec-WebSocket-Accept' header");
+          }
+        }
+        return response.detachSocket()
+            .then((socket) => new _WebSocketImpl._fromSocket(socket));
+      });
+  }
+
+  _WebSocketImpl._fromSocket(Socket this._socket) {
+    _readyState = WebSocket.OPEN;
+
+    int type;
+    var data;
+    _processor.onMessageStart = (int t) {
+      type = t;
+      if (type == _WebSocketMessageType.TEXT) {
+        data = new StringBuffer();
+      } else {
+        data = [];
       }
     };
-    _wsconn.onClosed = (status, reason) {
-      _readyState = WebSocket.CLOSED;
-      if (_onclose != null) {
-        _onclose(new _WebSocketCloseEvent(true, status, reason));
+    _processor.onMessageData = (buffer, offset, count) {
+      if (type == _WebSocketMessageType.TEXT) {
+        data.add(_decodeString(buffer.getRange(offset, count)));
+      } else {
+        data.addAll(buffer.getRange(offset, count));
       }
     };
-    _wsconn.onNoUpgrade = (response) {
-      if (_onclose != null) {
-        _onclose(
-            new _WebSocketCloseEvent(true,
-                                     WebSocketStatus.ABNORMAL_CLOSURE,
-                                     "Connection not upgraded"));
+    _processor.onMessageEnd = () {
+      if (type == _WebSocketMessageType.TEXT) {
+        _controller.add(new _WebSocketMessageEvent(data.toString()));
+      } else {
+        _controller.add(new _WebSocketMessageEvent(data));
       }
     };
+    _processor.onClosed = (code, reason) {
+      bool clean = true;
+      if (_readyState == WebSocket.OPEN) {
+        _readyState = WebSocket.CLOSING;
+        if (code != WebSocketStatus.NO_STATUS_RECEIVED) {
+          _close(code);
+        } else {
+          _close();
+          clean = false;
+        }
+        _readyState = WebSocket.CLOSED;
+      }
+      _controller.add(new _WebSocketCloseEvent(clean, code, reason));
+      _controller.close();
+    };
+
+    _socket.listen(
+        (data) => _processor.update(data, 0, data.length),
+        onDone: () => _processor.closed(),
+        onError: (error) => _controller.signalError(error));
+  }
+
+  StreamSubscription<Event> listen(void onData(Event event),
+                                   {void onError(AsyncError error),
+                                    void onDone(),
+                                    bool unsubscribeOnError}) {
+    return _controller.stream.listen(onData,
+                                     onError: onError,
+                                     onDone: onDone,
+                                     unsubscribeOnError: unsubscribeOnError);
   }
 
   int get readyState => _readyState;
   int get bufferedAmount => 0;
 
-  void set onopen(Function callback) {
-    _onopen = callback;
-  }
-
-  void set onerror(Function callback) {}
-
-  void set onclose(Function callback) {
-    _onclose = callback;
-  }
-
   String get extensions => null;
   String get protocol => null;
 
-  void close(int code, String reason) {
+  void close([int code, String reason]) {
     if (_readyState < WebSocket.CLOSING) _readyState = WebSocket.CLOSING;
-    _wsconn.close(code, reason);
+    if (code == WebSocketStatus.RESERVED_1004 ||
+        code == WebSocketStatus.NO_STATUS_RECEIVED ||
+        code == WebSocketStatus.RESERVED_1015) {
+      throw new WebSocketException("Reserved status code $code");
+    }
+    _close(code, reason);
   }
 
-  void set onmessage(Function callback) {
-    _onmessage = callback;
+  void _close([int code, String reason]) {
+    List<int> data;
+    if (code != null) {
+      data = new List<int>();
+      data.add((code >> 8) & 0xFF);
+      data.add(code & 0xFF);
+      if (reason != null) {
+        data.addAll(_encodeString(reason));
+      }
+    }
+    _sendFrame(_WebSocketOpcode.CLOSE, data);
+
+    if (_readyState == WebSocket.CLOSED) {
+      // Close the socket when the close frame has been sent - if it
+      // does not take too long.
+      // TODO(ajohnsen): Honor comment.
+      _socket.destroy();
+    } else {
+      // Half close the socket and expect a close frame in response
+      // before closing the socket. If a close frame does not arrive
+      // within a reasonable amount of time just close the socket.
+      // TODO(ajohnsen): Honor comment.
+      _socket.close();
+    }
   }
 
-  void send(data) {
-    _wsconn.send(data);
+  void send(message) {
+    if (readyState != WebSocket.OPEN) {
+      throw new StateError("Connection not open");
+    }
+    List<int> data;
+    int opcode;
+    if (message != null) {
+      if (message is String) {
+        opcode = _WebSocketOpcode.TEXT;
+        data = _encodeString(message);
+      } else {
+        if (message is !List<int>) {
+          throw new ArgumentError(message);
+        }
+        opcode = _WebSocketOpcode.BINARY;
+        data = message;
+      }
+    } else {
+      opcode = _WebSocketOpcode.TEXT;
+    }
+    _sendFrame(opcode, data);
   }
 
-  WebSocketClientConnection _wsconn;
-  int _readyState = WebSocket.CONNECTING;
-  Function _onopen;
-  Function _onclose;
-  Function _onmessage;
+  void _sendFrame(int opcode, [List<int> data]) {
+    bool mask = false;  // Masking not implemented for server.
+    int dataLength = data == null ? 0 : data.length;
+    // Determine the header size.
+    int headerSize = (mask) ? 6 : 2;
+    if (dataLength > 65535) {
+      headerSize += 8;
+    } else if (dataLength > 125) {
+      headerSize += 2;
+    }
+    List<int> header = new List<int>.fixedLength(headerSize);
+    int index = 0;
+    // Set FIN and opcode.
+    header[index++] = 0x80 | opcode;
+    // Determine size and position of length field.
+    int lengthBytes = 1;
+    int firstLengthByte = 1;
+    if (dataLength > 65535) {
+      header[index++] = 127;
+      lengthBytes = 8;
+    } else if (dataLength > 125) {
+      header[index++] = 126;
+      lengthBytes = 2;
+    }
+    // Write the length in network byte order into the header.
+    for (int i = 0; i < lengthBytes; i++) {
+      header[index++] = dataLength >> (((lengthBytes - 1) - i) * 8) & 0xFF;
+    }
+    assert(index == headerSize);
+    _socket.add(header);
+    if (data != null) {
+      _socket.add(data);
+    }
+  }
 }
 
 

@@ -11,9 +11,9 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
 Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # co19 issue 348
-Language/07_Classes/3_Setters_A04_t01: Fail # Dart issue 5840
-Language/07_Classes/3_Setters_A04_t04: Fail # Dart issue 5840
-Language/07_Classes/3_Setters_A04_t05: Fail # Dart issue 5840
+Language/07_Classes/3_Setters_A04_t01: Fail # co19 issue 383
+Language/07_Classes/3_Setters_A04_t04: Fail # co19 issue 383
+Language/07_Classes/3_Setters_A04_t05: Fail # co19 issue 383
 Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # Dart issue 978

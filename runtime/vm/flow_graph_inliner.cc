@@ -491,7 +491,7 @@ class CallSiteInliner : public ValueObject {
         // Compute SSA on the callee graph, catching bailouts.
         callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                  &param_stubs);
-        callee_graph->ComputeUseLists();
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       {
@@ -501,7 +501,7 @@ class CallSiteInliner : public ValueObject {
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
-        callee_graph->ComputeUseLists();
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       if (FLAG_trace_inlining &&
@@ -561,19 +561,20 @@ class CallSiteInliner : public ValueObject {
         // Plug result in the caller graph.
         inlining_context->ReplaceCall(caller_graph_, call, callee_graph);
 
-        // Remove push arguments of the call.
-        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-          PushArgumentInstr* push = call->ArgumentAt(i);
-          push->ReplaceUsesWith(push->value()->definition());
-          push->RemoveFromGraph();
-        }
-
         // Replace each stub with the actual argument or the caller's constant.
         // Nulls denote optional parameters for which no actual was given.
         for (intptr_t i = 0; i < arguments->length(); ++i) {
           Definition* stub = param_stubs[i];
           Value* actual = (*arguments)[i];
           if (actual != NULL) stub->ReplaceUsesWith(actual->definition());
+        }
+
+        // Remove push arguments of the call.
+        for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+          PushArgumentInstr* push = call->PushArgumentAt(i);
+          push->ReplaceUsesWith(push->value()->definition());
+          push->UnuseAllInputs();
+          push->RemoveFromGraph();
         }
 
         // Replace remaining constants with uses by constants in the caller's
@@ -596,7 +597,7 @@ class CallSiteInliner : public ValueObject {
       if (!in_cache) function_cache_.Add(parsed_function);
 
       // Check that inlining maintains use lists.
-      DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->ValidateUseLists());
+      DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph_->VerifyUseLists());
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
@@ -652,7 +653,7 @@ class CallSiteInliner : public ValueObject {
       StaticCallInstr* call = calls[i];
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
-        arguments.Add(call->ArgumentAt(i)->value());
+        arguments.Add(call->PushArgumentAt(i)->value());
       }
       TryInlining(call->function(), call->argument_names(), &arguments, call);
     }
@@ -667,14 +668,14 @@ class CallSiteInliner : public ValueObject {
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
       const CreateClosureInstr* closure =
-          call->ArgumentAt(0)->value()->definition()->AsCreateClosure();
+          call->ArgumentAt(0)->AsCreateClosure();
       if (closure == NULL) {
         TRACE_INLINING(OS::Print("     Bailout: non-closure operator\n"));
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
-        arguments.Add(call->ArgumentAt(i)->value());
+        arguments.Add(call->PushArgumentAt(i)->value());
       }
       TryInlining(closure->function(),
                   call->argument_names(),
@@ -710,7 +711,7 @@ class CallSiteInliner : public ValueObject {
       }
       GrowableArray<Value*> arguments(instr->ArgumentCount());
       for (int arg_i = 0; arg_i < instr->ArgumentCount(); ++arg_i) {
-        arguments.Add(instr->ArgumentAt(arg_i)->value());
+        arguments.Add(instr->PushArgumentAt(arg_i)->value());
       }
       TryInlining(target,
                   instr->instance_call()->argument_names(),

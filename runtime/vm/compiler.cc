@@ -54,7 +54,6 @@ DEFINE_FLAG(bool, verify_compiler, false,
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-DECLARE_FLAG(bool, trace_type_propagation);
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -160,6 +159,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        isolate);
       // Transform to SSA (virtual register 0 and no inlining arguments).
       flow_graph->ComputeSSA(0, NULL);
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
     }
 
     if (FLAG_print_flow_graph ||
@@ -174,13 +174,15 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        &CompilerStats::graphoptimizer_timer,
                        isolate);
 
-      flow_graph->ComputeUseLists();
-
       FlowGraphOptimizer optimizer(flow_graph);
       optimizer.ApplyICData();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-      // Compute the use lists.
-      flow_graph->ComputeUseLists();
+      // Optimize (a << b) & c patterns. Must occur before
+      // 'SelectRepresentations' which inserts conversion nodes.
+      // TODO(srdjan): Moved before inlining until environment use list can
+      // be used to detect when shift-left is outside the scope of bit-and.
+      optimizer.TryOptimizeLeftShiftWithBitAndPattern();
 
       // Inlining (mutates the flow graph)
       if (FLAG_use_inlining) {
@@ -189,64 +191,53 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         FlowGraphInliner inliner(flow_graph);
         inliner.Inline();
         // Use lists are maintained and validated by the inliner.
-      }
-
-      if (FLAG_trace_type_propagation) {
-        OS::Print("Before type propagation:\n");
-        FlowGraphPrinter printer(*flow_graph);
-        printer.PrintBlocks();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
       // Propagate types and eliminate more type tests.
       if (FLAG_propagate_types) {
         FlowGraphTypePropagator propagator(flow_graph);
         propagator.Propagate();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
-
-      if (FLAG_trace_type_propagation) {
-        OS::Print("After type propagation:\n");
-        FlowGraphPrinter printer(*flow_graph);
-        printer.PrintBlocks();
-      }
-
-      flow_graph->ComputeUseLists();
 
       // Use propagated class-ids to optimize further.
       optimizer.ApplyClassIds();
-
-      // Recompute use lists after applying class ids.
-      flow_graph->ComputeUseLists();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       // Do optimizations that depend on the propagated type information.
       optimizer.Canonicalize();
-
-      flow_graph->ComputeUseLists();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
         // A canonicalization pass to remove e.g. smi checks on smi constants.
         optimizer.Canonicalize();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
       // Unbox doubles. Performed after constant propagation to minimize
       // interference from phis merging double values and tagged
       // values comming from dead paths.
-      flow_graph->ComputeUseLists();
       optimizer.SelectRepresentations();
-      flow_graph->ComputeUseLists();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // Do another round of CSE to take secondary effects into account:
           // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
           // TODO(fschneider): Change to a one-pass optimization pass.
           DominatorBasedCSE::Optimize(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
       }
       if (FLAG_loop_invariant_code_motion &&
           (parsed_function.function().deoptimization_counter() <
            (FLAG_deoptimization_counter_threshold - 1))) {
         LICM::Optimize(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
       if (FLAG_range_analysis) {
@@ -254,10 +245,12 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // optimistically moves CheckSmi through phis into loop preheaders
         // making some phis smi.
         optimizer.InferSmiRanges();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
       // The final canonicalization pass before the code generation.
       optimizer.Canonicalize();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       // Perform register allocation on the SSA graph.
       FlowGraphAllocator allocator(*flow_graph);

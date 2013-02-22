@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -8,167 +8,179 @@ import "dart:io";
 
 void test1(int totalConnections) {
   // Server which just closes immediately.
-  HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0, backlog: totalConnections);
-  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
-    response.outputStream.close();
-  };
+  HttpServer.bind().then((server) {
+    server.listen((HttpRequest request) {
+      request.response.close();
+    });
 
-  int count = 0;
-  HttpClient client = new HttpClient();
-  for (int i = 0; i < totalConnections; i++) {
-    HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onClosed = () {
-        count++;
-        if (count == totalConnections) {
-          client.shutdown();
-          server.close();
-        }
-      };
-    };
-  }
+    int count = 0;
+    HttpClient client = new HttpClient();
+    for (int i = 0; i < totalConnections; i++) {
+      client.get("127.0.0.1", server.port, "/")
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+          response.listen((_) {}, onDone: () {
+            count++;
+            if (count == totalConnections) {
+              client.close();
+              server.close();
+            }
+          });
+        });
+    }
+  });
 }
 
 
 void test2(int totalConnections, int outputStreamWrites) {
   // Server which responds without waiting for request body.
-  HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0, backlog: totalConnections);
-  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
-    response.outputStream.writeString("!dlrow ,olleH");
-    response.outputStream.close();
-  };
+  HttpServer.bind().then((server) {
+    server.listen((HttpRequest request) {
+      request.response.addString("!dlrow ,olleH");
+      request.response.close();
+    });
 
-  int count = 0;
-  HttpClient client = new HttpClient();
-  for (int i = 0; i < totalConnections; i++) {
-    HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
-    conn.onRequest = (HttpClientRequest request) {
-      request.contentLength = -1;
-      for (int i = 0; i < outputStreamWrites; i++)
-        request.outputStream.writeString("Hello, world!");
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onData = response.inputStream.read;
-      response.inputStream.onClosed = () {
-        count++;
-        if (count == totalConnections) {
-          client.shutdown();
-          server.close();
-        }
-      };
-    };
-    conn.onError = (e) {
-      count++;
-      if (count == totalConnections) {
-        client.shutdown();
-        server.close();
-      }
-    };
-  }
+    int count = 0;
+    HttpClient client = new HttpClient();
+    for (int i = 0; i < totalConnections; i++) {
+      client.get("127.0.0.1", server.port, "/")
+        .then((HttpClientRequest request) {
+          request.contentLength = -1;
+          for (int i = 0; i < outputStreamWrites; i++) {
+            request.addString("Hello, world!");
+          }
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          response.listen(
+            (_) {},
+            onDone: () {
+              count++;
+              if (count == totalConnections) {
+                client.close(force: true);
+                server.close();
+              }
+            },
+            onError: (e) {} /* ignore */);
+        })
+        .catchError((error) {
+          count++;
+          if (count == totalConnections) {
+            client.close();
+            server.close();
+          }
+        });
+    }
+  });
 }
 
 
 void test3(int totalConnections) {
   // Server which responds when request body has been received.
-  HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0, backlog: totalConnections);
-  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
-    request.inputStream.onData = () {
-      request.inputStream.read();
-    };
-    request.inputStream.onClosed = () {
-      response.outputStream.writeString("!dlrow ,olleH");
-      response.outputStream.close();
-    };
-  };
+  HttpServer.bind().then((server) {
+
+  server.listen((HttpRequest request) {
+    request.listen((_) {}, onDone: () {
+      request.response.addString("!dlrow ,olleH");
+      request.response.close();
+    });
+  });
 
   int count = 0;
   HttpClient client = new HttpClient();
   for (int i = 0; i < totalConnections; i++) {
-    HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
-    conn.onRequest = (HttpClientRequest request) {
-      request.contentLength = -1;
-      request.outputStream.writeString("Hello, world!");
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      response.inputStream.onData = response.inputStream.read;
-      response.inputStream.onClosed = () {
-        count++;
-        if (count == totalConnections) {
-          client.shutdown();
-          server.close();
-        }
-      };
-    };
+    client.get("127.0.0.1", server.port, "/")
+      .then((HttpClientRequest request) {
+        request.contentLength = -1;
+        request.addString("Hello, world!");
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        response.listen((_) {}, onDone: () {
+          count++;
+          if (count == totalConnections) {
+            client.close();
+            server.close();
+          }
+        });
+      });
   }
+
+  });
 }
 
 
 void test4() {
-  var server = new HttpServer();
-  server.listen("127.0.0.1", 0);
-  server.defaultRequestHandler = (var request, var response) {
-    request.inputStream.onClosed = () {
+  HttpServer.bind().then((server) {
+
+  server.listen((var request) {
+    request.listen((_) {}, onDone: () {
       new Timer.repeating(new Duration(milliseconds: 100), (timer) {
         if (server.connectionsInfo().total == 0) {
           server.close();
           timer.cancel();
         }
       });
-      response.outputStream.close();
-    };
-  };
+      request.response.close();
+    });
+  });
 
   var client= new HttpClient();
-  var conn = client.get("127.0.0.1", server.port, "/");
-  conn.onResponse = (var response) {
-    response.inputStream.onData = response.inputStream.read;
-    response.inputStream.onClosed = () {
-      client.shutdown();
-    };
-  };
+  client.get("127.0.0.1", server.port, "/")
+    .then((request) => request.close())
+    .then((response) {
+      response.listen((_) {}, onDone: () {
+        client.close();
+      });
+    });
+
+  });
 }
 
 
 void test5(int totalConnections) {
-  var server = new HttpServer();
-  server.listen("127.0.0.1", 0, backlog: totalConnections);
-  server.defaultRequestHandler = (var request, var response) {
-    request.inputStream.onClosed = () {
-      response.outputStream.close();
-    };
-  };
-  server.onError = (e) => { };
+  HttpServer.bind().then((server) {
+    server.listen(
+        (request) {
+          request.listen(
+              (_) { },
+              onDone: () {
+                request.response.close();
+              },
+              onError: (error) { });
+        },
+        onError: (error) { });
 
-  // Create a number of client requests and keep then active. Then
-  // close the client and wait for the server to lose all active
-  // connections.
-  var client= new HttpClient();
-  for (int i = 0; i < totalConnections; i++) {
-    var conn = client.post("127.0.0.1", server.port, "/");
-    conn.onRequest = (req) { req.outputStream.write([0]); };
-    conn.onError = (e) => Expect.isTrue(e is HttpException);
-  }
-  bool clientClosed = false;
-  new Timer.repeating(new Duration(milliseconds: 100), (timer) {
-    if (!clientClosed) {
-      if (server.connectionsInfo().total == totalConnections) {
-        clientClosed = true;
-        client.shutdown(force: true);
-      }
-    } else {
-      if (server.connectionsInfo().total == 0) {
-        server.close();
-        timer.cancel();
-      }
+    // Create a number of client requests and keep then active. Then
+    // close the client and wait for the server to lose all active
+    // connections.
+    var client= new HttpClient();
+    for (int i = 0; i < totalConnections; i++) {
+      client.post("127.0.0.1", server.port, "/")
+        .then((request) {
+            request.add([0]);
+            // TODO(sgjesse): Make this test work with
+            //request.response instead of request.close() return
+            //return request.response;
+            return request.close();
+          })
+        .then((response) { })
+        .catchError((e) { }, test: (e) => e is HttpParserException);
     }
+    bool clientClosed = false;
+    new Timer.repeating(new Duration(milliseconds: 100), (timer) {
+      if (!clientClosed) {
+        if (server.connectionsInfo().total == totalConnections) {
+          clientClosed = true;
+          client.close(force: true);
+        }
+      } else {
+        if (server.connectionsInfo().total == 0) {
+          server.close();
+          timer.cancel();
+        }
+      }
+    });
   });
 }
 

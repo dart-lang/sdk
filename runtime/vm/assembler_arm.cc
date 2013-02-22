@@ -7,9 +7,12 @@
 
 #include "vm/assembler.h"
 
+#include "vm/stub_code.h"
+
 namespace dart {
 
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+// TODO(regis): Enable this flag after PrintStopMessage stub is implemented.
+DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 
 
 // Instruction encoding bits.
@@ -1036,11 +1039,11 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   const int32_t offset =
       Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
   if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
-    ldr(rd, Address(CP, offset));
+    ldr(rd, Address(PP, offset));
   } else {
     int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
     uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    AddConstant(rd, CP, offset12_hi);
+    AddConstant(rd, PP, offset12_hi);
     ldr(rd, Address(rd, offset12_lo));
   }
 }
@@ -1167,28 +1170,34 @@ void Assembler::Branch(const ExternalLabel* label) {
 
 
 void Assembler::BranchLink(const ExternalLabel* label) {
-  // TODO(regis): Make sure that CodePatcher is able to patch the label referred
+  LoadImmediate(IP, label->address());  // Target address is never patched.
+  blx(IP);  // Use blx instruction so that the return branch prediction works.
+}
+
+
+void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
+  // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset =
       Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
   if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
-    ldr(LR, Address(CP, offset));
+    ldr(LR, Address(PP, offset));
   } else {
     int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
     uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
     // Inline a simplified version of AddConstant(LR, CP, offset12_hi).
     ShifterOperand shifter_op;
     if (ShifterOperand::CanHold(offset12_hi, &shifter_op)) {
-      add(LR, CP, shifter_op);
+      add(LR, PP, shifter_op);
     } else {
       movw(LR, Utils::Low16Bits(offset12_hi));
       const uint16_t value_high = Utils::High16Bits(offset12_hi);
       if (value_high != 0) {
         movt(LR, value_high);
       }
-      add(LR, CP, ShifterOperand(LR));
+      add(LR, PP, ShifterOperand(LR));
     }
     ldr(LR, Address(LR, offset12_lo));
   }
@@ -1500,7 +1509,11 @@ void Assembler::AddConstantWithCarry(Register rd, Register rn, int32_t value,
 
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
-    UNIMPLEMENTED();  // Emit call to StubCode::PrintStopMessage().
+    PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.
+    LoadImmediate(R0, reinterpret_cast<int32_t>(message));
+    // PrintStopMessage() preserves all registers.
+    BranchLink(&StubCode::PrintStopMessageLabel());  // Passing message in R0.
+    PopList((1 << R0) | (1 << IP) | (1 << LR));  // Restore R0, IP, LR.
   }
   // Emit the message address before the svc instruction, so that we can
   // 'unstop' and continue execution in the simulator or jump to the next
@@ -1533,25 +1546,35 @@ int Assembler::DecodeBranchOffset(int32_t inst) {
 
 
 int32_t Assembler::AddObject(const Object& obj) {
+  if (object_pool_.IsNull()) {
+    // The object pool cannot be used in the vm isolate.
+    ASSERT(Isolate::Current() != Dart::vm_isolate());
+    object_pool_ = GrowableObjectArray::New();
+  }
   for (int i = 0; i < object_pool_.Length(); i++) {
     if (object_pool_.At(i) == obj.raw()) {
       return i;
     }
   }
   object_pool_.Add(obj);
-  return object_pool_.Length();
+  return object_pool_.Length() - 1;
 }
 
 
 int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
-  const uword address = label->address();
+  if (object_pool_.IsNull()) {
+    // The object pool cannot be used in the vm isolate.
+    ASSERT(Isolate::Current() != Dart::vm_isolate());
+    object_pool_ = GrowableObjectArray::New();
+  }
+  const word address = label->address();
   ASSERT(Utils::IsAligned(address, 4));
   // The address is stored in the object array as a RawSmi.
   const Smi& smi = Smi::Handle(Smi::New(address >> kSmiTagShift));
   // Do not reuse an existing entry, since each reference may be patched
   // independently.
   object_pool_.Add(smi);
-  return object_pool_.Length();
+  return object_pool_.Length() - 1;
 }
 
 }  // namespace dart

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -107,18 +107,19 @@ String displayName(LibraryMirror library) {
 Future copyDirectory(Path from, Path to) {
   final completer = new Completer();
   final fromDir = new Directory.fromPath(from);
-  final lister = fromDir.list(recursive: false);
+  fromDir.list(recursive: false).listen(
+      (FileSystemEntity entity) {
+        if (entity is File) {
+          final name = new Path(entity.name).filename;
+          // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
+          if (name.startsWith('.')) return;
 
-  lister.onFile = (String path) {
-    final name = new Path(path).filename;
-    // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
-    if (name.startsWith('.')) return;
-
-    File fromFile = new File(path);
-    File toFile = new File.fromPath(to.append(name));
-    fromFile.openInputStream().pipe(toFile.openOutputStream());
-  };
-  lister.onDone = (done) => completer.complete(true);
+          File fromFile = entity;
+          File toFile = new File.fromPath(to.append(name));
+          fromFile.openRead().pipe(toFile.openWrite());
+        }
+      },
+      onDone: () => completer.complete(true));
   return completer.future;
 }
 
@@ -175,7 +176,7 @@ class PackageManifest {
    * Path to the directory containing data files for each library.
    *
    * Currently this is the serialized json version of the LibraryElement for
-   * the library. 
+   * the library.
    */
   String location;
   /**
@@ -1902,15 +1903,18 @@ class Dartdoc {
     write("NETWORK:\n*\n\n");
     write("CACHE:\n");
     var toCache = new Directory.fromPath(outputDir);
-    var toCacheLister = toCache.list(recursive: true);
-    toCacheLister.onFile = (filename) {
-      if (filename.endsWith('appcache.manifest')) {
-        return;
-      }
-      Path relativeFilePath = new Path(filename).relativeTo(outputDir);
-      write("$relativeFilePath\n");
-    };
-    toCacheLister.onDone = (done) => endFile();
+    toCache.list(recursive: true).listen(
+        (FileSystemEntity entity) {
+          if (entity.isFile) {
+            var filename = entity.path;
+            if (filename.endsWith('appcache.manifest')) {
+              return;
+            }
+            Path relativeFilePath = new Path(filename).relativeTo(outputDir);
+            write("$relativeFilePath\n");
+          }
+        },
+        onDone: () => endFile());
   }
 
   /**

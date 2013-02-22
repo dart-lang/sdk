@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,89 +20,137 @@ String getSessionId(List<Cookie> cookies) {
   return id;
 }
 
-Future<String> connectGetSession(int port, [String session]) {
-  var c = new Completer();
-  var client = new HttpClient();
-  var conn = client.get("127.0.0.1", port, "/");
-  conn.onRequest = (request) {
-    if (session != null) {
-      request.cookies.add(new Cookie(SESSION_ID, session));
-    }
-    request.outputStream.close();
-  };
-  conn.onResponse = (response) {
-    response.inputStream.onData = response.inputStream.read;
-    response.inputStream.onClosed = () {
-      client.shutdown();
-      c.complete(getSessionId(response.cookies));
-    };
-  };
-  return c.future;
+Future<String> connectGetSession(
+    HttpClient client, int port, [String session]) {
+  return client.get("127.0.0.1", port, "/")
+    .then((request) {
+      if (session != null) {
+        request.cookies.add(new Cookie(SESSION_ID, session));
+      }
+      return request.close();
+    })
+    .then((response) {
+      return response.reduce(getSessionId(response.cookies), (v, _) => v);
+    });
 }
 
 void testSessions(int sessionCount) {
-  HttpServer server = new HttpServer();
-  server.listen("127.0.0.1", 0);
-  var sessions = new Set();
-  server.defaultRequestHandler = (request, response) {
-    sessions.add(request.session().id);
-    response.outputStream.close();
-  };
+  var client = new HttpClient();
+  HttpServer.bind().then((server) {
+    var sessions = new Set();
+    server.listen((request) {
+      sessions.add(request.session.id);
+      request.response.close();
+    });
 
-  var futures = [];
-  for (int i = 0; i < sessionCount; i++) {
-    futures.add(connectGetSession(server.port).then((session) {
-      Expect.isNotNull(session);
-      Expect.isTrue(sessions.contains(session));
-      return connectGetSession(server.port, session).then((session2) {
-        Expect.equals(session2, session);
-        Expect.isTrue(sessions.contains(session2));
-        return session2;
+    var futures = [];
+    for (int i = 0; i < sessionCount; i++) {
+      futures.add(connectGetSession(client, server.port).then((session) {
+        Expect.isNotNull(session);
+        Expect.isTrue(sessions.contains(session));
+        return connectGetSession(client, server.port, session).then((session2) {
+          Expect.equals(session2, session);
+          Expect.isTrue(sessions.contains(session2));
+          return session2;
         });
-    }));
-  }
-  Future.wait(futures).then((clientSessions) {
-    Expect.equals(sessions.length, sessionCount);
-    Expect.setEquals(new Set.from(clientSessions), sessions);
-    server.close();
+      }));
+    }
+    Future.wait(futures).then((clientSessions) {
+      Expect.equals(sessions.length, sessionCount);
+      Expect.setEquals(new Set.from(clientSessions), sessions);
+      server.close();
+      client.close();
+    });
   });
 }
 
 void testTimeout(int sessionCount) {
-  HttpServer server = new HttpServer();
-  server.sessionTimeout = 0;
-  server.listen("127.0.0.1", 0);
-  var timeouts = [];
-  server.defaultRequestHandler = (request, response) {
-    var c = new Completer();
-    timeouts.add(c.future);
-    request.session().onTimeout = () {
-      c.complete(null);
-    };
-    response.outputStream.close();
-  };
+  var client = new HttpClient();
+  HttpServer.bind().then((server) {
+    server.sessionTimeout = 0;
+    var timeouts = [];
+    server.listen((request) {
+      var c = new Completer();
+      timeouts.add(c.future);
+      request.session.onTimeout = () {
+        c.complete(null);
+      };
+      request.response.close();
+    });
 
-  var futures = [];
-  for (int i = 0; i < sessionCount; i++) {
-    futures.add(connectGetSession(server.port));
-  }
-  Future.wait(futures).then((clientSessions) {
-    Future.wait(timeouts).then((_) {
-      futures = [];
-      for (var id in clientSessions) {
-        futures.add(connectGetSession(server.port, id).then((session) {
-          Expect.isNotNull(session);
-          Expect.notEquals(id, session);
-        }));
-      }
-      Future.wait(futures).then((_) {
-        server.close();
+    var futures = [];
+    for (int i = 0; i < sessionCount; i++) {
+      futures.add(connectGetSession(client, server.port));
+    }
+    Future.wait(futures).then((clientSessions) {
+      Future.wait(timeouts).then((_) {
+        futures = [];
+        for (var id in clientSessions) {
+          futures.add(connectGetSession(
+              client, server.port, id).then((session) {
+            Expect.isNotNull(session);
+            Expect.notEquals(id, session);
+          }));
+        }
+        Future.wait(futures).then((_) {
+          server.close();
+          client.close();
+        });
       });
     });
   });
 }
 
+void testSessionsData() {
+  HttpServer.bind().then((server) {
+    bool firstHit = false;
+    bool secondHit = false;
+    server.listen((request) {
+      var c = new Completer();
+      var session = request.session;
+      if (session.isNew) {
+        Expect.isFalse(firstHit);
+        Expect.isFalse(secondHit);
+        firstHit = true;
+        session["data"] = "some data";
+      } else {
+        Expect.isTrue(firstHit);
+        Expect.isFalse(secondHit);
+        secondHit = true;
+        Expect.isTrue(session.containsKey("data"));
+        Expect.equals("some data", session["data"]);
+      };
+      request.response.close();
+    });
+
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+      .then((request) => request.close())
+      .then((response) {
+        response.listen((_) {}, onDone: () {
+          var id = getSessionId(response.cookies);
+          Expect.isNotNull(id);
+          client.get("127.0.0.1", server.port, "/")
+            .then((request) {
+              request.cookies.add(new Cookie(SESSION_ID, id));
+              return request.close();
+            })
+            .then((response) {
+              response.listen((_) {}, onDone: () {
+                Expect.isTrue(firstHit);
+                Expect.isTrue(secondHit);
+                Expect.equals(id, getSessionId(response.cookies));
+                server.close();
+                client.close();
+              });
+            });
+        });
+      });
+  });
+}
+
 void main() {
-  testSessions(5);
+  testSessions(1);
   testTimeout(5);
+  testSessionsData();
 }

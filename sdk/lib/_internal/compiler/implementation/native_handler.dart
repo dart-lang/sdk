@@ -373,6 +373,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     staticUse(const SourceString('defineProperty'));
     staticUse(const SourceString('toStringForNativeObject'));
     staticUse(const SourceString('hashCodeForNativeObject'));
+    staticUse(const SourceString('convertDartClosureToJS'));
 
     addNativeExceptions();
   }
@@ -478,7 +479,8 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'
       || libraryName == 'dart:svg'
-      || libraryName == 'dart:web_audio') {
+      || libraryName == 'dart:web_audio'
+      || libraryName == 'dart:web_sql') {
     library.canUseNative = true;
   }
 }

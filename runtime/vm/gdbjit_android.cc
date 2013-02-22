@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "vm/globals.h"
+#if defined(TARGET_OS_ANDROID)
+
+#include <stdint.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <stdlib.h>  // NOLINT
 
 #include "vm/gdbjit_android.h"
 
@@ -77,3 +80,5 @@ extern "C" {
     last_dynamic_region = NULL;
   }
 };
+
+#endif  // defined(TARGET_OS_ANDROID)

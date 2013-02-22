@@ -100,7 +100,7 @@ class EscapedSourceDartString extends SourceBasedDartString {
     StringBuffer buffer = new StringBuffer();
     StringEscapeIterator it = new StringEscapeIterator(source);
     while (it.moveNext()) {
-      buffer.addCharCode(it.current);
+      buffer.writeCharCode(it.current);
     }
     toStringCache = buffer.toString();
     return toStringCache;

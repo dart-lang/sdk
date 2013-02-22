@@ -78,14 +78,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     // Handle imports of other built-in libraries present in the SDK.
     if (DartUtils::IsDartIOLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
-    } else if (DartUtils::IsDartJsonLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kJsonLibrary);
-    } else if (DartUtils::IsDartUriLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kUriLibrary);
-    } else if (DartUtils::IsDartUtfLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kUtfLibrary);
-    } else if (DartUtils::IsDartCryptoLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kCryptoLibrary);
     } else if (DartUtils::IsDartBuiltinLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     } else {
@@ -134,24 +126,24 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 }
 
 
-uword AssemblerTest::Assemble() {
+void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   const Class& cls = Class::ZoneHandle(
        Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, cls, 0));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, assembler_));
+  code_ = Code::FinalizeCode(function, assembler_);
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =
-        Instructions::Handle(code.instructions());
+        Instructions::Handle(code_.instructions());
     uword start = instructions.EntryPoint();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }
-  const Instructions& instructions = Instructions::Handle(code.instructions());
-  return instructions.EntryPoint();
+  const Instructions& instructions = Instructions::Handle(code_.instructions());
+  entry_ = instructions.EntryPoint();
 }
 
 

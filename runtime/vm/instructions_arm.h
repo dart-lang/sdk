@@ -10,86 +10,58 @@
 #error Do not include instructions_arm.h directly; use instructions.h instead.
 #endif
 
-#include "vm/allocation.h"
+#include "vm/object.h"
 
 namespace dart {
-
-// Forward declarations.
-class RawClass;
-class Immediate;
-class RawObject;
 
 // Abstract class for all instruction pattern classes.
 class InstructionPattern : public ValueObject {
  public:
-  explicit InstructionPattern(uword pc) : start_(pc) {
+  explicit InstructionPattern(uword pc) : end_(reinterpret_cast<uword*>(pc)) {
     ASSERT(pc != 0);
   }
-  virtual ~InstructionPattern() {}
-
-  // Call to check if the instruction pattern at 'pc' match the instruction.
-  virtual bool IsValid() const {
-    return TestBytesWith(pattern(), pattern_length_in_bytes());
-  }
-
-  // 'pattern' returns the expected byte pattern in form of an integer array
-  // with length of 'pattern_length_in_bytes'. A '-1' element means 'any byte'.
-  virtual const int* pattern() const = 0;
-  virtual int pattern_length_in_bytes() const = 0;
+  virtual ~InstructionPattern() { }
 
  protected:
-  uword start() const { return start_; }
+  uword Back(int n) const;
 
  private:
-  // Returns true if the 'num_bytes' bytes at 'start_' correspond to
-  // array of integers 'data'. 'data' elements are either a byte or -1, which
-  // represents any byte.
-  bool TestBytesWith(const int* data, int num_bytes) const;
-
-  const uword start_;
+  const uword* end_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionPattern);
 };
 
 
-class CallOrJumpPattern : public InstructionPattern {
+class CallPattern : public InstructionPattern {
  public:
-  virtual int pattern_length_in_bytes() const {
-    return kLengthInBytes;
-  }
+  CallPattern(uword pc, const Code& code);
+
   uword TargetAddress() const;
-  void SetTargetAddress(uword new_target) const;
-
- protected:
-  explicit CallOrJumpPattern(uword pc) : InstructionPattern(pc) {}
-  static const int kLengthInBytes = 0;
+  void SetTargetAddress(uword target_address) const;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(CallOrJumpPattern);
-};
-
-
-class CallPattern : public CallOrJumpPattern {
- public:
-  explicit CallPattern(uword pc) : CallOrJumpPattern(pc) {}
-  static int InstructionLength() {
-    return kLengthInBytes;
-  }
-
- private:
-  virtual const int* pattern() const;
+  int DecodePoolIndex();
+  const int pool_index_;
+  const Array& object_pool_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
 
-class JumpPattern : public CallOrJumpPattern {
+class JumpPattern : public InstructionPattern {
  public:
-  explicit JumpPattern(uword pc) : CallOrJumpPattern(pc) {}
+  explicit JumpPattern(uword pc) : InstructionPattern(pc) { }
+
+  static const int kLengthInBytes = 3*kWordSize;
+
+  int pattern_length_in_bytes() const {
+    return kLengthInBytes;
+  }
+  bool IsValid() const;
+  uword TargetAddress() const;
+  void SetTargetAddress(uword target_address) const;
 
  private:
-  virtual const int* pattern() const;
-
   DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };
 

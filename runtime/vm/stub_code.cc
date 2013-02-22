@@ -50,8 +50,10 @@ StubCode::~StubCode() {
 
 
 void StubCode::InitOnce() {
-  // TODO(regis): Re-enable this after we are able to generate arm code.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  // TODO(regis): Re-enable this after we are able to generate mips code.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
@@ -60,8 +62,10 @@ void StubCode::InitOnce() {
 
 
 void StubCode::GenerateFor(Isolate* init) {
-  // TODO(regis): Re-enable this after we are able to generate arm code.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  // TODO(regis): Re-enable this after we are able to generate mips code.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
   // Generate all the stubs.
   Code& code = Code::Handle();
   STUB_CODE_LIST(STUB_CODE_GENERATE);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--old_gen_heap_size=32
+// VMOptions=--old_gen_heap_size=64
 
 library slow_consumer_test;
 
@@ -20,6 +20,7 @@ class SlowConsumer extends StreamConsumer {
   SlowConsumer(int this.bytesPerSecond);
 
   Future consume(Stream stream) {
+    bool done = false;
     Completer completer = new Completer();
     var subscription;
     subscription = stream.listen(
@@ -29,15 +30,18 @@ class SlowConsumer extends StreamConsumer {
             // Simulated amount of time it takes to handle the data.
             int ms = data.length * 1000 ~/ bytesPerSecond;
             Duration duration = new Duration(milliseconds: ms);
-            subscription.pause();
+            if (!done) subscription.pause();
             return new Future.delayed(duration, () {
-              subscription.resume();
+              if (!done) subscription.resume();
               // Make sure we use data here to keep tracking it.
               return count + data.length;
             });
           });
         },
-      onDone: () { current.then((count) { completer.complete(count); }); });
+      onDone: () {
+        done = true;
+        current.then((count) { completer.complete(count); });
+      });
     return completer.future;
   }
 }
@@ -48,6 +52,7 @@ class DataProvider {
   int sentCount = 0;
   int targetCount;
   StreamController controller;
+  Timer pendingSend;
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
     controller = new StreamController(onPauseStateChange: onPauseStateChange);
@@ -57,6 +62,10 @@ class DataProvider {
   Stream get stream => controller.stream;
 
   send() {
+    if (pendingSend != null) {
+      pendingSend.cancel();
+      pendingSend = null;
+    }
     if (controller.isPaused) return;
     if (sentCount == targetCount) {
       controller.close();
@@ -71,7 +80,9 @@ class DataProvider {
     controller.add(new List.fixedLength(listSize));
     int ms = listSize * 1000 ~/ bytesPerSecond;
     Duration duration = new Duration(milliseconds: ms);
-    if (!controller.isPaused) new Timer(duration, send);
+    if (!controller.isPaused) {
+      pendingSend = new Timer(duration, send);
+    }
   }
 
   onPauseStateChange() {
@@ -87,7 +98,7 @@ main() {
   // the slower consumer who can only read 200MB/s. The data is sent in 1MB
   // chunks.
   //
-  // This test is limited to 32MB of heap-space (see VMOptions on top of the
+  // This test is limited to 64MB of heap-space (see VMOptions on top of the
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 

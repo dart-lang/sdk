@@ -753,6 +753,7 @@ class Class : public Object {
   RawFunction* LookupStaticFunction(const String& name) const;
   RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupConstructor(const String& name) const;
+  RawFunction* LookupConstructorAllowPrivate(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
@@ -2116,21 +2117,29 @@ class Library : public Object {
   static void InitCoreLibrary(Isolate* isolate);
   static void InitCollectionLibrary(Isolate* isolate);
   static void InitCollectionDevLibrary(Isolate* isolate);
-  static void InitMathLibrary(Isolate* isolate);
+  static void InitCryptoLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
+  static void InitJsonLibrary(Isolate* isolate);
+  static void InitMathLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
-  static void InitScalarlistLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
+  static void InitScalarlistLibrary(Isolate* isolate);
+  static void InitUriLibrary(Isolate* isolate);
+  static void InitUtfLibrary(Isolate* isolate);
 
   static RawLibrary* ASyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
-  static RawLibrary* MathLibrary();
+  static RawLibrary* CryptoLibrary();
   static RawLibrary* IsolateLibrary();
+  static RawLibrary* JsonLibrary();
+  static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
-  static RawLibrary* ScalarlistLibrary();
   static RawLibrary* NativeWrappersLibrary();
+  static RawLibrary* ScalarlistLibrary();
+  static RawLibrary* UriLibrary();
+  static RawLibrary* UtfLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
@@ -2224,8 +2233,9 @@ class Namespace : public Object {
 
 class Instructions : public Object {
  public:
-  intptr_t size() const { return raw_ptr()->size_; }
+  intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
   RawCode* code() const { return raw_ptr()->code_; }
+  RawArray* object_pool() const { return raw_ptr()->object_pool_; }
 
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
@@ -2263,8 +2273,11 @@ class Instructions : public Object {
   void set_size(intptr_t size) const {
     raw_ptr()->size_ = size;
   }
-  void set_code(RawCode* code) {
+  void set_code(RawCode* code) const {
     raw_ptr()->code_ = code;
+  }
+  void set_object_pool(RawArray* object_pool) const {
+    raw_ptr()->object_pool_ = object_pool;
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -2607,6 +2620,15 @@ class Code : public Object {
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
+  }
+  RawArray* ObjectPool() const {
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.object_pool();
+  }
+  bool ContainsInstructionAt(uword addr) const {
+    const Instructions& instr = Instructions::Handle(instructions());
+    const uword offset = addr - instr.EntryPoint();
+    return offset < static_cast<uword>(instr.size());
   }
 
   RawPcDescriptors* pc_descriptors() const {

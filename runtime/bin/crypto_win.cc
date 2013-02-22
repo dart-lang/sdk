@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #define _CRT_RAND_S
+
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/crypto.h"
 
 
@@ -20,3 +24,5 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   }
   return true;
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

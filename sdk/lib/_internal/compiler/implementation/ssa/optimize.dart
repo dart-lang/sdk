@@ -32,37 +32,36 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(CodegenWorkItem work, HGraph graph, bool speculative) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
-    HTypeMap types = context.types;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial constant folding first to optimize
           // some patterns useful for type conversion.
-          new SsaConstantFolder(constantSystem, backend, work, types),
+          new SsaConstantFolder(constantSystem, backend, work),
           new SsaTypeConversionInserter(compiler),
-          new SsaTypePropagator(compiler, types),
-          new SsaConstantFolder(constantSystem, backend, work, types),
+          new SsaNonSpeculativeTypePropagator(compiler),
+          new SsaConstantFolder(constantSystem, backend, work),
           // The constant folder affects the types of instructions, so
           // we run the type propagator again. Note that this would
           // not be necessary if types were directly stored on
           // instructions.
-          new SsaTypePropagator(compiler, types),
-          new SsaCheckInserter(backend, work, types, context.boundsChecked),
+          new SsaNonSpeculativeTypePropagator(compiler),
+          new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
-          new SsaConstantFolder(constantSystem, backend, work, types),
-          new SsaTypePropagator(compiler, types),
+          new SsaConstantFolder(constantSystem, backend, work),
+          new SsaNonSpeculativeTypePropagator(compiler),
           new SsaReceiverSpecialization(compiler),
-          new SsaGlobalValueNumberer(compiler, types),
+          new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(constantSystem, types, work),
+          new SsaValueRangeAnalyzer(constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for constant folding.
-          new SsaConstantFolder(constantSystem, backend, work, types),
-          new SsaSimplifyInterceptors(constantSystem, types),
-          new SsaDeadCodeEliminator(types)];
+          new SsaConstantFolder(constantSystem, backend, work),
+          new SsaSimplifyInterceptors(constantSystem),
+          new SsaDeadCodeEliminator()];
       runPhases(graph, phases);
       if (!speculative) {
-        runPhase(graph, new SsaConstructionFieldTypes(backend, work, types));
+        runPhase(graph, new SsaConstructionFieldTypes(backend, work));
       }
     });
   }
@@ -73,24 +72,15 @@ class SsaOptimizerTask extends CompilerTask {
       return false;
     }
     JavaScriptItemCompilationContext context = work.compilationContext;
-    HTypeMap types = context.types;
     return measure(() {
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
-          new SsaSpeculativeTypePropagator(compiler, types),
-          new SsaTypeGuardInserter(compiler, work, types),
+          new SsaTypeGuardInserter(compiler, work),
           new SsaEnvironmentBuilder(compiler),
-          // Change the propagated types back to what they were before we
-          // speculatively propagated, so that we can generate the bailout
-          // version.
-          // Note that we do this even if there were no guards inserted. If a
-          // guard is not beneficial enough we don't emit one, but there might
-          // still be speculative types on the instructions.
-          new SsaTypePropagator(compiler, types),
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
-          new SsaCheckInserter(backend, work, types, context.boundsChecked)];
+          new SsaCheckInserter(backend, work, context.boundsChecked)];
       runPhases(graph, phases);
       return !work.guards.isEmpty;
     });
@@ -98,14 +88,13 @@ class SsaOptimizerTask extends CompilerTask {
 
   void prepareForSpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
     JavaScriptItemCompilationContext context = work.compilationContext;
-    HTypeMap types = context.types;
     measure(() {
       // In order to generate correct code for the bailout version, we did not
       // propagate types from the instruction to the type guard. We do it
       // now to be able to optimize further.
       work.guards.forEach((HTypeGuard guard) {
-        guard.bailoutTarget.isEnabled = false;
-        guard.isEnabled = true;
+        guard.bailoutTarget.disable();
+        guard.enable();
       });
       // We also need to insert range and integer checks for the type
       // guards. Now that they claim to have a certain type, some
@@ -114,8 +103,8 @@ class SsaOptimizerTask extends CompilerTask {
       // Also run the type propagator, to please the codegen in case
       // no other optimization is run.
       runPhases(graph, <OptimizationPhase>[
-          new SsaCheckInserter(backend, work, types, context.boundsChecked),
-          new SsaTypePropagator(compiler, types)]);
+          new SsaCheckInserter(backend, work, context.boundsChecked),
+          new SsaNonSpeculativeTypePropagator(compiler)]);
     });
   }
 }
@@ -129,11 +118,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
   final ConstantSystem constantSystem;
-  final HTypeMap types;
   HGraph graph;
   Compiler get compiler => backend.compiler;
 
-  SsaConstantFolder(this.constantSystem, this.backend, this.work, this.types);
+  SsaConstantFolder(this.constantSystem, this.backend, this.work);
 
   void visitGraph(HGraph visitee) {
     graph = visitee;
@@ -150,10 +138,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
-        types[replacement] = types[replacement].intersection(
-            types[instruction], compiler);
-        replacement.guaranteedType = replacement.guaranteedType.intersection(
-            instruction.guaranteedType, compiler);
+        replacement.instructionType = replacement.instructionType.intersection(
+            instruction.instructionType, compiler);
 
         // If the replacement instruction does not know its
         // source element, use the source element of the
@@ -187,7 +173,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
-    HType type = types[input];
+    HType type = input.instructionType;
     if (type.isBoolean()) return input;
     // All values !== true are boolified to false.
     if (!type.isBooleanOrNull() && !type.isUnknown()) {
@@ -225,9 +211,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return null;
   }
 
-  HInstruction optimizeLengthInterceptedGetter(HInvokeDynamic node) {
+  HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexablePrimitive(types)) {
+    if (actualReceiver.isIndexablePrimitive()) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstant constant = constantInput.constant;
@@ -239,24 +225,23 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
       Element element;
       bool isAssignable;
-      if (actualReceiver.isString(types)) {
+      if (actualReceiver.isString()) {
         element = backend.jsStringLength;
         isAssignable = false;
       } else {
         element = backend.jsArrayLength;
-        isAssignable = !actualReceiver.isFixedArray(types);
+        isAssignable = !actualReceiver.isFixedArray();
       }
       HFieldGet result = new HFieldGet(
           element, actualReceiver, isAssignable: isAssignable);
-      result.guaranteedType = HType.INTEGER;
-      types[result] = HType.INTEGER;
+      result.instructionType = HType.INTEGER;
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
       MapConstant constant = constantInput.constant;
       return graph.addConstantInt(constant.length, constantSystem);
     }
-    return node;
+    return null;
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
@@ -271,38 +256,67 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     // Try converting the instruction to a builtin instruction.
     HInstruction instruction =
-        node.specializer.tryConvertToBuiltin(node, types);
+        node.specializer.tryConvertToBuiltin(node);
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
     var interceptor = node.inputs[0];
+    HInstruction input = node.inputs[1];
 
-    // If the intercepted call is through a constant interceptor, we
-    // know which element to call.
-    if (node is !HOneShotInterceptor
-        && interceptor.isConstant()
-        && selector.isCall()) {
-      DartType type = types[interceptor].computeType(compiler);
-      ClassElement cls = type.element;
-      node.element = cls.lookupSelector(selector);
+    if (selector.isCall()) {
+      Element target;
+      if (input.isExtendableArray()) {
+        if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
+          target = backend.jsArrayRemoveLast;
+        } else if (selector.applies(backend.jsArrayAdd, compiler)) {
+          // The codegen special cases array calls, but does not
+          // inline argument type checks.
+          if (!compiler.enableTypeAssertions) {
+            target = backend.jsArrayAdd;
+          }
+        }
+      } else if (input.isString()) {
+        if (selector.applies(backend.jsStringSplit, compiler)) {
+          if (node.inputs[2].isString()) {
+            target = backend.jsStringSplit;
+          }
+        } else if (selector.applies(backend.jsStringConcat, compiler)) {
+          if (node.inputs[2].isString()) {
+            target = backend.jsStringConcat;
+          }
+        } else if (selector.applies(backend.jsStringToString, compiler)) {
+          return input;
+        }
+      }
+      if (target != null) {
+        // TODO(ngeoffray): There is a strong dependency between codegen
+        // and this optimization that the dynamic invoke does not need an
+        // interceptor. We currently need to keep a
+        // HInvokeDynamicMethod and not create a HForeign because
+        // HForeign is too opaque for the SsaCheckInserter (that adds a
+        // bounds check on removeLast). Once we start inlining, the
+        // bounds check will become explicit, so we won't need this
+        // optimization.
+        HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+            node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+        result.element = target;
+        return result;
+      }
+    } else if (selector.isGetter()) {
+      if (selector.applies(backend.jsArrayLength, compiler)) {
+        HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
+        if (optimized != null) return optimized;
+      }
     }
 
-    HInstruction input = node.inputs[1];
-    HType type = types[input];
     // Check if this call does not need to be intercepted.
-    if (interceptor is !HThis && !type.canBePrimitive()) {
-      // If the type can be null, and the intercepted method can be in
-      // the object class, keep the interceptor.
-      if (type.canBeNull()) {
-        Set<ClassElement> interceptedClasses;
-        if (interceptor is HInterceptor) {
-          interceptedClasses = interceptor.interceptedClasses;
-        } else if (node is HOneShotInterceptor) {
-          var oneShotInterceptor = node;
-          interceptedClasses = oneShotInterceptor.interceptedClasses;
-        }
-        if (interceptedClasses.contains(compiler.objectClass)) return node;
-      }
+    HType type = input.instructionType;
+    // TODO(kasperl): Get rid of this refinement once the receiver
+    // specialization phase takes care of it.
+    Selector refined = type.refine(selector, compiler);
+    Set<ClassElement> classes = backend.getInterceptedClassesOn(
+        refined, canBeNull: type.canBeNull());
+    if (classes == null) {
       if (selector.isGetter()) {
         // Change the call to a regular invoke dynamic call.
         return new HInvokeDynamicGetter(selector, null, input, false);
@@ -316,49 +330,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    if (selector.isCall()) {
-      Element target;
-      if (input.isExtendableArray(types)) {
-        if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
-          target = backend.jsArrayRemoveLast;
-        } else if (selector.applies(backend.jsArrayAdd, compiler)) {
-          // The codegen special cases array calls, but does not
-          // inline argument type checks.
-          if (!compiler.enableTypeAssertions) {
-            target = backend.jsArrayAdd;
-          }
-        }
-      } else if (input.isString(types)) {
-        if (selector.applies(backend.jsStringSplit, compiler)) {
-          if (node.inputs[2].isString(types)) {
-            target = backend.jsStringSplit;
-          }
-        } else if (selector.applies(backend.jsStringConcat, compiler)) {
-          if (node.inputs[2].isString(types)) {
-            target = backend.jsStringConcat;
-          }
-        } else if (selector.applies(backend.jsStringToString, compiler)) {
-          return input;
-        }
-      }
-      if (target != null) {
-        // TODO(ngeoffray): There is a strong dependency between codegen
-        // and this optimization that the dynamic invoke does not need an
-        // interceptor. We currently need to keep a
-        // HInvokeDynamicMethod and not create a HForeign because
-        // HForeign is too opaque for the SssaCheckInserter (that adds a
-        // bounds check on removeLast). Once we start inlining, the
-        // bounds check will become explicit, so we won't need this
-        // optimization.
-        HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-            node.selector, node.inputs.getRange(1, node.inputs.length - 1));
-        result.element = target;
-        return result;
-      }
-    } else if (selector.isGetter()) {
-      if (selector.applies(backend.jsArrayLength, compiler)) {
-        return optimizeLengthInterceptedGetter(node);
-      }
+    // If the intercepted call is through a constant interceptor, we
+    // know which element to call.
+    if (node is !HOneShotInterceptor
+        && interceptor.isConstant()
+        && selector.isCall()) {
+      DartType type = interceptor.instructionType.computeType(compiler);
+      ClassElement cls = type.element;
+      node.element = cls.lookupSelector(selector);
     }
     return node;
   }
@@ -376,20 +355,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // other optimizations to reason on a fixed length constructor
     // that we know takes an int.
     return element == backend.fixedLengthListConstructor
-        && node.inputs[1].isInteger(types);
+        && node.inputs[1].isInteger();
   }
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
     if (isFixedSizeListConstructor(node)) {
-      node.guaranteedType = HType.FIXED_ARRAY;
+      node.instructionType = HType.FIXED_ARRAY;
     }
     return node;
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     if (node.isInterceptorCall) return handleInterceptorCall(node);
-    HType receiverType = types[node.receiver];
-    Element element = receiverType.lookupSingleTarget(node.selector, compiler);
+    HType receiverType = node.receiver.instructionType;
+    Selector selector = receiverType.refine(node.selector, compiler);
+    Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null && element.isFunction()) {
       FunctionElement method = element;
@@ -406,7 +386,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitIntegerCheck(HIntegerCheck node) {
     HInstruction value = node.value;
-    if (value.isInteger(types)) return value;
+    if (value.isInteger()) return value;
     if (value.isConstant()) {
       HConstant constantInstruction = value;
       assert(!constantInstruction.constant.isInt());
@@ -461,16 +441,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction handleIdentityCheck(HRelational node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
-    HType leftType = types[left];
-    HType rightType = types[right];
+    HType leftType = left.instructionType;
+    HType rightType = right.instructionType;
 
     // We don't optimize on numbers to preserve the runtime semantics.
-    if (!(left.isNumberOrNull(types) && right.isNumberOrNull(types)) &&
+    if (!(left.isNumberOrNull() && right.isNumberOrNull()) &&
         leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, constantSystem);
     }
 
-    if (left.isConstantBoolean() && right.isBoolean(types)) {
+    if (left.isConstantBoolean() && right.isBoolean()) {
       HConstant constant = left;
       if (constant.constant.isTrue()) {
         return right;
@@ -479,7 +459,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    if (right.isConstantBoolean() && left.isBoolean(types)) {
+    if (right.isConstantBoolean() && left.isBoolean()) {
       HConstant constant = right;
       if (constant.constant.isTrue()) {
         return left;
@@ -501,8 +481,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // If the intersection of the types is still the incoming type then
     // the incoming type was a subtype of the guarded type, and no check
     // is required.
-    HType combinedType = types[value].intersection(node.guardedType, compiler);
-    return (combinedType == types[value]) ? value : node;
+    HType combinedType =
+        value.instructionType.intersection(node.guardedType, compiler);
+    return (combinedType == value.instructionType) ? value : node;
   }
 
   HInstruction visitIs(HIs node) {
@@ -514,7 +495,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node;
     }
 
-    HType expressionType = types[node.expression];
+    HType expressionType = node.expression.instructionType;
     if (identical(element, compiler.objectClass)
         || identical(element, compiler.dynamicClass)) {
       return graph.addConstantBool(true, constantSystem);
@@ -584,26 +565,24 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
-    DartType type = types[node].computeType(compiler);
+    DartType type = node.instructionType.computeType(compiler);
     if (identical(type.element, compiler.dynamicClass)
         || identical(type.element, compiler.objectClass)) {
       return value;
     }
-    if (types[value].canBeNull() && node.isBooleanConversionCheck) {
+    if (value.instructionType.canBeNull() && node.isBooleanConversionCheck) {
       return node;
     }
-    HType combinedType = types[value].intersection(types[node], compiler);
-    return (combinedType == types[value]) ? value : node;
+    HType combinedType =
+        value.instructionType.intersection(node.instructionType, compiler);
+    return (combinedType == value.instructionType) ? value : node;
   }
 
   Element findConcreteFieldForDynamicAccess(HInstruction receiver,
                                             Selector selector) {
-    HType receiverType = types[receiver];
-    if (!receiverType.isUseful()) return null;
-    DartType type = receiverType.computeType(compiler);
-    if (type == null) return null;
-    if (Elements.isErroneousElement(type.element)) return null;
-    return compiler.world.locateSingleField(type, selector);
+    HType receiverType = receiver.instructionType;
+    return compiler.world.locateSingleField(
+        receiverType.refine(selector, compiler));
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -638,14 +617,19 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         field, node.inputs[0], isAssignable: !isFinalOrConst);
 
     if (field.getEnclosingClass().isNative()) {
-      result.guaranteedType =
+      result.instructionType =
           new HType.subtype(field.computeType(compiler), compiler);
     } else {
-      HType type = backend.optimisticFieldType(field);
+      HType type = new HType.inferredForElement(field, compiler);
+      if (type.isUnknown()) {
+        type = backend.optimisticFieldType(field);
+        if (type != null) {
+          backend.registerFieldTypesOptimization(
+              work.element, field, result.instructionType);
+        }
+      }
       if (type != null) {
-        backend.registerFieldTypesOptimization(
-            work.element, field, result.guaranteedType);
-        result.guaranteedType = type;
+        result.instructionType = type;
       }
     }
     return result;
@@ -694,7 +678,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction tryComputeConstantInterceptor(HInstruction input,
                                              Set<ClassElement> intercepted) {
-    HType type = types[input];
+    HType type = input.instructionType;
     ClassElement constantInterceptor;
     if (type.isInteger()) {
       constantInterceptor = backend.jsIntClass;
@@ -758,7 +742,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
-  final HTypeMap types;
   final Set<HInstruction> boundsChecked;
   final CodegenWorkItem work;
   final JavaScriptBackend backend;
@@ -767,7 +750,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   SsaCheckInserter(this.backend,
                    this.work,
-                   this.types,
                    this.boundsChecked);
 
   void visitGraph(HGraph graph) {
@@ -787,11 +769,11 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(HInstruction node,
                                  HInstruction receiver,
                                  HInstruction index) {
-    bool isAssignable = !receiver.isFixedArray(types);
+    bool isAssignable = !receiver.isFixedArray();
     HFieldGet length = new HFieldGet(
         backend.jsArrayLength, receiver, isAssignable: isAssignable);
-    length.guaranteedType = HType.INTEGER;
-    types[length] = HType.INTEGER;
+    length.instructionType = HType.INTEGER;
+    length.instructionType = HType.INTEGER;
     node.block.addBefore(node, length);
 
     HBoundsCheck check = new HBoundsCheck(index, length);
@@ -813,7 +795,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   void visitIndex(HIndex node) {
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (!node.index.isInteger(types)) {
+    if (!node.index.isInteger()) {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
@@ -821,10 +803,10 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (!node.receiver.isMutableArray(types)) return;
+    if (!node.receiver.isMutableArray()) return;
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (!node.index.isInteger(types)) {
+    if (!node.index.isInteger()) {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
@@ -842,10 +824,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 }
 
 class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
-  final HTypeMap types;
   final String name = "SsaDeadCodeEliminator";
 
-  SsaDeadCodeEliminator(this.types);
+  SsaDeadCodeEliminator();
 
   bool isDeadCode(HInstruction instruction) {
     return !instruction.hasSideEffects()
@@ -977,13 +958,12 @@ class SsaRedundantPhiEliminator implements OptimizationPhase {
 class SsaGlobalValueNumberer implements OptimizationPhase {
   final String name = "SsaGlobalValueNumberer";
   final Compiler compiler;
-  final HTypeMap types;
   final Set<int> visited;
 
   List<int> blockChangesFlags;
   List<int> loopChangesFlags;
 
-  SsaGlobalValueNumberer(this.compiler, this.types) : visited = new Set<int>();
+  SsaGlobalValueNumberer(this.compiler) : visited = new Set<int>();
 
   void visitGraph(HGraph graph) {
     computeChangesFlags(graph);
@@ -1323,7 +1303,6 @@ class SsaConstructionFieldTypes
     extends HBaseVisitor implements OptimizationPhase {
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
-  final HTypeMap types;
   final String name = "SsaConstructionFieldTypes";
   final Set<HInstruction> thisUsers;
   final Set<Element> allSetters;
@@ -1332,9 +1311,7 @@ class SsaConstructionFieldTypes
   HGraph currentGraph;
   Map<Element, HType> currentFieldSetters;
 
-  SsaConstructionFieldTypes(JavaScriptBackend this.backend,
-         CodegenWorkItem this.work,
-         HTypeMap this.types)
+  SsaConstructionFieldTypes(this.backend, this.work)
       : thisUsers = new Set<HInstruction>(),
         allSetters = new Set<Element>(),
         blockFieldSetters = new Map<HBasicBlock, Map<Element, HType>>();
@@ -1417,7 +1394,8 @@ class SsaConstructionFieldTypes
     int j = 0;
     node.element.forEachInstanceField(
         (ClassElement enclosingClass, Element element) {
-          backend.registerFieldInitializer(element, types[node.inputs[j]]);
+          backend.registerFieldInitializer(
+              element, node.inputs[j].instructionType);
           j++;
         },
         includeBackendMembers: false,
@@ -1427,14 +1405,14 @@ class SsaConstructionFieldTypes
   visitFieldSet(HFieldSet node) {
     Element field = node.element;
     HInstruction value = node.value;
-    HType type = types[value];
+    HType type = value.instructionType;
     // [HFieldSet] is also used for variables in try/catch.
     if (field.isField()) allSetters.add(field);
     // Don't handle fields defined in superclasses. Given that the field is
     // always added to the [allSetters] set, setting a field defined in a
     // superclass will get an inferred type of UNKNOWN.
     if (identical(work.element.getEnclosingClass(), field.getEnclosingClass()) &&
-        value.hasGuaranteedType()) {
+        !value.instructionType.isUnknown()) {
       currentFieldSetters[field] = type;
     }
   }
@@ -1490,7 +1468,12 @@ class SsaReceiverSpecialization extends HBaseVisitor
         // double class.
         if (otherIntercepted.contains(backend.jsIntClass)
             || otherIntercepted.contains(backend.jsDoubleClass)) {
-          interceptor.interceptedClasses.addAll(user.interceptedClasses);
+          // We cannot modify the intercepted classes set without
+          // copying because it may be shared by multiple interceptors
+          // because of caching in the backend.
+          Set<ClassElement> copy = interceptor.interceptedClasses.toSet();
+          copy.addAll(user.interceptedClasses);
+          interceptor.interceptedClasses = copy;
         }
         user.interceptedClasses = interceptor.interceptedClasses;
       }
@@ -1509,10 +1492,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
   final ConstantSystem constantSystem;
-  final HTypeMap types;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.constantSystem, this.types);
+  SsaSimplifyInterceptors(this.constantSystem);
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -1539,8 +1521,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         user.selector, inputs, node.interceptedClasses);
     interceptor.sourcePosition = user.sourcePosition;
     interceptor.sourceElement = user.sourceElement;
-    interceptor.guaranteedType = user.guaranteedType;
-    types[interceptor] = types[user];
+    interceptor.instructionType = user.instructionType;
 
     HBasicBlock block = user.block;
     block.addAfter(user, interceptor);

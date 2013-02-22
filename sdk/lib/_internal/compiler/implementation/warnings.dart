@@ -28,6 +28,8 @@ class MessageKind {
       "no named argument '#{argumentName}' found on method");
   static const METHOD_NOT_FOUND = const MessageKind(
       'no method named #{memberName} in class #{className}');
+  static const NOT_CALLABLE = const MessageKind(
+      "'#{elementName}' is not callable");
   static const MEMBER_NOT_STATIC = const MessageKind(
       '#{className}.#{memberName} is not static');
   static const NO_INSTANCE_AVAILABLE = const MessageKind(
@@ -377,6 +379,9 @@ Length: #{length}''');
 
   static const MISSING_FACTORY_KEYWORD = const MessageKind(
       "Did you forget a factory keyword here?");
+
+  static const DEFERRED_LIBRARY_NAME_MISMATCH = const MessageKind(
+      'Error: Library name mismatch "#{expectedName}" != "#{actualName}".');
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

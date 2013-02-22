@@ -9,6 +9,8 @@ import re
 html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'CDATASection': 'CDataSection',
     'Clipboard': 'DataTransfer',
+    'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
+    'DatabaseSync': 'SqlDatabaseSync',
     'DOMApplicationCache': 'ApplicationCache',
     'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',
@@ -21,6 +23,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'NamedNodeMap': '_NamedNodeMap',
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
+    'PositionCallback': '_PositionCallback',
+    'PositionErrorCallback': '_PositionErrorCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
@@ -146,6 +150,9 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Event.initEvent',
   'EventTarget.addEventListener',
   'EventTarget.removeEventListener',
+  'Geolocation.clearWatch',
+  'Geolocation.getCurrentPosition',
+  'Geolocation.watchPosition',
   'HashChangeEvent.initHashChangeEvent',
   'IDBFactory.deleteDatabase',
   'IDBFactory.open',
@@ -569,6 +576,10 @@ class HtmlRenamer(object):
         return 'svg'
       if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
         return 'indexed_db'
+      if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
+        # WorkerContext has attributes merged in from many other interfaces.
+        if interface.id != 'WorkerContext':
+          return 'web_sql'
 
     return 'html'
 

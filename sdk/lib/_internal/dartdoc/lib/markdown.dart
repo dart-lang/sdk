@@ -5,8 +5,6 @@
 /// Parses text in a markdown-like format and renders to HTML.
 library markdown;
 
-import 'classify.dart';
-
 // TODO(rnystrom): Use "package:" URL (#4968).
 part 'src/markdown/ast.dart';
 part 'src/markdown/block_parser.dart';

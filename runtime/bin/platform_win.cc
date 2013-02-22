@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_WINDOWS)
+
 #include "bin/platform.h"
 #include "bin/log.h"
 #include "bin/socket.h"
@@ -25,12 +28,7 @@ const char* Platform::OperatingSystem() {
 
 
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
-  static bool socket_initialized = false;
-  if (!socket_initialized) {
-    // Initialize Socket for gethostname.
-    if (!Socket::Initialize()) return false;
-    socket_initialized = true;
-  }
+  if (!Socket::Initialize()) return false;
   return gethostname(buffer, buffer_length) == 0;
 }
 
@@ -60,3 +58,5 @@ void Platform::FreeEnvironment(char** env, int count) {
   for (int i = 0; i < count; i++) free(env[i]);
   delete[] env;
 }
+
+#endif  // defined(TARGET_OS_WINDOWS)

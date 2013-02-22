@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "vm/virtual_memory.h"
 
-#include <sys/mman.h>
-#include <sys/unistd.h>
-#include <unistd.h>
+#include <sys/mman.h>  // NOLINT
+#include <sys/unistd.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -96,3 +99,5 @@ bool VirtualMemory::Protect(Protection mode) {
 }
 
 }  // namespace dart
+
+#endif  // defined(TARGET_OS_LINUX)

@@ -4,6 +4,8 @@
 //
 // VMOptions=
 // VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_write --short_socket_read
 // The --short_socket_write option does not work with external server
 // www.google.dk.  Add this to the test when we have secure server sockets.
 // See TODO below.
@@ -12,26 +14,14 @@ import "dart:async";
 import "dart:isolate";
 import "dart:io";
 
-void WriteAndClose(Socket socket, String message) {
-  var data = message.charCodes;
-  int written = 0;
-  void write() {
-    written += socket.writeList(data, written, data.length - written);
-    if (written < data.length) {
-      socket.onWrite = write;
-    } else {
-      socket.close(true);
-    }
-  }
-  write();
-}
-
 void main() {
+  ReceivePort keepAlive = new ReceivePort();
   SecureSocket.initialize(useBuiltinRoots: false);
   testCertificateCallback(host: "www.google.dk",
                           acceptCertificate: false).then((_) {
     testCertificateCallback(host: "www.google.dk",
                             acceptCertificate: true).then((_) {
+                                keepAlive.close();
       // TODO(7153): Open a receive port, and close it when we get here.
       // Currently, it can happen that neither onClosed or onError is called.
       // So we never reach this point. Diagnose this and fix.
@@ -40,36 +30,33 @@ void main() {
 }
 
 Future testCertificateCallback({String host, bool acceptCertificate}) {
-  Completer completer = new Completer();
-  var secure = new SecureSocket(host, 443);
-  List<String> chunks = <String>[];
-  secure.onConnect = () {
-    Expect.isTrue(acceptCertificate);
-    WriteAndClose(secure, "GET / HTTP/1.0\r\nHost: $host\r\n\r\n");
-  };
-  secure.onBadCertificate = (_) { };
-  secure.onBadCertificate = null;
-  Expect.throws(() => secure.onBadCertificate = 7,
-                (e) => e is TypeError || e is SocketIOException);
-  secure.onBadCertificate = (X509Certificate certificate) {
+  Expect.throws(
+      () {
+        var x = 7;
+        SecureSocket.connect(host, 443, onBadCertificate: x);
+      },
+      (e) => e is ArgumentError || e is TypeError);
+
+  bool badCertificateCallback(X509Certificate certificate) {
     Expect.isTrue(certificate.subject.contains("O=Google Inc"));
     Expect.isTrue(certificate.startValidity < new DateTime.now());
     Expect.isTrue(certificate.endValidity > new DateTime.now());
     return acceptCertificate;
   };
-  secure.onData = () {
-    Expect.isTrue(acceptCertificate);
-    chunks.add(new String.fromCharCodes(secure.read()));
-  };
-  secure.onClosed = () {
-    Expect.isTrue(acceptCertificate);
-    String fullPage = chunks.join();
-    Expect.isTrue(fullPage.contains('</body></html>'));
-    completer.complete(null);
-  };
-  secure.onError = (e) {
-    Expect.isFalse(acceptCertificate);
-    completer.complete(null);
-  };
-  return completer.future;
+
+  return SecureSocket.connect(host,
+                              443,
+                              onBadCertificate: badCertificateCallback)
+      .then((socket) {
+        Expect.isTrue(acceptCertificate);
+        socket.add("GET / HTTP/1.0\r\nHost: $host\r\n\r\n".charCodes);
+        socket.close();
+        return socket.reduce(<int>[], (message, data)  => message..addAll(data))
+            .then((message) {
+              String received = new String.fromCharCodes(message);
+              Expect.isTrue(received.contains('</body></html>'));
+            });
+      }).catchError((e) {
+        Expect.isFalse(acceptCertificate);
+      });
 }

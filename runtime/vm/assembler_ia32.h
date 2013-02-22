@@ -299,7 +299,11 @@ class CPUFeatures : public AllStatic {
 
 class Assembler : public ValueObject {
  public:
-  Assembler() : buffer_(), prologue_offset_(-1), comments_() { }
+  Assembler()
+      : buffer_(),
+        object_pool_(GrowableObjectArray::Handle()),
+        prologue_offset_(-1),
+        comments_() { }
   ~Assembler() { }
 
   static const bool kNearJump = true;
@@ -674,6 +678,7 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
+  const GrowableObjectArray& object_pool() const { return object_pool_; }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -695,6 +700,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;
+  GrowableObjectArray& object_pool_;  // Object pool is not used on ia32.
   int prologue_offset_;
 
   class CodeComment : public ZoneAllocated {

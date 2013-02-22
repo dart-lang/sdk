@@ -2,12 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:uri';
-
 import 'compiler_helper.dart';
-
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
-       show MessageKind;
 
 const String SOURCE = """
 class Foo {

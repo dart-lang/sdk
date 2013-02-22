@@ -29,8 +29,8 @@ void handleUploadForm(ScheduledServer server, [Map body]) {
       }
 
       response.headers.contentType = new ContentType("application", "json");
-      response.outputStream.writeString(json.stringify(body));
-      response.outputStream.close();
+      response.addString(json.stringify(body));
+      response.close();
     });
   });
 }
@@ -39,12 +39,12 @@ void handleUpload(ScheduledServer server) {
   server.handle('POST', '/upload', (request, response) {
     // TODO(nweiz): Once a multipart/form-data parser in Dart exists, validate
     // that the request body is correctly formatted. See issue 6952.
-    return drainInputStream(request.inputStream).then((_) {
+    return drainStream(request).then((_) {
       return server.url;
     }).then((url) {
       response.statusCode = 302;
       response.headers.set('location', url.resolve('/create').toString());
-      response.outputStream.close();
+      response.close();
     });
   });
 }
@@ -63,10 +63,10 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     // TODO(rnystrom): The confirm line is run together with this one because
@@ -150,10 +150,10 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     pub.shouldExit(0);
@@ -170,10 +170,10 @@ main() {
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.statusCode = 400;
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'error': {'message': 'your request sucked'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('your request sucked'));
@@ -188,8 +188,8 @@ main() {
     confirmPublish(pub);
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
-      response.outputStream.writeString('{not json');
-      response.outputStream.close();
+      response.addString('{not json');
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -292,12 +292,12 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
-      return drainInputStream(request.inputStream).then((_) {
+      return drainStream(request).then((_) {
         response.statusCode = 400;
         response.headers.contentType = new ContentType('application', 'xml');
-        response.outputStream.writeString('<Error><Message>Your request sucked.'
+        response.addString('<Error><Message>Your request sucked.'
             '</Message></Error>');
-        response.outputStream.close();
+        response.close();
       });
     });
 
@@ -316,9 +316,9 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
-      return drainInputStream(request.inputStream).then((_) {
+      return drainStream(request).then((_) {
         // Don't set the location header.
-        response.outputStream.close();
+        response.close();
       });
     });
 
@@ -337,10 +337,10 @@ main() {
 
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
-      response.outputStream.writeString(json.stringify({
+      response.addString(json.stringify({
         'error': {'message': 'Your package was too boring.'}
       }));
-      response.outputStream.close();
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Your package was too boring.'));
@@ -357,8 +357,8 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString('{not json');
-      response.outputStream.close();
+      response.addString('{not json');
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -378,8 +378,8 @@ main() {
     var body = {'error': 'Your package was too boring.'};
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
-      response.outputStream.writeString(json.stringify(body));
-      response.outputStream.close();
+      response.addString(json.stringify(body));
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -398,8 +398,8 @@ main() {
 
     var body = {'success': 'Your package was awesome.'};
     server.handle('GET', '/create', (request, response) {
-      response.outputStream.writeString(json.stringify(body));
-      response.outputStream.close();
+      response.addString(json.stringify(body));
+      response.close();
     });
 
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
@@ -425,10 +425,10 @@ main() {
       handleUpload(server);
 
       server.handle('GET', '/create', (request, response) {
-        response.outputStream.writeString(json.stringify({
+        response.addString(json.stringify({
           'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
         }));
-        response.outputStream.close();
+        response.close();
       });
 
       pub.shouldExit(0);
@@ -449,10 +449,10 @@ main() {
       handleUpload(server);
 
       server.handle('GET', '/create', (request, response) {
-        response.outputStream.writeString(json.stringify({
+        response.addString(json.stringify({
           'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
         }));
-        response.outputStream.close();
+        response.close();
       });
 
       pub.shouldExit(0);

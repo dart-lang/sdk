@@ -40,13 +40,14 @@ def BuildOptions():
       help='The number of parallel jobs to run.',
       metavar=HOST_CPUS,
       default=str(HOST_CPUS))
+  (vs_directory, vs_executable) = utils.GuessVisualStudioPath()
   result.add_option("--devenv",
       help='Path containing devenv.com on Windows',
-      default='C:\\Program Files (x86)\\Microsoft Visual Studio 10.0\\Common7'
-      '\\IDE')
+      default=vs_directory)
   result.add_option("--executable",
       help='Name of the devenv.com/msbuild executable on Windows (varies for '
-      'different versions of Visual Studio)', default='devenv.com')
+           'different versions of Visual Studio)',
+      default=vs_executable)
   return result
 
 

@@ -102,36 +102,38 @@ void serve([List<Descriptor> contents]) {
 
   _schedule((_) {
     return _closeServer().then((_) {
-      _server = new HttpServer();
-      _server.defaultRequestHandler = (request, response) {
-        var path = request.uri.replaceFirst("/", "").split("/");
-        response.persistentConnection = false;
-        var stream;
-        try {
-          stream = baseDir.load(path);
-        } catch (e) {
-          response.statusCode = 404;
-          response.contentLength = 0;
-          response.outputStream.close();
-          return;
-        }
+      return HttpServer.bind("127.0.0.1", 0).then((server) {
+        _server = server;
+        server.listen((request) {
+          var response = request.response;
+          var path = request.uri.path.replaceFirst("/", "").split("/");
+          response.persistentConnection = false;
+          var stream;
+          try {
+            stream = baseDir.load(path);
+          } catch (e) {
+            response.statusCode = 404;
+            response.contentLength = 0;
+            response.close();
+            return;
+          }
 
-        stream.toBytes().then((data) {
-          response.statusCode = 200;
-          response.contentLength = data.length;
-          response.outputStream.write(data);
-          response.outputStream.close();
-        }).catchError((e) {
-          print("Exception while handling ${request.uri}: $e");
-          response.statusCode = 500;
-          response.reasonPhrase = e.message;
-          response.outputStream.close();
+          stream.toBytes().then((data) {
+            response.statusCode = 200;
+            response.contentLength = data.length;
+            response.add(data);
+            response.close();
+          }).catchError((e) {
+            print("Exception while handling ${request.uri}: $e");
+            response.statusCode = 500;
+            response.reasonPhrase = e.message;
+            response.close();
+          });
         });
-      };
-      _server.listen("127.0.0.1", 0);
-      _portCompleter.complete(_server.port);
-      _scheduleCleanup((_) => _closeServer());
-      return null;
+        _portCompleter.complete(_server.port);
+        _scheduleCleanup((_) => _closeServer());
+        return null;
+      });
     });
   });
 }
@@ -467,15 +469,15 @@ final String packagesPath = "$appPath/packages";
 typedef Future _ScheduledEvent(String parentDir);
 
 /// The list of events that are scheduled to run as part of the test case.
-List<_ScheduledEvent> _scheduled;
+Queue<_ScheduledEvent> _scheduled;
 
 /// The list of events that are scheduled to run after the test case, even if
 /// it failed.
-List<_ScheduledEvent> _scheduledCleanup;
+Queue<_ScheduledEvent> _scheduledCleanup;
 
 /// The list of events that are scheduled to run after the test case only if it
 /// failed.
-List<_ScheduledEvent> _scheduledOnException;
+Queue<_ScheduledEvent> _scheduledOnException;
 
 /// Set to true when the current batch of scheduled events should be aborted.
 bool _abortScheduled = false;
@@ -704,18 +706,16 @@ void useMockClient(MockClient client) {
   });
 }
 
-Future _runScheduled(List<_ScheduledEvent> scheduled) {
+Future _runScheduled(Queue<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
-  var iterator = scheduled.iterator;
 
   Future runNextEvent(_) {
-    if (_abortScheduled || !iterator.moveNext()) {
+    if (_abortScheduled || scheduled.isEmpty) {
       _abortScheduled = false;
-      scheduled.clear();
       return new Future.immediate(null);
     }
 
-    var future = iterator.current(_sandboxDir);
+    var future = scheduled.removeFirst()(_sandboxDir);
     if (future != null) {
       return future.then(runNextEvent);
     } else {
@@ -1155,8 +1155,8 @@ class TarFileDescriptor extends Descriptor {
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
     withTempDir((tempDir) {
       return create(tempDir).then((tar) {
-        var sourceStream = new File(tar).openInputStream();
-        return store(wrapInputStream(sourceStream), controller);
+        var sourceStream = new File(tar).openRead();
+        return store(sourceStream, controller);
       });
     });
     return new ByteStream(controller.stream);
@@ -1500,11 +1500,11 @@ class ScheduledServer {
   factory ScheduledServer() {
     var scheduledServer;
     scheduledServer = new ScheduledServer._(_scheduleValue((_) {
-      var server = new HttpServer();
-      server.defaultRequestHandler = scheduledServer._awaitHandle;
-      server.listen("127.0.0.1", 0);
-      _scheduleCleanup((_) => server.close());
-      return new Future.immediate(server);
+      return HttpServer.bind("127.0.0.1", 0).then((server) {
+        server.listen(scheduledServer._awaitHandle);
+        _scheduleCleanup((_) => server.close());
+        return server;
+      });
     }));
     return scheduledServer;
   }
@@ -1526,8 +1526,7 @@ class ScheduledServer {
       var requestCompleteCompleter = new Completer();
       handlerCompleter.complete((request, response) {
         expect(request.method, equals(method));
-        // TODO(nweiz): Use request.path once issue 7464 is fixed.
-        expect(Uri.parse(request.uri).path, equals(path));
+        expect(request.uri.path, equals(path));
 
         var future = handler(request, response);
         if (future == null) future = new Future.immediate(null);
@@ -1545,17 +1544,18 @@ class ScheduledServer {
     _ignored.add(new Pair(method, path));
 
   /// Raises an error complaining of an unexpected request.
-  void _awaitHandle(HttpRequest request, HttpResponse response) {
-    if (_ignored.contains(new Pair(request.method, request.path))) return;
+  void _awaitHandle(HttpRequest request) {
+    HttpResponse response = request.response;
+    if (_ignored.contains(new Pair(request.method, request.uri.path))) return;
     var future = timeout(defer(() {
       if (_handlers.isEmpty) {
-        fail('Unexpected ${request.method} request to ${request.path}.');
+        fail('Unexpected ${request.method} request to ${request.uri.path}.');
       }
       return _handlers.removeFirst();
     }).then((handler) {
       handler(request, response);
     }), _SCHEDULE_TIMEOUT, "waiting for a handler for ${request.method} "
-        "${request.path}");
+        "${request.uri.path}");
     expect(future, completes);
   }
 }
@@ -1587,8 +1587,8 @@ Future _awaitObject(object) {
 
 /// Schedules a callback to be called as part of the test case.
 void _schedule(_ScheduledEvent event) {
-  if (_scheduled == null) _scheduled = [];
-  _scheduled.add(event);
+  if (_scheduled == null) _scheduled = new Queue();
+  _scheduled.addLast(event);
 }
 
 /// Like [_schedule], but pipes the return value of [event] to a returned
@@ -1605,15 +1605,15 @@ Future _scheduleValue(_ScheduledEvent event) {
 /// Schedules a callback to be called after the test case has completed, even
 /// if it failed.
 void _scheduleCleanup(_ScheduledEvent event) {
-  if (_scheduledCleanup == null) _scheduledCleanup = [];
-  _scheduledCleanup.add(event);
+  if (_scheduledCleanup == null) _scheduledCleanup = new Queue();
+  _scheduledCleanup.addLast(event);
 }
 
 /// Schedules a callback to be called after the test case has completed, but
 /// only if it failed.
 void _scheduleOnException(_ScheduledEvent event) {
-  if (_scheduledOnException == null) _scheduledOnException = [];
-  _scheduledOnException.add(event);
+  if (_scheduledOnException == null) _scheduledOnException = new Queue();
+  _scheduledOnException.addLast(event);
 }
 
 /// Like [expect], but for [Future]s that complete as part of the scheduled

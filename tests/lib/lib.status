@@ -2,9 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+async/slow_consumer_test: Skip # Issue 8647
+
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
+
+[ $compiler == dart2js && $checked ]
+async/stream_event_transform_test: Fail # Issue 7733.
 
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
@@ -17,9 +22,6 @@ async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.c
 crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
 
-[ $runtime == safari]
-crypto/hmac_md5_test: Fail # Bug in JSC: the test only passes when being debugged.
-
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
@@ -29,8 +31,15 @@ crypto/hmac_md5_test: Fail # Bug in JSC: the test only passes when being debugge
 crypto/hmac_sha1_test: Fail
 crypto/hmac_sha256_test: Fail
 
+[ $runtime == safari]
+ # Bug in JSC: the test only passes when being debugged.
+crypto/hmac_md5_test: Fail, Pass
+
 [ $runtime == vm && $arch == x64 ]
 async/slow_consumer2_test: Fail # Issue 7726
+
+[ $compiler == none && $runtime == drt ]
+async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
 
 [ $arch == arm ]
 *: Skip

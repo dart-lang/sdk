@@ -48,7 +48,7 @@ class SecureTestServer {
     server = new SecureServerSocket(SERVER_ADDRESS,
                                     0,
                                     10,
-                                    "CN=$HOST_NAME",
+                                    "localhost_cert",
                                     requireClientCertificate: true);
     Expect.isNotNull(server);
     server.onConnection = onConnection;

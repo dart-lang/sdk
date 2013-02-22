@@ -33,6 +33,80 @@ class CancelTypeCheckException {
   CancelTypeCheckException(this.node, this.reason);
 }
 
+/**
+ * [ElementAccess] represents the access of [element], either as a property
+ * access or invocation.
+ */
+abstract class ElementAccess {
+  Element get element;
+
+  DartType computeType(Compiler compiler);
+
+  /// Returns [: true :] if the element can be access as an invocation.
+  bool isCallable(Compiler compiler) {
+    if (element.isAbstractField()) {
+      AbstractFieldElement abstractFieldElement = element;
+      if (abstractFieldElement.getter == null) {
+        // Setters cannot be invoked as function invocations.
+        return false;
+      }
+    }
+    return compiler.types.isAssignable(
+        computeType(compiler), compiler.functionClass.computeType(compiler));
+  }
+}
+
+/// An access of a instance member.
+class MemberAccess extends ElementAccess {
+  final Member member;
+
+  MemberAccess(Member this.member);
+
+  Element get element => member.element;
+
+  DartType computeType(Compiler compiler) => member.computeType(compiler);
+}
+
+/// An access of an unresolved element.
+class DynamicAccess implements ElementAccess {
+  const DynamicAccess();
+
+  Element get element => null;
+
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+
+  bool isCallable(Compiler compiler) => true;
+}
+
+/**
+ * An access of a resolved top-level or static property or function, or an
+ * access of a resolved element through [:this:].
+ */
+class ResolvedAccess extends ElementAccess {
+  final Element element;
+
+  ResolvedAccess(Element this.element) {
+    assert(element != null);
+  }
+
+  DartType computeType(Compiler compiler) => element.computeType(compiler);
+}
+
+/**
+ * An access of a resolved top-level or static property or function, or an
+ * access of a resolved element through [:this:].
+ */
+class TypeAccess extends ElementAccess {
+  final DartType type;
+  TypeAccess(DartType this.type) {
+    assert(type != null);
+  }
+
+  Element get element => type.element;
+
+  DartType computeType(Compiler compiler) => type;
+}
+
 class TypeCheckerVisitor implements Visitor<DartType> {
   final Compiler compiler;
   final TreeElements elements;
@@ -238,37 +312,26 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return unhandledStatement();
   }
 
-  DartType lookupMethodType(Node node, ClassElement classElement,
-                            SourceString name) {
-    Element member = classElement.lookupLocalMember(name);
-    if (member == null) {
-      classElement.ensureResolved(compiler);
-      for (Link<DartType> supertypes = classElement.allSupertypes;
-           !supertypes.isEmpty && member == null;
-           supertypes = supertypes.tail) {
-        ClassElement lookupTarget = supertypes.head.element;
-        member = lookupTarget.lookupLocalMember(name);
-      }
+  ElementAccess lookupMethod(Node node, DartType type, SourceString name) {
+    if (identical(type, types.dynamicType)) {
+      return const DynamicAccess();
     }
-    if (member != null && member.kind == ElementKind.FUNCTION) {
-      return computeType(member);
+    Member member = type.lookupMember(name);
+    if (member != null) {
+      return new MemberAccess(member);
     }
     reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-                      {'className': classElement.name, 'memberName': name});
-    return types.dynamicType;
+                      {'className': type.name, 'memberName': name});
+    return const DynamicAccess();
   }
 
   // TODO(johnniwinther): Provide the element from which the type came in order
   // to give better error messages.
   void analyzeArguments(Send send, DartType type) {
     Link<Node> arguments = send.arguments;
-    if (type == null || identical(type, types.dynamicType)) {
-      while(!arguments.isEmpty) {
-        analyze(arguments.head);
-        arguments = arguments.tail;
-      }
-    } else {
-      FunctionType funType = type;
+    DartType unaliasedType = type.unalias(compiler);
+    if (identical(unaliasedType.kind, TypeKind.FUNCTION)) {
+      FunctionType funType = unaliasedType;
       Link<DartType> parameterTypes = funType.parameterTypes;
       Link<DartType> optionalParameterTypes = funType.optionalParameterTypes;
       while (!arguments.isEmpty) {
@@ -315,6 +378,28 @@ class TypeCheckerVisitor implements Visitor<DartType> {
         reportTypeWarning(send, MessageKind.MISSING_ARGUMENT,
             {'argumentType': parameterTypes.head});
       }
+    } else {
+      while(!arguments.isEmpty) {
+        analyze(arguments.head);
+        arguments = arguments.tail;
+      }
+    }
+  }
+
+  DartType analyzeInvocation(Send node, ElementAccess elementAccess) {
+    DartType type = elementAccess.computeType(compiler);
+    if (elementAccess.isCallable(compiler)) {
+      analyzeArguments(node, type);
+    } else {
+      reportTypeWarning(node, MessageKind.NOT_CALLABLE,
+          {'elementName': elementAccess.element.name});
+      analyzeArguments(node, types.dynamicType);
+    }
+    if (identical(type.kind, TypeKind.FUNCTION)) {
+      FunctionType funType = type;
+      return funType.returnType;
+    } else {
+      return types.dynamicType;
     }
   }
 
@@ -322,8 +407,14 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     Element element = elements[node];
 
     if (Elements.isClosureSend(node, element)) {
-      // TODO(karlklose): Finish implementation.
-      return types.dynamicType;
+      if (element != null) {
+        // foo() where foo is a local or a parameter.
+        return analyzeInvocation(node, new ResolvedAccess(element));
+      } else {
+        // exp() where exp is some complex expression like (o) or foo().
+        DartType type = analyze(node.selector);
+        return analyzeInvocation(node, new TypeAccess(type));
+      }
     }
 
     Identifier selector = node.selector.asIdentifier();
@@ -340,17 +431,22 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       final DartType secondArgumentType =
           analyzeWithDefault(secondArgument, null);
 
-      if (identical(name, '+') || identical(name, '=') || identical(name, '-')
-          || identical(name, '*') || identical(name, '/') || identical(name, '%')
-          || identical(name, '~/') || identical(name, '|') || identical(name, '&')
-          || identical(name, '^') || identical(name, '~')|| identical(name, '<<')
-          || identical(name, '>>') || identical(name, '[]')) {
+      if (identical(name, '+') || identical(name, '=') ||
+          identical(name, '-') || identical(name, '*') ||
+          identical(name, '/') || identical(name, '%') ||
+          identical(name, '~/') || identical(name, '|') ||
+          identical(name, '&') || identical(name, '^') ||
+          identical(name, '~')|| identical(name, '<<') ||
+          identical(name, '>>') || identical(name, '[]')) {
         return types.dynamicType;
-      } else if (identical(name, '<') || identical(name, '>') || identical(name, '<=')
-                 || identical(name, '>=') || identical(name, '==') || identical(name, '!=')
-                 || identical(name, '===') || identical(name, '!==')) {
+      } else if (identical(name, '<') || identical(name, '>') ||
+                 identical(name, '<=') || identical(name, '>=') ||
+                 identical(name, '==') || identical(name, '!=') ||
+                 identical(name, '===') || identical(name, '!==')) {
         return boolType;
-      } else if (identical(name, '||') || identical(name, '&&') || identical(name, '!')) {
+      } else if (identical(name, '||') ||
+                 identical(name, '&&') ||
+                 identical(name, '!')) {
         checkAssignable(firstArgument, boolType, firstArgumentType);
         if (!arguments.isEmpty) {
           // TODO(karlklose): check number of arguments in validator.
@@ -370,56 +466,46 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
     } else if (node.isFunctionObjectInvocation) {
       fail(node.receiver, 'function object invocation unimplemented');
-
     } else {
-      FunctionType computeFunType() {
+      ElementAccess computeMethod() {
         if (node.receiver != null) {
+          // e.foo() for some expression e.
           DartType receiverType = analyze(node.receiver);
-          if (receiverType.element == compiler.dynamicClass) return null;
+          if (receiverType.element == compiler.dynamicClass) {
+            return const DynamicAccess();
+          }
           if (receiverType == null) {
-            fail(node.receiver, 'receivertype is null');
+            fail(node.receiver, 'receiverType is null');
           }
-          if (identical(receiverType.element.kind, ElementKind.GETTER)) {
-            FunctionType getterType  = receiverType;
-            receiverType = getterType.returnType;
-          }
-          ElementKind receiverKind = receiverType.element.kind;
-          if (identical(receiverKind, ElementKind.TYPEDEF)) {
+          TypeKind receiverKind = receiverType.kind;
+          if (identical(receiverKind, TypeKind.TYPEDEF)) {
             // TODO(karlklose): handle typedefs.
-            return null;
+            return const DynamicAccess();
           }
-          if (identical(receiverKind, ElementKind.TYPE_VARIABLE)) {
+          if (identical(receiverKind, TypeKind.TYPE_VARIABLE)) {
             // TODO(karlklose): handle type variables.
-            return null;
+            return const DynamicAccess();
           }
-          if (!identical(receiverKind, ElementKind.CLASS)) {
+          if (!identical(receiverKind, TypeKind.INTERFACE)) {
             fail(node.receiver, 'unexpected receiver kind: ${receiverKind}');
           }
-          ClassElement classElement = receiverType.element;
-          // TODO(karlklose): substitute type arguments.
-          DartType memberType =
-            lookupMethodType(selector, classElement, selector.source);
-          if (identical(memberType.element, compiler.dynamicClass)) return null;
-          return memberType;
+          return lookupMethod(selector, receiverType, selector.source);
         } else {
           if (Elements.isUnresolved(element)) {
-            fail(node, 'unresolved ${node.selector}');
-          } else if (identical(element.kind, ElementKind.FUNCTION)) {
-            return computeType(element);
-          } else if (element.isForeign(compiler)) {
-            return null;
-          } else if (identical(element.kind, ElementKind.VARIABLE)
-                     || identical(element.kind, ElementKind.FIELD)) {
-            // TODO(karlklose): handle object invocations.
-            return null;
+            // foo() where foo is unresolved.
+            return const DynamicAccess();
+          } else if (element.isFunction()) {
+            // foo() where foo is a method in the same class.
+            return new ResolvedAccess(element);
+          } else if (element.isVariable() || element.isField()) {
+            // foo() where foo is a field in the same class.
+            return new ResolvedAccess(element);
           } else {
             fail(node, 'unexpected element kind ${element.kind}');
           }
         }
       }
-      FunctionType funType = computeFunType();
-      analyzeArguments(node, funType);
-      return (funType != null) ? funType.returnType : types.dynamicType;
+      return analyzeInvocation(node, computeMethod());
     }
   }
 

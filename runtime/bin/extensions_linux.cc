@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "bin/extensions.h"
-#include <dlfcn.h>
+#include <dlfcn.h>  // NOLINT
 
 void* Extensions::LoadExtensionLibrary(const char* library_path,
                                        const char* extension_name) {
@@ -21,3 +24,5 @@ void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   if (dlerror() != NULL) return NULL;
   return result;
 }
+
+#endif  // defined(TARGET_OS_LINUX)

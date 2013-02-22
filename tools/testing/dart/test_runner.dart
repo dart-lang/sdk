@@ -1594,7 +1594,9 @@ class ProcessQueue {
         new Timer(100, (_) => _tryRunTest());  // Don't lose a process.
         return;
       }
-      if (_verbose) {
+      // Before running any commands, we print out all commands if '--verbose'
+      // was specified.
+      if (_verbose && test.commandOutputs.length == 0) {
         int i = 1;
         if (test is BrowserTestCase) {
           // Additional command for rerunning the steps locally after the fact.

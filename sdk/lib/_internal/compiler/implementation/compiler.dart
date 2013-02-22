@@ -126,8 +126,24 @@ abstract class Backend {
     return new ItemCompilationContext();
   }
 
-  SourceString getCheckedModeHelper(DartType type) => null;
+  // The following methods are hooks for the backend to register its
+  // helper methods.
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
+  void registerStringInterpolation() {}
+  void registerCatchStatement() {}
+  void registerThrow() {}
+  void registerLazyField() {}
+  void registerTypeLiteral() {}
+  void registerStackTraceInCatch() {}
+  void registerIsCheck(DartType type, Enqueuer enqueuer) {}
+  void registerAsCheck(DartType type) {}
+  void registerThrowNoSuchMethod() {}
+  void registerThrowRuntimeError() {}
+  void registerAbstractClassInstantiation() {}
+  void registerFallThroughError() {}
+  void registerSuperNoSuchMethod() {}
+  void registerConstantMap() {}
+  void registerRuntimeType() {}
 }
 
 /**
@@ -291,6 +307,7 @@ abstract class Compiler implements DiagnosticListener {
   ConstantHandler metadataHandler;
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
+  DeferredLoadTask deferredLoadTask;
 
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
@@ -369,6 +386,7 @@ abstract class Compiler implements DiagnosticListener {
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
+      deferredLoadTask = new DeferredLoadTask(this),
       enqueuer = new EnqueueTask(this)];
 
     tasks.addAll(backend.tasks);
@@ -637,6 +655,8 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
 
+    deferredLoadTask.registerMainApp(mainApp);
+
     log('Resolving...');
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
@@ -845,8 +865,9 @@ abstract class Compiler implements DiagnosticListener {
       // is more complete.
       if (identical(message.message.kind, MessageKind.NOT_ASSIGNABLE)) return;
       if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.METHOD_NOT_FOUND)) return;
+      if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) {
+        return;
+      }
     }
     SourceSpan span = spanFromNode(node);
 
@@ -1026,7 +1047,7 @@ class CompilerTask {
   String get name => 'Unknown task';
   int get timing => watch.elapsedMilliseconds;
 
-  measure(Function action) {
+  measure(action()) {
     CompilerTask previous = compiler.measuredTask;
     if (identical(this, previous)) return action();
     compiler.measuredTask = this;
@@ -1039,6 +1060,10 @@ class CompilerTask {
       if (previous != null) previous.watch.start();
       compiler.measuredTask = previous;
     }
+  }
+
+  measureElement(Element element, action()) {
+    compiler.withCurrentElement(element, () => measure(action));
   }
 }
 

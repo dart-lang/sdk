@@ -1,9 +1,12 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:math";
+import "dart:async";
 
+part "../../../sdk/lib/io/http.dart";
+part "../../../sdk/lib/io/io_stream_consumer.dart";
 part "../../../sdk/lib/io/websocket.dart";
 part "../../../sdk/lib/io/websocket_impl.dart";
 
@@ -107,7 +110,7 @@ void testFullMessages() {
 
     // Update the processor with one big chunk.
     messageCount++;
-    processor.update(frame);
+    processor.update(frame, 0, frame.length);
     Expect.isNull(mc.data);
     Expect.equals(0, processor._state);
 
@@ -116,7 +119,7 @@ void testFullMessages() {
       // Update the processor one byte at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i++) {
-        processor.update(frame.getRange(i, 1));
+        processor.update(frame, i, 1);
       }
       Expect.equals(0, processor._state);
       Expect.isNull(mc.data);
@@ -124,7 +127,7 @@ void testFullMessages() {
       // Update the processor two bytes at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i += 2) {
-        processor.update(frame.getRange(i, i + 1 < frame.length ? 2 : 1));
+        processor.update(frame, i, i + 1 < frame.length ? 2 : 1);
       }
       Expect.equals(0, processor._state);
       Expect.isNull(mc.data);
@@ -177,7 +180,7 @@ void testFragmentedMessages() {
                                     payloadSize);
       frameCount++;
       messageIndex += payloadSize;
-      processor.update(frame);
+      processor.update(frame, 0, frame.length);
       remaining -= payloadSize;
       firstFrame = false;
     }

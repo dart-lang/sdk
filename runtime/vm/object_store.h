@@ -360,6 +360,13 @@ class ObjectStore {
     async_library_ = value.raw();
   }
 
+  RawLibrary* builtin_library() const {
+    return builtin_library_;
+  }
+  void set_builtin_library(const Library& value) {
+    builtin_library_ = value.raw();
+  }
+
   RawLibrary* core_library() const { return core_library_; }
   void set_core_library(const Library& value) {
     core_library_ = value.raw();
@@ -384,11 +391,11 @@ class ObjectStore {
     collection_dev_library_ = value.raw();
   }
 
-  RawLibrary* math_library() const {
-    return math_library_;
+  RawLibrary* crypto_library() const {
+    return crypto_library_;
   }
-  void set_math_library(const Library& value) {
-    math_library_ = value.raw();
+  void set_crypto_library(const Library& value) {
+    crypto_library_ = value.raw();
   }
 
   RawLibrary* isolate_library() const {
@@ -398,6 +405,25 @@ class ObjectStore {
     isolate_library_ = value.raw();
   }
 
+  RawLibrary* json_library() const {
+    return json_library_;
+  }
+  void set_json_library(const Library& value) {
+    json_library_ = value.raw();
+  }
+
+  RawLibrary* math_library() const {
+    return math_library_;
+  }
+  void set_math_library(const Library& value) {
+    math_library_ = value.raw();
+  }
+
+  RawLibrary* mirrors_library() const { return mirrors_library_; }
+  void set_mirrors_library(const Library& value) {
+    mirrors_library_ = value.raw();
+  }
+
   RawLibrary* native_wrappers_library() const {
     return native_wrappers_library_;
   }
@@ -405,9 +431,9 @@ class ObjectStore {
     native_wrappers_library_ = value.raw();
   }
 
-  RawLibrary* mirrors_library() const { return mirrors_library_; }
-  void set_mirrors_library(const Library& value) {
-    mirrors_library_ = value.raw();
+  RawLibrary* root_library() const { return root_library_; }
+  void set_root_library(const Library& value) {
+    root_library_ = value.raw();
   }
 
   RawLibrary* scalarlist_library() const {
@@ -417,16 +443,18 @@ class ObjectStore {
     scalarlist_library_ = value.raw();
   }
 
-  RawLibrary* builtin_library() const {
-    return builtin_library_;
+  RawLibrary* uri_library() const {
+    return uri_library_;
   }
-  void set_builtin_library(const Library& value) {
-    builtin_library_ = value.raw();
+  void set_uri_library(const Library& value) {
+    uri_library_ = value.raw();
   }
 
-  RawLibrary* root_library() const { return root_library_; }
-  void set_root_library(const Library& value) {
-    root_library_ = value.raw();
+  RawLibrary* utf_library() const {
+    return utf_library_;
+  }
+  void set_utf_library(const Library& value) {
+    utf_library_ = value.raw();
   }
 
   RawGrowableObjectArray* libraries() const { return libraries_; }
@@ -568,17 +596,21 @@ class ObjectStore {
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
+  RawLibrary* builtin_library_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
   RawLibrary* collection_library_;
   RawLibrary* collection_dev_library_;
-  RawLibrary* math_library_;
+  RawLibrary* crypto_library_;
   RawLibrary* isolate_library_;
+  RawLibrary* json_library_;
+  RawLibrary* math_library_;
   RawLibrary* mirrors_library_;
-  RawLibrary* scalarlist_library_;
   RawLibrary* native_wrappers_library_;
-  RawLibrary* builtin_library_;
   RawLibrary* root_library_;
+  RawLibrary* scalarlist_library_;
+  RawLibrary* uri_library_;
+  RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;

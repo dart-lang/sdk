@@ -38,6 +38,10 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   void AddToWorklist(Definition* defn);
   Definition* RemoveLastFromWorklist();
 
+  // Type assertion strengthening.
+  void StrengthenAsserts(BlockEntryInstr* block);
+  void StrengthenAssertWith(Instruction* check);
+
   FlowGraph* flow_graph_;
 
   // Mapping between SSA values and their current reaching types. Valid
@@ -47,6 +51,9 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   // Worklist for fixpoint computation.
   GrowableArray<Definition*> worklist_;
   BitVector* in_worklist_;
+
+  ZoneGrowableArray<AssertAssignableInstr*>* asserts_;
+  ZoneGrowableArray<intptr_t>* collected_asserts_;
 
   // RollbackEntry is used to track and rollback changed in the types_ array
   // done during dominator tree traversal.

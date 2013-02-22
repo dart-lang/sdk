@@ -1631,10 +1631,10 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             uint8_t* native_array,
                                             intptr_t length);
 
-// --- Scalar Lists ---
+// --- Typed Data ---
 
 typedef enum {
-  kByteArray = 0,
+  kByteData = 0,
   kInt8,
   kUint8,
   kUint8Clamped,
@@ -1645,92 +1645,73 @@ typedef enum {
   kInt64,
   kUint64,
   kFloat32,
-  kFloat64
-} Dart_Scalar_Type;
+  kFloat64,
+  kInvalid
+} Dart_TypedData_Type;
 
 /**
- * Is this object a ByteArray?
+ * Return type if this object is a TypedData object.
+ *
+ * \return kInvalid if the object is not a TypedData object or the appropriate
+ *   Dart_TypedData_Type.
  */
-DART_EXPORT bool Dart_IsByteArray(Dart_Handle object);
+DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object);
 
 /**
- * Is this object an external ByteArray?
+ * Return type if this object is an external TypedData object.
  *
- * An external ByteArray is a ByteArray which references a fixed array of
- * bytes which is external to the Dart heap.
+ * \return kInvalid if the object is not an external TypedData object or
+ *   the appropriate Dart_TypedData_Type.
  */
-DART_EXPORT bool Dart_IsByteArrayExternal(Dart_Handle object);
+DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
+    Dart_Handle object);
 
 /**
- * Returns a ByteArray of the desired length.
+ * Returns a TypedData object of the desired length and type.
  *
- * \param length The length of the array.
+ * \param type The type of the TypedData object.
+ * \param length The length of the TypedData object (length in type units).
  *
- * \return The ByteArray object if no error occurs. Otherwise returns
+ * \return The TypedData object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
+DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
+                                          intptr_t length);
 
 /**
- * Returns a ByteArray which references an external array of 8-bit bytes.
+ * Returns a TypedData object which references an external data array.
  *
- * \param value An array of 8-bit bytes. This array must not move.
- * \param length The length of the array.
- * \param peer An external pointer to associate with this byte array.
+ * \param type The type of the data array.
+ * \param value A data array. This array must not move.
+ * \param length The length of the data array (length in type units).
+ * \param peer An external pointer to associate with this array.
  *
- * \return The ByteArray object if no error occurs. Otherwise returns
- *   an error handle. The ByteArray object is returned in a
+ * \return The TypedData object if no error occurs. Otherwise returns
+ *   an error handle. The TypedData object is returned in a
  *   WeakPersistentHandle which needs to be deleted in the specified callback
  *   using Dart_DeletePersistentHandle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalByteArray(
-    uint8_t* data,
+DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
+    Dart_TypedData_Type type,
+    void* data,
     intptr_t length,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback);
 
 /**
- * Returns a clamped ByteArray which references an external array of
- * 8-bit bytes.
- * A clamped ByteArray differs from ByteArray above in the indexed store
- * operation where negative values are clamped to 0 and values above 255 are
- * clamped to 255.
- *
- * \param value An array of 8-bit bytes. This array must not move.
- * \param length The length of the array.
- * \param peer An external pointer to associate with this byte array.
- *
- * \return The clamped ByteArray object if no error occurs. Otherwise returns
- *   an error handle. The clamped ByteArray object is returned in a
- *   WeakPersistentHandle which needs to be deleted in the specified callback
- *   using Dart_DeletePersistentHandle.
+ * Retrieves the peer pointer associated with an external TypedData object.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalClampedByteArray(
-    uint8_t* data,
-    intptr_t length,
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback);
-
-/**
- * Retrieves the data pointer associated with an external ByteArray.
- */
-DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetData(Dart_Handle object,
-                                                      void** data);
-
-/**
- * Retrieves the peer pointer associated with an external ByteArray.
- */
-DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
+DART_EXPORT Dart_Handle Dart_ExternalTypedDataGetPeer(Dart_Handle object,
                                                       void** peer);
 
 /**
- * Acquires access to the internal data address of a scalar list object.
+ * Acquires access to the internal data address of a TypedData object.
  *
- * \param array The scalar list object whose internal data address is to
+ * \param object The typed data object whose internal data address is to
  *    be accessed.
- * \param type The scalar type of the object is returned here.
+ * \param type The type of the object is returned here.
  * \param data The internal data address is returned here.
- * \param len Size of the byte array is returned here.
+ * \param len Size of the typed array is returned here.
  *
  * Note: When the internal address of the object is acquired any calls to a
  *       Dart API function that could potentially allocate an object or run
@@ -1739,22 +1720,22 @@ DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
  * \return Success if the internal data address is acquired successfully.
  *   Otherwise, returns an error handle.
  */
-DART_EXPORT Dart_Handle Dart_ScalarListAcquireData(Dart_Handle array,
-                                                   Dart_Scalar_Type* type,
-                                                   void** data,
-                                                   intptr_t* len);
+DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
+                                                  Dart_TypedData_Type* type,
+                                                  void** data,
+                                                  intptr_t* len);
 
 /**
  * Releases access to the internal data address that was acquired earlier using
- * Dart_ByteArrayAcquireData.
+ * Dart_TypedDataAcquireData.
  *
- * \param array The scalar list object whose internal data address is to be
+ * \param object The typed data object whose internal data address is to be
  *   released.
  *
  * \return Success if the internal data address is released successfully.
  *   Otherwise, returns an error handle.
  */
-DART_EXPORT Dart_Handle Dart_ScalarListReleaseData(Dart_Handle array);
+DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle array);
 
 
 // --- Closures ---

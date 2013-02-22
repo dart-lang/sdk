@@ -23,6 +23,7 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 
 
@@ -620,6 +621,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
+    if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
+      AssertAssignableInstr* assert = instr->AsAssertAssignable();
+      AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                           assert->deopt_id(),
+                           assert->token_pos());
+    }
     AllocateRegistersLocally(instr);
   }
 }

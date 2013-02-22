@@ -29,21 +29,20 @@ class HostedSource extends Source {
   final name = "hosted";
   final shouldCache = true;
 
-  /// The URL of the default package repository.
-  static final defaultUrl = "https://pub.dartlang.org";
-
   /// Downloads a list of all versions of a package that are available from the
   /// site.
   Future<List<Version>> getVersions(String name, description) {
-    var parsed = _parseDescription(description);
-    var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
+    var url = _makeUrl(description,
+        (server, package) => "$server/packages/$package.json");
 
-    return httpClient.read(fullUrl).then((body) {
+    log.io("Get versions from $url.");
+    return httpClient.read(url).then((body) {
       var doc = json.parse(body);
       return doc['versions']
           .map((version) => new Version.parse(version))
           .toList();
     }).catchError((ex) {
+      var parsed = _parseDescription(description);
       _throwFriendlyError(ex, parsed.first, parsed.last);
     });
   }
@@ -51,13 +50,14 @@ class HostedSource extends Source {
   /// Downloads and parses the pubspec for a specific version of a package that
   /// is available from the site.
   Future<Pubspec> describe(PackageId id) {
-    var parsed = _parseDescription(id.description);
-    var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
-      "${id.version}.yaml";
+    var url = _makeVersionUrl(id, (server, package, version) =>
+        "$server/packages/$package/versions/$version.yaml");
 
-    return httpClient.read(fullUrl).then((yaml) {
+    log.io("Describe package at $url.");
+    return httpClient.read(url).then((yaml) {
       return new Pubspec.parse(null, yaml, systemCache.sources);
     }).catchError((ex) {
+      var parsed = _parseDescription(id.description);
       _throwFriendlyError(ex, id, parsed.last);
     });
   }
@@ -65,21 +65,19 @@ class HostedSource extends Source {
   /// Downloads a package from the site and unpacks it.
   Future<bool> install(PackageId id, String destPath) {
     return defer(() {
-      var parsedDescription = _parseDescription(id.description);
-      var name = parsedDescription.first;
-      var url = parsedDescription.last;
-
-      var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
+      var url = _makeVersionUrl(id, (server, package, version) =>
+          "$server/packages/$package/versions/$version.tar.gz");
+      log.io("Install package from $url.");
 
       log.message('Downloading $id...');
 
       // Download and extract the archive to a temp directory.
       var tempDir = systemCache.createTempDir();
-      return httpClient.send(new http.Request("GET", Uri.parse(fullUrl)))
+      return httpClient.send(new http.Request("GET", url))
           .then((response) => response.stream)
           .then((stream) {
         return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
-            'fetching URL "$fullUrl"');
+            'fetching URL "$url"');
       }).then((_) {
         // Now that the install has succeeded, move it to the real location in
         // the cache. This ensures that we don't leave half-busted ghost
@@ -142,31 +140,57 @@ class HostedSource extends Source {
     throw asyncError;
   }
 
-  /// Parses the description for a package.
-  ///
-  /// If the package parses correctly, this returns a (name, url) pair. If not,
-  /// this throws a descriptive FormatException.
-  Pair<String, String> _parseDescription(description) {
-    if (description is String) {
-      return new Pair<String, String>(description, defaultUrl);
-    }
+}
 
-    if (description is! Map) {
-      throw new FormatException(
-          "The description must be a package name or map.");
-    }
+/// The URL of the default package repository.
+final _defaultUrl = "https://pub.dartlang.org";
 
-    if (!description.containsKey("name")) {
-      throw new FormatException(
-          "The description map must contain a 'name' key.");
-    }
+/// Parses [description] into its server and package name components, then
+/// converts that to a Uri given [pattern]. Ensures the package name is
+/// properly URL encoded.
+Uri _makeUrl(description, String pattern(String server, String package)) {
+  var parsed = _parseDescription(description);
+  var server = parsed.last;
+  var package = encodeUriComponent(parsed.first);
+  return new Uri(pattern(server, package));
+}
 
-    var name = description["name"];
-    if (name is! String) {
-      throw new FormatException("The 'name' key must have a string value.");
-    }
+/// Parses [id] into its server, package name, and version components, then
+/// converts that to a Uri given [pattern]. Ensures the package name is
+/// properly URL encoded.
+Uri _makeVersionUrl(PackageId id,
+    String pattern(String server, String package, String version)) {
+  var parsed = _parseDescription(id.description);
+  var server = parsed.last;
+  var package = encodeUriComponent(parsed.first);
+  var version = encodeUriComponent(id.version.toString());
+  return new Uri(pattern(server, package, version));
+}
 
-    var url = description.containsKey("url") ? description["url"] : defaultUrl;
-    return new Pair<String, String>(name, url);
+/// Parses the description for a package.
+///
+/// If the package parses correctly, this returns a (name, url) pair. If not,
+/// this throws a descriptive FormatException.
+Pair<String, String> _parseDescription(description) {
+  if (description is String) {
+    return new Pair<String, String>(description, _defaultUrl);
   }
+
+  if (description is! Map) {
+    throw new FormatException(
+        "The description must be a package name or map.");
+  }
+
+  if (!description.containsKey("name")) {
+    throw new FormatException(
+    "The description map must contain a 'name' key.");
+  }
+
+  var name = description["name"];
+  if (name is! String) {
+    throw new FormatException("The 'name' key must have a string value.");
+  }
+
+  var url = description.containsKey("url") ? description["url"] : _defaultUrl;
+  return new Pair<String, String>(name, url);
 }

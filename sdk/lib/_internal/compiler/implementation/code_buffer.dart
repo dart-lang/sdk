@@ -33,7 +33,7 @@ class CodeBuffer implements StringBuffer {
       return addBuffer(object);
     }
     if (mappedRangeCounter == 0) setSourceLocation(null);
-    buffer.add(object.toString());
+    buffer.write(object);
     return this;
   }
 
@@ -60,7 +60,7 @@ class CodeBuffer implements StringBuffer {
       }
       lastBufferOffset = buffer.length + other.lastBufferOffset;
     }
-    buffer.add(other.getText());
+    buffer.write(other.getText());
     return this;
   }
 
@@ -73,7 +73,7 @@ class CodeBuffer implements StringBuffer {
   }
 
   CodeBuffer clear() {
-    buffer.clear();
+    buffer = new StringBuffer();
     markers.clear();
     lastBufferOffset = 0;
     return this;

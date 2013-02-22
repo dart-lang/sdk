@@ -78,4 +78,10 @@ class ShellUtils {
   static void FreeUnicodeArgv(wchar_t** argv);
 };
 
+class TimerUtils {
+ public:
+  static int64_t GetCurrentTimeMicros();
+  static int64_t GetCurrentTimeMilliseconds();
+};
+
 #endif  // BIN_UTILS_H_

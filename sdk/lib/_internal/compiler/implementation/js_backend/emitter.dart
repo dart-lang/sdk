@@ -27,20 +27,22 @@ class ClosureInvocationElement extends FunctionElementX {
 /**
  * A convenient type alias for some functions that emit keyed values.
  */
-typedef void DefineStubFunction(String invocationName, js.Expression value);
+typedef void DefineStubFunction(String invocationName, jsAst.Expression value);
 
 /**
  * A data structure for collecting fragments of a class definition.
  */
 class ClassBuilder {
-  final List<js.Property> properties = <js.Property>[];
+  final List<jsAst.Property> properties = <jsAst.Property>[];
 
   // Has the same signature as [DefineStubFunction].
-  void addProperty(String name, js.Expression value) {
-    properties.add(new js.Property(js.string(name), value));
+  void addProperty(String name, jsAst.Expression value) {
+    properties.add(new jsAst.Property(js.string(name), value));
   }
 
-  js.Expression toObjectInitializer() => new js.ObjectInitializer(properties);
+  jsAst.Expression toObjectInitializer() {
+    return new jsAst.ObjectInitializer(properties);
+  }
 }
 
 /**
@@ -59,6 +61,7 @@ class CodeEmitterTask extends CompilerTask {
   NativeEmitter nativeEmitter;
   CodeBuffer boundClosureBuffer;
   CodeBuffer mainBuffer;
+  final CodeBuffer deferredBuffer = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
@@ -66,6 +69,8 @@ class CodeEmitterTask extends CompilerTask {
   Set<ClassElement> neededClasses;
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
+
+  JavaScriptBackend get backend => compiler.backend;
 
   String get _ => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
@@ -113,6 +118,10 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
   }
 
+  void addComment(String comment, CodeBuffer buffer) {
+    buffer.add(jsAst.prettyPrint(js.comment(comment), compiler));
+  }
+
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null);
     checkedClasses = new Set<ClassElement>();
@@ -126,28 +135,26 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  js.Expression constantReference(Constant value) {
+  jsAst.Expression constantReference(Constant value) {
     return constantEmitter.reference(value);
   }
 
-  js.Expression constantInitializerExpression(Constant value) {
+  jsAst.Expression constantInitializerExpression(Constant value) {
     return constantEmitter.initializationExpression(value);
   }
 
   String get name => 'CodeEmitter';
 
-  String get defineClassName
-      => '${namer.isolateName}.\$defineClass';
   String get currentGenerateAccessorName
       => '${namer.CURRENT_ISOLATE}.\$generateAccessor';
   String get generateAccessorHolder
       => '$isolatePropertiesName.\$generateAccessor';
+  String get finishClassesProperty
+      => r'$finishClasses';
   String get finishClassesName
-      => '${namer.isolateName}.\$finishClasses';
+      => '${namer.isolateName}.$finishClassesProperty';
   String get finishIsolateConstructorName
       => '${namer.isolateName}.\$finishIsolateConstructor';
-  String get pendingClassesName
-      => '${namer.isolateName}.\$pendingClasses';
   String get isolatePropertiesName
       => '${namer.isolateName}.${namer.isolatePropertiesName}';
   String get supportsProtoName
@@ -176,38 +183,55 @@ class CodeEmitterTask extends CompilerTask {
   String needsSetterCode(String variable) => '($variable & 2) == 0';
   String isRenaming(String variable) => '($variable & $RENAMING_FLAG) != 0';
 
-  String get generateAccessorFunction {
-    return """
-function generateAccessor(field, prototype) {
-  var len = field.length;
-  var lastCharCode = field.charCodeAt(len - 1);
-  var needsAccessor = (lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE;
-  if (needsAccessor) {
-    var needsGetter = ${needsGetterCode('lastCharCode')};
-    var needsSetter = ${needsSetterCode('lastCharCode')};
-    var renaming = ${isRenaming('lastCharCode')};
-    var accessorName = field = field.substring(0, len - 1);
-    if (renaming) {
-      var divider = field.indexOf(":");
-      accessorName = field.substring(0, divider);
-      field = field.substring(divider + 1);
-    }
-    if (needsGetter) {
-      var getterString = "return this." + field + ";";
-      prototype["${namer.getterPrefix}" + accessorName] =
-          new Function(getterString);
-    }
-    if (needsSetter) {
-      var setterString = "this." + field + " = v;";
-      prototype["${namer.setterPrefix}" + accessorName] =
-          new Function("v", setterString);
-    }
-  }
-  return field;
-}""";
+  jsAst.FunctionDeclaration get generateAccessorFunction {
+    // function generateAccessor(field, prototype) {
+    jsAst.Fun fun = js.fun(['field', 'prototype'], [
+      js['var len = field.length'],
+      js['var lastCharCode = field.charCodeAt(len - 1)'],
+      js['var needsAccessor = '
+                '(lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE'],
+
+      // if (needsAccessor) {
+      js.if_('needsAccessor', [
+        js['var needsGetter = ${needsGetterCode("lastCharCode")}'],
+        js['var needsSetter = ${needsSetterCode("lastCharCode")}'],
+        js['var renaming = ${isRenaming("lastCharCode")}'],
+        js['var accessorName = field = field.substring(0, len - 1)'],
+
+        // if (renaming) {
+        js.if_('renaming', [
+          js['var divider = field.indexOf(":")'],
+          js['accessorName = field.substring(0, divider)'],
+          js['field = field.substring(divider + 1)']
+        ]),
+
+        // if (needsGetter) {
+        js.if_('needsGetter', [
+          js['var getterString = "return this." + field'],
+          js['prototype["${namer.getterPrefix}" + accessorName] = '
+                 'new Function(getterString)']
+        ]),
+
+        // if (needsSetter) {
+        js.if_('needsSetter', [
+          // var setterString = "this." + field + " = v;";
+          js['var setterString = "this." + field + "$_=${_}v"'],
+          js['prototype["${namer.setterPrefix}" + accessorName] = '
+                 'new Function("v", setterString)']
+        ]),
+
+      ]),
+
+      // return field;
+      js.return_('field')
+    ]);
+
+    return new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('generateAccessor'),
+        fun);
   }
 
-  String get defineClassFunction {
+  jsAst.Fun get defineClassFunction {
     // First the class name, then the field names in an array and the members
     // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -221,33 +245,44 @@ function generateAccessor(field, prototype) {
     //   this.x = t - v;
     //  },
     // });
-    return """
-function(cls, fields, prototype) {
-  var constructor;
-  if (typeof fields == 'function') {
-    constructor = fields;
-  } else {
-    var str = "function " + cls + "(";
-    var body = "";
-    for (var i = 0; i < fields.length; i++) {
-      if (i != 0) str += ", ";
-      var field = fields[i];
-      field = generateAccessor(field, prototype);
-      str += field;
-      body += "this." + field + " = " + field + ";\\n";
-    }
-    str += ") {" + body + "}\\n";
-    str += "return " + cls + ";";
-    constructor = new Function(str)();
-  }
-  constructor.prototype = prototype;
-  constructor.builtin\$cls = cls;
-  return constructor;
-}""";
+
+    // function(cls, fields, prototype) {
+    return js.fun(['cls', 'fields', 'prototype'], [
+      js['var constructor'],
+
+      // if (typeof fields == 'function') {
+      js.if_(js["typeof fields == 'function'"], [
+        js['constructor = fields']
+      ], /* else */ [
+        js['var str = "function " + cls + "("'],
+        js['var body = ""'],
+
+        // for (var i = 0; i < fields.length; i++) {
+        js.for_(js['var i = 0'], js['i < fields.length'], js['i++'], [
+          // if (i != 0) str += ", ";
+          js.if_(js['i != 0'], js['str += ", "']),
+
+          js['var field = fields[i]'],
+          js['field = generateAccessor(field, prototype)'],
+          js['str += field'],
+          js['body += ("this." + field + " = " + field + ";\\n")']
+        ]),
+
+        js['str += (") {" + body + "}\\nreturn " + cls)'],
+
+        js['constructor = (new Function(str))()']
+      ]),
+
+      js['constructor.prototype = prototype'],
+      js['constructor.builtin\$cls = cls'],
+
+      // return constructor;
+      js.return_('constructor')
+    ]);
   }
 
   /** Needs defineClass to be defined. */
-  String get protoSupportCheck {
+  List buildProtoSupportCheck() {
     // On Firefox and Webkit browsers we can manipulate the __proto__
     // directly. Opera claims to have __proto__ support, but it is buggy.
     // So we have to do more checks.
@@ -256,21 +291,25 @@ function(cls, fields, prototype) {
     // If the browser does not support __proto__ we need to instantiate an
     // object with the correct (internal) prototype set up correctly, and then
     // copy the members.
+    // TODO(8541): Remove this work around.
 
-    return '''
-var $supportsProtoName = false;
-var tmp = $defineClassName('c', ['f?'], {}).prototype;
-if (tmp.__proto__) {
-  tmp.__proto__ = {};
-  if (typeof tmp.get\$f !== 'undefined') $supportsProtoName = true;
-}
-''';
+    return [
+      js['var $supportsProtoName = false'],
+      js["var tmp = (defineClass('c', ['f?'], {})).prototype"],
+
+      js.if_(js['tmp.__proto__'], [
+        js['tmp.__proto__ = {}'],
+        js.if_(js[r"typeof tmp.get$f != 'undefined'"],
+               js['$supportsProtoName = true'])
+
+      ])
+    ];
   }
 
-  String get finishClassesFunction {
-    // 'defineClass' does not require the classes to be constructed in order.
-    // Classes are initially just stored in the 'pendingClasses' field.
-    // 'finishClasses' takes all pending classes and sets up the prototype.
+  jsAst.Fun get finishClassesFunction {
+    // Class descriptions are collected in a JS object.
+    // 'finishClasses' takes all collected descriptions and sets up
+    // the prototype.
     // Once set up, the constructors prototype field satisfy:
     //  - it contains all (local) members.
     //  - its internal prototype (__proto__) points to the superclass'
@@ -280,67 +319,124 @@ if (tmp.__proto__) {
     // For engines where we have access to the '__proto__' we can manipulate
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
-    return '''
-function(collectedClasses) {
-  var hasOwnProperty = Object.prototype.hasOwnProperty;
-  for (var cls in collectedClasses) {
-    if (hasOwnProperty.call(collectedClasses, cls)) {
-      var desc = collectedClasses[cls];
-'''/* The 'fields' are either a constructor function or a string encoding
-      fields, constructor and superclass.  Get the superclass and the fields
-      in the format Super;field1,field2 from the null-string property on the
-      descriptor. */'''
-      var fields = desc[''], supr;
-      if (typeof fields == 'string') {
-        var s = fields.split(';'); supr = s[0];
-        fields = s[1] == '' ? [] : s[1].split(',');
-      } else {
-        supr = desc['super'];
-      }
-      $isolatePropertiesName[cls] = $defineClassName(cls, fields, desc);
-      if (supr) $pendingClassesName[cls] = supr;
-    }
-  }
-  var pendingClasses = $pendingClassesName;
-'''/* FinishClasses can be called multiple times. This means that we need to
-      clear the pendingClasses property. */'''
-  $pendingClassesName = {};
-  var finishedClasses = {};
-  function finishClass(cls) {
-'''/* Opera does not support 'getOwnPropertyNames'. Therefore we use
-      hasOwnProperty instead. */'''
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    if (hasOwnProperty.call(finishedClasses, cls)) return;
-    finishedClasses[cls] = true;
-    var superclass = pendingClasses[cls];
-'''/* The superclass is only false (empty string) for Dart's Object class. */'''
-    if (!superclass) return;
-    finishClass(superclass);
-    var constructor = $isolatePropertiesName[cls];
-    var superConstructor = $isolatePropertiesName[superclass];
-    var prototype = constructor.prototype;
-    if ($supportsProtoName) {
-      prototype.__proto__ = superConstructor.prototype;
-      prototype.constructor = constructor;
-    } else {
-      function tmp() {};
-      tmp.prototype = superConstructor.prototype;
-      var newPrototype = new tmp();
-      constructor.prototype = newPrototype;
-      newPrototype.constructor = constructor;
-      for (var member in prototype) {
-        if (!member) continue;  '''/* Short version of: if (member == '') */'''
-        if (hasOwnProperty.call(prototype, member)) {
-          newPrototype[member] = prototype[member];
-        }
-      }
-    }
-  }
-  for (var cls in pendingClasses) finishClass(cls);
-}''';
+
+    // function(collectedClasses,
+    //          isolateProperties,
+    //          existingIsolateProperties) {
+    return js.fun(['collectedClasses', 'isolateProperties',
+                   'existingIsolateProperties'], [
+      js['var pendingClasses = {}'],
+
+      js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
+
+      // for (var cls in collectedClasses) {
+      js.forIn('cls', 'collectedClasses', [
+        // if (hasOwnProperty.call(collectedClasses, cls)) {
+        js.if_(js['hasOwnProperty.call(collectedClasses, cls)'], [
+          js['var desc = collectedClasses[cls]'],
+
+          /* The 'fields' are either a constructor function or a
+           * string encoding fields, constructor and superclass.  Get
+           * the superclass and the fields in the format
+           * Super;field1,field2 from the null-string property on the
+           * descriptor.
+           */
+          // var fields = desc[''], supr;
+          js["var fields = desc[''], supr"],
+
+          js.if_(js["typeof fields == 'string'"], [
+            js['var s = fields.split(";")'],
+            js['supr = s[0]'],
+            js["fields = s[1] == '' ? [] : s[1].split(',')"],
+          ], /* else */ [
+            js['supr = desc.super']
+          ]),
+
+          js['isolateProperties[cls] = defineClass(cls, fields, desc)'],
+
+          // if (supr) pendingClasses[cls] = supr;
+          js.if_(js['supr'], js['pendingClasses[cls] = supr'])
+        ])
+      ]),
+
+      js['var finishedClasses = {}'],
+
+      // function finishClass(cls) { ... }
+      buildFinishClass(),
+
+      // for (var cls in pendingClasses) finishClass(cls);
+      js.forIn('cls', 'pendingClasses', js['finishClass']('cls'))
+    ]);
   }
 
-  String get finishIsolateConstructorFunction {
+  jsAst.FunctionDeclaration buildFinishClass() {
+    // function finishClass(cls) {
+    jsAst.Fun fun = js.fun(['cls'], [
+
+      // TODO(8540): Remove this work around.
+      /* Opera does not support 'getOwnPropertyNames'. Therefore we use
+         hasOwnProperty instead. */
+      js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
+
+      // if (hasOwnProperty.call(finishedClasses, cls)) return;
+      js.if_(js['hasOwnProperty.call(finishedClasses, cls)'],
+             js.return_()),
+
+      js['finishedClasses[cls] = true'],
+      js['var superclass = pendingClasses[cls]'],
+
+      /* The superclass is only false (empty string) for Dart's Object class. */
+      js.if_(js['!superclass'], js.return_()),
+      js['finishClass(superclass)'],
+      js['var constructor = isolateProperties[cls]'],
+      js['var superConstructor = isolateProperties[superclass]'],
+
+      // if (!superConstructor)
+      //   superConstructor = existingIsolateProperties[superclass];
+      js.if_(js['superConstructor'].not,
+             js['superConstructor'].assign(
+                 js['existingIsolateProperties'][js['superclass']])),
+
+      js['var prototype = constructor.prototype'],
+
+      // if ($supportsProtoName) {
+      js.if_(supportsProtoName, [
+        js['prototype.__proto__ = superConstructor.prototype'],
+        js['prototype.constructor = constructor'],
+
+      ], /* else */ [
+        // function tmp() {};
+        new jsAst.FunctionDeclaration(
+            new jsAst.VariableDeclaration('tmp'),
+            js.fun([], [])),
+
+        js['tmp.prototype = superConstructor.prototype'],
+        js['var newPrototype = new tmp()'],
+
+        js['constructor.prototype = newPrototype'],
+        js['newPrototype.constructor = constructor'],
+
+        // for (var member in prototype) {
+        js.forIn('member', 'prototype', [
+          /* Short version of: if (member == '') */
+          // if (!member) continue;
+          js.if_(js['!member'], new jsAst.Continue(null)),
+
+          // if (hasOwnProperty.call(prototype, member)) {
+          js.if_(js['hasOwnProperty.call(prototype, member)'], [
+            js['newPrototype[member] = prototype[member]']
+          ])
+        ])
+
+      ])
+    ]);
+
+    return new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('finishClass'),
+        fun);
+  }
+
+  jsAst.Fun get finishIsolateConstructorFunction {
     String isolate = namer.isolateName;
     // We replace the old Isolate function with a new one that initializes
     // all its field with the initial (and often final) value of all globals.
@@ -362,91 +458,146 @@ function(collectedClasses) {
     //
     // We also copy over old values like the prototype, and the
     // isolateProperties themselves.
-    return """function(oldIsolate) {
-  var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
-  var isolatePrototype = oldIsolate.prototype;
-  var str = "{\\n";
-  str += "var properties = $isolate.${namer.isolatePropertiesName};\\n";
-  for (var staticName in isolateProperties) {
-    if (Object.prototype.hasOwnProperty.call(isolateProperties, staticName)) {
-      str += "this." + staticName + "= properties." + staticName + ";\\n";
-    }
-  }
-  str += "}\\n";
-  var newIsolate = new Function(str);
-  newIsolate.prototype = isolatePrototype;
-  isolatePrototype.constructor = newIsolate;
-  newIsolate.${namer.isolatePropertiesName} = isolateProperties;
-  return newIsolate;
-}""";
-  }
 
-  String get lazyInitializerFunction {
-    String isolate = namer.CURRENT_ISOLATE;
-    return """
-function(prototype, staticName, fieldName, getterName, lazyValue) {
-  var getter = new Function("{ return $isolate." + fieldName + ";}");
-$lazyInitializerLogic
-}""";
-  }
-
-  String get lazyInitializerLogic {
-    String isolate = namer.CURRENT_ISOLATE;
-    JavaScriptBackend backend = compiler.backend;
-    String cyclicThrow = namer.isolateAccess(backend.cyclicThrowHelper);
-    return """
-  var sentinelUndefined = {};
-  var sentinelInProgress = {};
-  prototype[fieldName] = sentinelUndefined;
-  prototype[getterName] = function() {
-    var result = $isolate[fieldName];
-    try {
-      if (result === sentinelUndefined) {
-        $isolate[fieldName] = sentinelInProgress;
-        try {
-          result = $isolate[fieldName] = lazyValue();
-        } finally {
-""" // Use try-finally, not try-catch/throw as it destroys the stack trace.
-"""
-          if (result === sentinelUndefined) {
-            if ($isolate[fieldName] === sentinelInProgress) {
-              $isolate[fieldName] = null;
-            }
-          }
-        }
-      } else if (result === sentinelInProgress) {
-        $cyclicThrow(staticName);
-      }
-      return result;
-    } finally {
-      $isolate[getterName] = getter;
-    }
-  };""";
-  }
-
-  void addDefineClassAndFinishClassFunctionsIfNecessary(CodeBuffer buffer) {
+    List copyFinishClasses = [];
     if (needsDefineClass) {
-      // Declare function called generateAccessor.  This is used in
+      copyFinishClasses.add(
+          // newIsolate.$finishClasses = oldIsolate.\$finishClasses;
+          js['newIsolate'][finishClassesProperty].assign(
+              js['oldIsolate'][finishClassesProperty]));
+    }
+
+    // function(oldIsolate) {
+    return js.fun('oldIsolate', [
+      js['var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'],
+
+      js[r'isolateProperties.$currentScript ='
+              'typeof document == "object" ?'
+              '(document.currentScript ||'
+                     'document.scripts[document.scripts.length - 1]) :'
+              'null'],
+
+      js['var isolatePrototype = oldIsolate.prototype'],
+      js['var str = "{\\n"'],
+      js['str += '
+             '"var properties = $isolate.${namer.isolatePropertiesName};\\n"'],
+      js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
+
+      // for (var staticName in isolateProperties) {
+      js.forIn('staticName', 'isolateProperties', [
+        js.if_(js['hasOwnProperty.call(isolateProperties, staticName)'], [
+          js['str += ("this." + staticName + "= properties." + staticName + '
+                          '";\\n")']
+        ])
+      ]),
+
+      js['str += "}\\n"'],
+
+      js['var newIsolate = new Function(str)'],
+      js['newIsolate.prototype = isolatePrototype'],
+      js['isolatePrototype.constructor = newIsolate'],
+      js['newIsolate.${namer.isolatePropertiesName} = isolateProperties'],
+    ]..addAll(copyFinishClasses)
+     ..addAll([
+
+      // return newIsolate;
+      js.return_('newIsolate')
+    ]));
+  }
+
+  jsAst.Fun get lazyInitializerFunction {
+    String isolate = namer.CURRENT_ISOLATE;
+
+    // function(prototype, staticName, fieldName, getterName, lazyValue) {
+    var parameters = <String>['prototype', 'staticName', 'fieldName',
+                              'getterName', 'lazyValue'];
+    return js.fun(parameters, [
+      js['var getter = new Function("{ return $isolate." + fieldName + ";}")'],
+    ]..addAll(addLazyInitializerLogic())
+    );
+  }
+
+  List addLazyInitializerLogic() {
+    String isolate = namer.CURRENT_ISOLATE;
+    String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
+
+    return [
+      js['var sentinelUndefined = {}'],
+      js['var sentinelInProgress = {}'],
+      js['prototype[fieldName] = sentinelUndefined'],
+
+      // prototype[getterName] = function() {
+      js['prototype'][js['getterName']].assign(js.fun([], [
+        js['var result = $isolate[fieldName]'],
+
+        // try {
+        js.try_([
+          js.if_(js['result === sentinelUndefined'], [
+            js['$isolate[fieldName] = sentinelInProgress'],
+
+            // try {
+            js.try_([
+              js['result = $isolate[fieldName] = lazyValue()'],
+
+            ], finallyPart: [
+              // Use try-finally, not try-catch/throw as it destroys the
+              // stack trace.
+
+              // if (result === sentinelUndefined) {
+              js.if_(js['result === sentinelUndefined'], [
+                // if ($isolate[fieldName] === sentinelInProgress) {
+                js.if_(js['$isolate[fieldName] === sentinelInProgress'], [
+                  js['$isolate[fieldName] = null'],
+                ])
+              ])
+            ])
+          ], /* else */ [
+            js.if_(js['result === sentinelInProgress'],
+              js['$cyclicThrow(staticName)']
+            )
+          ]),
+
+          // return result;
+          js.return_('result')
+
+        ], finallyPart: [
+          js['$isolate[getterName] = getter']
+        ])
+      ]))
+    ];
+  }
+
+  List buildDefineClassAndFinishClassFunctionsIfNecessary() {
+    if (!needsDefineClass) return [];
+    return [
+      // Declare a function called "generateAccessor".  This is used in
       // defineClassFunction (it's a local declaration in init()).
-      buffer.add("$generateAccessorFunction$N");
-      buffer.add("$generateAccessorHolder = generateAccessor$N");
-      buffer.add("$defineClassName = $defineClassFunction$N");
-      buffer.add(protoSupportCheck);
-      buffer.add("$pendingClassesName = {}$N");
-      buffer.add("$finishClassesName = $finishClassesFunction$N");
-    }
+      generateAccessorFunction,
+
+      js['$generateAccessorHolder = generateAccessor'],
+
+      // function defineClass ...
+      new jsAst.FunctionDeclaration(
+          new jsAst.VariableDeclaration('defineClass'), defineClassFunction)
+    ]
+    ..addAll(buildProtoSupportCheck())
+    ..addAll([
+      js[finishClassesName].assign(finishClassesFunction)
+    ]);
   }
 
-  void addLazyInitializerFunctionIfNecessary(CodeBuffer buffer) {
-    if (needsLazyInitializer) {
-      buffer.add("$lazyInitializerName = $lazyInitializerFunction$N");
-    }
+  List buildLazyInitializerFunctionIfNecessary() {
+    if (!needsLazyInitializer) return [];
+
+    // $lazyInitializerName = $lazyInitializerFunction
+    return [js[lazyInitializerName].assign(lazyInitializerFunction)];
   }
 
-  void emitFinishIsolateConstructor(CodeBuffer buffer) {
-    String name = finishIsolateConstructorName;
-    String value = finishIsolateConstructorFunction;
-    buffer.add("$name = $value$N");
+  List buildFinishIsolateConstructor() {
+    return [
+      // $finishIsolateConstructorName = $finishIsolateConstructorFunction
+      js[finishIsolateConstructorName].assign(finishIsolateConstructorFunction)
+    ];
   }
 
   void emitFinishIsolateConstructorInvocation(CodeBuffer buffer) {
@@ -486,7 +637,6 @@ $lazyInitializerLogic
     if (alreadyGenerated.contains(invocationName)) return;
     alreadyGenerated.add(invocationName);
 
-    JavaScriptBackend backend = compiler.backend;
     bool isInterceptorClass =
         backend.isInterceptorClass(member.getEnclosingClass());
 
@@ -499,19 +649,19 @@ $lazyInitializerLogic
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<js.Parameter> parametersBuffer =
-        new List<js.Parameter>.fixedLength(
+    List<jsAst.Parameter> parametersBuffer =
+        new List<jsAst.Parameter>.fixedLength(
             selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
-    List<js.Expression> argumentsBuffer =
-        new List<js.Expression>.fixedLength(
+    List<jsAst.Expression> argumentsBuffer =
+        new List<jsAst.Expression>.fixedLength(
             parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
     if (isInterceptorClass) {
       count++;
-      parametersBuffer[0] = new js.Parameter(receiverArgumentName);
-      argumentsBuffer[0] = new js.VariableUse(receiverArgumentName);
+      parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
+      argumentsBuffer[0] = js[receiverArgumentName];
     }
 
     int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
@@ -523,17 +673,17 @@ $lazyInitializerLogic
       assert(jsName != receiverArgumentName);
       int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
       if (count < optionalParameterStart) {
-        parametersBuffer[count] = new js.Parameter(jsName);
-        argumentsBuffer[count] = new js.VariableUse(jsName);
+        parametersBuffer[count] = new jsAst.Parameter(jsName);
+        argumentsBuffer[count] = js[jsName];
       } else {
         int index = names.indexOf(element.name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
-          argumentsBuffer[count] = new js.VariableUse(jsName);
+          argumentsBuffer[count] = js[jsName];
           parametersBuffer[optionalParameterStart + index] =
-              new js.Parameter(jsName);
+              new jsAst.Parameter(jsName);
         // Note that [elements] may be null for a synthesized [member].
         } else if (elements != null && elements.isParameterChecked(element)) {
           argumentsBuffer[count] = constantReference(SentinelConstant.SENTINEL);
@@ -554,20 +704,16 @@ $lazyInitializerLogic
       count++;
     });
 
-    List<js.Statement> body;
+    List body;
     if (member.hasFixedBackendName()) {
       body = nativeEmitter.generateParameterStubStatements(
           member, invocationName, parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else {
-      body = <js.Statement>[
-          new js.Return(
-              new js.VariableUse('this')
-                  .dot(namer.getName(member))
-                  .callWith(argumentsBuffer))];
+      body = [js.return_(js['this'][namer.getName(member)](argumentsBuffer))];
     }
 
-    js.Fun function = new js.Fun(parametersBuffer, new js.Block(body));
+    jsAst.Fun function = js.fun(parametersBuffer, body);
 
     defineStub(invocationName, function);
   }
@@ -725,8 +871,7 @@ $lazyInitializerLogic
         || member.isGenerativeConstructorBody()
         || member.isAccessor()) {
       if (member.isAbstract(compiler)) return;
-      JavaScriptBackend backend = compiler.backend;
-      js.Expression code = backend.generatedCode[member];
+      jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
       builder.addProperty(namer.getName(member), code);
       code = backend.generatedBailoutCode[member];
@@ -753,7 +898,6 @@ $lazyInitializerLogic
   void emitInstanceMembers(ClassElement classElement,
                            ClassBuilder builder) {
     assert(invariant(classElement, classElement.isDeclaration));
-    JavaScriptBackend backend = compiler.backend;
     if (classElement == backend.objectInterceptorClass) {
       emitInterceptorMethods(builder);
       // The ObjectInterceptor does not have any instance methods.
@@ -788,12 +932,12 @@ $lazyInitializerLogic
         includeSuperMembers: false);
 
     void generateIsTest(Element other) {
-      js.Expression code;
+      jsAst.Expression code;
       if (compiler.objectClass == other) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
-        code = js.fun([], js.block1(js.return_(new js.LiteralBool(true))));
+        code = js.fun([], [js.return_(true)]);
       } else {
-        code = new js.LiteralBool(true);
+        code = new jsAst.LiteralBool(true);
       }
       builder.addProperty(namer.operatorIs(other), code);
     }
@@ -801,21 +945,20 @@ $lazyInitializerLogic
     void generateSubstitution(Element other, {bool emitNull: false}) {
       RuntimeTypeInformation rti = backend.rti;
       // TODO(karlklose): support typedefs with variables.
-      js.Expression expression;
+      jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
       if (other.kind == ElementKind.CLASS) {
         String substitution = rti.getSupertypeSubstitution(classElement, other,
             alwaysGenerateFunction: true);
         if (substitution != null) {
-          expression = new js.LiteralExpression(substitution);
+          expression = new jsAst.LiteralExpression(substitution);
         } else if (emitNull || needsNativeCheck) {
-          expression = new js.LiteralNull();
+          expression = new jsAst.LiteralNull();
         }
       }
       if (expression != null) {
         if (needsNativeCheck) {
-          expression =
-              new js.Fun([], new js.Block([new js.Return(expression)]));
+          expression = js.fun([], js.return_(expression));
         }
         builder.addProperty(namer.substitutionName(other), expression);
       }
@@ -847,12 +990,11 @@ $lazyInitializerLogic
           ? js.equals
           : js.strictEquals;
       builder.addProperty(name, js.fun(['receiver', 'a'],
-          js.block1(js.return_(kind(js.use('receiver'), js.use('a'))))));
+          js.block(js.return_(kind(js['receiver'], js['a'])))));
     }
   }
 
   void emitRuntimeClassesAndTests(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
     RuntimeTypeInformation rti = backend.rti;
     TypeChecks typeChecks = rti.getRequiredChecks();
 
@@ -1009,17 +1151,14 @@ $lazyInitializerLogic
                       ClassBuilder builder) {
     String getterName = namer.getterNameFromAccessorName(accessorName);
     builder.addProperty(getterName,
-        js.fun([], js.block1(js.return_(js.use('this').dot(fieldName)))));
+        js.fun([], js.return_(js['this'][fieldName])));
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
     String setterName = namer.setterNameFromAccessorName(accessorName);
     builder.addProperty(setterName,
-        js.fun(['v'],
-            js.block1(
-                new js.ExpressionStatement(
-                    js.assign(js.use('this').dot(fieldName), js.use('v'))))));
+        js.fun(['v'], js['this'][fieldName].assign('v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -1041,22 +1180,17 @@ $lazyInitializerLogic
     DartType type = member.computeType(compiler);
     // TODO(ahe): Generate a dynamic type error here.
     if (type.element.isErroneous()) return;
-    SourceString helper = compiler.backend.getCheckedModeHelper(type);
-    FunctionElement helperElement = compiler.findHelper(helper);
+    FunctionElement helperElement
+        = backend.getCheckedModeHelper(type, typeCast: false);
     String helperName = namer.isolateAccess(helperElement);
-    List<js.Expression> arguments = <js.Expression>[js.use('v')];
+    List<jsAst.Expression> arguments = <jsAst.Expression>[js['v']];
     if (helperElement.computeSignature(compiler).parameterCount != 1) {
       arguments.add(js.string(namer.operatorIs(type.element)));
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
     builder.addProperty(setterName,
-        js.fun(['v'],
-            js.block1(
-                new js.ExpressionStatement(
-                    js.assign(
-                        js.use('this').dot(fieldName),
-                        js.call(js.use(helperName), arguments))))));
+        js.fun(['v'], js['this'][fieldName].assign(js[helperName](arguments))));
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -1074,7 +1208,7 @@ $lazyInitializerLogic
     bool isFirstField = true;
     StringBuffer buffer = new StringBuffer();
     if (!classIsNative) {
-      buffer.add('$superClass;');
+      buffer.write('$superClass;');
     }
     visitClassFields(classElement, (Element member,
                                     String name,
@@ -1093,30 +1227,30 @@ $lazyInitializerLogic
         if (isFirstField) {
           isFirstField = false;
         } else {
-          buffer.add(',');
+          buffer.write(',');
         }
         int flag = 0;
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
-          buffer.add(name);
+          buffer.write(name);
         } else {
           // Emit (possibly renaming) field name so we can add accessors at
           // runtime.
-          buffer.add(accessorName);
+          buffer.write(accessorName);
           if (name != accessorName) {
-            buffer.add(':$name');
+            buffer.write(':$name');
             // Only the native classes can have renaming accessors.
             assert(classIsNative);
             flag = RENAMING_FLAG;
           }
         }
         if (needsGetter && needsSetter) {
-          buffer.addCharCode(GETTER_SETTER_CODE + flag);
+          buffer.writeCharCode(GETTER_SETTER_CODE + flag);
         } else if (needsGetter) {
-          buffer.addCharCode(GETTER_CODE + flag);
+          buffer.writeCharCode(GETTER_CODE + flag);
         } else if (needsSetter) {
-          buffer.addCharCode(SETTER_CODE + flag);
+          buffer.writeCharCode(SETTER_CODE + flag);
         }
       }
     });
@@ -1188,11 +1322,9 @@ $lazyInitializerLogic
     emitClassGettersSetters(classElement, builder);
     emitInstanceMembers(classElement, builder);
 
-    js.Expression init =
-        js.assign(
-            js.use(classesCollector).dot(className),
-            builder.toObjectInitializer());
-    buffer.add(js.prettyPrint(init, compiler));
+    jsAst.Expression init =
+        js[classesCollector][className].assign(builder.toObjectInitializer());
+    buffer.add(jsAst.prettyPrint(init, compiler));
     buffer.add('$N$n');
   }
 
@@ -1213,34 +1345,33 @@ $lazyInitializerLogic
   }
 
   void emitInterceptorMethods(ClassBuilder builder) {
-    JavaScriptBackend backend = compiler.backend;
     // Emit forwarders for the ObjectInterceptor class. We need to
-    // emit all possible sends on intercepted methods.
+    // emit all possible sends on intercepted methods. Because of
+    // typed selectors we have to avoid generating the same forwarder
+    // multiple times.
+    Set<String> alreadyGenerated = new Set<String>();
     for (Selector selector in
          backend.usedInterceptors.toList()..sort(_compareSelectorNames)) {
-      List<js.Parameter> parameters = <js.Parameter>[];
-      List<js.Expression> arguments = <js.Expression>[];
-      parameters.add(new js.Parameter('receiver'));
-
       String name = backend.namer.invocationName(selector);
+      if (alreadyGenerated.contains(name)) continue;
+      alreadyGenerated.add(name);
+
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+      List<jsAst.Expression> arguments = <jsAst.Expression>[];
+      parameters.add(new jsAst.Parameter('receiver'));
+
       if (selector.isSetter()) {
-        parameters.add(new js.Parameter('value'));
-        arguments.add(new js.VariableUse('value'));
+        parameters.add(new jsAst.Parameter('value'));
+        arguments.add(js['value']);
       } else {
         for (int i = 0; i < selector.argumentCount; i++) {
           String argName = 'a$i';
-          parameters.add(new js.Parameter(argName));
-          arguments.add(new js.VariableUse(argName));
+          parameters.add(new jsAst.Parameter(argName));
+          arguments.add(js[argName]);
         }
       }
-      js.Fun function =
-          new js.Fun(parameters,
-              new js.Block(
-                  <js.Statement>[
-                      new js.Return(
-                          new js.VariableUse('receiver')
-                              .dot(name)
-                              .callWith(arguments))]));
+      jsAst.Fun function =
+          js.fun(parameters, js.return_(js['receiver'][name](arguments)));
       builder.addProperty(name, function);
     }
   }
@@ -1270,8 +1401,7 @@ $lazyInitializerLogic
       emitSubstitution(cls);
     }
 
-    JavaScriptBackend jsBackend = compiler.backend;
-    RuntimeTypeInformation rti = jsBackend.rti;
+    RuntimeTypeInformation rti = backend.rti;
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
@@ -1386,8 +1516,6 @@ $lazyInitializerLogic
     // constructor that always throws. We never need to emit it.
     unneededClasses.add(compiler.boolClass);
 
-    JavaScriptBackend backend = compiler.backend;
-
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassElement> needed = new Set<ClassElement>();
@@ -1449,20 +1577,23 @@ $lazyInitializerLogic
     }
 
     for (ClassElement element in sortedClasses) {
-      generateClass(element, buffer);
+      generateClass(element, bufferForElement(element, buffer));
     }
 
     // The closure class could have become necessary because of the generation
     // of stubs.
     ClassElement closureClass = compiler.closureClass;
     if (needsClosureClass && !instantiatedClasses.contains(closureClass)) {
-      generateClass(closureClass, buffer);
+      generateClass(closureClass, bufferForElement(closureClass, buffer));
     }
   }
 
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
-      buffer.add("$finishClassesName($classesCollector)$N");
+      buffer.add('$finishClassesName($classesCollector,'
+                 '$_$isolateProperties,'
+                 '${_}null)$N');
+
       // Reset the map.
       buffer.add("$classesCollector$_=$_{}$N");
     }
@@ -1470,15 +1601,14 @@ $lazyInitializerLogic
 
   void emitStaticFunction(CodeBuffer buffer,
                           String name,
-                          js.Expression functionExpression) {
-    js.Expression assignment =
-        js.assign(js.use(isolateProperties).dot(name), functionExpression);
-    buffer.add(js.prettyPrint(assignment, compiler));
+                          jsAst.Expression functionExpression) {
+    jsAst.Expression assignment =
+        js[isolateProperties][name].assign(functionExpression);
+    buffer.add(jsAst.prettyPrint(assignment, compiler));
     buffer.add('$N$n');
   }
 
-  void emitStaticFunctions(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
+  void emitStaticFunctions(CodeBuffer eagerBuffer) {
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
 
@@ -1490,9 +1620,10 @@ $lazyInitializerLogic
             .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      js.Expression code = backend.generatedCode[element];
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      jsAst.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
-      js.Expression bailoutCode = backend.generatedBailoutCode[element];
+      jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
         emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
@@ -1502,7 +1633,8 @@ $lazyInitializerLogic
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
-      js.Expression bailoutCode = backend.generatedBailoutCode[element];
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
     }
   }
@@ -1512,6 +1644,8 @@ $lazyInitializerLogic
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
+      // TODO(ahe): Defer loading of these getters.
+
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
@@ -1524,13 +1658,11 @@ $lazyInitializerLogic
       String fieldAccess = '$isolateProperties.$staticName';
       buffer.add("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
 
-      addParameterStubs(callElement, (String name, js.Expression value) {
-        js.Expression assignment =
-            js.assign(
-                js.use(isolateProperties).dot(staticName).dot(name),
-                value);
+      addParameterStubs(callElement, (String name, jsAst.Expression value) {
+        jsAst.Expression assignment =
+            js[isolateProperties][staticName][name].assign(value);
         buffer.add(
-            js.prettyPrint(new js.ExpressionStatement(assignment), compiler));
+            jsAst.prettyPrint(assignment.toStatement(), compiler));
         buffer.add('$N');
       });
 
@@ -1591,7 +1723,6 @@ $lazyInitializerLogic
     String extraArg = null;
     // Methods on interceptor classes take an extra parameter, which is the
     // actual receiver of the call.
-    JavaScriptBackend backend = compiler.backend;
     bool inInterceptor = backend.isInterceptorClass(member.getEnclosingClass());
     if (inInterceptor) {
       cache = interceptorClosureCache;
@@ -1649,37 +1780,32 @@ $lazyInitializerLogic
       String invocationName = namer.instanceMethodName(callElement);
 
       List<String> parameters = <String>[];
-      List<js.Expression> arguments = <js.Expression>[];
+      List<jsAst.Expression> arguments = <jsAst.Expression>[];
       if (inInterceptor) {
-        arguments.add(js.use('this').dot(fieldNames[2]));
+        arguments.add(js['this'][fieldNames[2]]);
       }
       for (int i = 0; i < parameterCount; i++) {
         String name = 'p$i';
         parameters.add(name);
-        arguments.add(js.use(name));
+        arguments.add(js[name]);
       }
 
-      js.Expression fun =
-          js.fun(parameters,
-              js.block1(
-                  js.return_(
-                      new js.PropertyAccess(
-                          js.use('this').dot(fieldNames[0]),
-                          js.use('this').dot(fieldNames[1]))
-                      .callWith(arguments))));
+      jsAst.Expression fun = js.fun(
+          parameters,
+          js.return_(
+              js['this'][fieldNames[0]][js['this'][fieldNames[1]]](arguments)));
       boundClosureBuilder.addProperty(invocationName, fun);
 
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
       typedefChecks.forEach((Element typedef) {
         String operator = namer.operatorIs(typedef);
-        boundClosureBuilder.addProperty(operator, new js.LiteralBool(true));
+        boundClosureBuilder.addProperty(operator, new jsAst.LiteralBool(true));
       });
 
-      js.Expression init =
-          js.assign(
-              js.use(classesCollector).dot(mangledName),
+      jsAst.Expression init =
+          js[classesCollector][mangledName].assign(
               boundClosureBuilder.toObjectInitializer());
-      boundClosureBuffer.add(js.prettyPrint(init, compiler));
+      boundClosureBuffer.add(jsAst.prettyPrint(init, compiler));
       boundClosureBuffer.add("$N");
 
       closureClass = namer.isolateAccess(closureClassElement);
@@ -1695,19 +1821,17 @@ $lazyInitializerLogic
     String targetName = namer.instanceMethodName(member);
 
     List<String> parameters = <String>[];
-    List<js.Expression> arguments = <js.Expression>[];
-    arguments.add(js.use('this'));
+    List<jsAst.Expression> arguments = <jsAst.Expression>[];
+    arguments.add(js['this']);
     arguments.add(js.string(targetName));
     if (inInterceptor) {
       parameters.add(extraArg);
-      arguments.add(js.use(extraArg));
+      arguments.add(js[extraArg]);
     }
 
-    js.Expression getterFunction =
-        js.fun(parameters,
-            js.block1(
-                js.return_(
-                    new js.New(js.use(closureClass), arguments))));
+    jsAst.Expression getterFunction = js.fun(
+        parameters,
+        js.return_(js[closureClass].newWith(arguments)));
 
     defineStub(getterName, getterFunction);
   }
@@ -1722,7 +1846,6 @@ $lazyInitializerLogic
                              DefineStubFunction defineStub) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
-    JavaScriptBackend backend = compiler.backend;
     // If the class is an interceptor class, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptorClass =
@@ -1730,18 +1853,18 @@ $lazyInitializerLogic
 
     const String receiverArgumentName = r'$receiver';
 
-    js.Expression buildGetter() {
+    jsAst.Expression buildGetter() {
       if (member.isGetter()) {
         String getterName = namer.getterName(member);
-        return new js.VariableUse('this').dot(getterName).callWith(
+        return js['this'][getterName](
             isInterceptorClass
-                ? <js.Expression>[new js.VariableUse(receiverArgumentName)]
-                : <js.Expression>[]);
+                ? <jsAst.Expression>[js[receiverArgumentName]]
+                : <jsAst.Expression>[]);
       } else {
         String fieldName = member.hasFixedBackendName()
             ? member.fixedBackendName()
             : namer.instanceFieldName(member);
-        return new js.VariableUse('this').dot(fieldName);
+        return js['this'][fieldName];
       }
     }
 
@@ -1760,25 +1883,21 @@ $lazyInitializerLogic
         Selector callSelector = new Selector.callClosureFrom(selector);
         String closureCallName = namer.invocationName(callSelector);
 
-        List<js.Parameter> parameters = <js.Parameter>[];
-        List<js.Expression> arguments = <js.Expression>[];
+        List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+        List<jsAst.Expression> arguments = <jsAst.Expression>[];
         if (isInterceptorClass) {
-          parameters.add(new js.Parameter(receiverArgumentName));
+          parameters.add(new jsAst.Parameter(receiverArgumentName));
         }
 
         for (int i = 0; i < selector.argumentCount; i++) {
           String name = 'arg$i';
-          parameters.add(new js.Parameter(name));
-          arguments.add(new js.VariableUse(name));
+          parameters.add(new jsAst.Parameter(name));
+          arguments.add(js[name]);
         }
 
-        js.Fun function =
-            new js.Fun(parameters,
-                new js.Block(
-                    <js.Statement>[
-                        new js.Return(
-                            buildGetter().dot(closureCallName)
-                                .callWith(arguments))]));
+        jsAst.Fun function = js.fun(
+            parameters,
+            js.return_(buildGetter()[closureCallName](arguments)));
 
         defineStub(invocationName, function);
       }
@@ -1792,13 +1911,10 @@ $lazyInitializerLogic
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
-        js.Expression init =
-            new js.Assignment(
-                new js.PropertyAccess.field(
-                    new js.VariableUse(isolateProperties),
-                    namer.getName(element)),
-                constantEmitter.referenceInInitializationContext(initialValue));
-        buffer.add(js.prettyPrint(init, compiler));
+        jsAst.Expression init =
+          js[isolateProperties][namer.getName(element)].assign(
+              constantEmitter.referenceInInitializationContext(initialValue));
+        buffer.add(jsAst.prettyPrint(init, compiler));
         buffer.add('$N');
       });
     }
@@ -1808,36 +1924,35 @@ $lazyInitializerLogic
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
-    JavaScriptBackend backend = compiler.backend;
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         assert(backend.generatedBailoutCode[element] == null);
-        js.Expression code = backend.generatedCode[element];
+        jsAst.Expression code = backend.generatedCode[element];
         assert(code != null);
         // The code only computes the initial value. We build the lazy-check
         // here:
         //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
         // The name is used for error reporting. The 'initial' must be a
         // closure that constructs the initial value.
-        List<js.Expression> arguments = <js.Expression>[];
-        arguments.add(js.use(isolateProperties));
+        List<jsAst.Expression> arguments = <jsAst.Expression>[];
+        arguments.add(js[isolateProperties]);
         arguments.add(js.string(element.name.slowToString()));
         arguments.add(js.string(namer.getName(element)));
         arguments.add(js.string(namer.getLazyInitializerName(element)));
         arguments.add(code);
-        js.Expression getter = buildLazyInitializedGetter(element);
+        jsAst.Expression getter = buildLazyInitializedGetter(element);
         if (getter != null) {
           arguments.add(getter);
         }
-        js.Expression init = js.call(js.use(lazyInitializerName), arguments);
-        buffer.add(js.prettyPrint(init, compiler));
+        jsAst.Expression init = js[lazyInitializerName](arguments);
+        buffer.add(jsAst.prettyPrint(init, compiler));
         buffer.add("$N");
       }
     }
   }
 
-  js.Expression buildLazyInitializedGetter(VariableElement element) {
+  jsAst.Expression buildLazyInitializedGetter(VariableElement element) {
     // Nothing to do, the 'lazy' function will create the getter.
     return null;
   }
@@ -1861,13 +1976,9 @@ $lazyInitializerLogic
         addedMakeConstantList = true;
         emitMakeConstantList(buffer);
       }
-      js.Expression init =
-          new js.Assignment(
-              new js.PropertyAccess.field(
-                  new js.VariableUse(isolateProperties),
-                  name),
-              constantInitializerExpression(constant));
-      buffer.add(js.prettyPrint(init, compiler));
+      jsAst.Expression init = js[isolateProperties][name].assign(
+          constantInitializerExpression(constant));
+      buffer.add(jsAst.prettyPrint(init, compiler));
       buffer.add('$N');
     }
   }
@@ -1917,35 +2028,17 @@ $lazyInitializerLogic
     // do not introduce duplicates (bad for code size).
     Set<String> addedJsNames = new Set<String>();
 
-    // Keep track of the noSuchMethod holders for each possible
-    // receiver type.
-    Map<ClassElement, Set<ClassElement>> noSuchMethodHolders =
-        new Map<ClassElement, Set<ClassElement>>();
-    Set<ClassElement> noSuchMethodHoldersFor(DartType type) {
-      ClassElement element = type.element;
-      Set<ClassElement> result = noSuchMethodHolders[element];
-      if (result == null) {
-        // For now, we check the entire world to see if an object of
-        // the given type may have a user-defined noSuchMethod
-        // implementation. We could do better by only looking at
-        // instantiated (or otherwise needed) classes.
-        result = compiler.world.findNoSuchMethodHolders(type);
-        noSuchMethodHolders[element] = result;
-      }
-      return result;
-    }
-
-    js.Expression generateMethod(String jsName, Selector selector) {
+    jsAst.Expression generateMethod(String jsName, Selector selector) {
       // Values match JSInvocationMirror in js-helper library.
       int type = selector.invocationMirrorKind;
       String methodName = selector.invocationMirrorMemberName;
-      List<js.Parameter> parameters = <js.Parameter>[];
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
       CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
-        parameters.add(new js.Parameter('\$$i'));
+        parameters.add(new jsAst.Parameter('\$$i'));
       }
 
-      List<js.Expression> argNames =
+      List<jsAst.Expression> argNames =
           selector.getOrderedNamedArguments().map((SourceString name) =>
               js.string(name.slowToString())).toList();
 
@@ -1954,26 +2047,15 @@ $lazyInitializerLogic
       String createInvocationMirror = namer.getName(
           compiler.createInvocationMirrorElement);
 
-      js.Expression expression =
-          new js.This()
-          .dot(noSuchMethodName)
-          .callWith(
-              <js.Expression>[
-                  new js.VariableUse(namer.CURRENT_ISOLATE)
-                  .dot(createInvocationMirror)
-                  .callWith(
-                      <js.Expression>[
-                          js.string(methodName),
-                          js.string(internalName),
-                          new js.LiteralNumber('$type'),
-                          new js.ArrayInitializer.from(
-                              parameters.map((param) => js.use(param.name))
-                                        .toList()),
-                          new js.ArrayInitializer.from(argNames)])]);
-      js.Expression function =
-          new js.Fun(parameters,
-              new js.Block(<js.Statement>[new js.Return(expression)]));
-      return function;
+      jsAst.Expression expression = js['this.$noSuchMethodName'](
+          js[namer.CURRENT_ISOLATE][createInvocationMirror]([
+              js.string(methodName),
+              js.string(internalName),
+              type,
+              new jsAst.ArrayInitializer.from(
+                  parameters.map((param) => js[param.name]).toList()),
+              new jsAst.ArrayInitializer.from(argNames)]));
+      return js.fun(parameters, js.return_(expression));
     }
 
     void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
@@ -2011,11 +2093,10 @@ $lazyInitializerLogic
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
-        DartType receiverType = objectType;
         ClassElement receiverClass = objectClass;
         if (selector is TypedSelector) {
           TypedSelector typedSelector = selector;
-          receiverType = typedSelector.receiverType;
+          DartType receiverType = typedSelector.receiverType;
           receiverClass = receiverType.element;
         }
 
@@ -2061,11 +2142,12 @@ $lazyInitializerLogic
         // If we're calling bar on an object of type A we do need the
         // handler because we may have to call B.noSuchMethod since B
         // does not implement bar.
-        Set<ClassElement> holders = noSuchMethodHoldersFor(receiverType);
+        Iterable<ClassElement> holders =
+            compiler.world.locateNoSuchMethodHolders(selector);
         if (holders.every(hasMatchingMember)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         if (!addedJsNames.contains(jsName)) {
-          js.Expression method = generateMethod(jsName, selector);
+          jsAst.Expression method = generateMethod(jsName, selector);
           defineStub(jsName, method);
           addedJsNames.add(jsName);
         }
@@ -2103,14 +2185,7 @@ $lazyInitializerLogic
     } else {
       mainCall = '${namer.isolateAccess(main)}()';
     }
-    if (!compiler.enableMinification) {
-      buffer.add("""
-
-//
-// BEGIN invoke [main].
-//
-""");
-    }
+    addComment('BEGIN invoke [main].', buffer);
     buffer.add("""
 if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   document.addEventListener('readystatechange', function () {
@@ -2130,50 +2205,39 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   }
 }
 """);
-    if (!compiler.enableMinification) {
-      buffer.add("""
-//
-// END invoke [main].
-//
-
-""");
-    }
+    addComment('END invoke [main].', buffer);
   }
 
   void emitGetInterceptorMethod(CodeBuffer buffer,
                                 String objectName,
                                 String key,
                                 Collection<ClassElement> classes) {
-    js.Statement buildReturnInterceptor(ClassElement cls) {
-      return js.return_(js.fieldAccess(js.use(namer.isolateAccess(cls)),
-                                       'prototype'));
+    jsAst.Statement buildReturnInterceptor(ClassElement cls) {
+      return js.return_(js[namer.isolateAccess(cls)]['prototype']);
     }
 
-    js.VariableUse receiver = js.use('receiver');
-    JavaScriptBackend backend = compiler.backend;
-
+    jsAst.VariableUse receiver = js['receiver'];
     /**
      * Build a JavaScrit AST node for doing a type check on
      * [cls]. [cls] must be an interceptor class.
      */
-    js.Statement buildInterceptorCheck(ClassElement cls) {
-      js.Expression condition;
+    jsAst.Statement buildInterceptorCheck(ClassElement cls) {
+      jsAst.Expression condition;
       assert(backend.isInterceptorClass(cls));
       if (cls == backend.jsBoolClass) {
-        condition = js.equals(js.typeOf(receiver), js.string('boolean'));
+        condition = receiver.typeof.equals(js.string('boolean'));
       } else if (cls == backend.jsIntClass ||
                  cls == backend.jsDoubleClass ||
                  cls == backend.jsNumberClass) {
         throw 'internal error';
       } else if (cls == backend.jsArrayClass) {
-        condition = js.equals(js.fieldAccess(receiver, 'constructor'),
-                              js.use('Array'));
+        condition = receiver['constructor'].equals('Array');
       } else if (cls == backend.jsStringClass) {
-        condition = js.equals(js.typeOf(receiver), js.string('string'));
+        condition = receiver.typeof.equals(js.string('string'));
       } else if (cls == backend.jsNullClass) {
-        condition = js.equals(receiver, new js.LiteralNull());
+        condition = receiver.equals(new jsAst.LiteralNull());
       } else if (cls == backend.jsFunctionClass) {
-        condition = js.equals(js.typeOf(receiver), js.string('function'));
+        condition = receiver.typeof.equals(js.string('function'));
       } else {
         throw 'internal error';
       }
@@ -2205,31 +2269,28 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
     if (hasInt) hasNumber = true;
 
-    js.Block block = new js.Block.empty();
+    jsAst.Block block = new jsAst.Block.empty();
 
     if (hasNumber) {
-      js.Statement whenNumber;
+      jsAst.Statement whenNumber;
 
       /// Note: there are two number classes in play: Dart's [num],
       /// and JavaScript's Number (typeof receiver == 'number').  This
       /// is the fallback used when we have determined that receiver
       /// is a JavaScript Number.
-      js.Return returnNumberClass = buildReturnInterceptor(
+      jsAst.Return returnNumberClass = buildReturnInterceptor(
           hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
 
       if (hasInt) {
-        js.Expression isInt =
-            js.equals(js.call(js.fieldAccess(js.use('Math'), 'floor'),
-                              [receiver]),
-                      receiver);
-        (whenNumber = js.emptyBlock()).statements
-          ..add(js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)))
-          ..add(returnNumberClass);
+        jsAst.Expression isInt = js['Math']['floor'](receiver).equals(receiver);
+        whenNumber = js.block([
+            js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)),
+            returnNumberClass]);
       } else {
         whenNumber = returnNumberClass;
       }
       block.statements.add(
-          js.if_(js.equals(js.typeOf(receiver), js.string('number')),
+          js.if_(receiver.typeof.equals(js.string('number')),
                  whenNumber));
     }
 
@@ -2242,7 +2303,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // Returning "undefined" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
       // [unwrapException] in js_helper.dart.
-      block.statements.add(js.if_(js.equals(receiver, new js.LiteralNull()),
+      block.statements.add(js.if_(receiver.equals(new jsAst.LiteralNull()),
                                   js.return_(js.undefined())));
     }
     if (hasFunction) {
@@ -2256,12 +2317,11 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     if (hasArray) {
       block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
-    block.statements.add(js.return_(js.fieldAccess(js.use(objectName),
-                                                   'prototype')));
+    block.statements.add(js.return_(js[objectName]['prototype']));
 
-    js.PropertyAccess name = js.fieldAccess(js.use(isolateProperties), key);
-    buffer.add(js.prettyPrint(js.assign(name, js.fun(['receiver'], block)),
-                              compiler));
+    buffer.add(jsAst.prettyPrint(
+        js[isolateProperties][key].assign(js.fun(['receiver'], block)),
+        compiler));
     buffer.add(N);
   }
 
@@ -2269,7 +2329,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
    * Emit all versions of the [:getInterceptor:] method.
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
     // If no class needs to be intercepted, just return.
     if (backend.objectInterceptorClass == null) return;
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
@@ -2299,7 +2358,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     int comparison = _compareSelectorNames(selector1, selector2);
     if (comparison != 0) return comparison;
 
-    JavaScriptBackend backend = compiler.backend;
     Set<ClassElement> classes1 = backend.getInterceptedClassesOn(selector1);
     Set<ClassElement> classes2 = backend.getInterceptedClassesOn(selector2);
     if (classes1.length != classes2.length) {
@@ -2312,47 +2370,205 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     return Comparable.compare(getInterceptor1, getInterceptor2);
   }
 
+  // Optimize performance critical one shot interceptors.
+  jsAst.Statement tryOptimizeOneShotInterceptor(Selector selector,
+                                                Set<ClassElement> classes) {
+    jsAst.Expression isNumber(String variable) {
+      return js[variable].typeof.equals(js.string('number'));
+    }
+
+    jsAst.Expression isNotObject(String variable) {
+      return js[variable].typeof.equals(js.string('object')).not;
+    }
+
+    jsAst.Expression isInt(String variable) {
+      jsAst.Expression receiver = js[variable];
+      return isNumber(variable).binary('&&',
+          js['Math']['floor'](receiver).equals(receiver));
+    }
+    
+    jsAst.Expression tripleShiftZero(jsAst.Expression receiver) {
+      return receiver.binary('>>>', js.toExpression(0));
+    }
+
+    if (selector.isOperator()) {
+      String name = selector.name.stringValue;
+      if (name == '==') {
+        // Unfolds to:
+        // [: if (receiver == null) return a0 == null;
+        //    if (typeof receiver != 'object') {
+        //      return a0 != null && receiver === a0;
+        //    }
+        // :].
+        List<jsAst.Statement> body = <jsAst.Statement>[];
+        body.add(js.if_(js['receiver'].equals(new jsAst.LiteralNull()),
+                        js.return_(js['a0'].equals(new jsAst.LiteralNull()))));
+        body.add(js.if_(
+            isNotObject('receiver'),
+            js.return_(js['a0'].equals(new jsAst.LiteralNull()).not.binary(
+                '&&', js['receiver'].strictEquals(js['a0'])))));
+        return new jsAst.Block(body);
+      }
+      if (!classes.contains(backend.jsIntClass)
+          && !classes.contains(backend.jsNumberClass)
+          && !classes.contains(backend.jsDoubleClass)) {
+        return null;
+      }
+      if (selector.argumentCount == 1) {
+        // The following operators do not map to a JavaScript
+        // operator.
+        if (name != '~/' && name != '<<' && name != '%' && name != '>>') {
+          jsAst.Expression result = js['receiver'].binary(name, js['a0']);
+          if (name == '&' || name == '|' || name == '^') {
+            result = tripleShiftZero(result);
+          }
+          // Unfolds to:
+          // [: if (typeof receiver == "number" && typeof a0 == "number")
+          //      return receiver op a0;
+          // :].
+          return js.if_(
+              isNumber('receiver').binary('&&', isNumber('a0')),
+              js.return_(result));
+        }
+      } else if (name == 'unary-') {
+        // operator~ does not map to a JavaScript operator.
+        // Unfolds to:
+        // [: if (typeof receiver == "number") return -receiver:].
+        return js.if_(
+            isNumber('receiver'),
+            js.return_(new jsAst.Prefix('-', js['receiver'])));
+      } else {
+        assert(name == '~');
+        return js.if_(
+            isInt('receiver'),
+            js.return_(
+                tripleShiftZero(new jsAst.Prefix(name, js['receiver']))));
+      }
+    } else if (selector.isIndex() || selector.isIndexSet()) {
+      // For an index operation, this code generates:
+      //
+      // [: if (receiver.constructor == Array || typeof receiver == "string") {
+      //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
+      //        return receiver[a0];
+      //      }
+      //    }
+      // :]
+      //
+      // For an index set operation, this code generates:
+      //
+      // [: if (receiver.constructor == Array && !receiver.immutable$list) {
+      //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
+      //        return receiver[a0] = a1;
+      //      }
+      //    }
+      // :]
+      bool containsArray = classes.contains(backend.jsArrayClass);
+      bool containsString = classes.contains(backend.jsStringClass);
+      // The index set operator requires a check on its set value in
+      // checked mode, so we don't optimize the interceptor if the
+      // compiler has type assertions enabled.
+      if (selector.isIndexSet()
+          && (compiler.enableTypeAssertions || !containsArray)) {
+        return null;
+      }
+      if (!containsArray && !containsString) {
+        return null;
+      }
+      jsAst.Expression receiver = js['receiver'];
+      jsAst.Expression arg0 = js['a0'];
+      jsAst.Expression isIntAndAboveZero =
+          arg0.binary('>>>', js.toExpression(0)).strictEquals(arg0);
+      jsAst.Expression belowLength = arg0.binary('<', receiver['length']);
+      jsAst.Expression arrayCheck = receiver['constructor'].equals('Array');
+
+      if (selector.isIndex()) {
+        jsAst.Expression stringCheck =
+            receiver.typeof.equals(js.string('string'));
+        jsAst.Expression typeCheck;
+        if (containsArray) {
+          if (containsString) {
+            typeCheck = arrayCheck.binary('||', stringCheck);
+          } else {
+            typeCheck = arrayCheck;
+          }
+        } else {
+          assert(containsString);
+          typeCheck = stringCheck;
+        }
+
+        return js.if_(typeCheck,
+                      js.if_(isIntAndAboveZero.binary('&&', belowLength),
+                             js.return_(receiver[arg0])));
+      } else {
+        jsAst.Expression isImmutableArray = arrayCheck.binary(
+            '&&', receiver[r'immutable$list'].not);
+        return js.if_(isImmutableArray.binary(
+                      '&&', isIntAndAboveZero.binary('&&', belowLength)),
+                      js.return_(receiver[arg0].assign(js['a1'])));
+      }
+    }
+    return null;
+  }
+
   void emitOneShotInterceptors(CodeBuffer buffer) {
-    JavaScriptBackend backend = compiler.backend;
-    for (Selector selector in
-         backend.oneShotInterceptors.toList()..sort(_compareSelectors)) {
-      Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);
-      String oneShotInterceptorName = namer.oneShotInterceptorName(selector);
+    List<String> names = backend.oneShotInterceptors.keys.toList();
+    names.sort();
+    for (String name in names) {
+      Selector selector = backend.oneShotInterceptors[name];
+      Set<ClassElement> classes =
+          backend.getInterceptedClassesOn(selector);
       String getInterceptorName =
           namer.getInterceptorName(backend.getInterceptorMethod, classes);
 
-      List<js.Parameter> parameters = <js.Parameter>[];
-      List<js.Expression> arguments = <js.Expression>[];
-      parameters.add(new js.Parameter('receiver'));
-      arguments.add(js.use('receiver'));
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+      List<jsAst.Expression> arguments = <jsAst.Expression>[];
+      parameters.add(new jsAst.Parameter('receiver'));
+      arguments.add(js['receiver']);
 
       if (selector.isSetter()) {
-        parameters.add(new js.Parameter('value'));
-        arguments.add(js.use('value'));
+        parameters.add(new jsAst.Parameter('value'));
+        arguments.add(js['value']);
       } else {
         for (int i = 0; i < selector.argumentCount; i++) {
           String argName = 'a$i';
-          parameters.add(new js.Parameter(argName));
-          arguments.add(js.use(argName));
+          parameters.add(new jsAst.Parameter(argName));
+          arguments.add(js[argName]);
         }
       }
 
+      List<jsAst.Statement> body = <jsAst.Statement>[];
+      jsAst.Statement optimizedPath =
+          tryOptimizeOneShotInterceptor(selector, classes);
+      if (optimizedPath != null) {
+        body.add(optimizedPath);
+      }
+
       String invocationName = backend.namer.invocationName(selector);
-      js.Fun function =
-          new js.Fun(parameters,
-              js.block1(js.return_(
-                        js.use(isolateProperties)
-                            .dot(getInterceptorName)
-                            .callWith([js.use('receiver')])
-                            .dot(invocationName)
-                            .callWith(arguments))));
+      body.add(js.return_(
+          js[isolateProperties][getInterceptorName]('receiver')[invocationName](
+              arguments)));
 
-      js.PropertyAccess property =
-          js.fieldAccess(js.use(isolateProperties), oneShotInterceptorName);
+      jsAst.Fun function = js.fun(parameters, body);
 
-      buffer.add(js.prettyPrint(js.assign(property, function), compiler));
+      jsAst.PropertyAccess property =
+          js[isolateProperties][name];
+
+      buffer.add(jsAst.prettyPrint(property.assign(function), compiler));
       buffer.add(N);
     }
+  }
+
+  void emitInitFunction(CodeBuffer buffer) {
+    jsAst.Fun fun = js.fun([], [
+      js['$isolateProperties = {}'],
+    ]
+    ..addAll(buildDefineClassAndFinishClassFunctionsIfNecessary())
+    ..addAll(buildLazyInitializerFunctionIfNecessary())
+    ..addAll(buildFinishIsolateConstructor())
+    );
+    jsAst.FunctionDeclaration decl = new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('init'), fun);
+    buffer.add(jsAst.prettyPrint(decl, compiler).getText());
   }
 
   String assembleProgram() {
@@ -2360,7 +2576,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       computeNeededClasses();
 
       mainBuffer.add(GENERATED_BY);
-      if (!compiler.enableMinification) mainBuffer.add(HOOKS_API_USAGE);
+      addComment(HOOKS_API_USAGE, mainBuffer);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
       // Shorten the code by using "$$" as temporary.
@@ -2392,8 +2608,10 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // The following code should not use the short-hand for the
       // initialStatics.
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_=${_}null$N');
-      mainBuffer.add(boundClosureBuffer);
-      emitFinishClassesInvocationIfNecessary(mainBuffer);
+      if (!boundClosureBuffer.isEmpty) {
+        mainBuffer.add(boundClosureBuffer);
+        emitFinishClassesInvocationIfNecessary(mainBuffer);
+      }
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
@@ -2404,29 +2622,82 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
 
       nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
-      mainBuffer.add('function init()$_{\n');
-      mainBuffer.add('$isolateProperties$_=$_{}$N');
-      addDefineClassAndFinishClassFunctionsIfNecessary(mainBuffer);
-      addLazyInitializerFunctionIfNecessary(mainBuffer);
-      emitFinishIsolateConstructor(mainBuffer);
-      mainBuffer.add('}\n');
+      emitInitFunction(mainBuffer);
       compiler.assembledCode = mainBuffer.getText();
+      outputSourceMap(mainBuffer, compiler.assembledCode, '');
 
-      if (generateSourceMap) {
-        SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
-        String sourceMap = buildSourceMap(mainBuffer, compiledFile);
-        compiler.outputProvider('', 'js.map')
-            ..add(sourceMap)
-            ..close();
-      }
+      emitDeferredCode(deferredBuffer);
+
     });
     return compiler.assembledCode;
+  }
+
+  CodeBuffer bufferForElement(Element element, CodeBuffer eagerBuffer) {
+    if (!isDeferred(element)) return eagerBuffer;
+    emitDeferredPreambleWhenEmpty(deferredBuffer);
+    return deferredBuffer;
+  }
+
+  void emitDeferredCode(CodeBuffer buffer) {
+    if (buffer.isEmpty) return;
+
+    if (needsDefineClass) {
+      buffer.add('$finishClassesName(\$\$,'
+                 '$_${namer.CURRENT_ISOLATE},'
+                 '$_$isolatePropertiesName)$N');
+      // Reset the map.
+      buffer.add("\$\$$_=$_{}$N");
+    }
+
+    buffer.add('${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+
+    String code = buffer.getText();
+    compiler.outputProvider('part', 'js')
+      ..add(code)
+      ..close();
+    outputSourceMap(buffer, compiler.assembledCode, 'part');
+  }
+
+  void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
+    if (!buffer.isEmpty) return;
+    final classesCollector = r"$$";
+
+    buffer.add('$classesCollector$_=$_{}$N');
+    buffer.add('var old${namer.CURRENT_ISOLATE}$_='
+               '$_${namer.CURRENT_ISOLATE}$N');
+
+    // TODO(ahe): This defines a lot of properties on the
+    // Isolate.prototype object.  We know this will turn it into a
+    // slow object in V8, so instead we should do something similar to
+    // Isolate.$finishIsolateConstructor.
+    buffer.add('${namer.CURRENT_ISOLATE}$_='
+               '$_${namer.isolateName}.prototype$N$n');
   }
 
   String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {
     SourceMapBuilder sourceMapBuilder = new SourceMapBuilder();
     buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
     return sourceMapBuilder.build(compiledFile);
+  }
+
+  void outputSourceMap(CodeBuffer buffer, String code, String name) {
+    if (!generateSourceMap) return;
+    SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
+    String sourceMap = buildSourceMap(mainBuffer, compiledFile);
+    compiler.outputProvider(name, 'js.map')
+        ..add(sourceMap)
+        ..close();
+  }
+
+  bool isDeferred(Element element) {
+    return compiler.deferredLoadTask.isDeferred(element);
+  }
+
+  // TODO(ahe): Remove this when deferred loading is fully implemented.
+  void warnNotImplemented(Element element, String message) {
+    compiler.reportMessage(compiler.spanFromSpannable(element),
+                           MessageKind.GENERIC.error({'text': message}),
+                           api.Diagnostic.WARNING);
   }
 }
 

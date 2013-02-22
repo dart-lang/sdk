@@ -60,6 +60,7 @@ class PubHttpClient extends http.BaseClient {
         if (asyncError.error.osError.errorCode == 8 ||
             asyncError.error.osError.errorCode == -2 ||
             asyncError.error.osError.errorCode == -5 ||
+            asyncError.error.osError.errorCode == 11001 ||
             asyncError.error.osError.errorCode == 11004) {
           throw 'Could not resolve URL "${request.url.origin}".';
         } else if (asyncError.error.osError.errorCode == -12276) {

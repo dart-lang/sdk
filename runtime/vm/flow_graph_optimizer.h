@@ -21,11 +21,17 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
         flow_graph_(flow_graph) { }
   virtual ~FlowGraphOptimizer() {}
 
+  FlowGraph* flow_graph() const { return flow_graph_; }
+
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
+
+  // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
+  // shift can be a truncating Smi shift-left and result is always Smi.
+  void TryOptimizeLeftShiftWithBitAndPattern();
 
   void Canonicalize();
 
@@ -47,7 +53,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,
-                    Definition::UseKind use_kind);
+                    Definition::UseKind use_kind) {
+    flow_graph_->InsertBefore(next, instr, env, use_kind);
+  }
 
  private:
   // Attempt to build ICData for call using propagated class-ids.
@@ -57,9 +65,13 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   intptr_t PrepareIndexedOp(InstanceCallInstr* call,
                             intptr_t class_id,
-                            Value** array,
-                            Value** index);
+                            Definition** array,
+                            Definition** index);
   bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
+  bool TryInlineByteArraySetIndexed(InstanceCallInstr* call);
+  void BuildStoreIndexed(InstanceCallInstr* call,
+                         const ICData& value_check,
+                         intptr_t class_id);
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
 
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
@@ -79,12 +91,28 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                            intptr_t receiver_cid,
                                            intptr_t view_cid);
 
-  void AddCheckClass(InstanceCallInstr* call, Value* value);
+  // Insert a check of 'to_check' determined by 'unary_checks'.  If the
+  // check fails it will deoptimize to 'deopt_id' using the deoptimization
+  // environment 'deopt_environment'.  The check is inserted immediately
+  // before 'insert_before'.
+  void AddCheckClass(Definition* to_check,
+                     const ICData& unary_checks,
+                     intptr_t deopt_id,
+                     Environment* deopt_environment,
+                     Instruction* insert_before);
 
-  void InsertAfter(Instruction* prev,
-                   Instruction* instr,
-                   Environment* env,
-                   Definition::UseKind use_kind);
+  // Insert a Smi check if needed.
+  void AddCheckSmi(Definition* to_check,
+                   intptr_t deopt_id,
+                   Environment* deopt_environment,
+                   Instruction* insert_before);
+
+  // Add a class check for a call's first argument immediately before the
+  // call, using the call's IC data to determine the check, and the call's
+  // deopt ID and deoptimization environment if the check fails.
+  void AddReceiverCheck(InstanceCallInstr* call);
+
+  void ReplaceCall(Definition* call, Definition* replacement);
 
   void InsertConversionsFor(Definition* def);
 
@@ -111,6 +139,18 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
+
+  void HandleRelationalOp(RelationalOpInstr* comp);
+
+  // Visit an equality compare.  The current instruction can be the
+  // comparison itself or a branch on the comparison.
+  template <typename T>
+  void HandleEqualityCompare(EqualityCompareInstr* comp,
+                             T current_instruction);
+
+  void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
+                                    Definition* left_instr,
+                                    Definition* right_instr);
 
   FlowGraph* flow_graph_;
 

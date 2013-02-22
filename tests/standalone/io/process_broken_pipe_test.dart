@@ -5,6 +5,7 @@
 // Process test program to test closed stdin from child process.
 
 import "dart:io";
+import "dart:isolate";
 
 import "process_test_util.dart";
 
@@ -12,17 +13,18 @@ main() {
   // Running dart without arguments makes it close right away.
   var future = Process.start(new Options().executable, []);
   future.then((process) {
-    // Ignore error on stdin.
-    process.stdin.onError = (e) => null;
+    process.stdin.done.catchError((e) {
+      // Accept errors on stdin.
+    });
 
     // Drain stdout and stderr.
-    process.stdout.onData = () => process.stdout.read();
-    process.stderr.onData = () => process.stderr.read();
+    process.stdout.listen((_) {});
+    process.stderr.listen((_) {});
 
     // Write to the stdin after the process is terminated to test
     // writing to a broken pipe.
-    process.onExit = (code) {
-      Expect.isFalse(process.stdin.write([0]));
-    };
+    process.exitCode.then((code) {
+      process.stdin.add([0]);
+    });
   });
 }

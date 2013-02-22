@@ -7,6 +7,7 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
+import 'dart:web_sql';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
@@ -16,7 +17,8 @@ import 'dart:_foreign_helper' show JS;
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// DO NOT EDIT
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:html library.
 
 /// The Dart HTML library.
@@ -1476,7 +1478,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
-  void set lineDashOffset(num value) => JS('void', 
+  void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
 }
@@ -2192,6 +2194,8 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
   static const int CSS_URI = 20;
 
   static const int CSS_VH = 27;
+
+  static const int CSS_VMAX = 29;
 
   static const int CSS_VMIN = 28;
 
@@ -5961,77 +5965,6 @@ class DataView extends ArrayBufferView native "*DataView" {
 
 
 @DocsEditable
-@DomName('Database')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class Database native "*Database" {
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => JS('bool', '!!(window.openDatabase)');
-
-  @DomName('Database.version')
-  @DocsEditable
-  final String version;
-
-  @DomName('Database.changeVersion')
-  @DocsEditable
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
-
-  @DomName('Database.readTransaction')
-  @DocsEditable
-  void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
-
-  @DomName('Database.transaction')
-  @DocsEditable
-  void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void DatabaseCallback(database);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('DatabaseSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class DatabaseSync native "*DatabaseSync" {
-
-  @DomName('DatabaseSync.lastErrorMessage')
-  @DocsEditable
-  final String lastErrorMessage;
-
-  @DomName('DatabaseSync.version')
-  @DocsEditable
-  final String version;
-
-  @DomName('DatabaseSync.changeVersion')
-  @DocsEditable
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native;
-
-  @DomName('DatabaseSync.readTransaction')
-  @DocsEditable
-  void readTransaction(SqlTransactionSyncCallback callback) native;
-
-  @DomName('DatabaseSync.transaction')
-  @DocsEditable
-  void transaction(SqlTransactionSyncCallback callback) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('DedicatedWorkerContext')
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
@@ -8502,7 +8435,7 @@ class _ElementCssClassSet extends CssClassSet {
   _ElementCssClassSet(this._element);
 
   Set<String> readClasses() {
-    var s = new Set<String>();
+    var s = new LinkedHashSet<String>();
     var classname = _element.$dom_className;
 
     for (String name in classname.split(' ')) {
@@ -11163,7 +11096,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   @DomName('Float32Array.fromBuffer')
   @DocsEditable
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -11379,7 +11312,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   @DomName('Float64Array.fromBuffer')
   @DocsEditable
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
@@ -11580,6 +11513,21 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 
 @DocsEditable
+@DomName('FocusEvent')
+class FocusEvent extends UIEvent native "*FocusEvent" {
+
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
+  @JSName('relatedTarget')
+  @DomName('FocusEvent.relatedTarget')
+  @DocsEditable
+  final dynamic _relatedTarget;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('FormData')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -11708,18 +11656,113 @@ class Gamepad native "*Gamepad" {
 @DomName('Geolocation')
 class Geolocation native "*Geolocation" {
 
-  @DomName('Geolocation.clearWatch')
-  @DocsEditable
-  void clearWatch(int watchId) native;
-
   @DomName('Geolocation.getCurrentPosition')
-  @DocsEditable
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
+  Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
+      Duration timeout, Duration maximumAge}) {
+    var options = {};
+    if (enableHighAccuracy != null) {
+      options['enableHighAccuracy'] = enableHighAccuracy;
+    }
+    if (timeout != null) {
+      options['timeout'] = timeout.inMilliseconds;
+    }
+    if (maximumAge != null) {
+      options['maximumAge'] = maximumAge.inMilliseconds;
+    }
+    var completer = new Completer<Geoposition>();
+    try {
+      $dom_getCurrentPosition(
+          (position) {
+            completer.complete(_ensurePosition(position));
+          },
+          (error) {
+            completer.completeError(error);
+          },
+          options);
+    } catch (e, stacktrace) {
+      completer.completeError(e, stacktrace);
+    }
+    return completer.future;
+  }
 
   @DomName('Geolocation.watchPosition')
+  Stream<Geoposition> watchPosition({bool enableHighAccuracy,
+      Duration timeout, Duration maximumAge}) {
+
+    var options = {};
+    if (enableHighAccuracy != null) {
+      options['enableHighAccuracy'] = enableHighAccuracy;
+    }
+    if (timeout != null) {
+      options['timeout'] = timeout.inMilliseconds;
+    }
+    if (maximumAge != null) {
+      options['maximumAge'] = maximumAge.inMilliseconds;
+    }
+
+    int watchId;
+    var controller;
+    controller = new StreamController<Geoposition>(
+      onSubscriptionStateChange: () {
+        if (controller.hasSubscribers) {
+          assert(watchId == null);
+          watchId = $dom_watchPosition(
+              (position) {
+                controller.add(_ensurePosition(position));
+              },
+              (error) {
+                controller.signalError(error);
+              },
+              options);
+        } else {
+          assert(watchId != null);
+          $dom_clearWatch(watchId);
+        }
+      });
+
+    return controller.stream;
+  }
+
+  Geoposition _ensurePosition(domPosition) {
+    try {
+      // Firefox may throw on this.
+      if (domPosition is Geoposition) {
+        return domPosition;
+      }
+    } catch(e) {}
+    return new _GeopositionWrapper(domPosition);
+  }
+
+  @JSName('clearWatch')
+  @DomName('Geolocation.clearWatch')
   @DocsEditable
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
+  void $dom_clearWatch(int watchId) native;
+
+  @JSName('getCurrentPosition')
+  @DomName('Geolocation.getCurrentPosition')
+  @DocsEditable
+  void $dom_getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native;
+
+  @JSName('watchPosition')
+  @DomName('Geolocation.watchPosition')
+  @DocsEditable
+  int $dom_watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) native;
 }
+
+/**
+ * Wrapper for Firefox- it returns an object which we cannot map correctly.
+ * Basically Firefox was returning a [xpconnect wrapped nsIDOMGeoPosition] but
+ * which has further oddities.
+ */
+class _GeopositionWrapper implements Geoposition {
+  var _ptr;
+  _GeopositionWrapper(this._ptr);
+
+  Coordinates get coords => JS('Coordinates', '#.coords', _ptr);
+  int get timestamp => JS('int', '#.timestamp', _ptr);
+}
+
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14130,7 +14173,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Int16Array.fromBuffer')
   @DocsEditable
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -14346,7 +14389,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Int32Array.fromBuffer')
   @DocsEditable
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -14562,7 +14605,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   @DomName('Int8Array.fromBuffer')
   @DocsEditable
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -14819,6 +14862,10 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
   @DomName('JavaScriptCallFrame.scopeType')
   @DocsEditable
   int scopeType(int scopeIndex) native;
+
+  @DomName('JavaScriptCallFrame.setVariableValue')
+  @DocsEditable
+  Object setVariableValue(int scopeIndex, String variableName, Object newValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18389,7 +18436,7 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void PositionCallback(Geoposition position);
+typedef void _PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18420,7 +18467,7 @@ class PositionError native "*PositionError" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void PositionErrorCallback(PositionError error);
+typedef void _PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18965,17 +19012,17 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   }
 
   /**
-   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on
    * the current platform.
    */
   static bool get supported {
     // Currently in Firefox some of the RTC elements are defined but throw an
-    // error unless the user has specifically enabled them in their 
+    // error unless the user has specifically enabled them in their
     // about:config. So we have to construct an element to actually test if RTC
     // is supported at at the given time.
     try {
       var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
-      return c is RtcPeerConnection; 
+      return c is RtcPeerConnection;
     } catch (_) {}
     return false;
   }
@@ -19024,12 +19071,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   final RtcSessionDescription localDescription;
 
-  @DomName('RTCPeerConnection.localStreams')
-  @DocsEditable
-  @Returns('_MediaStreamList')
-  @Creates('_MediaStreamList')
-  final List<MediaStream> localStreams;
-
   @DomName('RTCPeerConnection.readyState')
   @DocsEditable
   final String readyState;
@@ -19037,12 +19078,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.remoteDescription')
   @DocsEditable
   final RtcSessionDescription remoteDescription;
-
-  @DomName('RTCPeerConnection.remoteStreams')
-  @DocsEditable
-  @Returns('_MediaStreamList')
-  @Creates('_MediaStreamList')
-  final List<MediaStream> remoteStreams;
 
   @DomName('RTCPeerConnection.signalingState')
   @DocsEditable
@@ -19101,6 +19136,11 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
+  @JSName('createDTMFSender')
+  @DomName('RTCPeerConnection.createDTMFSender')
+  @DocsEditable
+  RtcdtmfSender createDtmfSender(MediaStreamTrack track) native;
+
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable
   RtcDataChannel createDataChannel(String label, [Map options]) {
@@ -19142,6 +19182,14 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event event) native;
+
+  @DomName('RTCPeerConnection.getLocalStreams')
+  @DocsEditable
+  List<MediaStream> getLocalStreams() native;
+
+  @DomName('RTCPeerConnection.getRemoteStreams')
+  @DocsEditable
+  List<MediaStream> getRemoteStreams() native;
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable
@@ -19307,42 +19355,64 @@ class RtcStatsResponse native "*RTCStatsResponse" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
+@DocsEditable
+@DomName('RTCDTMFSender')
+class RtcdtmfSender extends EventTarget native "*RTCDTMFSender" {
 
-typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
+  @JSName('canInsertDTMF')
+  @DomName('RTCDTMFSender.canInsertDTMF')
+  @DocsEditable
+  final bool canInsertDtmf;
+
+  @DomName('RTCDTMFSender.duration')
+  @DocsEditable
+  final int duration;
+
+  @DomName('RTCDTMFSender.interToneGap')
+  @DocsEditable
+  final int interToneGap;
+
+  @DomName('RTCDTMFSender.toneBuffer')
+  @DocsEditable
+  final String toneBuffer;
+
+  @DomName('RTCDTMFSender.track')
+  @DocsEditable
+  final MediaStreamTrack track;
+
+  @JSName('addEventListener')
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @JSName('insertDTMF')
+  @DomName('RTCDTMFSender.insertDTMF')
+  @DocsEditable
+  void insertDtmf(String tones, [int duration, int interToneGap]) native;
+
+  @JSName('removeEventListener')
+  @DomName('RTCDTMFSender.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
+@DocsEditable
+@DomName('RTCDTMFToneChangeEvent')
+class RtcdtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
 
-typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void SqlTransactionCallback(SqlTransaction transaction);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void SqlTransactionErrorCallback(SqlError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
+  @DomName('RTCDTMFToneChangeEvent.tone')
+  @DocsEditable
+  final String tone;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20524,330 +20594,6 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
   @DomName('SpeechRecognitionResult.item')
   @DocsEditable
   SpeechRecognitionAlternative item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SQLError')
-class SqlError native "*SQLError" {
-
-  static const int CONSTRAINT_ERR = 6;
-
-  static const int DATABASE_ERR = 1;
-
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
-
-  @DomName('SQLError.code')
-  @DocsEditable
-  final int code;
-
-  @DomName('SQLError.message')
-  @DocsEditable
-  final String message;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SQLException')
-class SqlException native "*SQLException" {
-
-  static const int CONSTRAINT_ERR = 6;
-
-  static const int DATABASE_ERR = 1;
-
-  static const int QUOTA_ERR = 4;
-
-  static const int SYNTAX_ERR = 5;
-
-  static const int TIMEOUT_ERR = 7;
-
-  static const int TOO_LARGE_ERR = 3;
-
-  static const int UNKNOWN_ERR = 0;
-
-  static const int VERSION_ERR = 2;
-
-  @DomName('SQLException.code')
-  @DocsEditable
-  final int code;
-
-  @DomName('SQLException.message')
-  @DocsEditable
-  final String message;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SQLResultSet')
-class SqlResultSet native "*SQLResultSet" {
-
-  @DomName('SQLResultSet.insertId')
-  @DocsEditable
-  final int insertId;
-
-  @DomName('SQLResultSet.rows')
-  @DocsEditable
-  final SqlResultSetRowList rows;
-
-  @DomName('SQLResultSet.rowsAffected')
-  @DocsEditable
-  final int rowsAffected;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SQLResultSetRowList')
-class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
-
-  @DomName('SQLResultSetRowList.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  Map operator[](int index) => JS("Map", "#[#]", this, index);
-
-  void operator[]=(int index, Map value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Map> mixins.
-  // Map is the element type.
-
-  // From Iterable<Map>:
-
-  Iterator<Map> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Map>(this);
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Map element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Map element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Map> where(bool f(Map element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Map element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Map> toList() => new List<Map>.from(this);
-  Set<Map> toSet() => new Set<Map>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Map> takeWhile(bool test(Map value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Map> skipWhile(bool test(Map value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Map firstMatching(bool test(Map value), { Map orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
-  }
-
-  Map lastMatching(bool test(Map value), {Map orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
-  }
-
-  Map singleMatching(bool test(Map value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
-  }
-
-  Map elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Map>:
-
-  void add(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Map> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Map>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Map> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Map a, Map b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Map element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Map element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Map get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Map get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Map get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  Map min([int compare(Map a, Map b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Map max([int compare(Map a, Map b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
-  Map removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Map removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeMatching(bool test(Map element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainMatching(bool test(Map element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Map initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Map> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Map>[]);
-
-  // -- end List<Map> mixins.
-
-  @DomName('SQLResultSetRowList.item')
-  @DocsEditable
-  @Creates('=Object')
-  Map item(int index) {
-    return convertNativeToDart_Dictionary(_item_1(index));
-  }
-  @JSName('item')
-  @DomName('SQLResultSetRowList.item')
-  @DocsEditable
-  @Creates('=Object')
-  _item_1(index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SQLTransaction')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class SqlTransaction native "*SQLTransaction" {
-
-  @DomName('SQLTransaction.executeSql')
-  @DocsEditable
-  void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SQLTransactionSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class SqlTransactionSync native "*SQLTransactionSync" {
-
-  @DomName('SQLTransactionSync.executeSql')
-  @DocsEditable
-  SqlResultSet executeSql(String sqlStatement, List arguments) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22765,7 +22511,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   @DomName('Uint16Array.fromBuffer')
   @DocsEditable
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -22981,7 +22727,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   @DomName('Uint32Array.fromBuffer')
   @DocsEditable
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -23197,7 +22943,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Uint8Array.fromBuffer')
   @DocsEditable
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -23413,7 +23159,7 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   @DomName('Uint8ClampedArray.fromBuffer')
   @DocsEditable
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
@@ -25607,6 +25353,12 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   }
 
 
+  static const int DOM_DELTA_LINE = 0x01;
+
+  static const int DOM_DELTA_PAGE = 0x02;
+
+  static const int DOM_DELTA_PIXEL = 0x00;
+
   @JSName('webkitDirectionInvertedFromDevice')
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable
@@ -25679,12 +25431,13 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
         'deltaX is not supported');
   }
 
+  @DomName('WheelEvent.deltaMode')
   int get deltaMode {
-    if (JS('bool', '!!#.deltaMode', this)) {
-      // If not available then we're poly-filling and doing pixel scroll.
-      return 0;
+    if (JS('bool', '!!(#.deltaMode)', this)) {
+      return JS('int', '#.deltaMode', this);
     }
-    return this._deltaMode;
+    // If not available then we're poly-filling and doing pixel scroll.
+    return 0;
   }
 
   num get _deltaY => JS('num', '#.deltaY', this);
@@ -25692,7 +25445,6 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   num get _wheelDelta => JS('num', '#.wheelDelta', this);
   num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
   num get _detail => JS('num', '#.detail', this);
-  int get _deltaMode => JS('int', '#.deltaMode', this);
 
   bool get _hasInitMouseScrollEvent =>
       JS('bool', '!!(#.initMouseScrollEvent)', this);
@@ -25756,7 +25508,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * frame unwinds, causing the future to complete after all processing has
    * completed for the current event, but before any subsequent events.
    */
-  void setImmediate(TimeoutHandler callback) { 
+  void setImmediate(TimeoutHandler callback) {
     _addMicrotaskCallback(callback);
   }
   /**
@@ -25787,7 +25539,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * If you need to later cancel this animation, use [requestAnimationFrame]
    * instead.
    *
-   * Note: The code that runs when the future completes should call 
+   * Note: The code that runs when the future completes should call
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
@@ -25862,7 +25614,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   /**
    * Called to draw an animation frame and then request the window to repaint
-   * after [callback] has finished (creating the animation). 
+   * after [callback] has finished (creating the animation).
    *
    * Use this method only if you need to later call [cancelAnimationFrame]. If
    * not, the preferred Dart idiom is to set animation frames by calling
@@ -26311,9 +26063,9 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Creates('Database')
-  @Creates('DatabaseSync')
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
+  @Creates('SqlDatabase')
+  @Creates('SqlDatabaseSync')
+  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @DomName('DOMWindow.postMessage')
   @DocsEditable
@@ -26752,14 +26504,14 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
+  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @DomName('WorkerContext.openDatabaseSync')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
+  SqlDatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @JSName('removeEventListener')
   @DomName('WorkerContext.removeEventListener')
@@ -28363,203 +28115,6 @@ class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
 @DocsEditable
 @DomName('HTMLMarqueeElement')
 class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('MediaStreamList')
-class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
-
-  @DomName('MediaStreamList.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
-
-  void operator[]=(int index, MediaStream value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<MediaStream> mixins.
-  // MediaStream is the element type.
-
-  // From Iterable<MediaStream>:
-
-  Iterator<MediaStream> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<MediaStream>(this);
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  bool contains(MediaStream element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(MediaStream element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(MediaStream element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<MediaStream> where(bool f(MediaStream element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(MediaStream element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
-
-  List<MediaStream> toList() => new List<MediaStream>.from(this);
-  Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
-  }
-
-  MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
-  }
-
-  MediaStream singleMatching(bool test(MediaStream value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
-  }
-
-  MediaStream elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<MediaStream>:
-
-  void add(MediaStream value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(MediaStream value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<MediaStream> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<MediaStream>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<MediaStream> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(MediaStream a, MediaStream b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(MediaStream element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(MediaStream element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  MediaStream get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  MediaStream get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  MediaStream get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
-  MediaStream removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  MediaStream removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeMatching(bool test(MediaStream element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainMatching(bool test(MediaStream element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [MediaStream initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<MediaStream> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <MediaStream>[]);
-
-  // -- end List<MediaStream> mixins.
-
-  @DomName('MediaStreamList.item')
-  @DocsEditable
-  MediaStream item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30538,9 +30093,9 @@ class KeyboardEventController {
 
 
 /**
- * Defines the keycode values for keys that are returned by 
+ * Defines the keycode values for keys that are returned by
  * KeyboardEvent.keyCode.
- * 
+ *
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -30548,7 +30103,7 @@ class KeyboardEventController {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -30743,12 +30298,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
- 
+
     // Safari sends zero key code for non-latin characters.
     if (_Device.isWebKit && keyCode == 0) {
       return true;
     }
- 
+
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
@@ -32536,7 +32091,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-  
+
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,

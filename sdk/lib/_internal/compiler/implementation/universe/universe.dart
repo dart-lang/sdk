@@ -13,6 +13,7 @@ import '../util/util.dart';
 import '../js/js.dart' as js;
 
 part 'function_set.dart';
+part 'full_function_set.dart';
 part 'selector_map.dart';
 
 class Universe {
@@ -414,8 +415,8 @@ class Selector {
     if (namedArgumentCount > 0) {
       StringBuffer result = new StringBuffer();
       for (int i = 0; i < namedArgumentCount; i++) {
-        if (i != 0) result.add(', ');
-        result.add(namedArguments[i].slowToString());
+        if (i != 0) result.write(', ');
+        result.write(namedArguments[i].slowToString());
       }
       return "[$result]";
     }
@@ -514,12 +515,15 @@ class TypedSelector extends Selector {
     if (typeKind == TypedSelectorKind.EXACT) {
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
     } else if (typeKind == TypedSelectorKind.SUBCLASS) {
-      return (hasElementIn(self, element) || other.isSubclassOf(self))
+      return (hasElementIn(self, element)
+              || other.isSubclassOf(self)
+              || compiler.world.hasAnySubclassThatMixes(self, other))
           && appliesUntyped(element, compiler);
     } else {
       assert(typeKind == TypedSelectorKind.INTERFACE);
       if (other.implementsInterface(self)
           || other.isSubclassOf(self)
+          || compiler.world.hasAnySubclassThatMixes(self, other)
           || compiler.world.hasAnySubclassThatImplements(other, receiverType)) {
         return appliesUntyped(element, compiler);
       }

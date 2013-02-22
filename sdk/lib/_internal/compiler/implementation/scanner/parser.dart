@@ -556,7 +556,7 @@ class Parser {
    * Returns true if the stringValue of the [token] is [value].
    */
   bool optional(String value, Token token) {
-      return identical(value, token.stringValue);
+    return identical(value, token.stringValue);
   }
 
   /**

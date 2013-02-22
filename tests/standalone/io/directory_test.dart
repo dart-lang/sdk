@@ -50,31 +50,33 @@ class DirectoryTest {
     testSyncListing(false);
     Expect.equals(f.fullPathSync(), fLong.fullPathSync());
 
-    var lister = directory.list(recursive: true);
-
-    lister.onDir = (dir) {
-      listedDir = true;
-      Expect.isTrue(dir.contains(directory.path));
-      Expect.isTrue(dir.contains('subdir'));
-    };
-
-    lister.onFile = (f) {
-      listedFile = true;
-      Expect.isTrue(f.contains(directory.path));
-      Expect.isTrue(f.contains('subdir'));
-      Expect.isTrue(f.contains('file.txt'));
-    };
-
-    lister.onDone = (completed) {
-      Expect.isTrue(completed, "directory listing did not complete");
-      Expect.isTrue(listedDir, "directory not found");
-      Expect.isTrue(listedFile, "file not found");
-      directory.delete(recursive: true).then((ignore) {
-        f.exists().then((exists) => Expect.isFalse(exists));
-        directory.exists().then((exists) => Expect.isFalse(exists));
-        subDirectory.exists().then((exists) => Expect.isFalse(exists));
-      });
-    };
+    var listingDonePort = new ReceivePort();
+    directory.list(recursive: true).listen(
+        (FileSystemEntity entity) {
+          if (entity is File) {
+            var path = entity.name;
+            listedFile = true;
+            Expect.isTrue(path.contains(directory.path));
+            Expect.isTrue(path.contains('subdir'));
+            Expect.isTrue(path.contains('file.txt'));
+          } else {
+            var path = entity.path;
+            Expect.isTrue(entity is Directory);
+            listedDir = true;
+            Expect.isTrue(path.contains(directory.path));
+            Expect.isTrue(path.contains('subdir'));
+          }
+        },
+        onDone: () {
+          Expect.isTrue(listedDir, "directory not found");
+          Expect.isTrue(listedFile, "file not found");
+          directory.delete(recursive: true).then((ignore) {
+            f.exists().then((exists) => Expect.isFalse(exists));
+            directory.exists().then((exists) => Expect.isFalse(exists));
+            subDirectory.exists().then((exists) => Expect.isFalse(exists));
+            listingDonePort.close();
+          });
+        });
 
     // Listing is asynchronous, so nothing should be listed at this
     // point.
@@ -83,20 +85,13 @@ class DirectoryTest {
   }
 
   static void testListNonExistent() {
-    setupListerHandlers(DirectoryLister lister) {
-      // Test that listing a non-existing directory fails.
-      lister.onError = (e) {
-        Expect.isTrue(e is DirectoryIOException);
-      };
-      lister.onFile = (file) {
-        Expect.fail("Listing of non-existing directory should fail");
-      };
-      lister.onDir = (dir) {
-        Expect.fail("Listing of non-existing directory should fail");
-      };
-      lister.onDone = (success) {
-        Expect.isFalse(success);
-      };
+    setupListerHandlers(Stream<FileSystemEntity> stream) {
+      stream.listen(
+          (_) => Expect.fail("Listing of non-existing directory should fail"),
+          onError: (e) {
+            Expect.isTrue(e is AsyncError);
+            Expect.isTrue(e.error is DirectoryIOException);
+          });
     }
     new Directory("").createTemp().then((d) {
       d.delete().then((ignore) {
@@ -109,22 +104,19 @@ class DirectoryTest {
   static void testListTooLongName() {
     new Directory("").createTemp().then((d) {
       var errors = 0;
-      setupListHandlers(DirectoryLister lister) {
-        lister.onError = (e) {
-          Expect.isTrue(e is DirectoryIOException);
-          if (++errors == 2) {
-            d.delete(recursive: true);
-          }
-        };
-        lister.onFile = (file) {
-          Expect.fail("Listing of non-existing directory should fail");
-        };
-        lister.onDir = (dir) {
-          Expect.fail("Listing of non-existing directory should fail");
-        };
-        lister.onDone = (success) {
-          Expect.isFalse(success);
-        };
+      var port = new ReceivePort();
+      setupListHandlers(Stream<FileSystemEntity> stream) {
+        stream.listen(
+          (_) => Expect.fail("Listing of non-existing directory should fail"),
+          onError: (e) {
+            Expect.isTrue(e is AsyncError);
+            Expect.isTrue(e.error is DirectoryIOException);
+            if (++errors == 2) {
+              d.delete(recursive: true).then((_) {
+                port.close();
+              });
+            }
+          });
       }
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
@@ -212,45 +204,6 @@ class DirectoryTest {
     Expect.throws(long.deleteSync);
     Expect.throws(() => long.deleteSync(recursive: true));
     d.deleteSync(recursive: true);
-  }
-
-  static void testDeleteSymlink() {
-    // temp/
-    //   a/
-    //     file.txt
-    //   b/
-    //     a_link -> a
-    var d = new Directory("").createTempSync();
-    var a = new Directory("${d.path}/a");
-    a.createSync();
-
-    var b = new Directory("${d.path}/b");
-    b.createSync();
-
-    var f = new File("${d.path}/a/file.txt");
-    f.createSync();
-    Expect.isTrue(f.existsSync());
-
-    // Create a symlink (or junction on Windows) from
-    // temp/b/a_link to temp/a.
-    var cmd = "ln";
-    var args = ['-s', "${d.path}/b/a_link", "${d.path}/a"];
-
-    if (Platform.operatingSystem == "windows") {
-      cmd = "cmd";
-      args = ["/c", "mklink", "/j", "${d.path}\\b\\a_link", "${d.path}\\a"];
-    }
-
-    Process.run(cmd, args).then((_) {
-      // Delete the directory containing the junction.
-      b.deleteSync(recursive: true);
-
-      // We should not have recursed through a_link into a.
-      Expect.isTrue(f.existsSync());
-
-      // Clean up after ourselves.
-      d.deleteSync(recursive: true);
-    });
   }
 
   static void testExistsCreateDelete() {
@@ -359,7 +312,6 @@ class DirectoryTest {
     testDeleteTooLongName();
     testDeleteNonExistentSync();
     testDeleteTooLongNameSync();
-    testDeleteSymlink();
     testExistsCreateDelete();
     testExistsCreateDeleteSync();
     testCreateTemp();

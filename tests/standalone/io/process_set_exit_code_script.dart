@@ -5,7 +5,7 @@
 import "dart:io";
 
 main() {
-  stdout.writeString("standard out");
-  stderr.writeString("standard error");
+  stdout.addString("standard out");
+  stderr.addString("standard error");
   exitCode = 25;
 }

@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
+#include <errno.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <stdlib.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -201,10 +204,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   }
 
   fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
-  if (fd < 0) {
-    Log::PrintErr("Error CreateBind: %s\n", strerror(errno));
-    return -1;
-  }
+  if (fd < 0) return -1;
 
   FDUtils::SetCloseOnExec(fd);
 
@@ -222,12 +222,11 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
                reinterpret_cast<struct sockaddr *>(&server_address),
                sizeof(server_address))) < 0) {
     TEMP_FAILURE_RETRY(close(fd));
-    Log::PrintErr("Error Bind: %s\n", strerror(errno));
     return -1;
   }
 
-  if (TEMP_FAILURE_RETRY(listen(fd, backlog)) != 0) {
-    Log::PrintErr("Error Listen: %s\n", strerror(errno));
+  if (TEMP_FAILURE_RETRY(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
+    TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }
 
@@ -276,3 +275,5 @@ void Socket::Close(intptr_t fd) {
     Log::PrintErr("%s\n", error_message);
   }
 }
+
+#endif  // defined(TARGET_OS_LINUX)

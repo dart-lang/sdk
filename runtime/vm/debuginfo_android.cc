@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/globals.h"
+#if defined(TARGET_OS_ANDROID)
+
 #include "vm/debuginfo.h"
 
 #include "vm/elfgen.h"
@@ -70,3 +73,5 @@ void DebugInfo::UnregisterAllSections() {
 }
 
 }  // namespace dart
+
+#endif  // defined(TARGET_OS_ANDROID)

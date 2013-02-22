@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -31,48 +31,47 @@ void checkExpectedConnectionHeaders(HttpHeaders headers,
 }
 
 void test(int totalConnections, bool clientPersistentConnection) {
-  HttpServer server = new HttpServer();
-  server.onError = (e) => Expect.fail("Unexpected error $e");
-  server.listen("127.0.0.1", 0, backlog: totalConnections);
-  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
-    // Check expected request.
-    Expect.equals(clientPersistentConnection, request.persistentConnection);
-    Expect.equals(clientPersistentConnection, response.persistentConnection);
-    checkExpectedConnectionHeaders(request.headers,
-                                   request.persistentConnection);
+  HttpServer.bind().then((server) {
+    server.listen((HttpRequest request) {
+      // Check expected request.
+      Expect.equals(clientPersistentConnection, request.persistentConnection);
+      Expect.equals(clientPersistentConnection,
+                    request.response.persistentConnection);
+      checkExpectedConnectionHeaders(request.headers,
+                                     request.persistentConnection);
 
-    // Generate response. If the client signaled non-persistent
-    // connection the server should not need to set it.
-    if (request.persistentConnection) {
-      response.persistentConnection = false;
+      // Generate response. If the client signaled non-persistent
+      // connection the server should not need to set it.
+      if (request.persistentConnection) {
+        request.response.persistentConnection = false;
+      }
+      setConnectionHeaders(request.response.headers);
+      request.response.close();
+    });
+
+    int count = 0;
+    HttpClient client = new HttpClient();
+    for (int i = 0; i < totalConnections; i++) {
+      client.get("127.0.0.1", server.port, "/")
+        .then((HttpClientRequest request) {
+          setConnectionHeaders(request.headers);
+          request.persistentConnection = clientPersistentConnection;
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          Expect.isFalse(response.persistentConnection);
+          checkExpectedConnectionHeaders(response.headers,
+                                         response.persistentConnection);
+          response.listen((_) {}, onDone: () {
+            count++;
+            if (count == totalConnections) {
+              client.close();
+              server.close();
+            }
+          });
+        });
     }
-    setConnectionHeaders(response.headers);
-    response.outputStream.close();
-  };
-
-  int count = 0;
-  HttpClient client = new HttpClient();
-  for (int i = 0; i < totalConnections; i++) {
-    HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
-    conn.onError = (e) => Expect.fail("Unexpected error $e");
-    conn.onRequest = (HttpClientRequest request) {
-      setConnectionHeaders(request.headers);
-      request.persistentConnection = clientPersistentConnection;
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.isFalse(response.persistentConnection);
-      checkExpectedConnectionHeaders(response.headers,
-                                     response.persistentConnection);
-      response.inputStream.onClosed = () {
-        count++;
-        if (count == totalConnections) {
-          client.shutdown();
-          server.close();
-        }
-      };
-    };
-  }
+  });
 }
 
 

@@ -2,33 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_ANDROID)
+
 #include "bin/eventhandler.h"
 
-#include <errno.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/epoll.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <errno.h>  // NOLINT
+#include <pthread.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/epoll.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
+#include "bin/utils.h"
 #include "platform/hashmap.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
-
-
-int64_t GetCurrentTimeMilliseconds() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return ((static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec) / 1000;
-}
 
 
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
@@ -358,14 +351,14 @@ intptr_t EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
 
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_ != kInfinityTimeout) {
-    intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+    intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_port_);
       timeout_ = kInfinityTimeout;
@@ -431,3 +424,5 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
   return dart::Utils::WordHash(fd + 1);
 }
+
+#endif  // defined(TARGET_OS_ANDROID)

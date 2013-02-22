@@ -10,15 +10,14 @@ main() {
   var options = new Options();
   if (options.arguments.length > 0) {
     if (options.arguments[0] == "0") {
-      stdin.onData = () => stdout.write(stdin.read());
+      stdin.pipe(stdout);
     } else if (options.arguments[0] == "1") {
-      stdin.onData = () => stderr.write(stdin.read());
+      stdin.pipe(stderr);
     } else if (options.arguments[0] == "2") {
-      stdin.onData = () {
-        var data = stdin.read();
-        stdout.write(data);
-        stderr.write(data);
-      };
+      stdin.listen((data) {
+        stdout.add(data);
+        stderr.add(data);
+      });
     }
   }
 }

@@ -54,15 +54,15 @@ class SourceMapBuilder {
 
   void printStringListOn(List<String> strings, StringBuffer buffer) {
     bool first = true;
-    buffer.add('[');
+    buffer.write('[');
     for (String string in strings) {
-      if (!first) buffer.add(',');
-      buffer.add('"');
+      if (!first) buffer.write(',');
+      buffer.write('"');
       writeJsonEscapedCharsOn(string, buffer);
-      buffer.add('"');
+      buffer.write('"');
       first = false;
     }
-    buffer.add(']');
+    buffer.write(']');
   }
 
   String build(SourceFile targetFile) {
@@ -70,18 +70,18 @@ class SourceMapBuilder {
     entries.forEach((SourceMapEntry entry) => writeEntry(entry, targetFile,
                                                          mappingsBuffer));
     StringBuffer buffer = new StringBuffer();
-    buffer.add('{\n');
-    buffer.add('  "version": 3,\n');
-    buffer.add('  "sourceRoot": "",\n');
-    buffer.add('  "sources": ');
+    buffer.write('{\n');
+    buffer.write('  "version": 3,\n');
+    buffer.write('  "sourceRoot": "",\n');
+    buffer.write('  "sources": ');
     printStringListOn(sourceUrlList, buffer);
-    buffer.add(',\n');
-    buffer.add('  "names": ');
+    buffer.write(',\n');
+    buffer.write('  "names": ');
     printStringListOn(sourceNameList, buffer);
-    buffer.add(',\n');
-    buffer.add('  "mappings": "');
-    buffer.add(mappingsBuffer);
-    buffer.add('"\n}\n');
+    buffer.write(',\n');
+    buffer.write('  "mappings": "');
+    buffer.write(mappingsBuffer);
+    buffer.write('"\n}\n');
     return buffer.toString();
   }
 
@@ -91,7 +91,7 @@ class SourceMapBuilder {
 
     if (targetLine > previousTargetLine) {
       for (int i = previousTargetLine; i < targetLine; ++i) {
-        output.add(';');
+        output.write(';');
       }
       previousTargetLine = targetLine;
       previousTargetColumn = 0;
@@ -99,7 +99,7 @@ class SourceMapBuilder {
     }
 
     if (!firstEntryInLine) {
-      output.add(',');
+      output.write(',');
     }
     firstEntryInLine = false;
 
@@ -152,7 +152,7 @@ class SourceMapBuilder {
       if (value > 0) {
         digit |= VLQ_CONTINUATION_BIT;
       }
-      output.add(BASE64_DIGITS[digit]);
+      output.write(BASE64_DIGITS[digit]);
     } while (value > 0);
   }
 }

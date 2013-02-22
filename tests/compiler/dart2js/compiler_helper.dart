@@ -5,22 +5,41 @@
 
 library compiler_helper;
 
-import "dart:uri";
+import 'dart:uri';
+export 'dart:uri' show Uri;
 
-import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart"
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
        as lego;
-import "../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart"
+export '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+
+import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
        as js;
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as leg;
-import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart" as ssa;
-import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+export '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+       show Constant,
+            Message,
+            MessageKind,
+            Selector,
+            SourceSpan;
+
+import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart' as ssa;
+
+import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+export '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
+
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
+
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        show Compiler;
 
-import "mock_compiler.dart";
-import "parser_helper.dart";
+export '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
+
+import 'mock_compiler.dart';
+export 'mock_compiler.dart';
+
+import 'parser_helper.dart';
 
 String compile(String code, {String entry: 'main',
                              String coreSource: DEFAULT_CORELIB,
@@ -39,6 +58,7 @@ String compile(String code, {String entry: 'main',
   compiler.phase = Compiler.PHASE_RESOLVING;
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
+  compiler.world.populate();
   var context = new js.JavaScriptItemCompilationContext();
   leg.ResolutionWorkItem resolutionWork =
       new leg.ResolutionWorkItem(element, context);
@@ -77,6 +97,23 @@ dynamic compileAndCheck(String code,
   compiler.runCompiler(uri);
   lego.Element element = findElement(compiler, name);
   return check(compiler, element);
+}
+
+compileSources(Map<String, String> sources,
+               check(MockCompiler compiler)) {
+  Uri base = new Uri.fromComponents(scheme: 'source');
+  Uri mainUri = base.resolve('main.dart');
+  String mainCode = sources['main.dart'];
+  Expect.isNotNull(mainCode, 'No source code found for "main.dart"');
+  MockCompiler compiler = compilerFor(mainCode, mainUri);
+
+  sources.forEach((String path, String code) {
+    if (path == 'main.dart') return;
+    compiler.registerSource(base.resolve(path), code);
+  });
+
+  compiler.runCompiler(mainUri);
+  return check(compiler);
 }
 
 lego.Element findElement(compiler, String name) {

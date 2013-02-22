@@ -2,33 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
 #include "bin/eventhandler.h"
 
-#include <errno.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/epoll.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <errno.h>  // NOLINT
+#include <pthread.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <string.h>  // NOLINT
+#include <sys/epoll.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
+#include "bin/utils.h"
 #include "platform/hashmap.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
-
-
-int64_t GetCurrentTimeMilliseconds() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
-    UNREACHABLE();
-    return 0;
-  }
-  return ((static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec) / 1000;
-}
 
 
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
@@ -223,9 +216,13 @@ void EventHandlerImplementation::HandleInterruptFd() {
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
       } else {
-        // Setup events to wait for.
-        sd->SetPortAndMask(msg.dart_port, msg.data);
-        UpdateEpollInstance(epoll_fd_, sd);
+        if ((msg.data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
+          DartUtils::PostInt32(msg.dart_port, 1 << kCloseEvent);
+        } else {
+          // Setup events to wait for.
+          sd->SetPortAndMask(msg.dart_port, msg.data);
+          UpdateEpollInstance(epoll_fd_, sd);
+        }
       }
     }
   }
@@ -268,8 +265,9 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
     }
   } else {
     // Prioritize data events over close and error events.
-    if ((events & EPOLLIN) != 0) {
-      if (FDUtils::AvailableBytes(sd->fd()) != 0) {
+    if ((events & (EPOLLIN | EPOLLHUP | EPOLLERR)) != 0) {
+      // If we have EPOLLIN and we have available bytes, report that.
+      if ((events & EPOLLIN) && FDUtils::AvailableBytes(sd->fd()) != 0) {
         event_mask = (1 << kInEvent);
       } else if ((events & EPOLLHUP) != 0) {
         // If both EPOLLHUP and EPOLLERR are reported treat it as an
@@ -309,16 +307,6 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
       }
     }
 
-    // On pipes EPOLLHUP is reported without EPOLLIN when there is no
-    // more data to read.
-    if (sd->IsPipe()) {
-      if (((events & EPOLLIN) == 0) &&
-          ((events & EPOLLHUP) != 0)) {
-        event_mask = (1 << kCloseEvent);
-        sd->MarkClosedRead();
-      }
-    }
-
     if ((events & EPOLLOUT) != 0) {
       if ((events & EPOLLERR) != 0) {
         event_mask = (1 << kErrorEvent);
@@ -350,6 +338,8 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
       }
     }
   }
+  // Handle after socket events, so we avoid closing a socket before we handle
+  // the current events.
   HandleInterruptFd();
 }
 
@@ -358,14 +348,14 @@ intptr_t EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
 
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_ != kInfinityTimeout) {
-    intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
+    intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_port_);
       timeout_ = kInfinityTimeout;
@@ -431,3 +421,5 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
   return dart::Utils::WordHash(fd + 1);
 }
+
+#endif  // defined(TARGET_OS_LINUX)

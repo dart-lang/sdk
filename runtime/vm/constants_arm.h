@@ -134,7 +134,7 @@ const int kNumberOfFpuRegisters = kNumberOfDRegisters;
 // Register aliases.
 const Register TMP = kNoRegister;  // No scratch register used by assembler.
 const Register CTX = R9;  // Caches current context in generated code.
-const Register CP = R10;  // Caches constant pool base in generated code.
+const Register PP = R10;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;
 const Register FPREG = FP;
 

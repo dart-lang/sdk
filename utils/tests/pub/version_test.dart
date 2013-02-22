@@ -10,6 +10,8 @@ import '../../pub/utils.dart';
 import '../../pub/version.dart';
 
 main() {
+  initConfig();
+
   final v123 = new Version.parse('1.2.3');
   final v114 = new Version.parse('1.1.4');
   final v124 = new Version.parse('1.2.4');
@@ -386,11 +388,37 @@ main() {
             new Version.parse('3.4.5')]));
       });
 
-      test('throws FormatException on a bad string', () {
-        expect(() => new VersionConstraint.parse(''), throwsFormatException);
-        expect(() => new VersionConstraint.parse('   '), throwsFormatException);
-        expect(() => new VersionConstraint.parse('not a version'),
+      test('ignores whitespace around operators', () {
+        var constraint = new VersionConstraint.parse(' >1.0.0>=1.2.3 < 1.3.0');
+        expect(constraint, allows([
+            new Version.parse('1.2.3'),
+            new Version.parse('1.2.5')]));
+        expect(constraint, doesNotAllow([
+            new Version.parse('1.2.3-pre'),
+            new Version.parse('1.3.0'),
+            new Version.parse('3.4.5')]));
+      });
+
+      test('does not allow "any" to be mixed with other constraints', () {
+        expect(() => new VersionConstraint.parse('any 1.0.0'),
             throwsFormatException);
+      });
+
+      test('throws FormatException on a bad string', () {
+        var bad = [
+           "", "   ",               // Empty string.
+           "foo",                   // Bad text.
+           ">foo",                  // Bad text after operator.
+           "1.0.0 foo", "1.0.0foo", // Bad text after version.
+           "anything",              // Bad text after "any".
+           "<>1.0.0",               // Multiple operators.
+           "1.0.0<"                 // Trailing operator.
+        ];
+
+        for (var text in bad) {
+          expect(() => new VersionConstraint.parse(text),
+              throwsFormatException);
+        }
       });
     });
   });

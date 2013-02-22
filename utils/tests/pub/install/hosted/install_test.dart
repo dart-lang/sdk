@@ -9,6 +9,7 @@ import 'dart:io';
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration('installs a package from a pub server', () {
     servePackages([package("foo", "1.2.3")]);
 
@@ -19,5 +20,16 @@ main() {
 
     cacheDir({"foo": "1.2.3"}).scheduleValidate();
     packagesDir({"foo": "1.2.3"}).scheduleValidate();
+  });
+
+  integration('URL encodes the package name', () {
+    servePackages([]);
+
+    appDir([dependency("bad name!", "1.2.3")]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        error: new RegExp('Could not find package "bad name!" at '
+                          'http://localhost:'),
+        exitCode: 1);
   });
 }

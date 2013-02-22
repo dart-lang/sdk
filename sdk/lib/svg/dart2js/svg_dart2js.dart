@@ -6,7 +6,8 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JavaScriptIndexingBehavior, JSName;
 import 'dart:_foreign_helper' show JS;
-// DO NOT EDIT
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:svg library.
 
 
@@ -5757,7 +5758,7 @@ class _AttributeClassSet extends CssClassSet {
   Set<String> readClasses() {
     var classname = _element.attributes['class'];
 
-    Set<String> s = new Set<String>();
+    Set<String> s = new LinkedHashSet<String>();
     if (classname == null) {
       return s;
     }

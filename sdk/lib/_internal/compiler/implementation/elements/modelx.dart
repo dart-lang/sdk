@@ -5,6 +5,7 @@
 library elements.modelx;
 
 import 'dart:uri';
+import 'dart:collection' show LinkedHashMap;
 
 import 'elements.dart';
 import '../../compiler.dart' as api;
@@ -564,6 +565,9 @@ class LibraryElementX extends ElementX implements LibraryElement {
    */
   Link<Element> slotForExports;
 
+  final Map<LibraryDependency, LibraryElement> tagMapping =
+      new LinkedHashMap<LibraryDependency, LibraryElement>();
+
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
     : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
       importScope = new Map<SourceString, Element>(),
@@ -589,6 +593,13 @@ class LibraryElementX extends ElementX implements LibraryElement {
   void addTag(LibraryTag tag, DiagnosticListener listener) {
     tags = tags.prepend(tag);
   }
+
+  void recordResolvedTag(LibraryDependency tag, LibraryElement library) {
+    assert(tagMapping[tag] == null);
+    tagMapping[tag] = library;
+  }
+
+  LibraryElement getLibraryFromTag(LibraryDependency tag) => tagMapping[tag];
 
   /**
    * Adds [element] to the import scope of this library.

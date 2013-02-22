@@ -87,7 +87,7 @@ class MultipartFile {
       {String filename, ContentType contentType}) {
     if (filename == null) filename = new Path(file.name).filename;
     return file.length().then((length) {
-      var stream = wrapInputStream(file.openInputStream());
+      var stream = new ByteStream(file.openRead());
       return new MultipartFile(field, stream, length,
           filename: filename,
           contentType: contentType);

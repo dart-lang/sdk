@@ -234,9 +234,9 @@ class CodeBlockSyntax extends BlockSyntax {
     childLines.add('');
 
     // Escape the code.
-    final escaped = classifySource(childLines.join('\n'));
+    final escaped = escapeHtml(childLines.join('\n'));
 
-    return new Element.text('pre', escaped);
+    return new Element('pre', [new Element.text('code', escaped)]);
   }
 }
 

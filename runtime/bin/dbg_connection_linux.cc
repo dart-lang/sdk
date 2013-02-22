@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/epoll.h>
+#include "platform/globals.h"
+#if defined(TARGET_OS_LINUX)
+
+#include <errno.h>  // NOLINT
+#include <stdio.h>  // NOLINT
+#include <stdlib.h>  // NOLINT
+#include <sys/epoll.h>  // NOLINT
 
 #include "bin/dbg_connection.h"
 #include "bin/fdutils.h"
@@ -115,3 +118,5 @@ intptr_t DebuggerConnectionImpl::Send(intptr_t socket,
 intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
   return TEMP_FAILURE_RETRY(read(socket, buf, len));
 }
+
+#endif  // defined(TARGET_OS_LINUX)

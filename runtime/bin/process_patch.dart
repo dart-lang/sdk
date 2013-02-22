@@ -25,7 +25,7 @@ patch class Process {
   /* patch */ static Future<ProcessResult> run(String executable,
                                                List<String> arguments,
                                                [ProcessOptions options]) {
-    return new _NonInteractiveProcess(executable, arguments, options)._result;
+    return _runNonInteractiveProcess(executable, arguments, options);
   }
 }
 
@@ -88,13 +88,15 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       });
     }
 
-    _in = new _Socket._internalReadOnly();  // stdout coming from process.
-    _out = new _Socket._internalWriteOnly();  // stdin going to process.
-    _err = new _Socket._internalReadOnly();  // stderr coming from process.
-    _exitHandler = new _Socket._internalReadOnly();
+    // stdin going to process.
+    _stdin = new _Socket._writePipe();
+    // stdout coming from process.
+    _stdout = new _Socket._readPipe();
+    // stderr coming from process.
+    _stderr = new _Socket._readPipe();
+    _exitHandler = new _Socket._readPipe();
     _ended = false;
     _started = false;
-    _onExit = null;
   }
 
   String _windowsArgumentEscape(String argument) {
@@ -160,16 +162,12 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                   _arguments,
                                   _workingDirectory,
                                   _environment,
-                                  _in,
-                                  _out,
-                                  _err,
-                                  _exitHandler,
+                                  _stdin._nativeSocket,
+                                  _stdout._nativeSocket,
+                                  _stderr._nativeSocket,
+                                  _exitHandler._nativeSocket,
                                   status);
       if (!success) {
-        _in.close();
-        _out.close();
-        _err.close();
-        _exitHandler.close();
         completer.completeError(
             new ProcessException(_path,
                                  _arguments,
@@ -179,23 +177,12 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
       _started = true;
 
-      _in._closed = false;
-      _out._closed = false;
-      _err._closed = false;
-      _exitHandler._closed = false;
-
-      // Make sure to activate socket handlers now that the file
-      // descriptors have been set.
-      _in._activateHandlers();
-      _out._activateHandlers();
-      _err._activateHandlers();
-
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
       int exitDataRead = 0;
       final int EXIT_DATA_SIZE = 8;
       List<int> exitDataBuffer = new List<int>.fixedLength(EXIT_DATA_SIZE);
-      _exitHandler.inputStream.onData = () {
+      _exitHandler.listen((data) {
 
         int exitCode(List<int> ints) {
           var code = _intFromBytes(ints, 0);
@@ -206,18 +193,17 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
         void handleExit() {
           _ended = true;
-          _exitCode = exitCode(exitDataBuffer);
-          if (_onExit != null) _onExit(_exitCode);
-          _out.close();
+          _exitCode.complete(exitCode(exitDataBuffer));
+          // Kill stdin, helping hand if the user forgot to do it.
+          _stdin.destroy();
         }
 
-        exitDataRead += _exitHandler.inputStream.readInto(
-            exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
+        exitDataBuffer.setRange(exitDataRead, data.length, data);
+        exitDataRead += data.length;
         if (exitDataRead == EXIT_DATA_SIZE) {
-          _exitHandler.close();
           handleExit();
         }
-      };
+      });
 
       completer.complete(this);
     });
@@ -228,23 +214,28 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                     List<String> arguments,
                     String workingDirectory,
                     List<String> environment,
-                    Socket input,
-                    Socket output,
-                    Socket error,
-                    Socket exitHandler,
+                    _NativeSocket stdin,
+                    _NativeSocket stdout,
+                    _NativeSocket stderr,
+                    _NativeSocket exitHandler,
                     _ProcessStartStatus status) native "Process_Start";
 
-  InputStream get stdout {
-    return _in.inputStream;
+  Stream<List<int>> get stdout {
+    // TODO(ajohnsen): Get stream object only.
+    return _stdout;
   }
 
-  InputStream get stderr {
-    return _err.inputStream;
+  Stream<List<int>> get stderr {
+    // TODO(ajohnsen): Get stream object only.
+    return _stderr;
   }
 
-  OutputStream get stdin {
-    return _out.outputStream;
+  IOSink get stdin {
+    // TODO(ajohnsen): Get consumer object only.
+    return _stdin;
   }
+
+  Future<int> get exitCode => _exitCode.future;
 
   bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
     if (signal is! ProcessSignal) {
@@ -258,24 +249,18 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
   bool _kill(Process p, int signal) native "Process_Kill";
 
-  void set onExit(void callback(int exitCode)) {
-    if (_ended) callback(_exitCode);
-    _onExit = callback;
-  }
-
   String _path;
   List<String> _arguments;
   String _workingDirectory;
   List<String> _environment;
-  // Private methods of _Socket are used by _in, _out, and _err.
-  _Socket _in;
-  _Socket _out;
-  _Socket _err;
+  // Private methods of Socket are used by _in, _out, and _err.
+  Socket _stdin;
+  Socket _stdout;
+  Socket _stderr;
   Socket _exitHandler;
-  int _exitCode;
   bool _ended;
   bool _started;
-  Function _onExit;
+  final Completer<int> _exitCode = new Completer<int>();
 }
 
 
@@ -283,88 +268,59 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 // that buffers output so it can be delivered when the process exits.
 // _NonInteractiveProcess is used to implement the Process.run
 // method.
-class _NonInteractiveProcess {
-  _NonInteractiveProcess(String path,
-                         List<String> arguments,
-                         ProcessOptions options) {
-    _completer = new Completer<ProcessResult>();
-    // Extract output encoding options and verify arguments.
-    var stdoutEncoding = Encoding.SYSTEM;
-    var stderrEncoding = Encoding.SYSTEM;
-    if (options != null) {
-      if (options.stdoutEncoding != null) {
-        stdoutEncoding = options.stdoutEncoding;
-        if (stdoutEncoding is !Encoding) {
-          throw new ArgumentError(
-              'stdoutEncoding option is not an encoding: $stdoutEncoding');
-        }
-      }
-      if (options.stderrEncoding != null) {
-        stderrEncoding = options.stderrEncoding;
-        if (stderrEncoding is !Encoding) {
-          throw new ArgumentError(
-              'stderrEncoding option is not an encoding: $stderrEncoding');
-        }
+Future<ProcessResult> _runNonInteractiveProcess(String path,
+                                                List<String> arguments,
+                                                ProcessOptions options) {
+  // Extract output encoding options and verify arguments.
+  var stdoutEncoding = Encoding.SYSTEM;
+  var stderrEncoding = Encoding.SYSTEM;
+  if (options != null) {
+    if (options.stdoutEncoding != null) {
+      stdoutEncoding = options.stdoutEncoding;
+      if (stdoutEncoding is !Encoding) {
+        throw new ArgumentError(
+            'stdoutEncoding option is not an encoding: $stdoutEncoding');
       }
     }
+    if (options.stderrEncoding != null) {
+      stderrEncoding = options.stderrEncoding;
+      if (stderrEncoding is !Encoding) {
+        throw new ArgumentError(
+            'stderrEncoding option is not an encoding: $stderrEncoding');
+      }
+    }
+  }
 
-    // Start the underlying process.
-    var processFuture = new _ProcessImpl(path, arguments, options)._start();
+  // Start the underlying process.
+  return Process.start(path, arguments, options).then((Process p) {
+    // Make sure the process stdin is closed.
+    p.stdin.close();
 
-    processFuture.then((Process p) {
-      // Make sure the process stdin is closed.
-      p.stdin.close();
+    // Setup stdout handling.
+    Future<StringBuffer> stdout = p.stdout
+        .transform(new StringDecoder(stdoutEncoding))
+        .reduce(
+            new StringBuffer(),
+            (buf, data) {
+              buf.add(data);
+              return buf;
+            });
 
-      // Setup process exit handling.
-      p.onExit = (exitCode) {
-        _exitCode = exitCode;
-        _checkDone();
-      };
+    Future<StringBuffer> stderr = p.stderr
+        .transform(new StringDecoder(stderrEncoding))
+        .reduce(
+            new StringBuffer(),
+            (buf, data) {
+              buf.add(data);
+              return buf;
+            });
 
-      // Setup stdout handling.
-      _stdoutBuffer = new StringBuffer();
-      var stdoutStream = new StringInputStream(p.stdout, stdoutEncoding);
-      stdoutStream.onData = () {
-        var data = stdoutStream.read();
-        if (data != null) _stdoutBuffer.add(data);
-      };
-      stdoutStream.onClosed = () {
-        _stdoutClosed = true;
-        _checkDone();
-      };
-
-      // Setup stderr handling.
-      _stderrBuffer = new StringBuffer();
-      var stderrStream = new StringInputStream(p.stderr, stderrEncoding);
-      stderrStream.onData = () {
-        var data = stderrStream.read();
-        if (data != null) _stderrBuffer.add(data);
-      };
-      stderrStream.onClosed = () {
-        _stderrClosed = true;
-        _checkDone();
-      };
-    }).catchError((error) {
-      _completer.completeError(error.error);
+    return Future.wait([p.exitCode, stdout, stderr]).then((result) {
+      return new _ProcessResult(result[0],
+                                result[1].toString(),
+                                result[2].toString());
     });
-  }
-
-  void _checkDone() {
-    if (_exitCode != null && _stderrClosed && _stdoutClosed) {
-      _completer.complete(new _ProcessResult(_exitCode,
-                                             _stdoutBuffer.toString(),
-                                             _stderrBuffer.toString()));
-    }
-  }
-
-  Future<ProcessResult> get _result => _completer.future;
-
-  Completer<ProcessResult> _completer;
-  StringBuffer _stdoutBuffer;
-  StringBuffer _stderrBuffer;
-  int _exitCode;
-  bool _stdoutClosed = false;
-  bool _stderrClosed = false;
+  });
 }
 
 

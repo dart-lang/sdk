@@ -1,8 +1,9 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:isolate";
 
 class NotAnInteger {
   operator==(other) => other == 1;
@@ -16,39 +17,41 @@ class NotAList {
 }
 
 testSocketCreation(host, port) {
-  var s = new Socket(host, port);
-  s.onError = (e) => null;
-  s.onConnect = () => Expect.fail("Shouldn't get connected");
+  Socket.connect(host, port)
+      .then((socket) => Expect.fail("Shouldn't get connected"))
+      .catchError((e) => null, test: (e) => e is SocketIOException)
+      .catchError((e) => null, test: (e) => e is ArgumentError);
 }
 
-testReadList(buffer, offset, length) {
-  var server = new ServerSocket("127.0.0.1", 0, 5);
-  var s = new Socket("127.0.0.1", server.port);
-  s.onConnect = () {
-    try { s.readList(buffer, offset, length); } catch (e) {}
-    s.close();
-  };
-  s.onError = (e) => null;
-}
-
-testWriteList(buffer, offset, length) {
-  var server = new ServerSocket("127.0.0.1", 0, 5);
-  var s = new Socket("127.0.0.1", server.port);
-  s.onConnect = () {
-    try { s.writeList(buffer, offset, length); } catch (e) {}
-    s.close();
-  };
-  s.onError = (e) => null;
+testAdd(buffer) {
+  ServerSocket.bind("127.0.0.1", 0, 5).then((server) {
+    server.listen((socket) => socket.destroy());
+    Socket.connect("127.0.0.1", server.port).then((socket) {
+      int errors = 0;
+      socket.done.catchError((e) { errors++; });
+      socket.listen(
+          (_) { },
+          onError: (error) {
+            Expect.fail("Error on stream");
+          },
+          onDone: () {
+            Expect.equals(1, errors);
+            socket.destroy();
+            server.close();
+          });
+      socket.add(buffer);
+    });
+  });
 }
 
 testServerSocketCreation(address, port, backlog) {
   var server;
+  var port = new ReceivePort();
   try {
-    server = new ServerSocket(address, port, backlog);
-    server.onError = (e) => null;
-    server.onConnection = (c) => Expect.fail("Shouldn't get connection");
+    ServerSocket.bind(address, port, backlog)
+        .then((_) { Expect.fail("ServerSocket bound"); });
   } catch (e) {
-    // ignore
+    port.close();
   }
 }
 
@@ -56,15 +59,14 @@ main() {
   testSocketCreation(123, 123);
   testSocketCreation("string", null);
   testSocketCreation(null, null);
-  testReadList(null, 123, 123);
-  testReadList(new NotAList(), 1, 1);
-  testReadList([1, 2, 3], new NotAnInteger(), new NotAnInteger());
-  testReadList([1, 2, 3], 1, new NotAnInteger());
-  testWriteList(null, 123, 123);
-  testWriteList(new NotAList(), 1, 1);
-  testWriteList([1, 2, 3], new NotAnInteger(), new NotAnInteger());
-  testWriteList([1, 2, 3], 1, new NotAnInteger());
-  testWriteList([1, 2, 3], new NotAnInteger(), 1);
+  testAdd(null);
+  testAdd(new NotAList());
+  testAdd(42);
+  // TODO(8233): Throw ArgumentError from API implementation.
+  // testAdd([-1]);
+  // testAdd([2222222222222222222222222222222]);
+  // testAdd([1, 2, 3, null]);
+  // testAdd([new NotAnInteger()]);
   testServerSocketCreation(123, 123, 123);
   testServerSocketCreation("string", null, null);
   testServerSocketCreation("string", 123, null);

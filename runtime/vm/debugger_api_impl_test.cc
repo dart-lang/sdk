@@ -1408,17 +1408,19 @@ static void StackTraceDump2ExceptionHandler(Dart_IsolateId isolate_id,
   EXPECT_EQ(kStackTraceLen, trace_len);
 
   // Frame 0 corresponding to "Object._noSuchMethod".
-  Dart_Handle frame0_locals = Dart_NewList(10);
+  Dart_Handle frame0_locals = Dart_NewList(12);
   Dart_ListSetAt(frame0_locals, 0, NewString("this"));
   Dart_ListSetAt(frame0_locals, 1, Dart_Null());
   Dart_ListSetAt(frame0_locals, 2, NewString("isMethod"));
   Dart_ListSetAt(frame0_locals, 3, Dart_Null());
   Dart_ListSetAt(frame0_locals, 4, NewString("memberName"));
   Dart_ListSetAt(frame0_locals, 5, Dart_Null());
-  Dart_ListSetAt(frame0_locals, 6, NewString("arguments"));
+  Dart_ListSetAt(frame0_locals, 6, NewString("type"));
   Dart_ListSetAt(frame0_locals, 7, Dart_Null());
-  Dart_ListSetAt(frame0_locals, 8, NewString("namedArguments"));
+  Dart_ListSetAt(frame0_locals, 8, NewString("arguments"));
   Dart_ListSetAt(frame0_locals, 9, Dart_Null());
+  Dart_ListSetAt(frame0_locals, 10, NewString("namedArguments"));
+  Dart_ListSetAt(frame0_locals, 11, Dart_Null());
 
   // Frame 1 corresponding to "Object.noSuchMethod".
   Dart_Handle frame1_locals = Dart_NewList(4);

@@ -220,17 +220,17 @@ class JSNumber implements num {
 
   num operator &(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', r'(# & #) >>> 0', this, other);    
+    return JS('num', r'(# & #) >>> 0', this, other);
   }
 
   num operator |(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', r'(# | #) >>> 0', this, other);    
+    return JS('num', r'(# | #) >>> 0', this, other);
   }
 
   num operator ^(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('num', r'(# ^ #) >>> 0', this, other);    
+    return JS('num', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {

@@ -5,28 +5,20 @@
 import "dart:io";
 import "dart:uri";
 import "dart:isolate";
+import "dart:async";
 
 void testGoogleUrl() {
-  ReceivePort keepalivePort = new ReceivePort();
+  ReceivePort keepAlive = new ReceivePort();
   HttpClient client = new HttpClient();
-
-  void testUrl(String url) {
-    var requestUri = Uri.parse(url);
-    var conn = client.getUrl(requestUri);
-
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse response) {
-      Expect.fail("Https connection unexpectedly succeeded");
-    };
-    conn.onError = (error) {
-      Expect.isTrue(error is SocketIOException);
-      keepalivePort.close();
-    };
-  }
-
-  testUrl('https://www.google.com');
+  client.getUrl(Uri.parse('https://www.google.com'))
+      .then((request) => request.close())
+      .then((response) => Expect.fail("Unexpected successful connection"))
+      .catchError((error) {
+        Expect.isTrue(error is AsyncError);
+        Expect.isTrue(error.error is SocketIOException);
+        keepAlive.close();
+        client.close();
+      });
 }
 
 void InitializeSSL() {

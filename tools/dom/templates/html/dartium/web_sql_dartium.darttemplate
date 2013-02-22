@@ -1,0 +1,13 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:audio library.
+
+library dart.dom.web_sql;
+
+import 'dart:async';
+import 'dart:collection';
+import 'dart:html';
+import 'dart:html_common';
+import 'dart:nativewrappers';
+
+$!GENERATED_DART_FILES

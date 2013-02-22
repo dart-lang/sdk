@@ -9,7 +9,6 @@
     'bin/bin.gypi',
     'third_party/double-conversion/src/double-conversion.gypi',
     'third_party/jscre/jscre.gypi',
-    '../tools/gyp/source_filter.gypi',
   ],
   'variables': {
     'version_in_cc_file': 'vm/version_in.cc',

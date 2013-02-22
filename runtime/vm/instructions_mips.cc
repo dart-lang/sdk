@@ -16,15 +16,28 @@ bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
 }
 
 
-uword CallOrJumpPattern::TargetAddress() const {
+uword CallPattern::TargetAddress() const {
   UNIMPLEMENTED();
   return 0;
 }
 
 
-void CallOrJumpPattern::SetTargetAddress(uword target) const {
+uword JumpPattern::TargetAddress() const {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+
+void CallPattern::SetTargetAddress(uword target) const {
   UNIMPLEMENTED();
 }
+
+
+void JumpPattern::SetTargetAddress(uword target) const {
+  UNIMPLEMENTED();
+}
+
 
 
 const int* CallPattern::pattern() const {

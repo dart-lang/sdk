@@ -106,7 +106,7 @@ class Keyword extends Iterable<int> implements SourceString {
   Iterator<int> get iterator => new StringCodeIterator(syntax);
 
   void printOn(StringBuffer sb) {
-    sb.add(syntax);
+    sb.write(syntax);
   }
 
   String toString() => syntax;
@@ -203,19 +203,19 @@ class ArrayKeywordState extends KeywordState {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add("[");
+    sb.write("[");
     if (keyword != null) {
-      sb.add("*");
-      sb.add(keyword);
-      sb.add(" ");
+      sb.write("*");
+      sb.write(keyword);
+      sb.write(" ");
     }
     List<KeywordState> foo = table;
     for (int i = 0; i < foo.length; i++) {
       if (foo[i] != null) {
-        sb.add("${new String.fromCharCodes([i + $a])}: ${foo[i]}; ");
+        sb.write("${new String.fromCharCodes([i + $a])}: ${foo[i]}; ");
       }
     }
-    sb.add("]");
+    sb.write("]");
     return sb.toString();
   }
 }

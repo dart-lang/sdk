@@ -144,9 +144,6 @@ class JavaScriptIdentityOperation implements BinaryOperation {
 class JavaScriptConstantSystem extends ConstantSystem {
   const int BITS31 = 0x8FFFFFFF;
   const int BITS32 = 0xFFFFFFFF;
-  // The maximum integer value a double can represent without losing
-  // precision.
-  const int BITS53 = 0x1FFFFFFFFFFFFF;
 
   final add = const JavaScriptBinaryArithmeticOperation(const AddOperation());
   final bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());
@@ -185,7 +182,9 @@ class JavaScriptConstantSystem extends ConstantSystem {
    */
   bool integerFitsIntoDouble(int value) {
     int absValue = value.abs();
-    return (absValue & BITS53) == absValue;
+    double doubleValue = absValue.toDouble();
+    if (doubleValue.isNaN || doubleValue.isInfinite) return false;
+    return value.toDouble().floor().toInt() == value;
   }
 
   NumConstant convertToJavaScriptConstant(NumConstant constant) {

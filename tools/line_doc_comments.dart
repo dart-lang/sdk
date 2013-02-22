@@ -22,11 +22,14 @@ main() {
   }
 
   var dir = new Directory(args[0]);
-  var lister = dir.list(recursive: true);
-  lister.onFile = (file) {
-    if (path.extension(file) != '.dart') return;
-    fixFile(file);
-  };
+  dir.list(recursive: true).listen(
+      (entity) {
+        if (entity is File) {
+          var file = entity.name;
+          if (path.extension(file) != '.dart') return;
+          fixFile(file);
+        }
+      });
 }
 
 void fixFile(String path) {
