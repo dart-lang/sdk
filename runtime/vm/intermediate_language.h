@@ -113,10 +113,23 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
 // operation for the lattice.
-class CompileType {
+class CompileType : public ValueObject {
  public:
   static const bool kNullable = true;
   static const bool kNonNullable = false;
+
+  CompileType(const CompileType& other)
+      : ValueObject(),
+        is_nullable_(other.is_nullable_),
+        cid_(other.cid_),
+        type_(other.type_) { }
+
+  CompileType& operator=(const CompileType& other) {
+    is_nullable_ = other.is_nullable_;
+    cid_ = other.cid_;
+    type_ =  other.type_;
+    return *this;
+  }
 
   // Return type such that concrete value's type in runtime is guaranteed to
   // be subtype of it.
