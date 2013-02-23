@@ -24546,6 +24546,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable
+  @Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')
+  @Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')

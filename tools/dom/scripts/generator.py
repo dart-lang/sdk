@@ -635,6 +635,15 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
     'SQLResultSetRowList.item': ["@Creates('=Object')"],
 
+    'WebGLRenderingContext.getParameter': [
+      # Taken from http://www.khronos.org/registry/webgl/specs/latest/
+      # Section 5.14.3 Setting and getting state
+      "@Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+      "@Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+    ],
+
     'XMLHttpRequest.response': [
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
     ],
