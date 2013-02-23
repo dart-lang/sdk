@@ -51,6 +51,7 @@ core_runtime_types_test: Fail
 
 [ $compiler == dart2js && $runtime == ie9 ]
 date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
+json_strict_test: Fail # IE parses slightly harmless no-standard JSON.
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 
 [ $compiler == dart2dart ]

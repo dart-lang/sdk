@@ -36,8 +36,23 @@ void testJson(json, expected) {
   compare(expected, value, "value");
 }
 
+String escape(String s) {
+  var sb = new StringBuffer();
+  for (int i = 0; i < s.length; i++) {
+    int code = s.codeUnitAt(i);
+    if (code == '\\'.charCodeAt(0)) sb.write(r'\\');
+    else if (code == '\"'.charCodeAt(0)) sb.write(r'\"');
+    else if (code >= 32 && code < 127) sb.writeCharCode(code);
+    else {
+      String hex = '000${code.toRadixString(16)}';
+      sb.write(r'\u' '${hex.substring(hex.length - 4)}');
+    }
+  }
+  return '$sb';
+}
+
 void testThrows(json) {
-  Expect.throws(() => parse(json), badFormat);
+  Expect.throws(() => parse(json), badFormat, "json = '${escape(json)}'");
 }
 
 testNumbers() {
@@ -97,8 +112,11 @@ testNumbers() {
 
   // Integer part cannot be omitted:
   testError(integers: "");
-  // Initial zero only allowed for zero integer part.
-  testError(integers: ["00", "01"]);
+
+  // Test for "Initial zero only allowed for zero integer part" moved to
+  // json_strict_test.dart because IE's JSON.parse accepts additional initial
+  // zeros.
+
   // Only minus allowed as sign.
   testError(signs: "+");
   // Requires digits after decimal point.
@@ -107,7 +125,7 @@ testNumbers() {
   testError(exponents: ["e", "e+", "e-", "e.0"]);
 
   // No whitespace inside numbers.
-  testThrows("- 2.2e+2");
+  // Additional case "- 2.2e+2" in json_strict_test.dart.
   testThrows("-2 .2e+2");
   testThrows("-2. 2e+2");
   testThrows("-2.2 e+2");
@@ -223,21 +241,20 @@ testWhitespace() {
   testJson('$v[${v}-2.2e2$v,$v{$v"key"$v:${v}true$v}$v,$v"ab"$v]$v',
            [-2.2e2, {"key": true}, "ab"]);
 
+  // IE9 accepts invalid characters at the end, so some of these tests have been
+  // moved to json_strict_test.dart.
   for (var i in invalids) {
     testThrows('${i}"s"');
-    testThrows('"s"${i}');
     testThrows('42${i}');
     testThrows('$i[]');
     testThrows('[$i]');
     testThrows('[$i"s"]');
     testThrows('["s"$i]');
-    testThrows('[]$i');
     testThrows('$i{"k":"v"}');
     testThrows('{$i"k":"v"}');
     testThrows('{"k"$i:"v"}');
     testThrows('{"k":$i"v"}');
     testThrows('{"k":"v"$i}');
-    testThrows('{"k":"v"}$i');
   }
 }
 

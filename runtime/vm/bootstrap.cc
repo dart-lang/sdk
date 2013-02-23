@@ -72,7 +72,7 @@ RawScript* Bootstrap::LoadIsolateScript(bool patch)  {
 
 RawScript* Bootstrap::LoadJsonScript(bool patch) {
   const char* url = patch ? "dart:json-patch" : "dart:json";
-  const char* source = patch ? json_source_ : json_source_;
+  const char* source = patch ? json_patch_ : json_source_;
   return LoadScript(url, source, patch);
 }
 
