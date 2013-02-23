@@ -39,6 +39,9 @@ abstract class Entry {
   /// contents of the child entry located at [path]. This only works if [this]
   /// is a directory entry. This operation is not [schedule]d.
   ///
+  /// This method uses POSIX paths regardless of the underlying operating
+  /// system.
+  ///
   /// All errors in loading the file will be passed through the returned
   /// [Stream].
   Stream<List<int>> load(String pathToLoad) => errorStream("Can't load "
