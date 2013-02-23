@@ -709,7 +709,7 @@ void main() {
         d.file('name.txt', 'contents')
       ]);
 
-      expect(byteStreamToString(dir.load(path.join('subdir', 'name.txt'))),
+      expect(byteStreamToString(dir.load('subdir/name.txt')),
           completion(equals('subcontents')));
     });
   });
