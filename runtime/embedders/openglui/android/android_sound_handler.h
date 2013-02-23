@@ -20,6 +20,8 @@ class AndroidSoundHandler : public SoundHandler {
     explicit AndroidSoundHandler(android_app* application);
     int32_t Start();
     void Stop();
+    int32_t Pause();
+    int32_t Resume();
 
     int32_t PlayBackground(const char* path);
     void StopBackground();
@@ -34,6 +36,7 @@ class AndroidSoundHandler : public SoundHandler {
                               SLObjectItf& player_out,
                               SLPlayItf& player_if_out);
 
+    int32_t SetBackgroundPlayerState(int state);
     int32_t StartSamplePlayer();
 
     android_app* application_;

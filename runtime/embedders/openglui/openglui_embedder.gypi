@@ -26,6 +26,7 @@
               '../../../third_party/skia/trunk/include/config',
               '../../../third_party/skia/trunk/include/core',
               '../../../third_party/skia/trunk/include/gpu',
+              '../../../third_party/skia/trunk/include/lazy',
               '../../../third_party/skia/trunk/include/utils',
             ],
             'defines': [
@@ -182,6 +183,7 @@
               '../../../third_party/skia/trunk/include/config',
               '../../../third_party/skia/trunk/include/core',
               '../../../third_party/skia/trunk/include/gpu',
+              '../../../third_party/skia/trunk/include/lazy',
               '../../../third_party/skia/trunk/include/utils',
             ],
             'defines': [

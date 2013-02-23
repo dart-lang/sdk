@@ -24,6 +24,14 @@ class SoundHandler {
     virtual void Stop() {
     }
 
+    virtual int32_t Suspend() {
+      return 0;
+    }
+
+    virtual int32_t Resume() {
+      return 0;
+    }
+
     virtual int32_t PlayBackground(const char* path) {
       return 0;
     }

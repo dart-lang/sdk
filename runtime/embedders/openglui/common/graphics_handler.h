@@ -11,8 +11,11 @@
 #include "embedders/openglui/common/timer.h"
 
 class GraphicsHandler : public ISized {
+  private:
+    void DecoderHack(int x, SkStream* s);
+
   public:
-    GraphicsHandler();
+    explicit GraphicsHandler(const char* resource_path);
 
     const int32_t& height() {
       return height_;
@@ -39,10 +42,15 @@ class GraphicsHandler : public ISized {
     SkCanvas* CreateDisplayCanvas();
     SkCanvas* CreateBitmapCanvas(int width, int height);
 
+    inline const char* resource_path() {
+      return resource_path_;
+    }
+
     virtual ~GraphicsHandler() {
     }
 
   protected:
+    const char* resource_path_;
     SkAutoGraphics ag;
     GrContext* grcontext;
     int32_t width_, height_;

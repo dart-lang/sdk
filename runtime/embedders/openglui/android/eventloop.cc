@@ -6,9 +6,152 @@
 
 #include "embedders/openglui/common/log.h"
 
+/*
+ * The Android lifecycle events are:
+ *
+ * OnCreate: In NDK this is the call to android_main
+ *
+ * OnStart: technically, called to initiate the “visible” lifespan of the
+ *     app; at any time between OnStart and OnStop, the app may be visible.
+ *     We can either be OnResume’d or OnStop’ped from this state. Note that
+ *     there is also an event for OnRestart, which is called before OnStart
+ *     if the application is transitioning from OnStop to OnStart instead of
+ *     being started from scratch.
+ *
+ * OnResume: technically, the start of the “foreground” lifespan of the app, 
+ *     but this does not mean that the app is fully visible and should be 
+ *     rendering – more on that later
+ *
+ * OnPause: the app is losing its foregrounded state; this is normally an 
+ *     indication that something is fully covering the app. On versions of 
+ *     Android before Honeycomb, once we returned from this callback, we 
+ *     could be killed at any time with no further app code called. We can
+ *     either be OnResume’d or OnStop’ped from this state. OnPause halts the 
+ *     visible UI thread and so should be handled as quickly as possible.
+ *
+ * OnStop: the end of the current visible lifespan of the app – we may
+ *     transition to On(Re)Start to become visible again, or to OnDestroy if
+ *      we are shutting down entirely. Once we return from this callback, we
+ *      can be killed at any time with no further app code called on any
+ *      version of Android.
+ *
+ * OnDestroy: this can only be followed by the application being killed or
+ *     restarted with OnCreate.
+ *
+ * The above events occur in fixed orders. The events below can occur at 
+ * various times:
+ *
+ * OnGainedFocus: happens between OnResume and OnPause.
+ * OnLostFocus:  may occur at arbitrary times, and may in fact not happen
+ *     at all if the app is being destroyed. So OnPause and OnGainedFocus/
+ *     OnLostFocus must be used together to determine the visible and
+ *     interactable state of the app.
+ *
+ * OnCreateWindow: usually happens in the resumed state
+ * OnDestroyWindow: can happen after OnPause or OnDestroy, so apps may
+ *     need to handle shutting down EGL before their surfaces are
+ *     destroyed.
+ * OnConfigurationChanged: typically means the size has changed
+ *
+ * An application's EGL surface may only exist between the OnCreateWindow
+ * and OnDestroyWindow callbacks.
+ *
+ * An application is "killable" after OnStop or OnDestroy (in earlier 
+ * Android versions, after OnPause too). That means any critical state
+ * or resources must be handled by any of these callbacks.
+ *
+ * These callbacks run on the main thread. If they block any event
+ * processing for more than 5 seconds this will result in an ANR
+ * (Application Not Responding message).
+ *
+ * On application launch, this sequence will occur:
+ *
+ * - OnCreate
+ * - OnStart
+ * - OnResume
+ * - OnCreateWindow
+ * - OnConfigurationChanged
+ * - OnGainedFocus
+ *
+ * If the back button is pressed, and the app does not handle it,
+ * Android will pop the app of the UI stack and destroy the application's
+ * activity:
+ *
+ * - OnPause
+ * - OnLostFocus
+ * - OnDestroyWindow
+ * - OnStop
+ * - OnDestroy
+ *
+ * If the home button is pressed, the app is sent down in the UI stack.
+ * The app's Activity still exists but may be killed at any time, and
+ * it loses its rendering surface:
+ *
+ * - OnPause
+ * - OnLostFocus
+ * - OnDestroyWindow
+ * - OnStop
+ *
+ * If the app is then restarted (without having been killed in between):
+ *
+ * - OnRestart
+ * - OnStart
+ * - OnResume
+ * - OnCreateWindow
+ * - OnConfigurationChanged
+ * - OnGainedFocus
+ *
+ * If a status icon pop up is opened, the app is still visible and can render
+ * but is not focused and cannot receive input:
+ *
+ * - OnLostFocus
+ *
+ * When the popup is dismissed, the app regains focus:
+ *
+ * - OnGainedFocus
+ *
+ * When the device is suspended (power button or screen saver), the application
+ * will typically be paused and lose focus:
+ *
+ * - OnPause
+ * - OnLostFocus (sometimes this will only come when the device is resumed
+ *       to the lock screen)
+ *
+ * The application should have stopped all rendering and sound and any
+ * non-critical background processing.
+ *
+ * When the device is resumed but not yet unlocked, the app will be resumed:
+ * 
+ * - OnResume
+ *
+ * The application should not perform sound or graphics yet. If the lock 
+ * screen times out, the app will be paused again. If the screen is
+ * unlocked, the app will regain focus.
+ *
+ * Turning all of this into a general framework, we can use the following:
+ *
+ * 1. In OnCreate/android_main, set up the main classes and possibly
+ *    load some lightweight resources.
+ * 2. In OnCreateWindow, create the EGLSurface, bind the context, load 
+ *    OpenGL resources. No rendering.
+ * 3. When we are between OnResume and OnPause, and between OnCreateWindow
+ *    and OnDestroyWindow, and between OnGainedFocus and OnLostFocus,
+ *    we can render and process input.
+ * 4. In OnLostFocus, stop sounds from playing, and stop rendering.
+ * 5. In OnPause, stop all rendering
+ * 6. In OnResume, prepare to start rendering again, but don't render.
+ * 7. In OnGainedFocus after OnResume, start rendering and sound again.
+ * 8. In OnStop, free all graphic resources, either through GLES calls
+ *    if the EGLContext is still bound, or via eglDestroyContext if the
+ *    context has been unbound because the rendering surface was destroyed.
+ * 9. In OnDestroy, release all other resources.
+ */
 EventLoop::EventLoop(android_app* application)
     : enabled_(false),
       quit_(false),
+      isResumed_(false),
+      hasSurface_(false),
+      hasFocus_(false),
       application_(application),
       lifecycle_handler_(NULL),
       input_handler_(NULL) {
@@ -25,97 +168,86 @@ void EventLoop::Run(LifeCycleHandler* lifecycle_handler,
 
   lifecycle_handler_ = lifecycle_handler;
   input_handler_ = input_handler;
-  LOGI("Starting event loop");
-  while (true) {
-    // If not enabled, block indefinitely on events. If enabled, block
-    // briefly so we can do useful work in onStep. Ultimately this is
-    // where we would want to look at elapsed time since the last call
-    // to onStep completed and use a delay that gives us ~60fps.
-    while ((result = ALooper_pollAll(enabled_ ? (1000/60) : -1,
-                                     NULL,
-                                     &events,
-                                     reinterpret_cast<void**>(&source))) >= 0) {
-      if (source != NULL) {
-        source->process(application_, source);
+  if (lifecycle_handler_->OnStart() == 0) {
+    LOGI("Starting event loop");
+    while (!quit_) {
+      // If not enabled, block indefinitely on events. If enabled, block
+      // briefly so we can do useful work in onStep. Ultimately this is
+      // where we would want to look at elapsed time since the last call
+      // to onStep completed and use a delay that gives us ~60fps.
+      while ((result = ALooper_pollAll(enabled_ ? (1000/60) : -1, NULL,
+          &events, reinterpret_cast<void**>(&source))) >= 0) {
+        if (source != NULL) {
+          source->process(application_, source);
+        }
+        if (application_->destroyRequested) {
+          return;
+        }
       }
-      if (application_->destroyRequested) {
-        return;
+      if (enabled_ && !quit_) {
+        LOGI("step");
+        if (lifecycle_handler_->OnStep() != 0) {
+          quit_ = true;
+        }
       }
     }
-    if (enabled_ && !quit_) {
-      LOGI("step");
-      if (lifecycle_handler_->OnStep() != 0) {
-        quit_ = true;
-        ANativeActivity_finish(application_->activity);
-      }
-    }
   }
-}
-
-// Called when we gain focus.
-void EventLoop::Activate() {
-  LOGI("activate");
-  if (!enabled_ && application_->window != NULL) {
-    quit_ = false;
-    enabled_ = true;
-    if (lifecycle_handler_->OnActivate() != 0) {
-      quit_ = true;
-      ANativeActivity_finish(application_->activity);
-    }
-  }
-}
-
-// Called when we lose focus.
-void EventLoop::Deactivate() {
-  LOGI("deactivate");
-  if (enabled_) {
-    lifecycle_handler_->OnDeactivate();
-    enabled_ = false;
-  }
+  ANativeActivity_finish(application_->activity);
 }
 
 void EventLoop::ProcessActivityEvent(int32_t command) {
   switch (command) {
+    case APP_CMD_INIT_WINDOW:
+      if (lifecycle_handler_->Activate() != 0) {
+        quit_ = true;
+      } else {
+        hasSurface_ = true;
+      }
+      break;
     case APP_CMD_CONFIG_CHANGED:
       lifecycle_handler_->OnConfigurationChanged();
       break;
-    case APP_CMD_INIT_WINDOW:
-      lifecycle_handler_->OnCreateWindow();
-      break;
     case APP_CMD_DESTROY:
-      lifecycle_handler_->OnDestroy();
+      hasFocus_ = false;
+      lifecycle_handler_->FreeAllResources();
       break;
     case APP_CMD_GAINED_FOCUS:
-      Activate();
-      lifecycle_handler_->OnGainedFocus();
+      hasFocus_ = true;
+      if (hasSurface_ && isResumed_ && hasFocus_) {
+        enabled_ = (lifecycle_handler_->Resume() == 0);
+      }
       break;
     case APP_CMD_LOST_FOCUS:
-      lifecycle_handler_->OnLostFocus();
-      Deactivate();
+      hasFocus_ = false;
+      enabled_ = false;
+      lifecycle_handler_->Pause();
       break;
     case APP_CMD_LOW_MEMORY:
       lifecycle_handler_->OnLowMemory();
       break;
     case APP_CMD_PAUSE:
-      lifecycle_handler_->OnPause();
-      Deactivate();
+      isResumed_ = false;
+      enabled_ = false;
+      lifecycle_handler_->Pause();
       break;
     case APP_CMD_RESUME:
-      lifecycle_handler_->OnResume();
+      isResumed_ = true;
       break;
     case APP_CMD_SAVE_STATE:
       lifecycle_handler_->OnSaveState(&application_->savedState,
                                     &application_->savedStateSize);
       break;
     case APP_CMD_START:
-      lifecycle_handler_->OnStart();
       break;
     case APP_CMD_STOP:
-      lifecycle_handler_->OnStop();
+      hasFocus_ = false;
+      lifecycle_handler_->Deactivate();
       break;
     case APP_CMD_TERM_WINDOW:
-      lifecycle_handler_->OnDestroyWindow();
-      Deactivate();
+      hasFocus_ = false;
+      hasSurface_ = false;
+      enabled_ = false;
+      lifecycle_handler_->Pause();
       break;
     default:
       break;

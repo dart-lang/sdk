@@ -5,8 +5,9 @@
 #include "embedders/openglui/android/android_graphics_handler.h"
 #include "embedders/openglui/common/log.h"
 
-AndroidGraphicsHandler::AndroidGraphicsHandler(android_app* application)
-    : GraphicsHandler(),
+AndroidGraphicsHandler::AndroidGraphicsHandler(android_app* application,
+                                               const char* resource_path)
+    : GraphicsHandler(resource_path),
       application_(application),
       display_(EGL_NO_DISPLAY),
       surface_(EGL_NO_SURFACE),

@@ -9,7 +9,7 @@
 
 EmulatorGraphicsHandler::EmulatorGraphicsHandler(int argc,
                                                  char** argv)
-  : GraphicsHandler() {
+  : GraphicsHandler(".") {
   glutInit(&argc, argv);
   SetViewport(0, 0, 480, 800);
   for (int i = 1; i < argc; i++) {
@@ -33,6 +33,5 @@ int32_t EmulatorGraphicsHandler::Start() {
 
 void EmulatorGraphicsHandler::Stop() {
   GraphicsHandler::Stop();
-  exit(0);
 }
 

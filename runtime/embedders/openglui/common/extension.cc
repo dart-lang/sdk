@@ -923,7 +923,7 @@ void PlaySample(Dart_NativeArguments arguments) {
 
 // 2D Canvas.
 
-CanvasContext* display_context;
+CanvasContext* display_context = NULL;
 
 void C2DCreateNativeContext(Dart_NativeArguments arguments) {
   LOGI("In C2DCreateNativeContext");
@@ -935,6 +935,7 @@ void C2DCreateNativeContext(Dart_NativeArguments arguments) {
 
   CanvasContext* rtn = new CanvasContext(handle, width, height);
   if (display_context == NULL) {
+    LOGI("Created display context");
     display_context = rtn;
   }
   Dart_ExitScope();

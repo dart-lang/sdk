@@ -6,7 +6,7 @@
 
 #include <ctype.h>
 #include <string.h>
-
+#include "core/SkStream.h"
 #include "embedders/openglui/common/support.h"
 
 // TODO(gram): this should be dynamic.
@@ -15,10 +15,24 @@ CanvasContext* contexts[MAX_CONTEXTS] = { 0 };
 
 CanvasContext* Context2D(int handle) {
   if (handle < 0 || handle >= MAX_CONTEXTS) {
+    LOGE("Request for out-of-range handle %d", handle);
     return NULL;
+  }
+  if (contexts[handle] == NULL) {
+    LOGE("Warning: request for context with handle %d returns NULL", handle);
   }
   return contexts[handle];
 }
+
+void FreeContexts() {
+  extern CanvasContext* display_context;
+  for (int i = 0; i < MAX_CONTEXTS; i++) {
+    delete contexts[i];
+    contexts[i] = NULL;
+  }
+  display_context = NULL;
+}
+
 
 CanvasContext::CanvasContext(int handle, int16_t widthp, int16_t heightp)
   : canvas_(NULL),
@@ -33,6 +47,7 @@ CanvasContext::CanvasContext(int handle, int16_t widthp, int16_t heightp)
   }
   state_ = new CanvasState(canvas_);
   contexts[handle] = this;
+  LOGI("Created context with handle %d", handle);
 }
 
 CanvasContext::~CanvasContext() {
@@ -52,18 +67,45 @@ void CanvasContext::DrawImage(const char* src_url,
     SkDevice* device = otherContext->canvas_->getDevice();
     bm = device->accessBitmap(false);
   } else {
-    // TODO(gram): We need a way to remap URLs to local file names.
-    // For now I am just using the characters after the last '/'.
-    // Note also that if we want to support URLs and network fetches,
-    // then we introduce more complexity; this can't just be an URL.
-    int pos = strlen(src_url);
-    while (--pos >= 0 && src_url[pos] != '/');
-    const char *path = src_url + pos + 1;
-    if (!SkImageDecoder::DecodeFile(path, &bm)) {
-      LOGI("Image decode of %s failed", path);
-      return;
+    const char* filepath;
+    if (strncmp(src_url, "file://", 7) == 0) {
+      filepath = src_url + 7;
     } else {
-      LOGI("Decode image: width=%d,height=%d", bm.width(), bm.height());
+      // TODO(gram): We need a way to remap URLs to local file names.
+      // For now I am just using the characters after the last '/'.
+      // Note also that if we want to support URLs and network fetches,
+      // then we introduce more complexity; this can't just be an URL.
+      int pos = strlen(src_url);
+      while (--pos >= 0 && src_url[pos] != '/');
+      filepath = src_url + pos + 1;
+    }
+    char* path;
+    if (filepath[0] == '/') {
+      path = const_cast<char*>(filepath);
+    } else {
+      size_t len1 = strlen(graphics->resource_path());
+      size_t len2 = strlen(filepath);
+      path = new char[len1 + 1 + len2 + 1];
+      strncpy(path, graphics->resource_path(), len1+1);
+      strncat(path, "/", 1);
+      strncat(path, filepath, len2);
+    }
+    SkFILEStream stream(path);
+    if (stream.isValid()) {
+      // We could use DecodeFile and pass the path, but by creating the
+      // SkStream here we can produce better error log messages.
+      if (!SkImageDecoder::DecodeStream(&stream, &bm)) {
+        LOGI("Image decode of %s failed", path);
+        return;
+      } else {
+        LOGI("Decode image %s: width=%d,height=%d",
+            path, bm.width(), bm.height());
+      }
+    } else {
+      LOGI("Path %s is invalid", path);
+    }
+    if (path != filepath) {
+      delete[] path;
     }
   }
   if (!has_src_dimensions) {
@@ -75,6 +117,7 @@ void CanvasContext::DrawImage(const char* src_url,
     dh = bm.height();
   }
   state_->DrawImage(bm, sx, sy, sw, sh, dx, dy, dw, dh);
+  isDirty_ = true;
 }
 
 void CanvasContext::ClearRect(float left, float top,
@@ -83,5 +126,6 @@ void CanvasContext::ClearRect(float left, float top,
   paint.setStyle(SkPaint::kFill_Style);
   paint.setColor(0xFFFFFFFF);
   canvas_->drawRectCoords(left, top, left + width, top + height, paint);
+  isDirty_ = true;
 }
 

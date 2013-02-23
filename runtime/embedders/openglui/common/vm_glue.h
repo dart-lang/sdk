@@ -24,8 +24,9 @@ class VMGlue {
 
   int InitializeVM();
   int StartMainIsolate();
-  int CallSetup();
+  int CallSetup(bool force = false);
   int CallUpdate();
+  int CallShutdown();
   int OnMotionEvent(const char* funtion, int64_t when,
                     float move_x, float move_y);
   int OnKeyEvent(const char* funtion, int64_t when, int32_t flags,

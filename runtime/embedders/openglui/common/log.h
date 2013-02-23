@@ -7,8 +7,16 @@
 
 #ifndef ANDROID
 #include <stdio.h>
-#define LOGI(...)       fprintf(stdout, __VA_ARGS__)
-#define LOGE(...)       fprintf(stderr, __VA_ARGS__)
+#define LOGI(...)       do {\
+                          fprintf(stdout, __VA_ARGS__);\
+                          fprintf(stdout, "\n");\
+                          fflush(stdout);\
+                        } while (0)
+#define LOGE(...)       do { \
+                          fprintf(stderr, __VA_ARGS__);\
+                          fprintf(stderr, "\n");\
+                          fflush(stderr);\
+                        } while (0)
 #else
 #include "embedders/openglui/android/android_log.h"
 #endif

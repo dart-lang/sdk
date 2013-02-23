@@ -14,43 +14,32 @@
 #include "embedders/openglui/common/vm_glue.h"
 #include "include/dart_api.h"
 
-// Currently the life cycle management is very crude. We conservatively
-// shutdown the main isolate when we lose focus and create a new one when
-// we resume. This needs to be improved later when we understand this better,
-// and we need some hooks to tell the Dart script to save/restore state
-// (and an API that will support that).
-
 class DartHost : public LifeCycleHandler {
  public:
   explicit DartHost(Context* context);
   virtual ~DartHost();
 
-  void OnStart();
-  void OnResume();
-  void OnPause();
-  void OnStop();
-  void OnDestroy();
+  int32_t OnStart();
   void OnSaveState(void** data, size_t* size);
   void OnConfigurationChanged();
   void OnLowMemory();
-  void OnCreateWindow();
-  void OnDestroyWindow();
-  void OnGainedFocus();
-  void OnLostFocus();
-  int32_t OnActivate();
-  void OnDeactivate();
+  int32_t Activate();
+  void Deactivate();
+  void Pause();
+  int32_t Resume();
+  void FreeAllResources();
   int32_t OnStep();
 
  private:
   void Clear();
-  int32_t Activate();
-  void Deactivate();
 
   GraphicsHandler* graphics_handler_;
   InputHandler* input_handler_;
   SoundHandler* sound_handler_;
   Timer* timer_;
   VMGlue* vm_glue_;
+  bool has_context_;
+  bool started_;
   bool active_;
 };
 

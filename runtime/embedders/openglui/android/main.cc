@@ -12,8 +12,9 @@
 
 void android_main(android_app* application) {
   app_dummy();  // Link in native_app_glue.
-  AndroidGraphicsHandler graphics_handler(application);
-  VMGlue vm_glue(&graphics_handler, "/data/data/com.google.dartndk/app_dart");
+  const char* resource_path = "/data/data/com.google.dartndk/app_dart";
+  AndroidGraphicsHandler graphics_handler(application, resource_path);
+  VMGlue vm_glue(&graphics_handler, resource_path);
   AndroidInputHandler input_handler(&vm_glue, &graphics_handler);
   AndroidSoundHandler sound_handler(application);
   Timer timer;

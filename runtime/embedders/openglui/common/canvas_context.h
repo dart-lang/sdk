@@ -27,11 +27,9 @@ typedef struct ImageData {
 class CanvasContext {
  protected:
   SkCanvas* canvas_;
-
   int16_t width_, height_;
-
   bool imageSmoothingEnabled_;
-
+  bool isDirty_;
   CanvasState* state_;
 
   static inline float Radians2Degrees(float angle) {
@@ -45,6 +43,14 @@ class CanvasContext {
  public:
   CanvasContext(int handle, int16_t width, int16_t height);
   virtual ~CanvasContext();
+
+  inline bool isDirty() {
+    return isDirty_;
+  }
+
+  inline void clearDirty() {
+    isDirty_ = false;
+  }
 
   inline void setGlobalAlpha(float alpha) {
     state_->setGlobalAlpha(alpha);
@@ -165,6 +171,7 @@ class CanvasContext {
 
   inline void Clear() {
     canvas_->drawColor(0xFFFFFFFF);
+    isDirty_ = true;
   }
 
   void ClearRect(float left, float top, float width, float height);
@@ -172,11 +179,13 @@ class CanvasContext {
   inline void FillRect(float left, float top, float width, float height) {
     // Does not affect the path.
     state_->FillRect(left, top, width, height);
+    isDirty_ = true;
   }
 
   inline void StrokeRect(float left, float top, float width, float height) {
     // Does not affect the path.
     state_->StrokeRect(left, top, width, height);
+    isDirty_ = true;
   }
 
   inline void BeginPath() {
@@ -185,10 +194,12 @@ class CanvasContext {
 
   inline void Fill() {
     state_->Fill();
+    isDirty_ = true;
   }
 
   inline void Stroke() {
     state_->Stroke();
+    isDirty_ = true;
   }
 
   inline void ClosePath() {
@@ -269,11 +280,13 @@ class CanvasContext {
   inline void FillText(const char* text, float x, float y,
                        float maxWidth = -1) {
     state_->FillText(text, x, y, maxWidth);
+    isDirty_ = true;
   }
 
   inline void StrokeText(const char* text, float x, float y,
                          float maxWidth = -1) {
     state_->StrokeText(text, x, y, maxWidth);
+    isDirty_ = true;
   }
 
   inline float MeasureText(const char *text) {
@@ -296,6 +309,7 @@ class CanvasContext {
 };
 
 CanvasContext* Context2D(int handle);
+void FreeContexts();
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_CANVAS_CONTEXT_H_
 
