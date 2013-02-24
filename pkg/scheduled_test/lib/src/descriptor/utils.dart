@@ -18,11 +18,11 @@ import 'package:pathos/path.dart' as path;
 /// [type] is used for error reporting. It should be capitalized.
 String entryMatchingPattern(String type, String parent, Pattern pattern) {
   if (pattern is String) {
-    var path = path.join(parent, pattern);
-    if (new File(path).existsSync() || new Directory(path).existsSync()) {
-      return path;
+    var fullPath = path.join(parent, pattern);
+    if (new File(fullPath).existsSync() || new Directory(fullPath).existsSync()) {
+      return fullPath;
     }
-    throw "$type not found: '$path'.";
+    throw "$type not found: '$fullPath'.";
   }
 
   var matchingEntries = new Directory(parent).listSync()
