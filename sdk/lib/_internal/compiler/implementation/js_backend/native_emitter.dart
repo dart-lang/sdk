@@ -290,7 +290,7 @@ function(cls, desc) {
       getDirectSubclasses(cls).forEach(visit);
       classes.add(cls);
     }
-    classesWithDynamicDispatch.forEach(visit);
+    Elements.sortedByPosition(classesWithDynamicDispatch).forEach(visit);
 
     List<ClassElement> preorderDispatchClasses = classes.where(
         (cls) => !getDirectSubclasses(cls).isEmpty &&
