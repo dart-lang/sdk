@@ -14,14 +14,8 @@ interactive_test: Skip # Must be run manually.
 *layout_test: Skip
 
 [ $runtime == chrome ]
-element_types_test/supported_content: Pass, Fail # Issue 8700
-element_types_test/supported_shadow: Pass, Fail # Issue 8700
 input_element_test/supported_date: Pass, Fail      # Chrome stable does not support this input type.
-input_element_test/supported_datetime-local: Pass, Fail # Issue 8700
-input_element_test/supported_month: Pass, Fail # Issue 8700
-input_element_test/supported_week: Pass, Fail # Issue 8700
 speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
-shadow_dom_test/supported: Pass, Fail # Issue 8700
 speechrecognition_test/types: Pass, Fail
 touchevent_test/supported: Fail
 
