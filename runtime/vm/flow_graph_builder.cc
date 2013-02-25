@@ -205,10 +205,7 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
       phi->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
-        Value* value = ValueAt(i);
-        phi->SetInputAt(i, value);
-        value->set_instruction(phi);
-        value->set_use_index(i);
+        phi->SetInputAt(i, ValueAt(i));
       }
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);

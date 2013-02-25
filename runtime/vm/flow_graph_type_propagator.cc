@@ -291,8 +291,6 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
 
   Value* use = check_clone->InputAt(0);
-  use->set_instruction(check_clone);
-  use->set_use_index(0);
   use->definition()->AddInputUse(use);
 
   assert->env()->DeepCopyTo(check_clone);

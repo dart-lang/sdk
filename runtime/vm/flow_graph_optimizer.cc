@@ -3289,10 +3289,6 @@ class LoadOptimizer : public ValueObject {
       Definition* replacement = (*pred_out_values)[expr_id]->Replacement();
       Value* input = new Value(replacement);
       phi->SetInputAt(i, input);
-
-      // TODO(vegorov): add a helper function to handle input insertion.
-      input->set_instruction(phi);
-      input->set_use_index(i);
       replacement->AddInputUse(input);
     }
 
@@ -4285,9 +4281,7 @@ void ConstantPropagator::Transform() {
               for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
                 PhiInstr* phi = (*phis)[phi_idx];
                 if (phi == NULL) continue;
-                Value* input = phi->inputs_[pred_idx];
-                input->set_use_index(live_count);
-                phi->inputs_[live_count] = input;
+                phi->SetInputAt(live_count, phi->InputAt(pred_idx));
               }
             }
             ++live_count;
@@ -4295,7 +4289,7 @@ void ConstantPropagator::Transform() {
             for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
               PhiInstr* phi = (*phis)[phi_idx];
               if (phi == NULL) continue;
-              phi->inputs_[pred_idx]->RemoveFromUseList();
+              phi->InputAt(pred_idx)->RemoveFromUseList();
             }
           }
         }

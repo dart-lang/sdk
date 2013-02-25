@@ -70,13 +70,12 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
     : unary_checks_(unary_checks) {
-  ASSERT(value != NULL);
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
-  ASSERT(!unary_checks_.IsNull() &&
-         (unary_checks_.NumberOfChecks() > 0) &&
-         (unary_checks_.num_args_tested() == 1));
-  inputs_[0] = value;
+  ASSERT(!unary_checks_.IsNull());
+  ASSERT(unary_checks_.NumberOfChecks() > 0);
+  ASSERT(unary_checks_.num_args_tested() == 1);
+  SetInputAt(0, value);
   deopt_id_ = deopt_id;
   // Otherwise use CheckSmiInstr.
   ASSERT((unary_checks_.NumberOfChecks() != 1) ||
@@ -535,8 +534,6 @@ void Definition::ReplaceWith(Definition* other,
   for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
     Value* input = other->InputAt(i);
     input->definition()->AddInputUse(input);
-    input->set_instruction(other);
-    input->set_use_index(i);
   }
   // Take other's environment from this definition.
   ASSERT(other->env() == NULL);
@@ -570,6 +567,19 @@ void Definition::ReplaceWith(Definition* other,
 }
 
 
+BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
+    : comparison_(comparison), is_checked_(is_checked) {
+  for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
+    comparison->InputAt(i)->set_instruction(this);
+  }
+}
+
+
+void BranchInstr::RawSetInputAt(intptr_t i, Value* value) {
+  comparison()->RawSetInputAt(i, value);
+}
+
+
 // A misleadingly named function for use in template functions that replace
 // both definitions with definitions and branch comparisons with
 // comparisons.  In the branch case, leave the branch intact and replace its
@@ -589,9 +599,7 @@ void BranchInstr::SetComparison(ComparisonInstr* comp) {
   // The new comparison's input uses are already recorded in their
   // definition's use lists.
   for (intptr_t i = comp->InputCount() - 1; i >= 0; --i) {
-    Value* input = comp->InputAt(i);
-    input->set_instruction(this);
-    input->set_use_index(i);
+    comp->InputAt(i)->set_instruction(this);
   }
   // There should be no need to copy or unuse an environment.
   ASSERT(comparison()->env() == NULL);
@@ -755,13 +763,10 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
       for (intptr_t use_idx = old_index;
            use_idx != new_index;
            use_idx += step) {
-        Value* use = phi->InputAt(use_idx + step);
-        phi->SetInputAt(use_idx, use);
-        use->set_use_index(use_idx);
+        phi->SetInputAt(use_idx, phi->InputAt(use_idx + step));
       }
       // Write the predecessor use.
       phi->SetInputAt(new_index, pred_use);
-      pred_use->set_use_index(new_index);
     }
   }
 }
@@ -2168,6 +2173,23 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       UNREACHABLE();
       return -1;
   }
+}
+
+
+InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
+    ZoneGrowableArray<Value*>* inputs,
+    InstanceCallInstr* instance_call,
+    MethodRecognizer::Kind recognized_kind)
+    : inputs_(inputs),
+      locs_(NULL),
+      recognized_kind_(recognized_kind) {
+  ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
+  for (intptr_t i = 0; i < inputs_->length(); ++i) {
+    ASSERT((*inputs)[i] != NULL);
+    (*inputs)[i]->set_instruction(this);
+    (*inputs)[i]->set_use_index(i);
+  }
+  deopt_id_ = instance_call->deopt_id();
 }
 
 

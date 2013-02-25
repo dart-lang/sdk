@@ -75,8 +75,6 @@ void FlowGraph::InsertAfter(Instruction* prev,
   for (intptr_t i = instr->InputCount() - 1; i >= 0; --i) {
     Value* input = instr->InputAt(i);
     input->definition()->AddInputUse(input);
-    input->set_instruction(instr);
-    input->set_use_index(i);
   }
   ASSERT(instr->env() == NULL);
   if (env != NULL) env->DeepCopyTo(instr);
@@ -508,8 +506,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         v->set_definition(reaching_defn);
         input_defn = reaching_defn;
       }
-      v->set_instruction(current);
-      v->set_use_index(i);
       input_defn->AddInputUse(v);
     }
 
@@ -591,8 +587,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           // Rename input operand.
           Value* use = new Value((*env)[i]);
           phi->SetInputAt(pred_index, use);
-          use->set_instruction(phi);
-          use->set_use_index(pred_index);
           use->definition()->AddInputUse(use);
         }
       }
