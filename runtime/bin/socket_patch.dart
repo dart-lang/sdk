@@ -658,17 +658,18 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
   _SocketStreamConsumer(this.socket);
 
   Future<Socket> consume(Stream<List<int>> stream) {
-    subscription = stream.listen(
-        (data) {
-          assert(!paused);
-          assert(buffer == null);
-          buffer = data;
-          offset = 0;
-          write();
-        },
-        onDone: () {
-          socket._consumerDone();
-        });
+    if (socket._raw != null) {
+      subscription = stream.listen((data) {
+        assert(!paused);
+        assert(buffer == null);
+        buffer = data;
+        offset = 0;
+        write();
+      },
+      onDone: () {
+        socket._consumerDone();
+      });
+    }
     return socket._doneFuture;
   }
 
@@ -697,6 +698,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
         }
       }
     } catch (e) {
+      stop();
       socket._consumerDone(e);
     }
   }
