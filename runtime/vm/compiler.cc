@@ -112,6 +112,14 @@ static void InstallUnoptimizedCode(const Function& function) {
 }
 
 
+static void PrintGraph(const char* phase, FlowGraph* flow_graph) {
+  OS::Print("*** BEGIN CFG\n%s\n", phase);
+  FlowGraphPrinter printer(*flow_graph);
+  printer.PrintBlocks();
+  OS::Print("*** END CFG\n");
+}
+
+
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                                         bool optimized) {
@@ -164,9 +172,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
     if (FLAG_print_flow_graph ||
         (optimized && FLAG_print_flow_graph_optimized)) {
-      OS::Print("Before Optimizations\n");
-      FlowGraphPrinter printer(*flow_graph);
-      printer.PrintBlocks();
+      PrintGraph("Before Optimizations", flow_graph);
     }
 
     if (optimized) {
@@ -257,9 +263,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       allocator.AllocateRegisters();
 
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
-        OS::Print("After Optimizations:\n");
-        FlowGraphPrinter printer(*flow_graph);
-        printer.PrintBlocks();
+        PrintGraph("After Optimizations", flow_graph);
       }
     }
 
@@ -513,7 +517,9 @@ static RawError* CompileFunctionHelper(const Function& function,
       DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized && optimized) {
       // TODO(fschneider): Print unoptimized code along with the optimized code.
+      OS::Print("*** BEGIN CODE\n");
       DisassembleCode(function, true);
+      OS::Print("*** END CODE\n");
     }
 
     isolate->set_long_jump_base(base);
