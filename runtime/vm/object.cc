@@ -1049,7 +1049,7 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(CollectionDev, collection_dev, false);
   INIT_LIBRARY(Crypto, crypto, false);
   INIT_LIBRARY(Isolate, isolate, true);
-  INIT_LIBRARY(Json, json, false);
+  INIT_LIBRARY(Json, json, true);
   INIT_LIBRARY(Math, math, true);
   INIT_LIBRARY(Mirrors, mirrors, true);
   INIT_LIBRARY(Scalarlist, scalarlist, true);
