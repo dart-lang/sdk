@@ -2241,8 +2241,14 @@ class Counter extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Crypto')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Crypto extends NativeFieldWrapperClass1 {
   Crypto.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable

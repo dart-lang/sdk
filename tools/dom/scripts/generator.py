@@ -719,6 +719,7 @@ _webkit_experimental_annotations = [
 dart_annotations = monitored.Dict('generator.dart_annotations', {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
   'DatabaseSync': _web_sql_annotations,
   'DOMApplicationCache': [

@@ -1810,7 +1810,13 @@ class Counter native "*Counter" {
 
 @DocsEditable
 @DomName('Crypto')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Crypto native "*Crypto" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.crypto && window.crypto.getRandomValues)');
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
