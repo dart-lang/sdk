@@ -335,7 +335,7 @@ int _combineSurrogatePair(int start, int end) {
 }
 
 /** [Iterator] for reading Unicode code points out of a Dart string. */
-class RuneIterator implements BiDirectionalIterator<int> {
+class RuneIterator implements BidirectionalIterator<int> {
   /** String being iterated. */
   final String string;
   /** Position before the current code point. */

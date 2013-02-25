@@ -430,7 +430,7 @@ class _GeneratorIterator<E> implements Iterator<E> {
 /**
  * An [Iterator] that allows moving backwards as well as forwards.
  */
-abstract class BiDirectionalIterator<T> extends Iterator<T> {
+abstract class BidirectionalIterator<T> extends Iterator<T> {
   /**
    * Move back to the previous element.
    *

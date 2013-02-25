@@ -687,6 +687,6 @@ class EmptyIterator<E> implements Iterator<E> {
 }
 
 /** An [Iterator] that can move in both directions. */
-abstract class BiDirectionalIterator<T> implements Iterator<T> {
+abstract class BidirectionalIterator<T> implements Iterator<T> {
   bool movePrevious();
 }
