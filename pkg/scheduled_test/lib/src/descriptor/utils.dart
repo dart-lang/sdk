@@ -27,7 +27,7 @@ String entryMatchingPattern(String type, String parent, Pattern pattern) {
 
   var matchingEntries = new Directory(parent).listSync()
       .map((entry) => entry is File ? entry.fullPathSync() : entry.path)
-      .where((entry) => entry.contains(pattern))
+      .where((entry) => path.basename(entry).contains(pattern))
       .toList();
   matchingEntries.sort();
 

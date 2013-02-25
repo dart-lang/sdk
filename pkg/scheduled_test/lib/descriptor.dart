@@ -71,11 +71,13 @@ import 'src/descriptor/async.dart';
 import 'src/descriptor/directory.dart';
 import 'src/descriptor/entry.dart';
 import 'src/descriptor/file.dart';
+import 'src/descriptor/nothing.dart';
 
 export 'src/descriptor/async.dart';
 export 'src/descriptor/directory.dart';
 export 'src/descriptor/entry.dart';
 export 'src/descriptor/file.dart';
+export 'src/descriptor/nothing.dart';
 
 /// The root path for descriptors. Top-level descriptors will be created and
 /// validated at this path. Defaults to the current working directory.
@@ -102,3 +104,7 @@ Directory dir(Pattern name, [Iterable<Entry> contents]) =>
 /// Creates a new descriptor wrapping a [Future]. This descriptor forwards all
 /// asynchronous operations to the result of [future].
 Async async(Future<Entry> future) => new Async(future);
+
+/// Creates a new [Nothing] descriptor that asserts that no entry named [name]
+/// exists.
+Nothing nothing(Pattern name) => new Nothing(name);

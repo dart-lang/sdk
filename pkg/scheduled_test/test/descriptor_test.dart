@@ -988,6 +988,130 @@ void main() {
           throwsA(equals("Async descriptors don't support read().")));
     });
   });
+
+  expectTestsPass("nothing().create() does nothing", () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.nothing('foo').create();
+
+      schedule(() {
+        expect(new File(path.join(sandbox, 'foo')).exists(),
+            completion(isFalse));
+      });
+
+      schedule(() {
+        expect(new Directory(path.join(sandbox, 'foo')).exists(),
+            completion(isFalse));
+      });
+    });
+  });
+
+  expectTestsPass("nothing().validate() succeeds if nothing's there", () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.nothing('foo').validate();
+    });
+  });
+
+  expectTestsPass("nothing().validate() with a RegExp succeeds if nothing's "
+      "there", () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.nothing(new RegExp('f.o')).validate();
+    });
+  });
+
+  expectTestsPass("nothing().validate() fails if there's a file", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.file('name.txt', 'contents').create();
+      d.nothing('name.txt').validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error,
+          matches(r"^Expected nothing to exist at '[^']+[\\/]name.txt', but "
+              r"found a file\.$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("nothing().validate() fails if there's a directory", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.dir('dir').create();
+      d.nothing('dir').validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error,
+          matches(r"^Expected nothing to exist at '[^']+[\\/]dir', but found a "
+              r"directory\.$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("nothing().validate() with a RegExp fails if there are "
+      "multiple entries", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.dir('foo').create();
+      d.file('faa', 'contents').create();
+      d.file('not-foo', 'contents').create();
+      d.nothing(new RegExp(r'^f..$')).validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error,
+          matches(r"^Expected nothing to exist in '[^']+' matching "
+                  r"/\^f\.\.\$/, but found:\n"
+              r"\* .*[\\/]faa\n"
+              r"\* .*[\\/]foo$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("nothing().load() fails", () {
+    test('test', () {
+      scheduleSandbox();
+
+      expect(d.nothing('name.txt').load('path').toList(),
+          throwsA(equals("Nothing descriptors don't support load().")));
+    });
+  });
+
+  expectTestsPass("nothing().read() fails", () {
+    test('test', () {
+      scheduleSandbox();
+
+      expect(d.nothing('name.txt').read().toList(),
+          throwsA(equals("Nothing descriptors don't support read().")));
+    });
+  });
 }
 
 void scheduleSandbox() {
