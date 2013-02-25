@@ -33,6 +33,7 @@ dart/isolate_mirror_local_test: Skip
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
+dart/simd128float32_array_test: Skip # compilers not aware of Simd128
 dart/isolate_unhandled*: Skip
 
 [ $compiler == dart2js ]
