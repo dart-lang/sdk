@@ -583,6 +583,7 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     'IDBRequest.source':  ["@Creates('Null')"],
 
     'IDBFactory.open': ["@Creates('Database')"],
+    'IDBFactory.webkitGetDatabaseNames': ["@Creates('DomStringList')"],
 
     'IDBObjectStore.put': ["@_annotation_Creates_IDBKey"],
     'IDBObjectStore.add': ["@_annotation_Creates_IDBKey"],

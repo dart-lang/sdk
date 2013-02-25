@@ -60,6 +60,7 @@ element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
+indexeddb_5_test/supportsDatabaseNames: Fail
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
@@ -208,6 +209,7 @@ element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Pass, Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
+indexeddb_5_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail, Crash
@@ -287,6 +289,7 @@ element_types_test/supported_object: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
+indexeddb_5_test/supportsDatabaseNames: Fail
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 input_element_test/supported_date: Fail

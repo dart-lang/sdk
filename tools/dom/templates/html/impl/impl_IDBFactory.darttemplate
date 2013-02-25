@@ -62,6 +62,31 @@ $endif
     }
   }
 
+  @DomName('IDBFactory.getDatabaseNames')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<List<String>> getDatabaseNames() {
+    try {
+      var request = $dom_webkitGetDatabaseNames();
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Checks to see if getDatabaseNames is supported by the current platform.
+   */
+  bool get supportsDatabaseNames {
+$if DART2JS
+    return JS('bool', '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)',
+        this, this);
+$else
+    return true;
+$endif
+  }
+
 $!MEMBERS
 }
 

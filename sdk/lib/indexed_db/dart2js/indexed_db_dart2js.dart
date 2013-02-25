@@ -131,15 +131,32 @@ _convertNativeToDart_IDBAny(object) {
 const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add DateTime.
 const _annotation_Creates_IDBKey = const Creates(_idbKey);
 const _annotation_Returns_IDBKey = const Returns(_idbKey);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('IDBCursor')
 class Cursor native "*IDBCursor" {
+  @DomName('IDBCursor.delete')
+  Future delete() {
+   try {
+      return _completeRequest($dom_delete());
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
 
+  @DomName('IDBCursor.value')
+  Future update(value) {
+   try {
+      return _completeRequest($dom_update(value));
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  
   @DomName('IDBCursor.direction')
   @DocsEditable
   final String direction;
@@ -167,20 +184,22 @@ class Cursor native "*IDBCursor" {
   @DocsEditable
   void next([Object key]) native;
 
+  @JSName('delete')
   @DomName('IDBCursor.delete')
   @DocsEditable
-  Request delete() native;
+  Request $dom_delete() native;
 
   @DomName('IDBCursor.update')
   @DocsEditable
-  Request update(/*any*/ value) {
+  Request $dom_update(/*any*/ value) {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
-    return _update_1(value_1);
+    return _$dom_update_1(value_1);
   }
   @JSName('update')
   @DomName('IDBCursor.update')
   @DocsEditable
-  Request _update_1(value) native;
+  Request _$dom_update_1(value) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -199,17 +218,32 @@ class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
   @annotation_Returns_SerializedScriptValue
   final dynamic _value;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('IDBDatabase')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
 class Database extends EventTarget native "*IDBDatabase" {
+  @DomName('IDBDatabase.createObjectStore')
+  @DocsEditable
+  ObjectStore createObjectStore(String name,
+      {String keyPath, bool autoIncrement}) {
+    var options = {};
+    if (keyPath != null) {
+      options['keyPath'] = keyPath;
+    }
+    if (autoIncrement != null) {
+      options['autoIncrement'] = autoIncrement;
+    }
+
+    return $dom_createObjectStore(name, options);
+  }
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
@@ -266,21 +300,21 @@ class Database extends EventTarget native "*IDBDatabase" {
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
-  ObjectStore createObjectStore(String name, [Map options]) {
+  ObjectStore $dom_createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = convertDartToNative_Dictionary(options);
-      return _createObjectStore_1(name, options_1);
+      return _$dom_createObjectStore_1(name, options_1);
     }
-    return _createObjectStore_2(name);
+    return _$dom_createObjectStore_2(name);
   }
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
-  ObjectStore _createObjectStore_1(name, options) native;
+  ObjectStore _$dom_createObjectStore_1(name, options) native;
   @JSName('createObjectStore')
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
-  ObjectStore _createObjectStore_2(name) native;
+  ObjectStore _$dom_createObjectStore_2(name) native;
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable
@@ -371,6 +405,27 @@ class IdbFactory native "*IDBFactory" {
     }
   }
 
+  @DomName('IDBFactory.getDatabaseNames')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<List<String>> getDatabaseNames() {
+    try {
+      var request = $dom_webkitGetDatabaseNames();
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Checks to see if getDatabaseNames is supported by the current platform.
+   */
+  bool get supportsDatabaseNames {
+    return JS('bool', '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)',
+        this, this);
+  }
+
 
   @DomName('IDBFactory.cmp')
   @DocsEditable
@@ -395,7 +450,10 @@ class IdbFactory native "*IDBFactory" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  Request getDatabaseNames() native;
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('DomStringList')
+  Request $dom_webkitGetDatabaseNames() native;
 
 }
 
@@ -416,15 +474,105 @@ Future _completeRequest(Request request) {
   });
   return completer.future;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('IDBIndex')
 class Index native "*IDBIndex" {
+  @DomName('IDBIndex.count')
+  Future<int> count([key_OR_range]) {
+   try {
+      var request;
+      if (key_OR_range != null) {
+        request = $dom_count(key_OR_range);
+      } else {
+        request = $dom_count();
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
 
+  @DomName('IDBIndex.get')
+  Future get(key) {
+    try {
+      var request = $dom_get(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBIndex.getKey')
+  Future getKey(key) {
+    try {
+      var request = $dom_getKey(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * See also:
+   *
+   * * [ObjectStore.openCursor]
+   */
+  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
+      bool autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+    var request;
+    if (direction == null) {
+      request = $dom_openCursor(key_OR_range);
+    } else {
+      request = $dom_openCursor(key_OR_range, direction);
+    }
+    return ObjectStore._cursorStreamFromResult(request, autoAdvance);
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * See also:
+   *
+   * * [ObjectStore.openCursor]
+   */
+  Stream<Cursor> openKeyCursor({key, KeyRange range, String direction,
+      bool autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+    var request;
+    if (direction == null) {
+      request = $dom_openKeyCursor(key_OR_range);
+    } else {
+      request = $dom_openKeyCursor(key_OR_range, direction);
+    }
+    return ObjectStore._cursorStreamFromResult(request, autoAdvance);
+  }
+
+  
   @DomName('IDBIndex.keyPath')
   @DocsEditable
   final dynamic keyPath;
@@ -445,38 +593,44 @@ class Index native "*IDBIndex" {
   @DocsEditable
   final bool unique;
 
+  @JSName('count')
   @DomName('IDBIndex.count')
   @DocsEditable
-  Request count([key_OR_range]) native;
+  Request $dom_count([key_OR_range]) native;
 
+  @JSName('get')
   @DomName('IDBIndex.get')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request get(key) native;
+  Request $dom_get(key) native;
 
+  @JSName('getKey')
   @DomName('IDBIndex.getKey')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   @Creates('ObjectStore')
-  Request getKey(key) native;
+  Request $dom_getKey(key) native;
 
+  @JSName('openCursor')
   @DomName('IDBIndex.openCursor')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request openCursor([key_OR_range, String direction]) native;
+  Request $dom_openCursor([key_OR_range, String direction]) native;
 
+  @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request openKeyCursor([key_OR_range, String direction]) native;
+  Request $dom_openKeyCursor([key_OR_range, String direction]) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -549,6 +703,54 @@ class KeyRange native "*IDBKeyRange" {
 @DomName('IDBObjectStore')
 class ObjectStore native "*IDBObjectStore" {
 
+  @DomName('IDBObjectStore.add')
+  Future add(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = $dom_add(value, key);
+      } else {
+        request = $dom_add(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.clear')
+  Future clear() {
+    try {
+      return _completeRequest($dom_clear());
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.delete')
+  Future delete(key_OR_keyRange){
+    try {
+      return _completeRequest($dom_delete(key_OR_keyRange));
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.count')
+  Future<int> count([key_OR_range]) {
+   try {
+      var request;
+      if (key_OR_range != null) {
+        request = $dom_count(key_OR_range);
+      } else {
+        request = $dom_count();
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
   @DomName('IDBObjectStore.put')
   Future put(value, [key]) {
     try {
@@ -619,6 +821,19 @@ class ObjectStore native "*IDBObjectStore" {
     return _cursorStreamFromResult(request, autoAdvance);
   }
 
+  @DomName('IDBObjectStore.createIndex')
+  Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
+    var options = {};
+    if (unique != null) {
+      options['unique'] = unique;
+    }
+    if (multiEntry != null) {
+      options['multiEntry'] = multiEntry;
+    }
+
+    return $dom_createIndex(name, keyPath, options);
+  }
+
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable
@@ -647,14 +862,14 @@ class ObjectStore native "*IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request add(/*any*/ value, [/*any*/ key]) {
+  Request $dom_add(/*any*/ value, [/*any*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = convertDartToNative_SerializedScriptValue(key);
-      return _add_1(value_1, key_2);
+      return _$dom_add_1(value_1, key_2);
     }
     var value_3 = convertDartToNative_SerializedScriptValue(value);
-    return _add_2(value_3);
+    return _$dom_add_2(value_3);
   }
   @JSName('add')
   @DomName('IDBObjectStore.add')
@@ -662,64 +877,67 @@ class ObjectStore native "*IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _add_1(value, key) native;
+  Request _$dom_add_1(value, key) native;
   @JSName('add')
   @DomName('IDBObjectStore.add')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @_annotation_Creates_IDBKey
-  Request _add_2(value) native;
+  Request _$dom_add_2(value) native;
 
+  @JSName('clear')
   @DomName('IDBObjectStore.clear')
   @DocsEditable
-  Request clear() native;
+  Request $dom_clear() native;
 
+  @JSName('count')
   @DomName('IDBObjectStore.count')
   @DocsEditable
-  Request count([key_OR_range]) native;
+  Request $dom_count([key_OR_range]) native;
 
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index createIndex(String name, keyPath, [Map options]) {
+  Index $dom_createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) && !?options) {
       List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      return _createIndex_1(name, keyPath_1);
+      return _$dom_createIndex_1(name, keyPath_1);
     }
     if ((keyPath is List<String> || keyPath == null)) {
       List keyPath_2 = convertDartToNative_StringArray(keyPath);
       var options_3 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath_2, options_3);
+      return _$dom_createIndex_2(name, keyPath_2, options_3);
     }
     if ((keyPath is String || keyPath == null) && !?options) {
-      return _createIndex_3(name, keyPath);
+      return _$dom_createIndex_3(name, keyPath);
     }
     if ((keyPath is String || keyPath == null)) {
       var options_4 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath, options_4);
+      return _$dom_createIndex_4(name, keyPath, options_4);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_1(name, List keyPath) native;
+  Index _$dom_createIndex_1(name, List keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_2(name, List keyPath, options) native;
+  Index _$dom_createIndex_2(name, List keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_3(name, String keyPath) native;
+  Index _$dom_createIndex_3(name, String keyPath) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
-  Index _createIndex_4(name, String keyPath, options) native;
+  Index _$dom_createIndex_4(name, String keyPath, options) native;
 
+  @JSName('delete')
   @DomName('IDBObjectStore.delete')
   @DocsEditable
-  Request delete(key_OR_keyRange) native;
+  Request $dom_delete(key_OR_keyRange) native;
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable

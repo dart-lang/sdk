@@ -33,17 +33,32 @@ class _KeyRangeFactoryProvider {
       [bool lowerOpen = false, bool upperOpen = false]) =>
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('IDBCursor')
 class Cursor extends NativeFieldWrapperClass1 {
-  Cursor.internal();
+  @DomName('IDBCursor.delete')
+  Future delete() {
+   try {
+      return _completeRequest($dom_delete());
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBCursor.value')
+  Future update(value) {
+   try {
+      return _completeRequest($dom_update(value));
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+    Cursor.internal();
 
   @DomName('IDBCursor.direction')
   @DocsEditable
@@ -84,11 +99,11 @@ class Cursor extends NativeFieldWrapperClass1 {
 
   @DomName('IDBCursor.delete')
   @DocsEditable
-  Request delete() native "IDBCursor_delete_Callback";
+  Request $dom_delete() native "IDBCursor_delete_Callback";
 
   @DomName('IDBCursor.update')
   @DocsEditable
-  Request update(Object value) native "IDBCursor_update_Callback";
+  Request $dom_update(Object value) native "IDBCursor_update_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -108,11 +123,9 @@ class CursorWithValue extends Cursor {
   Object get value native "IDBCursorWithValue_value_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
@@ -122,6 +135,22 @@ class CursorWithValue extends Cursor {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
 class Database extends EventTarget {
+  @DomName('IDBDatabase.createObjectStore')
+  @DocsEditable
+  ObjectStore createObjectStore(String name,
+      {String keyPath, bool autoIncrement}) {
+    var options = {};
+    if (keyPath != null) {
+      options['keyPath'] = keyPath;
+    }
+    if (autoIncrement != null) {
+      options['autoIncrement'] = autoIncrement;
+    }
+
+    return $dom_createObjectStore(name, options);
+  }
+
+
   Database.internal() : super.internal();
 
   @DomName('IDBDatabase.abortEvent')
@@ -158,7 +187,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
-  ObjectStore createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
+  ObjectStore $dom_createObjectStore(String name, [Map options]) native "IDBDatabase_createObjectStore_Callback";
 
   @DomName('IDBDatabase.deleteObjectStore')
   @DocsEditable
@@ -208,7 +237,6 @@ class Database extends EventTarget {
   @DomName('IDBDatabase.onversionchange')
   @DocsEditable
   Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -271,6 +299,26 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     }
   }
 
+  @DomName('IDBFactory.getDatabaseNames')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<List<String>> getDatabaseNames() {
+    try {
+      var request = $dom_webkitGetDatabaseNames();
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Checks to see if getDatabaseNames is supported by the current platform.
+   */
+  bool get supportsDatabaseNames {
+    return true;
+  }
+
   IdbFactory.internal();
 
   @DomName('IDBFactory.cmp')
@@ -301,7 +349,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  Request getDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
+  Request $dom_webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
 }
 
@@ -322,17 +370,105 @@ Future _completeRequest(Request request) {
   });
   return completer.future;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('IDBIndex')
 class Index extends NativeFieldWrapperClass1 {
-  Index.internal();
+  @DomName('IDBIndex.count')
+  Future<int> count([key_OR_range]) {
+   try {
+      var request;
+      if (key_OR_range != null) {
+        request = $dom_count(key_OR_range);
+      } else {
+        request = $dom_count();
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBIndex.get')
+  Future get(key) {
+    try {
+      var request = $dom_get(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBIndex.getKey')
+  Future getKey(key) {
+    try {
+      var request = $dom_getKey(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * See also:
+   *
+   * * [ObjectStore.openCursor]
+   */
+  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
+      bool autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+    var request;
+    if (direction == null) {
+      request = $dom_openCursor(key_OR_range);
+    } else {
+      request = $dom_openCursor(key_OR_range, direction);
+    }
+    return ObjectStore._cursorStreamFromResult(request, autoAdvance);
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * See also:
+   *
+   * * [ObjectStore.openCursor]
+   */
+  Stream<Cursor> openKeyCursor({key, KeyRange range, String direction,
+      bool autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+    var request;
+    if (direction == null) {
+      request = $dom_openKeyCursor(key_OR_range);
+    } else {
+      request = $dom_openKeyCursor(key_OR_range, direction);
+    }
+    return ObjectStore._cursorStreamFromResult(request, autoAdvance);
+  }
+
+    Index.internal();
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable
@@ -354,7 +490,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable
   bool get unique native "IDBIndex_unique_Getter";
 
-  Request count([key_OR_range]) {
+  Request $dom_count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
     }
@@ -379,7 +515,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _count_3(key_OR_range) native "IDBIndex__count_3_Callback";
 
-  Request get(key) {
+  Request $dom_get(key) {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
@@ -397,7 +533,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _get_2(key) native "IDBIndex__get_2_Callback";
 
-  Request getKey(key) {
+  Request $dom_getKey(key) {
     if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
@@ -415,7 +551,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _getKey_2(key) native "IDBIndex__getKey_2_Callback";
 
-  Request openCursor([key_OR_range, String direction]) {
+  Request $dom_openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
@@ -454,7 +590,7 @@ class Index extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _openCursor_5(key_OR_range, direction) native "IDBIndex__openCursor_5_Callback";
 
-  Request openKeyCursor([key_OR_range, String direction]) {
+  Request $dom_openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
       return _openKeyCursor_1();
     }
@@ -602,6 +738,54 @@ class KeyRange extends NativeFieldWrapperClass1 {
 @DomName('IDBObjectStore')
 class ObjectStore extends NativeFieldWrapperClass1 {
 
+  @DomName('IDBObjectStore.add')
+  Future add(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = $dom_add(value, key);
+      } else {
+        request = $dom_add(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.clear')
+  Future clear() {
+    try {
+      return _completeRequest($dom_clear());
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.delete')
+  Future delete(key_OR_keyRange){
+    try {
+      return _completeRequest($dom_delete(key_OR_keyRange));
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.count')
+  Future<int> count([key_OR_range]) {
+   try {
+      var request;
+      if (key_OR_range != null) {
+        request = $dom_count(key_OR_range);
+      } else {
+        request = $dom_count();
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
   @DomName('IDBObjectStore.put')
   Future put(value, [key]) {
     try {
@@ -672,6 +856,19 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     return _cursorStreamFromResult(request, autoAdvance);
   }
 
+  @DomName('IDBObjectStore.createIndex')
+  Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
+    var options = {};
+    if (unique != null) {
+      options['unique'] = unique;
+    }
+    if (multiEntry != null) {
+      options['multiEntry'] = multiEntry;
+    }
+
+    return $dom_createIndex(name, keyPath, options);
+  }
+
   ObjectStore.internal();
 
   @DomName('IDBObjectStore.autoIncrement')
@@ -694,7 +891,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Transaction get transaction native "IDBObjectStore_transaction_Getter";
 
-  Request add(Object value, [Object key]) {
+  Request $dom_add(Object value, [Object key]) {
     if (?key) {
       return _add_1(value, key);
     }
@@ -711,9 +908,9 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
   @DomName('IDBObjectStore.clear')
   @DocsEditable
-  Request clear() native "IDBObjectStore_clear_Callback";
+  Request $dom_clear() native "IDBObjectStore_clear_Callback";
 
-  Request count([key_OR_range]) {
+  Request $dom_count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
     }
@@ -738,7 +935,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _count_3(key_OR_range) native "IDBObjectStore__count_3_Callback";
 
-  Index createIndex(String name, keyPath, [Map options]) {
+  Index $dom_createIndex(String name, keyPath, [Map options]) {
     if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
       return _createIndex_1(name, keyPath, options);
     }
@@ -756,7 +953,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Index _createIndex_2(name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
 
-  Request delete(key_OR_keyRange) {
+  Request $dom_delete(key_OR_keyRange) {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }

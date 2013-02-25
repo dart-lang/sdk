@@ -6,6 +6,54 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
+  @DomName('IDBObjectStore.add')
+  Future add(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = $dom_add(value, key);
+      } else {
+        request = $dom_add(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.clear')
+  Future clear() {
+    try {
+      return _completeRequest($dom_clear());
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.delete')
+  Future delete(key_OR_keyRange){
+    try {
+      return _completeRequest($dom_delete(key_OR_keyRange));
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.count')
+  Future<int> count([key_OR_range]) {
+   try {
+      var request;
+      if (key_OR_range != null) {
+        request = $dom_count(key_OR_range);
+      } else {
+        request = $dom_count();
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
   @DomName('IDBObjectStore.put')
   Future put(value, [key]) {
     try {
@@ -74,6 +122,19 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       request = $dom_openCursor(key_OR_range, direction);
     }
     return _cursorStreamFromResult(request, autoAdvance);
+  }
+
+  @DomName('IDBObjectStore.createIndex')
+  Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
+    var options = {};
+    if (unique != null) {
+      options['unique'] = unique;
+    }
+    if (multiEntry != null) {
+      options['multiEntry'] = multiEntry;
+    }
+
+    return $dom_createIndex(name, keyPath, options);
   }
 
 $!MEMBERS
