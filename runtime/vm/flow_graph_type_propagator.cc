@@ -42,9 +42,7 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
 
 void FlowGraphTypePropagator::Propagate() {
   if (FLAG_trace_type_propagation) {
-    OS::Print("Before type propagation:\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
+    FlowGraphPrinter::PrintGraph("Before type propagation", flow_graph_);
   }
 
   // Walk the dominator tree and propagate reaching types to all Values.
@@ -84,9 +82,7 @@ void FlowGraphTypePropagator::Propagate() {
   }
 
   if (FLAG_trace_type_propagation) {
-    OS::Print("After type propagation:\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
+    FlowGraphPrinter::PrintGraph("After type propagation", flow_graph_);
   }
 }
 
@@ -350,7 +346,7 @@ CompileType CompileType::Create(intptr_t cid, const AbstractType& type) {
 
 
 CompileType CompileType::FromAbstractType(const AbstractType& type,
-                                           bool is_nullable) {
+                                          bool is_nullable) {
   return CompileType(is_nullable, kIllegalCid, &type);
 }
 
@@ -586,8 +582,13 @@ CompileType ParameterInstr::ComputeType() const {
   }
 
   LocalScope* scope = block_->parsed_function().node_sequence()->scope();
-  return CompileType::FromAbstractType(scope->VariableAt(index())->type(),
-                                       CompileType::kNonNullable);
+
+  const AbstractType& type = scope->VariableAt(index())->type();
+
+  // Only receiver of methods on Object and Null types can be null.
+  const bool is_nullable = (index() == 0) &&
+      (type.IsObjectType() || type.IsNullType());
+  return CompileType::FromAbstractType(type, is_nullable);
 }
 
 

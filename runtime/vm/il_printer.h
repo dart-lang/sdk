@@ -54,6 +54,8 @@ class FlowGraphPrinter : public ValueObject {
                              const String& dst_name,
                              bool eliminated);
 
+  static void PrintGraph(const char* phase, FlowGraph* flow_graph);
+
  private:
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
