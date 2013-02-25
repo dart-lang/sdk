@@ -67,10 +67,12 @@ import 'dart:async';
 import 'package:pathos/path.dart' as path;
 
 import 'scheduled_test.dart';
+import 'src/descriptor/async.dart';
 import 'src/descriptor/directory.dart';
 import 'src/descriptor/entry.dart';
 import 'src/descriptor/file.dart';
 
+export 'src/descriptor/async.dart';
 export 'src/descriptor/directory.dart';
 export 'src/descriptor/entry.dart';
 export 'src/descriptor/file.dart';
@@ -96,3 +98,7 @@ File binaryFile(Pattern name, List<int> contents) =>
 /// Creates a new [Directory] descriptor with [name] and [contents].
 Directory dir(Pattern name, [Iterable<Entry> contents]) =>
     new Directory(name, contents == null ? <Entry>[] : contents);
+
+/// Creates a new descriptor wrapping a [Future]. This descriptor forwards all
+/// asynchronous operations to the result of [future].
+Async async(Future<Entry> future) => new Async(future);
