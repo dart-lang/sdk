@@ -2561,15 +2561,11 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      (recognized_kind() == MethodRecognizer::kDoubleRound) ? 1 : 0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* result =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   result->set_in(0, Location::RequiresFpuRegister());
   result->set_out(Location::RequiresFpuRegister());
-  if (recognized_kind() == MethodRecognizer::kDoubleRound) {
-    result->set_temp(0, Location::RequiresFpuRegister());
-  }
   return result;
 }
 
@@ -2587,11 +2583,6 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case MethodRecognizer::kDoubleCeil:
       __ roundsd(result, value,  Assembler::kRoundUp);
       break;
-    case MethodRecognizer::kDoubleRound: {
-      XmmRegister temp = locs()->temp(0).fpu_reg();
-      __ DoubleRound(result, value, temp);
-      break;
-    }
     default:
       UNREACHABLE();
   }

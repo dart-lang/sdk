@@ -628,7 +628,6 @@ class Assembler : public ValueObject {
   void FloatNegate(XmmRegister f);
 
   void DoubleAbs(XmmRegister reg);
-  void DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp);
 
   void LockCmpxchgl(const Address& address, Register reg) {
     lock();

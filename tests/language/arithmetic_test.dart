@@ -279,6 +279,8 @@ class ArithmeticTest {
     // Double.
     Expect.equals(3.0, (2.6).round());
     Expect.equals(-3.0, (-2.6).round());
+    Expect.equals(3.0, (2.5).round());
+    Expect.equals(-3.0, (-2.5).round());
     Expect.equals(0.0, (0.0).round());
     Expect.equals(0.0, (0.1).round());
     Expect.equals(false, (0.0).round().isNegative);

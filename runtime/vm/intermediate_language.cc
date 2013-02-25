@@ -2197,12 +2197,13 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     MethodRecognizer::Kind kind) {
   switch (kind) {
     case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleRound:
     case MethodRecognizer::kDoubleFloor:
     case MethodRecognizer::kDoubleCeil: {
       ASSERT(!CPUFeatures::double_truncate_round_supported());
       return 1;
     }
+    case MethodRecognizer::kDoubleRound:
+      return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoublePow:
       return 2;

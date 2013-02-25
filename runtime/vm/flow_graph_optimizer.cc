@@ -1587,10 +1587,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       }
       case MethodRecognizer::kDoubleMod:
       case MethodRecognizer::kDoublePow:
+      case MethodRecognizer::kDoubleRound:
         ReplaceWithMathCFunction(call, recognized_kind);
         return true;
       case MethodRecognizer::kDoubleTruncate:
-      case MethodRecognizer::kDoubleRound:
       case MethodRecognizer::kDoubleFloor:
       case MethodRecognizer::kDoubleCeil:
         if (!CPUFeatures::double_truncate_round_supported()) {

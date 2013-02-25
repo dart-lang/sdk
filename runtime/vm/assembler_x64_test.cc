@@ -2226,41 +2226,6 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(DoubleToDoubleRound, assembler) {
-  __ DoubleRound(XMM0, XMM0, XMM1);
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(DoubleToDoubleRound, test) {
-  typedef double (*DoubleToDoubleRoundCode)(double d);
-  double res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(12.3);
-  EXPECT_EQ(12.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(12.8);
-  EXPECT_EQ(13.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(0.5);
-  EXPECT_EQ(1.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(-12.3);
-  EXPECT_EQ(-12.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(-12.8);
-  EXPECT_EQ(-13.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(test->entry())(-0.5);
-  EXPECT_EQ(-1.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(
-      test->entry())(0.49999999999999994);
-  EXPECT_EQ(0.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(
-      test->entry())(-0.49999999999999994);
-  EXPECT_EQ(-0.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(
-      test->entry())(9007199254740991.0);
-  EXPECT_EQ(9007199254740991.0, res);
-  res = reinterpret_cast<DoubleToDoubleRoundCode>(
-      test->entry())(-9007199254740991.0);
-  EXPECT_EQ(-9007199254740991.0, res);
-}
-
-
 ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
   __ movmskpd(RAX, XMM0);
   __ andq(RAX, Immediate(0x1));

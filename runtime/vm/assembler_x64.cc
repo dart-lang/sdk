@@ -2081,42 +2081,6 @@ void Assembler::DoubleAbs(XmmRegister reg) {
 }
 
 
-void Assembler::DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp) {
-  ASSERT(tmp != src);
-  static double kZeroFiveConst = 0.5;
-  static double kNegZeroFiveConst = -0.5;
-  static double kOneConst = 1.0;
-  static double kNegOneConst = -1.0;
-  Label is_negative, round;
-  if (src != dst) {
-    movsd(dst, src);
-  }
-  // Special handling: 0.5 -> 1.0, -0.5 -> -1.0;
-  Label done, equal_point5, equal_neg_point5;
-  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kZeroFiveConst)));
-  movsd(tmp, Address(TMP, 0));
-  comisd(tmp, dst);
-  j(EQUAL, &equal_point5, Assembler::kNearJump);
-  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kNegZeroFiveConst)));
-  movsd(tmp, Address(TMP, 0));
-  comisd(tmp, dst);
-  j(EQUAL, &equal_neg_point5, Assembler::kNearJump);
-
-  roundsd(dst, dst, Assembler::kRoundToNearest);
-  jmp(&done, Assembler::kNearJump);
-
-  Bind(&equal_point5);
-  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kOneConst)));
-  movsd(dst, Address(TMP, 0));
-  jmp(&done);
-
-  Bind(&equal_neg_point5);
-  movq(TMP, Immediate(reinterpret_cast<intptr_t>(&kNegOneConst)));
-  movsd(dst, Address(TMP, 0));
-  Bind(&done);
-}
-
-
 void Assembler::Stop(const char* message) {
   int64_t message_address = reinterpret_cast<int64_t>(message);
   if (FLAG_print_stop_message) {

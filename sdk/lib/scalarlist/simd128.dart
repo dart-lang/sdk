@@ -147,8 +147,7 @@ abstract class Uint32x4 {
   /// Merge [trueValue] and [falseValue] based on [this]' bit mask:
   /// Select bit from [trueValue] when bit in [this] is on.
   /// Select bit from [falseValue] when bit in [this] is off.
-  Float32x4 select(Float32x4 trueValue,
-                          Float32x4 falseValue);
+  Float32x4 select(Float32x4 trueValue, Float32x4 falseValue);
 
   /// Returns a bit-wise copy of [this] as a [Float32x4].
   Float32x4 toFloat32x4();
