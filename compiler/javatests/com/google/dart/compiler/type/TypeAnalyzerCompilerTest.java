@@ -255,7 +255,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 10, 1, 27),
         errEx(TypeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 11, 1, 17));
   }
-  
+
   /**
    * Type parameters should not conflict with formal parameters.
    * <p>
@@ -433,7 +433,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 10, 8));
   }
-  
+
   /**
    * It is a compile-time error if the class C implements the operator ==.
    * <p>
@@ -477,7 +477,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 5, 10, 3));
   }
-  
+
   public void test_switchExpression_case_constLocalVariable() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -490,7 +490,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=2862
@@ -634,7 +634,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertTrue(message.contains("void foo()"));
     }
   }
-  
+
   /**
    * In contrast, if A is intended to be concrete, the checker should warn about all unimplemented
    * methods, but allow clients to instantiate it freely.
@@ -791,7 +791,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5327
@@ -998,7 +998,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 15, 18, 4),
         errEx(ResolverErrorCode.DUPLICATE_NAMED_ARGUMENT, 16, 25, 5));
   }
-  
+
   /**
    * Test that optional positional and named parameters are handled separately.
    */
@@ -1364,7 +1364,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1));
   }
-  
+
   public void test_assignFinal_topLevelVariable() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1377,7 +1377,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1));
   }
-  
+
   public void test_assignFinal_instanceVariable_inConstructor() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1407,7 +1407,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   public void test_constantEvaluationException_divZero() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1473,7 +1473,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.NO_SUCH_TYPE_CONST, 3, 9, 10));
   }
-  
+
   public void test_constInstanceCreation_noSuchConstructor() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1486,7 +1486,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR, 4, 11, 10));
   }
-  
+
   public void test_constInstanceCreation_notType() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1669,7 +1669,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_OPTIONAL_PARAMS, 5, 3, 3));
   }
-  
+
   public void test_implementsAndOverrides_moreOptionalPositionalParameter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "abstract class A {",
@@ -1725,7 +1725,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 11, 7, 5),
         errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE, 12, 7, 7));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3183
@@ -1879,7 +1879,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(result.getErrors());
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=7597
@@ -2067,7 +2067,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "");
     assertErrors(result.getErrors());
   }
-  
+
   public void test_inferredTypes_noMemberWarnings() throws Exception {
     // disabled by default
     {
@@ -2214,7 +2214,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v6", "Map<String, int>", INFERRED);
     assertInferredElementTypeString(testUnit, "v7", "int", INFERRED);
   }
-  
+
   public void test_typesPropagation_arrayAccess() throws Exception {
     analyzeLibrary(
         "class A {}",
@@ -2365,7 +2365,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v3", "int", INFERRED_EXACT);
     assertInferredElementTypeString(testUnit, "v4", "Object", INFERRED);
   }
-  
+
   public void test_typesPropagation_multiAssign_DoWhile() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2449,7 +2449,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "a1", "List<Object>", INFERRED);
     assertInferredElementTypeString(testUnit, "b1", "List<Object>", INFERRED);
   }
-  
+
   /**
    * Prefer specific type, not "dynamic" type argument.
    * <p>
@@ -2472,7 +2472,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "a1", "List<String>", INFERRED);
     assertInferredElementTypeString(testUnit, "b1", "List<String>", INFERRED);
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4791
@@ -2943,7 +2943,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // we exited "if" Block, so "assert" may be was not executed, so we don't know type
     assertInferredElementTypeString(testUnit, "v5", "dynamic", EXACT);
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4410
@@ -3029,7 +3029,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
     assertInferredElementTypeString(testUnit, "v2", "double", INFERRED_EXACT);
   }
-  
+
   /**
    * If field is not final, we don't know if is will be assigned somewhere else, may be even not in
    * there same unit, so we cannot be sure about its type.
@@ -3063,7 +3063,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v1", "int", INFERRED_EXACT);
     assertInferredElementTypeString(testUnit, "v2", "double", INFERRED_EXACT);
   }
-  
+
   /**
    * If field is not final, we don't know if is will be assigned somewhere else, may be even not in
    * there same unit, so we cannot be sure about its type.
@@ -3980,7 +3980,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 11, 7, 1),
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 11, 9, 7));
   }
-  
+
   public void test_metadata_resolving() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -4260,7 +4260,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertHasFieldElement(binary.getArg1(), "A", "b");
     }
   }
-  
+
   /**
    * Test for resolving variants of top-level property access and unary/binary expressions.
    * <p>
@@ -4330,7 +4330,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     FieldElement fieldElement = (FieldElement) element;
     assertHasFieldElement(fieldElement, className, fieldName);
   }
-  
+
   private static void assertHasFieldElement(FieldElement element, String className, String fieldName) {
     EnclosingElement enclosingElement = element.getEnclosingElement();
     String enclosingName;
@@ -4344,14 +4344,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     String elementName = element.getName();
     assertEquals(fieldName, elementName);
   }
-  
+
   private static void assertHasMethodElement(DartNode node, String className, String methodName) {
     Element element = node.getElement();
     assertTrue("" + node + " " + element, element instanceof MethodElement);
     MethodElement methodElement = (MethodElement) element;
     assertMethodElement(methodElement, className, methodName);
   }
-  
+
   private static void assertMethodElement(MethodElement element, String className, String methodName) {
     EnclosingElement enclosingElement = element.getEnclosingElement();
     String enclosingName;
@@ -4406,7 +4406,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 10, 3, 3),
         errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 9));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3223
@@ -4420,7 +4420,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   public void test_invokeNonFunction_getter() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -4632,7 +4632,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors());
   }
-  
+
   /**
    * There should be no problem reported, because assignment of "a" cascade to "b" with type "B"
    * implicitly set type of "a" to "B".
@@ -4674,7 +4674,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors());
   }
-  
+
   /**
    * We assign "a" to field "Holder.b" of type "B", so implicitly set type of "a" to "B".
    * <p>
@@ -4814,7 +4814,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 11, 3, 7),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 12, 11, 7));
   }
-  
+
   /**
    * If "unknown" is separate identifier, it is handled as "this.unknown", but "this" is not
    * accessible in static context.
@@ -4854,7 +4854,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
   }
-  
+
   /**
    * Unresolved constructor is warning.
    * <p>
@@ -4877,7 +4877,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
         errEx(TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4383
@@ -4893,7 +4893,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, 4, 3, 12));
   }
-  
+
   /**
    * Every {@link DartExpression} should have {@link Type} set. Just to don't guess this type at
    * many other points in the Editor.
@@ -4908,6 +4908,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  process(aaa);",
         "}");
     testUnit.accept(new ASTVisitor<Void>() {
+      @Override
       public Void visitIdentifier(DartIdentifier node) {
         // ignore declaration
         if (node.getParent() instanceof DartDeclaration) {
@@ -4923,7 +4924,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       }
     });
   }
-  
+
   /**
    * Every {@link DartExpression} should have {@link Type} set. Just to don't guess this type at
    * many other points in the Editor.
@@ -4938,6 +4939,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  AAA.foo();",
         "}");
     testUnit.accept(new ASTVisitor<Void>() {
+      @Override
       public Void visitIdentifier(DartIdentifier node) {
         // ignore declaration
         if (node.getParent() instanceof DartDeclaration) {
@@ -4976,7 +4978,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 5, 5, 12),
         errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 10, 5, 12));
   }
-  
+
   private abstract static class ArgumentsBindingTester {
     static List<DartExpression> arguments;
     void doTest(DartUnit unit) {
@@ -5034,7 +5036,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       }
     }.doTest(testUnit);
   }
-  
+
   public void test_formalParameters_positional_named() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5097,7 +5099,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.CONSTRUCTOR_WITH_NAME_OF_MEMBER, 3, 3, 5));
   }
-  
+
   /**
    * It is a compile-time error if M is not the name of the immediately enclosing class.
    * It is a static warning if M.id is not a constructor name.
@@ -5173,7 +5175,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertSame(elementA.lookupConstructor("named"), nameElement);
     }
   }
-  
+
   public void test_redirectingFactoryConstructor_cycle() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5245,7 +5247,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   public void test_redirectingFactoryConstructor_shouldBeSubType3() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5259,7 +5261,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(libraryResult.getErrors());
   }
-  
+
   public void test_redirectingFactoryConstructor_notSubType_typeParameterBounds() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5463,7 +5465,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.DUPLICATE_IMPLEMENTS_TYPE, 3, 23, 1));
   }
-  
+
   /**
    * It is a compile-time error if the superclass of a class C appears in the implements clause of C.
    * <p>
@@ -5477,7 +5479,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.SUPER_CLASS_IN_IMPLEMENTS, 3, 30, 1));
   }
-  
+
   /**
    * We should report only "no such type", but not duplicate.
    * <p>
@@ -5562,7 +5564,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 4, 9, 5));
   }
-  
+
   public void test_getOverridden_method() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5614,7 +5616,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertClassMembers(superElements, "field A.foo");
     }
   }
-  
+
   public void test_getOverridden_field_withGetter() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5667,7 +5669,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     Set<Element> superElements = node.getElement().getOverridden();
     assertClassMembers(superElements, "field A.foo");
   }
-  
+
   public void test_getOverridden_getter_withField() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5682,7 +5684,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     Set<Element> superElements = node.getElement().getOverridden();
     assertClassMembers(superElements, "field A.foo");
   }
-  
+
   public void test_getOverridden_setter_withField() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5697,7 +5699,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     Set<Element> superElements = node.getElement().getOverridden();
     assertClassMembers(superElements, "field A.setter foo");
   }
-  
+
   public void test_getOverridden_setter_withSetter() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5742,7 +5744,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 6, 11, 1));
   }
-  
+
   public void test_fieldAccess_notDeclared() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5754,7 +5756,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 1));
   }
-  
+
   public void test_fieldAssign_declared_noSetter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5767,7 +5769,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 6, 5, 1));
   }
-  
+
   public void test_fieldAssign_notDeclared() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5792,7 +5794,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 5, 13, 1));
   }
-  
+
   public void test_field_unqualifiedAccess_write() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -5855,7 +5857,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD, 4, 5, 3));
   }
-  
+
   /**
    * Developers unfamiliar with Dart frequently write (x/y).toInt() instead of x ~/ y. The editor
    * should recognize that pattern.
@@ -5873,7 +5875,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors(), errEx(TypeErrorCode.USE_INTEGER_DIVISION, 5, 10, 15));
   }
-  
+
   /**
    * We need to report warning only when arguments are integers.
    * <p>
@@ -5923,7 +5925,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors());
   }
-  
+
   /**
    * We should resolve sub-type member only if there is only sub-type with such member.
    * <p>
@@ -5959,7 +5961,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // don't report error, because there IS member, we just don't know which one
     assertErrors(result.getErrors());
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6491
@@ -6027,7 +6029,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertEquals("bbb", element.getName());
     }
   }
-  
+
   public void test_resolveRefInComment_ofMethod() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -6052,7 +6054,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertEquals("bar", element.getName());
     }
   }
-  
+
   public void test_resolveNewInComment() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -6100,7 +6102,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 11, 3, 1),
         errEx(ResolverErrorCode.NOT_GENERATIVE_SUPER_CONSTRUCTOR, 13, 7, 1));
   }
-  
+
   public void test_notGenerativeConstructor_explicitNamed() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -6132,7 +6134,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(),
         errEx(ResolverErrorCode.INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR, 4, 9, 5));
   }
-  
+
   public void test_variableReferencesItselfInInitializer() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -6287,7 +6289,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertNotNull(expectedElement);
     assertSame(nameInInvocation.getElement(), expectedElement);
   }
-  
+
   public void test_mixin_1() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -6303,7 +6305,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors());
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=8022
@@ -6321,7 +6323,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 4, 25, 1),
         errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 5, 29, 1));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=8025
@@ -6338,7 +6340,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR, 3, 25, 1),
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR, 4, 29, 1));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=8059
@@ -6355,7 +6357,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER, 3, 25, 1),
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER, 4, 29, 1));
   }
-  
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8705
+   */
+  public void test_mixin_useInScope() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class M { foo() {} }",
+        "class A extends Object with M {",
+        "  bar() {",
+        "    foo();",
+        "  }",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
   /**
    * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
    */
@@ -6408,7 +6427,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 12, 9, 1),
         errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 15, 5, 7));
   }
-  
+
   /**
    * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
    */
@@ -6455,7 +6474,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 11, 2));
   }
-  
+
   /**
    * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
    */
@@ -6490,5 +6509,5 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_MIXINS, 2, 25, 1));
   }
-  
+
 }
