@@ -113,7 +113,7 @@ TEST_CASE(DartStaticResolve) {
     const Smi& arg1 = Smi::Handle(Smi::New(kTestValue));
     args.SetAt(1, arg1);
     const Smi& retval = Smi::Handle(
-        reinterpret_cast<RawSmi*>(DartEntry::InvokeStatic(function, args)));
+        reinterpret_cast<RawSmi*>(DartEntry::InvokeFunction(function, args)));
     EXPECT_EQ(kTestValue, retval.Value());
   }
 
@@ -188,7 +188,7 @@ TEST_CASE(DartDynamicResolve) {
     const Smi& arg1 = Smi::Handle(Smi::New(kTestValue));
     args.SetAt(2, arg1);
     const Smi& retval = Smi::Handle(
-        reinterpret_cast<RawSmi*>(DartEntry::InvokeDynamic(function, args)));
+        reinterpret_cast<RawSmi*>(DartEntry::InvokeFunction(function, args)));
     EXPECT_EQ(kTestValue, retval.Value());
   }
 

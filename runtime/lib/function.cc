@@ -16,15 +16,11 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(Function_apply, 2) {
   const Array& fun_arguments = Array::CheckedHandle(arguments->NativeArgAt(0));
   const Array& fun_arg_names = Array::CheckedHandle(arguments->NativeArgAt(1));
-  Instance& instance = Instance::Handle();
-  instance ^= fun_arguments.At(0);
   const Array& fun_args_desc =
       Array::Handle(ArgumentsDescriptor::New(fun_arguments.Length(),
                                              fun_arg_names));
   const Object& result =
-      Object::Handle(DartEntry::InvokeClosure(instance,
-                                              fun_arguments,
-                                              fun_args_desc));
+      Object::Handle(DartEntry::InvokeClosure(fun_arguments, fun_args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }

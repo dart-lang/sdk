@@ -105,43 +105,37 @@ class DartEntry : public AllStatic {
                                    const Array& arguments,
                                    const Context& context);
 
-  // Invokes the specified instance function on the receiver.
+  // Invokes the specified instance function or static function.
+  // The first argument of an instance function is the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
   // This is used when there are no named arguments in the call.
-  static RawObject* InvokeDynamic(const Function& function,
-                                  const Array& arguments);
+  static RawObject* InvokeFunction(const Function& function,
+                                   const Array& arguments);
 
-  // Invokes the specified instance function on the receiver.
+  // Invokes the specified instance or static function.
   // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeDynamic(const Function& function,
-                                  const Array& arguments,
+  static RawObject* InvokeFunction(const Function& function,
+                                   const Array& arguments,
+                                   const Array& arguments_descriptor);
+
+  // Invokes the specified instance, static, or closure function.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeFunction(const Function& function,
+                                   const Array& arguments,
+                                   const Array& arguments_descriptor,
+                                   const Context& context);
+
+  // Invokes the closure object given as the first argument.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  // This is used when there are no named arguments in the call.
+  static RawObject* InvokeClosure(const Array& arguments);
+
+  // Invokes the closure object given as the first argument.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeClosure(const Array& arguments,
                                   const Array& arguments_descriptor);
 
-  // Invoke the specified static function.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  // This is used when there are no named arguments in the call.
-  static RawObject* InvokeStatic(const Function& function,
-                                 const Array& arguments);
-
-  // Invoke the specified static function.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeStatic(const Function& function,
-                                 const Array& arguments,
-                                 const Array& arguments_descriptor);
-
-  // Invoke the specified closure object.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  // This is used when there are no named arguments in the call.
-  static RawObject* InvokeClosure(const Instance& closure,
-                                  const Array& arguments);
-
-  // Invoke the specified closure object.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static RawObject* InvokeClosure(const Instance& closure,
-                                  const Array& arguments,
-                                  const Array& arguments_descriptor);
-
-  // Invoke the noSuchMethod instance function on the receiver.
+  // Invokes the noSuchMethod instance function on the receiver.
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* InvokeNoSuchMethod(const Instance& receiver,
                                        const String& target_name,

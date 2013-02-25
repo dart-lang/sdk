@@ -40,7 +40,7 @@ TEST_CASE(DartEntry) {
   EXPECT(CompilerTest::TestCompileFunction(function));
   EXPECT(function.HasCode());
   const Smi& retval = Smi::Handle(reinterpret_cast<RawSmi*>(
-      DartEntry::InvokeStatic(function, Object::empty_array())));
+      DartEntry::InvokeFunction(function, Object::empty_array())));
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 
@@ -66,7 +66,7 @@ TEST_CASE(InvokeStatic_CompileError) {
   EXPECT(!function.IsNull());
   GrowableArray<const Object*> arguments;
   const Object& retval = Object::Handle(
-      DartEntry::InvokeStatic(function, Object::empty_array()));
+      DartEntry::InvokeFunction(function, Object::empty_array()));
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
@@ -99,7 +99,7 @@ TEST_CASE(InvokeDynamic_CompileError) {
   Function& constructor =
     Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
-  DartEntry::InvokeStatic(constructor, constructor_arguments);
+  DartEntry::InvokeFunction(constructor, constructor_arguments);
 
   // Call foo.
   String& name = String::Handle(String::New("foo"));
@@ -107,8 +107,8 @@ TEST_CASE(InvokeDynamic_CompileError) {
   EXPECT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, instance);
-  const Object& retval = Object::Handle(DartEntry::InvokeDynamic(function,
-                                                                 args));
+  const Object& retval = Object::Handle(DartEntry::InvokeFunction(function,
+                                                                  args));
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }

@@ -74,7 +74,7 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
   const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeStatic(func, args));
+      Object::Handle(isolate, DartEntry::InvokeFunction(func, args));
   if (!result.IsError()) {
     PortMap::SetLive(port_id);
   }
@@ -374,7 +374,7 @@ static bool RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
-    result = DartEntry::InvokeStatic(func, Object::empty_array());
+    result = DartEntry::InvokeFunction(func, Object::empty_array());
     if (result.IsError()) {
       StoreError(isolate, result);
       return false;

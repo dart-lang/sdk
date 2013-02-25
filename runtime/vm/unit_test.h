@@ -84,7 +84,7 @@
   }                                                                            \
   static void CodeGenTestRun##name(const Function& function) {                 \
     Object& result = Object::Handle();                                         \
-    result = DartEntry::InvokeStatic(function, Object::empty_array());         \
+    result = DartEntry::InvokeFunction(function, Object::empty_array());       \
     EXPECT(!result.IsError());                                                 \
     Instance& actual = Instance::Handle();                                     \
     actual ^= result.raw();                                                    \
@@ -122,7 +122,7 @@
   }                                                                            \
   static void CodeGenTestRun##name1(const Function& function) {                \
     Object& result = Object::Handle();                                         \
-    result = DartEntry::InvokeStatic(function, Object::empty_array());         \
+    result = DartEntry::InvokeFunction(function, Object::empty_array());       \
     EXPECT(!result.IsError());                                                 \
     Instance& actual = Instance::Handle();                                     \
     actual ^= result.raw();                                                    \

@@ -8,6 +8,7 @@
 #include "vm/compiler.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
@@ -17,17 +18,28 @@ namespace dart {
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 
-RawObject* DartEntry::InvokeDynamic(const Function& function,
-                                    const Array& arguments) {
-  const Array& arg_desc =
+RawObject* DartEntry::InvokeFunction(const Function& function,
+                                     const Array& arguments) {
+  const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
-  return InvokeDynamic(function, arguments, arg_desc);
+  return InvokeFunction(function, arguments, arguments_descriptor);
 }
 
 
-RawObject* DartEntry::InvokeDynamic(const Function& function,
-                                    const Array& arguments,
-                                    const Array& arguments_descriptor) {
+RawObject* DartEntry::InvokeFunction(const Function& function,
+                                     const Array& arguments,
+                                     const Array& arguments_descriptor) {
+  const Context& context =
+      Context::ZoneHandle(Isolate::Current()->object_store()->empty_context());
+  ASSERT(context.isolate() == Isolate::Current());
+  return InvokeFunction(function, arguments, arguments_descriptor, context);
+}
+
+
+RawObject* DartEntry::InvokeFunction(const Function& function,
+                                     const Array& arguments,
+                                     const Array& arguments_descriptor,
+                                     const Context& context) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
@@ -37,72 +49,40 @@ RawObject* DartEntry::InvokeDynamic(const Function& function,
       return error.raw();
     }
   }
-
   // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
-  const Context& context =
-      Context::ZoneHandle(Isolate::Current()->object_store()->empty_context());
-  ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
-  return entrypoint(code.EntryPoint(),
-                    arguments_descriptor,
-                    arguments,
-                    context);
+#ifdef USING_SIMULATOR
+    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+        reinterpret_cast<int32_t>(entrypoint),
+        static_cast<int32_t>(code.EntryPoint()),
+        reinterpret_cast<int32_t>(&arguments_descriptor),
+        reinterpret_cast<int32_t>(&arguments),
+        reinterpret_cast<int32_t>(&context),
+        0));
+#else
+    return entrypoint(code.EntryPoint(),
+                      arguments_descriptor,
+                      arguments,
+                      context);
+#endif
 }
 
 
-RawObject* DartEntry::InvokeStatic(const Function& function,
-                                   const Array& arguments) {
+RawObject* DartEntry::InvokeClosure(const Array& arguments) {
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
-  return InvokeStatic(function, arguments, arguments_descriptor);
+  return InvokeClosure(arguments, arguments_descriptor);
 }
 
 
-RawObject* DartEntry::InvokeStatic(const Function& function,
-                                   const Array& arguments,
-                                   const Array& arguments_descriptor) {
-  // Get the entrypoint corresponding to the function specified, this
-  // will result in a compilation of the function if it is not already
-  // compiled.
-  ASSERT(!function.IsNull());
-  if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      return error.raw();
-    }
-  }
-  // Now Call the invoke stub which will invoke the dart function.
-  invokestub entrypoint = reinterpret_cast<invokestub>(
-      StubCode::InvokeDartCodeEntryPoint());
-  const Context& context =
-      Context::ZoneHandle(Isolate::Current()->object_store()->empty_context());
-  ASSERT(context.isolate() == Isolate::Current());
-  const Code& code = Code::Handle(function.CurrentCode());
-  ASSERT(!code.IsNull());
-  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
-  return entrypoint(code.EntryPoint(),
-                    arguments_descriptor,
-                    arguments,
-                    context);
-}
-
-
-RawObject* DartEntry::InvokeClosure(const Instance& closure,
-                                    const Array& arguments) {
-  const Array& arguments_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
-  return InvokeClosure(closure, arguments, arguments_descriptor);
-}
-
-
-RawObject* DartEntry::InvokeClosure(const Instance& instance,
-                                    const Array& arguments,
+RawObject* DartEntry::InvokeClosure(const Array& arguments,
                                     const Array& arguments_descriptor) {
-  ASSERT(instance.raw() == arguments.At(0));
+  Instance& instance = Instance::Handle();
+  instance ^= arguments.At(0);
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
@@ -114,26 +94,9 @@ RawObject* DartEntry::InvokeClosure(const Instance& instance,
     if (function.AreValidArgumentCounts(args_desc.Count(),
                                         args_desc.NamedCount(),
                                         NULL)) {
-      if (!function.HasCode()) {
-        const Error& error = Error::Handle(Compiler::CompileFunction(function));
-        if (!error.IsNull()) {
-          return error.raw();
-        }
-      }
-      // Now call the invoke stub which will invoke the closure function or
-      // 'call' function.
       // The closure or non-closure object (receiver) is passed as implicit
       // first argument. It is already included in the arguments array.
-      invokestub entrypoint = reinterpret_cast<invokestub>(
-          StubCode::InvokeDartCodeEntryPoint());
-      ASSERT(context.isolate() == Isolate::Current());
-      const Code& code = Code::Handle(function.CurrentCode());
-      ASSERT(!code.IsNull());
-      ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
-      return entrypoint(code.EntryPoint(),
-                        arguments_descriptor,
-                        arguments,
-                        context);
+      return InvokeFunction(function, arguments, arguments_descriptor, context);
     }
   }
   // There is no compatible 'call' method, so invoke noSuchMethod.
@@ -169,7 +132,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   allocation_args.SetAt(1, arguments_descriptor);
   allocation_args.SetAt(2, arguments);
   const Object& invocation_mirror = Object::Handle(
-      InvokeStatic(allocation_function, allocation_args));
+      InvokeFunction(allocation_function, allocation_args));
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kNumArguments = 2;
@@ -183,7 +146,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
   args.SetAt(1, invocation_mirror);
-  return InvokeDynamic(function, args);
+  return InvokeFunction(function, args);
 }
 
 
@@ -350,7 +313,8 @@ RawObject* DartLibraryCalls::ExceptionCreate(const Library& lib,
       Function::Handle(cls.LookupConstructorAllowPrivate(function_name));
   ASSERT(!constructor.IsNull());
   const Object& retval =
-    Object::Handle(DartEntry::InvokeStatic(constructor, constructor_arguments));
+    Object::Handle(DartEntry::InvokeFunction(constructor,
+                                             constructor_arguments));
   ASSERT(retval.IsNull() || retval.IsError());
   if (retval.IsError()) {
     return retval.raw();
@@ -370,8 +334,8 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
-  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
-                                                                 args));
+  const Object& result = Object::Handle(DartEntry::InvokeFunction(function,
+                                                                  args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
@@ -391,8 +355,8 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, left);
   args.SetAt(1, right);
-  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
-                                                                 args));
+  const Object& result = Object::Handle(DartEntry::InvokeFunction(function,
+                                                                  args));
   ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
@@ -422,7 +386,7 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));
   const Object& result =
-      Object::Handle(DartEntry::InvokeStatic(function, args));
+      Object::Handle(DartEntry::InvokeFunction(function, args));
   return result.raw();
 }
 
@@ -455,7 +419,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
   args.SetAt(1, Integer::Handle(isolate, Integer::New(reply_port_id)));
   args.SetAt(2, message);
   const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeStatic(function, args));
+      Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }
@@ -478,7 +442,7 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
                               Resolver::kIsQualified));
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));
-  return DartEntry::InvokeStatic(function, args);
+  return DartEntry::InvokeFunction(function, args);
 }
 
 
@@ -496,8 +460,8 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
   args.SetAt(0, map);
   args.SetAt(1, key);
   args.SetAt(2, value);
-  const Object& result = Object::Handle(DartEntry::InvokeDynamic(function,
-                                                                 args));
+  const Object& result = Object::Handle(DartEntry::InvokeFunction(function,
+                                                                  args));
   return result.raw();
 }
 
@@ -512,7 +476,7 @@ RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
   ASSERT(!func.IsNull());
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, port);
-  return DartEntry::InvokeDynamic(func, args);
+  return DartEntry::InvokeFunction(func, args);
 }
 
 

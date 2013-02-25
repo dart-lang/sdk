@@ -8185,7 +8185,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
       Object& const_value = Object::Handle(
-          DartEntry::InvokeStatic(func, Object::empty_array()));
+          DartEntry::InvokeFunction(func, Object::empty_array()));
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -8248,9 +8248,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
       Array::Handle(ArgumentsDescriptor::New(num_arguments,
                                              arguments->names()));
   const Object& result =
-      Object::Handle(DartEntry::InvokeStatic(constructor,
-                                             arg_values,
-                                             arg_descriptor));
+      Object::Handle(DartEntry::InvokeFunction(constructor,
+                                               arg_values,
+                                               arg_descriptor));
   if (result.IsError()) {
       if (result.IsUnhandledException()) {
         return result.raw();
@@ -9459,7 +9459,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 
   // Call interpolation function.
   String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeStatic(func, interpolate_arg);
+  concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }

@@ -191,8 +191,8 @@ bool IsolateMessageHandler::UnhandledExceptionCallbackHandler(
   const Array& callback_args = Array::Handle(Array::New(1));
   callback_args.SetAt(0, exception);
   const Object& result =
-      Object::Handle(DartEntry::InvokeStatic(Function::Cast(function),
-                                             callback_args));
+      Object::Handle(DartEntry::InvokeFunction(Function::Cast(function),
+                                               callback_args));
   if (result.IsError()) {
     const Error& err = Error::Cast(result);
     OS::PrintErr("failed calling unhandled exception callback: %s\n",

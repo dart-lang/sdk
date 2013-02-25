@@ -71,7 +71,7 @@ TEST_CASE(CallRuntimeStubCode) {
       *CreateFunction("Test_CallRuntimeStubCode"), &_assembler_));
   const Function& function = RegisterFakeFunction(kName, code);
   Smi& result = Smi::Handle();
-  result ^= DartEntry::InvokeStatic(function, Object::empty_array());
+  result ^= DartEntry::InvokeFunction(function, Object::empty_array());
   EXPECT_EQ((value1 - value2), result.Value());
 }
 
@@ -106,7 +106,7 @@ TEST_CASE(CallLeafRuntimeStubCode) {
       *CreateFunction("Test_CallLeafRuntimeStubCode"), &_assembler_));
   const Function& function = RegisterFakeFunction(kName, code);
   Smi& result = Smi::Handle();
-  result ^= DartEntry::InvokeStatic(function, Object::empty_array());
+  result ^= DartEntry::InvokeFunction(function, Object::empty_array());
   EXPECT_EQ((value1 + value2), result.Value());
 }
 
