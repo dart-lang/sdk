@@ -36,7 +36,7 @@
   -->
   <path id="classpath.compile">
     <pathelement location="${third_party.dir}/args4j/2.0.12/args4j-2.0.12.jar"/>
-    <pathelement location="${third_party.dir}/guava/r09/guava-r09.jar"/>
+    <pathelement location="${third_party.dir}/guava/r13/guava-13.0.1.jar"/>
     <pathelement location="${third_party.dir}/json/r2_20080312/json.jar"/>
   </path>
 

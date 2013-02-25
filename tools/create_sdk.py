@@ -243,7 +243,7 @@ def Main(argv):
   copyfile(analyzer_src_jar, analyzer_dest_jar)
 
   jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
-                 join("guava", "r09", "guava-r09.jar"),
+                 join("guava", "r13", "guava-13.0.1.jar"),
                  join("json", "r2_20080312", "json.jar") ]
   for jarToCopy in jarsToCopy:
     dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))

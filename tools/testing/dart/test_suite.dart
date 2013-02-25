@@ -1659,7 +1659,7 @@ class JUnitTestSuite extends TestSuite {
          '$buildDir/analyzer/dart_analyzer_tests.jar',
          // Third party libraries.
          '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
-         '$dartDir/third_party/guava/r09/guava-r09.jar',
+         '$dartDir/third_party/guava/r13/guava-13.0.1.jar',
          '$dartDir/third_party/rhino/1_7R3/js.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
