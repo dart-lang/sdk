@@ -23,7 +23,7 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 
 bool isJsArray(var value) {
-  return value != null && JS('bool', r'#.constructor === Array', value);
+  return value != null && JS('bool', r'(#.constructor === Array)', value);
 }
 
 checkMutable(list, reason) {
