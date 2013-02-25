@@ -169,53 +169,57 @@ class HttpConnectionsInfo {
  * case-insensitive.
  */
 abstract class HttpHeaders {
-  static const ACCEPT = "Accept";
-  static const ACCEPT_CHARSET = "Accept-Charset";
-  static const ACCEPT_ENCODING = "Accept-Encoding";
-  static const ACCEPT_LANGUAGE = "Accept-Language";
-  static const ACCEPT_RANGES = "Accept-Ranges";
-  static const AGE = "Age";
-  static const ALLOW = "Allow";
-  static const AUTHORIZATION = "Authorization";
-  static const CACHE_CONTROL = "Cache-Control";
-  static const CONNECTION = "Connection";
-  static const CONTENT_ENCODING = "Content-Encoding";
-  static const CONTENT_LANGUAGE = "Content-Language";
-  static const CONTENT_LENGTH = "Content-Length";
-  static const CONTENT_LOCATION = "Content-Location";
-  static const CONTENT_MD5 = "Content-MD5";
-  static const CONTENT_RANGE = "Content-Range";
-  static const CONTENT_TYPE = "Content-Type";
-  static const DATE = "Date";
-  static const ETAG = "ETag";
-  static const EXPECT = "Expect";
-  static const EXPIRES = "Expires";
-  static const FROM = "From";
-  static const HOST = "Host";
-  static const IF_MATCH = "If-Match";
-  static const IF_MODIFIED_SINCE = "If-Modified-Since";
-  static const IF_NONE_MATCH = "If-None-Match";
-  static const IF_RANGE = "If-Range";
-  static const IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
-  static const LAST_MODIFIED = "Last-Modified";
-  static const LOCATION = "Location";
-  static const MAX_FORWARDS = "Max-Forwards";
-  static const PRAGMA = "Pragma";
-  static const PROXY_AUTHENTICATE = "Proxy-Authenticate";
-  static const PROXY_AUTHORIZATION = "Proxy-Authorization";
-  static const RANGE = "Range";
-  static const REFERER = "Referer";
-  static const RETRY_AFTER = "Retry-After";
-  static const SERVER = "Server";
-  static const TE = "TE";
-  static const TRAILER = "Trailer";
-  static const TRANSFER_ENCODING = "Transfer-Encoding";
-  static const UPGRADE = "Upgrade";
-  static const USER_AGENT = "User-Agent";
-  static const VARY = "Vary";
-  static const VIA = "Via";
-  static const WARNING = "Warning";
-  static const WWW_AUTHENTICATE = "WWW-Authenticate";
+  static const ACCEPT = "accept";
+  static const ACCEPT_CHARSET = "accept-charset";
+  static const ACCEPT_ENCODING = "accept-encoding";
+  static const ACCEPT_LANGUAGE = "accept-language";
+  static const ACCEPT_RANGES = "accept-ranges";
+  static const AGE = "age";
+  static const ALLOW = "allow";
+  static const AUTHORIZATION = "authorization";
+  static const CACHE_CONTROL = "cache-control";
+  static const CONNECTION = "connection";
+  static const CONTENT_ENCODING = "content-encoding";
+  static const CONTENT_LANGUAGE = "content-language";
+  static const CONTENT_LENGTH = "content-length";
+  static const CONTENT_LOCATION = "content-location";
+  static const CONTENT_MD5 = "content-md5";
+  static const CONTENT_RANGE = "content-range";
+  static const CONTENT_TYPE = "content-type";
+  static const DATE = "date";
+  static const ETAG = "etag";
+  static const EXPECT = "expect";
+  static const EXPIRES = "expires";
+  static const FROM = "from";
+  static const HOST = "host";
+  static const IF_MATCH = "if-match";
+  static const IF_MODIFIED_SINCE = "if-modified-since";
+  static const IF_NONE_MATCH = "if-none-match";
+  static const IF_RANGE = "if-range";
+  static const IF_UNMODIFIED_SINCE = "if-unmodified-since";
+  static const LAST_MODIFIED = "last-modified";
+  static const LOCATION = "location";
+  static const MAX_FORWARDS = "max-forwards";
+  static const PRAGMA = "pragma";
+  static const PROXY_AUTHENTICATE = "proxy-authenticate";
+  static const PROXY_AUTHORIZATION = "proxy-authorization";
+  static const RANGE = "range";
+  static const REFERER = "referer";
+  static const RETRY_AFTER = "retry-after";
+  static const SERVER = "server";
+  static const TE = "te";
+  static const TRAILER = "trailer";
+  static const TRANSFER_ENCODING = "transfer-encoding";
+  static const UPGRADE = "upgrade";
+  static const USER_AGENT = "user-agent";
+  static const VARY = "vary";
+  static const VIA = "via";
+  static const WARNING = "warning";
+  static const WWW_AUTHENTICATE = "www-authenticate";
+
+  // Cookie headers from RFC 6265.
+  static const COOKIE = "cookie";
+  static const SET_COOKIE = "set-cookie";
 
   static const GENERAL_HEADERS = const [CACHE_CONTROL,
                                         CONNECTION,
@@ -326,19 +330,19 @@ abstract class HttpHeaders {
    * Disables folding for the header named [name] when sending the HTTP
    * header. By default, multiple header values are folded into a
    * single header line by separating the values with commas. The
-   * Set-Cookie header has folding disabled by default.
+   * 'set-cookie' header has folding disabled by default.
    */
   void noFolding(String name);
 
   /**
    * Gets and sets the date. The value of this property will
-   * reflect the "DateTime" header.
+   * reflect the 'date' header.
    */
   DateTime date;
 
   /**
    * Gets and sets the expiry date. The value of this property will
-   * reflect the "Expires" header.
+   * reflect the 'expires' header.
    */
   DateTime expires;
 
@@ -349,13 +353,13 @@ abstract class HttpHeaders {
   DateTime ifModifiedSince;
 
   /**
-   * Gets and sets the host part of the "Host" header for the
+   * Gets and sets the host part of the 'host' header for the
    * connection.
    */
   String host;
 
   /**
-   * Gets and sets the port part of the "Host" header for the
+   * Gets and sets the port part of the 'host' header for the
    * connection.
    */
   int port;
@@ -378,7 +382,7 @@ abstract class HttpHeaders {
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
  *
- * To build an [:Accepts:] header with the value
+ * To build an [:accepts:] header with the value
  *
  *     text/plain; q=0.3, text/html
  *
@@ -510,8 +514,8 @@ abstract class ContentType implements HeaderValue {
 /**
  * Representation of a cookie. For cookies received by the server as
  * Cookie header values only [:name:] and [:value:] fields will be
- * set. When building a cookie for the Set-Cookie header in the server
- * and when receiving cookies in the client as Set-Cookie headers all
+ * set. When building a cookie for the 'set-cookie' header in the server
+ * and when receiving cookies in the client as 'set-cookie' headers all
  * fields can be used.
  */
 abstract class Cookie {
@@ -521,7 +525,7 @@ abstract class Cookie {
   factory Cookie([String name, String value]) => new _Cookie(name, value);
 
   /**
-   * Creates a new cookie by parsing a header value from a Set-Cookie
+   * Creates a new cookie by parsing a header value from a 'set-cookie'
    * header.
    */
   factory Cookie.fromSetCookieValue(String value) {
@@ -572,7 +576,7 @@ abstract class Cookie {
   /**
    * Returns the formatted string representation of the cookie. The
    * string representation can be used for for setting the Cookie or
-   * Set-Cookie headers
+   * 'set-cookie' headers
    */
   String toString();
 }
@@ -695,7 +699,7 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
   HttpHeaders get headers;
 
   /**
-   * Cookies to set in the client (in the Set-Cookie header).
+   * Cookies to set in the client (in the 'set-cookie' header).
    */
   List<Cookie> get cookies;
 
@@ -734,10 +738,10 @@ abstract class HttpClient {
 
   /**
    * Opens a HTTP connection. The returned [HttpClientRequest] is used to
-   * fill in the content of the request before sending it. The "Host" header for
+   * fill in the content of the request before sending it. The 'host' header for
    * the request will be set to the value [host]:[port]. This can be overridden
    * through the [HttpClientRequest] interface before the request is sent.
-   * NOTE if [host] is an IP address this will still be set in the "Host"
+   * NOTE if [host] is an IP address this will still be set in the 'host'
    * header.
    */
   Future<HttpClientRequest> open(String method,
@@ -747,10 +751,10 @@ abstract class HttpClient {
 
   /**
    * Opens a HTTP connection. The returned [HttpClientRequest] is used to
-   * fill in the content of the request before sending it. The "Host" header for
+   * fill in the content of the request before sending it. The 'hosth header for
    * the request will be set to the value [host]:[port]. This can be overridden
    * through the [HttpClientRequest] interface before the request is sent.
-   * NOTE if [host] is an IP address this will still be set in the "Host"
+   * NOTE if [host] is an IP address this will still be set in the 'host'
    * header.
    */
   Future<HttpClientRequest> openUrl(String method, Uri url);
@@ -882,7 +886,7 @@ abstract class HttpClientRequest
   HttpHeaders get headers;
 
   /**
-   * Cookies to present to the server (in the Cookie header).
+   * Cookies to present to the server (in the 'cookie' header).
    */
   List<Cookie> get cookies;
 
@@ -1020,7 +1024,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   Future<Socket> detachSocket();
 
   /**
-   * Cookies set by the server (from the Set-Cookie header).
+   * Cookies set by the server (from the 'set-cookie' header).
    */
   List<Cookie> get cookies;
 

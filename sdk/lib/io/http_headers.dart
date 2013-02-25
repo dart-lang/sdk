@@ -69,7 +69,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   bool get persistentConnection {
-    List<String> connection = this[HttpHeaders.CONNECTION];
+    List<String> connection = _headers[HttpHeaders.CONNECTION];
     if (protocolVersion == "1.1") {
       if (connection == null) return true;
       return !connection.any((value) => value.toLowerCase() == "close");
@@ -97,9 +97,9 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     _contentLength = contentLength;
     if (_contentLength >= 0) {
-      _set("content-length", contentLength.toString());
+      _set(HttpHeaders.CONTENT_LENGTH, contentLength.toString());
     } else {
-      removeAll("content-length");
+      removeAll(HttpHeaders.CONTENT_LENGTH);
     }
   }
 
@@ -108,13 +108,14 @@ class _HttpHeaders implements HttpHeaders {
   void set chunkedTransferEncoding(bool chunkedTransferEncoding) {
     _checkMutable();
     _chunkedTransferEncoding = chunkedTransferEncoding;
-    List<String> values = _headers["transfer-encoding"];
-    if (values == null || values[values.length - 1] != "chunked") {
+    List<String> values = _headers[HttpHeaders.TRANSFER_ENCODING];
+    if ((values == null || values[values.length - 1] != "chunked") &&
+        chunkedTransferEncoding) {
       // Headers does not specify chunked encoding - add it if set.
-      if (chunkedTransferEncoding) _addValue("transfer-encoding", "chunked");
-    } else {
+        _addValue(HttpHeaders.TRANSFER_ENCODING, "chunked");
+    } else if (!chunkedTransferEncoding) {
       // Headers does specify chunked encoding - remove it if not set.
-      if (!chunkedTransferEncoding) remove("transfer-encoding", "chunked");
+      remove(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
   }
 
@@ -135,7 +136,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   DateTime get ifModifiedSince {
-    List<String> values = _headers["if-modified-since"];
+    List<String> values = _headers[HttpHeaders.IF_MODIFIED_SINCE];
     if (values != null) {
       try {
         return _HttpUtils.parseDate(values[0]);
@@ -150,11 +151,11 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     // Format "ifModifiedSince" header with date in Greenwich Mean Time (GMT).
     String formatted = _HttpUtils.formatDate(ifModifiedSince.toUtc());
-    _set("if-modified-since", formatted);
+    _set(HttpHeaders.IF_MODIFIED_SINCE, formatted);
   }
 
   DateTime get date {
-    List<String> values = _headers["date"];
+    List<String> values = _headers[HttpHeaders.DATE];
     if (values != null) {
       try {
         return _HttpUtils.parseDate(values[0]);
@@ -173,7 +174,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   DateTime get expires {
-    List<String> values = _headers["expires"];
+    List<String> values = _headers[HttpHeaders.EXPIRES];
     if (values != null) {
       try {
         return _HttpUtils.parseDate(values[0]);
@@ -188,7 +189,7 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
     String formatted = _HttpUtils.formatDate(expires.toUtc());
-    _set("expires", formatted);
+    _set(HttpHeaders.EXPIRES, formatted);
   }
 
   ContentType get contentType {
@@ -202,13 +203,13 @@ class _HttpHeaders implements HttpHeaders {
 
   void set contentType(ContentType contentType) {
     _checkMutable();
-    _set("content-type", contentType.toString());
+    _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
   }
 
   void _add(String name, Object value) {
     var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (lowerCaseName == "content-length") {
+    if (lowerCaseName == HttpHeaders.CONTENT_LENGTH) {
       if (value is int) {
         contentLength = value;
       } else if (value is String) {
@@ -216,37 +217,37 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == "transfer-encoding") {
+    } else if (lowerCaseName == HttpHeaders.TRANSFER_ENCODING) {
       if (value == "chunked") {
         chunkedTransferEncoding = true;
       } else {
         _addValue(lowerCaseName, value);
       }
-    } else if (lowerCaseName == "date") {
+    } else if (lowerCaseName == HttpHeaders.DATE) {
       if (value is DateTime) {
         date = value;
       } else if (value is String) {
-        _set("date", value);
+        _set(HttpHeaders.DATE, value);
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == "expires") {
+    } else if (lowerCaseName == HttpHeaders.EXPIRES) {
       if (value is DateTime) {
         expires = value;
       } else if (value is String) {
-        _set("expires", value);
+        _set(HttpHeaders.EXPIRES, value);
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == "if-modified-since") {
+    } else if (lowerCaseName == HttpHeaders.IF_MODIFIED_SINCE) {
       if (value is DateTime) {
         ifModifiedSince = value;
       } else if (value is String) {
-        _set("if-modified-since", value);
+        _set(HttpHeaders.IF_MODIFIED_SINCE, value);
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == "host") {
+    } else if (lowerCaseName == HttpHeaders.HOST) {
       if (value is String) {
         int pos = (value as String).indexOf(":");
         if (pos == -1) {
@@ -268,12 +269,12 @@ class _HttpHeaders implements HttpHeaders {
             }
           }
         }
-        _set("host", value);
+        _set(HttpHeaders.HOST, value);
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == "content-type") {
-      _set("content-type", value);
+    } else if (lowerCaseName == HttpHeaders.CONTENT_TYPE) {
+      _set(HttpHeaders.CONTENT_TYPE, value);
     } else {
         _addValue(lowerCaseName, value);
     }
@@ -310,7 +311,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   _foldHeader(String name) {
-    if (name == "set-cookie" ||
+    if (name == HttpHeaders.SET_COOKIE ||
         (_noFoldingHeaders != null &&
          _noFoldingHeaders.indexOf(name) != -1)) {
       return false;
@@ -466,7 +467,7 @@ class _HttpHeaders implements HttpHeaders {
         expect(";");
       }
     }
-    List<String> values = this["cookie"];
+    List<String> values = _headers[HttpHeaders.COOKIE];
     if (values != null) {
       values.forEach((headerValue) => parseCookieString(headerValue));
     }
@@ -659,11 +660,11 @@ class _Cookie implements Cookie {
   _Cookie([String this.name, String this.value]);
 
   _Cookie.fromSetCookieValue(String value) {
-    // Parse the Set-Cookie header value.
+    // Parse the 'set-cookie' header value.
     _parseSetCookieValue(value);
   }
 
-  // Parse a Set-Cookie header value according to the rules in RFC 6265.
+  // Parse a 'set-cookie' header value according to the rules in RFC 6265.
   void _parseSetCookieValue(String s) {
     int index = 0;
 

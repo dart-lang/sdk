@@ -170,7 +170,7 @@ class _HttpClientResponse
   List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
     _cookies = new List<Cookie>();
-    List<String> values = headers["set-cookie"];
+    List<String> values = headers[HttpHeaders.SET_COOKIE];
     if (values != null) {
       values.forEach((value) {
         _cookies.add(new Cookie.fromSetCookieValue(value));
@@ -466,7 +466,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     // Add all the cookies set to the headers.
     if (_cookies != null) {
       _cookies.forEach((cookie) {
-        headers.add("set-cookie", cookie);
+        headers.add(HttpHeaders.SET_COOKIE, cookie);
       });
     }
 
@@ -657,7 +657,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
         sb.add("=");
         sb.add(cookies[i].value);
       }
-      headers.add("cookie", sb.toString());
+      headers.add(HttpHeaders.COOKIE, sb.toString());
     }
 
     headers._finalize();
