@@ -8,15 +8,16 @@ import 'utils.dart';
 
 main() {
   useHtmlIndividualConfiguration();
-  if (!idb.IdbFactory.supported) {
-    return;
-  }
 
   group('supportsDatabaseNames', () {
     test('supported', () {
       expect(html.window.indexedDB.supportsDatabaseNames, isTrue);
     });
   });
+
+  if (!idb.IdbFactory.supported) {
+    return;
+  }
 
   group('functional', () {
     var dbName = 'test_db';

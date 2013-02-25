@@ -139,6 +139,7 @@ fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
+indexeddb_5_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_email: Fail
@@ -257,6 +258,7 @@ element_test/queryAll: Fail
 element_webkit_test: Fail
 htmlelement_test: Fail
 indexeddb_1_test/supported: Fail
+indexeddb_5_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail

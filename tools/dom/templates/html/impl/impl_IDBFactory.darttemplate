@@ -80,8 +80,8 @@ $endif
    */
   bool get supportsDatabaseNames {
 $if DART2JS
-    return JS('bool', '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)',
-        this, this);
+    return supported && JS('bool',
+        '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this, this);
 $else
     return true;
 $endif

@@ -422,8 +422,8 @@ class IdbFactory native "*IDBFactory" {
    * Checks to see if getDatabaseNames is supported by the current platform.
    */
   bool get supportsDatabaseNames {
-    return JS('bool', '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)',
-        this, this);
+    return supported && JS('bool',
+        '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this, this);
   }
 
 
