@@ -1600,14 +1600,9 @@ class ProcessQueue {
         int i = 1;
         if (test is BrowserTestCase) {
           // Additional command for rerunning the steps locally after the fact.
-          print('$i. ${TestUtils.dartTestExecutable.toNativePath()} '
-                '${TestUtils.dartDir().toNativePath()}/tools/testing/dart/'
-                'http_server.dart -m ${test.configuration["mode"]} '
-                '-a ${test.configuration["arch"]} '
-                '-p ${http_server.TestingServerRunner.serverList[0].port} '
-                '-c ${http_server.TestingServerRunner.serverList[1].port} '
-                '--package-root='
-                '${http_server.TestingServerRunner.packageRootDir}');
+          var command =
+            test.configuration["_servers_"].httpServerCommandline();
+          print('$i. $command');
           i++;
         }
         for (Command command in test.commands) {

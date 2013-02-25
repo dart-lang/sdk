@@ -202,14 +202,9 @@ class ProgressIndicator {
     }
     if (test is BrowserTestCase) {
       // Additional command for rerunning the steps locally after the fact.
-      output.add('To retest, run: '
-          '${TestUtils.dartTestExecutable.toNativePath()} '
-          '${TestUtils.dartDir().toNativePath()}/tools/testing/dart/'
-          'http_server.dart -m ${test.configuration["mode"]} '
-          '-a ${test.configuration["arch"]} '
-          '-p ${http_server.TestingServerRunner.serverList[0].port} '
-          '-c ${http_server.TestingServerRunner.serverList[1].port} '
-          '--package-root=${http_server.TestingServerRunner.packageRootDir}');
+      var command =
+        test.configuration["_servers_"].httpServerCommandline();
+      output.add('To retest, run:  $command');
     }
     for (Command c in test.commands) {
       output.add('');

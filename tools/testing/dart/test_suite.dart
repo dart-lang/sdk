@@ -410,11 +410,6 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
-  /**
-   * The set of servers that have been started to run these tests (Could be
-   * none).
-   */
-  List serverList;
 
   static final RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
 
@@ -423,8 +418,7 @@ class StandardTestSuite extends TestSuite {
                     Path suiteDirectory,
                     this.statusFilePaths,
                     {this.isTestFilePredicate,
-                    bool recursive: false,
-                    this.serverList: const []})
+                    bool recursive: false})
   : super(configuration, suiteName),
     dartDir = TestUtils.dartDir(),
     listRecursively = recursive,
@@ -461,14 +455,14 @@ class StandardTestSuite extends TestSuite {
    * been started up by the test harness, to be used by browser tests.
    */
   factory StandardTestSuite.forDirectory(
-      Map configuration, Path directory, {List serverList : const []}) {
+      Map configuration, Path directory) {
     final name = directory.filename;
 
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
-        recursive: true, serverList: serverList);
+        recursive: true);
   }
 
   Collection<Uri> get dart2JsBootstrapDependencies {
@@ -843,13 +837,13 @@ class StandardTestSuite extends TestSuite {
                             subtestNames,
                             subtestIndex) {
     // Note: If we run test.py with the "--list" option, no http servers
-    // will be started. Therefore serverList is an empty list in this
-    // case. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
+    // will be started. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
     var serverPort = "PORT";
     var crossOriginPort = "CROSS_ORIGIN_PORT";
     if (!configuration['list']) {
-      serverPort = serverList[0].port.toString();
-      crossOriginPort = serverList[1].port.toString();
+      Expect.isTrue(configuration.containsKey('_servers_'));
+      serverPort = configuration['_servers_'].port;
+      crossOriginPort = configuration['_servers_'].crossOriginPort;
     }
 
     var url= 'http://127.0.0.1:$serverPort$pathComponent'

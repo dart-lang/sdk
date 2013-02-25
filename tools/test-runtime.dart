@@ -72,13 +72,26 @@ main() {
     print(output_words.join(' '));
   }
 
+  var runningBrowserTests = configurations.any((config) {
+    return TestUtils.isBrowserRuntime(config['runtime']);
+  });
+
   var testSuites = new List<TestSuite>();
-  TestingServerRunner.setBuildDir(firstConf);
-  TestingServerRunner.setPackageRootDir(firstConf);
   for (var conf in configurations) {
+    if (!listTests && runningBrowserTests) {
+      // Start global http servers that serve the entire dart repo.
+      // The http server is available on window.location.port, and a second 
+      // server for cross-domain tests can be found by calling
+      // getCrossOriginPortNumber().
+      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)));
+      servers.startServers('127.0.0.1');
+      conf['_servers_'] = servers;
+    }
+
     if (selectors.containsKey('co19')) {
       testSuites.add(new Co19TestSuite(conf));
     }
+
     if (conf['runtime'] == 'vm' && selectors.containsKey('vm')) {
       // vm tests contain both cc tests (added here) and dart tests (added in
       // [TEST_SUITE_DIRECTORIES]).
@@ -93,15 +106,13 @@ main() {
     }
   }
 
-  // Start global http server that serves the entire dart repo.
-  // The http server is available on localhost:9876 for any
-  // test that needs to load resources from the repo over http.
-  if (!listTests) {
-    // Only start the server if we are running browser tests.
-    var runningBrowserTests = configurations.any((config) {
-      return TestUtils.isBrowserRuntime(config['runtime']);
-    });
-    if (runningBrowserTests) startHttpServer('127.0.0.1', 9876);
+  void allTestsFinished() {
+    for (var conf in configurations) {
+      if (conf.containsKey('_servers_')) {
+        conf['_servers_'].stopServers();
+      }
+    }
+    DebugLogger.close();
   }
 
   var maxBrowserProcesses = maxProcesses;
@@ -114,7 +125,7 @@ main() {
       startTime,
       printTiming,
       testSuites,
-      () => TestingServerRunner.terminateHttpServers(),
+      allTestsFinished,
       verbose,
       listTests);
 }

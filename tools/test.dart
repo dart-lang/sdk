@@ -109,35 +109,30 @@ main() {
     print(output_words.join(' '));
   }
 
-  // Start global http servers that serve the entire dart repo.
-  // The http server is available on window.location.port, and a second server
-  // for cross-domain tests can be found by calling getCrossOriginPortNumber().
-  if (!listTests) {
-    // Only start the server if we are running browser tests.
-    var runningBrowserTests = configurations.any((config) {
-      return TestUtils.isBrowserRuntime(config['runtime']);
-    });
-    if (runningBrowserTests) {
-      TestingServerRunner.startHttpServer('127.0.0.1');
-      // We start two servers so that we can test cross-domain tests.
-      TestingServerRunner.startHttpServer('127.0.0.1',
-          allowedPort: TestingServerRunner.serverList[0].port);
-    }
-  }
+  var runningBrowserTests = configurations.any((config) {
+    return TestUtils.isBrowserRuntime(config['runtime']);
+  });
 
   var testSuites = new List<TestSuite>();
-  // FIXME(kustermann,ricow): This is broken and should be fixed ASAP.
-  // Issue: 8366
-  TestingServerRunner.setBuildDir(firstConf);
-  TestingServerRunner.setPackageRootDir(firstConf);
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
+    if (!listTests && runningBrowserTests) {
+      // Start global http servers that serve the entire dart repo.
+      // The http server is available on window.location.port, and a second 
+      // server for cross-domain tests can be found by calling
+      // getCrossOriginPortNumber().
+      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)));
+      servers.startServers('127.0.0.1');
+      conf['_servers_'] = servers;
+    }
+
     // There should not be more than one InternetExplorerDriver instance
     // running at a time. For details, see
     // http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
     if (conf['runtime'].startsWith('ie')) {
       maxBrowserProcesses = 1;
     }
+
     for (String key in selectors.keys) {
       if (key == 'co19') {
         testSuites.add(new Co19TestSuite(conf));
@@ -155,14 +150,17 @@ main() {
       final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
         testSuites.add(
-            new StandardTestSuite.forDirectory(conf, testSuiteDir,
-            serverList: TestingServerRunner.serverList));
+            new StandardTestSuite.forDirectory(conf, testSuiteDir));
       }
     }
   }
 
   void allTestsFinished() {
-    TestingServerRunner.terminateHttpServers();
+    for (var conf in configurations) {
+      if (conf.containsKey('_servers_')) {
+        conf['_servers_'].stopServers();
+      }
+    }
     DebugLogger.close();
   }
 
