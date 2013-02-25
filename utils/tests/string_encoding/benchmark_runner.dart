@@ -89,7 +89,7 @@ class PerformanceModel {
  */
 class TestReport {
   TestReport(this.id, this.desc, this.warmup, this.results) {
-    spaceChar = " ".charCodes[0];
+    spaceChar = " ".codeUnits[0];
   }
 
   int spaceChar;
@@ -168,7 +168,7 @@ class TestReport {
   String _leftAlign(String s, int width) {
     List<int> outCodes = [];
     outCodes.insertRange(0, width, spaceChar);
-    outCodes.setRange(0, Math.min(width, s.length), s.charCodes);
+    outCodes.setRange(0, Math.min(width, s.length), s.codeUnits);
     return new String.fromCharCodes(outCodes);
   }
 
@@ -176,7 +176,7 @@ class TestReport {
     List<int> outCodes = [];
     outCodes.insertRange(0, width, spaceChar);
     outCodes.setRange(Math.max(0, width - s.length), Math.min(width, s.length),
-        s.charCodes);
+        s.codeUnits);
     return new String.fromCharCodes(outCodes);
   }
 

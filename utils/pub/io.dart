@@ -383,7 +383,7 @@ final Stream<String> stdinLines = streamToLines(
 /// should just be a fragment like, "Are you sure you want to proceed".
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
-  stdoutSink.add("$message (y/n)? ".charCodes);
+  stdoutSink.add("$message (y/n)? ".codeUnits);
   return streamFirst(stdinLines)
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }

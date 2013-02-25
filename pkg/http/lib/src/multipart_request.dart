@@ -98,7 +98,7 @@ class MultipartRequest extends BaseRequest {
 
     void writeAscii(String string) {
       assert(isPlainAscii(string));
-      controller.add(string.charCodes);
+      controller.add(string.codeUnits);
     }
 
     writeUtf8(String string) => controller.add(encodeUtf8(string));

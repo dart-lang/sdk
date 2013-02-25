@@ -45,7 +45,7 @@ class StringDecoder implements StreamTransformer<List<int>, String> {
         break;
       case Encoding.ASCII:
         if (replacementChar == null) {
-          replacementChar = '?'.charCodeAt(0);
+          replacementChar = '?'.codeUnitAt(0);
         } else if (replacementChar > 127) {
           throw new ArgumentError("Invalid replacement character for ASCII");
         }
@@ -53,7 +53,7 @@ class StringDecoder implements StreamTransformer<List<int>, String> {
         break;
       case Encoding.ISO_8859_1:
         if (replacementChar == null) {
-          replacementChar = '?'.charCodeAt(0);
+          replacementChar = '?'.codeUnitAt(0);
         } else if (replacementChar > 255) {
           throw new ArgumentError(
               "Invalid replacement character for ISO_8859_1");
@@ -177,13 +177,13 @@ class LineTransformer implements StreamTransformer<String, String> {
       int pos = 0;
       while (pos < data.length) {
         int skip = 0;
-        int char = data.charCodeAt(pos);
+        int char = data.codeUnitAt(pos);
         if (char == _LF) {
           skip = 1;
         } else if (char == _CR) {
           skip = 1;
           if (pos + 1 < data.length) {
-            if (data.charCodeAt(pos + 1) == _LF) {
+            if (data.codeUnitAt(pos + 1) == _LF) {
               skip = 2;
             }
           } else if (!isClosing) {
@@ -345,7 +345,7 @@ class _SingleByteEncoder implements StreamTransformer<String, List<int>> {
 // Utility class for encoding a string into an ASCII byte stream.
 class _AsciiEncoder extends _SingleByteEncoder {
   List<int> _encode(String string) {
-    var bytes = string.charCodes;
+    var bytes = string.codeUnits;
     for (var byte in bytes) {
       if (byte > 127) return null;
     }
@@ -357,7 +357,7 @@ class _AsciiEncoder extends _SingleByteEncoder {
 // Utility class for encoding a string into a Latin1 byte stream.
 class _Latin1Encoder extends _SingleByteEncoder {
   List<int> _encode(String string) {
-    var bytes = string.charCodes;
+    var bytes = string.codeUnits;
     for (var byte in bytes) {
       if (byte > 255) return null;
     }

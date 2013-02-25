@@ -33,19 +33,19 @@ class TestSuite {
   }
 
   void reportResults(List<TestResult> results) {
-    if(results.every(bool _(TestResult r) => r is PassedTest)) {
+    if(results.every((TestResult r) => r is PassedTest)) {
       print("OK -- ALL TESTS PASS (${results.length} run)");
     } else {
       for(TestResult r in
-          results.where(bool _(TestResult r) => !(r is PassedTest))) {
+          results.where((TestResult r) => !(r is PassedTest))) {
         print(r);
       }
       int passedTests =
-          results.where(bool _(TestResult r) => r is PassedTest).length;
+          results.where((TestResult r) => r is PassedTest).length;
       int failures =
-          results.where(bool _(TestResult r) => r is FailedTest).length;
+          results.where((TestResult r) => r is FailedTest).length;
       int errors =
-          results.where(bool _(TestResult r) => r is TestError).length;
+          results.where((TestResult r) => r is TestError).length;
       print("FAIL -- TESTS RUN: ${results.length}");
       print("        PASSED: ${passedTests}");
       print("        FAILED: ${failures}");
@@ -97,7 +97,7 @@ class TestError extends _ExceptionResult implements TestResult {
 
 class TestClass {
   void register(String description, Function test, TestSuite suite) {
-    suite._registerTest(TestResult _() {
+    suite._registerTest(() {
       setUp();
       try {
         test();
@@ -113,7 +113,7 @@ class TestClass {
     });
   }
 
-  abstract void registerTests(TestSuite suite);
+  void registerTests(TestSuite suite);
   void setUp() {}
   void tearDown() {}
 }

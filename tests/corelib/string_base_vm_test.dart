@@ -30,8 +30,8 @@ class StringBaseTest {
     List<int> ga  = new List();
     bool exception_caught = false;
     for (int i = 0; i < a.length; i++) {
-      a[i] = s.charCodeAt(i);
-      ga.add(s.charCodeAt(i));
+      a[i] = s.codeUnitAt(i);
+      ga.add(s.codeUnitAt(i));
     }
     try {
       String s4 = new String.fromCharCodes([0.0]);

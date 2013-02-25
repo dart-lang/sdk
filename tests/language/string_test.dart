@@ -16,7 +16,7 @@ class StringTest {
     String str = "string";
     for (int i = 0; i < str.length; i++) {
       Expect.equals(true, str[i] is String);
-      Expect.equals(true, str.charCodeAt(i) is int);
+      Expect.equals(true, str.codeUnitAt(i) is int);
     }
   }
 
@@ -42,7 +42,7 @@ class StringTest {
   static testCharCodes() {
     String s = new String.fromCharCodes(const [0x41, 0xC1, 0x424]);
     Expect.equals("A", s[0]);
-    Expect.equals(0x424, s.charCodeAt(2));
+    Expect.equals(0x424, s.codeUnitAt(2));
   }
 }
 

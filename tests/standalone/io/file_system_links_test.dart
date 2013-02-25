@@ -66,7 +66,7 @@ testFileWriteRead() {
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
   createLink(x, y, true, () {
-    var data = "asdf".charCodes;
+    var data = "asdf".codeUnits;
     var output = new File(y).openWrite(FileMode.WRITE);
     output.add(data);
     output.close();

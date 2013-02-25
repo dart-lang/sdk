@@ -38,11 +38,7 @@ class _StringBase {
 
   String operator [](int index) native "String_charAt";
 
-  int charCodeAt(int index) native "String_charCodeAt";
-
-  int codeUnitAt(int index) {
-    return charCodeAt(index);
-  }
+  int codeUnitAt(int index) native "String_codeUnitAt";
 
   int get length native "String_getLength";
 
@@ -73,8 +69,8 @@ class _StringBase {
     int otherLength = other.length;
     int len = (thisLength < otherLength) ? thisLength : otherLength;
     for (int i = 0; i < len; i++) {
-      int thisCodePoint = this.charCodeAt(i);
-      int otherCodePoint = other.charCodeAt(i);
+      int thisCodePoint = this.codeUnitAt(i);
+      int otherCodePoint = other.codeUnitAt(i);
       if (thisCodePoint < otherCodePoint) {
         return -1;
       }
@@ -97,7 +93,7 @@ class _StringBase {
       return false;
     }
     for (int i = 0; i < len; i++) {
-      if (this.charCodeAt(i + start) != other.charCodeAt(i)) {
+      if (this.codeUnitAt(i + start) != other.codeUnitAt(i)) {
         return false;
       }
     }
@@ -216,7 +212,7 @@ class _StringBase {
     final int len = this.length;
     int first = 0;
     for (; first < len; first++) {
-      if (!_isWhitespace(this.charCodeAt(first))) {
+      if (!_isWhitespace(this.codeUnitAt(first))) {
         break;
       }
     }
@@ -226,7 +222,7 @@ class _StringBase {
     }
     int last = len - 1;
     for (; last >= first; last--) {
-      if (!_isWhitespace(this.charCodeAt(last))) {
+      if (!_isWhitespace(this.codeUnitAt(last))) {
         break;
       }
     }
@@ -300,10 +296,10 @@ class _StringBase {
     while (i < length) {
       buffer.add(onMatch(new _StringMatch(i, this, "")));
       // Special case to avoid splitting a surrogate pair.
-      int code = this.charCodeAt(i);
+      int code = this.codeUnitAt(i);
       if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
         // Leading surrogate;
-        code = this.charCodeAt(i + 1);
+        code = this.codeUnitAt(i + 1);
         if ((code & ~0x3FF) == 0xDC00) {
           // Matching trailing surrogate.
           buffer.add(onNonMatch(this.substring(i, i + 2)));
@@ -383,7 +379,11 @@ class _StringBase {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      return splitChars();
+      List<String> result = new List<String>(length);
+      for (int i = 0; i < length; i++) {
+        result[i] = this[i];
+      }
+      return result;
     }
     int length = this.length;
     Iterator iterator = pattern.allMatches(this).iterator;
@@ -415,25 +415,7 @@ class _StringBase {
     return result;
   }
 
-  List<String> splitChars() {
-    int len = this.length;
-    final result = new List<String>.fixedLength(len);
-    for (int i = 0; i < len; i++) {
-      result[i] = this[i];
-    }
-    return result;
-  }
-
-  List<int> get charCodes {
-    int len = this.length;
-    final result = new List<int>.fixedLength(len);
-    for (int i = 0; i < len; i++) {
-      result[i] = this.charCodeAt(i);
-    }
-    return result;
-  }
-
-  Iterable<int> get codeUnits => new CodeUnits(this);
+  List<int> get codeUnits => new CodeUnits(this);
 
   Runes get runes => new Runes(this);
 
@@ -507,7 +489,7 @@ class _OneByteString extends _StringBase implements String {
 
   List<String> split(Pattern pattern) {
     if ((pattern is _OneByteString) && (pattern.length == 1)) {
-      return _splitWithCharCode(pattern.charCodeAt(0));
+      return _splitWithCharCode(pattern.codeUnitAt(0));
     }
     return super.split(pattern);
   }

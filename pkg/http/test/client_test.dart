@@ -41,7 +41,7 @@ void main() {
         'body': '{"hello": "world"}'
       }))));
 
-      request.sink.add('{"hello": "world"}'.charCodes);
+      request.sink.add('{"hello": "world"}'.codeUnits);
       request.sink.close();
     }), completes);
   });
@@ -56,7 +56,7 @@ void main() {
 
       expect(client.send(request), throwsSocketIOException);
 
-      request.sink.add('{"hello": "world"}'.charCodes);
+      request.sink.add('{"hello": "world"}'.codeUnits);
       request.sink.close();
     }), completes);
   });

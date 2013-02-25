@@ -688,8 +688,8 @@ class Dart2JsSourceLocation implements SourceLocation {
     var columnNumber = 0;
     while (0 <= index && index < sourceText.length) {
       columnNumber++;
-      var charCode = sourceText.charCodeAt(index);
-      if (charCode == $CR || charCode == $LF) {
+      var codeUnit = sourceText.codeUnitAt(index);
+      if (codeUnit == $CR || codeUnit == $LF) {
         break;
       }
       index--;

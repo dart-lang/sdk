@@ -7,8 +7,8 @@ import 'dart:utf';
 
 main() {
   String str = codepointsToString([0x1d537]);
-  // String.charCodes gives 16-bit code units, but stringToCodepoints gives
+  // String.codeUnits gives 16-bit code units, but stringToCodepoints gives
   // back the original code points.
-  Expect.listEquals([0xd835, 0xdd37], str.charCodes);
+  Expect.listEquals([0xd835, 0xdd37], str.codeUnits);
   Expect.listEquals([0x1d537], stringToCodepoints(str));
 }

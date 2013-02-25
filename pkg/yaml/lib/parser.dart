@@ -172,7 +172,7 @@ class _Parser {
   /// forward one character. Also updates the current line and column numbers.
   int next() {
     if (pos == len) return -1;
-    var char = s.charCodeAt(pos++);
+    var char = s.codeUnitAt(pos++);
     if (isBreak(char)) {
       line++;
       column = 0;
@@ -193,14 +193,14 @@ class _Parser {
     return char;
   }
 
-  /// Returns the character at the current position, or the character [i]
+  /// Returns the code unit at the current position, or the character [i]
   /// characters after the current position.
   ///
   /// Returns -1 if this would return a character after the end or before the
   /// beginning of the input string.
   int peek([int i = 0]) {
     var peekPos = pos + i;
-    return (peekPos >= len || peekPos < 0) ? -1 : s.charCodeAt(peekPos);
+    return (peekPos >= len || peekPos < 0) ? -1 : s.codeUnitAt(peekPos);
   }
 
   /// The truthiness operator. Returns `false` if [obj] is `null` or `false`,
@@ -304,7 +304,7 @@ class _Parser {
   ///
   /// Returns whether or not the string was consumed.
   bool rawString(String str) =>
-    nAtOnce(str.length, (c, i) => str.charCodeAt(i) == c);
+    nAtOnce(str.length, (c, i) => str.codeUnitAt(i) == c);
 
   /// Consumes and returns a string of characters matching [matcher], or null if
   /// there are no such characters.

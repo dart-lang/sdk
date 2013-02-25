@@ -40,8 +40,8 @@ String escape(String s) {
   var sb = new StringBuffer();
   for (int i = 0; i < s.length; i++) {
     int code = s.codeUnitAt(i);
-    if (code == '\\'.charCodeAt(0)) sb.write(r'\\');
-    else if (code == '\"'.charCodeAt(0)) sb.write(r'\"');
+    if (code == '\\'.codeUnitAt(0)) sb.write(r'\\');
+    else if (code == '\"'.codeUnitAt(0)) sb.write(r'\"');
     else if (code >= 32 && code < 127) sb.writeCharCode(code);
     else {
       String hex = '000${code.toRadixString(16)}';

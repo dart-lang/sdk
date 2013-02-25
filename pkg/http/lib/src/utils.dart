@@ -111,7 +111,7 @@ String decodeString(List<int> bytes, Encoding encoding) {
 /// Converts [string] into a byte array according to [encoding].
 List<int> encodeString(String string, Encoding encoding) {
   // TODO(nweiz): implement this once issue 6284 is fixed.
-  return string.charCodes;
+  return string.codeUnits;
 }
 
 /// A regular expression that matches strings that are composed entirely of

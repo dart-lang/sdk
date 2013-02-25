@@ -840,9 +840,9 @@ class _HttpParser
   }
 
   int _toLowerCase(int byte) {
-    final int aCode = "A".charCodeAt(0);
-    final int zCode = "Z".charCodeAt(0);
-    final int delta = "a".charCodeAt(0) - aCode;
+    final int aCode = "A".codeUnitAt(0);
+    final int zCode = "Z".codeUnitAt(0);
+    final int delta = "a".codeUnitAt(0) - aCode;
     return (aCode <= byte && byte <= zCode) ? byte + delta : byte;
   }
 

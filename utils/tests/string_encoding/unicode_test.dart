@@ -5,7 +5,7 @@
 
 library unicode_tests;
 import 'dunit.dart';
-import '../../../lib/utf/utf.dart';
+import '../../../sdk/lib/utf/utf.dart';
 
 void main() {
   TestSuite suite = new TestSuite();
@@ -30,7 +30,7 @@ class UnicodeTests extends TestClass {
   }
 
   void testStringCharCodes() {
-    Expect.listEquals(testCodepoints, testPhrase.charCodes());
+    Expect.listEquals(testCodepoints, testPhrase.codeUnits);
   }
 
   void testCodepointsToString() {
@@ -42,6 +42,6 @@ class UnicodeTests extends TestClass {
   }
 
   void testEmptyStringCharCodes() {
-    Expect.listEquals([], "".charCodes());
+    Expect.listEquals([], "".codeUnits);
   }
 }

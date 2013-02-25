@@ -37,7 +37,7 @@ void main() {
       return bodyStream.bytesToString().then((bodyString) {
         var controller = new StreamController<List<int>>();
         async.then((_) {
-          controller.add('Request body was "$bodyString"'.charCodes);
+          controller.add('Request body was "$bodyString"'.codeUnits);
           controller.close();
         });
 

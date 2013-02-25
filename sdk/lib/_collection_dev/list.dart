@@ -301,3 +301,16 @@ class ReversedListIterable<E> extends ListIterable<E> {
 
   E elementAt(int index) => _source.elementAt(_source.length - 1 - index);
 }
+
+/**
+ * An [Iterable] of the UTF-16 code units of a [String] in index order.
+ */
+class CodeUnits extends UnmodifiableListBase<int> {
+  /** The string that this is the code units of. */
+  String _string;
+
+  CodeUnits(this._string);
+
+  int get length => _string.length;
+  int operator[](int i) => _string.codeUnitAt(i);
+}

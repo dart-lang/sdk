@@ -125,7 +125,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = request.charCodes;
+    List<int> requestData = request.codeUnits;
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
@@ -169,7 +169,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = request.charCodes;
+    List<int> requestData = request.codeUnits;
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
@@ -270,7 +270,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = response.charCodes;
+    List<int> responseData = response.codeUnits;
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);
@@ -320,7 +320,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = response.charCodes;
+    List<int> responseData = response.codeUnits;
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);

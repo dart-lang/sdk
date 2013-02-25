@@ -299,7 +299,8 @@ bool randomBool() {
 
 /** Returns the alphabetized characters in a string. */
 String alphagram(String s) {
-  List<int> chars = s.charCodes;
+  // Calling [toList] to convert unmodifiable list to normal list.
+  List<int> chars = s.codeUnits.toList();
   chars.sort((int a, int b) => a - b);
   return new String.fromCharCodes(chars);
 }

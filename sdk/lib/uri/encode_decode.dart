@@ -114,7 +114,7 @@ String _uriEncode(List<int> canonicalTable, String text) {
   var byteToHex = (int v) => '%${hex[v >> 4]}${hex[v & 0x0f]}';
   StringBuffer result = new StringBuffer();
   for (int i = 0; i < text.length; i++) {
-    int ch = text.charCodeAt(i);
+    int ch = text.codeUnitAt(i);
     if (ch < 128 && ((canonicalTable[ch >> 4] & (1 << (ch & 0x0f))) != 0)) {
       result.add(text[i]);
     } else if (text[i] == " ") {
@@ -123,10 +123,10 @@ String _uriEncode(List<int> canonicalTable, String text) {
       if (ch >= 0xD800 && ch < 0xDC00) {
         // Low surrogate. We expect a next char high surrogate.
         ++i;
-        int nextCh = text.length == i ? 0 : text.charCodeAt(i);
+        int nextCh = text.length == i ? 0 : text.codeUnitAt(i);
         if (nextCh >= 0xDC00 && nextCh < 0xE000) {
           // convert the pair to a U+10000 codepoint
-          ch = 0x10000 + ((ch-0xD800) << 10) + (nextCh - 0xDC00);
+          ch = 0x10000 + ((ch - 0xD800) << 10) + (nextCh - 0xDC00);
         } else {
           throw new ArgumentError('Malformed URI');
         }
@@ -143,11 +143,10 @@ String _uriEncode(List<int> canonicalTable, String text) {
  * Convert a byte (2 character hex sequence) in string [s] starting
  * at position [pos] to its ordinal value
  */
-
 int _hexCharPairToByte(String s, int pos) {
   int byte = 0;
   for (int i = 0; i < 2; i++) {
-    var charCode = s.charCodeAt(pos + i);
+    var charCode = s.codeUnitAt(pos + i);
     if (0x30 <= charCode && charCode <= 0x39) {
       byte = byte * 16 + charCode - 0x30;
     } else {

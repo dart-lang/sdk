@@ -178,7 +178,7 @@ bool hasUtf16leBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
 }
 
 List<int> _stringToUtf16CodeUnits(String str) {
-  return _codepointsToUtf16CodeUnits(str.charCodes);
+  return _codepointsToUtf16CodeUnits(str.codeUnits);
 }
 
 typedef _ListRangeIterator _CodeUnitsProvider();

@@ -9,7 +9,7 @@ const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 
 void WriteAndClose(Socket socket, String message) {
-  var data = message.charCodes;
+  var data = message.codeUnits;
   int written = 0;
   void write() {
     written += socket.writeList(data, written, data.length - written);

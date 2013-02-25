@@ -48,7 +48,7 @@ testString() {
   var string = "funky";
   var proxy = new Proxy(string);
 
-  Expect.equals(string.charCodeAt(0), proxy.charCodeAt(0));
+  Expect.equals(string.codeUnitAt(0), proxy.codeUnitAt(0));
   Expect.equals(string.length, proxy.length);
 
   Expect.throws(() => proxy.funky(), (e) => e is NoSuchMethodError);

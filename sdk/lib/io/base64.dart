@@ -68,7 +68,7 @@ class _Base64 {
     int charCount = 0;
     int value = 0;
     for (int i = 0; i < data.length; i++) {
-      int char = data.charCodeAt(i);
+      int char = data.codeUnitAt(i);
       if (65 <= char && char <= 90) {  // "A" - "Z".
         value = (value << 6) | char - 65;
         charCount++;

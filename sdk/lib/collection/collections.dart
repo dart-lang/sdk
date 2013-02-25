@@ -131,10 +131,10 @@ class IterableMixinWorkaround {
       }
     }
     if (retained.length == length) return;
+    list.length = retained.length;
     for (int i = 0; i < retained.length; i++) {
       list[i] = retained[i];
     }
-    list.length = retained.length;
   }
 
   /**

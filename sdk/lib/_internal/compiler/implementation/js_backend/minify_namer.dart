@@ -94,7 +94,7 @@ class MinifyNamer extends Namer {
         suggestedInstanceNames,
         usedInstanceNames,
         const <String>[
-            r'$add', r'add$1', r'box_0', r'charCodeAt$1', r'constructor',
+            r'$add', r'add$1', r'box_0', r'codeUnitAt$1', r'constructor',
             r'current', r'$defineNativeClass', r'$eq', r'$ne',
             r'getPrototypeOf', r'hasOwnProperty', r'$index', r'$indexSet',
             r'$isJavaScriptIndexingBehavior', r'$isolateProperties',

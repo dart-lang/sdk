@@ -114,7 +114,7 @@ void testReadLine1() {
       stringData,
       onDone: streamClosed);
 
-  controller.add("Line".charCodes);
+  controller.add("Line".codeUnits);
 }
 
 void testReadLine2() {
@@ -138,7 +138,7 @@ void testReadLine2() {
           Expect.equals("Line3", line);
           subStage = 0;
           stage++;
-          controller.add("ne4\n".charCodes);
+          controller.add("ne4\n".codeUnits);
         } else {
           Expect.fail("Stage 0 failed");
         }
@@ -147,7 +147,7 @@ void testReadLine2() {
           Expect.equals("Line4", line);
           subStage = 0;
           stage++;
-          controller.add("\n\n\r\n\r\n\r\r".charCodes);
+          controller.add("\n\n\r\n\r\n\r\r".codeUnits);
         } else {
           Expect.fail("Stage 1 failed");
         }
@@ -178,7 +178,7 @@ void testReadLine2() {
       Expect.equals(0, subStage);
     });
 
-  controller.add("Line1\nLine2\r\nLine3\rLi".charCodes);
+  controller.add("Line1\nLine2\r\nLine3\rLi".codeUnits);
 }
 
 class TestException implements Exception {

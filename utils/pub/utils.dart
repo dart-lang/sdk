@@ -141,7 +141,7 @@ bool endsWithPattern(String str, Pattern matcher) {
 /// Returns the hex-encoded sha1 hash of [source].
 String sha1(String source) {
   var sha = new SHA1();
-  sha.add(source.charCodes);
+  sha.add(source.codeUnits);
   return CryptoUtils.bytesToHex(sha.close());
 }
 

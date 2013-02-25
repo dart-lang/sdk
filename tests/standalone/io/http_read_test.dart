@@ -174,7 +174,7 @@ void testRead(bool chunkedEncoding) {
               request.addString(data.substring(10, data.length));
             } else {
               request.contentLength = data.length;
-              request.add(data.charCodes);
+              request.add(data.codeUnits);
             }
             return request.close();
           })

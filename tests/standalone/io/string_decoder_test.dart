@@ -15,7 +15,7 @@ void test() {
   controller.add([0xfd, 0x80, 0x80, 0x80, 0x80, 0x80]);  // U+40000000
   controller.close();
 
-  var decoder = new StringDecoder(Encoding.UTF_8, '?'.charCodeAt(0));
+  var decoder = new StringDecoder(Encoding.UTF_8, '?'.codeUnitAt(0));
   var stream = controller.stream.transform(decoder);
   stream.reduce(
       new StringBuffer(),
@@ -27,14 +27,14 @@ void test() {
       .then((decoded) {
         Expect.equals(7, decoded.length);
 
-        var replacementChar = '?'.charCodeAt(0);
-        Expect.equals(0xd800, decoded.charCodeAt(0));
-        Expect.equals(0xdc00, decoded.charCodeAt(1));
-        Expect.equals(0xdbff, decoded.charCodeAt(2));
-        Expect.equals(0xdfff, decoded.charCodeAt(3));
-        Expect.equals(replacementChar, decoded.charCodeAt(4));
-        Expect.equals(replacementChar, decoded.charCodeAt(5));
-        Expect.equals(replacementChar, decoded.charCodeAt(6));
+        var replacementChar = '?'.codeUnitAt(0);
+        Expect.equals(0xd800, decoded.codeUnitAt(0));
+        Expect.equals(0xdc00, decoded.codeUnitAt(1));
+        Expect.equals(0xdbff, decoded.codeUnitAt(2));
+        Expect.equals(0xdfff, decoded.codeUnitAt(3));
+        Expect.equals(replacementChar, decoded.codeUnitAt(4));
+        Expect.equals(replacementChar, decoded.codeUnitAt(5));
+        Expect.equals(replacementChar, decoded.codeUnitAt(6));
       });
 }
 
@@ -46,7 +46,7 @@ void testInvalid() {
     controller.stream.transform(new StringDecoder()).listen((string) {
       Expect.equals(outputLength, string.length);
       for (var i = 0; i < outputLength; i++) {
-        Expect.equals(0xFFFD, string.charCodeAt(i));
+        Expect.equals(0xFFFD, string.codeUnitAt(i));
       }
     });
   }

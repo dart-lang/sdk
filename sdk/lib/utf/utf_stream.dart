@@ -192,7 +192,7 @@ class Utf8EncoderTransformer extends _StringEncoder {
   List<int> _processString(String string) {
     var bytes = [];
     int pos = 0;
-    List<int> codepoints = _utf16CodeUnitsToCodepoints(string.charCodes);
+    List<int> codepoints = _utf16CodeUnitsToCodepoints(string.codeUnits);
     int length = codepoints.length;
     for (int i = 0; i < length; i++) {
       int additionalBytes;

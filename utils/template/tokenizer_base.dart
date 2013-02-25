@@ -52,7 +52,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
 
   int _nextChar() {
     if (_index < _text.length) {
-      return _text.charCodeAt(_index++);
+      return _text.codeUnitAt(_index++);
     } else {
       return 0;
     }
@@ -60,7 +60,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
 
   int _peekChar() {
     if (_index < _text.length) {
-      return _text.charCodeAt(_index);
+      return _text.codeUnitAt(_index);
     } else {
       return 0;
     }
@@ -68,7 +68,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
 
   bool _maybeEatChar(int ch) {
     if (_index < _text.length) {
-      if (_text.charCodeAt(_index) == ch) {
+      if (_text.codeUnitAt(_index) == ch) {
         _index++;
         return true;
       } else {
@@ -99,7 +99,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
   Token finishWhitespace() {
     _index--;
     while (_index < _text.length) {
-      final ch = _text.charCodeAt(_index++);
+      final ch = _text.codeUnitAt(_index++);
       if (ch == 32/*' '*/ || ch == 9/*'\t'*/ || ch == 13/*'\r'*/) {
         // do nothing
       } else if (ch == 10/*'\n'*/) {
@@ -158,7 +158,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
 
   void eatDigits() {
     while (_index < _text.length) {
-      if (TokenizerHelpers.isDigit(_text.charCodeAt(_index))) {
+      if (TokenizerHelpers.isDigit(_text.codeUnitAt(_index))) {
         _index++;
       } else {
         return;
@@ -189,7 +189,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
     }
     var result = 0;
     while (_index < maxIndex) {
-      final digit = _hexDigit(_text.charCodeAt(_index));
+      final digit = _hexDigit(_text.codeUnitAt(_index));
       if (digit == -1) {
         if (hexLength == null) {
           return result;
@@ -197,7 +197,7 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
           return -1;
         }
       }
-      _hexDigit(_text.charCodeAt(_index));
+      _hexDigit(_text.codeUnitAt(_index));
       // Multiply by 16 rather than shift by 4 since that will result in a
       // correct value for numbers that exceed the 32 bit precision of JS
       // 'integers'.
@@ -441,14 +441,14 @@ class TokenizerBase extends TokenizerHelpers implements TokenSource {
       _interpStack.depth = 0;
       while (_index < _text.length) {
         if (!TokenizerHelpers.isInterpIdentifierPart(
-            _text.charCodeAt(_index++))) {
+            _text.codeUnitAt(_index++))) {
           _index--;
           break;
         }
       }
     } else {
       while (_index < _text.length) {
-        if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index++))) {
+        if (!TokenizerHelpers.isIdentifierPart(_text.codeUnitAt(_index++))) {
           _index--;
           break;
         }

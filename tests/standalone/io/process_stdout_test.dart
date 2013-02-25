@@ -21,7 +21,7 @@ void test(Future<Process> future, int expectedExitCode) {
       Expect.equals(expectedExitCode, exitCode);
     });
 
-    List<int> data = "ABCDEFGHI\n".charCodes;
+    List<int> data = "ABCDEFGHI\n".codeUnits;
     final int dataSize = data.length;
 
     int received = 0;

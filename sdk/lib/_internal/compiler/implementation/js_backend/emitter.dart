@@ -2386,7 +2386,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       return isNumber(variable).binary('&&',
           js['Math']['floor'](receiver).equals(receiver));
     }
-    
+
     jsAst.Expression tripleShiftZero(jsAst.Expression receiver) {
       return receiver.binary('>>>', js.toExpression(0));
     }

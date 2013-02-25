@@ -38,12 +38,12 @@ class int32 implements intx {
   static int32 TWO = const int32._internal(2);
 
   // Hex digit char codes
-  static const int _CC_0 = 48; // '0'.charCodeAt(0)
-  static const int _CC_9 = 57; // '9'.charCodeAt(0)
-  static const int _CC_a = 97; // 'a'.charCodeAt(0)
-  static const int _CC_z = 122; // 'z'.charCodeAt(0)
-  static const int _CC_A = 65; // 'A'.charCodeAt(0)
-  static const int _CC_Z = 90; // 'Z'.charCodeAt(0)
+  static const int _CC_0 = 48; // '0'.codeUnitAt(0)
+  static const int _CC_9 = 57; // '9'.codeUnitAt(0)
+  static const int _CC_a = 97; // 'a'.codeUnitAt(0)
+  static const int _CC_z = 122; // 'z'.codeUnitAt(0)
+  static const int _CC_A = 65; // 'A'.codeUnitAt(0)
+  static const int _CC_Z = 90; // 'Z'.codeUnitAt(0)
 
   static int _decodeHex(int c) {
     if (c >= _CC_0 && c <= _CC_9) {
@@ -68,10 +68,10 @@ class int32 implements intx {
     }
     int32 x = ZERO;
     for (int i = 0; i < s.length; i++) {
-      int c = s.charCodeAt(i);
+      int c = s.codeUnitAt(i);
       int digit = _decodeHex(c);
       if (digit < 0 || digit >= radix) {
-        throw new Exception("Non-radix char code: $c");
+        throw new Exception("Non-radix code unit: $c");
       }
       x = (x * radix) + digit;
     }

@@ -130,7 +130,7 @@ class int64 implements intx {
       i++;
     }
     for (; i < s.length; i++) {
-      int c = s.charCodeAt(i);
+      int c = s.codeUnitAt(i);
       int digit = int32._decodeHex(c);
       if (digit < 0 || digit >= radix) {
         throw new Exception("Non-radix char code: $c");

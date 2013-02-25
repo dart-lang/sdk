@@ -14,6 +14,8 @@ abstract class ListIterable<E> extends Iterable<E> {
   int get length;
   E elementAt(int i);
 
+  const ListIterable();
+
   Iterator<E> get iterator => new ListIterator<E>(this);
 
   void forEach(void action(E element)) {

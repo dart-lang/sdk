@@ -374,7 +374,7 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
+bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   return false;
 }
 

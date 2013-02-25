@@ -154,7 +154,7 @@ main() {
     var l = keysAndValues(list);
     var s = keysAndValues(set);
 
-    m.forEach((key, value) {expect(key.charCodes[0], value + 96);});
+    m.forEach((key, value) {expect(key.codeUnits[0], value + 96);});
     l.forEach((key, value) {expect(key + 1, value);});
     var index = 0;
     var seen = new Set();

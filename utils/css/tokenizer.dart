@@ -191,8 +191,8 @@ class Tokenizer extends CSSTokenizerBase {
   // Need to override so CSS version of isIdentifierPart is used.
   Token finishIdentifier(int ch) {
     while (_index < _text.length) {
-//      if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index++))) {
-      if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index))) {
+//      if (!TokenizerHelpers.isIdentifierPart(_text.codeUnitAt(_index++))) {
+      if (!TokenizerHelpers.isIdentifierPart(_text.codeUnitAt(_index))) {
 //        _index--;
         break;
       } else {
@@ -211,7 +211,7 @@ class Tokenizer extends CSSTokenizerBase {
   }
 
   Token finishImportant() {
-    
+
   }
 
   Token finishNumber() {
@@ -233,7 +233,7 @@ class Tokenizer extends CSSTokenizerBase {
 
   bool maybeEatDigit() {
     if (_index < _text.length
-        && TokenizerHelpers.isDigit(_text.charCodeAt(_index))) {
+        && TokenizerHelpers.isDigit(_text.codeUnitAt(_index))) {
       _index += 1;
       return true;
     }
@@ -242,7 +242,7 @@ class Tokenizer extends CSSTokenizerBase {
 
   void eatHexDigits() {
     while (_index < _text.length) {
-     if (TokenizerHelpers.isHexDigit(_text.charCodeAt(_index))) {
+     if (TokenizerHelpers.isHexDigit(_text.codeUnitAt(_index))) {
        _index += 1;
      } else {
        return;
@@ -252,7 +252,7 @@ class Tokenizer extends CSSTokenizerBase {
 
   bool maybeEatHexDigit() {
     if (_index < _text.length
-        && TokenizerHelpers.isHexDigit(_text.charCodeAt(_index))) {
+        && TokenizerHelpers.isHexDigit(_text.codeUnitAt(_index))) {
       _index += 1;
       return true;
     }
@@ -293,7 +293,7 @@ class Tokenizer extends CSSTokenizerBase {
 /** Static helper methods. */
 /** Static helper methods. */
 class TokenizerHelpers {
-  
+
   static bool isIdentifierStart(int c) {
     return ((c >= 97/*a*/ && c <= 122/*z*/) || (c >= 65/*A*/ && c <= 90/*Z*/) ||
         c == 95/*_*/ || c == 45 /*-*/);

@@ -68,9 +68,9 @@ testTEXT() {
       TEXT(LEX(MANY(OR(['0','1']))),
            (str, start, end) {
              var r = 0;
-             var zero = '0'.charCodeAt(0);
+             var zero = '0'.codeUnitAt(0);
              for (int i = start; i < end; i++)
-               r = r * 2 + (str.charCodeAt(i) - zero);
+               r = r * 2 + (str.codeUnitAt(i) - zero);
              return r;
            });
 

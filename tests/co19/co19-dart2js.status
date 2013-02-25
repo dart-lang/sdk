@@ -788,3 +788,10 @@ LibTest/core/Set/removeAll_A01_t02: Fail
 
 # Doesn't expect concurrent modification error (issue 376).
 LibTest/core/Map/forEach_A01_t07: Fail
+
+# Deprecated string members removed (issue 382).
+LibTest/core/String/charCodes_A01_t01: Fail
+LibTest/core/String/charCodeAt_A02_t01: Fail
+LibTest/core/String/charCodeAt_A03_t01: Fail
+LibTest/core/String/charCodeAt_A01_t01: Fail
+LibTest/core/String/splitChars_A01_t01: Fail

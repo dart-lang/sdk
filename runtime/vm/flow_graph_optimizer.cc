@@ -1414,7 +1414,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
+LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
     InstanceCallInstr* call,
     intptr_t cid) {
   Definition* str = call->ArgumentAt(0);
@@ -1536,11 +1536,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       break;
   }
 
-  if ((recognized_kind == MethodRecognizer::kStringBaseCharCodeAt) &&
+  if ((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) &&
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
        (class_ids[0] == kTwoByteStringCid))) {
-    LoadIndexedInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
+    LoadIndexedInstr* instr = BuildStringCodeUnitAt(call, class_ids[0]);
     ReplaceCall(call, instr);
     return true;
   }
@@ -1549,7 +1549,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (class_ids[0] == kOneByteStringCid)) {
     // TODO(fschneider): Handle TwoByteString.
     LoadIndexedInstr* load_char_code =
-        BuildStringCharCodeAt(call, class_ids[0]);
+        BuildStringCodeUnitAt(call, class_ids[0]);
     InsertBefore(call, load_char_code, NULL, Definition::kValue);
     StringFromCharCodeInstr* char_at =
         new StringFromCharCodeInstr(new Value(load_char_code),

@@ -169,7 +169,7 @@ class NumberFormat {
       paddingDigits.add(symbols.ZERO_DIGIT);
       intValue = intValue ~/ 10;
     }
-    var integerDigits = "${intValue}${paddingDigits}".charCodes;
+    var integerDigits = "${intValue}${paddingDigits}".codeUnits;
     var digitLength = integerDigits.length;
 
     if (_hasPrintableIntegerPart(intValue)) {
@@ -191,7 +191,7 @@ class NumberFormat {
    * Format the part after the decimal place in a fixed point number.
    */
   void _formatFractionPart(String fractionPart) {
-    var fractionCodes = fractionPart.charCodes;
+    var fractionCodes = fractionPart.codeUnits;
     var fractionLength = fractionPart.length;
     while (fractionPart[fractionLength - 1] == '0' &&
            fractionLength > _minimumFractionDigits + 1) {
@@ -237,7 +237,7 @@ class NumberFormat {
     for (var i = 0; i < numberOfDigits - basic.length; i++) {
       _add(symbols.ZERO_DIGIT);
     }
-    for (var x in basic.charCodes) {
+    for (var x in basic.codeUnits) {
       _addDigit(x);
     }
   }

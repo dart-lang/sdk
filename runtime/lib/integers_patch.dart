@@ -50,12 +50,12 @@ patch class int {
     ];
 
     int i = 0;
-    int code = source.charCodeAt(i);
+    int code = source.codeUnitAt(i);
     if (code == 0x2d || code == 0x2b) { // Starts with a plus or minus-sign.
       negative = (code == 0x2d);
       if (source.length == 1) return onError(source);
       i = 1;
-      code = source.charCodeAt(i);
+      code = source.codeUnitAt(i);
     }
     do {
       if (code < 0x30 || code > 0x7f) return onError(source);
@@ -64,7 +64,7 @@ patch class int {
       result = result * radix + digit;
       i++;
       if (i == source.length) break;
-      code = source.charCodeAt(i);
+      code = source.codeUnitAt(i);
     } while (true);
     return negative ? -result : result;
   }

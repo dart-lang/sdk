@@ -1435,7 +1435,7 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 
 
 // TODO(srdjan): Implement for two and four byte strings as well.
-bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
+bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   Label fall_through;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.

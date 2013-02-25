@@ -15,7 +15,7 @@ void main() {
   SecureSocket.initialize();
   List<String> chunks = <String>[];
   SecureSocket.connect("www.google.dk", 443).then((socket) {
-    socket.add("GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".charCodes);
+    socket.add("GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".codeUnits);
     socket.close();
     socket.listen(
       (List<int> data) {

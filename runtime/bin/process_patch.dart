@@ -107,14 +107,14 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
       // Replace any number of '\' followed by '"' with
       // twice as many '\' followed by '\"'.
-      var backslash = '\\'.charCodeAt(0);
+      var backslash = '\\'.codeUnitAt(0);
       var sb = new StringBuffer();
       var nextPos = 0;
       var quotePos = argument.indexOf('"', nextPos);
       while (quotePos != -1) {
         var numBackslash = 0;
         var pos = quotePos - 1;
-        while (pos >= 0 && argument.charCodeAt(pos) == backslash) {
+        while (pos >= 0 && argument.codeUnitAt(pos) == backslash) {
           numBackslash++;
           pos--;
         }
@@ -134,7 +134,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       sb = new StringBuffer('"');
       sb.add(result);
       nextPos = argument.length - 1;
-      while (argument.charCodeAt(nextPos) == backslash) {
+      while (argument.codeUnitAt(nextPos) == backslash) {
         sb.add('\\');
         nextPos--;
       }

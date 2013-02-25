@@ -1430,7 +1430,7 @@ class ScheduledProcess {
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
     _schedule((_) => _processFuture.then(
-        (p) => p.stdin.add('$line\n'.charCodes)));
+        (p) => p.stdin.add('$line\n'.codeUnits)));
   }
 
   /// Kills the process, and waits until it's dead.

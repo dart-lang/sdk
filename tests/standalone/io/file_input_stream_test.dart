@@ -36,7 +36,7 @@ void testOpenStreamAsync() {
   var keepAlive = new ReceivePort();
   String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
-  var expected = "Hello Dart\nwassup!\n".charCodes;
+  var expected = "Hello Dart\nwassup!\n".codeUnits;
   var byteCount = 0;
   (new File(fileName)).openRead().listen(
       (d) => byteCount += d.length,
@@ -94,7 +94,6 @@ void testInputStreamTruncate() {
         Expect.fail("Unexpected error");
       });
 }
-
 
 void testInputStreamDelete() {
   var keepAlive = new ReceivePort();

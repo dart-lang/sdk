@@ -18,7 +18,7 @@ class _HttpUtils {
 
     // Start decoding from the first encoded character.
     List<int> bytes = new List<int>();
-    for (int i = 0; i < index; i++) bytes.add(urlEncoded.charCodeAt(i));
+    for (int i = 0; i < index; i++) bytes.add(urlEncoded.codeUnitAt(i));
     for (int i = index; i < urlEncoded.length; i++) {
       if (urlEncoded[i] == "+") {
         bytes.add(32);
@@ -28,7 +28,7 @@ class _HttpUtils {
         }
         int byte = 0;
         for (int j = 0; j < 2; j++) {
-          var charCode = urlEncoded.charCodeAt(i + j + 1);
+          var charCode = urlEncoded.codeUnitAt(i + j + 1);
           if (0x30 <= charCode && charCode <= 0x39) {
             byte = byte * 16 + charCode - 0x30;
           } else {
@@ -44,7 +44,7 @@ class _HttpUtils {
         bytes.add(byte);
         i += 2;
       } else {
-        bytes.add(urlEncoded.charCodeAt(i));
+        bytes.add(urlEncoded.codeUnitAt(i));
       }
     }
     return decodeUtf8(bytes);
@@ -229,7 +229,7 @@ class _HttpUtils {
     int seconds;
     if (format == formatAsctime) {
       month = expectMonth(" ");
-      if (date.charCodeAt(index) == SP) index++;
+      if (date.codeUnitAt(index) == SP) index++;
       day = expectNum(" ");
       hours = expectNum(":");
       minutes = expectNum(":");
@@ -265,7 +265,7 @@ class _HttpUtils {
     }
 
     bool isDelimiter(String s) {
-      int char = s.charCodeAt(0);
+      int char = s.codeUnitAt(0);
       if (char == 0x09) return true;
       if (char >= 0x20 && char <= 0x2F) return true;
       if (char >= 0x3B && char <= 0x40) return true;
@@ -275,7 +275,7 @@ class _HttpUtils {
     }
 
     bool isNonDelimiter(String s) {
-      int char = s.charCodeAt(0);
+      int char = s.codeUnitAt(0);
       if (char >= 0x00 && char <= 0x08) return true;
       if (char >= 0x0A && char <= 0x1F) return true;
       if (char >= 0x30 && char <= 0x39) return true;  // Digit
@@ -287,7 +287,7 @@ class _HttpUtils {
     }
 
     bool isDigit(String s) {
-      int char = s.charCodeAt(0);
+      int char = s.codeUnitAt(0);
       if (char > 0x2F && char < 0x3A) return true;
       return false;
     }

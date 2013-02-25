@@ -352,7 +352,7 @@ class _HttpHeaders implements HttpHeaders {
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
       List<int> nameData;
-      nameData = name.charCodes;
+      nameData = name.codeUnits;
       int nameDataLen = nameData.length;
       if (nameDataLen + 2 > bufferSize - bufferPos) writeBuffer();
       buffer.setRange(bufferPos, nameDataLen, nameData);
@@ -360,7 +360,7 @@ class _HttpHeaders implements HttpHeaders {
       buffer[bufferPos++] = _CharCode.COLON;
       buffer[bufferPos++] = _CharCode.SP;
       for (int i = 0; i < values.length; i++) {
-        List<int> data = values[i].charCodes;
+        List<int> data = values[i].codeUnits;
         int dataLen = data.length;
         // Worst case here is writing the name, value and 6 additional bytes.
         if (nameDataLen + dataLen + 6 > bufferSize - bufferPos) writeBuffer();

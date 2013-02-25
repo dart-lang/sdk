@@ -93,7 +93,7 @@ class TokenKind {
   static const int COMBINATOR_TILDE = 517;      // ~ combinator
 
   static const int UNARY_OP_NONE = 518;         // No unary operator present.
-  
+
   // Attribute match types:
   static const int INCLUDES = 530;              // '~='
   static const int DASH_MATCH = 531;            // '|='
@@ -383,8 +383,8 @@ class TokenKind {
         int idx = offset;
         bool match = true;
         for (int identIdx = 0; identIdx < ident.length; identIdx++) {
-          int identChar = ident.charCodeAt(identIdx);
-          int char = text.charCodeAt(idx++);
+          int identChar = ident.codeUnitAt(identIdx);
+          int char = text.codeUnitAt(idx++);
           // Compare lowercase to lowercase then check if char is uppercase.
           match = match && (char == identChar ||
               ((char >= ASCII_UPPER_A && char <= ASCII_UPPER_Z) &&
@@ -448,8 +448,8 @@ class TokenKind {
         int idx = 0;
         bool match = true;
         for (int identIdx = 0; identIdx < ident.length; identIdx++) {
-          int identChar = ident.charCodeAt(identIdx);
-          int char = text.charCodeAt(idx++);
+          int identChar = ident.codeUnitAt(identIdx);
+          int char = text.codeUnitAt(idx++);
           // Compare lowercase to lowercase then check if char is uppercase.
           match = match && (char == identChar ||
               ((char >= ASCII_UPPER_A && char <= ASCII_UPPER_Z) &&
@@ -545,39 +545,39 @@ class TokenKind {
     // All tokens must be in TokenKind order.
     tokens.add(-1);                 // TokenKind.UNUSED
     tokens.add(0);                  // TokenKind.END_OF_FILE match base
-    tokens.add(TokenKind.kindToString(TokenKind.LPAREN).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.RPAREN).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.LBRACK).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.RBRACK).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.LBRACE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.RBRACE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.DOT).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.SEMICOLON).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.AT).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.HASH).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.PLUS).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.GREATER).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.TILDE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.ASTERISK).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.NAMESPACE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.COLON).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.PRIVATE_NAME).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.COMMA).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.SPACE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.TAB).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.NEWLINE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.RETURN).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.PERCENT).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.SINGLE_QUOTE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.DOUBLE_QUOTE).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.SLASH).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.EQUALS).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.OR).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.CARET).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.DOLLAR).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.LESS).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.BANG).charCodeAt(0));
-    tokens.add(TokenKind.kindToString(TokenKind.MINUS).charCodeAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.LPAREN).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.RPAREN).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.LBRACK).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.RBRACK).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.LBRACE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.RBRACE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.DOT).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.SEMICOLON).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.AT).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.HASH).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.PLUS).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.GREATER).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.TILDE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.ASTERISK).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.NAMESPACE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.COLON).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.PRIVATE_NAME).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.COMMA).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.SPACE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.TAB).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.NEWLINE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.RETURN).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.PERCENT).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.SINGLE_QUOTE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.DOUBLE_QUOTE).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.SLASH).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.EQUALS).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.OR).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.CARET).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.DOLLAR).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.LESS).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.BANG).codeUnitAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.MINUS).codeUnitAt(0));
 
     assert(tokens.length == TokenKind.END_TOKENS);
   }

@@ -13,7 +13,7 @@ import "dart:isolate";
 
 
 void main() {
-  List<int> message = "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".charCodes;
+  List<int> message = "GET / HTTP/1.0\r\nHost: www.google.dk\r\n\r\n".codeUnits;
   int written = 0;
   List<String> chunks = <String>[];
   SecureSocket.initialize();

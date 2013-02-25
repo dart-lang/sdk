@@ -244,7 +244,8 @@ String _dartEscape(String str) {
         output = r'\v';
         break;
       default:
-        int code = input.charCodeAt(0);
+        // TODO(lrn): Someone decide if this should combine surrogate pairs.
+        int code = input.codeUnitAt(0);
         if (isNice(code)) {
           output = input;
         } else {

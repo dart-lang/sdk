@@ -209,45 +209,45 @@ class JsonPrinter {
   static void _escape(StringBuffer sb, String s) {
     final int length = s.length;
     bool needsEscape = false;
-    final charCodes = new List<int>();
+    final codeUnits = new List<int>();
     for (int i = 0; i < length; i++) {
-      int charCode = s.charCodeAt(i);
-      if (charCode < 32) {
+      int codeUnit = s.codeUnitAt(i);
+      if (codeUnit < 32) {
         needsEscape = true;
-        charCodes.add(JsonPrinter.BACKSLASH);
-        switch (charCode) {
+        codeUnits.add(JsonPrinter.BACKSLASH);
+        switch (codeUnit) {
         case JsonPrinter.BACKSPACE:
-          charCodes.add(JsonPrinter.CHAR_B);
+          codeUnits.add(JsonPrinter.CHAR_B);
           break;
         case JsonPrinter.TAB:
-          charCodes.add(JsonPrinter.CHAR_T);
+          codeUnits.add(JsonPrinter.CHAR_T);
           break;
         case JsonPrinter.NEW_LINE:
-          charCodes.add(JsonPrinter.CHAR_N);
+          codeUnits.add(JsonPrinter.CHAR_N);
           break;
         case JsonPrinter.FORM_FEED:
-          charCodes.add(JsonPrinter.CHAR_F);
+          codeUnits.add(JsonPrinter.CHAR_F);
           break;
         case JsonPrinter.CARRIAGE_RETURN:
-          charCodes.add(JsonPrinter.CHAR_R);
+          codeUnits.add(JsonPrinter.CHAR_R);
           break;
         default:
-          charCodes.add(JsonPrinter.CHAR_U);
-          charCodes.add(_hexDigit((charCode >> 12) & 0xf));
-          charCodes.add(_hexDigit((charCode >> 8) & 0xf));
-          charCodes.add(_hexDigit((charCode >> 4) & 0xf));
-          charCodes.add(_hexDigit(charCode & 0xf));
+          codeUnits.add(JsonPrinter.CHAR_U);
+          codeUnits.add(_hexDigit((codeUnit >> 12) & 0xf));
+          codeUnits.add(_hexDigit((codeUnit >> 8) & 0xf));
+          codeUnits.add(_hexDigit((codeUnit >> 4) & 0xf));
+          codeUnits.add(_hexDigit(codeUnit & 0xf));
           break;
         }
-      } else if (charCode == JsonPrinter.QUOTE ||
-          charCode == JsonPrinter.BACKSLASH) {
+      } else if (codeUnit == JsonPrinter.QUOTE ||
+          codeUnit == JsonPrinter.BACKSLASH) {
         needsEscape = true;
-        charCodes.add(JsonPrinter.BACKSLASH);
-        charCodes.add(charCode);
+        codeUnits.add(JsonPrinter.BACKSLASH);
+        codeUnits.add(codeUnit);
       } else {
-        charCodes.add(charCode);
+        codeUnits.add(codeUnit);
       }
     }
-    sb.add(needsEscape ? new String.fromCharCodes(charCodes) : s);
+    sb.add(needsEscape ? new String.fromCharCodes(codeUnits) : s);
   }
 }

@@ -7410,7 +7410,7 @@ TEST_CASE(ExternalStringDeoptimize) {
       "  var result = 0;\n"
       "  for (var i = 0; i < s.length; i++) {\n"
       "    if (b && i == 0) A.change_str(str);\n"
-      "    result += s.charCodeAt(i);"
+      "    result += s.codeUnitAt(i);"
       "  }\n"
       "  return result;\n"
       "}\n"

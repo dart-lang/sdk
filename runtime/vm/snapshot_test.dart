@@ -104,7 +104,7 @@ class TowersDisk {
 class Towers {
   List<TowersDisk> piles;
   int movesDone;
-  Towers(int disks) 
+  Towers(int disks)
       : piles = new List<TowersDisk>.fixedLength(3), movesDone = 0 {
     build(0, disks);
   }
@@ -829,7 +829,7 @@ class ObjectString extends BenchmarkBase {
     text += text;
     CharAtBenchmark.test(text, ITERATE3);
     NumberBenchmark.test(text, ITERATE3);
-    CharCodeAtBenchmark.test(text, ITERATE3);
+    CodeUnitAtBenchmark.test(text, ITERATE3);
     IndexOfBenchmark.test(text, ITERATE3);
     LastIndexOfBenchmark.test(text, ITERATE3);
     SliceBenchmark.test(text, ITERATE4);
@@ -918,17 +918,17 @@ class NumberBenchmark {
 }
 
 
-class CharCodeAtBenchmark {
-  CharCodeAtBenchmark() {}
+class CodeUnitAtBenchmark {
+  CodeUnitAtBenchmark() {}
 
   static String test(String input, var iterations) {
     var str;
     for (var j = 0; j < iterations; j++) {
-      str = input.charCodeAt(0);
-      str = input.charCodeAt(input.length - 1);
-      str = input.charCodeAt(150); //set it to 15000
-      str = input.charCodeAt(100); //set it to 10000
-      str = input.charCodeAt(50); //set it to 5000
+      str = input.codeUnitAt(0);
+      str = input.codeUnitAt(input.length - 1);
+      str = input.codeUnitAt(150); //set it to 15000
+      str = input.codeUnitAt(100); //set it to 10000
+      str = input.codeUnitAt(50); //set it to 5000
     }
     return str;
   }

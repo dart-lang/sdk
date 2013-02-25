@@ -15,7 +15,7 @@ testSingleCharacterEscapes() {
   for (String s in examples) {
     Expect.equals(6, s.length);
     for (int i = 0; i < 6; i++) {
-      Expect.equals(values[i], s.charCodeAt(i));
+      Expect.equals(values[i], s.codeUnitAt(i));
     }
   }
 
@@ -48,7 +48,7 @@ testXEscapes() {
       "\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff";
   Expect.equals(256, allBytes.length);
   for (int i = 0; i < 256; i++) {
-    Expect.equals(i, allBytes.charCodeAt(i));
+    Expect.equals(i, allBytes.codeUnitAt(i));
   }
 }
 
@@ -67,7 +67,7 @@ testUEscapes() {
   for (String s in examples) {
     Expect.equals(values.length, s.length);
     for (int i = 0; i < values.length; i++) {
-      Expect.equals(values[i], s.charCodeAt(i));
+      Expect.equals(values[i], s.codeUnitAt(i));
     }
   }
   // No characters above 0xffff until Leg supports that.
@@ -78,7 +78,7 @@ testUEscapes() {
   var longValues = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0xffff, 0xffff, 0xffff];
   Expect.equals(longValues.length, long.length);
   for (int i = 0; i < longValues.length; i++) {
-    Expect.equals(longValues[i], long.charCodeAt(i));
+    Expect.equals(longValues[i], long.codeUnitAt(i));
   }
 }
 
@@ -93,7 +93,7 @@ testIdentityEscapes() {
 
   Expect.equals(128 - 32, asciiLiterals.length);
   for (int i = 32; i < 128; i++) {
-    int code = asciiLiterals.charCodeAt(i - 32);
+    int code = asciiLiterals.codeUnitAt(i - 32);
     if (code != 0) {
       Expect.equals(i, code);
     }
@@ -116,7 +116,7 @@ testQuotes() {
 testRawStrings() {
   String raw1 = r'\x00';
   Expect.equals(4, raw1.length);
-  Expect.equals(0x5c, raw1.charCodeAt(0));
+  Expect.equals(0x5c, raw1.codeUnitAt(0));
 }
 
 main() {

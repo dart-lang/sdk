@@ -84,7 +84,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
 
-  LoadIndexedInstr* BuildStringCharCodeAt(InstanceCallInstr* call,
+  LoadIndexedInstr* BuildStringCodeUnitAt(InstanceCallInstr* call,
                                           intptr_t cid);
 
   LoadIndexedInstr* BuildByteArrayViewLoad(InstanceCallInstr* call,

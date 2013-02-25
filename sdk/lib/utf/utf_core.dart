@@ -9,9 +9,9 @@ part of dart.utf;
  * Provide a list of Unicode codepoints for a given string.
  */
 List<int> stringToCodepoints(String str) {
-  // Note: str.charCodes gives us 16-bit code units on all Dart implementations.
+  // Note: str.codeUnits gives us 16-bit code units on all Dart implementations.
   // So we need to convert.
-  return _utf16CodeUnitsToCodepoints(str.charCodes);
+  return _utf16CodeUnitsToCodepoints(str.codeUnits);
 }
 
 /**

@@ -145,10 +145,10 @@ stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
   while (i < length) {
     buffer.add(onMatch(new StringMatch(i, receiver, "")));
     // Special case to avoid splitting a surrogate pair.
-    int code = receiver.charCodeAt(i);
+    int code = receiver.codeUnitAt(i);
     if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
       // Leading surrogate;
-      code = receiver.charCodeAt(i + 1);
+      code = receiver.codeUnitAt(i + 1);
       if ((code & ~0x3FF) == 0xDC00) {
         // Matching trailing surrogate.
         buffer.add(onNonMatch(receiver.substring(i, i + 2)));

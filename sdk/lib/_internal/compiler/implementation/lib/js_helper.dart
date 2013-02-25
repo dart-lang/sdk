@@ -210,19 +210,19 @@ class Primitives {
           if (radix <= 10) {
             // Allow all digits less than the radix. For example 0, 1, 2 for
             // radix 3.
-            // "0".charCodeAt(0) + radix - 1;
+            // "0".codeUnitAt(0) + radix - 1;
             maxCharCode = 0x30 + radix - 1;
           } else {
             // Characters are located after the digits in ASCII. Therefore we
             // only check for the character code. The regexp above made already
             // sure that the string does not contain anything but digits or
             // characters.
-            // "0".charCodeAt(0) + radix - 1;
+            // "0".codeUnitAt(0) + radix - 1;
             maxCharCode = 0x61 + radix - 10 - 1;
           }
           String digitsPart = match[digitsIndex].toLowerCase();
           for (int i = 0; i < digitsPart.length; i++) {
-            if (digitsPart.charCodeAt(i) > maxCharCode) {
+            if (digitsPart.codeUnitAt(i) > maxCharCode) {
               return handleError(source);
             }
           }
@@ -255,7 +255,7 @@ class Primitives {
     return result;
   }
 
-  /** [: r"$".charCodeAt(0) :] */
+  /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
   static String objectTypeName(Object object) {
@@ -270,7 +270,7 @@ class Primitives {
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
-    if (identical(name.charCodeAt(0), DOLLAR_CHAR_VALUE)) name = name.substring(1);
+    if (identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) name = name.substring(1);
     return name;
   }
 

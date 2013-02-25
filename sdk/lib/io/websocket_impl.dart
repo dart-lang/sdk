@@ -381,7 +381,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
       response.headers.add(HttpHeaders.UPGRADE, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
       SHA1 sha1 = new SHA1();
-      sha1.add("$key$_webSocketGUID".charCodes);
+      sha1.add("$key$_webSocketGUID".codeUnits);
       String accept = _Base64._encode(sha1.close());
       response.headers.add("Sec-WebSocket-Accept", accept);
       response.headers.contentLength = 0;
@@ -490,7 +490,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
           error("Response did not contain a 'Sec-WebSocket-Accept' header");
         }
         SHA1 sha1 = new SHA1();
-        sha1.add("$nonce$_webSocketGUID".charCodes);
+        sha1.add("$nonce$_webSocketGUID".codeUnits);
         List<int> expectedAccept = sha1.close();
         List<int> receivedAccept = _Base64._decode(accept);
         if (expectedAccept.length != receivedAccept.length) {

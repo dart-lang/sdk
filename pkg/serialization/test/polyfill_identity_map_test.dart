@@ -40,7 +40,7 @@ main() {
   test('uniquing primitives', () {
     var map = new IdentityMap();
     var one = 'one';
-    var two = new String.fromCharCodes(one.charCodes);
+    var two = new String.fromCharCodes(one.codeUnits);
     map[one] = 1;
     expect(map[two], 1);
     expect(map[one], 1);

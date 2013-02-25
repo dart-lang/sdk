@@ -45,7 +45,7 @@ String forBailout() {
 String forInBailout() {
   var n = myString.length;
   var res = '';
-  for (int i in myString.charCodes) {
+  for (int i in myString.codeUnits) {
     var o = myString;
     if (false) o[1] = 2;
     res = res.concat(new String.fromCharCodes([i]));

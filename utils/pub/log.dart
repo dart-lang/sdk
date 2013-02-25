@@ -153,11 +153,11 @@ void recordTranscript() {
 void dumpTranscript() {
   if (_transcript == null) return;
 
-  stderrSink.add('---- Log transcript ----\n'.charCodes);
+  stderrSink.add('---- Log transcript ----\n'.codeUnits);
   for (var entry in _transcript) {
     _logToStderrWithLabel(entry);
   }
-  stderrSink.add('---- End log transcript ----\n'.charCodes);
+  stderrSink.add('---- End log transcript ----\n'.codeUnits);
 }
 
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
@@ -213,15 +213,15 @@ void _logToStream(StreamSink<List<int>> sink, Entry entry, {bool showLabel}) {
   for (var line in entry.lines) {
     if (showLabel) {
       if (firstLine) {
-        sink.add(entry.level.name.charCodes);
-        sink.add(': '.charCodes);
+        sink.add(entry.level.name.codeUnits);
+        sink.add(': '.codeUnits);
       } else {
-        sink.add('    | '.charCodes);
+        sink.add('    | '.codeUnits);
       }
     }
 
-    sink.add(line.charCodes);
-    sink.add('\n'.charCodes);
+    sink.add(line.codeUnits);
+    sink.add('\n'.codeUnits);
 
     firstLine = false;
   }

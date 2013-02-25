@@ -78,7 +78,7 @@ namespace dart {
   V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 711547329)                    \
   V(_StringBase, get:length, String_getLength, 320803993)                      \
-  V(_StringBase, charCodeAt, String_charCodeAt, 984449525)                     \
+  V(_StringBase, codeUnitAt, String_codeUnitAt, 984449525)                     \
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
