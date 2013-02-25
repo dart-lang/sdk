@@ -31,7 +31,6 @@ WEBKIT_URL_PATTERN = r'"dartium_webkit_trunk": "(\S+)",'
 WEBKIT_REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
 WEBCORE_SUBPATH = 'Source/WebCore'
 LOCAL_WEBKIT_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
-LOCAL_WEBKIT_README = os.path.join(LOCAL_WEBKIT_IDL_PATH, 'README')
 LOCAL_WEBKIT_README = """\
 This directory contains a copy of WebKit/WebCore IDL files.
 See the attached LICENSE-* files in this directory.
@@ -48,10 +47,19 @@ Current revision: %(revision)s
 CHROME_URL_PATTERN = r'"chromium_url": "(\S+)",'
 CHROME_REV_PATTERN = r'"chromium_revision": "(\d+)",'
 CHROME_IDL_SUBPATH = 'trunk/src/chrome/common/extensions/api'
-CHROME_TOOLS_SUBPATH = 'trunk/src/tools/json_schema_compiler'
+CHROME_TOOLS_SUBPATH = 'trunk/src/tools'
+CHROME_COMPILER_SUBPATH = 'trunk/src/tools/json_schema_compiler'
+CHROME_IDL_PARSER_SUBPATH = 'trunk/src/ppapi/generators'
+CHROME_PLY_SUBPATH = 'trunk/src/third_party/ply'
 LOCAL_CHROME_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'chrome', 'idl')
 LOCAL_CHROME_TOOLS_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
                                        'tools')
+LOCAL_CHROME_COMPILER_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
+                                          'tools', 'json_schema_compiler')
+LOCAL_CHROME_IDL_PARSER_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
+                                            'ppapi', 'generators')
+LOCAL_CHROME_PLY_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
+                                     'third_party', 'ply')
 LOCAL_CHROME_README = """\
 This directory contains a copy of Chromium IDL and generation scripts
 used to generate Dart APIs for Chrome Apps.
@@ -63,6 +71,8 @@ Current revision: %(revision)s
 Please see the corresponding LICENSE file at
 %(url)s/trunk/src/LICENSE.
 """
+DEPTH_FILES = 'files'
+DEPTH_INFINITY = 'infinity'
 
 # Regular expressions corresponding to URL/revision patters in the
 # DEPS file.
@@ -73,15 +83,28 @@ DEPS_PATTERNS = {
 
 # List of components to update.
 UPDATE_LIST = [
-    # (component, remote subpath, local path, local readme file)
+    # (component, remote subpath, local path, local readme file, depth)
 
     # WebKit IDL.
-    ('webkit', WEBCORE_SUBPATH, LOCAL_WEBKIT_IDL_PATH, LOCAL_WEBKIT_README),
+    ('webkit', WEBCORE_SUBPATH, LOCAL_WEBKIT_IDL_PATH, LOCAL_WEBKIT_README,
+     DEPTH_INFINITY),
     # Chrome IDL.
-    ('chrome', CHROME_IDL_SUBPATH, LOCAL_CHROME_IDL_PATH, LOCAL_CHROME_README),
-    # Chrome IDL compiler files.
+    ('chrome', CHROME_IDL_SUBPATH, LOCAL_CHROME_IDL_PATH, LOCAL_CHROME_README,
+     DEPTH_INFINITY),
+    # Chrome PPAPI generators. Contains idl_parser.py which is used by the
+    # Chrome IDL compiler.
+    ('chrome', CHROME_IDL_PARSER_SUBPATH, LOCAL_CHROME_IDL_PARSER_PATH,
+     LOCAL_CHROME_README, DEPTH_FILES),
+    # ply files.
+    ('chrome', CHROME_PLY_SUBPATH, LOCAL_CHROME_PLY_PATH, LOCAL_CHROME_README,
+     DEPTH_INFINITY),
+    # Top level Chrome tools folder. Contains json_comment_eater.py which is
+    # needed by the Chrome IDL compiler.
     ('chrome', CHROME_TOOLS_SUBPATH, LOCAL_CHROME_TOOLS_PATH,
-     LOCAL_CHROME_README),
+     LOCAL_CHROME_README, DEPTH_FILES),
+    # Chrome IDL compiler files.
+    ('chrome', CHROME_COMPILER_SUBPATH, LOCAL_CHROME_COMPILER_PATH,
+     LOCAL_CHROME_README, DEPTH_INFINITY),
     ]
 
 
@@ -111,9 +134,9 @@ def GetSvnRevision(deps, component):
   return (url, revision)
 
 
-def RefreshIDL(url, revision, remote_path, local_path):
+def RefreshFiles(url, revision, remote_path, local_path, depth):
   """Refreshes refreshes files in the local_path to specific url /
-  revision / remote_path."""
+  revision / remote_path, exporting to depth"""
   cwd = os.getcwd()
   try:
     if os.path.exists(local_path):
@@ -122,7 +145,8 @@ def RefreshIDL(url, revision, remote_path, local_path):
     if not os.path.exists(head):
       os.makedirs(head)
     os.chdir(head)
-    RunCommand(['svn', 'export', '-r', revision, url + '/' + remote_path, tail])
+    RunCommand(['svn', 'export', '--depth', depth, '-r', revision,
+                url + '/' + remote_path, tail])
   finally:
     os.chdir(cwd)
 
@@ -174,13 +198,13 @@ def ParseOptions():
 def main():
   deps = GetDeps()
   update = ParseOptions()
-  for (component, remote_path, local_path, readme) in UPDATE_LIST:
+  for (component, remote_path, local_path, readme, depth) in UPDATE_LIST:
     if component in update.keys():
       revision = update[component]
       url, latest = GetSvnRevision(deps, component)
       if revision is None:
         revision = latest
-      RefreshIDL(url, revision, remote_path, local_path)
+      RefreshFiles(url, revision, remote_path, local_path, depth)
       PruneExtraFiles(local_path)
       GenerateReadme(local_path, readme, url, revision)
 
