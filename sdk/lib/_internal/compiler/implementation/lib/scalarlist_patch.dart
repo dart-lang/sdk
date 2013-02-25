@@ -153,10 +153,6 @@ patch class Float32x4List {
     throw new UnsupportedError('Float32x4List');
   }
 
-  patch factory Float32x4List.transferable(int length) {
-    throw new UnsupportedError('Float32x4List.transferable');
-  }
-
   patch factory Float32x4List.view(ByteArray array,
                                    [int start = 0, int length]) {
     throw new UnsupportedError('Float32x4List.view');
