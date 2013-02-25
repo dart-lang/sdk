@@ -61,7 +61,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
   // TODO(ajohnsen): Document with example, once the stream API is final.
   // TODO(ajohnsen): Add HttpServer.secure.
   /**
-   * Start listening for HTTP requests on the specified [host] and
+   * Starts listening for HTTP requests on the specified [address] and
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
    * specify the listen backlog for the underlying OS listen
@@ -73,13 +73,13 @@ abstract class HttpServer implements Stream<HttpRequest> {
       => _HttpServer.bind(address, port, backlog);
 
   /**
-   * Start listening for HTTPS requests on the specified [host] and
+   * Starts listening for HTTPS requests on the specified [address] and
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
    * specify the listen backlog for the underlying OS listen
    * setup.
    *
-   * The certificate with Distinguished Name [certificate_name] is looked
+   * The certificate with Distinguished Name [certificateName] is looked
    * up in the certificate database, and is used as the server certificate.
    * if [requestClientCertificate] is true, the server will request clients
    * to authenticate with a client certificate.
@@ -97,34 +97,34 @@ abstract class HttpServer implements Stream<HttpRequest> {
                                 requestClientCertificate);
 
   /**
-   * Attach the HTTP server to an existing [:ServerSocket:]. When the
+   * Attaches the HTTP server to an existing [ServerSocket]. When the
    * [HttpServer] is closed, the [HttpServer] will just detach itself,
-   * close current connections but not close [serverSocket].
+   * closing current connections but not closing [serverSocket].
    */
   factory HttpServer.listenOn(ServerSocket serverSocket)
       => new _HttpServer.listenOn(serverSocket);
 
   /**
-   * Stop server listening. This will make the [Stream] close with a done
-   * event.
+   * Permanently stops this [HttpServer] from listening for new connections.
+   * This closes this [Stream] of [HttpRequest]s with a done event.
    */
   void close();
 
   /**
    * Returns the port that the server is listening on. This can be
-   * used to get the actual port used when a value of 0 for [port] is
-   * specified in the [listen] call.
+   * used to get the actual port used when a value of 0 for [:port:] is
+   * specified in the [bind] or [bindSecure] call.
    */
   int get port;
 
   /**
-   * Set the timeout, in seconds, for sessions of this HTTP server. Default
-   * is 20 minutes.
+   * Sets the timeout, in seconds, for sessions of this [HttpServer].
+   * The default timeout is 20 minutes.
    */
   set sessionTimeout(int timeout);
 
   /**
-   * Returns a [:HttpConnectionsInfo:] object with an overview of the
+   * Returns an [HttpConnectionsInfo] object summarizing the number of
    * current connections handled by the server.
    */
   HttpConnectionsInfo connectionsInfo();
@@ -132,7 +132,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
 
 
 /**
- * Overview information of the [:HttpServer:] socket connections.
+ * Summary statistics about an [HttpServer]s current socket connections.
  */
 class HttpConnectionsInfo {
   /**
@@ -162,10 +162,10 @@ class HttpConnectionsInfo {
 
 /**
  * Access to the HTTP headers for requests and responses. In some
- * situations the headers will be imutable and the mutating methods
+ * situations the headers will be immutable and the mutating methods
  * will then throw exceptions.
  *
- * For all operation on HTTP headers the header name is
+ * For all operations on HTTP headers the header name is
  * case-insensitive.
  */
 abstract class HttpHeaders {
@@ -271,13 +271,13 @@ abstract class HttpHeaders {
 
   /**
    * Returns the list of values for the header named [name]. If there
-   * is no headers with the provided name [:null:] will be returned.
+   * is no header with the provided name, [:null:] will be returned.
    */
   List<String> operator[](String name);
 
   /**
-   * Convenience method for the value for a single values header. If
-   * there is no header with the provided name [:null:] will be
+   * Convenience method for the value for a single valued header. If
+   * there is no header with the provided name, [:null:] will be
    * returned. If the header has more than one value an exception is
    * thrown.
    */
@@ -286,7 +286,7 @@ abstract class HttpHeaders {
   /**
    * Adds a header value. The header named [name] will have the value
    * [value] added to its list of values. Some headers are single
-   * values and for these adding a value will replace the previous
+   * valued, and for these adding a value will replace the previous
    * value. If the value is of type DateTime a HTTP date format will be
    * applied. If the value is a [:List:] each element of the list will
    * be added separately. For all other types the default [:toString:]
@@ -308,7 +308,7 @@ abstract class HttpHeaders {
   void remove(String name, Object value);
 
   /**
-   * Remove all values for the specified header name. Some headers
+   * Removes all values for the specified header name. Some headers
    * have system supplied values and for these the system supplied
    * values will still be added to the collection of values for the
    * header.
@@ -316,14 +316,14 @@ abstract class HttpHeaders {
   void removeAll(String name);
 
   /**
-   * Enumerate the headers applying the function [f] to each
-   * header. The header name passed in [name] will be all lower
+   * Enumerates the headers, applying the function [f] to each
+   * header. The header name passed in [:name:] will be all lower
    * case.
    */
   void forEach(void f(String name, List<String> values));
 
   /**
-   * Disable folding for the header named [name] when sending the HTTP
+   * Disables folding for the header named [name] when sending the HTTP
    * header. By default, multiple header values are folded into a
    * single header line by separating the values with commas. The
    * Set-Cookie header has folding disabled by default.
@@ -343,7 +343,7 @@ abstract class HttpHeaders {
   DateTime expires;
 
   /**
-   * Gets and sets the 'if-modified-since' date. The value of this property will
+   * Gets and sets the "if-modified-since" date. The value of this property will
    * reflect the "if-modified-since" header.
    */
   DateTime ifModifiedSince;
@@ -436,23 +436,23 @@ abstract class HeaderValue {
 
 abstract class HttpSession implements Map {
   /**
-   * Get the id for the current session.
+   * Gets the id for the current session.
    */
   String get id;
 
   /**
-   * Destroy the session. This will terminate the session and any further
+   * Destroys the session. This will terminate the session and any further
    * connections with this id will be given a new id and session.
    */
   void destroy();
 
   /**
-   * Set a callback that will be called when the session is timed out.
+   * Sets a callback that will be called when the session is timed out.
    */
   void set onTimeout(void callback());
 
   /**
-   * Is true if the session have not been sent to the client yet.
+   * Is true if the session has not been sent to the client yet.
    */
   bool get isNew;
 }
@@ -629,10 +629,10 @@ abstract class HttpRequest implements Stream<List<int>> {
   X509Certificate get certificate;
 
   /**
-   * Get the session for the given request. If the session is
+   * Gets the session for the given request. If the session is
    * being initialized by this call, [:isNew:] will be true for the returned
    * session.
-   * See [:HttpServer.sessionTimeout:] on how to change default timeout.
+   * See [HttpServer.sessionTimeout] on how to change default timeout.
    */
   HttpSession get session;
 
@@ -643,13 +643,13 @@ abstract class HttpRequest implements Stream<List<int>> {
   String get protocolVersion;
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * Gets information about the client connection. Returns [null] if the socket
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 
   /**
-   * Get the [HttpResponse] object, used for sending back the response to the
+   * Gets the [HttpResponse] object, used for sending back the response to the
    * client.
    */
   HttpResponse get response;
@@ -700,7 +700,7 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
   List<Cookie> get cookies;
 
   /**
-   * Detach the underlying socket from the HTTP server. When the
+   * Detaches the underlying socket from the HTTP server. When the
    * socket is detached the HTTP server will no longer perform any
    * operations on it.
    *
@@ -710,8 +710,8 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
   Future<Socket> detachSocket();
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * Gets information about the client connection. Returns [null] if the socket
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -894,7 +894,7 @@ abstract class HttpClientRequest
 
   /**
    * A [HttpClientResponse] future that will complete once the response is
-   * available. If an error occours before the response is available, this
+   * available. If an error occurs before the response is available, this
    * future will complete with an error.
    */
   Future<HttpClientResponse> get response;
@@ -934,7 +934,7 @@ abstract class HttpClientRequest
 
   /**
    * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -958,8 +958,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   String get reasonPhrase;
 
   /**
-   * Returns the content length of the request body. If the size of
-   * the request body is not known in advance this -1.
+   * Returns the content length of the request body. Returns -1 if the size of
+   * the request body is not known in advance.
    */
   int get contentLength;
 
@@ -970,34 +970,34 @@ abstract class HttpClientResponse implements Stream<List<int>> {
 
   /**
    * Returns whether the status code is one of the normal redirect
-   * codes [:HttpStatus.MOVED_PERMANENTLY:], [:HttpStatus.FOUND:],
-   * [:HttpStatus.MOVED_TEMPORARILY:], [:HttpStatus.SEE_OTHER:] and
-   * [:HttpStatus.TEMPORARY_REDIRECT:].
+   * codes [HttpStatus.MOVED_PERMANENTLY], [HttpStatus.FOUND],
+   * [HttpStatus.MOVED_TEMPORARILY], [HttpStatus.SEE_OTHER] and
+   * [HttpStatus.TEMPORARY_REDIRECT].
    */
   bool get isRedirect;
 
   /**
    * Returns the series of redirects this connection has been through. The
-   * list will be empty if no redirects was followed. [redirects] will be
+   * list will be empty if no redirects were followed. [redirects] will be
    * updated both in the case of an automatic and a manual redirect.
    */
   List<RedirectInfo> get redirects;
 
   /**
-   * Redirect this connection to a new URL. The default value for
+   * Redirects this connection to a new URL. The default value for
    * [method] is the method for the current request. The default value
-   * for [url] is the value of the [:HttpHeaders.LOCATION:] header of
+   * for [url] is the value of the [HttpHeaders.LOCATION] header of
    * the current response. All body data must have been read from the
    * current response before calling [redirect].
    *
    * All headers added to the request will be added to the redirection
-   * request(s). However, any body send with the request will not be
-   * part of the redirection request(s).
+   * request. However, any body sent with the request will not be
+   * part of the redirection request.
    *
    * If [followLoops] is set to [true], redirect will follow the redirect,
-   * even if was already visited. Default value is [false].
+   * even if the URL was already visited. The default value is [false].
    *
-   * [redirect] will ignore [maxRedirects] and always perform the redirect.
+   * [redirect] will ignore [maxRedirects] and will always perform the redirect.
    */
   Future<HttpClientResponse> redirect([String method,
                                        Uri url,
@@ -1031,8 +1031,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   X509Certificate get certificate;
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * Gets information about the client connection. Returns [null] if the socket
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -1042,7 +1042,7 @@ abstract class HttpClientCredentials { }
 
 
 /**
- * Represent credentials for basic authentication.
+ * Represents credentials for basic authentication.
  */
 abstract class HttpClientBasicCredentials extends HttpClientCredentials {
   factory HttpClientBasicCredentials(String username, String password) =>
@@ -1051,7 +1051,7 @@ abstract class HttpClientBasicCredentials extends HttpClientCredentials {
 
 
 /**
- * Represent credentials for digest authentication.
+ * Represents credentials for digest authentication.
  */
 abstract class HttpClientDigestCredentials extends HttpClientCredentials {
   factory HttpClientDigestCredentials(String username, String password) =>
@@ -1060,7 +1060,8 @@ abstract class HttpClientDigestCredentials extends HttpClientCredentials {
 
 
 /**
- * Connection information.
+ * Information about an [HttpRequest], [HttpResponse], [HttpClientRequest], or
+ * [HttpClientResponse] connection.
  */
 abstract class HttpConnectionInfo {
   String get remoteHost;

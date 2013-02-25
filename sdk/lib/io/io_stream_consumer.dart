@@ -10,7 +10,7 @@ part of dart.io;
  * buffers the input given by [add] and [addString] and will delay a [consume]
  * or [addStream] until the buffer is flushed.
  *
- * When the [IOSink] is bound to a stream (through either [comsume]
+ * When the [IOSink] is bound to a stream (through either [consume]
  * or [addStream]) any call to the [IOSink] will throw a
  * [StateError].
  */

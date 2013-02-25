@@ -200,7 +200,7 @@ abstract class Socket implements Stream<List<int>>,
    * send a close event on the stream and will no longer react on data being
    * piped to it.
    *
-   * Call [close](inherited by [IOSink]) to only close the [Socket]
+   * Call [close](inherited from [IOSink]) to only close the [Socket]
    * for sending data.
    */
   void destroy();
