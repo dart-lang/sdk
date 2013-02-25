@@ -9,6 +9,8 @@ import 'dart:io';
 
 import '../../pkg/pathos/lib/path.dart' as path;
 
+import 'log.dart' as log;
+
 import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
@@ -30,6 +32,13 @@ class PathSource extends Source {
     });
   }
 
+  bool descriptionsEqual(description1, description2) {
+    // Compare real paths after normalizing and resolving symlinks.
+    var path1 = new File(description1["path"]).fullPathSync();
+    var path2 = new File(description2["path"]).fullPathSync();
+    return path1 == path2;
+  }
+
   Future<bool> install(PackageId id, String destination) {
     return defer(() {
       try {
@@ -44,7 +53,7 @@ class PathSource extends Source {
   }
 
   /// Parses a path dependency. This takes in a path string and returns a map.
-  /// The "path" key will be the original path but resolves relative to the
+  /// The "path" key will be the original path but resolved relative to the
   /// containing path. The "relative" key will be `true` if the original path
   /// was relative.
   ///

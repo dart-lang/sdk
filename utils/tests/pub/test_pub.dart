@@ -559,6 +559,16 @@ void scheduleRename(String from, String to) {
   });
 }
 
+
+/// Schedules creating a symlink at path [symlink] that points to [target],
+/// both of which are assumed to be relative to [sandboxDir].
+void scheduleSymlink(String target, String symlink) {
+  _schedule((sandboxDir) {
+    return createSymlink(path.join(sandboxDir, target),
+        path.join(sandboxDir, symlink));
+  });
+}
+
 /// Schedules a call to the Pub command-line utility. Runs Pub with [args] and
 /// validates that its results match [output], [error], and [exitCode].
 void schedulePub({List args, Pattern output, Pattern error,
