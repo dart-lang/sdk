@@ -493,6 +493,9 @@ void ActivationFrame::VariableAt(intptr_t i,
   if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
     *value = GetLocalVarValue(var_info.index);
   } else {
+    // TODO(tball): enable context variables once problem with VariableAt() is
+    // fixed, where frame_ctx_level is sometimes off by 1 (issues 8593 and 8594)
+    /*
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
     ASSERT(!ctx_.IsNull());
     // The context level at the PC/token index of this activation frame.
@@ -513,7 +516,8 @@ void ActivationFrame::VariableAt(intptr_t i,
       }
       ASSERT(!ctx.IsNull());
       *value = ctx.At(ctx_slot);
-    }
+    } */
+    *value = Symbols::New("<unknown>");
   }
 }
 
