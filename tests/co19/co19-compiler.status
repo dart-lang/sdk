@@ -503,5 +503,12 @@ LibTest/core/Strings/concatAll_A02_t01: Fail # Strings class has been removed. c
 LibTest/core/Strings/concatAll_A03_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
 
+# Deprecated string members removed (issue 382).
+LibTest/core/String/charCodeAt_A01_t01: Fail
+LibTest/core/String/charCodeAt_A02_t01: Fail
+LibTest/core/String/charCodeAt_A03_t01: Fail
+LibTest/core/String/charCodes_A01_t01: Fail
+LibTest/core/String/splitChars_A01_t01: Fail
+
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip
