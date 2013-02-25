@@ -164,6 +164,20 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, growable_object_array_class_);
   }
 
+  RawClass* float32x4_class() const {
+    return float32x4_class_;
+  }
+  void set_float32x4_class(const Class& value) {
+    float32x4_class_ = value.raw();
+  }
+
+  RawClass* uint32x4_class() const {
+    return uint32x4_class_;
+  }
+  void set_uint32x4_class(const Class& value) {
+    uint32x4_class_ = value.raw();
+  }
+
   RawClass* int8_array_class() const {
     return int8_array_class_;
   }
@@ -225,6 +239,13 @@ class ObjectStore {
   }
   void set_uint64_array_class(const Class& value) {
     uint64_array_class_ = value.raw();
+  }
+
+  RawClass* float32x4_array_class() const {
+    return float32x4_array_class_;
+  }
+  void set_float32x4_array_class(const Class& value) {
+    float32x4_array_class_ = value.raw();
   }
 
   RawClass* float32_array_class() const {
@@ -302,6 +323,13 @@ class ObjectStore {
   }
   void set_external_uint64_array_class(const Class& value) {
     external_uint64_array_class_ = value.raw();
+  }
+
+  RawClass* external_float32x4_array_class() const {
+    return external_float32x4_array_class_;
+  }
+  void set_external_float32x4_array_class(const Class& value) {
+    external_float32x4_array_class_ = value.raw();
   }
 
   RawClass* external_float32_array_class() const {
@@ -568,6 +596,8 @@ class ObjectStore {
   RawType* array_type_;
   RawClass* immutable_array_class_;
   RawClass* growable_object_array_class_;
+  RawClass* float32x4_class_;
+  RawClass* uint32x4_class_;
   RawClass* int8_array_class_;
   RawClass* uint8_array_class_;
   RawClass* uint8_clamped_array_class_;
@@ -577,6 +607,7 @@ class ObjectStore {
   RawClass* uint32_array_class_;
   RawClass* int64_array_class_;
   RawClass* uint64_array_class_;
+  RawClass* float32x4_array_class_;
   RawClass* float32_array_class_;
   RawClass* float64_array_class_;
   RawClass* external_int8_array_class_;
@@ -588,6 +619,7 @@ class ObjectStore {
   RawClass* external_uint32_array_class_;
   RawClass* external_int64_array_class_;
   RawClass* external_uint64_array_class_;
+  RawClass* external_float32x4_array_class_;
   RawClass* external_float32_array_class_;
   RawClass* external_float64_array_class_;
   RawClass* stacktrace_class_;

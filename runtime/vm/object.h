@@ -4770,6 +4770,72 @@ class GrowableObjectArray : public Instance {
 };
 
 
+class Float32x4 : public Instance {
+ public:
+  static RawFloat32x4* New(float value0, float value1, float value2,
+                                float value3, Heap::Space space = Heap::kNew);
+  static RawFloat32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+
+  float x() const;
+  float y() const;
+  float z() const;
+  float w() const;
+
+  void set_x(float x) const;
+  void set_y(float y) const;
+  void set_z(float z) const;
+  void set_w(float w) const;
+
+  simd_value_t value() const;
+  void set_value(simd_value_t value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFloat32x4));
+  }
+
+  static intptr_t value_offset() {
+    return OFFSET_OF(RawFloat32x4, value_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4, Instance);
+  friend class Class;
+};
+
+
+class Uint32x4 : public Instance {
+ public:
+  static RawUint32x4* New(uint32_t value0, uint32_t value1, uint32_t value2,
+                             uint32_t value3, Heap::Space space = Heap::kNew);
+  static RawUint32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+
+  uint32_t x() const;
+  uint32_t y() const;
+  uint32_t z() const;
+  uint32_t w() const;
+
+  void set_x(uint32_t x) const;
+  void set_y(uint32_t y) const;
+  void set_z(uint32_t z) const;
+  void set_w(uint32_t w) const;
+
+  simd_value_t value() const;
+  void set_value(simd_value_t value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUint32x4));
+  }
+
+  static intptr_t value_offset() {
+    return OFFSET_OF(RawUint32x4, value_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint32x4, Instance);
+  friend class Class;
+};
+
+
 class ByteArray : public Instance {
  public:
   intptr_t Length() const {
@@ -5305,6 +5371,61 @@ class Uint64Array : public ByteArray {
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint64Array, ByteArray);
+  friend class ByteArray;
+  friend class Class;
+};
+
+
+class Float32x4Array : public ByteArray {
+ public:
+  intptr_t ByteLength() const {
+    return Length() * kBytesPerElement;
+  }
+
+  simd_value_t At(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* load_ptr = &raw_ptr()->data_[index];
+    return simd_value_safe_load(load_ptr);
+  }
+
+  void SetAt(intptr_t index, simd_value_t value) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* store_ptr = &raw_ptr()->data_[index];
+    simd_value_safe_store(store_ptr, value);
+  }
+
+  static const intptr_t kBytesPerElement = 16;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawFloat32x4Array, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawFloat32x4Array) ==
+           OFFSET_OF(RawFloat32x4Array, data_));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawFloat32x4Array) + (len * kBytesPerElement));
+  }
+
+  static RawFloat32x4Array* New(intptr_t len,
+                                     Heap::Space space = Heap::kNew);
+  static RawFloat32x4Array* New(const simd_value_t* data,
+                                     intptr_t len,
+                                     Heap::Space space = Heap::kNew);
+
+ private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
+    return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5904,6 +6025,68 @@ class ExternalUint64Array : public ByteArray {
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array, ByteArray);
+  friend class ByteArray;
+  friend class Class;
+};
+
+
+class ExternalFloat32x4Array : public ByteArray {
+ public:
+  intptr_t ByteLength() const {
+    return Length() * kBytesPerElement;
+  }
+
+  simd_value_t At(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* load_ptr = &raw_ptr()->data_[index];
+    return simd_value_safe_load(load_ptr);
+  }
+
+  void SetAt(intptr_t index, simd_value_t value) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* store_ptr = &raw_ptr()->data_[index];
+    simd_value_safe_store(store_ptr, value);
+  }
+
+
+  simd_value_t* GetData() const {
+    return raw_ptr()->data_;
+  }
+
+  void* GetPeer() const {
+    return raw_ptr()->peer_;
+  }
+
+  static const intptr_t kBytesPerElement = 16;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Float32x4Array::kMaxElements;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalFloat32x4Array));
+  }
+
+  static RawExternalFloat32x4Array* New(simd_value_t* data,
+                                             intptr_t len,
+                                             Heap::Space space = Heap::kNew);
+
+ private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
+    return data + byte_offset;
+  }
+
+  void SetData(simd_value_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32x4Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };

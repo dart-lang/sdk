@@ -824,6 +824,14 @@ RawError* Object::Init(Isolate* isolate) {
   Library::InitScalarlistLibrary(isolate);
   Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
 
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Float32x4(), scalarlist_lib);
+
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Uint32x4(), scalarlist_lib);
+
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
   RegisterPrivateClass(cls, Symbols::_Int8Array(), scalarlist_lib);
@@ -859,6 +867,10 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
   RegisterPrivateClass(cls, Symbols::_Uint64Array(), scalarlist_lib);
+
+  cls = Class::New<Float32x4Array>();
+  object_store->set_float32x4_array_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Float32x4Array(), scalarlist_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
@@ -905,6 +917,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
   RegisterPrivateClass(cls, Symbols::_ExternalUint64Array(), scalarlist_lib);
+
+  cls = Class::New<ExternalFloat32x4Array>();
+  object_store->set_external_float32x4_array_class(cls);
+  RegisterPrivateClass(cls, Symbols::_ExternalFloat32x4Array(),
+                       scalarlist_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
@@ -1156,6 +1173,12 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
 
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
+
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
 
@@ -1182,6 +1205,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
+
+  cls = Class::New<Float32x4Array>();
+  object_store->set_float32x4_array_class(cls);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
@@ -1215,6 +1241,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
+
+  cls = Class::New<ExternalFloat32x4Array>();
+  object_store->set_external_float32x4_array_class(cls);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
@@ -1418,6 +1447,10 @@ RawString* Class::UserVisibleName() const {
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
       return Symbols::List().raw();
+    case kFloat32x4Cid:
+      return Symbols::Float32x4().raw();
+    case kUint32x4Cid:
+      return Symbols::Uint32x4().raw();
     case kInt8ArrayCid:
     case kExternalInt8ArrayCid:
       return Symbols::Int8List().raw();
@@ -1445,6 +1478,9 @@ RawString* Class::UserVisibleName() const {
     case kUint64ArrayCid:
     case kExternalUint64ArrayCid:
       return Symbols::Uint64List().raw();
+    case kFloat32x4ArrayCid:
+    case kExternalFloat32x4ArrayCid:
+      return Symbols::Float32x4List().raw();
     case kFloat32ArrayCid:
     case kExternalFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -12177,6 +12213,206 @@ const char* GrowableObjectArray::ToCString() const {
 }
 
 
+RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
+                                       Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+         Class::null());
+  Float32x4& result = Float32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float32x4::kClassId,
+                                      Float32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_x(v0);
+  result.set_y(v1);
+  result.set_z(v2);
+  result.set_w(v3);
+  return result.raw();
+}
+
+
+RawFloat32x4* Float32x4::New(simd_value_t value, Heap::Space space) {
+ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+         Class::null());
+  Float32x4& result = Float32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float32x4::kClassId,
+                                      Float32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_value(value);
+  return result.raw();
+}
+
+
+simd_value_t Float32x4::value() const {
+  return simd_value_safe_load(&raw_ptr()->value_[0]);
+}
+
+
+void Float32x4::set_value(simd_value_t value) const {
+  simd_value_safe_store(&raw_ptr()->value_[0], value);
+}
+
+
+void Float32x4::set_x(float value) const {
+  raw_ptr()->value_[0] = value;
+}
+
+
+void Float32x4::set_y(float value) const {
+  raw_ptr()->value_[1] = value;
+}
+
+
+void Float32x4::set_z(float value) const {
+  raw_ptr()->value_[2] = value;
+}
+
+
+void Float32x4::set_w(float value) const {
+  raw_ptr()->value_[3] = value;
+}
+
+
+float Float32x4::x() const {
+  return raw_ptr()->value_[0];
+}
+
+
+float Float32x4::y() const {
+  return raw_ptr()->value_[1];
+}
+
+
+float Float32x4::z() const {
+  return raw_ptr()->value_[2];
+}
+
+
+float Float32x4::w() const {
+  return raw_ptr()->value_[3];
+}
+
+
+const char* Float32x4::ToCString() const {
+  const char* kFormat = "[%f, %f, %f, %f]";
+  float _x = x();
+  float _y = y();
+  float _z = z();
+  float _w = w();
+  // Calculate the size of the string.
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
+  return chars;
+}
+
+
+RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
+                           Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->uint32x4_class() !=
+         Class::null());
+  Uint32x4& result = Uint32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
+                                      Uint32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_x(v0);
+  result.set_y(v1);
+  result.set_z(v2);
+  result.set_w(v3);
+  return result.raw();
+}
+
+
+RawUint32x4* Uint32x4::New(simd_value_t value, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+         Class::null());
+  Uint32x4& result = Uint32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
+                                      Uint32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_value(value);
+  return result.raw();
+}
+
+
+void Uint32x4::set_x(uint32_t value) const {
+  raw_ptr()->value_[0] = value;
+}
+
+
+void Uint32x4::set_y(uint32_t value) const {
+  raw_ptr()->value_[1] = value;
+}
+
+
+void Uint32x4::set_z(uint32_t value) const {
+  raw_ptr()->value_[2] = value;
+}
+
+
+void Uint32x4::set_w(uint32_t value) const {
+  raw_ptr()->value_[3] = value;
+}
+
+
+uint32_t Uint32x4::x() const {
+  return raw_ptr()->value_[0];
+}
+
+
+uint32_t Uint32x4::y() const {
+  return raw_ptr()->value_[1];
+}
+
+
+uint32_t Uint32x4::z() const {
+  return raw_ptr()->value_[2];
+}
+
+
+uint32_t Uint32x4::w() const {
+  return raw_ptr()->value_[3];
+}
+
+
+simd_value_t Uint32x4::value() const {
+  return simd_value_safe_load(&raw_ptr()->value_[0]);
+}
+
+
+void Uint32x4::set_value(simd_value_t value) const {
+  simd_value_safe_store(&raw_ptr()->value_[0], value);
+}
+
+
+const char* Uint32x4::ToCString() const {
+  const char* kFormat = "[%08x, %08x, %08x, %08x]";
+  uint32_t _x = x();
+  uint32_t _y = y();
+  uint32_t _z = z();
+  uint32_t _w = w();
+  // Calculate the size of the string.
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
+  return chars;
+}
+
+
 void ByteArray::Copy(void* dst,
                      const ByteArray& src,
                      intptr_t src_offset,
@@ -12509,6 +12745,30 @@ const char* Uint64Array::ToCString() const {
 }
 
 
+RawFloat32x4Array* Float32x4Array::New(intptr_t len,
+                                                 Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32x4_array_class() !=
+         Class::null());
+  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, len,
+                                                              space);
+}
+
+
+RawFloat32x4Array* Float32x4Array::New(const simd_value_t* data,
+                                                 intptr_t len,
+                                                 Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
+         Class::null());
+  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, data,
+                                                              len, space);
+}
+
+
+const char* Float32x4Array::ToCString() const {
+  return "_Float32x4Array";
+}
+
+
 RawFloat32Array* Float32Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
          Class::null());
@@ -12686,6 +12946,24 @@ RawExternalUint64Array* ExternalUint64Array::New(uint64_t* data,
 
 const char* ExternalUint64Array::ToCString() const {
   return "_ExternalUint64Array";
+}
+
+
+RawExternalFloat32x4Array* ExternalFloat32x4Array::New(
+    simd_value_t* data,
+    intptr_t len,
+    Heap::Space space) {
+  RawClass* cls =
+     Isolate::Current()->object_store()->external_float32x4_array_class();
+  ASSERT(cls != Class::null());
+  return NewExternalImpl<ExternalFloat32x4Array,
+                         RawExternalFloat32x4Array>(kClassId, data, len,
+                                                         space);
+}
+
+
+const char* ExternalFloat32x4Array::ToCString() const {
+  return "_ExternalFloat32x4Array";
 }
 
 

@@ -9,5 +9,6 @@
     # that the VM does not allow normal library structure for builtin
     # libraries.
     'byte_arrays.dart',
+    'simd128.dart',
   ],
 }

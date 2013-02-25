@@ -578,6 +578,36 @@ RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
 }
 
 
+RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
+                                           float v3) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->float32x4_class();
+  RawFloat32x4* obj = reinterpret_cast<RawFloat32x4*>(
+      AllocateUninitialized(cls_, Float32x4::InstanceSize()));
+  obj->ptr()->value_[0] = v0;
+  obj->ptr()->value_[1] = v1;
+  obj->ptr()->value_[2] = v2;
+  obj->ptr()->value_[3] = v3;
+  return obj;
+}
+
+
+RawUint32x4* SnapshotReader::NewUint32x4(uint32_t v0, uint32_t v1, uint32_t v2,
+                                         uint32_t v3) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->uint32x4_class();
+  RawUint32x4* obj = reinterpret_cast<RawUint32x4*>(
+      AllocateUninitialized(cls_, Uint32x4::InstanceSize()));
+  obj->ptr()->value_[0] = v0;
+  obj->ptr()->value_[1] = v1;
+  obj->ptr()->value_[2] = v2;
+  obj->ptr()->value_[3] = v3;
+  return obj;
+}
+
+
 RawApiError* SnapshotReader::NewApiError() {
   ALLOC_NEW_OBJECT(ApiError, Object::api_error_class());
 }

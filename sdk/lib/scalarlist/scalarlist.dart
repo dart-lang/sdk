@@ -16,3 +16,4 @@ library dart.scalarlist;
 // rid of scalarlist_sources.gypi when the VM understands normal
 // library structure for builtin libraries.
 part 'byte_arrays.dart';
+part 'simd128.dart';

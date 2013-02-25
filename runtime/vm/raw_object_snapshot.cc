@@ -2045,6 +2045,98 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawFloat32x4* Float32x4::ReadFrom(SnapshotReader* reader,
+                                            intptr_t object_id,
+                                            intptr_t tags,
+                                            Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  // Read the values.
+  float value0 = reader->Read<float>();
+  float value1 = reader->Read<float>();
+  float value2 = reader->Read<float>();
+  float value3 = reader->Read<float>();
+
+  // Create a Float32x4 object.
+  Float32x4& simd = Float32x4::ZoneHandle(reader->isolate(),
+                                          Float32x4::null());
+  if (kind == Snapshot::kFull) {
+    simd = reader->NewFloat32x4(value0, value1, value2, value3);
+  } else {
+    simd = Float32x4::New(value0, value1, value2, value3, HEAP_SPACE(kind));
+  }
+  reader->AddBackRef(object_id, &simd, kIsDeserialized);
+  // Set the object tags.
+  simd.set_tags(tags);
+  return simd.raw();
+}
+
+
+void RawFloat32x4::WriteTo(SnapshotWriter* writer,
+                                intptr_t object_id,
+                                Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kFloat32x4Cid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out the float values.
+  writer->Write<float>(ptr()->value_[0]);
+  writer->Write<float>(ptr()->value_[1]);
+  writer->Write<float>(ptr()->value_[2]);
+  writer->Write<float>(ptr()->value_[3]);
+}
+
+
+RawUint32x4* Uint32x4::ReadFrom(SnapshotReader* reader,
+                                      intptr_t object_id,
+                                      intptr_t tags,
+                                      Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  // Read the values.
+  uint32_t value0 = reader->Read<uint32_t>();
+  uint32_t value1 = reader->Read<uint32_t>();
+  uint32_t value2 = reader->Read<uint32_t>();
+  uint32_t value3 = reader->Read<uint32_t>();
+
+  // Create a Float32x4 object.
+  Uint32x4& simd = Uint32x4::ZoneHandle(reader->isolate(), Uint32x4::null());
+
+  if (kind == Snapshot::kFull) {
+    simd = reader->NewUint32x4(value0, value1, value2, value3);
+  } else {
+    simd = Uint32x4::New(value0, value1, value2, value3, HEAP_SPACE(kind));
+  }
+  reader->AddBackRef(object_id, &simd, kIsDeserialized);
+  // Set the object tags.
+  simd.set_tags(tags);
+  return simd.raw();
+}
+
+
+void RawUint32x4::WriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kUint32x4Cid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out the mask values.
+  writer->Write<uint32_t>(ptr()->value_[0]);
+  writer->Write<uint32_t>(ptr()->value_[1]);
+  writer->Write<uint32_t>(ptr()->value_[2]);
+  writer->Write<uint32_t>(ptr()->value_[3]);
+}
+
+
 RawByteArray* ByteArray::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -2106,6 +2198,32 @@ Raw##name##Array* name##Array::ReadFrom(SnapshotReader* reader,                \
 BYTEARRAY_TYPE_LIST(BYTEARRAY_READ_FROM)
 #undef BYTEARRAY_READ_FROM
 
+RawFloat32x4Array* Float32x4Array::ReadFrom(SnapshotReader* reader,
+                                                      intptr_t object_id,
+                                                      intptr_t tags,
+                                                      Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  intptr_t len = reader->ReadSmiValue();
+  Float32x4Array& result = Float32x4Array::ZoneHandle(
+      reader->isolate(), Float32x4Array::New(len, HEAP_SPACE(kind)));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  // Setup the array elements.
+  float v[4];
+  for (intptr_t i = 0; i < len; ++i) {
+    v[0] = reader->Read<float>();
+    v[1] = reader->Read<float>();
+    v[2] = reader->Read<float>();
+    v[3] = reader->Read<float>();
+    result.SetAt(i, simd_value_safe_load(&v[0]));
+  }
+  return result.raw();
+}
+
 
 #define EXTERNALARRAY_READ_FROM(name, lname, type)                             \
 RawExternal##name##Array* External##name##Array::ReadFrom(                     \
@@ -2126,8 +2244,8 @@ RawExternal##name##Array* External##name##Array::ReadFrom(                     \
   return obj.raw();                                                            \
 }                                                                              \
 
-
 BYTEARRAY_TYPE_LIST(EXTERNALARRAY_READ_FROM)
+EXTERNALARRAY_READ_FROM(Float32x4, Float32x4, simd_value_t)
 #undef EXTERNALARRAY_READ_FROM
 
 
@@ -2183,6 +2301,28 @@ void Raw##name##Array::WriteTo(SnapshotWriter* writer,                         \
 BYTEARRAY_TYPE_LIST(BYTEARRAY_WRITE_TO)
 #undef BYTEARRAY_WRITE_TO
 
+void RawFloat32x4Array::WriteTo(SnapshotWriter* writer, intptr_t object_id,
+                                     Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  RawSmi* length = ptr()->length_;
+  float* data = reinterpret_cast<float*>(&ptr()->data_[0]);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kFloat32x4ArrayCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out the length field.
+  writer->Write<RawObject*>(length);
+
+  // Write out the array elements as floats.
+  intptr_t len = Smi::Value(length)*4;
+  for (intptr_t i = 0; i < len; i++) {
+    writer->Write(data[i]);
+  }
+}
 
 #define EXTERNALARRAY_WRITE_TO(name, lname, type)                              \
 void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
@@ -2200,6 +2340,30 @@ void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
 
 BYTEARRAY_TYPE_LIST(EXTERNALARRAY_WRITE_TO)
 #undef BYTEARRAY_WRITE_TO
+void RawExternalFloat32x4Array::WriteTo(SnapshotWriter* writer,
+                                             intptr_t object_id,
+                                             Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  RawSmi* length = ptr()->length_;
+  float* data = reinterpret_cast<float*>(&ptr()->data_[0]);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kExternalFloat32x4ArrayCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out the length field.
+  writer->Write<RawObject*>(length);
+
+  // Write out the array elements as floats.
+  intptr_t len = Smi::Value(length)*4;
+  for (intptr_t i = 0; i < len; i++) {
+    writer->Write(data[i]);
+  }
+}
+
 #undef BYTEARRAY_TYPE_LIST
 
 

@@ -122,6 +122,10 @@ class ObjectPointerVisitor;
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
+  V(_Float32x4, "_Float32x4")                                                  \
+  V(_Uint32x4, "_Uint32x4")                                                    \
+  V(Float32x4, "Float32x4")                                                    \
+  V(Uint32x4, "Uint32x4")                                                      \
   V(Int8List, "Int8List")                                                      \
   V(Uint8List, "Uint8List")                                                    \
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
@@ -131,6 +135,7 @@ class ObjectPointerVisitor;
   V(Uint32List, "Uint32List")                                                  \
   V(Int64List, "Int64List")                                                    \
   V(Uint64List, "Uint64List")                                                  \
+  V(Float32x4List, "Float32x4List")                                            \
   V(Float32List, "Float32List")                                                \
   V(Float64List, "Float64List")                                                \
   V(_Int8Array, "_Int8Array")                                                  \
@@ -142,6 +147,7 @@ class ObjectPointerVisitor;
   V(_Uint32Array, "_Uint32Array")                                              \
   V(_Int64Array, "_Int64Array")                                                \
   V(_Uint64Array, "_Uint64Array")                                              \
+  V(_Float32x4Array, "_Float32x4Array")                                        \
   V(_Float32Array, "_Float32Array")                                            \
   V(_Float64Array, "_Float64Array")                                            \
   V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
@@ -153,6 +159,7 @@ class ObjectPointerVisitor;
   V(_ExternalUint32Array, "_ExternalUint32Array")                              \
   V(_ExternalInt64Array, "_ExternalInt64Array")                                \
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
+  V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
   V(_WeakProperty, "_WeakProperty")                                            \
