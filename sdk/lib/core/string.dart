@@ -54,17 +54,19 @@ abstract class String implements Comparable<String>, Pattern {
    * The returned string represents exactly one UTF-16 code unit which may be
    * half of a surrogate pair. For example the Unicode character for a
    * musical G-clef ("𝄞") with rune value 0x1D11E consists of a UTF-16 surrogate
-   * pair: `"\uDBFF\uDFFD"`. Using the index-operator on this string yields
+   * pair: `0xD834` and `0xDD1E`. Using the index-operator on this string yields
    * a String with half of a surrogate pair:
    *
-   *     var clef = "\uDBFF\uDFFD";
+   *     var clef = "\u{1D11E}";
    *     clef.length;  // => 2
    *     clef.runes.first == 0x1D11E;  // => true
    *     clef.runes.length;  // => 1
+   *     clef.codeUnitAt(0);  // => 0xD834
+   *     clef.codeUnitAt(1);  // => 0xDD1E
    *     // The following strings are halves of a UTF-16 surrogate pair and
    *     // thus invalid UTF-16 strings:
-   *     clef[0];  // => "\uDBFF"
-   *     clef[1];  // => "\uDFFD"
+   *     clef[0];  // => a string of length 1 with code-unit value 0xD834.
+   *     clef[1];  // => a string of length 1 with code-unit value 0xDD1E.
    *
    * This method is equivalent to
    * `new String.fromCharCode(this.codeUnitAt(index))`.
