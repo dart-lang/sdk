@@ -12,8 +12,7 @@
  */
 library dart.scalarlist;
 
-// TODO(ager): Inline the contents of byte_arrays.dart here and get
-// rid of scalarlist_sources.gypi when the VM understands normal
-// library structure for builtin libraries.
+import 'dart:collection';
+
 part 'byte_arrays.dart';
 part 'simd128.dart';

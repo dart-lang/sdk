@@ -15,7 +15,7 @@ namespace dart {
 DEFINE_FLAG(bool, print_bootstrap, false, "Print the bootstrap source.");
 
 
-RawScript* Bootstrap::LoadASyncScript(bool is_patch) {
+RawScript* Bootstrap::LoadAsyncScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }

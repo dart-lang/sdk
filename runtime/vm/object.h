@@ -2113,21 +2113,10 @@ class Library : public Object {
   static RawLibrary* GetLibrary(intptr_t index);
   static bool IsKeyUsed(intptr_t key);
 
-  static void InitASyncLibrary(Isolate* isolate);
   static void InitCoreLibrary(Isolate* isolate);
-  static void InitCollectionLibrary(Isolate* isolate);
-  static void InitCollectionDevLibrary(Isolate* isolate);
-  static void InitCryptoLibrary(Isolate* isolate);
-  static void InitIsolateLibrary(Isolate* isolate);
-  static void InitJsonLibrary(Isolate* isolate);
-  static void InitMathLibrary(Isolate* isolate);
-  static void InitMirrorsLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
-  static void InitScalarlistLibrary(Isolate* isolate);
-  static void InitUriLibrary(Isolate* isolate);
-  static void InitUtfLibrary(Isolate* isolate);
 
-  static RawLibrary* ASyncLibrary();
+  static RawLibrary* AsyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
@@ -2165,6 +2154,8 @@ class Library : public Object {
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
+
+  friend class Object;
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;

@@ -15,7 +15,7 @@
 const char* DartUtils::original_working_directory = NULL;
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
-const char* DartUtils::kASyncLibURL = "dart:async";
+const char* DartUtils::kAsyncLibURL = "dart:async";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kIOLibURL = "dart:io";
@@ -394,7 +394,7 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                      print);
 
   // Setup the 'timer' factory.
-  Dart_Handle url = NewString(kASyncLibURL);
+  Dart_Handle url = NewString(kAsyncLibURL);
   DART_CHECK_VALID(url);
   Dart_Handle async_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(async_lib);

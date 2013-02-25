@@ -17,7 +17,7 @@ class Script;
 
 class Bootstrap : public AllStatic {
  public:
-  static RawScript* LoadASyncScript(bool patch);
+  static RawScript* LoadAsyncScript(bool patch);
   static RawScript* LoadCoreScript(bool patch);
   static RawScript* LoadCollectionScript(bool patch);
   static RawScript* LoadCollectionDevScript(bool patch);

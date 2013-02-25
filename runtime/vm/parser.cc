@@ -4252,23 +4252,36 @@ void Parser::ParseLibraryNameObsoleteSyntax() {
 }
 
 
-Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
+RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
                                           const String& url) {
   Isolate* isolate = Isolate::Current();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
+    if (url.StartsWith(Symbols::DartScheme())) {
+      if (tag == kCanonicalizeUrl) {
+        return url.raw();
+      }
+      return Object::null();
+    }
     ErrorMsg(token_pos, "no library handler registered");
   }
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate, library_.raw()),
                                Api::NewHandle(isolate, url.raw()));
   if (Dart_IsError(result)) {
+    // In case of an error we append an explanatory error message to the
+    // error obtained from the library tag handler.
     Error& prev_error = Error::Handle();
     prev_error ^= Api::UnwrapHandle(result);
     AppendErrorMsg(prev_error, token_pos, "library handler failed");
   }
-  return result;
+  if (tag == kCanonicalizeUrl) {
+    if (!Dart_IsString(result)) {
+      ErrorMsg(token_pos, "library handler failed URI canonicalization");
+    }
+  }
+  return Api::UnwrapHandle(result);
 }
 
 
@@ -4303,10 +4316,8 @@ void Parser::ParseLibraryImportObsoleteSyntax() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
-                                               import_pos,
-                                               url);
-    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+    const String& canon_url = String::CheckedHandle(
+        CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
     if (library.IsNull()) {
@@ -4352,10 +4363,8 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
     ConsumeToken();
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
-                                               source_pos,
-                                               url);
-    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+    const String& canon_url = String::CheckedHandle(
+        CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url));
     CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
   }
 }
@@ -4442,9 +4451,8 @@ void Parser::ParseLibraryImportExport() {
   ExpectSemicolon();
 
   // Canonicalize library URL.
-  Dart_Handle handle =
-      CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url);
-  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  const String& canon_url = String::CheckedHandle(
+      CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url));
   // Lookup the library URL.
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
@@ -4496,9 +4504,8 @@ void Parser::ParseLibraryPart() {
   const String& url = *CurrentLiteral();
   ConsumeToken();
   ExpectSemicolon();
-  Dart_Handle handle =
-      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url);
-  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  const String& canon_url = String::CheckedHandle(
+      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url));
   CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
 }
 
@@ -4533,6 +4540,7 @@ void Parser::ParseLibraryDefinition() {
 
   const bool is_script = (script_.kind() == RawScript::kScriptTag);
   const bool is_library = (script_.kind() == RawScript::kLibraryTag);
+  const bool is_patch = (script_.kind() == RawScript::kPatchTag);
   ASSERT(script_.kind() != RawScript::kSourceTag);
 
   // We may read metadata tokens that are part of the toplevel
@@ -4542,6 +4550,9 @@ void Parser::ParseLibraryDefinition() {
   intptr_t metadata_pos = TokenPos();
   SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
+    if (is_patch) {
+      ErrorMsg("patch cannot override library name");
+    }
     ParseLibraryName();
     metadata_pos = TokenPos();
     SkipMetadata();
@@ -4617,7 +4628,7 @@ void Parser::ParseTopLevel() {
       Class::New(Symbols::TopLevel(), script_, TokenPos()));
   toplevel_class.set_library(library_);
 
-  if (is_library_source()) {
+  if (is_library_source() || is_patch_source()) {
     ParseLibraryDefinition();
   } else if (is_part_source()) {
     ParsePartHeader();

@@ -6,6 +6,8 @@
 
 {
   'sources': [
+    'core_patch.dart',
+    # The above file needs to be first as it imports required libraries.
     'bool_patch.dart',
     'date.cc',
     'date_patch.dart',

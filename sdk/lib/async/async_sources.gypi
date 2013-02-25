@@ -5,6 +5,8 @@
 # This file contains all sources for the dart:async library.
 {
   'sources': [
+    'async.dart',
+    # The above file needs to be first as it lists the parts below.
     'async_error.dart',
     'collection_sink.dart',
     'deferred_load.dart',

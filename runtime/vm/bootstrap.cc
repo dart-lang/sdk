@@ -22,11 +22,11 @@ RawScript* Bootstrap::LoadScript(const char* url,
                                  bool patch) {
   return Script::New(String::Handle(String::New(url, Heap::kOld)),
                      String::Handle(String::New(source, Heap::kOld)),
-                     patch ? RawScript::kPatchTag : RawScript::kSourceTag);
+                     patch ? RawScript::kPatchTag : RawScript::kLibraryTag);
 }
 
 
-RawScript* Bootstrap::LoadASyncScript(bool patch) {
+RawScript* Bootstrap::LoadAsyncScript(bool patch) {
   const char* url = patch ? "dart:async-patch" : "dart:async";
   const char* source = patch ? async_patch_ : async_source_;
   return LoadScript(url, source, patch);

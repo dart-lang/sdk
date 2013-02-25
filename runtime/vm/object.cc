@@ -631,14 +631,29 @@ void Object::RegisterPrivateClass(const Class& cls,
   lib.AddClass(cls);
 }
 
-#define INIT_LIBRARY(name, raw_script, raw_lib)                                \
-  script ^= raw_script;                                                        \
-  Library::Init##name##Library(isolate);                                       \
-  lib ^= raw_lib;                                                              \
-  ASSERT(!lib.IsNull());                                                       \
+
+#define LOAD_LIBRARY(name, raw_name)                                           \
+  url = Symbols::Dart##name().raw();                                           \
+  lib = Library::LookupLibrary(url);                                           \
+  if (lib.IsNull()) {                                                          \
+    lib = Library::NewLibraryHelper(url, true);                                \
+    lib.Register();                                                            \
+  }                                                                            \
+  isolate->object_store()->set_##raw_name##_library(lib);                      \
+
+#define INIT_LIBRARY(name, raw_name, has_patch)                                \
+  LOAD_LIBRARY(name, raw_name)                                                 \
+  script = Bootstrap::Load##name##Script(false);                               \
   error = Bootstrap::Compile(lib, script);                                     \
   if (!error.IsNull()) {                                                       \
     return error.raw();                                                        \
+  }                                                                            \
+  if (has_patch) {                                                             \
+    script = Bootstrap::Load##name##Script(true);                              \
+    error = lib.Patch(script);                                                 \
+    if (!error.IsNull()) {                                                     \
+      return error.raw();                                                      \
+    }                                                                          \
   }                                                                            \
 
 
@@ -649,6 +664,10 @@ RawError* Object::Init(Isolate* isolate) {
   Class& cls = Class::Handle();
   Type& type = Type::Handle();
   Array& array = Array::Handle();
+  String& url = String::Handle();
+  Library& lib = Library::Handle();
+  Script& script = Script::Handle();
+  Error& error = Error::Handle();
 
   // All RawArray fields will be initialized to an empty array, therefore
   // initialize array class first.
@@ -698,8 +717,10 @@ RawError* Object::Init(Isolate* isolate) {
       GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
   object_store->set_libraries(libraries);
 
-  // Basic infrastructure has been setup, initialize the class dictionary.
+  // Pre-register the core library.
   Library::InitCoreLibrary(isolate);
+
+  // Basic infrastructure has been setup, initialize the class dictionary.
   Library& core_lib = Library::Handle(Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
 
@@ -771,7 +792,7 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
-  Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
+  script = Bootstrap::LoadCoreScript(false);
 
   // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
@@ -821,8 +842,17 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_weak_property_class(cls);
   RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
-  Library::InitScalarlistLibrary(isolate);
+  // Setup some default native field classes which can be extended for
+  // specifying native fields in dart classes.
+  Library::InitNativeWrappersLibrary(isolate);
+  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
+
+  // Pre-register the scalarlist library so the native class implementations
+  // can be hooked up before compiling it.
+  LOAD_LIBRARY(Scalarlist, scalarlist);
+
   Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
+  ASSERT(!scalarlist_lib.IsNull());
 
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
@@ -1010,125 +1040,22 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
 
-  // Setup some default native field classes which can be extended for
-  // specifying native fields in dart classes.
-  Library::InitNativeWrappersLibrary(isolate);
-  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
-
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
-  Error& error = Error::Handle();
-  error = Bootstrap::Compile(core_lib, script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
-  error = core_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  Library::InitASyncLibrary(isolate);
-  const Script& async_script =
-      Script::Handle(Bootstrap::LoadASyncScript(false));
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  ASSERT(!async_lib.IsNull());
-  error = Bootstrap::Compile(async_lib, async_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadASyncScript(true);
-  error = async_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& collection_script =
-      Script::Handle(Bootstrap::LoadCollectionScript(false));
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  ASSERT(!collection_lib.IsNull());
-  error = Bootstrap::Compile(collection_lib, collection_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& collection_dev_script =
-      Script::Handle(Bootstrap::LoadCollectionDevScript(false));
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  ASSERT(!collection_dev_lib.IsNull());
-  error = Bootstrap::Compile(collection_dev_lib, collection_dev_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  ASSERT(!math_lib.IsNull());
-  error = Bootstrap::Compile(math_lib, math_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadMathScript(true);
-  error = math_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& isolate_script = Script::Handle(
-      Bootstrap::LoadIsolateScript(false));
-  Library::InitIsolateLibrary(isolate);
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  error = Bootstrap::Compile(isolate_lib, isolate_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadIsolateScript(true);
-  error = isolate_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& mirrors_script = Script::Handle(
-      Bootstrap::LoadMirrorsScript(false));
-  Library::InitMirrorsLibrary(isolate);
-  const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
-  ASSERT(!mirrors_lib.IsNull());
-  error = Bootstrap::Compile(mirrors_lib, mirrors_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadMirrorsScript(true);
-  error = mirrors_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& scalarlist_script = Script::Handle(
-      Bootstrap::LoadScalarlistScript(false));
-  ASSERT(!scalarlist_lib.IsNull());
-  error = Bootstrap::Compile(scalarlist_lib, scalarlist_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadScalarlistScript(true);
-  error = scalarlist_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  Library& lib = Library::Handle();
-  INIT_LIBRARY(Crypto,
-               Bootstrap::LoadCryptoScript(false),
-               Library::CryptoLibrary());
-  INIT_LIBRARY(Json,
-               Bootstrap::LoadJsonScript(false),
-               Library::JsonLibrary());
-  patch_script = Bootstrap::LoadJsonScript(true);
-  error = lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  INIT_LIBRARY(Utf,
-               Bootstrap::LoadUtfScript(false),
-               Library::UtfLibrary());
-  INIT_LIBRARY(Uri,
-               Bootstrap::LoadUriScript(false),
-               Library::UriLibrary());
+  INIT_LIBRARY(Core, core, true);
+
+  INIT_LIBRARY(Async, async, true);
+  INIT_LIBRARY(Collection, collection, false);
+  INIT_LIBRARY(CollectionDev, collection_dev, false);
+  INIT_LIBRARY(Crypto, crypto, false);
+  INIT_LIBRARY(Isolate, isolate, true);
+  INIT_LIBRARY(Json, json, false);
+  INIT_LIBRARY(Math, math, true);
+  INIT_LIBRARY(Mirrors, mirrors, true);
+  INIT_LIBRARY(Scalarlist, scalarlist, true);
+  INIT_LIBRARY(Utf, utf, false);
+  INIT_LIBRARY(Uri, uri, false);
+
   Bootstrap::SetupNativeResolver();
 
   // Remove the Object superclass cycle by setting the super type to null (not
@@ -6381,37 +6308,12 @@ RawLibrary* Library::New(const String& url) {
 }
 
 
-void Library::InitASyncLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartAsync();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_async_library(lib);
-}
-
-
 void Library::InitCoreLibrary(Isolate* isolate) {
   const String& core_lib_url = Symbols::DartCore();
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
   isolate->object_store()->set_core_library(core_lib);
-  Library::InitMathLibrary(isolate);
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  Library::InitCollectionDevLibrary(isolate);
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  const Namespace& collection_dev_ns = Namespace::Handle(
-      Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
-  Library::InitCollectionLibrary(isolate);
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  const Namespace& collection_ns = Namespace::Handle(
-      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
-  core_lib.AddImport(math_ns);
-  core_lib.AddImport(collection_ns);
-  core_lib.AddImport(collection_dev_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -6419,92 +6321,6 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   // isolates so setting their library pointers would be wrong.
   const Class& cls = Class::Handle(Object::dynamic_class());
   core_lib.AddObject(cls, String::Handle(cls.Name()));
-}
-
-
-void Library::InitCollectionLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartCollection();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  const Namespace& collection_dev_ns = Namespace::Handle(
-      Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(math_ns);
-  lib.AddImport(collection_dev_ns);
-  isolate->object_store()->set_collection_library(lib);
-}
-
-
-void Library::InitCollectionDevLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartCollectionDev();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_collection_dev_library(lib);
-}
-
-
-void Library::InitCryptoLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartCrypto();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(math_ns);
-  isolate->object_store()->set_crypto_library(lib);
-}
-
-
-void Library::InitIsolateLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartIsolate();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  const Namespace& async_ns = Namespace::Handle(
-      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(async_ns);
-  isolate->object_store()->set_isolate_library(lib);
-}
-
-
-void Library::InitJsonLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartJson();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_json_library(lib);
-}
-
-
-void Library::InitMathLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartMath();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_math_library(lib);
-}
-
-
-void Library::InitMirrorsLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartMirrors();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  const Namespace& isolate_ns = Namespace::Handle(
-      Namespace::New(isolate_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(isolate_ns);
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  const Namespace& async_ns = Namespace::Handle(
-      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(async_ns);
-  const Library& wrappers_lib =
-      Library::Handle(Library::NativeWrappersLibrary());
-  const Namespace& wrappers_ns = Namespace::Handle(
-      Namespace::New(wrappers_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(wrappers_ns);
-  isolate->object_store()->set_mirrors_library(lib);
 }
 
 
@@ -6530,47 +6346,6 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
     cls_name = Symbols::New(name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
-}
-
-
-void Library::InitScalarlistLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartScalarlist();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  const Namespace& collection_ns = Namespace::Handle(
-      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(collection_ns);
-  isolate->object_store()->set_scalarlist_library(lib);
-}
-
-
-void Library::InitUriLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartUri();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  const Library& utf_lib = Library::Handle(Library::UtfLibrary());
-  const Namespace& utf_ns = Namespace::Handle(
-      Namespace::New(utf_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(math_ns);
-  lib.AddImport(utf_ns);
-  isolate->object_store()->set_uri_library(lib);
-}
-
-
-void Library::InitUtfLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartUtf();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  const Namespace& async_ns = Namespace::Handle(
-      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(async_ns);
-  isolate->object_store()->set_utf_library(lib);
 }
 
 
@@ -6667,7 +6442,7 @@ void Library::Register() const {
 }
 
 
-RawLibrary* Library::ASyncLibrary() {
+RawLibrary* Library::AsyncLibrary() {
   return Isolate::Current()->object_store()->async_library();
 }
 

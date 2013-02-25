@@ -3,12 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file contains all sources for the dart:crypto library.
-#
-# TODO(ager): crypto_base.dart should be removed when the
-# VM can use the 'library' and 'part' directives for libraries.
-# At that point crypto.dart should be the only crypto library file.
 {
   'sources': [
+    'crypto.dart',
+    # The above file needs to be first as it lists the parts below.
     'crypto_base.dart',
     'crypto_utils.dart',
     'hash_utils.dart',
