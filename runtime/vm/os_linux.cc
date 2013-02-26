@@ -32,8 +32,94 @@ DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
+DEFINE_FLAG(bool, ll_prof, false,
+    "Generate compiled code log file for processing with ll_prof.py.");
 DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
     "Writes pprof events symbols to the provided file");
+
+class LowLevelProfileCodeObserver : public CodeObserver {
+ public:
+  LowLevelProfileCodeObserver() {
+    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    if (file_open == NULL) {
+      return;
+    }
+    const char* filename = "v8.log.ll";
+    log_file_ = (*file_open)(filename);
+#if defined(TARGET_ARCH_IA32)
+    const char arch[] = "ia32";
+#elif defined(TARGET_ARCH_X64)
+    const char arch[] = "x64";
+#elif defined(TARGET_ARCH_ARM)
+    const char arch[] = "arm";
+#elif defined(TARGET_ARCH_MIPS)
+    const char arch[] = "mips";
+#else
+    const char arch[] = "unknown";
+#endif
+    LowLevelLogWriteBytes(arch, sizeof(arch));
+  }
+
+  ~LowLevelProfileCodeObserver() {
+    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    if (file_close == NULL) {
+      return;
+    }
+    ASSERT(log_file_ != NULL);
+    (*file_close)(log_file_);
+  }
+
+  virtual bool IsActive() const {
+    return FLAG_ll_prof;
+  }
+
+  struct LowLevelCodeCreateStruct {
+    static const char kTag = 'C';
+
+    int32_t name_size;
+    uword code_address;
+    int32_t code_size;
+  };
+
+  template <typename T>
+  void LowLevelLogWriteStruct(const T& s) {
+    char tag = T::kTag;
+    LowLevelLogWriteBytes(reinterpret_cast<const char*>(&tag), sizeof(tag));
+    LowLevelLogWriteBytes(reinterpret_cast<const char*>(&s), sizeof(s));
+  }
+
+  void LowLevelLogWriteBytes(const char* bytes, int size) {
+    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    ASSERT(file_write != NULL);
+    (file_write)(bytes, size, log_file_);
+  }
+
+  virtual void Notify(const char* name,
+                      uword base,
+                      uword prologue_offset,
+                      uword size,
+                      bool optimized) {
+    const char* marker = optimized ? "*" : "";
+    char* name_buffer =
+        Isolate::Current()->current_zone()->PrintToString("%s%s", marker, name);
+    intptr_t len = strlen(name_buffer);
+
+    LowLevelCodeCreateStruct event;
+    event.name_size = len;
+    event.code_address = base;
+    event.code_size = size;
+
+    LowLevelLogWriteStruct(event);
+    LowLevelLogWriteBytes(name_buffer, len);
+    LowLevelLogWriteBytes(reinterpret_cast<char*>(base), size);
+  }
+
+ private:
+  void* log_file_;
+
+  DISALLOW_COPY_AND_ASSIGN(LowLevelProfileCodeObserver);
+};
+
 
 class PerfCodeObserver : public CodeObserver {
  public:
@@ -378,6 +464,9 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
+  if (FLAG_ll_prof) {
+    CodeObservers::Register(new LowLevelProfileCodeObserver);
+  }
   if (FLAG_generate_perf_events_symbols) {
     CodeObservers::Register(new PerfCodeObserver);
   }
