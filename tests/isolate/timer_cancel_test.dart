@@ -35,10 +35,10 @@ main() {
     repeatTimer = 0;
     new Timer.repeating(ms * 1500, expectAsync1(repeatHandler));
   });
-  
+
   test("cancel timer with same time", () {
     var t2;
-    var t1 = Timer.run(expectAsync0(() => t2.cancel()));
-    t2 = Timer.run(expectAsync0(t1.cancel, count: 0));
+    var t1 = new Timer(ms * 0, expectAsync0(() => t2.cancel()));
+    t2 = new Timer(ms * 0, expectAsync0(t1.cancel, count: 0));
   });
 }

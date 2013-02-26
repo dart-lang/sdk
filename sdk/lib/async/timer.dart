@@ -5,6 +5,9 @@
 part of dart.async;
 
 abstract class Timer {
+  // Internal list used to group Timer.run callbacks.
+  static List _runCallbacks = [];
+
   /**
    * Creates a new timer.
    *
@@ -47,12 +50,31 @@ abstract class Timer {
 
   /**
    * Runs the given [callback] asynchronously as soon as possible.
-   *
-   * Returns a [Timer] that can be cancelled if the callback is not necessary
-   * anymore.
    */
-  static Timer run(void callback()) {
-    return new Timer(const Duration(), callback);
+  static void run(void callback()) {
+    // Optimizing a group of Timer.run callbacks to be executed in the
+    // same Timer callback.
+    _runCallbacks.add(callback);
+    if (_runCallbacks.length == 1) {
+      new Timer(const Duration(milliseconds: 0), () {
+        List runCallbacks = _runCallbacks;
+        // Create new list to make sure we don't call newly added callbacks in
+        // this event.
+        _runCallbacks = [];
+        for (int i = 0; i < runCallbacks.length; i++) {
+          Function callback = runCallbacks[i];
+          try {
+            callback();
+          } catch (e) {
+            List newCallbacks = _runCallbacks;
+            _runCallbacks = [];
+            _runCallbacks.addAll(runCallbacks.skip(i + 1));
+            _runCallbacks.addAll(newCallbacks);
+            throw;
+          }
+        }
+      });
+    }
   }
 
   /**
