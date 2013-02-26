@@ -27,6 +27,7 @@ io/https_server_test: Pass, Timeout # Issue 8674
 io/https_client_socket_reuse_test: Pass, Timeout # Issue 8674
 io/http_client_request_test: Pass, Fail # Issue 8681
 io/http_proxy_test: Pass, Timeout # Issue 7773
+io/raw_secure_socket_test: Pass, Fail # Issue 8795
 io/secure_socket_test: Pass, Fail # Issue 8795
 
 [ $runtime == vm ]
