@@ -15,19 +15,22 @@ class Configuration {
   // The VM won't shut down if a receive port is open. Use this to make sure
   // we correctly wait for asynchronous tests.
   ReceivePort _receivePort;
-  TestCase currentTestCase = null;
+  TestCase _currentTestCase;
+
+  TestCase get currentTestCase => _currentTestCase;
 
   /**
    * Subclasses can override this with something useful for diagnostics.
    * Particularly useful in cases where we have parent/child configurations
    * such as layout tests.
    */
-  get name => 'Configuration';
+  String get name => 'Configuration';
+
   /**
    * If true, then tests are started automatically (otherwise [runTests]
    * must be called explicitly after the tests are set up.
    */
-  get autoStart => true;
+  bool get autoStart => true;
 
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
@@ -49,7 +52,9 @@ class Configuration {
    * a test suite.
    */
   void onTestStart(TestCase testCase) {
-    currentTestCase = testCase;
+    assert(testCase != null);
+    assert(_currentTestCase == null);
+    _currentTestCase = testCase;
   }
 
   /**
@@ -57,7 +62,9 @@ class Configuration {
    * a test suite.
    */
   void onTestResult(TestCase testCase) {
-    currentTestCase = null;
+    assert(testCase != null);
+    assert(_currentTestCase == testCase);
+    _currentTestCase = null;
   }
 
   /**
@@ -154,21 +161,6 @@ class Configuration {
   // Currently e.message works in dartium, but not in dartc.
   handleExternalError(e, String message) =>
       _reportTestError('$message\nCaught $e', '');
-
-  /**
-   * Send messages to the test controller code (see 'test_controller.js'). This
-   * is only needed to support browser tests with dart2js. Note: we could wrap
-   * tests and send the appropriate messages to the controller through the
-   * wrapper, but using wrappers has a noticeable overhead in the testing bots,
-   * so we use this approach instead.
-   *
-   * Configurations that will not run in DRT (such as vm_config and
-   * compact_vm_config), can safely override this method to avoid printing extra
-   * mesages in the console.
-   */
-  // TODO(sigmund): find a way to unify notifyController and _postMessage
-  void notifyController(String message) {
-  }
 
   _postMessage(String message) {
     // In dart2js browser tests, the JavaScript-based test controller

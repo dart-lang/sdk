@@ -13,6 +13,7 @@
 library matcher;
 
 import 'dart:async';
+import 'package:meta/meta.dart';
 
 part 'src/basematcher.dart';
 part 'src/collection_matchers.dart';

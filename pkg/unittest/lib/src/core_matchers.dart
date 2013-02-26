@@ -487,6 +487,7 @@ class _ArgumentError extends TypeMatcher {
 const isIllegalJSRegExpException = const _IllegalJSRegExpException();
 
 /** A matcher for functions that throw IllegalJSRegExpException. */
+@deprecated
 const Matcher throwsIllegalJSRegExpException =
     const Throws(isIllegalJSRegExpException);
 
