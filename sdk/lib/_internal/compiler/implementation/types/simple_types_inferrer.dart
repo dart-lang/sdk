@@ -514,6 +514,11 @@ class SimpleTypesInferrer extends TypesInferrer {
    * [secondType].
    */
   Element computeLUB(Element firstType, Element secondType) {
+    bool isNumber(type) {
+      return type == compiler.numClass
+          || type == compiler.doubleClass
+          || type == compiler.intClass;
+    }
     assert(secondType != null);
     if (firstType == null) {
       return secondType;
@@ -524,6 +529,10 @@ class SimpleTypesInferrer extends TypesInferrer {
     } else if (firstType == compiler.dynamicClass) {
       return firstType;
     } else if (firstType != secondType) {
+      if (isNumber(firstType) && isNumber(secondType)) {
+        // The JavaScript backend knows how to deal with numbers.
+        return compiler.numClass;
+      }
       // TODO(ngeoffray): Actually compute the least upper bound.
       return giveUpType;
     } else {
