@@ -1121,6 +1121,31 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
                 class_name.ToCString());
   }
 
+  // Copy the type parameters of the mixin class to the mixin
+  // application class.
+  const int num_type_parameters = mixin_cls.NumTypeParameters();
+  if (num_type_parameters > 0) {
+    ASSERT(cls.NumTypeParameters() == 0);
+    const TypeArguments& type_params =
+        TypeArguments::Handle(mixin_cls.type_parameters());
+    const TypeArguments& cloned_type_params =
+        TypeArguments::Handle(TypeArguments::New(num_type_parameters));
+    ASSERT(!type_params.IsNull());
+    TypeParameter& param = TypeParameter::Handle();
+    TypeParameter& cloned_param = TypeParameter::Handle();
+    String& param_name = String::Handle();
+    AbstractType& param_bound = AbstractType::Handle();
+    for (int i = 0; i < num_type_parameters; i++) {
+      param ^= type_params.TypeAt(i);
+      param_name = param.name();
+      param_bound = param.bound();
+      cloned_param = TypeParameter::New(
+          cls, i, param_name, param_bound, param.token_pos());
+      cloned_type_params.SetTypeAt(i, cloned_param);
+    }
+    cls.set_type_parameters(cloned_type_params);
+  }
+
   const GrowableObjectArray& cloned_funcs =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   Array& functions = Array::Handle();

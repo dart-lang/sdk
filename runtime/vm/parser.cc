@@ -3415,6 +3415,13 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
+
+  // TODO(hausner): Handle mixin application aliases with generics.
+  if (mixin_application.NumTypeParameters() > 0) {
+    ErrorMsg(classname_pos,
+             "type parameters on mixin applications not yet supported");
+  }
+
   ExpectToken(Token::kASSIGN);
 
   if (CurrentToken() == Token::kABSTRACT) {
@@ -3438,8 +3445,15 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
     ErrorMsg("mixin application 'with Type' expected");
   }
 
-  Type& mixin_application_type = Type::Handle(ParseMixins(mixin_super_type));
-  // The result of ParseMixins() is a chain of super classes that is the
+  const Type& mixin_application_type =
+      Type::Handle(ParseMixins(mixin_super_type));
+  // TODO(hausner): Implement generic mixin support.
+  if (mixin_application_type.arguments() != AbstractTypeArguments::null()) {
+    ErrorMsg(mixin_application_type.token_pos(),
+             "mixin class with type arguments not yet supported");
+  }
+
+  // The result of ParseMixins() is a chain of super types that is the
   // result of the mixin composition 'S with M1, M2, ...'. The mixin
   // application classes are anonymous (i.e. not registered in the current
   // library). We steal the super type and mixin type from the bottom of
@@ -3848,7 +3862,6 @@ RawType* Parser::ParseMixins(const Type& super_type) {
   Type& mixin_application_type = Type::Handle();
   Type& mixin_super_type = Type::Handle(super_type.raw());
   Array& mixin_application_interfaces = Array::Handle();
-  const TypeArguments& no_type_arguments = TypeArguments::Handle();
   do {
     ConsumeToken();
     const intptr_t mixin_pos = TokenPos();
@@ -3856,14 +3869,6 @@ RawType* Parser::ParseMixins(const Type& super_type) {
     if (mixin_type.IsTypeParameter()) {
       ErrorMsg(mixin_pos,
                "mixin type '%s' may not be a type parameter",
-               String::Handle(mixin_type.UserVisibleName()).ToCString());
-    }
-    // TODO(hausner): Remove this check once we handle mixins with type
-    // arguments.
-    mixin_type_arguments = mixin_type.arguments();
-    if (!mixin_type_arguments.IsNull()) {
-      ErrorMsg(mixin_pos,
-               "mixin type '%s' may not have type arguments",
                String::Handle(mixin_type.UserVisibleName()).ToCString());
     }
 
@@ -3887,10 +3892,17 @@ RawType* Parser::ParseMixins(const Type& super_type) {
     mixin_application_interfaces.SetAt(0, mixin_type);
     mixin_application.set_interfaces(mixin_application_interfaces);
 
-    // TODO(hausner): Need to support type arguments.
+    // For the type arguments of the mixin application type, we need
+    // a copy of the type arguments to the mixin type. The simplest way
+    // to get the copy is to rewind the parser, parse the mixin type
+    // again and steal its type arguments.
+    SetPosition(mixin_pos);
+    mixin_type = ParseType(ClassFinalizer::kTryResolve);
+    mixin_type_arguments = mixin_type.arguments();
+
     mixin_application_type = Type::New(mixin_application,
-                                       no_type_arguments,
-                                       Scanner::kDummyTokenIndex);
+                                       mixin_type_arguments,
+                                       mixin_pos);
     mixin_super_type = mixin_application_type.raw();
   } while (CurrentToken() == Token::kCOMMA);
   return mixin_application_type.raw();
