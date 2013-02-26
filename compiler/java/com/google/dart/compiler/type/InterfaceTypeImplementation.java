@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.type;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -22,7 +23,8 @@ import java.util.Map;
 /**
  * An interface type.
  */
-class InterfaceTypeImplementation extends AbstractType implements InterfaceType {
+@VisibleForTesting
+public class InterfaceTypeImplementation extends AbstractType implements InterfaceType {
   private final ClassElement element;
   private final List<Type> arguments;
   private final Map<ClassElement, Object> subClasses = new MapMaker().weakKeys().makeMap();

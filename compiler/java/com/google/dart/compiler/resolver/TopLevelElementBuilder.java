@@ -195,7 +195,7 @@ public class TopLevelElementBuilder {
   }
   
   @VisibleForTesting
-  void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope,
+  public void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope,
       List<Element> exportedElements) {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartFieldDefinition) {

@@ -13,6 +13,7 @@
  */
 package com.google.dart.compiler;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
@@ -53,7 +54,8 @@ import java.util.Map;
  */
 public class SystemLibrariesReader {
 
-  class DartLibrary {
+  @VisibleForTesting
+  public class DartLibrary {
 
     private String shortName = null;
     private String path = null;
