@@ -35,7 +35,7 @@ main() {
       schedulePub(args: [command],
           error:
             """
-            Some packages are not compatible with your SDK version 0.1.2+3:
+            Some packages that were installed are not compatible with your SDK version 0.1.2+3 and may not work:
             - 'myapp' requires >2.0.0
 
             You may be able to resolve this by upgrading to the latest Dart SDK
@@ -72,7 +72,7 @@ main() {
       schedulePub(args: [command],
           error:
             """
-            Some packages are not compatible with your SDK version 0.1.2+3:
+            Some packages that were installed are not compatible with your SDK version 0.1.2+3 and may not work:
             - 'myapp' requires >2.0.0
             - 'foo' requires >0.1.3
 
@@ -110,7 +110,7 @@ main() {
       schedulePub(args: [command],
           error:
             """
-            Some packages are not compatible with your SDK version 0.1.2+3:
+            Some packages that were installed are not compatible with your SDK version 0.1.2+3 and may not work:
             - 'bar' requires <0.1.1
 
             You may be able to resolve this by upgrading to the latest Dart SDK
@@ -144,7 +144,7 @@ main() {
       schedulePub(args: [command],
           error:
             """
-            Some packages are not compatible with your SDK version 0.1.2+3:
+            Some packages that were installed are not compatible with your SDK version 0.1.2+3 and may not work:
             - 'myapp' requires >2.0.0
             - 'foo' requires >3.0.0
 

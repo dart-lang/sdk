@@ -193,8 +193,8 @@ class Entrypoint {
       }
 
       if (errors.length > 0) {
-        log.error("Some packages are not compatible with your SDK version "
-                "${sdk.version}:\n"
+        log.error("Some packages that were installed are not compatible with "
+                "your SDK version ${sdk.version} and may not work:\n"
             "${errors.join('\n')}\n\n"
             "You may be able to resolve this by upgrading to the latest Dart "
                 "SDK\n"
