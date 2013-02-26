@@ -52,8 +52,6 @@ class Configuration {
    * a test suite.
    */
   void onTestStart(TestCase testCase) {
-    assert(testCase != null);
-    assert(_currentTestCase == null);
     _currentTestCase = testCase;
   }
 
@@ -62,8 +60,6 @@ class Configuration {
    * a test suite.
    */
   void onTestResult(TestCase testCase) {
-    assert(testCase != null);
-    assert(_currentTestCase == null || _currentTestCase == testCase);
     _currentTestCase = null;
   }
 
