@@ -80,6 +80,18 @@ class SqlDatabase native "*Database" {
   @DocsEditable
   final String version;
 
+  /**
+   * Atomically update the database version to [newVersion], asynchronously
+   * running [callback] on the [SqlTransaction] representing this
+   * [changeVersion] transaction.
+   *
+   * If [callback] runs successfully, then [successCallback] is called.
+   * Otherwise, [errorCallback] is called.
+   *
+   * [oldVersion] should match the database's current [version] exactly.
+   *
+   * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
+   */
   @DomName('Database.changeVersion')
   @DocsEditable
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
