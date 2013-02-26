@@ -1953,19 +1953,17 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
  *
  * For example, consider:
  *
- * [:
- * class Data {
- *   const Data();
- * }
+ *     class Data {
+ *       const Data();
+ *     }
  *
- * const data = const Data();
+ *     const data = const Data();
  *
- * @data
- * class Foo {}
+ *     @data
+ *     class Foo {}
  *
- * @data @data
- * class Bar {}
- * :]
+ *     @data @data
+ *     class Bar {}
  *
  * In this example, there are three instances of [MetadataAnnotation]
  * and they correspond each to a location in the source code where

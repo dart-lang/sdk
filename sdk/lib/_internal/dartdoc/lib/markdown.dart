@@ -11,9 +11,12 @@ part 'src/markdown/block_parser.dart';
 part 'src/markdown/html_renderer.dart';
 part 'src/markdown/inline_parser.dart';
 
+typedef Node Resolver(String name);
+
 /// Converts the given string of markdown to HTML.
-String markdownToHtml(String markdown) {
-  final document = new Document();
+String markdownToHtml(String markdown, {inlineSyntaxes, linkResolver}) {
+  final document = new Document(inlineSyntaxes: inlineSyntaxes,
+      linkResolver: linkResolver);
 
   // Replace windows line endings with unix line endings, and split.
   final lines = markdown.replaceAll('\r\n','\n').split('\n');
@@ -29,17 +32,13 @@ String escapeHtml(String html) {
              .replaceAll('>', '&gt;');
 }
 
-var _implicitLinkResolver;
-
-Node setImplicitLinkResolver(Node resolver(String text)) {
-  _implicitLinkResolver = resolver;
-}
-
 /// Maintains the context needed to parse a markdown document.
 class Document {
   final Map<String, Link> refLinks;
+  List<InlineSyntax> inlineSyntaxes;
+  Resolver linkResolver;
 
-  Document()
+  Document({this.inlineSyntaxes, this.linkResolver})
     : refLinks = <String, Link>{};
 
   parseRefLinks(List<String> lines) {
