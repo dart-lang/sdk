@@ -157,7 +157,11 @@ void VmStats::WebServer(uword bind_address) {
     // Read request.
     // TODO(tball): support partial reads, possibly needed for POST uploads.
     char buffer[BUFSIZE + 1];
-    int len = read(socket, buffer, BUFSIZE);
+    size_t count = FDUtils::AvailableBytes(socket);
+    if (count > BUFSIZE) {
+      count = BUFSIZE;
+    }
+    intptr_t len = FDUtils::ReadFromBlocking(socket, buffer, count);
     if (len <= 0) {
       // Invalid HTTP request, ignore.
       continue;
