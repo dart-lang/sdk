@@ -168,7 +168,11 @@ class HGraph {
     if (constant.isFunction()) return HType.UNKNOWN;
     if (constant.isSentinel()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
-    return new HBoundedType.exact(objectConstant.type);
+    // TODO(kasperl): This seems a bit fishy, but we do not have the
+    // compiler at hand so we cannot use the usual HType factory
+    // methods. At some point this should go away.
+    TypeMask mask = new TypeMask.nonNullExact(objectConstant.type);
+    return new HBoundedType(mask);
   }
 
   HConstant addConstant(Constant constant) {

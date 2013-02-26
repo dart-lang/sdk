@@ -169,8 +169,9 @@ class World {
     Selector noSuchMethodSelector = new Selector.noSuchMethod();
     DartType receiverType = selector.receiverType;
     if (receiverType != null) {
+      TypedSelector typedSelector = selector;
       noSuchMethodSelector = new TypedSelector(
-          receiverType, selector.typeKind, noSuchMethodSelector);
+          typedSelector.mask, noSuchMethodSelector);
     }
     ClassElement objectClass = compiler.objectClass;
     return allFunctions

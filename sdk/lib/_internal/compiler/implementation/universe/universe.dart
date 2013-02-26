@@ -8,6 +8,7 @@ import '../closure.dart';
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../types/types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../js/js.dart' as js;
@@ -434,15 +435,10 @@ class Selector {
 }
 
 class TypedSelector extends Selector {
-  /**
-   * The type of the receiver.
-   */
-  final DartType receiverType;
-  final TypedSelectorKind typeKind;
-
   final Selector asUntyped;
+  final TypeMask mask;
 
-  TypedSelector(DartType this.receiverType, this.typeKind, Selector selector)
+  TypedSelector(this.mask, Selector selector)
       : asUntyped = selector.asUntyped,
         super(selector.kind,
               selector.name,
@@ -450,19 +446,31 @@ class TypedSelector extends Selector {
               selector.argumentCount,
               selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
-    assert(!identical(receiverType.kind, TypeKind.MALFORMED_TYPE));
+    assert(!identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
     assert(asUntyped.receiverType == null);
-    assert(typeKind != TypedSelectorKind.UNKNOWN);
   }
 
-  TypedSelector.subclass(DartType receiverType, Selector selector)
-      : this(receiverType, TypedSelectorKind.SUBCLASS, selector);
-
   TypedSelector.exact(DartType receiverType, Selector selector)
-      : this(receiverType, TypedSelectorKind.EXACT, selector);
+      : this(new TypeMask.exact(receiverType), selector);
+
+  TypedSelector.subclass(DartType receiverType, Selector selector)
+      : this(new TypeMask.subclass(receiverType), selector);
 
   TypedSelector.subtype(DartType receiverType, Selector selector)
-      : this(receiverType, TypedSelectorKind.INTERFACE, selector);
+      : this(new TypeMask.subtype(receiverType), selector);
+
+  // TODO(kasperl): These should go away.
+  DartType get receiverType => mask.base;
+  TypedSelectorKind get typeKind {
+    if (mask.isExact) {
+      return TypedSelectorKind.EXACT;
+    } else if (mask.isSubclass) {
+      return TypedSelectorKind.SUBCLASS;
+    } else {
+      assert(mask.isSubtype);
+      return TypedSelectorKind.INTERFACE;
+    }
+  }
 
   /**
    * Check if [element] will be the one used at runtime when being

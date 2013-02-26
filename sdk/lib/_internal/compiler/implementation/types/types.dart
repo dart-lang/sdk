@@ -13,8 +13,10 @@ import '../elements/elements.dart';
 import '../util/util.dart';
 import '../universe/universe.dart';
 import 'simple_types_inferrer.dart' show SimpleTypesInferrer;
+import '../dart_types.dart';
 
 part 'concrete_types_inferrer.dart';
+part 'type_mask.dart';
 
 /**
  * Common super class for our type inferrers. Currently, its query methods

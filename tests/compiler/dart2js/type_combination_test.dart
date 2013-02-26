@@ -4,6 +4,7 @@
 
 import "mock_compiler.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
 
 const CONFLICTING = HType.CONFLICTING;
 const UNKNOWN = HType.UNKNOWN;
@@ -2024,21 +2025,21 @@ void testIntersection(MockCompiler compiler) {
 
 void testRegressions(MockCompiler compiler) {
   HType nonNullPotentialString = new HBoundedPotentialPrimitiveString(
-      compiler.stringClass.computeType(compiler), canBeNull: false);
+      new TypeMask.nonNullSubtype(compiler.stringClass.computeType(compiler)));
   Expect.equals(
       potentialString, STRING_OR_NULL.union(nonNullPotentialString, compiler));
 }
 
 void main() {
   MockCompiler compiler = new MockCompiler();
-  nonPrimitive1 = new HBoundedType(
-      compiler.mapClass.computeType(compiler), canBeNull: false);
-  nonPrimitive2 = new HBoundedType(
-      compiler.functionClass.computeType(compiler), canBeNull: false);
+  nonPrimitive1 = new HType.nonNullSubtype(
+      compiler.mapClass.computeType(compiler), compiler);
+  nonPrimitive2 = new HType.nonNullSubtype(
+      compiler.functionClass.computeType(compiler), compiler);
   potentialArray = new HBoundedPotentialPrimitiveArray(
-      compiler.listClass.computeType(compiler));
+      new TypeMask.subtype(compiler.listClass.computeType(compiler)));
   potentialString = new HBoundedPotentialPrimitiveString(
-      compiler.stringClass.computeType(compiler));
+      new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   testUnion(compiler);
   testIntersection(compiler);
   testRegressions(compiler);
