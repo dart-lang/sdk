@@ -15,9 +15,14 @@ patch class int {
   /* patch */ static int parse(String source,
                                { int radix,
                                  int onError(String str) }) {
+    if ((radix == null) && (onError == null)) return _parse(source);
+    return _slowParse(source, radix, onError);
+  }
+
+  static int _slowParse(String source, int radix, int onError(String str)) {
     if (source is! String) throw new ArgumentError(source);
     if (radix == null) {
-      if (onError == null) return _parse(source);
+      assert(onError != null);
       try {
         return _parse(source);
       } on FormatException {
