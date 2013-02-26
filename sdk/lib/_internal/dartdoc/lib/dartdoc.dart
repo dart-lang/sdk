@@ -423,7 +423,8 @@ class Dartdoc {
         version, revision);
 
     for (final lib in _sortedLibraries) {
-      var libraryElement = new LibraryElement(lib.qualifiedName, lib, lookupMdnComment)
+      var libraryElement = new LibraryElement(
+          lib, lookupMdnComment: lookupMdnComment)
           ..stripDuplicateUris(null, null);
       packageManifest.libraries.add(new Reference.fromElement(libraryElement));
       startFile("$revision/${libraryElement.id}.json");
