@@ -555,6 +555,14 @@ class JsonParser {
     }
   }
 
+  int _handleLiteral(start, position, isDouble) {
+    String literal = source.substring(start, position);
+    // This correctly creates -0 for doubles.
+    num value = (isDouble ? double.parse(literal) : int.parse(literal));
+    listener.handleNumber(value);
+    return position;
+  }
+
   int parseNumber(int char, int position) {
     // Format:
     //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
@@ -569,16 +577,9 @@ class JsonParser {
     if (char < CHAR_0 || char > CHAR_9) {
       fail(position, "Missing expected digit");
     }
-    int handleLiteral(position) {
-      String literal = source.substring(start, position);
-      // This correctly creates -0 for doubles.
-      num value = (isDouble ? double.parse(literal) : int.parse(literal));
-      listener.handleNumber(value);
-      return position;
-    }
     if (char == CHAR_0) {
       position++;
-      if (position == length) return handleLiteral(position);
+      if (position == length) return _handleLiteral(start, position, false);
       char = source.codeUnitAt(position);
       if (CHAR_0 <= char && char <= CHAR_9) {
         fail(position);
@@ -586,7 +587,7 @@ class JsonParser {
     } else {
       do {
         position++;
-        if (position == length) return handleLiteral(position);
+        if (position == length) return _handleLiteral(start, position, false);
         char = source.codeUnitAt(position);
       } while (CHAR_0 <= char && char <= CHAR_9);
     }
@@ -598,7 +599,7 @@ class JsonParser {
       if (char < CHAR_0 || char > CHAR_9) fail(position);
       do {
         position++;
-        if (position == length) return handleLiteral(position);
+        if (position == length) return _handleLiteral(start, position, true);
         char = source.codeUnitAt(position);
       } while (CHAR_0 <= char && char <= CHAR_9);
     }
@@ -617,11 +618,11 @@ class JsonParser {
       }
       do {
         position++;
-        if (position == length) return handleLiteral(position);
+        if (position == length) return _handleLiteral(start, position, true);
         char = source.codeUnitAt(position);
       } while (CHAR_0 <= char && char <= CHAR_9);
     }
-    return handleLiteral(position);
+    return _handleLiteral(start, position, isDouble);
   }
 
   void fail(int position, [String message]) {
