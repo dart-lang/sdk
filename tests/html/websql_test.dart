@@ -47,7 +47,7 @@ Future<SqlResultSet> insert(SqlTransaction transaction, String tableName,
   final sql = 'INSERT INTO $tableName ($columnName) VALUES (?)';
   transaction.executeSql(sql, [value],
     (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(tx);
+      completer.complete(rs);
     },
     (SqlTransaction tx, SqlError error) {
       completer.completeError(error);
