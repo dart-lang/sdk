@@ -25492,7 +25492,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * frame unwinds, causing the future to complete after all processing has
    * completed for the current event, but before any subsequent events.
    */
-  void setImmediate(TimeoutHandler callback) { 
+  void setImmediate(TimeoutHandler callback) {
     _addMicrotaskCallback(callback);
   }
   /**
@@ -25500,8 +25500,11 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * registered under [name].
    */
   SendPortSync lookupPort(String name) {
-    var port =
-        json.parse(document.documentElement.attributes['dart-port:$name']);
+    var portStr = document.documentElement.attributes['dart-port:$name'];
+    if (portStr == null) {
+      return null;
+    }
+    var port = json.parse(portStr);
     return _deserialize(port);
   }
 
@@ -25523,7 +25526,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * If you need to later cancel this animation, use [requestAnimationFrame]
    * instead.
    *
-   * Note: The code that runs when the future completes should call 
+   * Note: The code that runs when the future completes should call
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
@@ -25598,7 +25601,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   /**
    * Called to draw an animation frame and then request the window to repaint
-   * after [callback] has finished (creating the animation). 
+   * after [callback] has finished (creating the animation).
    *
    * Use this method only if you need to later call [cancelAnimationFrame]. If
    * not, the preferred Dart idiom is to set animation frames by calling
