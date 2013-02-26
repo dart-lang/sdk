@@ -3050,7 +3050,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   @DocsEditable
   final int numberOfItems;
 
-  Length operator[](int index) => JS("Length", "#[#]", this, index);
+  Length operator[](int index) => this.getItem(index);
 
   void operator[]=(int index, Length value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -3674,7 +3674,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   @DocsEditable
   final int numberOfItems;
 
-  Number operator[](int index) => JS("Number", "#[#]", this, index);
+  Number operator[](int index) => this.getItem(index);
 
   void operator[]=(int index, Number value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -4574,7 +4574,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   @DocsEditable
   final int numberOfItems;
 
-  PathSeg operator[](int index) => JS("PathSeg", "#[#]", this, index);
+  PathSeg operator[](int index) => this.getItem(index);
 
   void operator[]=(int index, PathSeg value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -5458,7 +5458,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   @DocsEditable
   final int numberOfItems;
 
-  String operator[](int index) => JS("String", "#[#]", this, index);
+  String operator[](int index) => this.getItem(index);
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -6620,7 +6620,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   @DocsEditable
   final int numberOfItems;
 
-  Transform operator[](int index) => JS("Transform", "#[#]", this, index);
+  Transform operator[](int index) => this.getItem(index);
 
   void operator[]=(int index, Transform value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7139,7 +7139,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  ElementInstance operator[](int index) => JS("ElementInstance", "#[#]", this, index);
+  ElementInstance operator[](int index) => this.item(index);
 
   void operator[]=(int index, ElementInstance value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");

@@ -1,9 +1,10 @@
 library WebDBTest;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:web_sql';
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'utils.dart';
 
 void fail(message) {
   guardAsync(() {
@@ -11,33 +12,37 @@ void fail(message) {
     });
 }
 
-Future<SqlTransaction> createTransaction(SqlDatabase db) {
+Future<SqlTransaction> transaction(SqlDatabase db) {
   final completer = new Completer<SqlTransaction>();
 
   db.transaction((SqlTransaction transaction) {
     completer.complete(transaction);
+  }, (SqlError error) {
+    completer.completeError(error);
   });
 
   return completer.future;
 }
 
-createTable(tableName, columnName) => (SqlTransaction transaction) {
-  final completer = new Completer<SqlTransaction>();
+Future<SqlResultSet> createTable(SqlTransaction transaction, String tableName,
+    String columnName) {
+  final completer = new Completer<SqlResultSet>();
 
   final sql = 'CREATE TABLE $tableName ($columnName)';
   transaction.executeSql(sql, [],
     (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(transaction);
+      completer.complete(rs);
     },
     (SqlTransaction tx, SqlError error) {
-      fail(error.message);
+      completer.completeError(error);
     });
 
   return completer.future;
-};
+}
 
-insert(tableName, columnName, value) => (SqlTransaction transaction) {
-  final completer = new Completer<SqlTransaction>();
+Future<SqlResultSet> insert(SqlTransaction transaction, String tableName,
+    String columnName, value) {
+  final completer = new Completer<SqlResultSet>();
 
   final sql = 'INSERT INTO $tableName ($columnName) VALUES (?)';
   transaction.executeSql(sql, [value],
@@ -45,47 +50,46 @@ insert(tableName, columnName, value) => (SqlTransaction transaction) {
       completer.complete(tx);
     },
     (SqlTransaction tx, SqlError error) {
-      fail(error.message);
+      completer.completeError(error);
     });
 
   return completer.future;
-};
+}
 
-queryTable(tableName, callback) => (SqlTransaction transaction) {
-  final completer = new Completer<SqlTransaction>();
+Future<SqlResultSet> queryTable(SqlTransaction transaction, String tableName) {
+  final completer = new Completer<SqlResultSet>();
 
   final sql = 'SELECT * FROM $tableName';
   transaction.executeSql(sql, [],
     (SqlTransaction tx, SqlResultSet rs) {
-      callback(rs);
-      completer.complete(tx);
+      completer.complete(rs);
     },
     (SqlTransaction tx, SqlError error) {
-      fail(error.message);
+      completer.completeError(error);
     });
 
   return completer.future;
-};
+}
 
-dropTable(tableName, [bool ignoreFailure = false]) =>
-    (SqlTransaction transaction) {
-  final completer = new Completer<SqlTransaction>();
+Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
+    [bool ignoreFailure = false]) {
+  final completer = new Completer<SqlResultSet>();
 
   final sql = 'DROP TABLE $tableName';
   transaction.executeSql(sql, [],
     (SqlTransaction tx, SqlResultSet rs) {
-      completer.complete(tx);
+      completer.complete(rs);
     },
     (SqlTransaction tx, SqlError error) {
       if (ignoreFailure) {
-        completer.complete(tx);
+        completer.complete(null);
       } else {
-        fail(error.message);
+        completer.completeError(error);
       }
     });
 
   return completer.future;
-};
+}
 
 main() {
   useHtmlIndividualConfiguration();
@@ -104,7 +108,7 @@ main() {
       }, expectation);
 
     });
-    test('Web Database', () {
+    futureTest('Web Database', () {
       // Skip if not supported.
       if (!SqlDatabase.supported) {
         return;
@@ -117,22 +121,28 @@ main() {
 
       expect(db, isNotNull, reason: 'Unable to open database');
 
-      createTransaction(db)
+      var tx;
+      return transaction(db).then((transaction) {
+        tx = transaction;
+      }).then((_) {
         // Attempt to clear out any tables which may be lurking from previous
         // runs.
-        .then(dropTable(tableName, true))
-        .then(createTable(tableName, columnName))
-        .then(insert(tableName, columnName, 'Some text data'))
-        .then(queryTable(tableName, (resultSet) {
-          guardAsync(() {
-            expect(resultSet.rows.length, 1);
-            var row = resultSet.rows.item(0);
-            expect(row.containsKey(columnName), isTrue);
-            expect(row[columnName], 'Some text data');
-          });
-        }))
-        .then(dropTable(tableName))
-        .then(expectAsync1((tx) {}));
+        return dropTable(tx, tableName, true);
+      }).then((_) {
+        return createTable(tx, tableName, columnName);
+      }).then((_) {
+        return insert(tx, tableName, columnName, 'Some text data');
+      }).then((_) {
+        return queryTable(tx, tableName);
+      }).then((resultSet) {
+        expect(resultSet.rows.length, 1);
+        var row = resultSet.rows.item(0);
+        expect(row.containsKey(columnName), isTrue);
+        expect(row[columnName], 'Some text data');
+        expect(resultSet.rows[0], row);
+      }).then((_) {
+        return dropTable(tx, tableName);
+      });
     });
   });
 }

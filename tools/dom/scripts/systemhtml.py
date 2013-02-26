@@ -671,10 +671,27 @@ class Dart2JSBackend(HtmlDartGenerator):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) => JS("$TYPE", "#[#]", this, index);\n',
-        TYPE=self.SecureOutputType(element_type))
+
+    ext_attrs = self._interface.ext_attrs
+    has_indexed_getter = ('IndexedGetter' in ext_attrs or
+      'CustomIndexedSetter' in ext_attrs)
+
+    if has_indexed_getter:
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) => '
+          'JS("$TYPE", "#[#]", this, index);\n',
+          TYPE=self.SecureOutputType(element_type))
+    else:
+      if any(op.id == 'getItem' for op in self._interface.operations):
+        indexed_getter = 'this.getItem(index)'
+      elif any(op.id == 'item' for op in self._interface.operations):
+        indexed_getter = 'this.item(index)'
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) => $INDEXED_GETTER;\n',
+          INDEXED_GETTER=indexed_getter,
+          TYPE=self.SecureOutputType(element_type))
 
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(

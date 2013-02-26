@@ -224,7 +224,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Map operator[](int index) => JS("Map", "#[#]", this, index);
+  Map operator[](int index) => this.item(index);
 
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
