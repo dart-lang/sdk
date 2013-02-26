@@ -1,0 +1,38 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// Process test program to test process communication.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
+
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+
+import "process_test_util.dart";
+
+void test(Future<Process> future, int expectedExitCode) {
+  future.then((process) {
+    process.exitCode.then((exitCode) {
+      Expect.equals(expectedExitCode, exitCode);
+    });
+
+    process.stdout.listen((_) {});
+    process.stderr.listen((_) {});
+    process.stdin.addString("Line1\n");
+  });
+}
+
+main() {
+  var scriptName = "process_stdin_transform_unsubscribe_script.dart";
+  var scriptFile = new File("tests/standalone/io/$scriptName");
+  if (!scriptFile.existsSync()) {
+    scriptFile = new File("../tests/standalone/io/$scriptName");
+  }
+  Expect.isTrue(scriptFile.existsSync());
+  test(Process.start(new Options().executable, [scriptFile.name]), 0);
+}

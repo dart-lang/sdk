@@ -14,45 +14,15 @@ class _HelperStreamController<T> extends StreamController<T> {
   }
 }
 
-abstract class _StringDecoder implements StreamTransformer<List<int>, String> {
-  _HelperStreamController<String> _controller;
-  StreamSubscription<List<int>> _subscription;
+abstract class _StringDecoder
+    extends StreamEventTransformer<List<int>, String> {
   List<int> _carry;
   List<int> _buffer;
   int _replacementChar;
-  bool _paused = false;
 
-  _StringDecoder(int this._replacementChar) {
-    _controller = new _HelperStreamController<String>(_onPauseChanged);
-  }
+  _StringDecoder(int this._replacementChar);
 
-  void _onPauseChanged() {
-    _paused = _controller.isPaused;
-    if (_subscription == null) return;
-    if (_paused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
-    }
-  }
-
-  Stream<String> bind(Stream<List<int>> stream) {
-    _subscription = stream.listen(
-        _onData,
-        onError: _controller.signalError,
-        onDone: () {
-          if (_carry != null) {
-            _controller.add(new String.fromCharCodes(
-                new List.fixedLength(_carry.length, fill: _replacementChar)));
-          }
-          _controller.close();
-        },
-        unsubscribeOnError: false);
-    if (_paused) _subscription.pause();
-    return _controller.stream;
-  }
-
-  void _onData(List<int> bytes) {
+  void handleData(List<int> bytes, StreamSink<String> sink) {
     _buffer = <int>[];
     List<int> carry = _carry;
     _carry = null;
@@ -94,9 +64,17 @@ abstract class _StringDecoder implements StreamTransformer<List<int>, String> {
     }
     if (_buffer.length > 0) {
       // Limit to 'goodChars', if lower than actual charCodes in the buffer.
-      _controller.add(new String.fromCharCodes(_buffer));
+      sink.add(new String.fromCharCodes(_buffer));
     }
     _buffer = null;
+  }
+
+  void handleDone(StreamSink<String> sink) {
+    if (_carry != null) {
+      sink.add(new String.fromCharCodes(
+          new List.fixedLength(_carry.length, fill: _replacementChar)));
+    }
+    sink.close();
   }
 
   int _processBytes(int getNext());
@@ -161,25 +139,11 @@ class Utf8DecoderTransformer extends _StringDecoder {
 }
 
 
-abstract class _StringEncoder implements StreamTransformer<String, List<int>> {
-  _HelperStreamController<List<int>> _controller;
-  StreamSubscription<String> _subscription;
+abstract class _StringEncoder
+    extends StreamEventTransformer<String, List<int>> {
 
-  void _onPauseChanged() {
-    if (_controller.isPaused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
-    }
-  }
-  Stream<List<int>> bind(Stream<String> stream) {
-    _controller = new _HelperStreamController(_onPauseChanged);
-    _subscription = stream.listen(
-        (string) => _controller.add(_processString(string)),
-        onError: _controller.signalError,
-        onDone: _controller.close,
-        unsubscribeOnError: false);
-    return _controller.stream;
+  void handleData(String data, StreamSink<List<int>> sink) {
+    sink.add(_processString(data));
   }
 
   List<int> _processString(String string);

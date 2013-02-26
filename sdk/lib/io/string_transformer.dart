@@ -153,131 +153,83 @@ List<int> _encodeString(String string, [Encoding encoding = Encoding.UTF_8]) {
 }
 
 
-class LineTransformer implements StreamTransformer<String, String> {
+class LineTransformer extends StreamEventTransformer<String, String> {
   const int _LF = 10;
   const int _CR = 13;
 
   final StringBuffer _buffer = new StringBuffer();
-
-  StreamSubscription<String> _subscription;
-  StreamController<String> _controller;
   String _carry;
 
-  Stream<String> bind(Stream<String> stream) {
-    _controller = new StreamController<String>(
-        onPauseStateChange: _pauseChanged,
-        onSubscriptionStateChange: _subscriptionChanged);
-
-    void handle(String data, bool isClosing) {
-      if (_carry != null) {
-        data = _carry.concat(data);
-        _carry = null;
-      }
-      int startPos = 0;
-      int pos = 0;
-      while (pos < data.length) {
-        int skip = 0;
-        int char = data.codeUnitAt(pos);
-        if (char == _LF) {
-          skip = 1;
-        } else if (char == _CR) {
-          skip = 1;
-          if (pos + 1 < data.length) {
-            if (data.codeUnitAt(pos + 1) == _LF) {
-              skip = 2;
-            }
-          } else if (!isClosing) {
-            _carry = data.substring(startPos);
-            return;
+  void _handle(String data, StreamSink<String> sink, bool isClosing) {
+    if (_carry != null) {
+      data = _carry.concat(data);
+      _carry = null;
+    }
+    int startPos = 0;
+    int pos = 0;
+    while (pos < data.length) {
+      int skip = 0;
+      int char = data.codeUnitAt(pos);
+      if (char == _LF) {
+        skip = 1;
+      } else if (char == _CR) {
+        skip = 1;
+        if (pos + 1 < data.length) {
+          if (data.codeUnitAt(pos + 1) == _LF) {
+            skip = 2;
           }
-        }
-        if (skip > 0) {
-          _buffer.add(data.substring(startPos, pos));
-          _controller.add(_buffer.toString());
-          _buffer.clear();
-          startPos = pos = pos + skip;
-        } else {
-          pos++;
+        } else if (!isClosing) {
+          _carry = data.substring(startPos);
+          return;
         }
       }
-      if (pos != startPos) {
-        // Add remaining
+      if (skip > 0) {
         _buffer.add(data.substring(startPos, pos));
-      }
-      if (isClosing && !_buffer.isEmpty) {
-        _controller.add(_buffer.toString());
+        sink.add(_buffer.toString());
         _buffer.clear();
+        startPos = pos = pos + skip;
+      } else {
+        pos++;
       }
     }
-
-    _subscription = stream.listen(
-        (data) => handle(data, false),
-        onDone: () {
-          // Handle remaining data (mainly _carry).
-          handle("", true);
-          _controller.close();
-        },
-        onError: _controller.signalError);
-    return _controller.stream;
-  }
-
-  void _pauseChanged() {
-    if (_controller.isPaused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
+    if (pos != startPos) {
+      // Add remaining
+      _buffer.add(data.substring(startPos, pos));
+    }
+    if (isClosing && !_buffer.isEmpty) {
+      sink.add(_buffer.toString());
+      _buffer.clear();
     }
   }
 
-  void _subscriptionChanged() {
-    if (!_controller.hasSubscribers) {
-      _subscription.cancel();
-    }
+  void handleData(String data, StreamSink<String> sink) {
+    _handle(data, sink, false);
+  }
+
+  void handleDone(StreamSink<String> sink) {
+    _handle("", sink, true);
+    sink.close();
   }
 }
 
 
-class _SingleByteDecoder implements StreamTransformer<List<int>, String> {
-  StreamSubscription<List<int>> _subscription;
-  StreamController<String> _controller;
+abstract class _SingleByteDecoder
+    extends StreamEventTransformer<List<int>, String> {
   final int _replacementChar;
 
   _SingleByteDecoder(this._replacementChar);
 
-  Stream<String> bind(Stream<List<int>> stream) {
-    _controller = new StreamController<String>(
-        onPauseStateChange: _pauseChanged,
-        onSubscriptionStateChange: _subscriptionChanged);
-    _subscription = stream.listen(
-        (data) {
-          var buffer = new List<int>.fixedLength(data.length);
-          for (int i = 0; i < data.length; i++) {
-            int char = _decodeByte(data[i]);
-            if (char < 0) char = _replacementChar;
-            buffer[i] = char;
-          }
-          _controller.add(new String.fromCharCodes(buffer));
-        },
-        onDone: _controller.close,
-        onError: _controller.signalError);
-    return _controller.stream;
+  void handleData(List<int> data, StreamSink<String> sink) {
+    var buffer = new List<int>.fixedLength(data.length);
+    for (int i = 0; i < data.length; i++) {
+      int char = _decodeByte(data[i]);
+      if (char < 0) char = _replacementChar;
+      buffer[i] = char;
+    }
+    sink.add(new String.fromCharCodes(buffer));
   }
 
   int _decodeByte(int byte);
-
-  void _pauseChanged() {
-    if (_controller.isPaused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
-    }
-  }
-
-  void _subscriptionChanged() {
-    if (!_controller.hasSubscribers) {
-      _subscription.cancel();
-    }
-  }
 }
 
 
@@ -299,46 +251,19 @@ class _Latin1Decoder extends _SingleByteDecoder {
 }
 
 
-class _SingleByteEncoder implements StreamTransformer<String, List<int>> {
-  StreamSubscription<String> _subscription;
-  StreamController<List<int>> _controller;
-
-  Stream<List<int>> bind(Stream<String> stream) {
-    _controller = new StreamController<List<int>>(
-        onPauseStateChange: _pauseChanged,
-        onSubscriptionStateChange: _subscriptionChanged);
-    _subscription = stream.listen(
-        (string) {
-          var bytes = _encode(string);
-          if (bytes == null) {
-            _controller.signalError(new FormatException(
-                "Invalid character for encoding"));
-            _controller.close();
-            _subscription.cancel();
-          } else {
-            _controller.add(bytes);
-          }
-        },
-        onDone: _controller.close,
-        onError: _controller.signalError);
-    return _controller.stream;
+abstract class _SingleByteEncoder
+    extends StreamEventTransformer<String, List<int>> {
+  void handleData(String data, StreamSink<List<int>> sink) {
+    var bytes = _encode(data);
+    if (bytes == null) {
+      throw new FormatException("Invalid character for encoding");
+      sink.close();
+    } else {
+      sink.add(bytes);
+    }
   }
 
   List<int> _encode(String string);
-
-  void _pauseChanged() {
-    if (_controller.isPaused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
-    }
-  }
-
-  void _subscriptionChanged() {
-    if (!_controller.hasSubscribers) {
-      _subscription.cancel();
-    }
-  }
 }
 
 
@@ -379,36 +304,10 @@ class _WindowsCodePageEncoder extends _SingleByteEncoder {
 
 // Utility class for decoding Windows current code page data delivered
 // as a stream of bytes.
-class _WindowsCodePageDecoder implements StreamTransformer<List<int>, String> {
-  StreamSubscription<List<int>> _subscription;
-  StreamController<String> _controller;
-
-  Stream<String> bind(Stream<List<int>> stream) {
-    _controller = new StreamController<String>(
-        onPauseStateChange: _pauseChanged,
-        onSubscriptionStateChange: _subscriptionChanged);
-    _subscription = stream.listen(
-        (data) {
-          _controller.add(_decodeBytes(data));
-        },
-        onDone: _controller.close,
-        onError: _controller.signalError);
-    return _controller.stream;
+class _WindowsCodePageDecoder extends StreamEventTransformer<List<int>, String> {
+  void handleData(List<int> data, StreamSink<String> sink) {
+    sink.add(_decodeBytes(data));
   }
 
   external static String _decodeBytes(List<int> bytes);
-
-  void _pauseChanged() {
-    if (_controller.isPaused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
-    }
-  }
-
-  void _subscriptionChanged() {
-    if (!_controller.hasSubscribers) {
-      _subscription.cancel();
-    }
-  }
 }

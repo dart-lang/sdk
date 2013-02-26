@@ -221,7 +221,6 @@ testLatin1EncoderError() {
       Expect.fail("data not expected");
     },
     onError: (error) {
-    print(error);
       Expect.isTrue(error.error is FormatException);
     });
 
