@@ -21,6 +21,7 @@ import '../source_file.dart';
 import '../source_map_builder.dart';
 import '../ssa/ssa.dart' hide js; // TODO(ahe): VM bug, see above.
 import '../tree/tree.dart';
+import '../types/types.dart';
 import '../universe/universe.dart' hide js; // TODO(ahe): VM bug, see above.
 import '../util/characters.dart';
 import '../util/util.dart';

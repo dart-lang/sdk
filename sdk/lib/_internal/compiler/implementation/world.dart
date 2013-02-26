@@ -154,10 +154,11 @@ class World {
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.getEnclosingClass();
-    DartType receiverType = selector.receiverType;
-    ClassElement receiverTypeElement = (receiverType == null)
+    // TODO(kasperl): Move this code to the type mask.
+    ti.TypeMask mask = selector.mask;
+    ClassElement receiverTypeElement = (mask == null)
         ? compiler.objectClass
-        : receiverType.element;
+        : mask.base.element;
     // We only return the found element if it is guaranteed to be
     // implemented on the exact receiver type. It could be found in a
     // subclass or in an inheritance-wise unrelated class in case of
@@ -167,11 +168,9 @@ class World {
 
   Iterable<ClassElement> locateNoSuchMethodHolders(Selector selector) {
     Selector noSuchMethodSelector = new Selector.noSuchMethod();
-    DartType receiverType = selector.receiverType;
-    if (receiverType != null) {
-      TypedSelector typedSelector = selector;
-      noSuchMethodSelector = new TypedSelector(
-          typedSelector.mask, noSuchMethodSelector);
+    ti.TypeMask mask = selector.mask;
+    if (mask != null) {
+      noSuchMethodSelector = new TypedSelector(mask, noSuchMethodSelector);
     }
     ClassElement objectClass = compiler.objectClass;
     return allFunctions

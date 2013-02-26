@@ -2093,11 +2093,13 @@ class CodeEmitterTask extends CompilerTask {
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
+
+        // TODO(kasperl): This shouldn't depend on the internals of
+        // the type mask. Move more of this code to the type mask.
         ClassElement receiverClass = objectClass;
-        if (selector is TypedSelector) {
-          TypedSelector typedSelector = selector;
-          DartType receiverType = typedSelector.receiverType;
-          receiverClass = receiverType.element;
+        TypeMask mask = selector.mask;
+        if (mask != null) {
+          receiverClass = mask.base.element;
         }
 
         // If the receiver class is guaranteed to have a member that

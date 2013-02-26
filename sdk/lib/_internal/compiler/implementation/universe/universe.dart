@@ -104,30 +104,6 @@ class SelectorKind {
   String toString() => name;
 }
 
-class TypedSelectorKind {
-  final String name;
-  const TypedSelectorKind(this.name);
-
-  /// Unknown type: used for untyped selector.
-  static const TypedSelectorKind UNKNOWN = const TypedSelectorKind('unknown');
-
-  // Exact type: the selector knows the exact type of the receiver.
-  // For example [:new Map():].
-  static const TypedSelectorKind EXACT = const TypedSelectorKind('exact');
-
-  // Subclass type: the receiver type is in a subclass hierarchy.
-  // For example [:this:].
-  static const TypedSelectorKind SUBCLASS = const TypedSelectorKind('subclass');
-
-  // Interface type: any type that implements the receiver type.
-  // For example [(foo as Foo).bar()], or any type annotation in
-  // checked mode.
-  static const TypedSelectorKind INTERFACE =
-      const TypedSelectorKind('interface');
-
-  String toString() => name;
-}
-
 class Selector {
   final SelectorKind kind;
   final SourceString name;
@@ -137,7 +113,6 @@ class Selector {
   final int argumentCount;
   final List<SourceString> namedArguments;
   final List<SourceString> orderedNamedArguments;
-  TypedSelectorKind get typeKind => TypedSelectorKind.UNKNOWN;
 
   Selector(
       this.kind,
@@ -234,8 +209,9 @@ class Selector {
   int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
-  DartType get receiverType => null;
 
+  bool get hasExactMask => false;
+  TypeMask get mask => null;
   Selector get asUntyped => this;
 
   /**
@@ -387,14 +363,12 @@ class Selector {
 
   bool operator ==(other) {
     if (other is !Selector) return false;
-    return identical(receiverType, other.receiverType)
-        && equalsUntyped(other);
+    return mask == other.mask && equalsUntyped(other);
   }
 
   bool equalsUntyped(Selector other) {
     return name == other.name
            && kind == other.kind
-           && typeKind == other.typeKind
            && identical(library, other.library)
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
@@ -428,7 +402,7 @@ class Selector {
     String named = '';
     String type = '';
     if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
-    if (receiverType != null) type = ', type=$typeKind $receiverType';
+    if (mask != null) type = ', mask=$mask';
     return 'Selector($kind, ${name.slowToString()}, '
            'arity=$argumentCount$named$type)';
   }
@@ -447,30 +421,19 @@ class TypedSelector extends Selector {
               selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
     assert(!identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
-    assert(asUntyped.receiverType == null);
+    assert(asUntyped.mask == null);
   }
 
-  TypedSelector.exact(DartType receiverType, Selector selector)
-      : this(new TypeMask.exact(receiverType), selector);
+  TypedSelector.exact(DartType base, Selector selector)
+      : this(new TypeMask.exact(base), selector);
 
-  TypedSelector.subclass(DartType receiverType, Selector selector)
-      : this(new TypeMask.subclass(receiverType), selector);
+  TypedSelector.subclass(DartType base, Selector selector)
+      : this(new TypeMask.subclass(base), selector);
 
-  TypedSelector.subtype(DartType receiverType, Selector selector)
-      : this(new TypeMask.subtype(receiverType), selector);
+  TypedSelector.subtype(DartType base, Selector selector)
+      : this(new TypeMask.subtype(base), selector);
 
-  // TODO(kasperl): These should go away.
-  DartType get receiverType => mask.base;
-  TypedSelectorKind get typeKind {
-    if (mask.isExact) {
-      return TypedSelectorKind.EXACT;
-    } else if (mask.isSubclass) {
-      return TypedSelectorKind.SUBCLASS;
-    } else {
-      assert(mask.isSubtype);
-      return TypedSelectorKind.INTERFACE;
-    }
-  }
+  bool get hasExactMask => mask.isExact;
 
   /**
    * Check if [element] will be the one used at runtime when being
@@ -513,26 +476,28 @@ class TypedSelector extends Selector {
       return appliesUntyped(element, compiler);
     }
 
-    Element self = receiverType.element;
+    // TODO(kasperl): Can't we just avoid creating typed selectors
+    // based of function types?
+    Element self = mask.base.element;
     if (self.isTypedef()) {
       // A typedef is a function type that doesn't have any
       // user-defined members.
       return false;
     }
 
-    if (typeKind == TypedSelectorKind.EXACT) {
+    if (mask.isExact) {
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
-    } else if (typeKind == TypedSelectorKind.SUBCLASS) {
+    } else if (mask.isSubclass) {
       return (hasElementIn(self, element)
               || other.isSubclassOf(self)
               || compiler.world.hasAnySubclassThatMixes(self, other))
           && appliesUntyped(element, compiler);
     } else {
-      assert(typeKind == TypedSelectorKind.INTERFACE);
+      assert(mask.isSubtype);
       if (other.implementsInterface(self)
           || other.isSubclassOf(self)
           || compiler.world.hasAnySubclassThatMixes(self, other)
-          || compiler.world.hasAnySubclassThatImplements(other, receiverType)) {
+          || compiler.world.hasAnySubclassThatImplements(other, mask.base)) {
         return appliesUntyped(element, compiler);
       }
 
@@ -542,10 +507,9 @@ class TypedSelector extends Selector {
       if (cls.isSubclassOf(other)) {
         // Resolve an invocation of [element.name] on [self]. If it
         // is found, this selector is a candidate.
-        return hasElementIn(self, element) && appliesUntyped(element, compiler);
+        return hasElementIn(cls, element) && appliesUntyped(element, compiler);
       }
     }
-
     return false;
   }
 }

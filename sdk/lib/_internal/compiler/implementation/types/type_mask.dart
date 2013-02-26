@@ -106,4 +106,14 @@ class TypeMask {
     }
     return null;
   }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    if (isNullable) buffer.write('null|');
+    if (isExact) buffer.write('exact=');
+    if (isSubclass) buffer.write('subclass=');
+    if (isSubtype) buffer.write('subtype=');
+    buffer.write(base.element.name.slowToString());
+    return "[$buffer]";
+  }
 }
