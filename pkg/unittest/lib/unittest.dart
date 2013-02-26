@@ -113,6 +113,19 @@
  * callback should be protected within a call to guardAsync(); this will ensure
  * that exceptions are properly handled.
  *
+ * A variation on this is expectAsyncUntilX(), which takes a callback as the 
+ * first parameter and a predicate function as the second parameter; after each
+ * time * the callback is called, the predicate function will be called; if it
+ * returns false the test will still be considered incomplete.
+ *
+ * Test functions can return [Future]s, which provide another way of doing
+ * asynchronous tests. The test framework will handle exceptions thrown by
+ * the Future, and will advance to the next test when the Future is complete. 
+ * It is still important to use expectAsync/guardAsync with any parts of the
+ * test that may be invoked from a top level context (for example, with
+ * Timer.run()], as the Future exception handler may not capture exceptions
+ * in such code.
+ *
  * Note: due to some language limitations we have to use different functions
  * depending on the number of positional arguments of the callback. In the
  * future, we plan to expose a single `expectAsync` function that can be used
@@ -678,17 +691,17 @@ void _reportTestError(String msg, String trace) {
   }
 }
 
-/** Runs [callback] at the end of the event loop. */
+/**
+ * Runs [callback] at the end of the event loop. Note that we don't wrap
+ * the callback in guardAsync; this is for test framework functions which
+ * should not be throwing unexpected exceptions that end up failing test
+ * cases! Furthermore, we need the final exception to be thrown but not
+ * caught by the test framework if any test cases failed. However, tests
+ * that make use of a similar defer function *should* wrap the callback
+ * (as we do in unitttest_test.dart).
+ */
 _defer(void callback()) {
-  // Exploit isolate ports as a platform-independent mechanism to queue a
-  // message at the end of the event loop.
-  // TODO(sigmund): expose this functionality somewhere in our libraries.
-  final port = new ReceivePort();
-  port.receive((msg, reply) {
-    callback();
-    port.close();
-  });
-  port.toSendPort().send(null, null);
+  (new Future.immediate(null)).then((_) => callback());
 }
 
 rerunTests() {
@@ -781,11 +794,7 @@ _nextBatch() {
     final testCase = _tests[_currentTest];
     var f = guardAsync(testCase.run, null, _currentTest);
     if (f != null) {
-      f.then((_){})
-       .catchError((e) {
-        testCase.error(e.toString(), e.stackTrace);
-      })
-      .whenComplete(() {
+      f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
       });
       break;

@@ -76,9 +76,20 @@ class TestCase {
     runningTime = null;
   }
 
-  void _runTest() {
+  Future _runTest() {
     _prepTest();
-    test();
+    var f = test();
+    if (f is Future) {
+      f.then((_) => _finishTest())
+       .catchError((e) => fail("${e.error}"));
+      return f;
+    } else {
+      _finishTest();
+      return null;
+    }
+  }
+
+  void _finishTest() {
     if (result == null && callbackFunctionsOutstanding == 0) {
       pass();
     }
@@ -98,19 +109,21 @@ class TestCase {
     _doneTeardown = false;
     var rtn = _setUp == null ? null : _setUp();
     if (rtn is Future) {
-      rtn.then(expectAsync1((_) =>_runTest(),
-          id: '[Async setUp completion handler]'))
-      .catchError((e) {
-        _prepTest();
-        // Calling error() will result in the tearDown being done.
-        // One could debate whether tearDown should be done after
-        // a failed setUp. There is no right answer, but doing it
-        // seems to be the more conservative approach, because 
-        // unittest will not stop at a test failure.
-        error("$description: Test setup failed: ${e.error}");
-      });
+      rtn.then((_) => _runTest())
+         .catchError((e) {
+          _prepTest();
+          // Calling error() will result in the tearDown being done.
+          // One could debate whether tearDown should be done after
+          // a failed setUp. There is no right answer, but doing it
+          // seems to be the more conservative approach, because 
+          // unittest will not stop at a test failure.
+          error("$description: Test setup failed: ${e.error}");
+        });
     } else {
-      _runTest();
+      var f = _runTest();
+      if (f != null) {
+        return f;
+      }
     }
     if (result == null) { // Not complete.
       _testComplete = new Completer();

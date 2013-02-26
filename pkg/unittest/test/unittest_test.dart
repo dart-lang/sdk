@@ -20,14 +20,7 @@ var actual; // actual test results (from buildStatusString in config.onDone)
 var _testconfig; // test configuration to capture onDone
 
 _defer(void fn()) {
-  // Exploit isolate ports as a platform-independent mechanism to queue a
-  // message at the end of the event loop. Stolen from unittest.dart.
-  final port = new ReceivePort();
-  port.receive((msg, reply) {
-    fn();
-    port.close();
-  });
-  port.toSendPort().send(null, null);
+  return (new Future.immediate(null)).then((_) => guardAsync(fn));
 }
 
 String buildStatusString(int passed, int failed, int errors,
@@ -234,6 +227,107 @@ runTest() {
       // The next test is just to make sure we make steady progress 
       // through the tests.
       test('post groups', () {});
+    } else if (testName == 'test returning future') {
+      test("successful", () {
+        return _defer(() {
+          expect(true, true);
+        });
+      });
+      // We repeat the fail and error tests, because during development
+      // I had a situation where either worked fine on their own, and
+      // error/fail worked, but fail/error would time out.
+      test("error1", () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          excesscallback();
+          excesscallback();
+          excesscallback();
+          callback();
+        });
+      });
+      test("fail1", () {
+        return _defer(() {
+          expect(true, false);
+        });
+      });
+      test("error2", () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          excesscallback();
+          excesscallback();
+          callback();
+        });
+      });
+      test("fail2", () {
+        return _defer(() {
+          expect(false, true);
+        });
+      });
+      test('foo5', () {
+      });
+    } else if (testName == 'test returning future using Timer') {
+      test("successful", () {
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              expect(true, true);
+            });
+          });
+        });
+      });
+      test("fail1", () {
+        var callback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              expect(true, false);
+              callback();
+            });
+          });
+        });
+      });
+      test('error1', () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              excesscallback();
+              excesscallback();
+              excesscallback();
+              callback();
+            });
+          });
+        });
+      });
+      test("fail2", () {
+        var callback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              expect(false, true);
+              callback();
+            });
+          });
+        });
+      });
+      test('error2', () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              excesscallback();
+              excesscallback();
+              callback();
+            });
+          });
+        });
+      });
+      test('foo6', () {
+      });
     }
   });
 }
@@ -267,7 +361,9 @@ main() {
     'async exception test',
     'late exception test',
     'middle exception test',
-    'async setup/teardown test'
+    'async setup/teardown test',
+    'test returning future',
+    'test returning future using Timer'
   ];
 
   expected = [
@@ -299,7 +395,21 @@ main() {
         'foo3: Test setup failed: Failed to complete setUp:'
         'bad setup/bad teardown foo4:bad setup/bad teardown '
         'foo4: Test teardown failed: Failed to complete tearDown:'
-        'post groups')
+        'post groups'),
+    buildStatusString(2, 2, 2,
+        'successful::'
+        'error1:Callback called more times than expected (3 > 1).:'
+        'fail1:Expected: <false> but: was <true>.:'
+        'error2:Callback called more times than expected (2 > 1).:'
+        'fail2:Expected: <true> but: was <false>.:'
+        'foo5'),
+    buildStatusString(2, 2, 2,
+        'successful::'
+        'fail1:Expected: <false> but: was <true>.:'
+        'error1:Callback called more times than expected (3 > 1).:'
+        'fail2:Expected: <true> but: was <false>.:'
+        'error2:Callback called more times than expected (2 > 1).:'
+        'foo6'),
   ];
 
   actual = [];
