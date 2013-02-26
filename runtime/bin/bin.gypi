@@ -345,6 +345,9 @@
       'sources': [
         'main.cc',
         'builtin_nolib.cc',
+        'vmstats.h',
+        'vmstats_impl.cc',
+        'vmstats_impl.h',
         '<(snapshot_cc_file)',
       ],
       'conditions': [
@@ -384,6 +387,9 @@
       'sources': [
         'main.cc',
         'builtin.cc',
+        'vmstats.h',
+        'vmstats_impl.cc',
+        'vmstats_impl.h',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',

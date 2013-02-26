@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
+#include "bin/vmstats_impl.h"
 #include "platform/globals.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
@@ -47,6 +48,9 @@ static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
 static const char* debug_ip = DEFAULT_DEBUG_IP;
 static int debug_port = 0;
 
+// Global state that defines the VmStats web server port and root directory.
+static int vmstats_port = -1;
+static const char* vmstats_root = NULL;
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -164,6 +168,31 @@ static bool ProcessUseScriptSnapshotOption(const char* filename) {
 }
 
 
+static bool ProcessVmStatsOption(const char* port) {
+  ASSERT(port != NULL);
+  if (*port == '\0') {
+    vmstats_port = 0;  // Dynamically assigned port number.
+  } else {
+    if ((*port == '=') || (*port == ':')) {
+      vmstats_port = atoi(port + 1);
+    }
+  }
+  if (vmstats_port < 0) {
+    Log::PrintErr("unrecognized --stats option syntax. "
+                    "Use --stats[:<port number>]\n");
+    return false;
+  }
+  return true;
+}
+
+
+static bool ProcessVmStatsRootOption(const char* arg) {
+  ASSERT(arg != NULL);
+  vmstats_root = arg;
+  return true;
+}
+
+
 static bool ProcessGenScriptSnapshotOption(const char* filename) {
   if (filename != NULL && strlen(filename) != 0) {
     // Ensure that are already running using a full snapshot.
@@ -207,6 +236,8 @@ static struct {
   { "--debug", ProcessDebugOption },
   { "--use-script-snapshot=", ProcessUseScriptSnapshotOption },
   { "--generate-script-snapshot=", ProcessGenScriptSnapshotOption },
+  { "--stats-root=", ProcessVmStatsRootOption },
+  { "--stats", ProcessVmStatsOption },
   { NULL, NULL }
 };
 
@@ -489,6 +520,7 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     return false;
   }
   Dart_ExitScope();
+  VmStats::AddIsolate(reinterpret_cast<IsolateData*>(data), isolate);
   return true;
 }
 
@@ -550,6 +582,14 @@ static void PrintUsage() {
 "\n"
 "--generate-script-snapshot=<file_name>\n"
 "  loads Dart script and generates a snapshot in the specified file\n"
+"\n"
+"--stats[:<port number>]\n"
+"  enables VM stats service and listens on specified port for HTTP requests\n"
+"  (default port number is dynamically assigned)\n"
+"\n"
+"--stats-root=<path>\n"
+"  where to find static files used by the vmstats application\n"
+"  (used during vmstats plug-in development)\n"
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
@@ -628,6 +668,7 @@ static int ErrorExit(const char* format, ...) {
 
 static void ShutdownIsolate(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
+  VmStats::RemoveIsolate(isolate_data);
   EventHandler* handler = isolate_data->event_handler;
   if (handler != NULL) handler->Shutdown();
   delete isolate_data;
@@ -714,6 +755,10 @@ int main(int argc, char** argv) {
 
   Dart_EnterScope();
 
+  if (vmstats_port >= 0) {
+    VmStats::Start(vmstats_port, vmstats_root);
+  }
+
   if (generate_script_snapshot) {
     // First create a snapshot.
     Dart_Handle result;
@@ -774,6 +819,7 @@ int main(int argc, char** argv) {
   }
 
   Dart_ExitScope();
+  VmStats::Stop();
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.

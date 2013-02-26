@@ -751,4 +751,12 @@ DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id) {
   return Api::CastIsolate(isolate);
 }
 
+
+DART_EXPORT char* Dart_GetVmStatus(const char* request) {
+  if (strncmp(request, "/isolate/", 9) == 0) {
+    return Isolate::GetStatus(request);
+  }
+  return NULL;
+}
+
 }  // namespace dart

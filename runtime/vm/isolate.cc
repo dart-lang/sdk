@@ -627,4 +627,61 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
   }
 }
 
+
+char* Isolate::GetStatus(const char* request) {
+  char* p = const_cast<char*>(request);
+  const char* service_type = "/isolate/";
+  ASSERT(strncmp(p, service_type, strlen(service_type)) == 0);
+  p += strlen(service_type);
+
+  // Extract isolate handle.
+  int64_t addr;
+  OS::StringToInt64(p, &addr);
+  Isolate* isolate = reinterpret_cast<Isolate*>(addr);
+  Heap* heap = isolate->heap();
+
+  char buffer[256];
+  int64_t port = isolate->main_port();
+  int64_t start_time = (isolate->start_time() / 1000L);
+#if defined(TARGET_ARCH_X64)
+  const char* format = "{\n"
+      "  \"name\": \"%s\",\n"
+      "  \"port\": %ld,\n"
+      "  \"starttime\": %ld,\n"
+      "  \"stacklimit\": %ld,\n"
+      "  \"newspace\": {\n"
+      "    \"used\": %ld,\n"
+      "    \"capacity\": %ld\n"
+      "  },\n"
+      "  \"oldspace\": {\n"
+      "    \"used\": %ld,\n"
+      "    \"capacity\": %ld\n"
+      "  }\n"
+      "}";
+#else
+  const char* format = "{\n"
+      "  \"name\": \"%s\",\n"
+      "  \"port\": %lld,\n"
+      "  \"starttime\": %lld,\n"
+      "  \"stacklimit\": %d,\n"
+      "  \"newspace\": {\n"
+      "    \"used\": %d,\n"
+      "    \"capacity\": %d\n"
+      "  },\n"
+      "  \"oldspace\": {\n"
+      "    \"used\": %d,\n"
+      "    \"capacity\": %d\n"
+      "  }\n"
+      "}";
+#endif
+  int n = OS::SNPrint(buffer, 256, format, isolate->name(), port, start_time,
+                      isolate->saved_stack_limit(),
+                      heap->Used(Heap::kNew) / KB,
+                      heap->Capacity(Heap::kNew) / KB,
+                      heap->Used(Heap::kOld) / KB,
+                      heap->Capacity(Heap::kOld) / KB);
+  ASSERT(n < 256);
+  return strdup(buffer);
+}
+
 }  // namespace dart

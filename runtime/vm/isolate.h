@@ -344,6 +344,8 @@ class Isolate : public BaseIsolate {
     return list;
   }
 
+  static char* GetStatus(const char* request);
+
  private:
   Isolate();
 
