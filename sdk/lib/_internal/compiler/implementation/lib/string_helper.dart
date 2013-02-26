@@ -77,8 +77,6 @@ stringReplaceJS(receiver, replacer, to) {
   return JS('String', r'#.replace(#, #)', receiver, replacer, to);
 }
 
-final RegExp quoteRegExp = const JSSyntaxRegExp(r'[-[\]{}()*+?.,\\^$|#\s]');
-
 stringReplaceAllUnchecked(receiver, from, to) {
   checkString(to);
   if (from is String) {
@@ -96,15 +94,14 @@ stringReplaceAllUnchecked(receiver, from, to) {
         return result.toString();
       }
     } else {
-      var quoter = regExpMakeNative(quoteRegExp, global: true);
+      var quoter = JS('', "new RegExp(#, 'g')", r'[-[\]{}()*+?.,\\^$|#\s]');
       var quoted = JS('String', r'#.replace(#, "\\$&")', from, quoter);
-      RegExp replaceRegExp = new JSSyntaxRegExp(quoted);
-      var replacer = regExpMakeNative(replaceRegExp, global: true);
+      var replacer = JS('', "new RegExp(#, 'g')", quoted);
       return stringReplaceJS(receiver, replacer, to);
     }
   } else if (from is JSSyntaxRegExp) {
-    var re = regExpMakeNative(from, global: true);
-    return stringReplaceJS(receiver, re, to);
+    var re = new JSSyntaxRegExp._globalVersionOf(from);
+    return stringReplaceJS(receiver, re._nativeRegExp, to);
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).

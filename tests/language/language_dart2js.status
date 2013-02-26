@@ -314,7 +314,6 @@ bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
 optimization_test: Fail, OK # Expects negative results of bit-operations.
 
 expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
-reg_exp3_test: Fail, OK # Expects exception from const constructor.
 
 # Partially implemented redirecting constructors makes this throw instead
 # of failing.

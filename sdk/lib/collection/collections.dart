@@ -115,7 +115,7 @@ class IterableMixinWorkaround {
    * Removes elements matching [test] from [list].
    *
    * This is performed in two steps, to avoid exposing an inconsistent state
-   * to the [test] function. First the elements to ratain are found, and then
+   * to the [test] function. First the elements to retain are found, and then
    * the original list is updated to contain those elements.
    */
   static void removeMatchingList(List list, bool test(var element)) {

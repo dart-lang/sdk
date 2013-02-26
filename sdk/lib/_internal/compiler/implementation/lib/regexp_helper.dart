@@ -4,71 +4,72 @@
 
 part of _js_helper;
 
-List regExpExec(JSSyntaxRegExp regExp, String str) {
-  var nativeRegExp = regExpGetNative(regExp);
-  var result = JS('=List', r'#.exec(#)', nativeRegExp, str);
-  if (JS('bool', r'# == null', result)) return null;
-  return result;
-}
-
-bool regExpTest(JSSyntaxRegExp regExp, String str) {
-  var nativeRegExp = regExpGetNative(regExp);
-  return JS('bool', r'#.test(#)', nativeRegExp, str);
-}
-
-regExpGetNative(JSSyntaxRegExp regExp) {
-  var r = JS('var', r'#._re', regExp);
-  if (r == null) {
-    r = JS('var', r'#._re = #', regExp, regExpMakeNative(regExp));
-  }
-  return r;
-}
-
-regExpAttachGlobalNative(JSSyntaxRegExp regExp) {
-  JS('void', r'#._re = #', regExp, regExpMakeNative(regExp, global: true));
-}
-
-regExpMakeNative(JSSyntaxRegExp regExp, {bool global: false}) {
-  String pattern = regExp.pattern;
-  bool isMultiLine = regExp.isMultiLine;
-  bool isCaseSensitive = regExp.isCaseSensitive;
-  checkString(pattern);
-  StringBuffer sb = new StringBuffer();
-  if (isMultiLine) sb.add('m');
-  if (!isCaseSensitive) sb.add('i');
-  if (global) sb.add('g');
-  try {
-    return JS('var', r'new RegExp(#, #)', pattern, sb.toString());
-  } catch (e) {
-    throw new IllegalJSRegExpException(pattern,
-                                       JS('String', r'String(#)', e));
-  }
-}
-
-int regExpMatchStart(m) => JS('int', r'#.index', m);
+// Helper method used by internal libraries.
+regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
 
 class JSSyntaxRegExp implements RegExp {
   final String _pattern;
   final bool _isMultiLine;
   final bool _isCaseSensitive;
+  var _nativeRegExp;
 
-  const JSSyntaxRegExp(String pattern,
-                       {bool multiLine: false,
-                        bool caseSensitive: true})
-      : _pattern = pattern,
-        _isMultiLine = multiLine,
-        _isCaseSensitive = caseSensitive;
+  JSSyntaxRegExp._internal(String pattern,
+                           bool multiLine,
+                           bool caseSensitive,
+                           bool global)
+      : _nativeRegExp = makeNative(pattern, multiLine, caseSensitive, global),
+        this._pattern = pattern,
+        this._isMultiLine = multiLine,
+        this._isCaseSensitive = caseSensitive;
+
+  JSSyntaxRegExp(String pattern,
+                 {bool multiLine: false,
+                  bool caseSensitive: true})
+      : this._internal(pattern, multiLine, caseSensitive, false);
+
+  JSSyntaxRegExp._globalVersionOf(JSSyntaxRegExp other)
+      : this._internal(other.pattern,
+                       other.isMultiLine,
+                       other.isCaseSensitive,
+                       true);
+
+  static makeNative(
+      String pattern, bool multiLine, bool caseSensitive, bool global) {
+    checkString(pattern);
+    String m = multiLine ? 'm' : '';
+    String i = caseSensitive ? '' : 'i';
+    String g = global ? 'g' : '';
+    // We're using the JavaScript's try catch instead of the Dart one
+    // to avoid dragging in Dart runtime support just because of using
+    // RegExp.
+    var regexp = JS('',
+        '(function() {'
+         'try {'
+          'return new RegExp(#, # + # + #);'
+         '} catch (e) {'
+           'return e;'
+         '}'
+        '})()', pattern, m, i, g);
+    if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
+    // The returned value is the JavaScript exception. Turn it into a
+    // Dart exception.
+    throw new IllegalJSRegExpException(
+        pattern, JS('String', r'String(#)', regexp));
+  }
 
   Match firstMatch(String str) {
-    List<String> m = regExpExec(this, checkString(str));
+    List<String> m =
+        JS('=List|Null', r'#.exec(#)', _nativeRegExp, checkString(str));
     if (m == null) return null;
-    var matchStart = regExpMatchStart(m);
+    var matchStart = JS('int', r'#.index', m);
     // m.lastIndex only works with flag 'g'.
     var matchEnd = matchStart + m[0].length;
     return new _MatchImplementation(pattern, str, matchStart, matchEnd, m);
   }
 
-  bool hasMatch(String str) => regExpTest(this, checkString(str));
+  bool hasMatch(String str) {
+    return JS('bool', r'#.test(#)', _nativeRegExp, checkString(str));
+  }
 
   String stringMatch(String str) {
     var match = firstMatch(str);
@@ -83,17 +84,6 @@ class JSSyntaxRegExp implements RegExp {
   String get pattern => _pattern;
   bool get isMultiLine => _isMultiLine;
   bool get isCaseSensitive => _isCaseSensitive;
-
-  static JSSyntaxRegExp _globalVersionOf(JSSyntaxRegExp other) {
-    JSSyntaxRegExp re =
-        new JSSyntaxRegExp(other.pattern,
-                           multiLine: other.isMultiLine,
-                           caseSensitive: other.isCaseSensitive);
-    regExpAttachGlobalNative(re);
-    return re;
-  }
-
-  _getNative() => regExpGetNative(this);
 }
 
 class _MatchImplementation implements Match {
@@ -138,7 +128,7 @@ class _AllMatchesIterator implements Iterator<Match> {
   Match _current;
 
   _AllMatchesIterator(JSSyntaxRegExp re, String this._str)
-    : _re = JSSyntaxRegExp._globalVersionOf(re);
+    : _re = new JSSyntaxRegExp._globalVersionOf(re);
 
   Match get current => _current;
 

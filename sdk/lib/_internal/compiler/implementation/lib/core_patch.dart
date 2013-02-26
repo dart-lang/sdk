@@ -11,8 +11,7 @@ import 'dart:_js_helper' show checkNull,
                               JSSyntaxRegExp,
                               Primitives,
                               TypeImpl,
-                              stringJoinUnchecked,
-                              JsStringBuffer;
+                              stringJoinUnchecked;
 
 patch void print(var object) {
   Primitives.printString(object.toString());

@@ -138,8 +138,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
-        replacement.instructionType = replacement.instructionType.intersection(
+        HType newType = replacement.instructionType.intersection(
             instruction.instructionType, compiler);
+        if (!newType.isConflicting()) {
+          // [HType.intersection] may give up when doing the
+          // intersection of two types is too complicated, and return
+          // [HType.CONFLICTING]. We do not want instructions to have
+          // [HType.CONFLICTING], so we only update the type if the
+          // intersection did not give up.
+          replacement.instructionType = newType;
+        }
 
         // If the replacement instruction does not know its
         // source element, use the source element of the

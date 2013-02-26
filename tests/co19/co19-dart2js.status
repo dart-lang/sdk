@@ -593,8 +593,6 @@ LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an It
 LibTest/core/Match/str_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail, OK # This is not rejected by V8.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 92.
-LibTest/core/RegExp/RegExp_A01_t03: Fail, OK # Expects exception from const constructor.
-LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const constructor.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
 LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.

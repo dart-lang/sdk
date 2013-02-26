@@ -176,36 +176,32 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.instructionType;
-    if (!type.isPrimitive()) {
-      prefix = 'U';
+    if (type == HType.MUTABLE_ARRAY) {
+      prefix = 'm';
+    } else if (type == HType.READABLE_ARRAY) {
+      prefix = 'a';
+    } else if (type == HType.EXTENDABLE_ARRAY) {
+      prefix = 'e';
+    } else if (type == HType.BOOLEAN) {
+      prefix = 'b';
+    } else if (type == HType.INTEGER) {
+      prefix = 'i';
+    } else if (type == HType.DOUBLE) {
+      prefix = 'd';
+    } else if (type == HType.NUMBER) {
+      prefix = 'n';
+    } else if (type == HType.STRING) {
+      prefix = 's';
+    } else if (type == HType.UNKNOWN) {
+      prefix = 'v';
+    } else if (type == HType.CONFLICTING) {
+      prefix = 'c';
+    } else if (type == HType.INDEXABLE_PRIMITIVE) {
+      prefix = 'r';
+    } else if (type == HType.NULL) {
+      prefix = 'u';
     } else {
-      if (type == HType.MUTABLE_ARRAY) {
-        prefix = 'm';
-      } else if (type == HType.READABLE_ARRAY) {
-        prefix = 'a';
-      } else if (type == HType.EXTENDABLE_ARRAY) {
-        prefix = 'e';
-      } else if (type == HType.BOOLEAN) {
-        prefix = 'b';
-      } else if (type == HType.INTEGER) {
-        prefix = 'i';
-      } else if (type == HType.DOUBLE) {
-        prefix = 'd';
-      } else if (type == HType.NUMBER) {
-        prefix = 'n';
-      } else if (type == HType.STRING) {
-        prefix = 's';
-      } else if (type == HType.UNKNOWN) {
-        prefix = 'v';
-      } else if (type == HType.CONFLICTING) {
-        prefix = 'c';
-      } else if (type == HType.INDEXABLE_PRIMITIVE) {
-        prefix = 'r';
-      } else if (type == HType.NULL) {
-        prefix = 'u';
-      } else {
-        prefix = 'x';
-      }
+      prefix = 'U';
     }
     return "$prefix${instruction.id}";
   }
