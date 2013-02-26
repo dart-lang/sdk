@@ -74,7 +74,7 @@ void determineAllMembers(ClassMirror classMirror,
   }
   if (classMirror.superclass != null &&
       classMirror.superclass.qualifiedName != classMirror.qualifiedName &&
-      classMirror.superclass.qualifiedName != 'dart:core.Object') {
+      classMirror.superclass.qualifiedName != 'dart.core.Object') {
     determineAllMembers(classMirror.superclass, members);
   }
 }
