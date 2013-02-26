@@ -158,16 +158,6 @@ void main() {
             "ArgumentError.");
     });
 
-    test('throwsIllegalJSRegExpException', () {
-      shouldPass(() { throw new IllegalJSRegExpException('',''); },
-          throwsIllegalJSRegExpException);
-      shouldFail(() { throw new Exception(); },
-          throwsIllegalJSRegExpException,
-        "Expected: throws an exception which matches IllegalJSRegExpException "
-        "but:  exception <Exception> does not match "
-            "IllegalJSRegExpException.");
-    });
-
     test('throwsRangeError', () {
       shouldPass(() { throw new RangeError(0); },
           throwsRangeError);

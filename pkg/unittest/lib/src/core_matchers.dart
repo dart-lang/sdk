@@ -483,19 +483,6 @@ class _ArgumentError extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is ArgumentError;
 }
 
-/** A matcher for IllegalJSRegExpExceptions. */
-const isIllegalJSRegExpException = const _IllegalJSRegExpException();
-
-/** A matcher for functions that throw IllegalJSRegExpException. */
-@deprecated
-const Matcher throwsIllegalJSRegExpException =
-    const Throws(isIllegalJSRegExpException);
-
-class _IllegalJSRegExpException extends TypeMatcher {
-  const _IllegalJSRegExpException() : super("IllegalJSRegExpException");
-  bool matches(item, MatchState matchState) => item is IllegalJSRegExpException;
-}
-
 /** A matcher for RangeErrors. */
 const isRangeError = const _RangeError();
 
