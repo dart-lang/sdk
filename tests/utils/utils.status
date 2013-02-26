@@ -11,6 +11,9 @@ dummy_compiler_test: Skip # http://dartbug.com/7233
 recursive_import_test: Fail # http://dartbug.com/2264
 dart2js_test: Fail # http://dartbug.com/2264
 
+[ $compiler == dartc ]
+dart2js_test: Fail # http://dartbug.com/8802
+
 [ $compiler == dart2js && $browser ]
 *: Skip
 
