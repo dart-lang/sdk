@@ -162,19 +162,25 @@ class ParsedFunction;
 
 
 // Loop invariant code motion.
-class LICM : public AllStatic {
+class LICM : public ValueObject {
  public:
-  static void Optimize(FlowGraph* flow_graph);
+  explicit LICM(FlowGraph* flow_graph);
+
+  void Optimize();
 
  private:
-  static void Hoist(ForwardInstructionIterator* it,
-                    BlockEntryInstr* pre_header,
-                    Instruction* current);
+  FlowGraph* flow_graph() const { return flow_graph_; }
 
-  static void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
-                                         BlockEntryInstr* header,
-                                         BlockEntryInstr* pre_header,
-                                         CheckSmiInstr* current);
+  void Hoist(ForwardInstructionIterator* it,
+             BlockEntryInstr* pre_header,
+             Instruction* current);
+
+  void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
+                                  BlockEntryInstr* header,
+                                  BlockEntryInstr* pre_header,
+                                  CheckSmiInstr* current);
+
+  FlowGraph* const flow_graph_;
 };
 
 

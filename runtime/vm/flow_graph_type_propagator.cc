@@ -285,12 +285,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
-
-  Value* use = check_clone->InputAt(0);
-  use->definition()->AddInputUse(use);
-
-  assert->env()->DeepCopyTo(check_clone);
   check_clone->InsertBefore(assert);
+  assert->env()->DeepCopyTo(check_clone);
 
   (*asserts_)[defn->ssa_temp_index()] = kStrengthenedAssertMarker;
 }

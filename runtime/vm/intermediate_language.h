@@ -287,6 +287,9 @@ class Value : public ZoneAllocated {
   static void AddToList(Value* value, Value** list);
   void RemoveFromUseList();
 
+  // Change the definition after use lists have been computed.
+  inline void BindTo(Definition* definition);
+
   Value* Copy() { return new Value(definition_); }
 
   // This function must only be used when the new Value is dominated by
@@ -577,7 +580,9 @@ class Instruction : public ZoneAllocated {
     next->set_previous(this);
   }
 
-  // Removed this instruction from the graph.
+  // Removed this instruction from the graph, after use lists have been
+  // computed.  If the instruction is a definition with uses, those uses are
+  // unaffected (so the instruction can be reinserted, e.g., hoisting).
   Instruction* RemoveFromGraph(bool return_previous = true);
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
@@ -623,7 +628,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
   Environment* env() const { return env_; }
-  void set_env(Environment* env) { env_ = env; }
+  void SetEnvironment(Environment* deopt_env);
+  void RemoveEnvironment();
 
   intptr_t lifetime_position() const { return lifetime_position_; }
   void set_lifetime_position(intptr_t pos) {
@@ -657,10 +663,12 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // change.
   virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
-  // Insert this instruction before 'next'.
-  void InsertBefore(Instruction* next);
+  // Insert this instruction before 'next' after use lists are computed.
+  // Instructions cannot be inserted before a block entry or any other
+  // instruction without a previous instruction.
+  void InsertBefore(Instruction* next) { InsertAfter(next->previous()); }
 
-  // Insert this instruction after 'prev'.
+  // Insert this instruction after 'prev' after use lists are computed.
   void InsertAfter(Instruction* prev);
 
   // Returns true if the instruction is affected by side effects.
@@ -1386,6 +1394,14 @@ class Definition : public Instruction {
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
+
+
+// Change a value's definition after use lists have been computed.
+inline void Value::BindTo(Definition* def) {
+  RemoveFromUseList();
+  set_definition(def);
+  def->AddInputUse(this);
+}
 
 
 class PhiInstr : public Definition {

@@ -72,17 +72,13 @@ void FlowGraph::InsertAfter(Instruction* prev,
                             Instruction* instr,
                             Environment* env,
                             Definition::UseKind use_kind) {
-  for (intptr_t i = instr->InputCount() - 1; i >= 0; --i) {
-    Value* input = instr->InputAt(i);
-    input->definition()->AddInputUse(input);
-  }
-  ASSERT(instr->env() == NULL);
-  if (env != NULL) env->DeepCopyTo(instr);
   if (use_kind == Definition::kValue) {
     ASSERT(instr->IsDefinition());
     instr->AsDefinition()->set_ssa_temp_index(alloc_ssa_temp_index());
   }
   instr->InsertAfter(prev);
+  ASSERT(instr->env() == NULL);
+  if (env != NULL) env->DeepCopyTo(instr);
 }
 
 
@@ -472,12 +468,9 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           Environment::From(*env,
                             num_non_copied_params_,
                             parsed_function_.function());
-      current->set_env(deopt_env);
-      intptr_t use_index = 0;
+      current->SetEnvironment(deopt_env);
       for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
         Value* use = it.CurrentValue();
-        use->set_instruction(current);
-        use->set_use_index(use_index++);
         use->definition()->AddEnvUse(use);
       }
     }
@@ -499,7 +492,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       Definition* input_defn = v->definition();
       if (input_defn->IsLoadLocal() || input_defn->IsStoreLocal()) {
         // Remove the load/store from the graph.
-        input_defn->UnuseAllInputs();
         input_defn->RemoveFromGraph();
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
@@ -544,7 +536,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           env->Add((*env)[index]);
           // We remove load/store instructions when we find their use in 2a.
         } else {
-          definition->UnuseAllInputs();
           it.RemoveCurrentFromGraph();
         }
       } else {

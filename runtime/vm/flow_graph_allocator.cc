@@ -120,7 +120,7 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
           }
         }
       } else {
-        current->set_env(NULL);
+        current->RemoveEnvironment();
       }
     }
   }

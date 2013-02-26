@@ -573,7 +573,6 @@ class CallSiteInliner : public ValueObject {
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
           PushArgumentInstr* push = call->PushArgumentAt(i);
           push->ReplaceUsesWith(push->value()->definition());
-          push->UnuseAllInputs();
           push->RemoveFromGraph();
         }
 

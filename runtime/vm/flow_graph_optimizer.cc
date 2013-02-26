@@ -290,7 +290,6 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
       OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
     }
   }
-  current->UnuseAllInputs();
   iterator->RemoveCurrentFromGraph();
 }
 
@@ -333,9 +332,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // Convert by boxing/unboxing.
     // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
     BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
-    use->RemoveFromUseList();
-    use->set_definition(boxed);
-    boxed->AddInputUse(use);
+    use->BindTo(boxed);
     InsertBefore(insert_before, boxed, NULL, Definition::kValue);
 
     const intptr_t deopt_id = (deopt_target != NULL) ?
@@ -363,9 +360,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     }
   }
   ASSERT(converted != NULL);
-  use->RemoveFromUseList();
-  use->set_definition(converted);
-  converted->AddInputUse(use);
+  use->BindTo(converted);
   InsertBefore(insert_before, converted, use->instruction()->env(),
                Definition::kValue);
 }
@@ -565,7 +560,6 @@ void FlowGraphOptimizer::ReplaceCall(Definition* call,
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
     push->ReplaceUsesWith(push->value()->definition());
-    push->UnuseAllInputs();
     push->RemoveFromGraph();
   }
   call->ReplaceWith(replacement, current_iterator());
@@ -1240,12 +1234,9 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       field.Offset(),
       AbstractType::ZoneHandle(field.type()),
       field.is_final());
-  // Detach environment from the original instruction because it can't
-  // deoptimize.
-  for (Environment::DeepIterator it(call->env()); !it.Done(); it.Advance()) {
-    it.CurrentValue()->RemoveFromUseList();
-  }
-  call->set_env(NULL);
+  // Discard the environment from the original instruction because the load
+  // can't deoptimize.
+  call->RemoveEnvironment();
   ReplaceCall(call, load);
 }
 
@@ -1920,12 +1911,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       new Value(instr->ArgumentAt(0)),
       new Value(instr->ArgumentAt(1)),
       needs_store_barrier);
-  // Detach environment from the original instruction because it can't
-  // deoptimize.
-  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
-    it.CurrentValue()->RemoveFromUseList();
-  }
-  instr->set_env(NULL);
+  // Discard the environment from the original instruction because the store
+  // can't deoptimize.
+  instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
 }
@@ -2271,9 +2259,7 @@ void RangeAnalysis::RenameDominatedUses(Definition* def,
     if ((phi != NULL) && !phi->is_alive()) continue;
 
     if (IsDominatedUse(dom, use)) {
-      use->RemoveFromUseList();
-      use->set_definition(other);
-      other->AddInputUse(use);
+      use->BindTo(other);
     }
   }
 }
@@ -2618,7 +2604,6 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) {
-        current->UnuseAllInputs();
         it.RemoveCurrentFromGraph();
       }
     }
@@ -2660,7 +2645,6 @@ void RangeAnalysis::RemoveConstraints() {
       def = def->AsConstraint()->value()->definition();
     }
     constraints_[i]->ReplaceUsesWith(def);
-    constraints_[i]->UnuseAllInputs();
     constraints_[i]->RemoveFromGraph();
   }
 }
@@ -2683,6 +2667,10 @@ static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
 }
 
 
+LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
+}
+
+
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
@@ -2696,13 +2684,11 @@ void LICM::Hoist(ForwardInstructionIterator* it,
               pre_header->block_id());
   }
   // Move the instruction out of the loop.
+  current->RemoveEnvironment();
   it->RemoveCurrentFromGraph();
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
-  current->InsertBefore(last);
-  // Attach the environment of the Goto instruction to the hoisted
-  // instruction and set the correct deopt_id.
-  ASSERT(last->env() != NULL);
-  last->env()->DeepCopyTo(current);
+  // Using kind kEffect will not assign a fresh ssa temporary index.
+  flow_graph()->InsertBefore(last, current, last->env(), Definition::kEffect);
   current->deopt_id_ = last->GetDeoptId();
 }
 
@@ -2717,7 +2703,6 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   }
 
   if (phi->Type()->ToCid() == kSmiCid) {
-    current->UnuseAllInputs();
     it->RemoveCurrentFromGraph();
     return;
   }
@@ -2748,19 +2733,16 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   // Host CheckSmi instruction and make this phi smi one.
   Hoist(it, pre_header, current);
 
-  // Replace value we are checking with phi's input. Maintain use lists.
-  Definition* non_smi_input_defn = phi->InputAt(non_smi_input)->definition();
-  current->value()->RemoveFromUseList();
-  current->value()->set_definition(non_smi_input_defn);
-  non_smi_input_defn->AddInputUse(current->value());
+  // Replace value we are checking with phi's input.
+  current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
 
   phi->UpdateType(CompileType::FromCid(kSmiCid));
 }
 
 
-void LICM::Optimize(FlowGraph* flow_graph) {
+void LICM::Optimize() {
   GrowableArray<BlockEntryInstr*> loop_headers;
-  flow_graph->ComputeLoops(&loop_headers);
+  flow_graph()->ComputeLoops(&loop_headers);
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
@@ -2771,7 +2753,7 @@ void LICM::Optimize(FlowGraph* flow_graph) {
     for (BitVector::Iterator loop_it(header->loop_info());
          !loop_it.Done();
          loop_it.Advance()) {
-      BlockEntryInstr* block = flow_graph->preorder()[loop_it.Current()];
+      BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block);
            !it.Done();
            it.Advance()) {
@@ -3127,7 +3109,6 @@ class LoadOptimizer : public ValueObject {
           }
 
           defn->ReplaceUsesWith(replacement);
-          defn->UnuseAllInputs();
           instr_it.RemoveCurrentFromGraph();
           continue;
         } else if (!kill->Contains(expr_id)) {
@@ -3335,7 +3316,6 @@ class LoadOptimizer : public ValueObject {
           }
 
           load->ReplaceUsesWith(replacement);
-          load->UnuseAllInputs();
           load->RemoveFromGraph();
           load->SetReplacement(replacement);
         }
