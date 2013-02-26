@@ -525,13 +525,6 @@ class ObjectStore {
     out_of_memory_ = value.raw();
   }
 
-  RawStacktrace* preallocated_stack_trace() const {
-    return preallocated_stack_trace_;
-  }
-  void set_preallocated_stack_trace(const Stacktrace& value) {
-    preallocated_stack_trace_ = value.raw();
-  }
-
   RawArray* keyword_symbols() const { return keyword_symbols_; }
   void set_keyword_symbols(const Array& value) {
     keyword_symbols_ = value.raw();
@@ -657,7 +650,6 @@ class ObjectStore {
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
-  RawStacktrace* preallocated_stack_trace_;
   RawArray* keyword_symbols_;
   RawFunction* receive_port_create_function_;
   RawFunction* lookup_receive_port_function_;

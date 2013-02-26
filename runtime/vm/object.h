@@ -6286,29 +6286,20 @@ class Closure : public AllStatic {
 // Internal stacktrace object used in exceptions for printing stack traces.
 class Stacktrace : public Instance {
  public:
-  static const int kPreallocatedStackdepth = 10;
-
   intptr_t Length() const;
-
   RawFunction* FunctionAtFrame(intptr_t frame_index) const;
-  void SetFunctionAtFrame(intptr_t frame_index, const Function& func) const;
-
   RawCode* CodeAtFrame(intptr_t frame_index) const;
-  void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
-
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
-  void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
-
-  void Append(const Array& func_list,
-              const Array& code_list,
-              const Array& pc_offset_list) const;
+  void Append(const GrowableObjectArray& func_list,
+              const GrowableObjectArray& code_list,
+              const GrowableObjectArray& pc_offset_list) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
   }
-  static RawStacktrace* New(const Array& func_array,
-                            const Array& code_array,
-                            const Array& pc_offset_array,
+  static RawStacktrace* New(const GrowableObjectArray& func_list,
+                            const GrowableObjectArray& code_list,
+                            const GrowableObjectArray& pc_offset_list,
                             Heap::Space space = Heap::kNew);
 
   const char* ToCStringInternal(bool verbose) const;

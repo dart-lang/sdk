@@ -56,7 +56,6 @@ class RawOneByteString;
 class RawPatchClass;
 class RawScript;
 class RawSmi;
-class RawStacktrace;
 class RawTokenStream;
 class RawType;
 class RawTypeParameter;
@@ -271,7 +270,6 @@ class SnapshotReader : public BaseReader {
   RawApiError* NewApiError();
   RawLanguageError* NewLanguageError();
   RawObject* NewInteger(int64_t value);
-  RawStacktrace* NewStacktrace();
 
  private:
   class BackRefNode : public ZoneAllocated {
@@ -346,7 +344,6 @@ class SnapshotReader : public BaseReader {
   friend class LiteralToken;
   friend class PatchClass;
   friend class Script;
-  friend class Stacktrace;
   friend class TokenStream;
   friend class Type;
   friend class TypeArguments;

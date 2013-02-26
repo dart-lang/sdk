@@ -87,7 +87,6 @@ ObjectStore::ObjectStore()
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
-    preallocated_stack_trace_(Stacktrace::null()),
     keyword_symbols_(Array::null()),
     receive_port_create_function_(Function::null()),
     lookup_receive_port_function_(Function::null()),
@@ -115,14 +114,12 @@ void ObjectStore::Init(Isolate* isolate) {
 bool ObjectStore::PreallocateObjects() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL && isolate->object_store() == this);
-  if (this->stack_overflow() != Instance::null()) {
-    ASSERT(this->out_of_memory() != Instance::null());
-    ASSERT(this->preallocated_stack_trace() != Stacktrace::null());
+  if (this->stack_overflow() != Instance::null() &&
+      this->out_of_memory() != Instance::null()) {
     return true;
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
-  ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
   // TODO(regis): Reenable this code for arm and mips when possible.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   Object& result = Object::Handle();
@@ -139,17 +136,6 @@ bool ObjectStore::PreallocateObjects() {
     return false;
   }
   set_out_of_memory(Instance::Cast(result));
-  const Array& func_array = Array::Handle(
-      isolate,
-      Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Array& code_array = Array::Handle(
-      isolate,
-      Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Array& pc_offset_array = Array::Handle(
-      isolate,
-      Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  result = Stacktrace::New(func_array, code_array, pc_offset_array);
-  set_preallocated_stack_trace(Stacktrace::Cast(result));
 #endif
   return true;
 }
