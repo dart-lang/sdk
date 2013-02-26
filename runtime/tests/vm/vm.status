@@ -13,6 +13,10 @@ cc/AllocGeneric_Overflow: Crash
 
 cc/SNPrint_BadArgs: Skip
 
+# These tests are skipped because of the workaround to open issue 8594.
+cc/Debug_StackTraceDump1: Skip
+cc/Debug_StackTraceDump2: Skip
+
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
