@@ -26,6 +26,103 @@ DEFINE_FLAG(bool, verbose_stacktrace, false,
 const char* Exceptions::kCastErrorDstName = "type cast";
 
 
+class StacktraceBuilder : public ValueObject {
+ public:
+  StacktraceBuilder() { }
+  virtual ~StacktraceBuilder() { }
+
+  virtual void AddFrame(const Function& func,
+                        const Code& code,
+                        const Smi& offset) = 0;
+};
+
+
+class RegularStacktraceBuilder : public StacktraceBuilder {
+ public:
+  RegularStacktraceBuilder(const GrowableObjectArray& func_list,
+                           const GrowableObjectArray& code_list,
+                           const GrowableObjectArray& pc_offset_list)
+      : func_list_(func_list),
+        code_list_(code_list),
+        pc_offset_list_(pc_offset_list) { }
+  ~RegularStacktraceBuilder() { }
+
+  const GrowableObjectArray& func_list() const { return func_list_; }
+  const GrowableObjectArray& code_list() const { return code_list_; }
+  const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
+
+  void AddFrame(const Function& func, const Code& code, const Smi& offset) {
+    func_list_.Add(func);
+    code_list_.Add(code);
+    pc_offset_list_.Add(offset);
+  }
+
+ private:
+  const GrowableObjectArray& func_list_;
+  const GrowableObjectArray& code_list_;
+  const GrowableObjectArray& pc_offset_list_;
+
+  DISALLOW_COPY_AND_ASSIGN(RegularStacktraceBuilder);
+};
+
+
+class PreallocatedStacktraceBuilder : public StacktraceBuilder {
+ public:
+  explicit PreallocatedStacktraceBuilder(const Stacktrace& stacktrace)
+      : stacktrace_(stacktrace),
+        cur_index_(0) {
+    ASSERT(stacktrace_.raw() ==
+           Isolate::Current()->object_store()->preallocated_stack_trace());
+  }
+  ~PreallocatedStacktraceBuilder() { }
+
+  void AddFrame(const Function& func, const Code& code, const Smi& offset);
+
+ private:
+  static const int kNumTopframes = 3;
+
+  const Stacktrace& stacktrace_;
+  intptr_t cur_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(PreallocatedStacktraceBuilder);
+};
+
+
+void PreallocatedStacktraceBuilder::AddFrame(const Function& func,
+                                             const Code& code,
+                                             const Smi& offset) {
+  if (cur_index_ >= Stacktrace::kPreallocatedStackdepth) {
+    // The number of frames is overflowing the preallocated stack trace object.
+    Function& frame_func = Function::Handle();
+    Code& frame_code = Code::Handle();
+    Smi& frame_offset = Smi::Handle();
+    intptr_t start = Stacktrace::kPreallocatedStackdepth - (kNumTopframes - 1);
+    intptr_t null_slot = start - 2;
+    // Add an empty slot to indicate the overflow so that the toString
+    // method can account for the overflow.
+    if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
+      stacktrace_.SetFunctionAtFrame(null_slot, frame_func);
+      stacktrace_.SetCodeAtFrame(null_slot, frame_code);
+    }
+    // Move frames one slot down so that we can accomadate the new frame.
+    for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
+      intptr_t prev = (i - 1);
+      frame_func = stacktrace_.FunctionAtFrame(i);
+      frame_code = stacktrace_.CodeAtFrame(i);
+      frame_offset = stacktrace_.PcOffsetAtFrame(i);
+      stacktrace_.SetFunctionAtFrame(prev, frame_func);
+      stacktrace_.SetCodeAtFrame(prev, frame_code);
+      stacktrace_.SetPcOffsetAtFrame(prev, frame_offset);
+    }
+    cur_index_ = (Stacktrace::kPreallocatedStackdepth - 1);
+  }
+  stacktrace_.SetFunctionAtFrame(cur_index_, func);
+  stacktrace_.SetCodeAtFrame(cur_index_, code);
+  stacktrace_.SetPcOffsetAtFrame(cur_index_, offset);
+  cur_index_ += 1;
+}
+
+
 static bool ShouldShowFunction(const Function& function) {
   if (FLAG_verbose_stacktrace) {
     return true;
@@ -40,9 +137,7 @@ static bool ShouldShowFunction(const Function& function) {
 static bool FindExceptionHandler(uword* handler_pc,
                                  uword* handler_sp,
                                  uword* handler_fp,
-                                 const GrowableObjectArray& func_list,
-                                 const GrowableObjectArray& code_list,
-                                 const GrowableObjectArray& pc_offset_list) {
+                                 StacktraceBuilder* builder) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
@@ -64,18 +159,14 @@ static bool FindExceptionHandler(uword* handler_pc,
           ASSERT(pc < (code.EntryPoint() + code.Size()));
           if (ShouldShowFunction(func)) {
             offset = Smi::New(pc - code.EntryPoint());
-            func_list.Add(func);
-            code_list.Add(code);
-            pc_offset_list.Add(offset);
+            builder->AddFrame(func, code, offset);
           }
         }
       } else {
         offset = Smi::New(frame->pc() - code.EntryPoint());
         func = code.function();
         if (ShouldShowFunction(func)) {
-          func_list.Add(func);
-          code_list.Add(code);
-          pc_offset_list.Add(offset);
+          builder->AddFrame(func, code, offset);
         }
       }
       if (frame->FindExceptionHandler(handler_pc)) {
@@ -171,46 +262,65 @@ void JumpToErrorHandler(uword program_counter,
 
 static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
-  Instance& exception = Instance::Handle(incoming_exception.raw());
+  bool use_preallocated_stacktrace = false;
+  Isolate* isolate = Isolate::Current();
+  Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
   if (exception.IsNull()) {
     exception ^= Exceptions::Create(Exceptions::kNullThrown,
                                     Object::empty_array());
+  } else if (exception.raw() == isolate->object_store()->out_of_memory() ||
+             exception.raw() == isolate->object_store()->stack_overflow()) {
+    use_preallocated_stacktrace = true;
   }
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;
-  const GrowableObjectArray& func_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& code_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const GrowableObjectArray& pc_offset_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  bool handler_exists = FindExceptionHandler(&handler_pc,
-                                             &handler_sp,
-                                             &handler_fp,
-                                             func_list,
-                                             code_list,
-                                             pc_offset_list);
+  Stacktrace& stacktrace = Stacktrace::Handle(isolate);
+  bool handler_exists = false;
+  if (use_preallocated_stacktrace) {
+    stacktrace ^= isolate->object_store()->preallocated_stack_trace();
+    PreallocatedStacktraceBuilder frame_builder(stacktrace);
+    handler_exists = FindExceptionHandler(&handler_pc,
+                                          &handler_sp,
+                                          &handler_fp,
+                                          &frame_builder);
+  } else {
+    RegularStacktraceBuilder frame_builder(
+        GrowableObjectArray::Handle(isolate, GrowableObjectArray::New()),
+        GrowableObjectArray::Handle(isolate, GrowableObjectArray::New()),
+        GrowableObjectArray::Handle(isolate, GrowableObjectArray::New()));
+    handler_exists = FindExceptionHandler(&handler_pc,
+                                          &handler_sp,
+                                          &handler_fp,
+                                          &frame_builder);
+    // TODO(5411263): At some point we can optimize by figuring out if a
+    // stack trace is needed based on whether the catch code specifies a
+    // stack trace object or there is a rethrow in the catch clause.
+    if (frame_builder.pc_offset_list().Length() != 0) {
+      // Create arrays for function, code and pc_offset triplet for each frame.
+      const Array& func_array =
+          Array::Handle(isolate, Array::MakeArray(frame_builder.func_list()));
+      const Array& code_array =
+          Array::Handle(isolate, Array::MakeArray(frame_builder.code_list()));
+      const Array& pc_offset_array =
+          Array::Handle(isolate,
+                        Array::MakeArray(frame_builder.pc_offset_list()));
+      if (existing_stacktrace.IsNull()) {
+        stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
+      } else {
+        stacktrace ^= existing_stacktrace.raw();
+        stacktrace.Append(func_array, code_array, pc_offset_array);
+      }
+    } else {
+      stacktrace ^= existing_stacktrace.raw();
+    }
+  }
   // We expect to find a handler_pc, if the exception is unhandled
   // then we expect to at least have the dart entry frame on the
   // stack as Exceptions::Throw should happen only after a dart
   // invocation has been done.
   ASSERT(handler_pc != 0);
 
-  // TODO(5411263): At some point we can optimize by figuring out if a
-  // stack trace is needed based on whether the catch code specifies a
-  // stack trace object or there is a rethrow in the catch clause.
-  Stacktrace& stacktrace = Stacktrace::Handle();
-  if (pc_offset_list.Length() != 0) {
-    if (existing_stacktrace.IsNull()) {
-      stacktrace = Stacktrace::New(func_list, code_list, pc_offset_list);
-    } else {
-      stacktrace ^= existing_stacktrace.raw();
-      stacktrace.Append(func_list, code_list, pc_offset_list);
-    }
-  } else {
-    stacktrace ^= existing_stacktrace.raw();
-  }
   if (FLAG_print_stacktrace_at_throw) {
     OS::Print("Exception '%s' thrown:\n", exception.ToCString());
     OS::Print("%s\n", stacktrace.ToCString());
@@ -224,7 +334,6 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
                            stacktrace);
   } else {
     if (FLAG_heap_profile_out_of_memory) {
-      Isolate* isolate = Isolate::Current();
       if (exception.raw() == isolate->object_store()->out_of_memory()) {
         isolate->heap()->ProfileToFile("out-of-memory");
       }

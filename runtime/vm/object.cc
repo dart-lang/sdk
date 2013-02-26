@@ -12823,15 +12823,36 @@ RawFunction* Stacktrace::FunctionAtFrame(intptr_t frame_index) const {
 }
 
 
+void Stacktrace::SetFunctionAtFrame(intptr_t frame_index,
+                                    const Function& func) const {
+  const Array& function_array = Array::Handle(raw_ptr()->function_array_);
+  function_array.SetAt(frame_index, func);
+}
+
+
 RawCode* Stacktrace::CodeAtFrame(intptr_t frame_index) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   return reinterpret_cast<RawCode*>(code_array.At(frame_index));
 }
 
 
+void Stacktrace::SetCodeAtFrame(intptr_t frame_index,
+                                const Code& code) const {
+  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
+  code_array.SetAt(frame_index, code);
+}
+
+
 RawSmi* Stacktrace::PcOffsetAtFrame(intptr_t frame_index) const {
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   return reinterpret_cast<RawSmi*>(pc_offset_array.At(frame_index));
+}
+
+
+void Stacktrace::SetPcOffsetAtFrame(intptr_t frame_index,
+                                    const Smi& pc_offset) const {
+  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
+  pc_offset_array.SetAt(frame_index, pc_offset);
 }
 
 
@@ -12850,9 +12871,9 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
-                               const GrowableObjectArray& code_list,
-                               const GrowableObjectArray& pc_offset_list,
+RawStacktrace* Stacktrace::New(const Array& func_array,
+                               const Array& code_array,
+                               const Array& pc_offset_array,
                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
          Class::null());
@@ -12864,21 +12885,16 @@ RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
     NoGCScope no_gc;
     result ^= raw;
   }
-  // Create arrays for the function, code and pc_offset triplet for each frame.
-  const Array& function_array = Array::Handle(Array::MakeArray(func_list));
-  const Array& code_array = Array::Handle(Array::MakeArray(code_list));
-  const Array& pc_offset_array =
-      Array::Handle(Array::MakeArray(pc_offset_list));
-  result.set_function_array(function_array);
+  result.set_function_array(func_array);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
   return result.raw();
 }
 
 
-void Stacktrace::Append(const GrowableObjectArray& func_list,
-                        const GrowableObjectArray& code_list,
-                        const GrowableObjectArray& pc_offset_list) const {
+void Stacktrace::Append(const Array& func_list,
+                        const Array& code_list,
+                        const Array& pc_offset_list) const {
   intptr_t old_length = Length();
   intptr_t new_length = old_length + pc_offset_list.Length();
   ASSERT(pc_offset_list.Length() == func_list.Length());
@@ -12910,6 +12926,7 @@ void Stacktrace::Append(const GrowableObjectArray& func_list,
 
 
 const char* Stacktrace::ToCString() const {
+  Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
   Script& script = Script::Handle();
@@ -12921,8 +12938,21 @@ const char* Stacktrace::ToCString() const {
   intptr_t total_len = 0;
   const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
   GrowableArray<char*> frame_strings;
+  char* chars;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
+    if (function.IsNull()) {
+      // Check if null function object indicates a stack trace overflow.
+      if ((i < (Length() - 1)) &&
+          (FunctionAtFrame(i + 1) != Function::null())) {
+        const char* kTruncated = "...\n...\n";
+        intptr_t truncated_len = strlen(kTruncated) + 1;
+        chars = isolate->current_zone()->Alloc<char>(truncated_len);
+        OS::SNPrint(chars, truncated_len, "%s", kTruncated);
+        frame_strings.Add(chars);
+      }
+      continue;
+    }
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
     intptr_t token_pos = code.GetTokenIndexOfPC(pc);
@@ -12940,7 +12970,7 @@ const char* Stacktrace::ToCString() const {
                                url.ToCString(),
                                line, column);
     total_len += len;
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
                 i,
                 function_name.ToCString(),
@@ -12950,7 +12980,7 @@ const char* Stacktrace::ToCString() const {
   }
 
   // Now concatentate the frame descriptions into a single C string.
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(total_len + 1);
+  chars = isolate->current_zone()->Alloc<char>(total_len + 1);
   intptr_t index = 0;
   for (intptr_t i = 0; i < frame_strings.length(); i++) {
     index += OS::SNPrint((chars + index),
