@@ -7,6 +7,7 @@ library dartdocTests;
 
 import 'dart:async';
 import 'dart:io';
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart' as dd;
@@ -218,7 +219,16 @@ main() {
 
 Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
   var dartBin = new Options().executable;
-  var dartdoc = 'bin/dartdoc.dart';
+
+  var dir = path.absolute(new Options().script);
+  while (path.basename(dir) != 'dartdoc') {
+    if (!path.absolute(dir).contains('dartdoc') || dir == path.dirname(dir)) {
+      fail('Unable to find root dartdoc directory.');
+    }
+    dir = path.dirname(dir);
+  }
+
+  var dartdoc = path.join(path.absolute(dir), 'bin/dartdoc.dart');
   arguments.insertRange(0, 1, dartdoc);
   return Process.run(dartBin, arguments)
       .then((result) {
