@@ -91,4 +91,10 @@ main() {
       expect(style.textDecoration, equals('underline'));
     }));
   });
+
+  test('Invalid values', () {
+    var element = new DivElement();
+    // Should not throw an error.
+    element.style.background = 'some_bad_value';
+  });
 }

@@ -2383,11 +2383,14 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   }
 
   void setProperty(String propertyName, String value, [String priority]) {
-    JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
-    // Bug #2772, IE9 requires a poke to actually apply the value.
-    if (JS('bool', '!!#.setAttribute', this)) {
-      JS('void', '#.setAttribute(#, #)', this, propertyName, value);
-    }
+    // try/catch for IE9 which throws on unsupported values.
+    try {
+      JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
+      // Bug #2772, IE9 requires a poke to actually apply the value.
+      if (JS('bool', '!!#.setAttribute', this)) {
+        JS('void', '#.setAttribute(#, #)', this, propertyName, value);
+      }
+    } catch (e) {}
   }
 
   /**
