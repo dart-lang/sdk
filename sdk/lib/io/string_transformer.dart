@@ -256,7 +256,9 @@ abstract class _SingleByteEncoder
   void handleData(String data, StreamSink<List<int>> sink) {
     var bytes = _encode(data);
     if (bytes == null) {
-      throw new FormatException("Invalid character for encoding");
+      sink.signalError(
+          new AsyncError(
+              new FormatException("Invalid character for encoding")));
       sink.close();
     } else {
       sink.add(bytes);
