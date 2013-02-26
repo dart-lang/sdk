@@ -11,6 +11,7 @@ io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
 io/status_file_parser_test: fail
 io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
+io/io/secure_socket_bad_certificate_test: pass, timeout # Issue 8791
 
 [ $runtime == vm ]
 io/https_client_test: Pass, Timeout # Issue 8674
