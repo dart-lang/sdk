@@ -59,19 +59,12 @@ void VmStats::Start(int port, const char* root_dir) {
     return;
   }
   instance_->bind_address_ = address;
-  Log::Print(
-#if defined(TARGET_ARCH_X64)
-      "VmStats URL: http://%s:%ld/\n",
-#else
-      "VmStats URL: http://%s:%d/\n",
-#endif
-      host,
-             Socket::GetPort(address));
+  Log::Print("VmStats URL: http://%s:%"Pd"/\n", host, Socket::GetPort(address));
 
   instance_->running_ = true;
-  int errno = dart::Thread::Start(WebServer, address);
-  if (errno != 0) {
-    Log::PrintErr("Failed starting VmStats thread: %d\n", errno);
+  int err = dart::Thread::Start(WebServer, address);
+  if (err != 0) {
+    Log::PrintErr("Failed starting VmStats thread: %d\n", err);
     Shutdown();
   }
 }
@@ -210,13 +203,8 @@ void VmStats::WebServer(uword bind_address) {
     if (content != NULL) {
       size_t content_len = strlen(content);
       len = snprintf(buffer, BUFSIZE,
-#if defined(TARGET_ARCH_X64)
           "HTTP/1.1 200 OK\nContent-Type: application/json; charset=UTF-8\n"
-          "Content-Length: %lx\n\n",
-#else
-          "HTTP/1.1 200 OK\nContent-Type: application/json; charset=UTF-8\n"
-          "Content-Length: %d\n\n",
-#endif
+          "Content-Length: %"Pu"\n\n",
           content_len);
       Socket::Write(socket, buffer, strlen(buffer));
       Socket::Write(socket, content, content_len);
@@ -244,13 +232,8 @@ void VmStats::WebServer(uword bind_address) {
           if (f->ReadFully(text_buffer, len)) {
             const char* content_type = ContentType(path.c_str());
             snprintf(buffer, BUFSIZE,
-#if defined(TARGET_ARCH_X64)
                 "HTTP/1.1 200 OK\nContent-Type: %s\n"
-                "Content-Length: %ld\n\n",
-#else
-                "HTTP/1.1 200 OK\nContent-Type: %s\n"
-                "Content-Length: %d\n\n",
-#endif
+                "Content-Length: %"Pu"\n\n",
                 content_type, len);
             Socket::Write(socket, buffer, strlen(buffer));
             Socket::Write(socket, text_buffer, len);
@@ -285,12 +268,8 @@ char* VmStats::IsolatesStatus() {
     Dart_Isolate isolate = itr->second;
     static char request[512];
     snprintf(request, sizeof(request),
-#if defined(TARGET_ARCH_X64)
-             "/isolate/0x%lx",
-#else
-             "/isolate/0x%llx",
-#endif
-             reinterpret_cast<int64_t>(isolate));
+             "/isolate/0x%"Px,
+             reinterpret_cast<intptr_t>(isolate));
     char* status = VmStatusService::GetVmStatus(request);
     if (status != NULL) {
       stream << status;
