@@ -2387,7 +2387,24 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
                                     Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  if (kind == Snapshot::kFull) {
+    Stacktrace& result = Stacktrace::ZoneHandle(reader->isolate(),
+                                                reader->NewStacktrace());
+    reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+    // There are no non object pointer fields.
+
+    // Read all the object pointer fields.
+    Array& array = Array::Handle(reader->isolate());
+    array ^= reader->ReadObjectRef();
+    result.set_function_array(array);
+    array ^= reader->ReadObjectRef();
+    result.set_code_array(array);
+    array ^= reader->ReadObjectRef();
+    result.set_pc_offset_array(array);
+    return result.raw();
+  }
+  UNREACHABLE();  // Stacktraces are not sent in a snapshot.
   return Stacktrace::null();
 }
 
@@ -2395,7 +2412,26 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
 void RawStacktrace::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  if (kind == Snapshot::kFull) {
+    ASSERT(writer != NULL);
+    ASSERT(this == Isolate::Current()->object_store()->
+           preallocated_stack_trace());
+
+    // Write out the serialization header value for this object.
+    writer->WriteInlinedObjectHeader(object_id);
+
+    // Write out the class and tags information.
+    writer->WriteIndexedObject(kStacktraceCid);
+    writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+    // There are no non object pointer fields.
+
+    // Write out all the object pointer fields.
+    SnapshotWriterVisitor visitor(writer);
+    visitor.VisitPointers(from(), to());
+  } else {
+    UNREACHABLE();  // Stacktraces are not supported for other snapshot forms.
+  }
 }
 
 

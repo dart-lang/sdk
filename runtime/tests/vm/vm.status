@@ -20,6 +20,10 @@ cc/Debug_StackTraceDump2: Skip
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
+[ $system == windows && $mode == release ]
+dart/byte_array_test: Skip # Issue 8810
+dart/byte_array_optimized_test: Skip # Issue 8810
+
 [ $system == windows && $mode == debug ]
 cc/Sleep: Pass, Fail  # Flaky on buildbot. Issue 5133.
 

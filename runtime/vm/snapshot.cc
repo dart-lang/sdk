@@ -631,6 +631,11 @@ RawObject* SnapshotReader::NewInteger(int64_t value) {
 }
 
 
+RawStacktrace* SnapshotReader::NewStacktrace() {
+  ALLOC_NEW_OBJECT(Stacktrace, object_store()->stacktrace_class());
+}
+
+
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // If the header is an object Id, lookup singleton VM classes or classes
   // stored in the object store.
