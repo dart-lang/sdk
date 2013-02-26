@@ -15,7 +15,7 @@ Map<int, Completer> outstandingCommands;
 
 Socket vmSock;
 String vmData;
-OutputStream vmStream;
+StreamSubscription<String> streamSubscription;
 int seqNum = 0;
 int isolate_id = -1;
 
@@ -56,7 +56,7 @@ void printHelp() {
 
 
 void quitShell() {
-  vmStream.close();
+  streamSubscription.cancel();
   vmSock.close();
   stdin.close();
 }
@@ -69,7 +69,7 @@ Future sendCmd(Map<String, dynamic> cmd) {
   if (verbose) {
     print("sending: '${json.stringify(cmd)}'");
   }
-  vmStream.writeString(json.stringify(cmd));
+  vmSock.addString(json.stringify(cmd));
   return completer.future;
 }
 
@@ -528,25 +528,25 @@ int jsonObjectLength(String string) {
 
 void debuggerMain() {
   outstandingCommands = new Map<int, Completer>();
-  vmSock = new Socket("127.0.0.1", 5858);
-  vmStream = vmSock.outputStream;
-  var stdinStream = new StringInputStream(stdin);
-  stdinStream.onLine = () {
-    processCommand(stdinStream.readLine());
-  };
-  var vmInStream = vmSock.inputStream;
-  vmInStream.onData = () {
-    String s = decodeUtf8(vmInStream.read());
-    processVmData(s);
-  };
-  vmInStream.onError = (err) {
-    print("Error in debug connection: $err");
-    quitShell();
-  };
-  vmInStream.onClosed = () {
-    print("VM debugger connection closed");
-    quitShell();
-  };
+  Socket.connect("127.0.0.1", 5858).then((s) {
+    vmSock = s;
+    Stream<String> stringStream = vmSock.transform(new StringDecoder());
+    streamSubscription = stringStream.listen(
+        (String data) {
+          processVmData(data);
+        },
+        onDone: () {
+          print("VM debugger connection closed");
+          quitShell();
+        },
+        onError: (err) {
+          print("Error in debug connection: $err");
+          quitShell();
+        });
+    stdin.transform(new StringDecoder())
+        .transform(new LineTransformer())
+        .listen((String line) => processCommand(line));
+  });
 }
 
 void main() {
@@ -555,16 +555,10 @@ void main() {
   if (arguments.length > 0) {
     arguments = <String>['--debug', '--verbose_debug']..addAll(arguments);
     Process.start(options.executable, arguments).then((Process process) {
-      process.onExit = (int exitCode) {
-        print('${arguments.join(" ")} exited with $exitCode');
-      };
       process.stdin.close();
-      // Redirecting both stdout and stderr of the child process to
-      // stdout.  This should help users keep track of which errors
-      // are coming from the debugger, and which errors are coming
-      // from the process being debugged.
-      process.stderr.pipe(stdout);
-      process.stdout.pipe(stdout);
+      process.exitCode.then((int exitCode) {
+        print('${arguments.join(" ")} exited with $exitCode');
+      });
       debuggerMain();
     });
   } else {
