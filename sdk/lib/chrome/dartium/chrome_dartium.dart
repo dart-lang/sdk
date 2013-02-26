@@ -1,3 +1,10 @@
+/// Native wrappers for the Chrome Packaged App APIs.
+///
+/// These functions allow direct access to the Packaged App APIs, allowing
+/// Chrome Packaged Apps to be written using Dart.
+///
+/// For more information on these APIs, see the
+/// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
 library chrome;
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file

@@ -14,14 +14,17 @@ from glob import glob
 
 re_directive = re.compile(
     r'^(library|import|part|native|resource)\s+(.*);$')
+re_comment = re.compile(
+    r'^(///|/\*| \*).*$')
 
 class Library(object):
-  def __init__(self, name, imports, sources, natives, code):
+  def __init__(self, name, imports, sources, natives, code, comment):
     self.name = name
     self.imports = imports
     self.sources = sources
     self.natives = natives
     self.code = code
+    self.comment = comment
 
 def parseLibrary(library):
   """ Parses a .dart source file that is the root of a library, and returns
@@ -33,6 +36,7 @@ def parseLibrary(library):
   sources = []
   natives = []
   inlinecode = []
+  librarycomment = []
   if exists(library):
     # TODO(sigmund): stop parsing when import/source
     for line in fileinput.input(library):
@@ -51,9 +55,14 @@ def parseLibrary(library):
         else:
           raise Exception('unknown directive %s in %s' % (directive, line))
       else:
-        inlinecode.append(line)
+        # Check for library comment.
+        if not libraryname and re_comment.match(line):
+          librarycomment.append(line)
+        else:
+          inlinecode.append(line)
     fileinput.close()
-  return Library(libraryname, imports, sources, natives, inlinecode)
+  return Library(libraryname, imports, sources, natives, inlinecode,
+                 librarycomment)
 
 def normjoin(*args):
   return os.path.normpath(os.path.join(*args))
@@ -114,6 +123,8 @@ def main(outdir = None, *inputs):
       # Create file containing all imports, and inlining all sources
       with open(outpath, 'w') as f:
         if library.name:
+          if library.comment:
+            f.write('%s' % (''.join(library.comment)))
           f.write("library %s;\n\n" % library.name)
         else:
           f.write("library %s;\n\n" % basename(lib))

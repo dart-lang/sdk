@@ -1,3 +1,4 @@
+/// The Dart HTML library.
 library dart.dom.html;
 
 import 'dart:async';

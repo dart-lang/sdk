@@ -5,6 +5,7 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
+/// The Dart HTML library.
 library dart.dom.html;
 
 import 'dart:async';

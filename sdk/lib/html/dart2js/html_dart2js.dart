@@ -1,3 +1,4 @@
+/// The Dart HTML library.
 library dart.dom.html;
 
 import 'dart:async';
@@ -21,7 +22,6 @@ import 'dart:_foreign_helper' show JS;
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:html library.
 
-/// The Dart HTML library.
 
 // Not actually used, but imported since dart:html can generate these objects.
 
