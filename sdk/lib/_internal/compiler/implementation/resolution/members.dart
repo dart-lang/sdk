@@ -7,6 +7,11 @@ part of resolution;
 abstract class TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
+  Selector getGetterSelectorInComplexSendSet(SendSet node);
+  Selector getOperatorSelectorInComplexSendSet(SendSet node);
+  Selector getIteratorSelector(ForIn node);
+  Selector getMoveNextSelector(ForIn node);
+  Selector getCurrentSelector(ForIn node);
   DartType getType(Node node);
   bool isParameterChecked(Element element);
   Set<Node> get superUses;
@@ -14,7 +19,8 @@ abstract class TreeElements {
 
 class TreeElementMapping implements TreeElements {
   final Element currentElement;
-  final Map<Node, Selector> selectors = new LinkedHashMap<Node, Selector>();
+  final Map<Spannable, Selector> selectors =
+      new LinkedHashMap<Spannable, Selector>();
   final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
   final Set<Element> checkedParameters = new Set<Element>();
   final Set<Node> superUses = new Set<Node>();
@@ -61,7 +67,53 @@ class TreeElementMapping implements TreeElements {
     selectors[node] = selector;
   }
 
-  Selector getSelector(Node node) => selectors[node];
+  Selector getSelector(Node node) {
+    return selectors[node];
+  }
+
+  void setGetterSelectorInComplexSendSet(SendSet node, Selector selector) {
+    selectors[node.selector] = selector;
+  }
+
+  Selector getGetterSelectorInComplexSendSet(SendSet node) {
+    return selectors[node.selector];
+  }
+
+  void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector) {
+    selectors[node.assignmentOperator] = selector;
+  }
+
+  Selector getOperatorSelectorInComplexSendSet(SendSet node) {
+    return selectors[node.assignmentOperator];
+  }
+
+  // The following methods set selectors on the "for in" node. Since
+  // we're using three selectors, we need to use children of the node,
+  // and we arbitrarily choose which ones.
+
+  Selector setIteratorSelector(ForIn node, Selector selector) {
+    selectors[node] = selector;
+  }
+
+  Selector getIteratorSelector(ForIn node) {
+    return selectors[node];
+  }
+
+  Selector setMoveNextSelector(ForIn node, Selector selector) {
+    selectors[node.forToken] = selector;
+  }
+
+  Selector getMoveNextSelector(ForIn node) {
+    return selectors[node.forToken];
+  }
+
+  Selector setCurrentSelector(ForIn node, Selector selector) {
+    selectors[node.inToken] = selector;
+  }
+
+  Selector getCurrentSelector(ForIn node) {
+    return selectors[node.inToken];
+  }
 
   bool isParameterChecked(Element element) {
     return checkedParameters.contains(element);
@@ -1955,6 +2007,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
+        target = warnAndCreateErroneousElement(
+            node, name, MessageKind.NO_SUCH_SUPER_MEMBER,
+            {'className': currentClass, 'memberName': name});
+        // We still need to register the invocation, because we might
+        // call [:super.noSuchMethod:] that does a
+        // [:InvocationMirror.invokeOn:].
+        world.registerDynamicInvocation(selector.name, selector);
         compiler.backend.registerSuperNoSuchMethod();
       }
     } else if (Elements.isUnresolved(resolvedReceiver)) {
@@ -2216,24 +2275,29 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         setter = field.setter;
         getter = field.getter;
         if (setter == null && !inInstanceContext) {
-          setter =
-              warnAndCreateErroneousElement(node.selector, field.name,
-                                            MessageKind.CANNOT_RESOLVE_SETTER);
+          setter = warnAndCreateErroneousElement(
+              node.selector, field.name, MessageKind.CANNOT_RESOLVE_SETTER);
           compiler.backend.registerThrowNoSuchMethod();
         }
         if (isComplex && getter == null && !inInstanceContext) {
-          getter =
-              warnAndCreateErroneousElement(node.selector, field.name,
-                                            MessageKind.CANNOT_RESOLVE_GETTER);
+          getter = warnAndCreateErroneousElement(
+              node.selector, field.name, MessageKind.CANNOT_RESOLVE_GETTER);
           compiler.backend.registerThrowNoSuchMethod();
         }
       } else if (target.impliesType()) {
         compiler.backend.registerThrowNoSuchMethod();
       } else if (target.modifiers.isFinal() || target.modifiers.isConst()) {
-        setter =
-            warnAndCreateErroneousElement(node.selector, target.name,
-                                          MessageKind.CANNOT_RESOLVE_SETTER);
+        setter = warnAndCreateErroneousElement(
+            node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
         compiler.backend.registerThrowNoSuchMethod();
+      } else if (isComplex && target.name == const SourceString('[]=')) {
+        getter = target.getEnclosingClass().lookupMember(
+            const SourceString('[]'));
+        if (getter == null) {
+          getter = warnAndCreateErroneousElement(
+              node, setter.name, MessageKind.CANNOT_RESOLVE_INDEX);
+          compiler.backend.registerThrowNoSuchMethod();
+        }
       }
     }
 
@@ -2245,34 +2309,29 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     Selector selector = mapping.getSelector(node);
     if (isComplex) {
+      Selector getterSelector;
       if (selector.isSetter()) {
-        // TODO(kasperl): We're registering the getter selector for
-        // compound assignments on the AST selector node. In the code
-        // generator, we then fetch it from there when generating the
-        // getter for a SendSet node.
-        Selector getterSelector = new Selector.getterFrom(selector);
-        registerSend(getterSelector, getter);
-        mapping.setSelector(node.selector, getterSelector);
-        useElement(node.selector, getter);
+        getterSelector = new Selector.getterFrom(selector);
       } else {
-        // TODO(kasperl): If [getter] is resolved, it will actually
-        // refer to the []= operator which isn't the one we want to
-        // register here. We should consider using some notion of
-        // abstract indexable element that we can resolve to so we can
-        // distinguish the two.
         assert(selector.isIndexSet());
-        registerSend(new Selector.index(), null);
+        getterSelector = new Selector.index();
       }
+      registerSend(getterSelector, getter);
+      mapping.setGetterSelectorInComplexSendSet(node, getterSelector);
+      useElement(node.selector, getter);
 
       // Make sure we include the + and - operators if we are using
       // the ++ and -- ones.  Also, if op= form is used, include op itself.
       void registerBinaryOperator(SourceString name) {
         Selector binop = new Selector.binaryOperator(name);
         world.registerDynamicInvocation(binop.name, binop);
+        mapping.setOperatorSelectorInComplexSendSet(node, binop);
       }
-      if (identical(source, '++')) registerBinaryOperator(const SourceString('+'));
-      if (identical(source, '--')) registerBinaryOperator(const SourceString('-'));
-      if (source.endsWith('=')) {
+      if (identical(source, '++')) {
+        registerBinaryOperator(const SourceString('+'));
+      } else if (identical(source, '--')) {
+        registerBinaryOperator(const SourceString('-'));
+      } else if (source.endsWith('=')) {
         registerBinaryOperator(Elements.mapToUserOperator(operatorName));
       }
     }
@@ -2631,18 +2690,23 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     world.registerDynamicInvocation(name, selector);
   }
 
-  registerImplicitFieldGet(SourceString name) {
-    Selector selector = new Selector.getter(name, null);
-    world.registerDynamicGetter(name, selector);
-  }
-
   visitForIn(ForIn node) {
-    for (final name in const [
-        const SourceString('iterator'),
-        const SourceString('current')]) {
-      registerImplicitFieldGet(name);
-    }
-    registerImplicitInvocation(const SourceString('moveNext'), 0);
+    LibraryElement library = enclosingElement.getLibrary();
+    Selector iteratorSelector =
+        new Selector.getter(const SourceString('iterator'), library);
+    world.registerDynamicGetter(iteratorSelector.name, iteratorSelector);
+    mapping.setIteratorSelector(node, iteratorSelector);
+
+    Selector currentSelector =
+        new Selector.getter(const SourceString('current'), library);
+    world.registerDynamicGetter(currentSelector.name, currentSelector);
+    mapping.setCurrentSelector(node, currentSelector);
+
+    Selector moveNextSelector =
+        new Selector.call(const SourceString('moveNext'), library, 0);
+    world.registerDynamicInvocation(moveNextSelector.name, moveNextSelector);
+    mapping.setMoveNextSelector(node, moveNextSelector);
+
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;

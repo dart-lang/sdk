@@ -290,6 +290,8 @@ call_through_getter_test: Fail
 # test issue 8127 (using mixin application as mixin)
 mixin_mixin_test: Fail
 
+# test issue 8801
+super_operator_index_test/04: Fail
 
 #
 # Add new dartc annotations above in alphabetical order

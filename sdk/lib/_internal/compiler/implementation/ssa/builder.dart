@@ -2244,74 +2244,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushWithPosition(result, node);
   }
 
-  void visitBinary(
-      HInstruction left, Operator op, HInstruction right, Send send) {
-    Selector selector = null;
-    // TODO(ngeoffray): The resolver creates these selectors already
-    // but does not put them on the [send] instruction.
+  void visitBinary(HInstruction left,
+                   Operator op,
+                   HInstruction right,
+                   Selector selector,
+                   Send send) {
     switch (op.source.stringValue) {
-      case "+":
-      case "+=":
-      case "++":
-        selector = new Selector.binaryOperator(const SourceString('+'));
-        break;
-      case "-":
-      case "-=":
-      case "--":
-        selector = new Selector.binaryOperator(const SourceString('-'));
-        break;
-      case "*":
-      case "*=":
-        selector = new Selector.binaryOperator(const SourceString('*'));
-        break;
-      case "/":
-      case "/=":
-        selector = new Selector.binaryOperator(const SourceString('/'));
-        break;
-      case "~/":
-      case "~/=":
-        selector = new Selector.binaryOperator(const SourceString('~/'));
-        break;
-      case "%":
-      case "%=":
-        selector = new Selector.binaryOperator(const SourceString('%'));
-        break;
-      case "<<":
-      case "<<=":
-        selector = new Selector.binaryOperator(const SourceString('<<'));
-        break;
-      case ">>":
-      case ">>=":
-        selector = new Selector.binaryOperator(const SourceString('>>'));
-        break;
-      case "|":
-      case "|=":
-        selector = new Selector.binaryOperator(const SourceString('|'));
-        break;
-      case "&":
-      case "&=":
-        selector = new Selector.binaryOperator(const SourceString('&'));
-        break;
-      case "^":
-      case "^=":
-        selector = new Selector.binaryOperator(const SourceString('^'));
-        break;
-      case "==":
-      case "!=":
-        selector = new Selector.binaryOperator(const SourceString('=='));
-        break;
-      case "<":
-        selector = new Selector.binaryOperator(const SourceString('<'));
-        break;
-      case "<=":
-        selector = new Selector.binaryOperator(const SourceString('<='));
-        break;
-      case ">":
-        selector = new Selector.binaryOperator(const SourceString('>'));
-        break;
-      case ">=":
-        selector = new Selector.binaryOperator(const SourceString('>='));
-        break;
       case "===":
         pushWithPosition(new HIdentity(left, right), op);
         return;
@@ -2320,9 +2258,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         add(eq);
         pushWithPosition(new HNot(eq), op);
         return;
-      default:
-        compiler.internalError("Unexpected operator $op", node: op);
-        break;
     }
 
     pushWithPosition(
@@ -2359,14 +2294,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void generateInstanceGetterWithCompiledReceiver(Send send,
+                                                  Selector selector,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
-    // TODO(kasperl): This is a convoluted way of checking if we're
-    // generating code for a compound assignment. If we are, we need
-    // to get the selector from the mapping for the AST selector node.
-    Selector selector = (send.asSendSet() == null)
-        ? elements.getSelector(send)
-        : elements.getSelector(send.selector);
     assert(selector.isGetter());
     SourceString getterName = selector.name;
     Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
@@ -2419,7 +2349,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     } else if (Elements.isInstanceSend(send, elements)) {
       HInstruction receiver = generateInstanceSendReceiver(send);
-      generateInstanceGetterWithCompiledReceiver(send, receiver);
+      generateInstanceGetterWithCompiledReceiver(
+          send, elements.getSelector(send), receiver);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       // TODO(5346): Try to avoid the need for calling [declaration] before
       // creating an [HStatic].
@@ -2712,7 +2643,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.argumentsNode);
       var right = pop();
       var left = pop();
-      visitBinary(left, op, right, node);
+      visitBinary(left, op, right, elements.getSelector(node), node);
     }
   }
 
@@ -3119,7 +3050,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element == null) return generateSuperNoSuchMethodSend(node);
+    if (Elements.isUnresolved(element)) {
+      return generateSuperNoSuchMethodSend(node);
+    }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     HInstruction target = new HStatic(element.declaration);
@@ -3626,12 +3559,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
 
         HInvokeDynamicMethod left = buildInvokeDynamic(
-            node, new Selector.index(), receiver, [index]);
+            node,
+            elements.getGetterSelectorInComplexSendSet(node),
+            receiver,
+            <HInstruction>[index]);
         add(left);
-        visitBinary(left, op, value, node);
+        visitBinary(left, op, value,
+                    elements.getOperatorSelectorInComplexSendSet(node), node);
         value = pop();
         HInvokeDynamicMethod assign = buildInvokeDynamic(
-            node, new Selector.indexSet(), receiver, [index, value]);
+            node, elements.getSelector(node), receiver, [index, value]);
         add(assign);
         if (isPrefix) {
           stack.add(value);
@@ -3658,7 +3595,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction receiver = null;
       if (Elements.isInstanceSend(node, elements)) {
         receiver = generateInstanceSendReceiver(node);
-        generateInstanceGetterWithCompiledReceiver(node, receiver);
+        generateInstanceGetterWithCompiledReceiver(
+            node, elements.getGetterSelectorInComplexSendSet(node), receiver);
       } else {
         generateGetter(node, elements[node.selector]);
       }
@@ -3670,7 +3608,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         right = graph.addConstantInt(1, constantSystem);
       }
-      visitBinary(left, op, right, node);
+      visitBinary(left, op, right,
+                  elements.getOperatorSelectorInComplexSendSet(node), node);
       HInstruction operation = pop();
       assert(operation != null);
       if (Elements.isInstanceSend(node, elements)) {
@@ -3916,9 +3855,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // The iterator is shared between initializer, condition and body.
     HInstruction iterator;
     void buildInitializer() {
-      SourceString iteratorName = const SourceString("iterator");
-      Selector selector =
-          new Selector.getter(iteratorName, currentElement.getLibrary());
+      Selector selector = elements.getIteratorSelector(node);
       Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
       visit(node.expression);
       HInstruction receiver = pop();
@@ -3938,15 +3875,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(iterator);
     }
     HInstruction buildCondition() {
-      SourceString name = const SourceString('moveNext');
-      Selector selector = new Selector.call(
-          name, currentElement.getLibrary(), 0);
+      Selector selector = elements.getMoveNextSelector(node);
       push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
       return popBoolified();
     }
     void buildBody() {
-      SourceString name = const SourceString('current');
-      Selector call = new Selector.getter(name, currentElement.getLibrary());
+      Selector call = elements.getCurrentSelector(node);
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
       push(new HInvokeDynamicGetter(call, null, iterator, !hasGetter));
 
