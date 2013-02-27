@@ -156,8 +156,7 @@ LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/clear_A02_t01: Fail, OK # co19 issue 355
 
-# Partially implemented rediriecting constructors makes this fail.
-Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail
+Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially implemented rediriecting constructors makes this fail.
 
 [ $compiler == dart2js && ($system == linux || $system == macos)]
 LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -244,17 +243,13 @@ LibTest/core/int/operator_LT_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/operator_addition_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/toDouble_A01_t01: Fail, OK # co19 issue 200
 
-# Slow tests that needs extra time to finish.
-LibTest/core/List/sort_A01_t06: Slow, Pass
+LibTest/core/List/sort_A01_t06: Slow, Pass # Slow tests that needs extra time to finish.
 
-# Tests that fail because they use the legacy try-catch syntax.
-# See co19 issue 184.
-LibTest/core/List/getRange_A03_t01: Fail, OK
-LibTest/core/List/setRange_A05_t01: Fail, OK
+LibTest/core/List/getRange_A03_t01: Fail, OK # Tests that fail because they use the legacy try-catch syntax. co19 issue 184.
+LibTest/core/List/setRange_A05_t01: Fail, OK # Tests that fail because they use the legacy try-catch syntax. co19 issue 184.
 
-# These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK
+Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 
 LibTest/isolate/SendPort/send_A02_t02: Fail, OK # co19 issue 293
 LibTest/isolate/SendPort/send_A02_t03: Fail, OK # co19 issue 293
@@ -306,9 +301,7 @@ LibTest/core/int/operator_right_shift_A01_t01: Fail, OK # Expects negative resul
 LibTest/core/int/operator_OR_A01_t01: Fail, OK # Requires bigints.
 LibTest/core/int/operator_remainder_A01_t01: Fail, OK # Requires bigints.
 
-# The following tests use the deprecated Date interface.
-# Issue co19 - 125
-LibTest/core/Date/toString_A02_t01: Fail, OK
+LibTest/core/Date/toString_A02_t01: Fail # Argument error. Year 999999 is out of range. Needs to be specified (and then potentially reported to co19): issue 1878.
 
 LibTest/core/Match/pattern_A01_t01: Fail, OK # co19 issue 212
 LibTest/core/Match/str_A01_t01: Fail, OK # co19 issue 212
@@ -785,26 +778,23 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # dartbug.com/7202
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # dartbug.com/7202
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # dartbug.com/7202
 
-# Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Map/containsKey_A01_t02: Fail
-LibTest/core/Map/operator_subscript_A01_t02: Fail
-LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail
-LibTest/core/Map/remove_A01_t02: Fail
-LibTest/core/Set/add_A01_t02: Fail
-LibTest/core/Set/addAll_A01_t02: Fail
-LibTest/core/Set/contains_A01_t02: Fail
-LibTest/core/Set/containsAll_A01_t02: Fail
-LibTest/core/Set/intersection_A03_t01: Fail
-LibTest/core/Set/isSubsetOf_A01_t02: Fail
-LibTest/core/Set/remove_A01_t02: Fail
-LibTest/core/Set/removeAll_A01_t02: Fail
+LibTest/core/Map/containsKey_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Map/operator_subscript_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Map/remove_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/add_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/addAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/contains_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/containsAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/intersection_A03_t01: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/isSubsetOf_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/remove_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/removeAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 
-# Doesn't expect concurrent modification error (issue 376).
-LibTest/core/Map/forEach_A01_t07: Fail
+LibTest/core/Map/forEach_A01_t07: Fail # Doesn't expect concurrent modification error (issue 376).
 
-# Deprecated string members removed (issue 382).
-LibTest/core/String/charCodes_A01_t01: Fail
-LibTest/core/String/charCodeAt_A02_t01: Fail
-LibTest/core/String/charCodeAt_A03_t01: Fail
-LibTest/core/String/charCodeAt_A01_t01: Fail
-LibTest/core/String/splitChars_A01_t01: Fail
+LibTest/core/String/charCodes_A01_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/charCodeAt_A02_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/charCodeAt_A03_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/charCodeAt_A01_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/splitChars_A01_t01: Fail # Deprecated string members removed (issue 382).

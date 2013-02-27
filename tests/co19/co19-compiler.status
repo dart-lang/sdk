@@ -4,133 +4,111 @@
 
 [ $compiler == dartc ]
 
-# co19 issue 365 (iterator changes)
-Language/12_Statements/06_For/2_For_in_A01_t05: Fail # co19 issue 365
-LibTest/core/Set/Set.from_A01_t02: Fail # co19 issue 365
-LibTest/core/Queue/Queue.from_A01_t02: Fail # co19 issue 365
+Language/12_Statements/06_For/2_For_in_A01_t05: Fail # co19 issue 365 # co19 issue 365 (iterator changes)
+LibTest/core/Set/Set.from_A01_t02: Fail # co19 issue 365 # co19 issue 365 (iterator changes)
+LibTest/core/Queue/Queue.from_A01_t02: Fail # co19 issue 365 # co19 issue 365 (iterator changes)
 
-# co19 issue 336 (allow use same prefix for several imports)
-Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail
+Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # co19 issue 336 (allow use same prefix for several imports)
 
 
-# co19 issue 337 (export in scripts is allowed in 0.13)
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # co19 issue 337 (export in scripts is allowed in 0.13)
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # co19 issue 337 (export in scripts is allowed in 0.13)
 
 
-# co19 issue 335 (assignment to final is warning, not error)
-Language/05_Variables/05_Variables_A07_t01: Fail
-Language/05_Variables/05_Variables_A07_t02: Fail
-Language/05_Variables/05_Variables_A07_t03: Fail
-Language/05_Variables/05_Variables_A07_t04: Fail
-Language/05_Variables/05_Variables_A07_t10: Fail
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail
+Language/05_Variables/05_Variables_A07_t01: Fail # co19 issue 335 (assignment to final is warning, not error)
+Language/05_Variables/05_Variables_A07_t02: Fail # co19 issue 335 (assignment to final is warning, not error)
+Language/05_Variables/05_Variables_A07_t03: Fail # co19 issue 335 (assignment to final is warning, not error)
+Language/05_Variables/05_Variables_A07_t04: Fail # co19 issue 335 (assignment to final is warning, not error)
+Language/05_Variables/05_Variables_A07_t10: Fail # co19 issue 335 (assignment to final is warning, not error)
+Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # co19 issue 335 (assignment to final is warning, not error)
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail # co19 issue 335 (assignment to final is warning, not error)
 
-# co19 issue 344 ('null' is constant, so can be used in 'case')
-Language/12_Statements/09_Switch_A02_t03: Fail
+Language/12_Statements/09_Switch_A02_t03: Fail # co19 issue 344 ('null' is constant, so can be used in 'case')
 
-# co19 343 (invalid unicode NFC)
-Language/15_Reference/1_Lexical_Rules_A01_t10: Fail
+Language/15_Reference/1_Lexical_Rules_A01_t10: Fail # co19 343 (invalid unicode NFC)
 
 
-# co19 issue 339 (type variable is not constant)
-Language/11_Expressions/01_Constants_A20_t03: Fail
+Language/11_Expressions/01_Constants_A20_t03: Fail # co19 issue 339 (type variable is not constant)
 
 
-# co19 issue 340 (deprecated catch syntax)
-Language/11_Expressions/08_Throw_A05_t01: Fail
-Language/12_Statements/10_Try_A03_t02: Fail
-Language/12_Statements/10_Try_A03_t03: Fail
+Language/11_Expressions/08_Throw_A05_t01: Fail # co19 issue 340 (deprecated catch syntax)
+Language/12_Statements/10_Try_A03_t02: Fail # co19 issue 340 (deprecated catch syntax)
+Language/12_Statements/10_Try_A03_t03: Fail # co19 issue 340 (deprecated catch syntax)
 
 
-# co19 issue 341 (class Type has no type parameters)
-Language/11_Expressions/31_Type_Test_A01_t02: Fail
-Language/11_Expressions/31_Type_Test_A01_t04: Fail
+Language/11_Expressions/31_Type_Test_A01_t02: Fail # co19 issue 341 (class Type has no type parameters)
+Language/11_Expressions/31_Type_Test_A01_t04: Fail # co19 issue 341 (class Type has no type parameters)
 
 
-# co19 issue 342 (class can be used anywhere, including left side of "as")
-Language/11_Expressions/32_Type_Cast_A01_t04: Fail
+Language/11_Expressions/32_Type_Cast_A01_t04: Fail # co19 issue 342 (class can be used anywhere, including left side of "as")
 
 
-# co19 issue 345 (optional parameters list cannot by empty)
-Language/14_Types/5_Function_Types_A04_t01: Fail
+Language/14_Types/5_Function_Types_A04_t01: Fail # co19 issue 345 (optional parameters list cannot by empty)
 
-# co19 issue 346 (invalid 'one ugly cascade')
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # co19 issue 346 (invalid 'one ugly cascade')
 
-# co19 issue 347 (duplicate class in implements clause)
-Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail
+Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # co19 issue 347 (duplicate class in implements clause)
 
-
-# co19 issue 320
-Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK # co19 issue 320
+Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail, OK # co19 issue 320
+Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail, OK # co19 issue 320
+Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK # co19 issue 320
 
 
-# co19 issue 298
-Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK
-Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK
+Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK # co19 issue 298
+Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK # co19 issue 298
 
 
-# co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/approxEquals_A04_t01: Fail
-LibTest/core/Expect/equals_A02_t01: Fail
-LibTest/core/Expect/identical_A02_t01: Fail
-LibTest/core/Expect/isFalse_A02_t01: Fail
-LibTest/core/Expect/isNotNull_A02_t01: Fail
-LibTest/core/Expect/isNull_A02_t01: Fail
-LibTest/core/Expect/isTrue_A02_t01: Fail
-LibTest/core/Expect/listEquals_A03_t01: Fail
-LibTest/core/Expect/notEquals_A02_t01: Fail
-LibTest/core/Expect/setEquals_A03_t01: Fail
-LibTest/core/Expect/stringEquals_A02_t01: Fail
-LibTest/core/Expect/throws_A01_t04: Fail
-LibTest/core/Future/chain_A02_t04: Fail
-LibTest/core/Future/chain_A02_t05: Fail
-LibTest/core/Future/transform_A02_t03: Fail
-LibTest/core/Future/transform_A02_t04: Fail
-LibTest/core/List/every_A04_t01: Fail
-LibTest/core/List/filter_A04_t01: Fail
-LibTest/core/List/forEach_A03_t01: Fail
-LibTest/core/List/List.from_A01_t01: Fail
-LibTest/core/List/operator_subscript_A01_t01: Fail
-LibTest/core/List/operator_subscript_A01_t02: Fail
-LibTest/core/List/operator_subscripted_assignment_A01_t02: Fail
-LibTest/core/List/operator_subscripted_assignment_A01_t01: Fail
-LibTest/core/List/setRange_A01_t01: Fail
-LibTest/core/Queue/addFirst_A01_t01: Fail
-LibTest/core/Set/intersection_A01_t03: Fail
-LibTest/core/String/toLowerCase_A01_t02: Fail
-LibTest/core/String/toUpperCase_A01_t02: Fail
-LibTest/core/String/trim_A01_t02: Fail
-LibTest/core/StringBuffer/add_A02_t01: Fail
-LibTest/core/StringBuffer/addAll_A02_t01: Fail
-LibTest/core/StringBuffer/clear_A02_t01: Fail
+LibTest/core/Expect/approxEquals_A04_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/equals_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/identical_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/isFalse_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/isNotNull_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/isNull_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/isTrue_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/listEquals_A03_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/notEquals_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/setEquals_A03_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/stringEquals_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Expect/throws_A01_t04: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Future/chain_A02_t04: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Future/chain_A02_t05: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Future/transform_A02_t03: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Future/transform_A02_t04: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/every_A04_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/filter_A04_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/forEach_A03_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/List.from_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/operator_subscript_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/operator_subscript_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/operator_subscripted_assignment_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/operator_subscripted_assignment_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/List/setRange_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Queue/addFirst_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/Set/intersection_A01_t03: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/String/toLowerCase_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/String/toUpperCase_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/String/trim_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/StringBuffer/add_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/StringBuffer/addAll_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
+LibTest/core/StringBuffer/clear_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
 
-# co19 issue 352 (use function expression with return type and name)
-LibTest/isolate/SendPort/send_A01_t01: Fail
+LibTest/isolate/SendPort/send_A01_t01: Fail # co19 issue 352 (use function expression with return type and name)
 
-
-# co19 issue 354
-Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail
+Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail # co19 issue 354
 
 
-# co19 issue 372 (@static-clean where type warnings are expected)
-Language/07_Classes/6_Constructors_A03_t03: Fail
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail
+Language/07_Classes/6_Constructors_A03_t03: Fail # co19 issue 372 (@static-clean where type warnings are expected)
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail # co19 issue 372 (@static-clean where type warnings are expected)
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail # co19 issue 372 (@static-clean where type warnings are expected)
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
 
 
 
 
-# testing framework or VM issue 7388 (dies on Turkish character)
-Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip
+Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip # testing framework or VM issue 7388 (dies on Turkish character)
 
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
@@ -503,12 +481,11 @@ LibTest/core/Strings/concatAll_A02_t01: Fail # Strings class has been removed. c
 LibTest/core/Strings/concatAll_A03_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
 
-# Deprecated string members removed (issue 382).
-LibTest/core/String/charCodeAt_A01_t01: Fail
-LibTest/core/String/charCodeAt_A02_t01: Fail
-LibTest/core/String/charCodeAt_A03_t01: Fail
-LibTest/core/String/charCodes_A01_t01: Fail
-LibTest/core/String/splitChars_A01_t01: Fail
+LibTest/core/String/charCodeAt_A01_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/charCodeAt_A02_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/charCodeAt_A03_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/charCodes_A01_t01: Fail # Deprecated string members removed (issue 382).
+LibTest/core/String/splitChars_A01_t01: Fail # Deprecated string members removed (issue 382).
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip
