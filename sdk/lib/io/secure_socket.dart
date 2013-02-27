@@ -283,7 +283,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     })
     .catchError((error) {
       _handshakeComplete.completeError(error);
-      close();
+      _close();
     });
   }
 
@@ -341,6 +341,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void close() {
+    shutdown(SocketDirection.BOTH);
+  }
+
+  void _close() {
     _closedWrite = true;
     _closedRead = true;
     if (_socket != null) {
@@ -360,24 +364,25 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void shutdown(SocketDirection direction) {
-    if (direction == SocketDirection.BOTH) {
-      close();
-    } else if (direction == SocketDirection.SEND) {
+    if (direction == SocketDirection.SEND ||
+        direction == SocketDirection.BOTH) {
       _closedWrite = true;
       _writeEncryptedData();
       if (_filterWriteEmpty) {
         _socket.shutdown(SocketDirection.SEND);
         _socketClosedWrite = true;
         if (_closedRead) {
-          close();
+          _close();
         }
       }
-    } else if (direction == SocketDirection.RECEIVE) {
+    }
+    if (direction == SocketDirection.RECEIVE ||
+        direction == SocketDirection.BOTH) {
       _closedRead = true;
       _socketClosedRead = true;
       _socket.shutdown(SocketDirection.RECEIVE);
       if (_socketClosedWrite) {
-        close();
+        _close();
       }
     }
   }
@@ -543,7 +548,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _doneHandler() {
     if (_filterReadEmpty) {
-      close();
+      _close();
     }
   }
 
@@ -568,7 +573,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     } else {
       _controller.signalError(e);
     }
-    close();
+    _close();
   }
 
   void _closeHandler() {
@@ -579,7 +584,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _closedRead = true;
         _controller.add(RawSocketEvent.READ_CLOSED);
         if (_socketClosedWrite) {
-          close();
+          _close();
         }
       }
     } else if (_status == HANDSHAKE) {

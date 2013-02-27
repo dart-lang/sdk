@@ -4,6 +4,8 @@
 //
 // VMOptions=
 // VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 import "dart:async";
 import "dart:io";
