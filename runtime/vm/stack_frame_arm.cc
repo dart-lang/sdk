@@ -5,47 +5,57 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
+#include "vm/instructions.h"
+#include "vm/isolate.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
 
+// The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
+// code in the InvokeDartCode stub.
+static const int kSavedContextOffsetInEntryFrame = -10 * kWordSize;
+static const int kExitLinkOffsetInEntryFrame = -9 * kWordSize;
+static const int kPcAddressOffsetFromSp = -1 * kWordSize;
+static const int kSpOffsetFromPreviousFp = 3 * kWordSize;
+
+
 intptr_t StackFrame::PcAddressOffsetFromSp() {
-  UNIMPLEMENTED();
-  return 0;
-}
-
-
-uword StackFrame::GetCallerFp() const {
-  UNIMPLEMENTED();
-  return 0;
+  return kPcAddressOffsetFromSp;
 }
 
 
 uword StackFrame::GetCallerSp() const {
-  UNIMPLEMENTED();
-  return 0;
+  return fp() + kSpOffsetFromPreviousFp;
+}
+
+
+uword StackFrame::GetCallerFp() const {
+  return *(reinterpret_cast<uword*>(fp()));
 }
 
 
 intptr_t EntryFrame::ExitLinkOffset() const {
-  UNIMPLEMENTED();
-  return 0;
+  return kExitLinkOffsetInEntryFrame;
 }
 
 
 intptr_t EntryFrame::SavedContextOffset() const {
-  UNIMPLEMENTED();
-  return 0;
+  return kSavedContextOffsetInEntryFrame;
 }
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  UNIMPLEMENTED();
+  Isolate* current = Isolate::Current();
+  uword exit_marker = current->top_exit_frame_info();
+  frames_.fp_ = exit_marker;
 }
 
 
 void StackFrameIterator::SetupNextExitFrameData() {
-  UNIMPLEMENTED();
+  uword exit_address = entry_.fp() + kExitLinkOffsetInEntryFrame;
+  uword exit_marker = *reinterpret_cast<uword*>(exit_address);
+  frames_.fp_ = exit_marker;
+  frames_.sp_ = 0;
 }
 
 }  // namespace dart

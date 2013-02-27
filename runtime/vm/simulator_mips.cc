@@ -17,7 +17,15 @@
 namespace dart {
 
 Simulator::Simulator() {
-  UNIMPLEMENTED();
+  // Setup simulator support first. Some of this information is needed to
+  // setup the architecture state.
+  // We allocate the stack here, the size is computed as the sum of
+  // the size specified by the user and the buffer space needed for
+  // handling stack overflow exceptions. To be safe in potential
+  // stack underflows we also add some underflow buffer space.
+  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
+                     Isolate::kStackSizeBuffer +
+                     kSimulatorStackUnderflowSize)];
 }
 
 
@@ -37,6 +45,16 @@ Simulator* Simulator::Current() {
     Isolate::Current()->set_simulator(simulator);
   }
   return simulator;
+}
+
+
+// Returns the top of the stack area to enable checking for stack pointer
+// validity.
+uword Simulator::StackTop() const {
+  // To be safe in potential stack underflows we leave some buffer above and
+  // set the stack top.
+  return reinterpret_cast<uword>(stack_) +
+      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
 }
 
 

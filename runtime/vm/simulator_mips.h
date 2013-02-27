@@ -20,12 +20,17 @@ namespace dart {
 
 class Simulator {
  public:
+  static const uword kSimulatorStackUnderflowSize = 64;
+
   Simulator();
   ~Simulator();
 
   // The currently executing Simulator instance, which is associated to the
   // current isolate
   static Simulator* Current();
+
+  // Accessor to the internal simulator stack top.
+  uword StackTop() const;
 
   // Call on program start.
   static void InitOnce();
@@ -39,6 +44,9 @@ class Simulator {
                int32_t parameter2,
                int32_t parameter3,
                int32_t parameter4);
+
+ private:
+  char* stack_;
 };
 
 }  // namespace dart

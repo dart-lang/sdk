@@ -37,15 +37,17 @@ class AssemblerMacros : public AllStatic {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   static void EnterDartFrame(Assembler* assembler, intptr_t frame_size);
+  static void LeaveDartFrame(Assembler* assembler);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
   static void EnterStubFrame(Assembler* assembler);
+  static void LeaveStubFrame(Assembler* assembler);
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kOffsetOfSavedPCfromEntrypoint = -1;  // UNIMPLEMENTED.
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = Instr::kPCReadOffset;
 };
 
 }  // namespace dart.

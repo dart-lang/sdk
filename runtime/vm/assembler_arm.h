@@ -413,8 +413,8 @@ class Assembler : public ValueObject {
   void nop(Condition cond = AL);
 
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
-  void bkpt(uint16_t imm16);
-  void svc(uint32_t imm24);
+  void bkpt(uint16_t imm16, Condition cond = AL);
+  void svc(uint32_t imm24, Condition cond = AL);
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
@@ -475,11 +475,12 @@ class Assembler : public ValueObject {
   // Branch instructions.
   void b(Label* label, Condition cond = AL);
   void bl(Label* label, Condition cond = AL);
+  void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
   // Macros.
   // Branch to an entry address. Call sequence is never patched.
-  void Branch(const ExternalLabel* label);
+  void Branch(const ExternalLabel* label, Condition cond = AL);
 
   // Branch and link to an entry address. Call sequence is never patched.
   void BranchLink(const ExternalLabel* label);
@@ -494,14 +495,17 @@ class Assembler : public ValueObject {
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int offset);
 
-  // Add signed constant value to rd. May clobber IP.
-  void AddConstant(Register rd, int32_t value, Condition cond = AL);
-  void AddConstant(Register rd, Register rn, int32_t value,
-                   Condition cond = AL);
-  void AddConstantSetFlags(Register rd, Register rn, int32_t value,
-                           Condition cond = AL);
-  void AddConstantWithCarry(Register rd, Register rn, int32_t value,
+  // Add signed immediate value to rd. May clobber IP.
+  void AddImmediate(Register rd, int32_t value, Condition cond = AL);
+  void AddImmediate(Register rd, Register rn, int32_t value,
+                    Condition cond = AL);
+  void AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                             Condition cond = AL);
+  void AddImmediateWithCarry(Register rd, Register rn, int32_t value,
+                             Condition cond = AL);
+
+  // Compare rn with signed immediate value. May clobber IP.
+  void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
 
   // Load and Store. May clobber IP.
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
@@ -552,6 +556,20 @@ class Assembler : public ValueObject {
   void Asr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
+
+  void SmiTag(Register reg, Condition cond = AL) {
+    Lsl(reg, reg, kSmiTagSize, cond);
+  }
+
+  void SmiUntag(Register reg, Condition cond = AL) {
+    Asr(reg, reg, kSmiTagSize, cond);
+  }
+
+  // Function frame setup and tear down.
+  void EnterFrame(RegList regs, intptr_t frame_space);
+  void LeaveFrame(RegList regs);
+  void Ret();
+  void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

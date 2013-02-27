@@ -674,8 +674,14 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   bool blocked_registers[kNumberOfCpuRegisters];
 
   // Mark all available registers free.
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+  for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
+    blocked_registers[i] = true;
+  }
+  for (intptr_t i = kFirstFreeCpuRegister; i <= kLastFreeCpuRegister; i++) {
     blocked_registers[i] = false;
+  }
+  for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
+    blocked_registers[i] = true;
   }
 
   // Mark all fixed input, temp and output registers as used.
@@ -707,6 +713,9 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   blocked_registers[FPREG] = true;
   if (TMP != kNoRegister) {
     blocked_registers[TMP] = true;
+  }
+  if (PP != kNoRegister) {
+    blocked_registers[PP] = true;
   }
 
   // Allocate all unallocated input locations.

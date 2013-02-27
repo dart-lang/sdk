@@ -992,15 +992,17 @@ void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
 }
 
 
-void Assembler::svc(uint32_t imm24) {
+void Assembler::svc(uint32_t imm24, Condition cond) {
+  ASSERT(cond != kNoCondition);
   ASSERT(imm24 < (1 << 24));
-  int32_t encoding = (AL << kConditionShift) | B27 | B26 | B25 | B24 | imm24;
+  int32_t encoding = (cond << kConditionShift) | B27 | B26 | B25 | B24 | imm24;
   Emit(encoding);
 }
 
 
-void Assembler::bkpt(uint16_t imm16) {
-  int32_t encoding = (AL << kConditionShift) | B24 | B21 |
+void Assembler::bkpt(uint16_t imm16, Condition cond) {
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = (cond << kConditionShift) | B24 | B21 |
                      ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
   Emit(encoding);
 }
@@ -1013,6 +1015,16 @@ void Assembler::b(Label* label, Condition cond) {
 
 void Assembler::bl(Label* label, Condition cond) {
   EmitBranch(cond, label, true);
+}
+
+
+void Assembler::bx(Register rm, Condition cond) {
+  ASSERT(rm != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B24 | B21 | (0xfff << 8) | B4 |
+                     (static_cast<int32_t>(rm) << kRmShift);
+  Emit(encoding);
 }
 
 
@@ -1036,8 +1048,14 @@ void Assembler::MarkExceptionHandler(Label* label) {
 
 
 void Assembler::LoadObject(Register rd, const Object& object) {
-  // TODO(regis): If the object is never relocated (null, true, false, ...),
-  // load as immediate.
+  if (object.IsNull() ||
+      object.IsSmi() ||
+      (object.raw() == Bool::True().raw()) ||
+      (object.raw() == Bool::False().raw())) {
+    // This object is never relocated; do not use object pool.
+    LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
+    return;
+  }
   const int32_t offset =
       Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
   if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
@@ -1045,7 +1063,7 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   } else {
     int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
     uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    AddConstant(rd, PP, offset12_hi);
+    AddImmediate(rd, PP, offset12_hi);
     ldr(rd, Address(rd, offset12_lo));
   }
 }
@@ -1165,9 +1183,9 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 }
 
 
-void Assembler::Branch(const ExternalLabel* label) {
-  LoadImmediate(IP, label->address());  // Target address is never patched.
-  mov(PC, ShifterOperand(IP));
+void Assembler::Branch(const ExternalLabel* label, Condition cond) {
+  LoadImmediate(IP, label->address(), cond);  // Address is never patched.
+  mov(PC, ShifterOperand(IP), cond);
 }
 
 
@@ -1189,7 +1207,7 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   } else {
     int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
     uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    // Inline a simplified version of AddConstant(LR, CP, offset12_hi).
+    // Inline a simplified version of AddImmediate(LR, CP, offset12_hi).
     ShifterOperand shifter_op;
     if (ShifterOperand::CanHold(offset12_hi, &shifter_op)) {
       add(LR, PP, shifter_op);
@@ -1414,12 +1432,12 @@ void Assembler::StoreDToOffset(DRegister reg,
 }
 
 
-void Assembler::AddConstant(Register rd, int32_t value, Condition cond) {
-  AddConstant(rd, rd, value, cond);
+void Assembler::AddImmediate(Register rd, int32_t value, Condition cond) {
+  AddImmediate(rd, rd, value, cond);
 }
 
 
-void Assembler::AddConstant(Register rd, Register rn, int32_t value,
+void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
                             Condition cond) {
   if (value == 0) {
     if (rd != rn) {
@@ -1455,7 +1473,7 @@ void Assembler::AddConstant(Register rd, Register rn, int32_t value,
 }
 
 
-void Assembler::AddConstantSetFlags(Register rd, Register rn, int32_t value,
+void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                                     Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
@@ -1482,7 +1500,7 @@ void Assembler::AddConstantSetFlags(Register rd, Register rn, int32_t value,
 }
 
 
-void Assembler::AddConstantWithCarry(Register rd, Register rn, int32_t value,
+void Assembler::AddImmediateWithCarry(Register rd, Register rn, int32_t value,
                                      Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
@@ -1505,6 +1523,67 @@ void Assembler::AddConstantWithCarry(Register rd, Register rn, int32_t value,
       }
       adc(rd, rn, ShifterOperand(IP), cond);
     }
+  }
+}
+
+
+void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
+  ShifterOperand shifter_op;
+  if (ShifterOperand::CanHold(value, &shifter_op)) {
+    cmp(rn, shifter_op, cond);
+  } else {
+    ASSERT(rn != IP);
+    LoadImmediate(IP, cond);
+    cmp(rn, ShifterOperand(IP), cond);
+  }
+}
+
+
+static int NumRegsBelowFP(RegList regs) {
+  int count = 0;
+  for (int i = 0; i < FP; i++) {
+    if ((regs & (1 << i)) != 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+
+void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
+  if (prologue_offset_ == -1) {
+    prologue_offset_ = CodeSize();
+  }
+  PushList(regs);
+  if ((regs & (1 << FP)) != 0) {
+    // Set FP to the saved previous FP.
+    add(FP, SP, ShifterOperand(4 * NumRegsBelowFP(regs)));
+  }
+  AddImmediate(SP, -frame_size);
+}
+
+
+void Assembler::LeaveFrame(RegList regs) {
+  ASSERT((regs & (1 << PC)) == 0);  // Must not pop PC.
+  if ((regs & (1 << FP)) != 0) {
+    // Use FP to set SP.
+    sub(SP, FP, ShifterOperand(4 * NumRegsBelowFP(regs)));
+  }
+  PopList(regs);
+}
+
+
+void Assembler::Ret() {
+  bx(LR);
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(SP, -frame_space);
+  if (OS::ActivationFrameAlignment() > 0) {
+    and_(SP, SP, ShifterOperand(~(OS::ActivationFrameAlignment() - 1)));
   }
 }
 

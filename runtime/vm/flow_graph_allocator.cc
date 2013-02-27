@@ -78,9 +78,20 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     cpu_spill_slot_count_(0) {
   for (intptr_t i = 0; i < vreg_count_; i++) live_ranges_.Add(NULL);
 
+  // All registers are marked as "not blocked" (array initialized to false).
+  // Mark the unavailable ones as "blocked" (true).
+  for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
+    blocked_cpu_registers_[i] = true;
+  }
+  for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
+    blocked_cpu_registers_[i] = true;
+  }
   blocked_cpu_registers_[CTX] = true;
   if (TMP != kNoRegister) {
     blocked_cpu_registers_[TMP] = true;
+  }
+  if (PP != kNoRegister) {
+    blocked_cpu_registers_[PP] = true;
   }
   blocked_cpu_registers_[SPREG] = true;
   blocked_cpu_registers_[FPREG] = true;

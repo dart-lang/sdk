@@ -555,6 +555,8 @@ void ARMDecoder::DecodeType01(Instr* instr) {
         case 1: {
           if (instr->Bits(21, 2) == 0x3) {
             Format(instr, "clz'cond 'rd, 'rm");
+          } else if (instr->Bits(21, 2) == 0x1) {
+            Format(instr, "bx'cond 'rm");
           } else {
             Unknown(instr);
           }
@@ -571,7 +573,7 @@ void ARMDecoder::DecodeType01(Instr* instr) {
         }
         case 7: {
           if (instr->Bits(21, 2) == 0x1) {
-            Format(instr, "bkpt #'imm12_4");
+            Format(instr, "bkpt'cond #'imm12_4");
           } else {
              // Format(instr, "smc'cond");
             Unknown(instr);  // Not used.

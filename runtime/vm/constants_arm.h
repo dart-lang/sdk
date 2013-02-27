@@ -16,6 +16,7 @@ namespace dart {
 
 
 enum Register {
+  kFirstFreeCpuRegister = 0,
   R0  =  0,
   R1  =  1,
   R2  =  2,
@@ -25,6 +26,7 @@ enum Register {
   R6  =  6,
   R7  =  7,
   R8  =  8,
+  kLastFreeCpuRegister = 8,
   R9  =  9,
   R10 = 10,
   R11 = 11,
@@ -132,11 +134,11 @@ const int kNumberOfFpuRegisters = kNumberOfDRegisters;
 
 
 // Register aliases.
-const Register TMP = kNoRegister;  // No scratch register used by assembler.
+const Register TMP = IP;  // Used as scratch register by assembler.
 const Register CTX = R9;  // Caches current context in generated code.
 const Register PP = R10;  // Caches object pool pointer in generated code.
-const Register SPREG = SP;
-const Register FPREG = FP;
+const Register SPREG = SP;  // Stack pointer register.
+const Register FPREG = FP;  // Frame pointer register.
 
 
 // Exception object is passed in this register to the catch handlers when an
@@ -146,13 +148,14 @@ const Register kExceptionObjectReg = R0;  // Unimplemented.
 
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
-const RegList kAllCoreRegistersList = 0xFFFF;
+const RegList kAllCpuRegistersList = 0xFFFF;
 
 
 // C++ ABI call registers
-const int kAbiRegisterCount = 4;
-const Register kAbiRegisters[kAbiRegisterCount] = { R0, R1, R2, R3 };
-const RegList kAbiRegisterList = (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
+const RegList kAbiArgumentRegs = (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
+const RegList kAbiPreservedRegs = (1 << R4) | (1 << R5) | (1 << R6) |
+    (1 << R7) | (1 << R8) | (1 << R9) | (1 << 10);
+const int kAbiPreservedRegCount = 7;
 
 
 // Values for the condition field as defined in section A3.2.
@@ -431,12 +434,12 @@ class Instr {
 
   // Test for Supervisor Call instruction.
   inline bool IsSvc() const {
-    return ((InstructionBits() & 0xff000000) == 0xef000000);
+    return ((InstructionBits() & 0x0f000000) == 0x0f000000);
   }
 
   // Test for Breakpoint instruction.
   inline bool IsBkpt() const {
-    return ((InstructionBits() & 0xfff000f0) == 0xe1200070);
+    return ((InstructionBits() & 0x0ff000f0) == 0x01200070);
   }
 
   // VFP register fields.

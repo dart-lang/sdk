@@ -549,6 +549,9 @@ RawError* Compiler::CompileParsedFunction(
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
     CompileParsedFunctionHelper(parsed_function, false);
+    if (FLAG_disassemble) {
+      DisassembleCode(parsed_function.function(), false);
+    }
     isolate->set_long_jump_base(base);
     return Error::null();
   } else {

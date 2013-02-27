@@ -2227,6 +2227,9 @@ class Instructions : public Object {
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
   RawCode* code() const { return raw_ptr()->code_; }
   RawArray* object_pool() const { return raw_ptr()->object_pool_; }
+  static intptr_t object_pool_offset() {
+    return OFFSET_OF(RawInstructions, object_pool_);
+  }
 
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();

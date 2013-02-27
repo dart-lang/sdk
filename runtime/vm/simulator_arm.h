@@ -27,7 +27,7 @@ class SimulatorSetjmpBuffer;
 
 class Simulator {
  public:
-  static const size_t kSimulatorStackUnderflowSize = 64;
+  static const uword kSimulatorStackUnderflowSize = 64;
 
   Simulator();
   ~Simulator();
@@ -52,9 +52,8 @@ class Simulator {
   void set_dregister(DRegister reg, double value);
   double get_dregister(DRegister reg) const;
 
-  // Accessor to the internal simulator stack area.
-  uintptr_t StackTop() const;
-  uintptr_t StackLimit() const;
+  // Accessor to the internal simulator stack top.
+  uword StackTop() const;
 
   // Executes ARM instructions until the PC reaches end_sim_pc.
   void Execute();

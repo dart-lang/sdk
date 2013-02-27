@@ -956,10 +956,10 @@ uword Simulator::CompareExchange(uword* address,
 
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
-uintptr_t Simulator::StackTop() const {
+uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
-  return reinterpret_cast<uintptr_t>(stack_) +
+  return reinterpret_cast<uword>(stack_) +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
 }
 
@@ -1391,21 +1391,28 @@ void Simulator::DecodeType01(Instr* instr) {
     if (instr->IsMiscellaneous()) {
       switch (instr->Bits(4, 3)) {
         case 1: {
-          ASSERT(instr->Bits(21, 2) == 0x3);
-          // Format(instr, "clz'cond 'rd, 'rm");
-          Register rm = instr->RmField();
-          Register rd = instr->RdField();
-          int32_t rm_val = get_register(rm);
-          int32_t rd_val = 0;
-          if (rm_val != 0) {
-            while (rm_val > 0) {
-              rd_val++;
-              rm_val <<= 1;
+          if (instr->Bits(21, 2) == 0x3) {
+            // Format(instr, "clz'cond 'rd, 'rm");
+            Register rm = instr->RmField();
+            Register rd = instr->RdField();
+            int32_t rm_val = get_register(rm);
+            int32_t rd_val = 0;
+            if (rm_val != 0) {
+              while (rm_val > 0) {
+                rd_val++;
+                rm_val <<= 1;
+              }
+            } else {
+              rd_val = 32;
             }
+            set_register(rd, rd_val);
           } else {
-            rd_val = 32;
+            ASSERT(instr->Bits(21, 2) == 0x1);
+            // Format(instr, "bx'cond 'rm");
+            Register rm = instr->RmField();
+            int32_t rm_val = get_register(rm);
+            set_pc(rm_val);
           }
-          set_register(rd, rd_val);
           break;
         }
         case 3: {
@@ -1420,7 +1427,7 @@ void Simulator::DecodeType01(Instr* instr) {
         }
         case 7: {
           if (instr->Bits(21, 2) == 0x1) {
-            // Format(instr, "bkpt #'imm12_4");
+            // Format(instr, "bkpt'cond #'imm12_4");
             SimulatorDebugger dbg(this);
             set_pc(get_pc() + Instr::kInstrSize);
             char buffer[32];
@@ -2673,7 +2680,7 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r11_val = get_register(R11);
 
   // Setup the callee-saved registers with a known value. To be able to check
-  // that they are preserved properly across JS execution.
+  // that they are preserved properly across dart execution.
   int32_t callee_saved_value = icount_;
   set_register(R4, callee_saved_value);
   set_register(R5, callee_saved_value);
