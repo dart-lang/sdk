@@ -113,14 +113,14 @@
  * callback should be protected within a call to guardAsync(); this will ensure
  * that exceptions are properly handled.
  *
- * A variation on this is expectAsyncUntilX(), which takes a callback as the 
+ * A variation on this is expectAsyncUntilX(), which takes a callback as the
  * first parameter and a predicate function as the second parameter; after each
  * time * the callback is called, the predicate function will be called; if it
  * returns false the test will still be considered incomplete.
  *
  * Test functions can return [Future]s, which provide another way of doing
  * asynchronous tests. The test framework will handle exceptions thrown by
- * the Future, and will advance to the next test when the Future is complete. 
+ * the Future, and will advance to the next test when the Future is complete.
  * It is still important to use expectAsync/guardAsync with any parts of the
  * test that may be invoked from a top level context (for example, with
  * Timer.run()], as the Future exception handler may not capture exceptions
@@ -725,7 +725,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests = _tests.where(filterFunction).toList();
+  _tests.retainMatching(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
