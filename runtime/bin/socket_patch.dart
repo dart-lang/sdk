@@ -666,6 +666,9 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
         offset = 0;
         write();
       },
+      onError: (error) {
+        socket._consumerDone(error);
+      },
       onDone: () {
         socket._consumerDone();
       });

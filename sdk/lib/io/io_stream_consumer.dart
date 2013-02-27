@@ -144,7 +144,10 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
         onDone: () {
           _bindSubscription = null;
           if (unbind) {
-            unbindCompleter.complete(null);
+            if (unbindCompleter != null) {
+              unbindCompleter.complete(null);
+              unbindCompleter = null;
+            }
           } else {
             _controller.close();
           }
@@ -152,6 +155,11 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
         onError: _controller.signalError);
     if (_paused) _pause();
     if (unbind) {
+      _pipeFuture.catchError((error) {
+        if (unbindCompleter != null) {
+          unbindCompleter.completeError(error);
+        }
+      });
       return unbindCompleter.future;
     } else {
       return _pipeFuture;
