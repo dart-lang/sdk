@@ -2104,6 +2104,10 @@ class Console extends NativeFieldWrapperClass1 {
   @DocsEditable
   void profileEnd(String title) native "Console_profileEnd_Callback";
 
+  @DomName('Console.table')
+  @DocsEditable
+  void table(Object arg) native "Console_table_Callback";
+
   @DomName('Console.time')
   @DocsEditable
   void time(String title) native "Console_time_Callback";
@@ -6601,7 +6605,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getInt8')
   @DocsEditable
-  Object getInt8({int byteOffset}) native "DataView_getInt8_Callback";
+  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
   int getUint16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6635,7 +6639,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getUint8')
   @DocsEditable
-  Object getUint8({int byteOffset}) native "DataView_getUint8_Callback";
+  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
   void setFloat32(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -9759,6 +9763,10 @@ abstract class Element extends Node implements ElementTraversal {
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
+  @DomName('Element.attributes')
+  @DocsEditable
+  _NamedNodeMap get $dom_attributes native "Element_attributes_Getter";
+
   @DomName('Element.childElementCount')
   @DocsEditable
   int get $dom_childElementCount native "Element_childElementCount_Getter";
@@ -12616,7 +12624,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable
-  void $dom_clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
+  void $dom_clearWatch(int watchID) native "Geolocation_clearWatch_Callback";
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable
@@ -18802,10 +18810,6 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
-  @DomName('Node.attributes')
-  @DocsEditable
-  _NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
-
   @DomName('Node.childNodes')
   @DocsEditable
   List<Node> get $dom_childNodes native "Node_childNodes_Getter";
@@ -19831,9 +19835,17 @@ class OverflowEvent extends Event {
 class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
 
+  @DomName('PagePopupController.closePopup')
+  @DocsEditable
+  void closePopup() native "PagePopupController_closePopup_Callback";
+
   @DomName('PagePopupController.formatMonth')
   @DocsEditable
   String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
+
+  @DomName('PagePopupController.formatShortMonth')
+  @DocsEditable
+  String formatShortMonth(int year, int zeroBaseMonth) native "PagePopupController_formatShortMonth_Callback";
 
   @DomName('PagePopupController.histogramEnumeration')
   @DocsEditable
@@ -19842,6 +19854,10 @@ class PagePopupController extends NativeFieldWrapperClass1 {
   @DomName('PagePopupController.localizeNumberString')
   @DocsEditable
   String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
+
+  @DomName('PagePopupController.setValue')
+  @DocsEditable
+  void setValue(String value) native "PagePopupController_setValue_Callback";
 
   @DomName('PagePopupController.setValueAndClosePopup')
   @DocsEditable

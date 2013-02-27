@@ -1712,6 +1712,10 @@ class Console {
   @DocsEditable
   void clear(Object arg) native;
 
+  @DomName('Console.table')
+  @DocsEditable
+  void table(Object arg) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5922,7 +5926,7 @@ class DataView extends ArrayBufferView native "*DataView" {
 
   @DomName('DataView.getInt8')
   @DocsEditable
-  Object getInt8({int byteOffset}) native;
+  int getInt8(int byteOffset) native;
 
   @DomName('DataView.getUint16')
   @DocsEditable
@@ -5934,7 +5938,7 @@ class DataView extends ArrayBufferView native "*DataView" {
 
   @DomName('DataView.getUint8')
   @DocsEditable
-  Object getUint8({int byteOffset}) native;
+  int getUint8(int byteOffset) native;
 
   @DomName('DataView.setFloat32')
   @DocsEditable
@@ -9177,6 +9181,11 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
+  @JSName('attributes')
+  @DomName('Element.attributes')
+  @DocsEditable
+  final _NamedNodeMap $dom_attributes;
+
   @JSName('childElementCount')
   @DomName('Element.childElementCount')
   @DocsEditable
@@ -11764,7 +11773,7 @@ class Geolocation native "*Geolocation" {
   @JSName('clearWatch')
   @DomName('Geolocation.clearWatch')
   @DocsEditable
-  void $dom_clearWatch(int watchId) native;
+  void $dom_clearWatch(int watchID) native;
 
   @JSName('getCurrentPosition')
   @DomName('Geolocation.getCurrentPosition')
@@ -17291,11 +17300,6 @@ class Node extends EventTarget native "*Node" {
   }
 
 
-  @JSName('attributes')
-  @DomName('Node.attributes')
-  @DocsEditable
-  final _NamedNodeMap $dom_attributes;
-
   @JSName('childNodes')
   @DomName('Node.childNodes')
   @DocsEditable
@@ -18199,9 +18203,17 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 @DomName('PagePopupController')
 class PagePopupController native "*PagePopupController" {
 
+  @DomName('PagePopupController.closePopup')
+  @DocsEditable
+  void closePopup() native;
+
   @DomName('PagePopupController.formatMonth')
   @DocsEditable
   String formatMonth(int year, int zeroBaseMonth) native;
+
+  @DomName('PagePopupController.formatShortMonth')
+  @DocsEditable
+  String formatShortMonth(int year, int zeroBaseMonth) native;
 
   @DomName('PagePopupController.histogramEnumeration')
   @DocsEditable
@@ -18210,6 +18222,10 @@ class PagePopupController native "*PagePopupController" {
   @DomName('PagePopupController.localizeNumberString')
   @DocsEditable
   String localizeNumberString(String numberString) native;
+
+  @DomName('PagePopupController.setValue')
+  @DocsEditable
+  void setValue(String value) native;
 
   @DomName('PagePopupController.setValueAndClosePopup')
   @DocsEditable
@@ -26096,26 +26112,23 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DomName('DOMWindow.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
-    if (?message && !?messagePorts) {
+    if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, targetOrigin);
+      _postMessage_1(message_1, targetOrigin, messagePorts);
       return;
     }
-    if (?message) {
-      var message_2 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_2(message_2, targetOrigin, messagePorts);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_2, targetOrigin);
+    return;
   }
   @JSName('postMessage')
   @DomName('DOMWindow.postMessage')
   @DocsEditable
-  void _postMessage_1(message, targetOrigin) native;
+  void _postMessage_1(message, targetOrigin, List messagePorts) native;
   @JSName('postMessage')
   @DomName('DOMWindow.postMessage')
   @DocsEditable
-  void _postMessage_2(message, targetOrigin, List messagePorts) native;
+  void _postMessage_2(message, targetOrigin) native;
 
   @DomName('DOMWindow.print')
   @DocsEditable

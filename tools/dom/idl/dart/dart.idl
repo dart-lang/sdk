@@ -41,7 +41,7 @@ interface HTMLCanvasElement {
   [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
   [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
 
-  [Suppressed] DOMObject getContext(in DOMString contextId);
+  [Suppressed] any getContext(in DOMString contextId);
   [Custom] CanvasRenderingContext getContext(in DOMString contextId, [Optional] in Dictionary attrs);
 };
 
@@ -322,7 +322,7 @@ interface MutationObserver {
 interface SQLResultSetRowList {
   // Change the return type to Dictionary so that rows are exposed in the Dart
   // API as a Maps, with the appropriate conversion in JavaScript.
-  [Suppressed] DOMObject item(in unsigned long index);
+  [Suppressed] any item(in unsigned long index);
   [Custom] Dictionary item(in unsigned long index);
 };
 
