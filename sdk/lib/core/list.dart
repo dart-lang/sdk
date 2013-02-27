@@ -52,7 +52,13 @@ abstract class List<E> implements Collection<E> {
   /**
    * *Deprecated*: Use `new List(count)` instead.
    */
-  factory List.fixedLength(int count) => new List(count);
+  factory List.fixedLength(int count, { E fill }) {
+    List<E> result = new List(count);
+    if (fill != null) {
+      for (int i = 0; i < count; i++) result[i] = fill;
+    }
+    return result;
+  }
 
   /**
    * Creates an list with the elements of [other]. The order in
