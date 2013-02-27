@@ -6331,13 +6331,13 @@ class Document extends Node  native "*Document"
   @DocsEditable
   String cookie;
 
-  WindowBase get window => _convertNativeToDart_Window(this._get_window);
+  WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
   @DomName('Document.window')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_window;
+  final dynamic _window;
 
   @DomName('Document.documentElement')
   @DocsEditable
@@ -10064,13 +10064,13 @@ class Event native "*Event" {
   @DocsEditable
   final DataTransfer clipboardData;
 
-  EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);
+  EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   @JSName('currentTarget')
   @DomName('Event.currentTarget')
   @DocsEditable
   @Creates('Null')
   @Returns('EventTarget|=Object')
-  final dynamic _get_currentTarget;
+  final dynamic _currentTarget;
 
   @DomName('Event.defaultPrevented')
   @DocsEditable
@@ -10084,13 +10084,13 @@ class Event native "*Event" {
   @DocsEditable
   bool returnValue;
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
+  EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
   @DomName('Event.target')
   @DocsEditable
   @Creates('Node')
   @Returns('EventTarget|=Object')
-  final dynamic _get_target;
+  final dynamic _target;
 
   @DomName('Event.timeStamp')
   @DocsEditable
@@ -10397,11 +10397,9 @@ class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 @DomName('File')
 class File extends Blob native "*File" {
 
-  DateTime get lastModifiedDate => _convertNativeToDart_DateTime(this._get_lastModifiedDate);
-  @JSName('lastModifiedDate')
   @DomName('File.lastModifiedDate')
   @DocsEditable
-  final dynamic _get_lastModifiedDate;
+  final Date lastModifiedDate;
 
   @DomName('File.name')
   @DocsEditable
@@ -11527,11 +11525,11 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 @DomName('FocusEvent')
 class FocusEvent extends UIEvent native "*FocusEvent" {
 
-  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   @JSName('relatedTarget')
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable
-  final dynamic _get_relatedTarget;
+  final dynamic _relatedTarget;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11915,13 +11913,13 @@ class History implements HistoryBase native "*History" {
   @DocsEditable
   final int length;
 
-  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._get_state);
+  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
   @DomName('History.state')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_state;
+  final dynamic _state;
 
   @DomName('History.back')
   @DocsEditable
@@ -13152,13 +13150,13 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
-  WindowBase get contentWindow => _convertNativeToDart_Window(this._get_contentWindow);
+  WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   @JSName('contentWindow')
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_contentWindow;
+  final dynamic _contentWindow;
 
   @DomName('HTMLIFrameElement.height')
   @DocsEditable
@@ -13497,18 +13495,9 @@ class InputElement extends Element implements
   @DocsEditable
   String value;
 
-  DateTime get valueAsDate => _convertNativeToDart_DateTime(this._get_valueAsDate);
-  @JSName('valueAsDate')
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  final dynamic _get_valueAsDate;
-
-  void set valueAsDate(DateTime value) {
-    this._set_valueAsDate = _convertDartToNative_DateTime(value);
-  }
-  void set _set_valueAsDate(/*dynamic*/ value) {
-    JS("void", "#.valueAsDate = #", this, value);
-  }
+  Date valueAsDate;
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable
@@ -16256,13 +16245,13 @@ class MessageEvent extends Event native "*MessageEvent" {
     return event;
   }
 
-  dynamic get data => convertNativeToDart_SerializedScriptValue(this._get_data);
+  dynamic get data => convertNativeToDart_SerializedScriptValue(this._data);
   @JSName('data')
   @DomName('MessageEvent.data')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_data;
+  final dynamic _data;
 
   @DomName('MessageEvent.lastEventId')
   @DocsEditable
@@ -16277,13 +16266,13 @@ class MessageEvent extends Event native "*MessageEvent" {
   @Creates('=List')
   final List ports;
 
-  WindowBase get source => _convertNativeToDart_Window(this._get_source);
+  WindowBase get source => _convertNativeToDart_Window(this._source);
   @JSName('source')
   @DomName('MessageEvent.source')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_source;
+  final dynamic _source;
 
   @JSName('initMessageEvent')
   @DomName('MessageEvent.initMessageEvent')
@@ -16381,11 +16370,9 @@ class MetaElement extends Element native "*HTMLMetaElement" {
 @DomName('Metadata')
 class Metadata native "*Metadata" {
 
-  DateTime get modificationTime => _convertNativeToDart_DateTime(this._get_modificationTime);
-  @JSName('modificationTime')
   @DomName('Metadata.modificationTime')
   @DocsEditable
-  final dynamic _get_modificationTime;
+  final Date modificationTime;
 
   @DomName('Metadata.size')
   @DocsEditable
@@ -16520,13 +16507,13 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   @DocsEditable
   final bool metaKey;
 
-  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   @JSName('relatedTarget')
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable
   @Creates('Node')
   @Returns('EventTarget|=Object')
-  final dynamic _get_relatedTarget;
+  final dynamic _relatedTarget;
 
   @DomName('MouseEvent.screenX')
   @DocsEditable
@@ -18416,13 +18403,13 @@ class PerformanceTiming native "*PerformanceTiming" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class PopStateEvent extends Event native "*PopStateEvent" {
 
-  dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
+  dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
   @DomName('PopStateEvent.state')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_state;
+  final dynamic _state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19304,11 +19291,9 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 @DomName('RTCStatsElement')
 class RtcStatsElement native "*RTCStatsElement" {
 
-  DateTime get timestamp => _convertNativeToDart_DateTime(this._get_timestamp);
-  @JSName('timestamp')
   @DomName('RTCStatsElement.timestamp')
   @DocsEditable
-  final dynamic _get_timestamp;
+  final Date timestamp;
 
   @DomName('RTCStatsElement.names')
   @DocsEditable
@@ -21937,13 +21922,13 @@ class Touch native "*Touch" {
   @DocsEditable
   final int screenY;
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
+  EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
   @DomName('Touch.target')
   @DocsEditable
   @Creates('Element|Document')
   @Returns('Element|Document')
-  final dynamic _get_target;
+  final dynamic _target;
 
   @JSName('webkitForce')
   @DomName('Touch.webkitForce')
@@ -22456,13 +22441,13 @@ class UIEvent extends Event native "*UIEvent" {
   @DocsEditable
   final int pageY;
 
-  WindowBase get view => _convertNativeToDart_Window(this._get_view);
+  WindowBase get view => _convertNativeToDart_Window(this._view);
   @JSName('view')
   @DomName('UIEvent.view')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_view;
+  final dynamic _view;
 
   @DomName('UIEvent.which')
   @DocsEditable
@@ -25846,13 +25831,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final bool offscreenBuffering;
 
-  WindowBase get opener => _convertNativeToDart_Window(this._get_opener);
+  WindowBase get opener => _convertNativeToDart_Window(this._opener);
   @JSName('opener')
   @DomName('DOMWindow.opener')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_opener;
+  final dynamic _opener;
 
   @DomName('DOMWindow.outerHeight')
   @DocsEditable
@@ -25874,13 +25859,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final int pageYOffset;
 
-  WindowBase get parent => _convertNativeToDart_Window(this._get_parent);
+  WindowBase get parent => _convertNativeToDart_Window(this._parent);
   @JSName('parent')
   @DomName('DOMWindow.parent')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_parent;
+  final dynamic _parent;
 
   @DomName('DOMWindow.performance')
   @DocsEditable
@@ -25925,13 +25910,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final BarInfo scrollbars;
 
-  WindowBase get self => _convertNativeToDart_Window(this._get_self);
+  WindowBase get self => _convertNativeToDart_Window(this._self);
   @JSName('self')
   @DomName('DOMWindow.self')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_self;
+  final dynamic _self;
 
   @DomName('DOMWindow.sessionStorage')
   @DocsEditable
@@ -25953,13 +25938,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final BarInfo toolbar;
 
-  WindowBase get top => _convertNativeToDart_Window(this._get_top);
+  WindowBase get top => _convertNativeToDart_Window(this._top);
   @JSName('top')
   @DomName('DOMWindow.top')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_top;
+  final dynamic _top;
 
   @JSName('webkitNotifications')
   @DomName('DOMWindow.webkitNotifications')
@@ -25977,13 +25962,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Experimental
   final StorageInfo storageInfo;
 
-  WindowBase get window => _convertNativeToDart_Window(this._get_window);
+  WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('window')
   @DomName('DOMWindow.window')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _get_window;
+  final dynamic _window;
 
   @JSName('addEventListener')
   @DomName('DOMWindow.addEventListener')
@@ -31554,15 +31539,6 @@ class _DocumentFragmentFactoryProvider {
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
-
-DateTime _convertNativeToDart_DateTime(date) {
-  var millisSinceEpoch = JS('int', '#.getTime()', date);
-  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
-}
-
-_convertDartToNative_DateTime(DateTime date) {
-  return JS('', 'new Date(#)', date.millisecondsSinceEpoch);
-}
 
 WindowBase _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);

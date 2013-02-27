@@ -820,9 +820,9 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
-        '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._get_$(HTML_NAME));'
+        '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
         "\n  @JSName('$NAME')"
-        '\n  $(ANNOTATIONS)final $NATIVE_TYPE _get_$HTML_NAME;'
+        '\n  $(ANNOTATIONS)final $NATIVE_TYPE _$HTML_NAME;'
         '\n',
         ANNOTATIONS=self._Annotations(attr.type.id, html_name),
         CONVERT=conversion.function_name,
@@ -835,9 +835,9 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
         '\n  void set $HTML_NAME($INPUT_TYPE value) {'
-        '\n    this._set_$HTML_NAME = $CONVERT(value);'
+        '\n    this._$HTML_NAME = $CONVERT(value);'
         '\n  }'
-        '\n  void set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
         '\n    JS("void", "#.$NAME = #", this, value);'
         '\n  }'
         '\n',

@@ -11105,7 +11105,7 @@ class File extends Blob {
 
   @DomName('File.lastModifiedDate')
   @DocsEditable
-  DateTime get lastModifiedDate native "File_lastModifiedDate_Getter";
+  Date get lastModifiedDate native "File_lastModifiedDate_Getter";
 
   @DomName('File.name')
   @DocsEditable
@@ -14613,11 +14613,11 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  DateTime get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
+  Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  void set valueAsDate(DateTime value) native "HTMLInputElement_valueAsDate_Setter";
+  void set valueAsDate(Date value) native "HTMLInputElement_valueAsDate_Setter";
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable
@@ -17910,7 +17910,7 @@ class Metadata extends NativeFieldWrapperClass1 {
 
   @DomName('Metadata.modificationTime')
   @DocsEditable
-  DateTime get modificationTime native "Metadata_modificationTime_Getter";
+  Date get modificationTime native "Metadata_modificationTime_Getter";
 
   @DomName('Metadata.size')
   @DocsEditable
@@ -20991,7 +20991,7 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 
   @DomName('RTCStatsElement.timestamp')
   @DocsEditable
-  DateTime get timestamp native "RTCStatsElement_timestamp_Getter";
+  Date get timestamp native "RTCStatsElement_timestamp_Getter";
 
   @DomName('RTCStatsElement.names')
   @DocsEditable
