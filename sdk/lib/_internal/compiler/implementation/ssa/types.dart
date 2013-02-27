@@ -8,57 +8,43 @@ abstract class HType {
   const HType();
 
   /**
-   * Returns an [HType] that represents [type] and all types that have
-   * [type] as supertype.
+   * Returns an [HType] with the given type mask. The factory method
+   * takes care to track whether or not the resulting type may be a
+   * primitive type.
    */
-  factory HType.fromBoundedType(DartType type,
-                                Compiler compiler,
-                                {bool canBeNull: true,
-                                 bool isExact: false,
-                                 bool isInterfaceType: true}) {
-    Element element = type.element;
+  factory HType.fromMask(TypeMask mask, Compiler compiler) {
+    Element element = mask.base.element;
     if (element.kind == ElementKind.TYPE_VARIABLE) {
-      // TODO(ngeoffray): Replace object type with [type].
-      type = compiler.objectClass.computeType(compiler);
-    }
-
-    int kind;
-    if (isExact) {
-      kind = TypeMask.EXACT;
-    } else if (!isInterfaceType) {
-      kind = TypeMask.SUBCLASS;
-    } else {
-      kind = TypeMask.SUBTYPE;
-    }
-    TypeMask mask = new TypeMask(type, kind, canBeNull);
-
-    if (element.kind == ElementKind.TYPE_VARIABLE) {
+      // TODO(ngeoffray): Can we do better here?
+      DartType base = compiler.objectClass.computeType(compiler);
+      mask = new TypeMask.internal(base, mask.flags);
       return new HBoundedPotentialPrimitiveType(mask, true);
     }
 
+    bool isNullable = mask.isNullable;
     JavaScriptBackend backend = compiler.backend;
     if (element == compiler.intClass || element == backend.jsIntClass) {
-      return canBeNull ? HType.INTEGER_OR_NULL : HType.INTEGER;
+      return isNullable ? HType.INTEGER_OR_NULL : HType.INTEGER;
     } else if (element == compiler.numClass
                || element == backend.jsNumberClass) {
-      return canBeNull ? HType.NUMBER_OR_NULL : HType.NUMBER;
+      return isNullable ? HType.NUMBER_OR_NULL : HType.NUMBER;
     } else if (element == compiler.doubleClass
                || element == backend.jsDoubleClass) {
-      return canBeNull ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
+      return isNullable ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
     } else if (element == compiler.stringClass
                || element == backend.jsStringClass) {
-      return canBeNull ? HType.STRING_OR_NULL : HType.STRING;
+      return isNullable ? HType.STRING_OR_NULL : HType.STRING;
     } else if (element == compiler.boolClass
                || element == backend.jsBoolClass) {
-      return canBeNull ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
+      return isNullable ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
     } else if (element == compiler.nullClass
                || element == backend.jsNullClass) {
       return HType.NULL;
     } else if (element == backend.jsArrayClass) {
-      return canBeNull
+      return isNullable
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
-    } else if (isInterfaceType) {
+    } else if (mask.isSubtype) {
       if (element == compiler.listClass
           || Elements.isListSupertype(element, compiler)) {
         return new HBoundedPotentialPrimitiveArray(mask);
@@ -68,47 +54,31 @@ abstract class HType {
         return new HBoundedPotentialPrimitiveString(mask);
       }
     }
-    if (!isExact && (element == compiler.objectClass ||
-                     element == compiler.dynamicClass)) {
+    if (!mask.isExact && (element == compiler.objectClass ||
+                          element == compiler.dynamicClass)) {
       return new HBoundedPotentialPrimitiveType(mask, true);
     }
     return new HBoundedType(mask);
   }
 
   factory HType.nonNullExactClass(DartType type, Compiler compiler) {
-    return new HType.fromBoundedType(
-        type,
-        compiler,
-        canBeNull: false,
-        isExact: true,
-        isInterfaceType: false);
+    TypeMask mask = new TypeMask.nonNullExact(type);
+    return new HType.fromMask(mask, compiler);
   }
 
   factory HType.nonNullSubclass(DartType type, Compiler compiler) {
-    return new HType.fromBoundedType(
-        type,
-        compiler,
-        canBeNull: false,
-        isExact: false,
-        isInterfaceType: false);
+    TypeMask mask = new TypeMask.nonNullSubclass(type);
+    return new HType.fromMask(mask, compiler);
   }
 
   factory HType.subtype(DartType type, Compiler compiler) {
-    return new HType.fromBoundedType(
-        type,
-        compiler,
-        canBeNull: true,
-        isExact: false,
-        isInterfaceType: true);
+    TypeMask mask = new TypeMask.subtype(type);
+    return new HType.fromMask(mask, compiler);
   }
 
   factory HType.nonNullSubtype(DartType type, Compiler compiler) {
-    return new HType.fromBoundedType(
-        type,
-        compiler,
-        canBeNull: false,
-        isExact: false,
-        isInterfaceType: true);
+    TypeMask mask = new TypeMask.nonNullSubtype(type);
+    return new HType.fromMask(mask, compiler);
   }
 
   factory HType.fromBaseType(BaseType baseType, Compiler compiler) {
@@ -949,8 +919,7 @@ class HBoundedType extends HType {
   }
 
   String toString() {
-    return 'BoundedType($type, canBeNull: ${canBeNull()}, '
-        'isExact: ${isExact()}, isInterface: ${isInterfaceType()})';
+    return 'BoundedType($type, mask=$mask)';
   }
 }
 
@@ -960,8 +929,7 @@ class HBoundedPotentialPrimitiveType extends HBoundedType {
       : super(mask);
 
   String toString() {
-    return 'BoundedPotentialPrimitiveType($type, canBeNull: ${canBeNull()}, '
-        'isExact: ${isExact()}, isInterface: ${isInterfaceType()})';
+    return 'BoundedPotentialPrimitiveType($type, mask=$mask)';
   }
 
   bool canBePrimitive() => true;

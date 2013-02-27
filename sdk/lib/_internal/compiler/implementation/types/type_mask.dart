@@ -48,11 +48,9 @@ class TypeMask {
   bool get isSubclass => (flags >> 1) == SUBCLASS;
   bool get isSubtype => (flags >> 1) == SUBTYPE;
 
-  bool operator ==(TypeMask other) {
-    // TODO(kasperl): Should we just accept non-masks and return false?
-    return (base == other.base) && (flags == other.flags);
-  }
-
+  /**
+   * Returns a nullable variant of [this] type mask.
+   */
   TypeMask nullable() {
     return isNullable ? this : new TypeMask.internal(base, flags | 1);
   }
@@ -105,6 +103,12 @@ class TypeMask {
       }
     }
     return null;
+  }
+
+  bool operator ==(var other) {
+    if (other is !TypeMask) return false;
+    TypeMask otherMask = other;
+    return (base == otherMask.base) && (flags == otherMask.flags);
   }
 
   String toString() {
