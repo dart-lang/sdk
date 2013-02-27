@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -180,12 +180,25 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
       Dart_SetReturnValue(args, err);
     } else {
       if (bytes_read < length) {
-        // TODO(ager): cache the 'length' string if this becomes a bottle neck.
-        Dart_SetField(external_array,
-                      DartUtils::NewString("length"),
-                      Dart_NewInteger(bytes_read));
+        const int kNumArgs = 3;
+        Dart_Handle dart_args[kNumArgs];
+        dart_args[0] = external_array;
+        dart_args[1] = Dart_NewInteger(0);
+        dart_args[2] = Dart_NewInteger(bytes_read);
+        // TODO(sgjesse): Cache the _makeUint8ListView function somewhere.
+        Dart_Handle io_lib =
+            Dart_LookupLibrary(DartUtils::NewString("dart:io"));
+        if (Dart_IsError(io_lib)) Dart_PropagateError(io_lib);
+        Dart_Handle array_view =
+            Dart_Invoke(io_lib,
+                        DartUtils::NewString("_makeUint8ListView"),
+                        kNumArgs,
+                        dart_args);
+        if (Dart_IsError(array_view)) Dart_PropagateError(array_view);
+        Dart_SetReturnValue(args, array_view);
+      } else {
+        Dart_SetReturnValue(args, external_array);
       }
-      Dart_SetReturnValue(args, external_array);
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
