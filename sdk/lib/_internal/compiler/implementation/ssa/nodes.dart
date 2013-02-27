@@ -1217,6 +1217,12 @@ class HTypeGuard extends HCheck {
   bool isJsStatement() => isEnabled;
   bool canThrow() => isEnabled;
 
+  // A [HTypeGuard] cannot be moved anywhere in the graph, otherwise
+  // instructions that have side effects could end up before the guard
+  // in the otpimized version, and after the guard in a bailout
+  // version.
+  bool isPure() => false;
+
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
   bool typeEquals(other) => other is HTypeGuard;
