@@ -6,7 +6,6 @@
 
 #include <sstream>
 
-#include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/platform.h"
@@ -149,18 +148,20 @@ void VmStats::WebServer(uword bind_address) {
       // Stop() closed the socket.
       return;
     }
-    FDUtils::SetBlocking(socket);
 
     // TODO(tball): rewrite this to use STL, so as to eliminate the static
     // buffer and support resource URLs that are longer than BUFSIZE.
 
     // Read request.
-    // TODO(tball): support partial reads, possibly needed for POST uploads.
     char buffer[BUFSIZE + 1];
     intptr_t len = Socket::Read(socket, buffer, BUFSIZE);
     if (len <= 0) {
       // Invalid HTTP request, ignore.
       continue;
+    }
+    intptr_t n;
+    while ((n = Socket::Read(socket, buffer + len, BUFSIZE - len)) > 0) {
+      len += n;
     }
     buffer[len] = '\0';
 
