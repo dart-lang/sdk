@@ -11,6 +11,15 @@
 
 part of html;
 
+DateTime _convertNativeToDart_DateTime(date) {
+  var millisSinceEpoch = JS('int', '#.getTime()', date);
+  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
+}
+
+_convertDartToNative_DateTime(DateTime date) {
+  return JS('', 'new Date(#)', date.millisecondsSinceEpoch);
+}
+
 WindowBase _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
 }
