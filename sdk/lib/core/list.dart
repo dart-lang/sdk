@@ -64,7 +64,8 @@ abstract class List<E> implements Collection<E> {
    * Creates an list with the elements of [other]. The order in
    * the list will be the order provided by the iterator of [other].
    *
-   * The length of the returned list is not fixed.
+   * The returned list is growable if [growable] is true, otherwise it's
+   * a fixed length list.
    */
   factory List.from(Iterable other, { bool growable: false }) {
     List<E> list = new List<E>();

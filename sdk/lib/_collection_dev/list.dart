@@ -10,104 +10,20 @@ part of dart._collection.dev;
  * Implements all read-only operations, except [:operator[]:] and [:length:],
  * in terms of those two operations.
  */
-abstract class ListBase<E> extends Collection<E> implements List<E> {
-  Iterator<E> get iterator => new ListIterator(this);
+abstract class ListBase<E> extends ListIterable<E> implements List<E> {
+  // List interface.
+  int get length;
+  E operator[](int index);
 
-  void forEach(f(E element)) {
-    for (int i = 0; i < this.length; i++) f(this[i]);
-  }
+  // Collection interface.
+  // Implement in a fully mutable specialized class if necessary.
+  // The fixed-length and unmodifiable lists throw on all members
+  // of the collection interface.
 
-  bool contains(E value) {
-    for (int i = 0; i < length; i++) {
-      if (this[i] == value) return true;
-    }
-    return false;
-  }
-
-  reduce(initialValue, combine(previousValue, E element)) {
-    var value = initialValue;
-    for (int i = 0; i < this.length; i++) {
-      value = combine(value, this[i]);
-    }
-    return value;
-  }
-
-  bool every(bool f(E element)) {
-    for (int i = 0; i < this.length; i++) {
-      if (!f(this[i])) return false;
-    }
-    return true;
-  }
-
-  bool any(bool f(E element)) {
-    for (int i = 0; i < this.length; i++) {
-      if (f(this[i])) return true;
-    }
-    return false;
-  }
-
-  bool get isEmpty {
-    return this.length == 0;
-  }
-
+  // Iterable interface.
   E elementAt(int index) {
     return this[index];
   }
-
-  int indexOf(E value, [int start = 0]) {
-    for (int i = start; i < length; i++) {
-      if (this[i] == value) return i;
-    }
-    return -1;
-  }
-
-  int lastIndexOf(E value, [int start]) {
-    if (start == null) start = length - 1;
-    for (int i = start; i >= 0; i--) {
-      if (this[i] == value) return i;
-    }
-    return -1;
-  }
-
-  E get first {
-    if (length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  E get last {
-    if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
-  }
-
-  E get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  List<E> getRange(int start, int length) {
-    List<E> result = <E>[];
-    for (int i = 0; i < length; i++) {
-      result.add(this[start + i]);
-    }
-    return result;
-  }
-
-  Iterable map(f(E element)) {
-    return new MappedIterable(this, f);
-  }
-
-  Iterable<E> take(int n) {
-    return new SubListIterable(this, 0, n);
-  }
-
-  Iterable<E> skip(int n) {
-    return new SubListIterable(this, n, null);
-  }
-
-  Iterable<E> get reversed => new ReversedListIterable(this);
-
-  String toString() => ToString.collectionToString(this);
 }
 
 /**
