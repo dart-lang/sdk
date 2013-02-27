@@ -408,8 +408,8 @@ abstract class _ByteArrayBase {
                               length * this.bytesPerElement());
   }
 
-  List<int> toList() {
-    return new List<int>.from(this);
+  List<int> toList({ bool growable: false }) {
+    return new List<int>.from(this, growable: growable);
   }
 
   Set<int> toSet() {

@@ -650,11 +650,10 @@ class CodeEmitterTask extends CompilerTask {
 
     // The parameters that this stub takes.
     List<jsAst.Parameter> parametersBuffer =
-        new List<jsAst.Parameter>.fixedLength(
-            selector.argumentCount + extraArgumentCount);
+        new List<jsAst.Parameter>(selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
     List<jsAst.Expression> argumentsBuffer =
-        new List<jsAst.Expression>.fixedLength(
+        new List<jsAst.Expression>(
             parameters.parameterCount + extraArgumentCount);
 
     int count = 0;

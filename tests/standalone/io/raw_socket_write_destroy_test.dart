@@ -18,7 +18,7 @@ void testWriteDestroyServer() {
     server.listen((socket) {
       socket.writeEventsEnabled = false;
 
-      var buffer = new List.fixedLength(WROTE, fill: 0);
+      var buffer = new List.filled(WROTE, 0);
       int offset = 0;
       void write() {
         int n = socket.write(buffer, offset, buffer.length - offset);
@@ -69,7 +69,7 @@ void testWriteDestroyClient() {
     RawSocket.connect(SERVER_ADDRESS, server.port).then((socket) {
       socket.writeEventsEnabled = false;
 
-      var buffer = new List.fixedLength(WROTE, fill: 0);
+      var buffer = new List.filled(WROTE, 0);
       int offset = 0;
       void write() {
         int n = socket.write(buffer, offset, buffer.length - offset);

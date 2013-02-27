@@ -64,7 +64,7 @@ List<int> _codepointsToUtf16CodeUnits(
     }
   }
 
-  List<int> codeUnitsBuffer = new List<int>.fixedLength(encodedLength);
+  List<int> codeUnitsBuffer = new List<int>(encodedLength);
   int j = 0;
   for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
@@ -96,7 +96,7 @@ List<int> _utf16CodeUnitsToCodepoints(
       (new _ListRange(utf16CodeUnits, offset, length)).iterator;
   Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
       .fromListRangeIterator(source, replacementCodepoint);
-  List<int> codepoints = new List<int>.fixedLength(source.remaining);
+  List<int> codepoints = new List<int>(source.remaining);
   int i = 0;
   while (decoder.moveNext()) {
     codepoints[i++] = decoder.current;
@@ -104,7 +104,7 @@ List<int> _utf16CodeUnitsToCodepoints(
   if (i == codepoints.length) {
     return codepoints;
   } else {
-    List<int> codepointTrunc = new List<int>.fixedLength(i);
+    List<int> codepointTrunc = new List<int>(i);
     codepointTrunc.setRange(0, i, codepoints);
     return codepointTrunc;
   }

@@ -74,7 +74,7 @@ class _HashTable<K> {
    * Create an empty table.
    */
   List _createTable(int capacity) {
-    List table = new List.fixedLength(capacity * _entrySize);
+    List table = new List(capacity * _entrySize);
     return table;
   }
 

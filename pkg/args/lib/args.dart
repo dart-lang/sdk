@@ -307,7 +307,7 @@ class ArgParser {
    * flags and options defined by this parser, and returns the result.
    */
   ArgResults parse(List<String> args) =>
-      new Parser(null, this, args.toList()).parse();
+      new Parser(null, this, args.toList(growable: true)).parse();
 
   /**
    * Generates a string displaying usage information for the defined options.

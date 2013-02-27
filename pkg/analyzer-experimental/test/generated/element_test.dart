@@ -613,8 +613,8 @@ class ElementFactory {
     element.type = type;
     int count = parameterNames.length;
     if (count > 0) {
-      List<TypeVariableElementImpl> typeVariables = new List<TypeVariableElementImpl>.fixedLength(count);
-      List<TypeVariableTypeImpl> typeArguments = new List<TypeVariableTypeImpl>.fixedLength(count);
+      List<TypeVariableElementImpl> typeVariables = new List<TypeVariableElementImpl>(count);
+      List<TypeVariableTypeImpl> typeArguments = new List<TypeVariableTypeImpl>(count);
       for (int i = 0; i < count; i++) {
         TypeVariableElementImpl variable = new TypeVariableElementImpl(ASTFactory.identifier2(parameterNames[i]));
         typeVariables[i] = variable;
@@ -664,7 +664,7 @@ class ElementFactory {
     }
     int count = normalParameters == null ? 0 : normalParameters.length;
     if (count > 0) {
-      List<InterfaceType> normalParameterTypes = new List<InterfaceType>.fixedLength(count);
+      List<InterfaceType> normalParameterTypes = new List<InterfaceType>(count);
       for (int i = 0; i < count; i++) {
         normalParameterTypes[i] = normalParameters[i].type;
       }
@@ -672,7 +672,7 @@ class ElementFactory {
     }
     count = optionalParameters == null ? 0 : optionalParameters.length;
     if (count > 0) {
-      List<InterfaceType> optionalParameterTypes = new List<InterfaceType>.fixedLength(count);
+      List<InterfaceType> optionalParameterTypes = new List<InterfaceType>(count);
       for (int i = 0; i < count; i++) {
         optionalParameterTypes[i] = optionalParameters[i].type;
       }
@@ -689,7 +689,7 @@ class ElementFactory {
     }
     int count = normalParameters == null ? 0 : normalParameters.length;
     if (count > 0) {
-      List<InterfaceType> normalParameterTypes = new List<InterfaceType>.fixedLength(count);
+      List<InterfaceType> normalParameterTypes = new List<InterfaceType>(count);
       for (int i = 0; i < count; i++) {
         normalParameterTypes[i] = normalParameters[i].type;
       }
@@ -747,7 +747,7 @@ class ElementFactory {
   static MethodElement methodElement(String methodName, Type2 returnType9, List<Type2> argumentTypes) {
     MethodElementImpl method = new MethodElementImpl.con1(ASTFactory.identifier2(methodName));
     int count = argumentTypes.length;
-    List<ParameterElement> parameters = new List<ParameterElement>.fixedLength(count);
+    List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
       ParameterElementImpl parameter = new ParameterElementImpl(ASTFactory.identifier2("a${i}"));
       parameter.type = argumentTypes[i];

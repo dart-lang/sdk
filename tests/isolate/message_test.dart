@@ -100,7 +100,7 @@ main() {
     List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
     List local_list2 = [null, local_list1, local_list1 ];
     List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
-    List sendObject = new List.fixedLength(5);
+    List sendObject = new List(5);
     sendObject[0] = local_list1;
     sendObject[1] = sendObject;
     sendObject[2] = local_list2;

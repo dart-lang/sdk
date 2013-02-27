@@ -69,7 +69,7 @@ _Rule CHAR([characters]) {
   if (lo == hi)
     return CHARCODE(lo);
   int len = hi - lo + 1;
-  var flags = new List<bool>.fixedLength(len);
+  var flags = new List<bool>(len);
   for (int i = 0; i < len; ++i)
     flags[i] = false;
   for (int code in codes)

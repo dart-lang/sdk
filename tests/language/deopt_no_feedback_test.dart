@@ -8,13 +8,13 @@ testStoreIndexed() {
   test(a, i, v, flag) {
     if (flag) {
       // No type feedback in first pass
-      return a[i] = v; 
+      return a[i] = v;
     } else {
       return a[i] = i;
     }
   }
 
-  var a = new List.fixedLength(10);
+  var a = new List(10);
   for (var i = 0; i < 2000; i++) {
     var r = test(a, 3, 888, false);
     Expect.equals(3, r);

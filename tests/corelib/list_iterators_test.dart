@@ -18,8 +18,8 @@ class ListIteratorsTest {
   static testMain() {
     checkListIterator([]);
     checkListIterator([1, 2]);
-    checkListIterator(new List.fixedLength(0));
-    checkListIterator(new List.fixedLength(10));
+    checkListIterator(new List(0));
+    checkListIterator(new List(10));
     checkListIterator(new List());
     List g = new List();
     g.addAll([1, 2, 3]);

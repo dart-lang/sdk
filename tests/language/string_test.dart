@@ -21,7 +21,7 @@ class StringTest {
   }
 
   static testStringsJoin() {
-    List<String> a = new List<String>.fixedLength(2);
+    List<String> a = new List<String>(2);
     a[0] = "Hello";
     a[1] = "World";
     String s = a.join("*^*");

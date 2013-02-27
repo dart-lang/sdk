@@ -625,7 +625,7 @@ class int64 implements intx {
   }
 
   List<int> toBytes() {
-    List<int> result = new List<int>.fixedLength(8);
+    List<int> result = new List<int>(8);
     result[0] = _l & 0xff;
     result[1] = (_l >> 8) & 0xff;
     result[2] = ((_m << 6) & 0xfc) | ((_l >> 16) & 0x3f);

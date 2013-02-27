@@ -12,7 +12,7 @@ main() {
   Expect.equals(0, a.length);
   Expect.throws(() => a[0], (e) => e is RangeError);
 
-  a = new List(42);
+  a = new List(42).toList(growable: true);
   Expect.equals(42, a.length);
   a.add(499);
   Expect.equals(43, a.length);
@@ -22,7 +22,7 @@ main() {
   Expect.equals(0, a.length);
   Expect.throws(() => a[0], (e) => e is RangeError);
 
-  a = new List<int>(42);
+  a = new List<int>(42).toList(growable: true);
   Expect.equals(42, a.length);
   a.add(499);
   Expect.equals(43, a.length);

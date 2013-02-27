@@ -53,7 +53,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       throw new ArgumentError("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
-    _arguments = new List<String>.fixedLength(len);
+    _arguments = new List<String>(len);
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is !String) {
@@ -181,7 +181,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       // callback when a process terminates.
       int exitDataRead = 0;
       final int EXIT_DATA_SIZE = 8;
-      List<int> exitDataBuffer = new List<int>.fixedLength(EXIT_DATA_SIZE);
+      List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
       _exitHandler.listen((data) {
 
         int exitCode(List<int> ints) {

@@ -350,7 +350,7 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
       initialCapacity = _nextPowerOf2(initialCapacity);
     }
     assert(_isPowerOf2(initialCapacity));
-    _table = new List<E>.fixedLength(initialCapacity);
+    _table = new List<E>(initialCapacity);
   }
 
   /**
@@ -409,8 +409,13 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
     return _table[(_head + index) & (_table.length - 1)];
   }
 
-  List<E> toList() {
-    List<E> list = new List<E>(length);
+  List<E> toList({ bool growable: false }) {
+    List<E> list;
+    if (growable) {
+      list = new List<E>()..length = length;
+    } else {
+      list = new List<E>(length);
+    }
     _writeToList(list);
     return list;
   }
@@ -629,7 +634,7 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
    * Grow the table when full.
    */
   void _grow() {
-    List<E> newTable = new List<E>.fixedLength(_table.length * 2);
+    List<E> newTable = new List<E>(_table.length * 2);
     int split = _table.length - _head;
     newTable.setRange(0, split, _table, _head);
     newTable.setRange(split, _head, _table, 0);
@@ -656,7 +661,7 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
   void _preGrow(int newElementCount) {
     assert(newElementCount >= length);
     int newCapacity = _nextPowerOf2(newElementCount);
-    List<E> newTable = new List<E>.fixedLength(newCapacity);
+    List<E> newTable = new List<E>(newCapacity);
     _tail = _writeToList(newTable);
     _table = newTable;
     _head = 0;

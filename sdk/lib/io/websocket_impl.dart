@@ -447,7 +447,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
 
     Random random = new Random();
     // Generate 16 random bytes.
-    List<int> nonceData = new List<int>.fixedLength(16);
+    List<int> nonceData = new List<int>(16);
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
@@ -640,7 +640,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
     } else if (dataLength > 125) {
       headerSize += 2;
     }
-    List<int> header = new List<int>.fixedLength(headerSize);
+    List<int> header = new List<int>(headerSize);
     int index = 0;
     // Set FIN and opcode.
     header[index++] = 0x80 | opcode;

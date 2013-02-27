@@ -25,7 +25,7 @@ main() {
   new CollectionTest(TEST_ELEMENTS);
 
   // Fixed size list.
-  var fixedList = new List.fixedLength(TEST_ELEMENTS.length);
+  var fixedList = new List(TEST_ELEMENTS.length);
   for (int i = 0; i < TEST_ELEMENTS.length; i++) {
     fixedList[i] = TEST_ELEMENTS[i];
   }

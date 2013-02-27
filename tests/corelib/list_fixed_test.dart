@@ -5,7 +5,7 @@
 main() {
   var a;
 
-  a = new List.fixedLength(42);
+  a = new List(42);
   Expect.equals(42, a.length);
   Expect.throws(() => a.add(499), (e) => e is UnsupportedError);
   Expect.equals(42, a.length);
@@ -15,7 +15,7 @@ main() {
   Expect.throws(() => a.clear(), (e) => e is UnsupportedError);
   Expect.equals(42, a.length);
 
-  a = new List.fixedLength(42, fill: -2);
+  a = new List.filled(42, -2);
   Expect.equals(42, a.length);
   Expect.throws(() => a.add(499), (e) => e is UnsupportedError);
   Expect.equals(42, a.length);

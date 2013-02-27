@@ -138,7 +138,7 @@ class SetTest {
     Expect.equals(true, intersection.isSubsetOf(filtered));
 
     // Test Set.addAll.
-    List list = new List.fixedLength(10);
+    List list = new List(10);
     for (int i = 0; i < 10; i++) {
       list[i] = i + 10;
     }

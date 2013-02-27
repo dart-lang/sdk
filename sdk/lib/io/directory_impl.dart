@@ -31,7 +31,7 @@ class _Directory implements Directory {
 
   Future<bool> exists() {
     _ensureDirectoryService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = EXISTS_REQUEST;
     request[1] = _path;
     return _directoryService.call(request).then((response) {
@@ -110,7 +110,7 @@ class _Directory implements Directory {
   Future<Directory> create({recursive: false}) {
     if (recursive) return createRecursively();
     _ensureDirectoryService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = CREATE_REQUEST;
     request[1] = _path;
     return _directoryService.call(request).then((response) {
@@ -149,7 +149,7 @@ class _Directory implements Directory {
 
   Future<Directory> createTemp() {
     _ensureDirectoryService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = CREATE_TEMP_REQUEST;
     request[1] = _path;
     return _directoryService.call(request).then((response) {
@@ -179,7 +179,7 @@ class _Directory implements Directory {
 
   Future<Directory> delete({recursive: false}) {
     _ensureDirectoryService();
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = DELETE_REQUEST;
     request[1] = _path;
     request[2] = recursive;
@@ -203,7 +203,7 @@ class _Directory implements Directory {
 
   Future<Directory> rename(String newPath) {
     _ensureDirectoryService();
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = RENAME_REQUEST;
     request[1] = _path;
     request[2] = newPath;

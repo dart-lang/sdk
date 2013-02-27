@@ -320,8 +320,8 @@ class _GrowableObjectArray<T> implements List<T> {
     return new ListIterator<T>(this);
   }
 
-  List<T> toList() {
-    return new List<T>.from(this);
+  List<T> toList({ bool growable: false }) {
+    return new List<T>.from(this, growable: growable);
   }
 
   Set<T> toSet() {

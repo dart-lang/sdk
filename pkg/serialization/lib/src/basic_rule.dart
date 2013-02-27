@@ -130,12 +130,19 @@ class BasicRule extends SerializationRule {
     useMaps = false;
   }
 
-  /** Create either a list or a map to hold the object's state, depending
+  /**
+   * Create either a list or a map to hold the object's state, depending
    * on the [useMaps] variable. If using a Map, we wrap it in order to keep
    * the protocol compatible. See [configureForLists]/[configureForMaps].
+   *
+   * If a list is returned, it is growable.
    */
-   createStateHolder() =>
-     useMaps ? new _MapWrapper(fields.contents) : new List(fields.length);
+   createStateHolder() {
+     if (useMaps) return new _MapWrapper(fields.contents);
+     List list = [];
+     list.length = fields.length;
+     return list;
+   }
 
   /**
    * Wrap the state if it's passed in as a map, and if the keys are references,

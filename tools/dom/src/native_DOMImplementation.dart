@@ -8,7 +8,7 @@ class _Utils {
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
-    List result = new List.fixedLength(length);
+    List result = new List(length);
     result.setRange(0, length, list);
     return result;
   }

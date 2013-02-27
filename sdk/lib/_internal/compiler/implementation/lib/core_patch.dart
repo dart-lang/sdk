@@ -165,16 +165,17 @@ patch class Stopwatch {
 
 // Patch for List implementation.
 patch class List<E> {
-  patch factory List([int length = 0]) {
-    // Explicit type test is necessary to protect Primitives.newGrowableList in
+  patch factory List([int length]) {
+    if (!?length) return Primitives.newGrowableList(0);
+    // Explicit type test is necessary to protect Primitives.newFixedList in
     // unchecked mode.
     if ((length is !int) || (length < 0)) {
       throw new ArgumentError("Length must be a positive integer: $length.");
     }
-    return Primitives.newGrowableList(length);
+    return Primitives.newFixedList(length);
   }
 
-  patch factory List.fixedLength(int length, {E fill: null}) {
+  patch factory List.filled(int length, E fill) {
     // Explicit type test is necessary to protect Primitives.newFixedList in
     // unchecked mode.
     if ((length is !int) || (length < 0)) {

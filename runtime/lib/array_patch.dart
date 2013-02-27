@@ -6,15 +6,16 @@
 // returns a _GrowableObjectArray if length is null, otherwise returns
 // fixed size array.
 patch class List<E> {
-  /* patch */ factory List([int length = 0]) {
+  /* patch */ factory List([int length]) {
+    if (!?length) return new _GrowableObjectArray<E>(0);
     if ((length is! int) || (length < 0)) {
       _throwArgumentError(length);
     }
-    _GrowableObjectArray<E> result = new _GrowableObjectArray<E>(length);
+    _ObjectArray<E> result = new _ObjectArray<E>(length);
     return result;
   }
 
-  /* patch */ factory List.fixedLength(int length, {E fill: null}) {
+  /* patch */ factory List.filled(int length, E fill) {
     if ((length is! int) || (length < 0)) {
       _throwArgumentError(length);
     }

@@ -187,7 +187,7 @@ class SimpleJsonFormat extends Format {
     var rules = reader.selfDescribing ? data[RULES] : null;
     var actualData = reader.selfDescribing ? data[DATA] : data;
     reader.readRules(rules);
-    var ruleData = new List(reader.rules.length).map((x) => []).toList();
+    var ruleData = new List.generate(reader.rules.length, (_) => []);
     var top = recursivelyFixUp(actualData, reader, ruleData);
     result["data"] = ruleData;
     result["roots"] = [top];
@@ -257,7 +257,7 @@ class SimpleFlatFormat extends Format {
     }
     result[0] = w.serializedRules();
     result[1] = flatData;
-    result[2] = new List();
+    result[2] = [];
     w._rootReferences().forEach((x) => x.writeToList(result[2]));
     return result;
   }

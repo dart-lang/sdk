@@ -72,7 +72,7 @@ abstract class _StringDecoder
   void handleDone(StreamSink<String> sink) {
     if (_carry != null) {
       sink.add(new String.fromCharCodes(
-          new List.fixedLength(_carry.length, fill: _replacementChar)));
+          new List.filled(_carry.length, _replacementChar)));
     }
     sink.close();
   }

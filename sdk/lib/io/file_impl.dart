@@ -265,7 +265,7 @@ class _File extends _FileBase implements File {
 
   Future<bool> exists() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _EXISTS_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -286,7 +286,7 @@ class _File extends _FileBase implements File {
 
   Future<File> create() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _CREATE_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -306,7 +306,7 @@ class _File extends _FileBase implements File {
 
   Future<File> delete() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _DELETE_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -326,7 +326,7 @@ class _File extends _FileBase implements File {
 
   Future<Directory> directory() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _DIRECTORY_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -358,7 +358,7 @@ class _File extends _FileBase implements File {
       });
       return completer.future;
     }
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = _OPEN_REQUEST;
     request[1] = _name;
     request[2] = mode._mode;  // Direct int value for serialization.
@@ -372,7 +372,7 @@ class _File extends _FileBase implements File {
 
   Future<int> length() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _LENGTH_FROM_NAME_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -396,7 +396,7 @@ class _File extends _FileBase implements File {
 
   Future<DateTime> lastModified() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _LAST_MODIFIED_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -443,7 +443,7 @@ class _File extends _FileBase implements File {
 
   Future<String> fullPath() {
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _FULL_PATH_REQUEST;
     request[1] = _name;
     return _fileService.call(request).then((response) {
@@ -619,7 +619,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (closed) return _completeWithClosedException(completer);
     _ensureFileService();
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _CLOSE_REQUEST;
     request[1] = _id;
     // Set the id_ to 0 (NULL) to ensure the no more async requests
@@ -650,7 +650,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _READ_BYTE_REQUEST;
     request[1] = _id;
     return _fileService.call(request).then((response) {
@@ -724,7 +724,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       return completer.future;
     };
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = _READ_LIST_REQUEST;
     request[1] = _id;
     request[2] = bytes;
@@ -780,7 +780,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       return completer.future;
     }
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = _WRITE_BYTE_REQUEST;
     request[1] = _id;
     request[2] = value;
@@ -835,7 +835,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       return completer.future;
     }
 
-    List request = new List.fixedLength(5);
+    List request = new List(5);
     request[0] = _WRITE_LIST_REQUEST;
     request[1] = _id;
     request[2] = result.buffer;
@@ -897,7 +897,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _POSITION_REQUEST;
     request[1] = _id;
     return _fileService.call(request).then((response) {
@@ -924,7 +924,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = _SET_POSITION_REQUEST;
     request[1] = _id;
     request[2] = position;
@@ -951,7 +951,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(3);
+    List request = new List(3);
     request[0] = _TRUNCATE_REQUEST;
     request[1] = _id;
     request[2] = length;
@@ -978,7 +978,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     Completer<int> completer = new Completer<int>();
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _LENGTH_REQUEST;
     request[1] = _id;
     return _fileService.call(request).then((response) {
@@ -1005,7 +1005,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (closed) return _completeWithClosedException(completer);
-    List request = new List.fixedLength(2);
+    List request = new List(2);
     request[0] = _FLUSH_REQUEST;
     request[1] = _id;
     return _fileService.call(request).then((response) {

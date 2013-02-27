@@ -142,7 +142,7 @@ class _UnorderedEquals extends BaseMatcher {
     } else if (expectedLength < actualLength) {
       return 'has too many elements (${actualLength} > ${expectedLength})';
     }
-    List<bool> matched = new List<bool>.fixedLength(actualLength);
+    List<bool> matched = new List<bool>(actualLength);
     for (var i = 0; i < actualLength; i++) {
       matched[i] = false;
     }

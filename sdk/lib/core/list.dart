@@ -5,22 +5,54 @@
 part of dart.core;
 
 /**
- * A [List] is an indexable collection with a length. It can be of
- * fixed size or extendable.
+ * A [List] is an indexable collection with a length.
+ *
+ * A `List` implementation can be choose not to support all methods
+ * of the `List` interface.
+ *
+ * The most common list types are:
+ * * Fixed length list. It is an error to use operations that can change
+ *   the list's length.
+ * * Growable list. Full implementation of the interface.
+ * * Unmodifiable list. It is an error to use operations that can change
+ *   the list's length, or that can change the values of the list.
+ *   If an unmodifable list is backed by another modifiable data structure,
+ *   the values read from it may still change over time.
+ *
+ * Example:
+ *
+ *    var fixedLengthList = new List(5);
+ *    fixedLengthList.length = 0;  // throws.
+ *    fixedLengthList.add(499);  // throws
+ *    fixedLengthList[0] = 87;
+ *    var growableList = [1, 2];
+ *    growableList.length = 0;
+ *    growableList.add(499);
+ *    growableList[0] = 87;
+ *    var unmodifiableList = const [1, 2];
+ *    unmodifiableList.length = 0;  // throws.
+ *    unmodifiableList.add(499);  // throws
+ *    unmodifiableList[0] = 87;  // throws.
  */
 abstract class List<E> implements Collection<E> {
   /**
    * Creates a list of the given [length].
    *
-   * The length of the returned list is not fixed.
+   * The list is a fixed-length list if [length] is provided, and an empty
+   * growable list if [length] is omitted.
    */
-  external factory List([int length = 0]);
+  external factory List([int length]);
 
   /**
-   * Creates a fixed-sized list of the given [length] where each entry is
-   * filled with [fill].
+   * Creates a fixed-length list of the given [length] where each entry
+   * contains [fill].
    */
-  external factory List.fixedLength(int length, {E fill: null});
+  external factory List.filled(int length, E fill);
+
+  /**
+   * *Deprecated*: Use `new List(count)` instead.
+   */
+  factory List.fixedLength(int count) => new List(count);
 
   /**
    * Creates an list with the elements of [other]. The order in
@@ -28,12 +60,41 @@ abstract class List<E> implements Collection<E> {
    *
    * The length of the returned list is not fixed.
    */
-  factory List.from(Iterable other) {
-    var list = new List<E>();
+  factory List.from(Iterable other, { bool growable: true }) {
+    List<E> list = new List<E>();
     for (E e in other) {
       list.add(e);
     }
-    return list;
+    if (growable) return list;
+    int length = list.length;
+    List<E> fixedList = new List<E>(length);
+    for (int i = 0; i < length; i++) {
+      fixedList[i] = list[i];
+    }
+    return fixedList;
+  }
+
+  /**
+   * Generate a `List` of elements.
+   *
+   * Generates a list of values, where the values are created by
+   * calling the [generator] function for each index in the range
+   * 0 .. [length] - 1.
+   *
+   * The created length's length is fixed unless [growable] is true.
+   */
+  factory List.generate(int length, E generator(int index),
+                       { bool growable: false }) {
+    List<E> result;
+    if (growable) {
+      result = <E>[]..length = length;
+    } else {
+      result = new List<E>(length);
+    }
+    for (int i = 0; i < length; i++) {
+      result[i] = generator(i);
+    }
+    return result;
   }
 
   /**

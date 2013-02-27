@@ -136,15 +136,6 @@ LibTest/core/Queue/every_A01_t06: Fail # behavior of every is undefined when und
 LibTest/core/Queue/forEach_A01_t04: Fail # behavior of forEach is undefined when underlying iterable changes, co19 issue 357
 
 LibTest/core/List/List_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/List_A01_t02: Fail # List constructors, co19 issue 358
-LibTest/core/List/add_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/addAll_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/addLast_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/clear_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/insertRange_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/length_A04_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/removeRange_A02_t01: Fail # List constructors, co19 issue 358
-LibTest/core/List/removeLast_A02_t01: Fail # List constructors, co19 issue 358
 
 LibTest/core/List/last_A02_t01: Fail # List.last throws a StateError, co19 issue 359
 

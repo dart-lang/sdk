@@ -513,7 +513,7 @@ class AnalysisContextImpl implements AnalysisContext {
   }
   CompilationUnit resolve(Source source, LibraryElement library) => parse(source);
   Token scan(Source source, AnalysisErrorListener errorListener) {
-    List<Token> tokens = new List<Token>.fixedLength(1);
+    List<Token> tokens = new List<Token>(1);
     Source_ContentReceiver receiver = new Source_ContentReceiver_1(source, errorListener, tokens);
     try {
       source.getContents(receiver);

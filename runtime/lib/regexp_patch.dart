@@ -44,7 +44,7 @@ class _JSRegExpMatch implements Match {
   }
 
   List<String> groups(List<int> groupsSpec) {
-    var groupsList = new List<String>.fixedLength(groupsSpec.length);
+    var groupsList = new List<String>(groupsSpec.length);
     for (int i = 0; i < groupsSpec.length; i++) {
       groupsList[i] = group(groupsSpec[i]);
     }

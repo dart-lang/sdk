@@ -220,7 +220,7 @@ abstract class _SingleByteDecoder
   _SingleByteDecoder(this._replacementChar);
 
   void handleData(List<int> data, StreamSink<String> sink) {
-    var buffer = new List<int>.fixedLength(data.length);
+    var buffer = new List<int>(data.length);
     for (int i = 0; i < data.length; i++) {
       int char = _decodeByte(data[i]);
       if (char < 0) char = _replacementChar;

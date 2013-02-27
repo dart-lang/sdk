@@ -8,8 +8,8 @@ void main() {
   Expect.equals(-1, foo());
 }
 
-int foo() {  
-  var list = new List<int>.fixedLength(1024);
+int foo() {
+  var list = new List<int>(1024);
 
   for(int i = 0; i < list.length; i++) list[i] = -i;
 

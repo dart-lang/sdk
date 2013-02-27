@@ -86,7 +86,7 @@ List<int> codepointsToUtf8(
     }
   }
 
-  List<int> encoded = new List<int>.fixedLength(encodedLength);
+  List<int> encoded = new List<int>(encodedLength);
   int insertAt = 0;
   for (int value in source) {
     if (value < 0 || value > UNICODE_VALID_RANGE_MAX) {
@@ -173,7 +173,7 @@ class Utf8Decoder implements Iterator<int> {
     * into a [List<int>].
     */
   List<int> decodeRest() {
-    List<int> codepoints = new List<int>.fixedLength(utf8EncodedBytesIterator.remaining);
+    List<int> codepoints = new List<int>(utf8EncodedBytesIterator.remaining);
     int i = 0;
     while (moveNext()) {
       codepoints[i++] = current;
@@ -181,7 +181,7 @@ class Utf8Decoder implements Iterator<int> {
     if (i == codepoints.length) {
       return codepoints;
     } else {
-      List<int> truncCodepoints = new List<int>.fixedLength(i);
+      List<int> truncCodepoints = new List<int>(i);
       truncCodepoints.setRange(0, i, codepoints);
       return truncCodepoints;
     }

@@ -136,7 +136,7 @@ abstract class KeywordState {
   static KeywordState get KEYWORD_STATE {
     if (_KEYWORD_STATE == null) {
       List<String> strings =
-          new List<String>.fixedLength(Keyword.values.length);
+          new List<String>(Keyword.values.length);
       for (int i = 0; i < Keyword.values.length; i++) {
         strings[i] = Keyword.values[i].syntax;
       }
@@ -148,7 +148,7 @@ abstract class KeywordState {
 
   static KeywordState computeKeywordStateTable(int start, List<String> strings,
                                                int offset, int length) {
-    List<KeywordState> result = new List<KeywordState>.fixedLength(26);
+    List<KeywordState> result = new List<KeywordState>(26);
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;

@@ -38,7 +38,7 @@ abstract class String implements Comparable<String>, Pattern {
    * one half of a surrogate pair.
    */
   factory String.fromCharCode(int charCode) {
-    List<int> charCodes = new List<int>.fixedLength(1, fill: charCode);
+    List<int> charCodes = new List<int>.filled(1, charCode);
     return new String.fromCharCodes(charCodes);
   }
 

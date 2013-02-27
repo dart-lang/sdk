@@ -11,7 +11,7 @@ part 'sha1_long_test_vectors.dart';
 part 'sha1_short_test_vectors.dart';
 
 List<int> createTestArr(int len) {
-  var arr = new List<int>.fixedLength(len);
+  var arr = new List<int>(len);
   for (var i = 0; i < len; i++) {
     arr[i] = i;
   }

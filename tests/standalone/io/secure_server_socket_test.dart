@@ -142,7 +142,7 @@ void testSimpleReadWrite() {
   const messageSize = 1000;
 
   List<int> createTestData() {
-    List<int> data = new List.fixedLength(messageSize);
+    List<int> data = new List<int>(messageSize);
     for (int i = 0; i < messageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -161,7 +161,7 @@ void testSimpleReadWrite() {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
-      List<int> data = new List.fixedLength(messageSize);
+      List<int> data = new List<int>(messageSize);
 
       client.listen(
         (buffer) {
@@ -183,7 +183,7 @@ void testSimpleReadWrite() {
       int bytesRead = 0;
       int bytesWritten = 0;
       List<int> dataSent = createTestData();
-      List<int> dataReceived = new List<int>.fixedLength(dataSent.length);
+      List<int> dataReceived = new List<int>(dataSent.length);
       socket.add(dataSent);
       socket.close();  // Can also be delayed.
       socket.listen(

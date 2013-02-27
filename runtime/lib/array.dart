@@ -228,8 +228,8 @@ class _ObjectArray<E> implements List<E> {
 
   E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
-  List<E> toList() {
-    return new List<E>.from(this);
+  List<E> toList({ bool growable: false}) {
+    return new List<E>.from(this, growable: growable);
   }
 
   Set<E> toSet() {
@@ -467,8 +467,8 @@ class _ImmutableArray<E> implements List<E> {
 
   E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
-  List<E> toList() {
-    return new List<E>.from(this);
+  List<E> toList({ bool growable: false }) {
+    return new List<E>.from(this, growable: growable);
   }
 
   Set<E> toSet() {

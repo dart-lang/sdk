@@ -113,7 +113,7 @@ List<int> encodeUtf16(String str) =>
 List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
   List<int> utf16CodeUnits = _stringToUtf16CodeUnits(str);
   List<int> encoding =
-      new List<int>.fixedLength(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
+      new List<int>(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
   int i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_HI;
@@ -133,7 +133,7 @@ List<int> encodeUtf16be(String str, [bool writeBOM = false]) {
 List<int> encodeUtf16le(String str, [bool writeBOM = false]) {
   List<int> utf16CodeUnits = _stringToUtf16CodeUnits(str);
   List<int> encoding =
-      new List<int>.fixedLength(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
+      new List<int>(2 * utf16CodeUnits.length + (writeBOM ? 2 : 0));
   int i = 0;
   if (writeBOM) {
     encoding[i++] = UNICODE_UTF_BOM_LO;
@@ -238,7 +238,7 @@ abstract class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
    * over-allocates the List containing results.
    */
   List<int> decodeRest() {
-    List<int> codeunits = new List<int>.fixedLength(remaining);
+    List<int> codeunits = new List<int>(remaining);
     int i = 0;
     while (moveNext()) {
       codeunits[i++] = current;
@@ -246,7 +246,7 @@ abstract class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
     if (i == codeunits.length) {
       return codeunits;
     } else {
-      List<int> truncCodeunits = new List<int>.fixedLength(i);
+      List<int> truncCodeunits = new List<int>(i);
       truncCodeunits.setRange(0, i, codeunits);
       return truncCodeunits;
     }

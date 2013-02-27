@@ -1771,7 +1771,7 @@ class KeywordState {
   /**
    * An empty transition table used by leaf states.
    */
-  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>.fixedLength(26);
+  static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
   /**
    * The initial state in the state machine.
    */
@@ -1789,7 +1789,7 @@ class KeywordState {
    * @return the state that was created
    */
   static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length12) {
-    List<KeywordState> result = new List<KeywordState>.fixedLength(26);
+    List<KeywordState> result = new List<KeywordState>(26);
     assert(length12 != 0);
     int chunk = 0x0;
     int chunkStart = -1;
@@ -1828,7 +1828,7 @@ class KeywordState {
    */
   static KeywordState createKeywordStateTable() {
     List<Keyword> values2 = Keyword.values;
-    List<String> strings = new List<String>.fixedLength(values2.length);
+    List<String> strings = new List<String>(values2.length);
     for (int i = 0; i < values2.length; i++) {
       strings[i] = values2[i].syntax;
     }

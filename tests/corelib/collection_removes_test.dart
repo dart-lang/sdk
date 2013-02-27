@@ -86,16 +86,17 @@ void main() {
   ];
   for (var base in collections) {
     for (var delta in collections) {
-      testRemove(base.toList());
+      testRemove(base.toList(growable: true));
       testRemove(base.toSet());
 
       var deltaSet = delta.toSet();
-      testRemoveAll(base.toList(), delta);
-      testRemoveAll(base.toList(), deltaSet);
-      testRetainAll(base.toList(), delta);
-      testRetainAll(base.toList(), deltaSet);
-      testRemoveMatching(base.toList(), deltaSet.contains);
-      testRetainMatching(base.toList(), (e) => !deltaSet.contains(e));
+      testRemoveAll(base.toList(growable: true), delta);
+      testRemoveAll(base.toList(growable: true), deltaSet);
+      testRetainAll(base.toList(growable: true), delta);
+      testRetainAll(base.toList(growable: true), deltaSet);
+      testRemoveMatching(base.toList(growable: true), deltaSet.contains);
+      testRetainMatching(base.toList(growable: true),
+                         (e) => !deltaSet.contains(e));
 
       testRemoveAll(base.toSet(), delta);
       testRemoveAll(base.toSet(), deltaSet);

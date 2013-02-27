@@ -355,7 +355,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (backend.fixedLengthListConstructor == null) {
       backend.fixedLengthListConstructor =
         compiler.listClass.lookupConstructor(
-            new Selector.callConstructor(const SourceString("fixedLength"),
+            new Selector.callConstructor(const SourceString(""),
                                          compiler.listClass.getLibrary()));
     }
     // TODO(ngeoffray): checking if the second input is an integer
@@ -363,6 +363,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // other optimizations to reason on a fixed length constructor
     // that we know takes an int.
     return element == backend.fixedLengthListConstructor
+        && node.inputs.length == 2
         && node.inputs[1].isInteger();
   }
 
@@ -597,7 +598,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (node.element == backend.jsArrayLength) {
       if (node.receiver is HInvokeStatic) {
         // Try to recognize the length getter with input
-        // [:new List.fixedLength(int):].
+        // [:new List(int):].
         HInvokeStatic call = node.receiver;
         if (isFixedSizeListConstructor(call)) {
           return call.inputs[1];
@@ -1088,8 +1089,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>.fixedLength(length);
-    loopChangesFlags = new List<int>.fixedLength(length);
+    blockChangesFlags = new List<int>(length);
+    loopChangesFlags = new List<int>(length);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -1164,7 +1165,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>.fixedLength(graph.blocks.length);
+    values = new List<ValueSet>(graph.blocks.length);
     for (int i = 0; i < graph.blocks.length; i++) {
       values[graph.blocks[i].id] = new ValueSet();
     }

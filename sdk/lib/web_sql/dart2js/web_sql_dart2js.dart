@@ -287,7 +287,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Map> toList() => new List<Map>.from(this);
+  List<Map> toList({ bool growable: false }) =>
+      new List<Map>.from(this, growable: growable);
+
   Set<Map> toSet() => new Set<Map>.from(this);
 
   bool get isEmpty => this.length == 0;

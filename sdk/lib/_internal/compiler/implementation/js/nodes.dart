@@ -1081,8 +1081,7 @@ class MiniJsParserError {
   String message;
 
   String toString() {
-    var codes =
-        new List.fixedLength(parser.lastPosition, fill: charCodes.$SPACE);
+    var codes = new List.filled(parser.lastPosition, charCodes.$SPACE);
     var spaces = new String.fromCharCodes(codes);
     return "Error in MiniJsParser:\n${parser.src}\n$spaces^\n$spaces$message\n";
   }

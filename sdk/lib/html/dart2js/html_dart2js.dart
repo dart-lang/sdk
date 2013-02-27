@@ -6851,7 +6851,7 @@ class Document extends Node  native "*Document"
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>.fixedLength(len);
+      final copyOfMatches = new List<Element>(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -6859,7 +6859,7 @@ class Document extends Node  native "*Document"
     } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>.fixedLength(len);
+      final copyOfMatches = new List<Element>(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -7149,7 +7149,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomMimeType> toList() => new List<DomMimeType>.from(this);
+  List<DomMimeType> toList({ bool growable: false }) =>
+      new List<DomMimeType>.from(this, growable: growable);
+
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -7403,7 +7405,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomPlugin> toList() => new List<DomPlugin>.from(this);
+  List<DomPlugin> toList({ bool growable: false }) =>
+      new List<DomPlugin>.from(this, growable: growable);
+
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -7764,7 +7768,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
-  List<String> toList() => new List<String>.from(this);
+  List<String> toList({ bool growable: false }) =>
+      new List<String>.from(this, growable: growable);
+
   Set<String> toSet() => new Set<String>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -7964,8 +7970,14 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList() {
-    final output = new List<Element>.fixedLength(_childElements.length);
+  List<Element> toList({ bool growable: false }) {
+    final output;
+    if (growable) {
+      output = <Element>[];
+      output.length = _childElements.length;
+    } else {
+      output = new List<Element>(_childElements.length);
+    }
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
     }
@@ -8261,7 +8273,8 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  List<Element> toList() => new List<Element>.from(this);
+  List<Element> toList({ bool growable: false }) =>
+      new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
 
   Iterable<Element> take(int n) {
@@ -10595,7 +10608,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
-  List<File> toList() => new List<File>.from(this);
+  List<File> toList({ bool growable: false }) =>
+      new List<File>.from(this, growable: growable);
+
   Set<File> toSet() => new Set<File>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -11152,7 +11167,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList() => new List<num>.from(this);
+  List<num> toList({ bool growable: false }) =>
+      new List<num>.from(this, growable: growable);
+
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -11368,7 +11385,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList() => new List<num>.from(this);
+  List<num> toList({ bool growable: false }) =>
+      new List<num>.from(this, growable: growable);
+
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -12003,7 +12022,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: false }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -12210,7 +12231,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: false }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -14202,7 +14225,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -14418,7 +14443,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -14634,7 +14661,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -17143,7 +17172,8 @@ class _ChildNodeListLazy implements List {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: false }) =>
+      new List<Node>.from(this, growable: growable);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -17532,7 +17562,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: false }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -19870,7 +19902,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
+  List<SourceBuffer> toList({ bool growable: false }) =>
+      new List<SourceBuffer>.from(this, growable: growable);
+
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -20150,7 +20184,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
+  List<SpeechGrammar> toList({ bool growable: false }) =>
+      new List<SpeechGrammar>.from(this, growable: growable);
+
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -21477,7 +21513,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
+  List<TextTrackCue> toList({ bool growable: false }) =>
+      new List<TextTrackCue>.from(this, growable: growable);
+
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -21682,7 +21720,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrack> toList() => new List<TextTrack>.from(this);
+  List<TextTrack> toList({ bool growable: false }) =>
+      new List<TextTrack>.from(this, growable: growable);
+
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22094,7 +22134,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Touch> toList() => new List<Touch>.from(this);
+  List<Touch> toList({ bool growable: false }) =>
+      new List<Touch>.from(this, growable: growable);
+
   Set<Touch> toSet() => new Set<Touch>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22540,7 +22582,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22756,7 +22800,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22972,7 +23018,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -23185,7 +23233,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: false }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -26912,7 +26962,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ClientRect> toList() => new List<ClientRect>.from(this);
+  List<ClientRect> toList({ bool growable: false }) =>
+      new List<ClientRect>.from(this, growable: growable);
+
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27109,7 +27161,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssRule> toList() => new List<CssRule>.from(this);
+  List<CssRule> toList({ bool growable: false }) =>
+      new List<CssRule>.from(this, growable: growable);
+
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27306,7 +27360,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssValue> toList() => new List<CssValue>.from(this);
+  List<CssValue> toList({ bool growable: false }) =>
+      new List<CssValue>.from(this, growable: growable);
+
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27503,7 +27559,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Entry> toList() => new List<Entry>.from(this);
+  List<Entry> toList({ bool growable: false }) =>
+      new List<Entry>.from(this, growable: growable);
+
   Set<Entry> toSet() => new Set<Entry>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27700,7 +27758,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
-  List<EntrySync> toList() => new List<EntrySync>.from(this);
+  List<EntrySync> toList({ bool growable: false }) =>
+      new List<EntrySync>.from(this, growable: growable);
+
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27897,7 +27957,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Gamepad> toList() => new List<Gamepad>.from(this);
+  List<Gamepad> toList({ bool growable: false }) =>
+      new List<Gamepad>.from(this, growable: growable);
+
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28157,7 +28219,9 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: false }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28378,7 +28442,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
+  List<SpeechInputResult> toList({ bool growable: false }) =>
+      new List<SpeechInputResult>.from(this, growable: growable);
+
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28575,7 +28641,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
+  List<SpeechRecognitionResult> toList({ bool growable: false }) =>
+      new List<SpeechRecognitionResult>.from(this, growable: growable);
+
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28772,7 +28840,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
-  List<StyleSheet> toList() => new List<StyleSheet>.from(this);
+  List<StyleSheet> toList({ bool growable: false }) =>
+      new List<StyleSheet>.from(this, growable: growable);
+
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -29402,7 +29472,8 @@ abstract class CssClassSet implements Set<String> {
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList() => readClasses().toList();
+  List<String> toList({ bool growable: false }) =>
+      readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   String min([int compare(String a, String b)]) =>
       readClasses().min(compare);
@@ -31397,7 +31468,7 @@ abstract class _Serializer extends _MessageTraverser {
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List.fixedLength(len);
+    var result = new List(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }

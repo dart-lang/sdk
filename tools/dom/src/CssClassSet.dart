@@ -114,7 +114,8 @@ abstract class CssClassSet implements Set<String> {
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList() => readClasses().toList();
+  List<String> toList({ bool growable: false }) =>
+      readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   String min([int compare(String a, String b)]) =>
       readClasses().min(compare);

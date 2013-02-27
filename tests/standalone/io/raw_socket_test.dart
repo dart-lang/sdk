@@ -137,7 +137,7 @@ void testSimpleReadWrite() {
   const messageSize = 1000;
 
   List<int> createTestData() {
-    List<int> data = new List.fixedLength(messageSize);
+    List<int> data = new List<int>(messageSize);
     for (int i = 0; i < messageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -156,7 +156,7 @@ void testSimpleReadWrite() {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
-      List<int> data = new List.fixedLength(messageSize);
+      List<int> data = new List<int>(messageSize);
 
       client.writeEventsEnabled = false;
       client.listen((event) {
@@ -212,7 +212,7 @@ void testSimpleReadWrite() {
             if (bytesWritten < data.length) {
               socket.writeEventsEnabled = true;
             } else {
-              data = new List.fixedLength(messageSize);
+              data = new List<int>(messageSize);
             }
             break;
           case RawSocketEvent.READ_CLOSED:
@@ -332,7 +332,7 @@ testPauseSocket() {
   RawServerSocket.bind().then((server) {
     Expect.isTrue(server.port > 0);
     server.listen((client) {
-      List<int> data = new List.fixedLength(messageSize, fill: 0);
+      List<int> data = new List<int>.filled(messageSize, 0);
       writeSubscription = client.listen((event) {
         switch (event) {
           case RawSocketEvent.READ:

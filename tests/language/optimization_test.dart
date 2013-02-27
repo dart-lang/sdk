@@ -63,7 +63,7 @@ main() {
   // Deoptimize because of overflow.
   var minInt = -(1 << 30);
   Expect.equals(minInt, doNeg(doNeg(minInt)));
-  
+
   for (int i = 0; i < 1000; i++) {
     Expect.equals(false, doNot(true));
     Expect.equals(true, doNot(doNot(true)));
@@ -79,7 +79,7 @@ main() {
   // Deoptimize.
   Expect.equals(-5, doNeg2(5));
 
-  var fixed = new List.fixedLength(10);
+  var fixed = new List(10);
   var growable = [1, 2, 3, 4, 5];
 
   for (int i = 0; i < 2000; i++) {

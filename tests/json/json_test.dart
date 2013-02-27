@@ -90,8 +90,8 @@ main() {
 
     // Lists.
     expect(json.stringify([]), equals('[]'));
-    expect(json.stringify(new List.fixedLength(0)), equals('[]'));
-    expect(json.stringify(new List.fixedLength(3)), equals('[null,null,null]'));
+    expect(json.stringify(new List(0)), equals('[]'));
+    expect(json.stringify(new List(3)), equals('[null,null,null]'));
     validateRoundTrip([3, -4.5, null, true, 'hi', false]);
     expect(json.stringify([[3], [], [null], ['hi', true]]),
       equals('[[3],[],[null],["hi",true]]'));

@@ -42,8 +42,8 @@ class OptionalParameterTypes {
   final List<HType> types;
 
   OptionalParameterTypes(int optionalArgumentsCount)
-      : names = new List<SourceString>.fixedLength(optionalArgumentsCount),
-        types = new List<HType>.fixedLength(optionalArgumentsCount);
+      : names = new List<SourceString>(optionalArgumentsCount),
+        types = new List<HType>(optionalArgumentsCount);
 
   int get length => names.length;
   SourceString name(int index) => names[index];
@@ -69,10 +69,10 @@ class HTypeList {
   final List<SourceString> namedArguments;
 
   HTypeList(int length)
-      : types = new List<HType>.fixedLength(length),
+      : types = new List<HType>(length),
         namedArguments = null;
   HTypeList.withNamedArguments(int length, this.namedArguments)
-      : types = new List<HType>.fixedLength(length);
+      : types = new List<HType>(length);
   const HTypeList.withAllUnknown()
       : types = null,
         namedArguments = null;

@@ -26,7 +26,7 @@ void logMessages() {
 
 main() {
   SendPort remote = spawnFunction(logMessages);
-  List<int> msg = new List<int>.fixedLength(5);
+  List<int> msg = new List<int>(5);
   for (int i = 0; i < 5; i++) {
     msg[i] = i;
   }

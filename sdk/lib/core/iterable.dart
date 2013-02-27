@@ -156,7 +156,8 @@ abstract class Iterable<E> {
     return false;
   }
 
-  List<E> toList() => new List<E>.from(this);
+  List<E> toList({ bool growable: false }) =>
+      new List<E>.from(this, growable: growable);
   Set<E> toSet() => new Set<E>.from(this);
 
   /**

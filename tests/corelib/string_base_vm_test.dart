@@ -26,7 +26,7 @@ class StringBaseTest {
 
   static testCreation() {
     String s = "Hello";
-    List<int> a = new List.fixedLength(s.length);
+    List<int> a = new List(s.length);
     List<int> ga  = new List();
     bool exception_caught = false;
     for (int i = 0; i < a.length; i++) {

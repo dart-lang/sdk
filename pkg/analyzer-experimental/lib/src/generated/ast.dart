@@ -2408,7 +2408,7 @@ class CompilationUnit extends ASTNode {
     } else if (parserErrors.length == 0) {
       return resolverErrors;
     } else {
-      List<AnalysisError> allErrors = new List<AnalysisError>.fixedLength(parserErrors.length + resolverErrors.length);
+      List<AnalysisError> allErrors = new List<AnalysisError>(parserErrors.length + resolverErrors.length);
       System.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
       System.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
       return allErrors;
@@ -4791,7 +4791,7 @@ class FormalParameterList extends ASTNode {
    */
   List<ParameterElement> get elements {
     int count = _parameters.length;
-    List<ParameterElement> types = new List<ParameterElement>.fixedLength(count);
+    List<ParameterElement> types = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
       types[i] = _parameters[i].element;
     }

@@ -60,7 +60,7 @@ class IncrOpTest {
     Expect.equals(57, IncrOpTest.y);
     Expect.equals(56, --IncrOpTest.y);
 
-    var list = new List.fixedLength(4);
+    var list = new List(4);
     for (int i = 0; i < list.length; i++) {
       list[i] = i;
     }

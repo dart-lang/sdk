@@ -288,7 +288,7 @@ class int32 implements intx {
     return _i == _convert(other);
   }
 
-  int compareTo(other) {
+  int compareTo(Comparable other) {
     if (other is int64) {
       return this.toInt64().compareTo(other);
     }
@@ -338,7 +338,7 @@ class int32 implements intx {
   int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
 
   List<int> toBytes() {
-    List<int> result = new List<int>.fixedLength(4);
+    List<int> result = new List<int>(4);
     result[0] = _i & 0xff;
     result[1] = (_i >> 8) & 0xff;
     result[2] = (_i >> 16) & 0xff;

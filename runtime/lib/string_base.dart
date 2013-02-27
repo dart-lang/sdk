@@ -347,7 +347,7 @@ class _StringBase {
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    var stringList = new List.fixedLength(numValues);
+    var stringList = new List(numValues);
     for (int i = 0; i < numValues; i++) {
       stringList[i] = values[i].toString();
     }

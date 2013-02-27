@@ -406,7 +406,8 @@ class Builder {
   List<String> split(String path) {
     var parsed = _parse(path);
     // Filter out empty parts that exist due to multiple separators in a row.
-    parsed.parts = parsed.parts.where((part) => !part.isEmpty).toList();
+    parsed.parts = parsed.parts.where((part) => !part.isEmpty)
+                               .toList(growable: true);
     if (parsed.root != null) parsed.parts.insertRange(0, 1, parsed.root);
     return parsed.parts;
   }

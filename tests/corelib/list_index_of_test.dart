@@ -4,7 +4,7 @@
 
 class ListIndexOfTest {
   static testMain() {
-    test(new List<int>.fixedLength(5));
+    test(new List<int>(5));
     var l = new List<int>();
     l.length = 5;
     test(l);

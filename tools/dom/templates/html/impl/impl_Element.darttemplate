@@ -15,8 +15,14 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList() {
-    final output = new List<Element>.fixedLength(_childElements.length);
+  List<Element> toList({ bool growable: false }) {
+    final output;
+    if (growable) {
+      output = <Element>[];
+      output.length = _childElements.length;
+    } else {
+      output = new List<Element>(_childElements.length);
+    }
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
     }
@@ -312,7 +318,8 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  List<Element> toList() => new List<Element>.from(this);
+  List<Element> toList({ bool growable: false }) =>
+      new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
 
   Iterable<Element> take(int n) {

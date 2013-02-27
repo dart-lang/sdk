@@ -147,7 +147,8 @@ class FilteredElementList implements List {
   }
   bool every(bool f(Element element)) => _filtered.every(f);
   bool any(bool f(Element element)) => _filtered.any(f);
-  List<Element> toList() => new List<Element>.from(this);
+  List<Element> toList({ bool growable: false }) =>
+      new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
   Element firstMatching(bool test(Element value), {Element orElse()}) {
     return _filtered.firstMatching(test, orElse: orElse);

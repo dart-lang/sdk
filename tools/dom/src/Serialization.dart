@@ -98,7 +98,7 @@ abstract class _Serializer extends _MessageTraverser {
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List.fixedLength(len);
+    var result = new List(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }

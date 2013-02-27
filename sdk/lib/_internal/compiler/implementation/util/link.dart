@@ -38,7 +38,7 @@ class Link<T> extends Iterable<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {
   }
 
-  List toList() => new List<T>.fixedLength(0);
+  List toList({ bool growable: false }) => growable ? <T>[] : new List<T>(0);
 
   bool get isEmpty => true;
 

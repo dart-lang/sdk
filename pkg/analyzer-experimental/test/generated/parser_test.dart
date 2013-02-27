@@ -21,7 +21,7 @@ class ParserTestCase extends EngineTestCase {
   /**
    * An empty array of objects used as arguments to zero-argument methods.
    */
-  static List<Object> _EMPTY_ARGUMENTS = new List<Object>.fixedLength(0);
+  static List<Object> _EMPTY_ARGUMENTS = new List<Object>(0);
   /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
@@ -35,7 +35,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    * @throws AssertionFailedError if the result is {@code null} or if any errors are produced
    */
-  static Object parse(String methodName, List<Object> objects, String source) => parse3(methodName, objects, source, new List<AnalysisError>.fixedLength(0));
+  static Object parse(String methodName, List<Object> objects, String source) => parse3(methodName, objects, source, new List<AnalysisError>(0));
   /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
@@ -2888,7 +2888,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(functionBody.semicolon);
   }
   void test_parseFunctionDeclaration_function() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, false], "f() {}");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
@@ -2901,7 +2901,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(declaration.propertyKeyword);
   }
   void test_parseFunctionDeclaration_function_inStatement() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, true], "f() {};");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
@@ -2914,7 +2914,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(declaration.propertyKeyword);
   }
   void test_parseFunctionDeclaration_getter() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, false], "get p => 0;");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
@@ -2927,7 +2927,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
   }
   void test_parseFunctionDeclaration_setter() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, false], "set p(v) {}");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
@@ -2955,7 +2955,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(expression.parameters);
   }
   void test_parseGetter_nonStatic() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "get a;");
     JUnitTestCase.assertNotNull(method.body);
@@ -2969,7 +2969,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals(returnType, method.returnType);
   }
   void test_parseGetter_static() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [commentAndMetadata(comment, []), null, staticKeyword, returnType], "get a;");
@@ -3096,7 +3096,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(directive.semicolon);
   }
   void test_parseInitializedIdentifierList_type() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
     TypeName type = new TypeName.full(new SimpleIdentifier.full(null), null);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [commentAndMetadata(comment, []), staticKeyword, null, type], "a = 1, b, c = 3;");
@@ -3110,7 +3110,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
   void test_parseInitializedIdentifierList_var() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
     Token varKeyword = TokenFactory.token(Keyword.VAR);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [commentAndMetadata(comment, []), staticKeyword, varKeyword, null], "a = 1, b, c = 3;");
@@ -3515,7 +3515,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(parameter.identifier);
   }
   void test_parseOperator() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseOperator", <Object> [commentAndMetadata(comment, []), null, returnType], "operator +(A a);");
     JUnitTestCase.assertNotNull(method.body);
@@ -3759,7 +3759,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(typeName.typeArguments);
   }
   void test_parseSetter_nonStatic() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "set a(var x);");
     JUnitTestCase.assertNotNull(method.body);
@@ -3773,7 +3773,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals(returnType, method.returnType);
   }
   void test_parseSetter_static() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>.fixedLength(0));
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [commentAndMetadata(comment, []), null, staticKeyword, returnType], "set a(var x) {}");

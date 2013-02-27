@@ -2005,9 +2005,9 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     if ((function_class.Name() == Symbols::List().raw()) &&
         (function.name() == Symbols::ListFactory().raw())) {
-      return kGrowableObjectArrayCid;
-    } else if ((function_class.Name() == Symbols::List().raw()) &&
-               (function.name() == Symbols::ListFixedLengthFactory().raw())) {
+      if (node->arguments()->length() == 0) {
+        return kGrowableObjectArrayCid;
+      }
       return kArrayCid;
     } else {
       if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&

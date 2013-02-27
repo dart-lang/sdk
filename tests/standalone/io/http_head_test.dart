@@ -13,7 +13,7 @@ void testHEAD(int totalConnections) {
           response.close();
         } else if (request.uri.path == "/test200") {
           response.contentLength = 200;
-          List<int> data = new List<int>.fixedLength(200, fill: 0);
+          List<int> data = new List<int>.filled(200, 0);
           response.add(data);
           response.close();
         } else {

@@ -219,8 +219,13 @@ abstract class ListIterable<E> extends Iterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
 
-  List<E> toList() {
-    List<E> result = new List(length);
+  List<E> toList({ bool growable: false }) {
+    List<E> result;
+    if (growable) {
+      result = new List<E>()..length = length;
+    } else {
+      result = new List<E>(length);
+    }
     for (int i = 0; i < length; i++) {
       result[i] = elementAt(i);
     }
@@ -676,7 +681,7 @@ class EmptyIterable<E> extends Iterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => this;
 
-  List toList() => <E>[];
+  List toList({ bool growable: false }) => growable ? <E>[] : new List<E>(0);
 
   Set toSet() => new Set<E>();
 }

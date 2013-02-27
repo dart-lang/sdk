@@ -87,7 +87,7 @@ class SocketExceptionTest {
         Expect.isFalse(exceptionCaught);
         Expect.isFalse(wrongExceptionCaught);
         try {
-          List<int> buffer = new List<int>.fixedLength(10);
+          List<int> buffer = new List<int>(10);
           client.add(buffer);
         } on StateError catch (ex) {
           exceptionCaught = true;
@@ -121,7 +121,7 @@ class SocketExceptionTest {
       });
       Socket.connect("127.0.0.1", server.port).then((client) {
         client.listen((data) {}, onDone: server.close);
-        client.add(new List.fixedLength(1024 * 1024, fill: 0));
+        client.add(new List.filled(1024 * 1024, 0));
         client.destroy();
       });
     });
@@ -143,7 +143,7 @@ class SocketExceptionTest {
               Expect.equals(SIZE, count);
               server.close();
             });
-        client.add(new List.fixedLength(SIZE, fill: 0));
+        client.add(new List.filled(SIZE, 0));
         client.close();
         // Start piping now.
         completer.complete(null);
@@ -174,7 +174,7 @@ class SocketExceptionTest {
               Expect.isTrue(errors <= 1);
               server.close();
             });
-        client.add(new List.fixedLength(SIZE, fill: 0));
+        client.add(new List.filled(SIZE, 0));
         // Destroy other socket now.
         completer.complete(null);
         var port = new ReceivePort();
@@ -199,7 +199,7 @@ class SocketExceptionTest {
       Socket.connect("127.0.0.1", server.port).then((client) {
         const int SIZE = 1024 * 1024;
         int errors = 0;
-        client.add(new List.fixedLength(SIZE, fill: 0));
+        client.add(new List.filled(SIZE, 0));
         client.close();
         client.done.catchError((error) {
           server.close();

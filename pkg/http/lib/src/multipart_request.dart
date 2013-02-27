@@ -165,7 +165,7 @@ class MultipartRequest extends BaseRequest {
   /// [length].
   String _boundaryString(int length) {
     var prefix = "dart-http-boundary-";
-    var list = new List<int>.fixedLength(length - prefix.length);
+    var list = new List<int>(length - prefix.length);
     for (var i = 0; i < list.length; i++) {
       list[i] = _BOUNDARY_CHARACTERS[
           _random.nextInt(_BOUNDARY_CHARACTERS.length)];

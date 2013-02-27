@@ -14,7 +14,7 @@ class Helper {
   static int f1(int k) {
     var b;
     try {
-      var a = new List.fixedLength(10);
+      var a = new List(10);
       int i = 0;
       while (i < 10) {
         int j = i;

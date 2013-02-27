@@ -254,7 +254,8 @@ class JSArray<E> implements List<E> {
 
   String toString() => Collections.collectionToString(this);
 
-  List<E> toList() => new List<E>.from(this);
+  List<E> toList({ bool growable: false }) =>
+      new List<E>.from(this, growable: growable);
 
   Set<E> toSet() => new Set<E>.from(this);
 
