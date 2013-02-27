@@ -68,6 +68,13 @@ void expect(actual, matcher, {String reason, FailureHandler failureHandler,
   }
 }
 
+void fail(String message, {FailureHandler failureHandler}) {
+  if (failureHandler == null) {
+    failureHandler = getOrCreateExpectFailureHandler();
+  }
+  failureHandler.fail(message);
+}
+
 /**
  * Takes an argument and returns an equivalent matcher.
  * If the argument is already a matcher this does nothing,

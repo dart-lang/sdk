@@ -325,8 +325,7 @@ class Throws extends BaseMatcher {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
       item.then((value) {
-        done(() => expect(false, isTrue, reason:
-            "Expected future to fail, but succeeded with '$value'."));
+        done(() => fail("Expected future to fail, but succeeded with '$value'."));
       }, onError: (e) {
         done(() {
           if (_matcher == null) return;

@@ -45,7 +45,7 @@ class _Completes extends BaseMatcher {
         stackTrace = '  ${stackTrace.replaceAll('\n', '\n  ')}';
         reason = '$reason\nStack trace:\n$stackTrace';
       }
-      done(() => expect(false, isTrue, reason: reason));
+      done(() => fail(reason));
     });
 
     return true;

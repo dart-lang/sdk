@@ -828,10 +828,6 @@ String _fullSpec(String spec) {
   return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 
-void fail(String message) {
-  throw new TestFailure(message);
-}
-
 /**
  * Lazily initializes the test library if not already initialized.
  */

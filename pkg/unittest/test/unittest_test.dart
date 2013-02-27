@@ -132,8 +132,8 @@ runTest() {
       test('testOne', () {
         var f = expectAsync0(() {});
         _defer(protectAsync0(() {
-          _defer(protectAsync0(() => expect(false, isTrue)));
-          expect(false, isTrue);
+          _defer(protectAsync0(() => fail('first failure')));
+          fail('second failure');
         }));
       });
       test('testTwo', () {
@@ -262,7 +262,7 @@ runTest() {
       });
       test("fail2", () {
         return _defer(() {
-          expect(false, true);
+          fail('failure');
         });
       });
       test('foo5', () {
@@ -307,7 +307,7 @@ runTest() {
         return _defer(() {
           Timer.run(() {
             guardAsync(() {
-              expect(false, true);
+              fail('failure');
               callback();
             });
           });
@@ -401,13 +401,13 @@ main() {
         'error1:Callback called more times than expected (3 > 1).:'
         'fail1:Expected: <false> but: was <true>.:'
         'error2:Callback called more times than expected (2 > 1).:'
-        'fail2:Expected: <true> but: was <false>.:'
+        'fail2:failure:'
         'foo5'),
     buildStatusString(2, 2, 2,
         'successful::'
         'fail1:Expected: <false> but: was <true>.:'
         'error1:Callback called more times than expected (3 > 1).:'
-        'fail2:Expected: <true> but: was <false>.:'
+        'fail2:failure:'
         'error2:Callback called more times than expected (2 > 1).:'
         'foo6'),
   ];
