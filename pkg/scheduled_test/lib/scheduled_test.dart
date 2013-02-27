@@ -183,7 +183,7 @@ import 'src/utils.dart';
 
 export 'package:unittest/matcher.dart';
 export 'package:unittest/unittest.dart' show
-    config, configure, Configuration, logMessage, expectThrow, fail;
+    config, configure, Configuration, logMessage, expectThrow;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
