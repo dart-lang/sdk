@@ -346,7 +346,7 @@ class _HttpOutboundMessage<T> extends IOSink {
 
   void add(List<int> data) {
     _writeHeaders();
-    if (_ignoreBody) return;
+    if (_ignoreBody || data.length == 0) return;
     if (_chunked) {
       _ChunkedTransformer._addChunk(data, super.add);
     } else {
