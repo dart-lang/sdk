@@ -54,31 +54,31 @@ patch class _FileUtils {
 }
 
 patch class _File {
-  patch static _exists(String name) {
+  patch static _exists(String path) {
     throw new UnsupportedError("File._exists");
   }
-  patch static _create(String name) {
+  patch static _create(String path) {
     throw new UnsupportedError("File._create");
   }
-  patch static _delete(String name) {
+  patch static _delete(String path) {
     throw new UnsupportedError("File._delete");
   }
-  patch static _directory(String name) {
+  patch static _directory(String path) {
     throw new UnsupportedError("File._directory");
   }
-  patch static _lengthFromName(String name) {
-    throw new UnsupportedError("File._lengthFromName");
+  patch static _lengthFromPath(String path) {
+    throw new UnsupportedError("File._lengthFromPath");
   }
-  patch static _lastModified(String name) {
+  patch static _lastModified(String path) {
     throw new UnsupportedError("File._lastModified");
   }
-  patch static _open(String name, int mode) {
+  patch static _open(String path, int mode) {
     throw new UnsupportedError("File._open");
   }
   patch static int _openStdio(int fd) {
     throw new UnsupportedError("File._openStdio");
   }
-  patch static _fullPath(String name) {
+  patch static _fullPath(String path) {
     throw new UnsupportedError("File._fullPath");
   }
 }

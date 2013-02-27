@@ -97,7 +97,7 @@ main() {
   }
 
   // Run the shell script.
-  test(shellScript.name, scriptFile.name, "0");
-  test(shellScript.name, scriptFile.name, "1");
-  test(shellScript.name, scriptFile.name, "2");
+  test(shellScript.path, scriptFile.path, "0");
+  test(shellScript.path, scriptFile.path, "1");
+  test(shellScript.path, scriptFile.path, "2");
 }

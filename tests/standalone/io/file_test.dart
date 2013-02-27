@@ -45,7 +45,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    Expect.isTrue('$file'.contains(file.name));
+    Expect.isTrue('$file'.contains(file.path));
     var subscription;
     List<int> buffer = new List<int>();
     subscription = file.openRead().listen(
@@ -172,7 +172,7 @@ class FileTest {
   }
 
   static Future testPipe(File file, buffer) {
-    String outputFilename = '${file.name}_copy';
+    String outputFilename = '${file.path}_copy';
     File outputFile = new File(outputFilename);
     var input = file.openRead();
     var output = outputFile.openWrite();

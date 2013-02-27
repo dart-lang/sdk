@@ -131,7 +131,7 @@ testDirectoryListing() {
     var dirs = [];
     for (var entry in temp.listSync(recursive:true)) {
       if (entry is File) {
-        files.add(entry.name);
+        files.add(entry.path);
       } else {
         Expect.isTrue(entry is Directory);
         dirs.add(entry.path);
@@ -147,7 +147,7 @@ testDirectoryListing() {
     var lister = temp.list(recursive: true).listen(
         (entity) {
           if (entity is File) {
-            files.add(entity.name);
+            files.add(entity.path);
           } else {
             Expect.isTrue(entity is Directory);
             dirs.add(entity.path);
@@ -182,7 +182,7 @@ testDirectoryListingBrokenLink() {
     temp.list(recursive: true).listen(
         (entity) {
           if (entity is File) {
-            files.add(entity.name);
+            files.add(entity.path);
           } else {
             Expect.isTrue(entity is Directory);
             dirs.add(entity.path);

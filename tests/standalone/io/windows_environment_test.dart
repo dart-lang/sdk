@@ -20,7 +20,7 @@ set SCRIPTDIR=%~dp0
   var scriptDir = new Path(options.script).directoryPath;
   var script = scriptDir.append('windows_environment_script.dart');
   Process.run('cmd',
-              ['/c', funkyFile.name, dart, script.toNativePath()]).then((p) {
+              ['/c', funkyFile.path, dart, script.toNativePath()]).then((p) {
     Expect.equals(0, p.exitCode);
     tempDir.deleteSync(recursive: true);
   });

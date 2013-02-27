@@ -349,11 +349,11 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_LengthFromName)(Dart_NativeArguments args) {
+void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  const char* name =
+  const char* path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  intptr_t return_value = File::LengthFromName(name);
+  intptr_t return_value = File::LengthFromPath(path);
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
@@ -689,10 +689,10 @@ static CObject* FileLengthRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
+static CObject* FileLengthFromPathRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    intptr_t return_value = File::LengthFromName(filename.CString());
+    CObjectString filepath(request[1]);
+    intptr_t return_value = File::LengthFromPath(filepath.CString());
     if (return_value >= 0) {
       return new CObjectIntptr(CObject::NewIntptr(return_value));
     } else {
@@ -705,8 +705,8 @@ static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
 
 static CObject* FileLastModifiedRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    int64_t return_value = File::LastModified(filename.CString());
+    CObjectString filepath(request[1]);
+    int64_t return_value = File::LastModified(filepath.CString());
     if (return_value >= 0) {
       return new CObjectIntptr(CObject::NewInt64(return_value * kMSPerSecond));
     } else {
@@ -933,8 +933,8 @@ static void FileService(Dart_Port dest_port_id,
         case File::kLengthRequest:
           response = FileLengthRequest(request);
           break;
-        case File::kLengthFromNameRequest:
-          response = FileLengthFromNameRequest(request);
+        case File::kLengthFromPathRequest:
+          response = FileLengthFromPathRequest(request);
           break;
         case File::kLastModifiedRequest:
           response = FileLastModifiedRequest(request);

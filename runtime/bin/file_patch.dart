@@ -7,15 +7,15 @@ patch class _FileUtils {
 }
 
 patch class _File {
-  /* patch */ static _exists(String name) native "File_Exists";
-  /* patch */ static _create(String name) native "File_Create";
-  /* patch */ static _delete(String name) native "File_Delete";
-  /* patch */ static _directory(String name) native "File_Directory";
-  /* patch */ static _lengthFromName(String name) native "File_LengthFromName";
-  /* patch */ static _lastModified(String name) native "File_LastModified";
-  /* patch */ static _open(String name, int mode) native "File_Open";
+  /* patch */ static _exists(String path) native "File_Exists";
+  /* patch */ static _create(String path) native "File_Create";
+  /* patch */ static _delete(String path) native "File_Delete";
+  /* patch */ static _directory(String path) native "File_Directory";
+  /* patch */ static _lengthFromPath(String path) native "File_LengthFromPath";
+  /* patch */ static _lastModified(String path) native "File_LastModified";
+  /* patch */ static _open(String path, int mode) native "File_Open";
   /* patch */ static int _openStdio(int fd) native "File_OpenStdio";
-  /* patch */ static _fullPath(String name) native "File_FullPath";
+  /* patch */ static _fullPath(String path) native "File_FullPath";
 }
 
 patch class _RandomAccessFile {

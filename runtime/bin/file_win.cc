@@ -165,7 +165,7 @@ bool File::Delete(const char* name) {
 }
 
 
-off_t File::LengthFromName(const char* name) {
+off_t File::LengthFromPath(const char* name) {
   struct _stat st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
   int stat_status = _wstat(system_name, &st);

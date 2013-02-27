@@ -161,7 +161,7 @@ Future<List<String>> listDir(String dir,
     lister.listen(
         (entity) {
           if (entity is File) {
-            var file = entity.name;
+            var file = entity.path;
             if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
               return;
             }

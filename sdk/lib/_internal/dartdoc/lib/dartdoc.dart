@@ -110,7 +110,7 @@ Future copyDirectory(Path from, Path to) {
   fromDir.list(recursive: false).listen(
       (FileSystemEntity entity) {
         if (entity is File) {
-          final name = new Path(entity.name).filename;
+          final name = new Path(entity.path).filename;
           // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
           if (name.startsWith('.')) return;
 

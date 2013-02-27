@@ -30,7 +30,7 @@ abstract class File extends FileSystemEntity {
   /**
    * Create a File object.
    */
-  factory File(String name) => new _File(name);
+  factory File(String path) => new _File(path);
 
   /**
    * Create a File object from a Path object.
@@ -143,13 +143,13 @@ abstract class File extends FileSystemEntity {
   RandomAccessFile openSync([FileMode mode = FileMode.READ]);
 
   /**
-   * Get the canonical full path corresponding to the file name.
+   * Get the canonical full path corresponding to the file path.
    * Returns a [:Future<String>:] that completes with the path.
    */
   Future<String> fullPath();
 
   /**
-   * Synchronously get the canonical full path corresponding to the file name.
+   * Synchronously get the canonical full path corresponding to the file path.
    */
   String fullPathSync();
 
@@ -274,9 +274,9 @@ abstract class File extends FileSystemEntity {
                           Encoding encoding: Encoding.UTF_8});
 
   /**
-   * Get the name of the file.
+   * Get the path of the file.
    */
-  String get name;
+  String get path;
 }
 
 
@@ -444,9 +444,9 @@ abstract class RandomAccessFile {
   String toString();
 
   /**
-   * Gets the name of the file underlying this RandomAccessFile.
+   * Gets the path of the file underlying this RandomAccessFile.
    */
-  String get name;
+  String get path;
 }
 
 
