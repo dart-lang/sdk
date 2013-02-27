@@ -10499,9 +10499,15 @@ intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(len >= 0);
   ASSERT((begin_index + len) <= str.Length());
   StringHasher hasher;
-  CodePointIterator it(str, begin_index, len);
-  while (it.Next()) {
-    hasher.Add(it.Current());
+  if (str.IsOneByteString()) {
+    for (intptr_t i = 0; i < len; i++) {
+      hasher.Add(*OneByteString::CharAddr(str, i + begin_index));
+    }
+  } else {
+    CodePointIterator it(str, begin_index, len);
+    while (it.Next()) {
+      hasher.Add(it.Current());
+    }
   }
   return hasher.Finalize(String::kHashBits);
 }
@@ -11347,17 +11353,16 @@ RawOneByteString* OneByteString::New(intptr_t len,
     // This should be caught before we reach here.
     FATAL1("Fatal error in OneByteString::New: invalid len %"Pd"\n", len);
   }
-  String& result = String::Handle();
   {
     RawObject* raw = Object::Allocate(OneByteString::kClassId,
                                       OneByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
+    RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
+    result->ptr()->length_ = Smi::New(len);
+    result->ptr()->hash_ = 0;
+    return result;
   }
-  return OneByteString::raw(result);
 }
 
 
