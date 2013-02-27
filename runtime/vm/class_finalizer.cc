@@ -1215,6 +1215,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (!super_class.IsNull()) {
     FinalizeClass(super_class);
   }
+  if (cls.mixin() != Type::null()) {
+    // Copy instance methods and fields from the mixin class.
+    // This has to happen before the check whether the methods of
+    // the class conflict with inherited methods.
+    ApplyMixin(cls);
+  }
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls);
   // Finalize super type.
@@ -1247,12 +1253,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     const Type& sig_type = Type::Handle(cls.SignatureType());
     FinalizeType(cls, sig_type, kCanonicalizeWellFormed);
     return;
-  }
-  if (cls.mixin() != Type::null()) {
-    // Copy instance methods and fields from the mixin class.
-    // This has to happen before the check whether the methods of
-    // the class conflict with inherited methods.
-    ApplyMixin(cls);
   }
   // Finalize interface types (but not necessarily interface classes).
   Array& interface_types = Array::Handle(cls.interfaces());
