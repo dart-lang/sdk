@@ -158,6 +158,7 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
       _pipeFuture.catchError((error) {
         if (unbindCompleter != null) {
           unbindCompleter.completeError(error);
+          unbindCompleter = null;
         }
       });
       return unbindCompleter.future;

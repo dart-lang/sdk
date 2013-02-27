@@ -659,19 +659,21 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
 
   Future<Socket> consume(Stream<List<int>> stream) {
     if (socket._raw != null) {
-      subscription = stream.listen((data) {
-        assert(!paused);
-        assert(buffer == null);
-        buffer = data;
-        offset = 0;
-        write();
-      },
-      onError: (error) {
-        socket._consumerDone(error);
-      },
-      onDone: () {
-        socket._consumerDone();
-      });
+      subscription = stream.listen(
+          (data) {
+            assert(!paused);
+            assert(buffer == null);
+            buffer = data;
+            offset = 0;
+            write();
+          },
+          onError: (error) {
+            socket._consumerDone(error);
+          },
+          onDone: () {
+            socket._consumerDone();
+          },
+          unsubscribeOnError: true);
     }
     return socket._doneFuture;
   }
