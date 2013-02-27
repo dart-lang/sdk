@@ -1479,12 +1479,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    */
   Element lookupSuperMemberInLibrary(SourceString memberName,
                                      LibraryElement library) {
-    bool includeInjectedMembers = isPatch;
     bool isPrivate = memberName.isPrivate();
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
       if (isPrivate && !identical(library, s.getLibrary())) continue;
-      s = includeInjectedMembers ? s.implementation : s;
       Element e = s.lookupLocalMember(memberName);
       if (e == null) continue;
       // Static members are not inherited.
@@ -1499,11 +1497,9 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   Element lookupSuperInterfaceMember(SourceString memberName,
                                      LibraryElement fromLibrary) {
-    bool includeInjectedMembers = isPatch;
     bool isPrivate = memberName.isPrivate();
     for (InterfaceType t in interfaces) {
       ClassElement cls = t.element;
-      cls = includeInjectedMembers ? cls.implementation : cls;
       Element e = cls.lookupLocalMember(memberName);
       if (e == null) continue;
       // Private members from a different library are not visible.
@@ -1526,14 +1522,36 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * origin and the patch class are returned.
    */
   Element lookupSelector(Selector selector) {
-    SourceString memberName = selector.name;
+    SourceString name = selector.name;
+    bool isPrivate = name.isPrivate();
     LibraryElement library = selector.library;
-    Element localMember = lookupLocalMember(memberName);
-    if (localMember != null &&
-        (!memberName.isPrivate() || getLibrary() == library)) {
-      return localMember;
+    for (ClassElement current = this;
+         current != null;
+         current = current.superclass) {
+      Element member = current.lookupLocalMember(name);
+      if (member == null) continue;
+      // Private members from a different library are not visible.
+      if (isPrivate && !identical(library, member.getLibrary())) continue;
+      // Static members are not inherited.
+      if (member.modifiers.isStatic() && !identical(this, current)) continue;
+      // If we find an abstract field we have to make sure that it has
+      // the getter or setter part we're actually looking
+      // for. Otherwise, we continue up the superclass chain.
+      if (member.isAbstractField()) {
+        AbstractFieldElement field = member;
+        FunctionElement getter = field.getter;
+        FunctionElement setter = field.setter;
+        if (selector.isSetter()) {
+          if (setter != null) return setter;
+        } else {
+          assert(selector.isGetter() || selector.isCall());
+          if (getter != null) return getter;
+        }
+      } else {
+        return member;
+      }
     }
-    return lookupSuperMemberInLibrary(memberName, library);
+    return null;
   }
 
   /**

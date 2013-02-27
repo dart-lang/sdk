@@ -317,7 +317,7 @@ abstract class Enqueuer {
            || selector.isOperator()
            || selector.isIndex()
            || selector.isIndexSet());
-    if (element.isFunction()) {
+    if (element.isFunction() || element.isGetter()) {
       addToWorkList(element);
     } else if (element.isAbstractField()) {
       AbstractFieldElement field = element;

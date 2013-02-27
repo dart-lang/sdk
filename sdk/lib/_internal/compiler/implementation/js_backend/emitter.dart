@@ -2067,26 +2067,10 @@ class CodeEmitterTask extends CompilerTask {
         // class has a member that matches the current name and
         // selector (grabbed from the scope).
         bool hasMatchingMember(ClassElement holder) {
-          Element element = holder.lookupMember(selector.name);
-          if (element == null) return false;
-
-          // TODO(kasperl): Consider folding this logic into the
-          // Selector.applies() method.
-          if (element is AbstractFieldElement) {
-            AbstractFieldElement field = element;
-            if (selector.isGetter()) {
-              return field.getter != null;
-            } else if (selector.isSetter()) {
-              return field.setter != null;
-            } else {
-              return false;
-            }
-          } else if (element is VariableElement) {
-            if (selector.isSetter() && element.modifiers.isFinalOrConst()) {
-              return false;
-            }
-          }
-          return selector.applies(element, compiler);
+          Element element = holder.lookupSelector(selector);
+          return (element != null)
+              ? selector.applies(element, compiler)
+              : false;
         }
 
         // If the selector is typed, we check to see if that type may

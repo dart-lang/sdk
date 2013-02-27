@@ -245,7 +245,11 @@ class Selector {
     if (element.isForeign(compiler)) return true;
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
-    if (element.isField()) return isGetter() || isSetter() || isCall();
+    if (element.isField()) {
+      return isSetter()
+          ? !element.modifiers.isFinalOrConst()
+          : isGetter() || isCall();
+    }
     if (isGetter()) return true;
     if (isSetter()) return false;
 
@@ -440,24 +444,7 @@ class TypedSelector extends Selector {
    * invoked on an instance of [cls].
    */
   bool hasElementIn(ClassElement cls, Element element) {
-    // Use the selector for the lookup instead of [:element.name:]
-    // because the selector has the right privacy information.
-    Element resolved = cls.lookupSelector(this);
-    if (resolved == element) return true;
-    if (resolved == null) return false;
-    if (resolved.isAbstractField()) {
-      AbstractFieldElement field = resolved;
-      if (element == field.getter || element == field.setter) {
-        return true;
-      } else {
-        // We have not found a match, but another class higher in the
-        // hierarchy may define the getter or the setter.
-        ClassElement otherCls = field.getEnclosingClass().superclass;
-        if (otherCls == null) return false;
-        return hasElementIn(otherCls, element);
-      }
-    }
-    return false;
+    return cls.lookupSelector(this) == element;
   }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
