@@ -592,7 +592,7 @@ void schedulePub({List args, Pattern output, Pattern error,
           failures.addAll(result.stderr.map((line) => '| $line'));
         }
 
-        throw new ExpectException(failures.join('\n'));
+        throw new TestFailure(failures.join('\n'));
       }
 
       return null;
@@ -869,7 +869,7 @@ abstract class Descriptor {
       var entry = path.join(dir, name);
       return defer(() {
         if (!entryExists(entry)) {
-          throw new ExpectException('Entry $entry not found.');
+          throw new TestFailure('Entry $entry not found.');
         }
         return validate(entry);
       });
@@ -886,7 +886,7 @@ abstract class Descriptor {
     return listDir(dir).then((files) {
       var matches = files.where((file) => endsWithPattern(file, name)).toList();
       if (matches.isEmpty) {
-        throw new ExpectException('No files in $dir match pattern $name.');
+        throw new TestFailure('No files in $dir match pattern $name.');
       }
       if (matches.length == 1) return validate(matches[0]);
 
@@ -906,7 +906,7 @@ abstract class Descriptor {
           error.add("  $failure\n");
         }
         completer.completeError(
-            new ExpectException(error.toString()), stackTrace);
+            new TestFailure(error.toString()), stackTrace);
       }
 
       for (var match in matches) {
@@ -953,7 +953,7 @@ class FileDescriptor extends Descriptor {
       var text = readTextFile(file);
       if (text == textContents) return null;
 
-      throw new ExpectException(
+      throw new TestFailure(
           'File $file should contain:\n\n$textContents\n\n'
           'but contained:\n\n$text');
     });
@@ -1183,7 +1183,7 @@ class NothingDescriptor extends Descriptor {
   Future validate(String dir) {
     return defer(() {
       if (entryExists(path.join(dir, name))) {
-        throw new ExpectException('File $name in $dir should not exist.');
+        throw new TestFailure('File $name in $dir should not exist.');
       }
     });
   }
@@ -1360,7 +1360,7 @@ class ScheduledProcess {
 
           return _printStreams();
         }).then((_) {
-          registerException(new ExpectException("Process $name ended "
+          registerException(new TestFailure("Process $name ended "
               "earlier than scheduled with exit code $exitCode"));
         });
       }).catchError((e) => registerException(e.error, e.stackTrace));

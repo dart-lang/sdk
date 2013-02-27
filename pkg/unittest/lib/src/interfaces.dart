@@ -79,7 +79,7 @@ abstract class Matcher {
 
 /**
  * Failed matches are reported using a default IFailureHandler.
- * The default implementation simply throws ExpectExceptions;
+ * The default implementation simply throws [TestFailure]s;
  * this can be replaced by some other implementation of
  * IFailureHandler by calling configureExpectHandler.
  */

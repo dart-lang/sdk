@@ -773,7 +773,7 @@ registerException(e, [trace]) {
 _registerException(testNum, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   if (_tests[testNum].result == null) {
-    String message = (e is ExpectException) ? e.message : 'Caught $e';
+    String message = (e is TestFailure) ? e.message : 'Caught $e';
     _tests[testNum].fail(message, trace);
   } else {
     _tests[testNum].error('Caught $e', trace);
@@ -829,7 +829,7 @@ String _fullSpec(String spec) {
 }
 
 void fail(String message) {
-  throw new ExpectException(message);
+  throw new TestFailure(message);
 }
 
 /**
@@ -891,4 +891,4 @@ void enableTest(int testId) => _setTestEnabledState(testId, true);
 void disableTest(int testId) => _setTestEnabledState(testId, false);
 
 /** Signature for a test function. */
-typedef void TestFunction();
+typedef dynamic TestFunction();
