@@ -60,7 +60,7 @@ namespace dart {
   V(_Double, _mulFromInteger, Double_mulFromInteger, 815838159)                \
   V(_Double, .fromInteger, Double_fromInteger, 842078193)                      \
   V(_Double, toInt, Double_toInt, 362666636)                                   \
-  V(_ObjectArray, ., ObjectArray_Allocate, 577949617)                          \
+  V(_ObjectArray, ., ObjectArray_Allocate, 97987288)                           \
   V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
   V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
   V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \

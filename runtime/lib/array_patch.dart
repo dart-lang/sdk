@@ -2,24 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note that the optimizing compiler depends on the algorithm which
-// returns a _GrowableObjectArray if length is null, otherwise returns
-// fixed size array.
+// The _GrowableArrayMarker class is used to signal to the List() factory
+// whether a parameter was passed.
+class _GrowableArrayMarker implements int {
+  const _GrowableArrayMarker();
+}
+
+const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();
+
 patch class List<E> {
-  /* patch */ factory List([int length]) {
-    if (!?length) return new _GrowableObjectArray<E>(0);
-    if ((length is! int) || (length < 0)) {
-      _throwArgumentError(length);
+  /* patch */ factory List([int length = _GROWABLE_ARRAY_MARKER]) {
+    if (identical(length, _GROWABLE_ARRAY_MARKER)) {
+      return new _GrowableObjectArray<E>(0);
     }
-    _ObjectArray<E> result = new _ObjectArray<E>(length);
-    return result;
+    // All error handling on the length parameter is done at the implementation
+    // of new _ObjectArray.
+    return new _ObjectArray<E>(length);
   }
 
   /* patch */ factory List.filled(int length, E fill) {
-    if ((length is! int) || (length < 0)) {
-      _throwArgumentError(length);
-    }
-    _ObjectArray<E> result = new _ObjectArray<E>(length);
+    // All error handling on the length parameter is done at the implementation
+    // of new _ObjectArray.
+    var result = new _ObjectArray<E>(length);
     if (fill != null) {
       for (int i = 0; i < length; i++) {
         result[i] = fill;
@@ -37,9 +41,5 @@ patch class List<E> {
     var result = new _GrowableObjectArray<E>.withData(elements);
     result._setLength(elements.length);
     return result;
-  }
-
-  static void _throwArgumentError(int length) {
-    throw new ArgumentError("Length must be a positive integer: $length.");
   }
 }

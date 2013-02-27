@@ -6,7 +6,7 @@
 // TODO(srdjan): Use shared array implementation.
 class _ObjectArray<E> implements List<E> {
 
-  factory _ObjectArray(int length) native "ObjectArray_allocate";
+  factory _ObjectArray(length) native "ObjectArray_allocate";
 
   E operator [](int index) native "ObjectArray_getIndexed";
 

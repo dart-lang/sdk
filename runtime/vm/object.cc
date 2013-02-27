@@ -125,7 +125,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // (Library, class name, method name)
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, Object, _noSuchMethod)                                        \
-  V(CoreLibrary, List, _throwArgumentError)                                    \
+  V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
   V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
   V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \
   V(CoreLibrary, FallThroughErrorImplementation, _throwNew)                    \
@@ -140,7 +140,7 @@ static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* function_name) {
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::New(class_name))));
+      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
   ASSERT(!cls.IsNull());
   const Function& function =
       Function::Handle(
