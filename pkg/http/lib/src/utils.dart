@@ -149,65 +149,6 @@ Stream onDone(Stream stream, void onDone()) {
   return pair.last;
 }
 
-// TODO(nweiz): remove this once issue 7785 is fixed.
-/// Wraps [stream] in a single-subscription [ByteStream] that emits the same
-/// data.
-ByteStream wrapInputStream(InputStream stream) {
-  if (stream.closed) return emptyStream;
-
-  var controller = new StreamController();
-  stream.onClosed = controller.close;
-  stream.onData = () => controller.add(stream.read());
-  stream.onError = (e) => controller.signalError(new AsyncError(e));
-  return new ByteStream(controller.stream);
-}
-
-// TODO(nweiz): remove this once issue 7785 is fixed.
-/// Wraps [stream] in a [StreamConsumer] so that [Stream]s can by piped into it
-/// using [Stream.pipe].
-StreamConsumer<List<int>, dynamic> wrapOutputStream(OutputStream stream) =>
-  new _OutputStreamConsumer(stream);
-
-/// A [StreamConsumer] that pipes data into an [OutputStream].
-class _OutputStreamConsumer implements StreamConsumer<List<int>, dynamic> {
-  final OutputStream _outputStream;
-
-  _OutputStreamConsumer(this._outputStream);
-
-  Future consume(Stream<List<int>> stream) {
-    // TODO(nweiz): we have to manually keep track of whether or not the
-    // completer has completed since the output stream could signal an error
-    // after close() has been called but before it has shut down internally. See
-    // the following TODO.
-    var completed = false;
-    var completer = new Completer();
-    stream.listen((data) {
-      // Writing empty data to a closed stream can cause errors.
-      if (data.isEmpty) return;
-
-      // TODO(nweiz): remove this try/catch when issue 7836 is fixed.
-      try {
-        _outputStream.write(data);
-      } catch (e, stack) {
-        if (!completed) completer.completeError(e, stack);
-        completed = true;
-      }
-    }, onDone: () => _outputStream.close());
-
-    _outputStream.onError = (e) {
-      if (!completed) completer.completeError(e);
-      completed = true;
-    };
-
-    _outputStream.onClosed = () {
-      if (!completed) completer.complete();
-      completed = true;
-    };
-
-    return completer.future;
-  }
-}
-
 // TODO(nweiz): remove this when issue 7786 is fixed.
 /// Pipes all data and errors from [stream] into [sink]. When [stream] is done,
 /// [sink] is closed and the returned [Future] is completed.
