@@ -91,7 +91,7 @@ class Logger {
   }
 
   /** Override the level for this particular [Logger] and its children. */
-  set level(value) {
+  set level(Level value) {
     if (hierarchicalLoggingEnabled && parent != null) {
       _level = value;
     } else {
@@ -201,7 +201,7 @@ class Logger {
   }
 
   /** Top-level root [Logger]. */
-  static get root => new Logger('');
+  static Logger get root => new Logger('');
 
   /** All [Logger]s in the system. */
   static Map<String, Logger> _loggers;
