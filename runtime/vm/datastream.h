@@ -218,7 +218,7 @@ class WriteStream : public ValueObject {
     WriteByte(static_cast<uint8_t>(v + kEndByteMarker));
   }
 
-  void WriteByte(uint8_t value) {
+  DART_FORCE_INLINE void WriteByte(uint8_t value) {
     if (current_ >= end_) {
       Resize(1);
     }

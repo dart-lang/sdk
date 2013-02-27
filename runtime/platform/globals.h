@@ -124,6 +124,19 @@ typedef struct {
 #error Architecture was not detected as supported by Dart.
 #endif
 
+// DART_FORCE_INLINE strongly hints to the compiler that a function should
+// be inlined. Your function is not guaranteed to be inlined but this is
+// stronger than just using "inline".
+// See: http://msdn.microsoft.com/en-us/library/z8y1yy88.aspx for an
+// explanation of some the cases when a function can never be inlined.
+#ifdef _MSC_VER
+#define DART_FORCE_INLINE __forceinline
+#elif __GNUC__
+#define DART_FORCE_INLINE inline __attribute__((always_inline))
+#else
+#error Automatic compiler detection failed.
+#endif
+
 #if !defined(TARGET_ARCH_MIPS)
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
