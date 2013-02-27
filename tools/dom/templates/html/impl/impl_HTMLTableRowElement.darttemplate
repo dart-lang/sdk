@@ -1,0 +1,20 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  @DomName('HTMLTableRowElement.cells')
+  List<TableCellElement> get cells =>
+      new _WrappedList<TableCellElement>($dom_cells);
+
+  TableCellElement addCell() {
+    return insertCell(-1);
+  }
+
+  TableCellElement insertCell(int index) => $dom_insertCell(index);
+
+$!MEMBERS}

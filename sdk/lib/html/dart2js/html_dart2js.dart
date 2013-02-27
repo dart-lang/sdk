@@ -20974,13 +20974,45 @@ class TableColElement extends Element native "*HTMLTableColElement" {
   @DocsEditable
   int span;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('HTMLTableElement')
 class TableElement extends Element native "*HTMLTableElement" {
+
+  @DomName('HTMLTableElement.tBodies')
+  List<TableSectionElement> get tBodies =>
+  new _WrappedList<TableSectionElement>($dom_tBodies);
+
+  @DomName('HTMLTableElement.rows')
+  List<TableRowElement> get rows =>
+      new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableCaptionElement createCaption() => $dom_createCaption();
+  TableSectionElement createTBody() => $dom_createTBody();
+  TableSectionElement createTFoot() => $dom_createTFoot();
+  TableSectionElement createTHead() => $dom_createTHead();
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+  TableSectionElement $dom_createTBody() {
+    if (JS('bool', '!!#.createTBody', this)) {
+      return this._createTBody();
+    }
+    var tbody = new Element.tag('tbody');
+    this.children.add(tbody);
+    return tbody;
+  }
+
+  @JSName('createTBody')
+  TableSectionElement _createTBody() native;
+
 
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable
@@ -20994,13 +21026,15 @@ class TableElement extends Element native "*HTMLTableElement" {
   @DocsEditable
   TableCaptionElement caption;
 
+  @JSName('rows')
   @DomName('HTMLTableElement.rows')
   @DocsEditable
-  final HtmlCollection rows;
+  final HtmlCollection $dom_rows;
 
+  @JSName('tBodies')
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable
-  final HtmlCollection tBodies;
+  final HtmlCollection $dom_tBodies;
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable
@@ -21010,17 +21044,20 @@ class TableElement extends Element native "*HTMLTableElement" {
   @DocsEditable
   TableSectionElement tHead;
 
+  @JSName('createCaption')
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable
-  Element createCaption() native;
+  Element $dom_createCaption() native;
 
+  @JSName('createTFoot')
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable
-  Element createTFoot() native;
+  Element $dom_createTFoot() native;
 
+  @JSName('createTHead')
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable
-  Element createTHead() native;
+  Element $dom_createTHead() native;
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable
@@ -21038,24 +21075,12 @@ class TableElement extends Element native "*HTMLTableElement" {
   @DocsEditable
   void deleteTHead() native;
 
+  @JSName('insertRow')
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native;
-
-
-  Element createTBody() {
-    if (JS('bool', '!!#.createTBody', this)) {
-      return this._createTBody();
-    }
-    var tbody = new Element.tag('tbody');
-    this.children.add(tbody);
-    return tbody;
-  }
-
-  @JSName('createTBody')
-  Element _createTBody() native;
+  Element $dom_insertRow(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21064,13 +21089,25 @@ class TableElement extends Element native "*HTMLTableElement" {
 @DomName('HTMLTableRowElement')
 class TableRowElement extends Element native "*HTMLTableRowElement" {
 
+  @DomName('HTMLTableRowElement.cells')
+  List<TableCellElement> get cells =>
+      new _WrappedList<TableCellElement>($dom_cells);
+
+  TableCellElement addCell() {
+    return insertCell(-1);
+  }
+
+  TableCellElement insertCell(int index) => $dom_insertCell(index);
+
+
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
+  @JSName('cells')
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable
-  final HtmlCollection cells;
+  final HtmlCollection $dom_cells;
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable
@@ -21084,11 +21121,12 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
   @DocsEditable
   void deleteCell(int index) native;
 
+  @JSName('insertCell')
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable
-  Element insertCell(int index) native;
+  Element $dom_insertCell(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21098,16 +21136,29 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
   @DomName('HTMLTableSectionElement.rows')
+  List<TableRowElement> get rows =>
+    new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+
+  @JSName('rows')
+  @DomName('HTMLTableSectionElement.rows')
   @DocsEditable
-  final HtmlCollection rows;
+  final HtmlCollection $dom_rows;
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable
   void deleteRow(int index) native;
 
+  @JSName('insertRow')
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native;
+  Element $dom_insertRow(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31550,6 +31601,147 @@ abstract class _Deserializer {
   }
 }
 
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A list which just wraps another list, for either intercepting list calls or
+ * retyping the list (for example, from List<A> to List<B> where B extends A).
+ */
+class _WrappedList<E> implements List<E> {
+  final List _list;
+
+  _WrappedList(this._list);
+
+  // Iterable APIs
+
+  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+
+  Iterable map(f(E element)) => _list.map(f);
+
+  Iterable<E> where(bool f(E element)) => _list.where(f);
+
+  Iterable expand(Iterable f(E element)) => _list.expand(f);
+
+  bool contains(E element) => _list.contains(element);
+
+  void forEach(void f(E element)) { _list.forEach(f); }
+
+  dynamic reduce(initialValue, combine(previousValue, E element)) =>
+      _list.reduce(initialValue, combine);
+
+  bool every(bool f(E element)) => _list.every(f);
+
+  String join([String separator]) => _list.join(separator);
+
+  bool any(bool f(E element)) => _list.any(f);
+
+  List<E> toList({ bool growable: false }) =>
+      new List.from(_list, growable: growable);
+
+  Set<E> toSet() => _list.toSet();
+
+  int get length => _list.length;
+
+  E min([int compare(E a, E b)]) => _list.min(compare);
+
+  E max([int compare(E a, E b)]) => _list.max(compare);
+
+  bool get isEmpty => _list.isEmpty;
+
+  Iterable<E> take(int n) => _list.take(n);
+
+  Iterable<E> takeWhile(bool test(E value)) => _list.takeWhile(test);
+
+  Iterable<E> skip(int n) => _list.skip(n);
+
+  Iterable<E> skipWhile(bool test(E value)) => _list.skipWhile(test);
+
+  E get first => _list.first;
+
+  E get last => _list.last;
+
+  E get single => _list.single;
+
+  E firstMatching(bool test(E value), { E orElse() }) =>
+      _list.firstMatching(test, orElse: orElse);
+
+  E lastMatching(bool test(E value), {E orElse()}) =>
+      _list.lastMatching(test, orElse: orElse);
+
+  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+
+  E elementAt(int index) => _list.elementAt(index);
+
+  // Collection APIs
+
+  void add(E element) { _list.add(element); }
+
+  void addAll(Iterable<E> elements) { _list.addAll(elements); }
+
+  void remove(Object element) { _list.remove(element); }
+
+  void removeAll(Iterable elements) { _list.removeAll(elements); }
+
+  void retainAll(Iterable elements) { _list.retainAll(elements); }
+
+  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+
+  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+
+  void clear() { _list.clear(); }
+
+  // List APIs
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void addLast(E value) { _list.addLast(value); }
+
+  Iterable<E> get reversed => _list.reversed;
+
+  void sort([int compare(E a, E b)]) { _list.sort(compare); }
+
+  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
+
+  E removeAt(int index) => _list.removeAt(index);
+
+  E removeLast() => _list.removeLast();
+
+  List<E> getRange(int start, int length) => _list.getRange(start, length);
+
+  void setRange(int start, int length, List<E> from, [int startFrom]) {
+    _list.setRange(start, length, from, startFrom);
+  }
+
+  void removeRange(int start, int length) { _list.removeRange(start, length); }
+
+  void insertRange(int start, int length, [E fill]) {
+    _list.insertRange(start, length, fill);
+  }
+}
+
+/**
+ * Iterator wrapper for _WrappedList.
+ */
+class _WrappedIterator<E> implements Iterator<E> {
+  Iterator _iterator;
+
+  _WrappedIterator(this._iterator);
+
+  bool moveNext() {
+    return _iterator.moveNext();
+  }
+
+  E get current => _iterator.current;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

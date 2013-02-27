@@ -22985,16 +22985,34 @@ class TableColElement extends _Element_Merged {
   void set span(int value) native "HTMLTableColElement_span_Setter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('HTMLTableElement')
 class TableElement extends _Element_Merged {
+
+  @DomName('HTMLTableElement.tBodies')
+  List<TableSectionElement> get tBodies =>
+  new _WrappedList<TableSectionElement>($dom_tBodies);
+
+  @DomName('HTMLTableElement.rows')
+  List<TableRowElement> get rows =>
+      new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableCaptionElement createCaption() => $dom_createCaption();
+  TableSectionElement createTBody() => $dom_createTBody();
+  TableSectionElement createTFoot() => $dom_createTFoot();
+  TableSectionElement createTHead() => $dom_createTHead();
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+
   TableElement.internal() : super.internal();
 
   @DomName('HTMLTableElement.HTMLTableElement')
@@ -23019,11 +23037,11 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.rows')
   @DocsEditable
-  HtmlCollection get rows native "HTMLTableElement_rows_Getter";
+  HtmlCollection get $dom_rows native "HTMLTableElement_rows_Getter";
 
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable
-  HtmlCollection get tBodies native "HTMLTableElement_tBodies_Getter";
+  HtmlCollection get $dom_tBodies native "HTMLTableElement_tBodies_Getter";
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable
@@ -23043,19 +23061,19 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable
-  Element createCaption() native "HTMLTableElement_createCaption_Callback";
+  Element $dom_createCaption() native "HTMLTableElement_createCaption_Callback";
 
   @DomName('HTMLTableElement.createTBody')
   @DocsEditable
-  Element createTBody() native "HTMLTableElement_createTBody_Callback";
+  Element $dom_createTBody() native "HTMLTableElement_createTBody_Callback";
 
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable
-  Element createTFoot() native "HTMLTableElement_createTFoot_Callback";
+  Element $dom_createTFoot() native "HTMLTableElement_createTFoot_Callback";
 
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable
-  Element createTHead() native "HTMLTableElement_createTHead_Callback";
+  Element $dom_createTHead() native "HTMLTableElement_createTHead_Callback";
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable
@@ -23075,19 +23093,27 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native "HTMLTableElement_insertRow_Callback";
-
+  Element $dom_insertRow(int index) native "HTMLTableElement_insertRow_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('HTMLTableRowElement')
 class TableRowElement extends _Element_Merged {
+
+  @DomName('HTMLTableRowElement.cells')
+  List<TableCellElement> get cells =>
+      new _WrappedList<TableCellElement>($dom_cells);
+
+  TableCellElement addCell() {
+    return insertCell(-1);
+  }
+
+  TableCellElement insertCell(int index) => $dom_insertCell(index);
+
   TableRowElement.internal() : super.internal();
 
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
@@ -23096,7 +23122,7 @@ class TableRowElement extends _Element_Merged {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable
-  HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
+  HtmlCollection get $dom_cells native "HTMLTableRowElement_cells_Getter";
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable
@@ -23112,24 +23138,32 @@ class TableRowElement extends _Element_Merged {
 
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable
-  Element insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
-
+  Element $dom_insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('HTMLTableSectionElement')
 class TableSectionElement extends _Element_Merged {
+
+  @DomName('HTMLTableSectionElement.rows')
+  List<TableRowElement> get rows =>
+    new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
   TableSectionElement.internal() : super.internal();
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable
-  HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
+  HtmlCollection get $dom_rows native "HTMLTableSectionElement_rows_Getter";
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable
@@ -23137,8 +23171,7 @@ class TableSectionElement extends _Element_Merged {
 
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
-
+  Element $dom_insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33400,6 +33433,147 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A list which just wraps another list, for either intercepting list calls or
+ * retyping the list (for example, from List<A> to List<B> where B extends A).
+ */
+class _WrappedList<E> implements List<E> {
+  final List _list;
+
+  _WrappedList(this._list);
+
+  // Iterable APIs
+
+  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+
+  Iterable map(f(E element)) => _list.map(f);
+
+  Iterable<E> where(bool f(E element)) => _list.where(f);
+
+  Iterable expand(Iterable f(E element)) => _list.expand(f);
+
+  bool contains(E element) => _list.contains(element);
+
+  void forEach(void f(E element)) { _list.forEach(f); }
+
+  dynamic reduce(initialValue, combine(previousValue, E element)) =>
+      _list.reduce(initialValue, combine);
+
+  bool every(bool f(E element)) => _list.every(f);
+
+  String join([String separator]) => _list.join(separator);
+
+  bool any(bool f(E element)) => _list.any(f);
+
+  List<E> toList({ bool growable: false }) =>
+      new List.from(_list, growable: growable);
+
+  Set<E> toSet() => _list.toSet();
+
+  int get length => _list.length;
+
+  E min([int compare(E a, E b)]) => _list.min(compare);
+
+  E max([int compare(E a, E b)]) => _list.max(compare);
+
+  bool get isEmpty => _list.isEmpty;
+
+  Iterable<E> take(int n) => _list.take(n);
+
+  Iterable<E> takeWhile(bool test(E value)) => _list.takeWhile(test);
+
+  Iterable<E> skip(int n) => _list.skip(n);
+
+  Iterable<E> skipWhile(bool test(E value)) => _list.skipWhile(test);
+
+  E get first => _list.first;
+
+  E get last => _list.last;
+
+  E get single => _list.single;
+
+  E firstMatching(bool test(E value), { E orElse() }) =>
+      _list.firstMatching(test, orElse: orElse);
+
+  E lastMatching(bool test(E value), {E orElse()}) =>
+      _list.lastMatching(test, orElse: orElse);
+
+  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+
+  E elementAt(int index) => _list.elementAt(index);
+
+  // Collection APIs
+
+  void add(E element) { _list.add(element); }
+
+  void addAll(Iterable<E> elements) { _list.addAll(elements); }
+
+  void remove(Object element) { _list.remove(element); }
+
+  void removeAll(Iterable elements) { _list.removeAll(elements); }
+
+  void retainAll(Iterable elements) { _list.retainAll(elements); }
+
+  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+
+  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+
+  void clear() { _list.clear(); }
+
+  // List APIs
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void addLast(E value) { _list.addLast(value); }
+
+  Iterable<E> get reversed => _list.reversed;
+
+  void sort([int compare(E a, E b)]) { _list.sort(compare); }
+
+  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
+
+  E removeAt(int index) => _list.removeAt(index);
+
+  E removeLast() => _list.removeLast();
+
+  List<E> getRange(int start, int length) => _list.getRange(start, length);
+
+  void setRange(int start, int length, List<E> from, [int startFrom]) {
+    _list.setRange(start, length, from, startFrom);
+  }
+
+  void removeRange(int start, int length) { _list.removeRange(start, length); }
+
+  void insertRange(int start, int length, [E fill]) {
+    _list.insertRange(start, length, fill);
+  }
+}
+
+/**
+ * Iterator wrapper for _WrappedList.
+ */
+class _WrappedIterator<E> implements Iterator<E> {
+  Iterator _iterator;
+
+  _WrappedIterator(this._iterator);
+
+  bool moveNext() {
+    return _iterator.moveNext();
+  }
+
+  E get current => _iterator.current;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
