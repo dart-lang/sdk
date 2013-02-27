@@ -3852,7 +3852,7 @@ RawType* Parser::ParseMixins(const Type& super_type) {
   // TODO(hausner): Remove this restriction.
   if (super_type.arguments() != AbstractTypeArguments::null()) {
     ErrorMsg(super_type.token_pos(),
-             "super class of mixin may not have type arguments");
+             "super class in mixin application may not have type arguments");
   }
 
   AbstractType& mixin_type = AbstractType::Handle();
@@ -3875,10 +3875,10 @@ RawType* Parser::ParseMixins(const Type& super_type) {
     // The name of the mixin application class is a combination of
     // the superclass and mixin class.
     String& mixin_app_name = String::Handle();
-    mixin_app_name = mixin_super_type.Name();
+    mixin_app_name = mixin_super_type.ClassName();
     mixin_app_name = String::Concat(mixin_app_name, Symbols::Ampersand());
     mixin_app_name = String::Concat(mixin_app_name,
-                                     String::Handle(mixin_type.Name()));
+                                     String::Handle(mixin_type.ClassName()));
     mixin_app_name = Symbols::New(mixin_app_name);
 
     mixin_application = Class::New(mixin_app_name, script_, mixin_pos);
