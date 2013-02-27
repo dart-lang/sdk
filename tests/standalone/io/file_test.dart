@@ -225,12 +225,12 @@ class FileTest {
   static void testReadSync() {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
-    RandomAccessFile file = (new File(filename)).openSync();
+    RandomAccessFile raf = (new File(filename)).openSync();
     List<int> buffer = new List<int>(42);
     int bytes_read = 0;
-    bytes_read = file.readListSync(buffer, 0, 12);
+    bytes_read = raf.readListSync(buffer, 0, 12);
     Expect.equals(12, bytes_read);
-    bytes_read = file.readListSync(buffer, 12, 30);
+    bytes_read = raf.readListSync(buffer, 12, 30);
     Expect.equals(30, bytes_read);
     Expect.equals(47, buffer[0]);  // represents '/' in the file.
     Expect.equals(47, buffer[1]);  // represents '/' in the file.
@@ -246,7 +246,7 @@ class FileTest {
     Expect.equals(116, buffer[11]);  // represents 't' in the file.
 
     filename = getFilename("tests/vm/data/fixed_length_file");
-    file = new File(filename);
+    File file = new File(filename);
     int len = file.lengthSync();
     Expect.equals(0, file.openSync().readSync(0).length);
     Expect.equals(1, file.openSync().readSync(1).length);
