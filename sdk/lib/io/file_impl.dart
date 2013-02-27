@@ -1056,7 +1056,3 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   SendPort _fileService;
 }
-
-List<int> _makeUint8ListView(List<int> source, int from, int to) {
-  return new Uint8List.view(source.asByteArray(), from, to);
-}

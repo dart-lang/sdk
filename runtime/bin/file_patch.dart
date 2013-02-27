@@ -34,3 +34,7 @@ patch class _RandomAccessFile {
   /* patch */ static _length(int id) native "File_Length";
   /* patch */ static _flush(int id) native "File_Flush";
 }
+
+List<int> _makeUint8ListView(List<int> source, int from, int to) {
+  return new Uint8List.view(source.asByteArray(), from, to);
+}
