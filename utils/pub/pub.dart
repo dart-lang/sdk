@@ -227,7 +227,7 @@ abstract class PubCommand {
     globalOptions = globalOptions_;
 
     try {
-     commandOptions = commandParser.parse(commandArgs);
+      commandOptions = commandParser.parse(commandArgs);
     } on FormatException catch (e) {
       log.error(e.message);
       log.error('Use "pub help" for more information.');
