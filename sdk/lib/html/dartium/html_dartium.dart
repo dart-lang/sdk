@@ -8721,7 +8721,7 @@ class _ChildrenElementList implements List {
       _element = element;
 
   List<Element> toList({ bool growable: false }) {
-    final output;
+    List<Element> output;
     if (growable) {
       output = <Element>[];
       output.length = _childElements.length;
