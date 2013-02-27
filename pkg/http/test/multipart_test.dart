@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:utf';
 
-// TODO(nweiz): get rid of this import before packaging this
-import '../../../tests/utils/test_utils.dart';
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/src/utils.dart';

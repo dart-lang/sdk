@@ -78,9 +78,6 @@ analyzer-experimental/test/generated/ast_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
-# pkg/http issue 7458
-http/test/multipart_test: Fail
-
 
 [ $compiler == dart2js ]
 unittest/test/instance_test: Skip
