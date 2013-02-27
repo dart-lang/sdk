@@ -70,10 +70,21 @@ void testClientCloseServerListen(int connections) {
 
 void testClientCloseDelayed(int connections) {
   HttpServer.bind().then((server) {
-    server.listen((request) {
-      request.pipe(request.response);
-    });
     int closed = 0;
+    void check() {
+      closed++;
+      // Wait for both server and client to see the connections as closed.
+      if (closed == connections * 2) {
+        Expect.equals(0, server.connectionsInfo().active);
+        Expect.equals(server.connectionsInfo().total,
+                      server.connectionsInfo().idle);
+        server.close();
+      }
+    }
+    server.listen((request) {
+      request.pipe(request.response)
+          .then((_) => check());
+    });
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
       var req;
@@ -90,13 +101,7 @@ void testClientCloseDelayed(int connections) {
             response.listen(
                 (_) {},
                 onDone: () {
-                  closed++;
-                  if (closed == connections) {
-                    Expect.equals(0, server.connectionsInfo().active);
-                    Expect.equals(server.connectionsInfo().total,
-                                  server.connectionsInfo().idle);
-                    server.close();
-                  }
+                  check();
                 });
           });
     }
