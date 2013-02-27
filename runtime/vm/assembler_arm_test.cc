@@ -130,6 +130,31 @@ ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
+  __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
+  __ mov(R2, ShifterOperand(SP));
+  // Expressing __str(R0, Address(SP, (-kWordSize * 32), Address::PreIndex));
+  // as:
+  __ mov(R1, ShifterOperand(kWordSize));
+  __ str(R0, Address(SP, R1, LSL, 5, Address::NegPreIndex));
+  __ vldrs(S0, Address(R2, (-kWordSize * 32)));
+  __ vadds(S0, S0, S0);
+  __ vstrs(S0, Address(R2, (-kWordSize * 32)));
+  // Expressing __ldr(R0, Address(SP, (kWordSize * 32), Address::PostIndex));
+  // as:
+  __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
+  EXPECT(test != NULL);
+  typedef float (*SingleVLoadStore)();
+  float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
+  EXPECT_FLOAT_EQ(2*12.3f, res, 0.001f);
+}
+
+
 ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
   int64_t value = bit_cast<int64_t, double>(12.3);
   __ LoadImmediate(R0, Utils::Low32Bits(value));
@@ -914,6 +939,104 @@ ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
   EXPECT(test != NULL);
   typedef int (*Tst)();
   EXPECT_EQ(-52, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
+  __ mov(R2, ShifterOperand(42));
+  __ mov(R1, ShifterOperand(kWordSize));
+  __ str(R2, Address(SP, R1, LSL, 1, Address::NegOffset));
+  __ ldr(R0, Address(SP, (-kWordSize * 2), Address::Offset));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
+  __ mov(R2, ShifterOperand(42));
+  __ mov(R1, ShifterOperand(kWordSize));
+  __ str(R2, Address(SP, (-kWordSize * 32), Address::Offset));
+  __ ldr(R0, Address(SP, R1, LSL, 5, Address::NegOffset));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
+  __ mov(R2, ShifterOperand(42));
+  __ mov(R1, ShifterOperand(kWordSize * 2));
+  __ str(R2, Address(SP, R1, LSR, 1, Address::NegOffset));
+  __ ldr(R0, Address(SP, -kWordSize, Address::Offset));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
+  __ mov(R2, ShifterOperand(42));
+  __ mov(R1, ShifterOperand(kWordSize * 2));
+  __ str(R2, Address(SP, -kWordSize, Address::Offset));
+  __ ldr(R0, Address(SP, R1, LSR, 1, Address::NegOffset));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
+  __ mov(R2, ShifterOperand(42));
+  __ mov(R1, ShifterOperand(kWordSize));
+  __ mov(R3, ShifterOperand(SP));
+  __ str(R2, Address(SP, R1, LSL, 5, Address::NegPreIndex));
+  __ ldr(R0, Address(R3, (-kWordSize * 32), Address::Offset));
+  __ mov(SP, ShifterOperand(R3));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
+  __ mov(R2, ShifterOperand(42));
+  __ mov(R1, ShifterOperand(kWordSize));
+  __ str(R2, Address(SP, (-kWordSize * 32), Address::PreIndex));
+  __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(AddressShiftLdrLSLNegPreIndex, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 

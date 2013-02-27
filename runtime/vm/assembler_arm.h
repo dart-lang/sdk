@@ -159,6 +159,7 @@ class ShifterOperand : public ValueObject {
   uint32_t encoding_;
 
   friend class Assembler;
+  friend class Address;
 };
 
 
@@ -200,6 +201,11 @@ enum BlockAddressMode {
 
 class Address : public ValueObject {
  public:
+  enum OffsetKind {
+    Immediate,
+    ShiftedRegister,
+  };
+
   // Memory operand addressing mode
   enum Mode {
     // bit encoding P U W
@@ -211,21 +217,33 @@ class Address : public ValueObject {
     NegPostIndex = (0|0|0) << 21   // negative post-indexed with writeback
   };
 
-  Address(const Address& other) : ValueObject(), encoding_(other.encoding_) { }
+  Address(const Address& other)
+      : ValueObject(), encoding_(other.encoding_), kind_(other.kind_) {
+  }
 
   Address& operator=(const Address& other) {
     encoding_ = other.encoding_;
+    kind_ = other.kind_;
     return *this;
   }
 
   explicit Address(Register rn, int32_t offset = 0, Mode am = Offset) {
     ASSERT(Utils::IsAbsoluteUint(12, offset));
+    kind_ = Immediate;
     if (offset < 0) {
       encoding_ = (am ^ (1 << kUShift)) | -offset;  // Flip U to adjust sign.
     } else {
       encoding_ = am | offset;
     }
     encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
+  }
+
+  explicit Address(Register rn, Register rm, Shift shift = LSL,
+                   uint32_t shift_imm = 0, Mode am = Offset) {
+    ShifterOperand so(rm, shift, shift_imm);
+
+    kind_ = ShiftedRegister;
+    encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
   static bool CanHoldLoadOffset(LoadOperandType type, int offset);
@@ -240,7 +258,11 @@ class Address : public ValueObject {
   // Encoding for vfp load/store addressing.
   uint32_t vencoding() const;
 
+  OffsetKind kind() const { return kind_; }
+
   uint32_t encoding_;
+
+  OffsetKind kind_;
 
   friend class Assembler;
 };

@@ -64,6 +64,7 @@ enum {
 
 
 uint32_t Address::encoding3() const {
+  ASSERT(kind_ == Immediate);
   const uint32_t offset_mask = (1 << 12) - 1;
   uint32_t offset = encoding_ & offset_mask;
   ASSERT(offset < 256);
@@ -72,6 +73,7 @@ uint32_t Address::encoding3() const {
 
 
 uint32_t Address::vencoding() const {
+  ASSERT(kind_ == Immediate);
   const uint32_t offset_mask = (1 << 12) - 1;
   uint32_t offset = encoding_ & offset_mask;
   ASSERT(offset < (1 << 10));  // In the range 0 to +1020.
@@ -140,7 +142,7 @@ void Assembler::EmitMemOp(Condition cond,
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B26 |
+                     B26 | (ad.kind() == Address::Immediate ? 0 : B25) |
                      (load ? L : 0) |
                      (byte ? B : 0) |
                      (static_cast<int32_t>(rd) << kRdShift) |
