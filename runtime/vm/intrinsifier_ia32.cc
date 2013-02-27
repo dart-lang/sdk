@@ -1471,6 +1471,76 @@ bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   return true;
 }
 
+
+bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
+  Label compute_hash;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // OneByteString object.
+  __ movl(EAX, FieldAddress(EBX, String::hash_offset()));
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &compute_hash, Assembler::kNearJump);
+  __ ret();
+
+  __ Bind(&compute_hash);
+  // Hash not yet computed, use algorithm of class StringHasher.
+  __ movl(ECX, FieldAddress(EBX, String::length_offset()));
+  __ SmiUntag(ECX);
+  __ xorl(EAX, EAX);
+  __ xorl(EDI, EDI);
+  // EBX: Instance of OneByteString.
+  // ECX: String length, untagged integer.
+  // EDI: Loop counter, untagged integer.
+  // EAX: Hash code, untagged integer.
+  Label loop, done, set_hash_code;
+  __ Bind(&loop);
+  __ cmpl(EDI, ECX);
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  // Add to hash code: (hash_ is uint32)
+  // hash_ += ch;
+  // hash_ += hash_ << 10;
+  // hash_ ^= hash_ >> 6;
+  // Get one characters (ch).
+  __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1, OneByteString::data_offset()));
+  // EDX: ch and temporary.
+  __ addl(EAX, EDX);
+  __ movl(EDX, EAX);
+  __ shll(EDX, Immediate(10));
+  __ addl(EAX, EDX);
+  __ movl(EDX, EAX);
+  __ shrl(EDX, Immediate(6));
+  __ xorl(EAX, EDX);
+
+  __ incl(EDI);
+  __ jmp(&loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  // Finalize:
+  // hash_ += hash_ << 3;
+  // hash_ ^= hash_ >> 11;
+  // hash_ += hash_ << 15;
+  __ movl(EDX, EAX);
+  __ shll(EDX, Immediate(3));
+  __ addl(EAX, EDX);
+  __ movl(EDX, EAX);
+  __ shrl(EDX, Immediate(11));
+  __ xorl(EAX, EDX);
+  __ movl(EDX, EAX);
+  __ shll(EDX, Immediate(15));
+  __ addl(EAX, EDX);
+  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
+  __ andl(EAX,
+      Immediate(((static_cast<intptr_t>(1) << String::kHashBits) - 1)));
+
+  // return hash_ == 0 ? 1 : hash_;
+  __ cmpl(EAX, Immediate(0));
+  __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
+  __ incl(EAX);
+  __ Bind(&set_hash_code);
+  __ SmiTag(EAX);
+  __ movl(FieldAddress(EBX, String::hash_offset()), EAX);
+  __ ret();
+  return true;
+}
+
 #undef __
 }  // namespace dart
 

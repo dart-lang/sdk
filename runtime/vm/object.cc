@@ -10470,6 +10470,7 @@ const char* Bigint::ToCString() const {
 }
 
 
+// Synchronize with implementation in compiler (intrinsifier).
 class StringHasher : ValueObject {
  public:
   StringHasher() : hash_(0) {}

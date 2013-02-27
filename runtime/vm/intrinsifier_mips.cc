@@ -383,6 +383,11 @@ bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
   return false;
 }
 
+
+bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
+  return false;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

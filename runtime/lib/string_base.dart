@@ -472,6 +472,8 @@ class _OneByteString extends _StringBase implements String {
         "_OneByteString can only be allocated by the VM");
   }
 
+  int get hashCode native "String_getHashCode";
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces for one byte strings.
