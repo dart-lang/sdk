@@ -70,7 +70,7 @@ class IDLParser(object):
         OR(Module, Interface, ExceptionDef, TypeDef, ImplStmt,
            ValueTypeDef, Const, Enum),
         # WebKit:
-        OR(Module, Interface, Enum))
+        OR(Module, Interface, Enum, TypeDef))
 
     def Enum():
       def StringLiteral():

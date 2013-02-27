@@ -87,7 +87,7 @@ class DatabaseBuilder(object):
   def _resolve_type_defs(self, idl_file):
     type_def_map = {}
     # build map
-    for type_def in idl_file.all(IDLTypeDef):
+    for type_def in idl_file.typeDefs:
       if type_def.type.id != type_def.id: # sanity check
         type_def_map[type_def.id] = type_def.type.id
     # use the map
