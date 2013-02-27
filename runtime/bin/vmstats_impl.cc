@@ -24,16 +24,16 @@ static const char* DEFAULT_HOST = "localhost";
 
 // Global static pointer used to ensure a single instance of the class.
 VmStats* VmStats::instance_ = NULL;
-dart::Monitor VmStats::instance_monitor_;
-dart::Mutex VmStatusService::mutex_;
+dart::Monitor* VmStats::instance_monitor_;
+dart::Mutex* VmStatusService::mutex_;
 
 
 void VmStats::Start(int port, const char* root_dir) {
   if (instance_ != NULL) {
     FATAL("VmStats already started.");
   }
-  MonitorLocker ml(&instance_monitor_);
   instance_ = new VmStats();
+  instance_monitor_ = new dart::Monitor();
   VmStatusService::InitOnce();
   Socket::Initialize();
 
@@ -60,6 +60,7 @@ void VmStats::Start(int port, const char* root_dir) {
   instance_->bind_address_ = address;
   Log::Print("VmStats URL: http://%s:%"Pd"/\n", host, Socket::GetPort(address));
 
+  MonitorLocker ml(instance_monitor_);
   instance_->running_ = true;
   int err = dart::Thread::Start(WebServer, address);
   if (err != 0) {
@@ -70,15 +71,15 @@ void VmStats::Start(int port, const char* root_dir) {
 
 
 void VmStats::Stop() {
-  MonitorLocker ml(&instance_monitor_);
-  if (instance_ != NULL) {
-    instance_->running_ = false;
-  }
+  ASSERT(instance_ != NULL);
+  MonitorLocker ml(instance_monitor_);
+  instance_->running_ = false;
 }
 
 
 void VmStats::Shutdown() {
-  MonitorLocker ml(&instance_monitor_);
+  ASSERT(instance_ != NULL);
+  MonitorLocker ml(instance_monitor_);
   Socket::Close(instance_->bind_address_);
   delete instance_;
   instance_ = NULL;
@@ -87,16 +88,16 @@ void VmStats::Shutdown() {
 
 void VmStats::AddIsolate(IsolateData* isolate_data,
                          Dart_Isolate isolate) {
-  MonitorLocker ml(&instance_monitor_);
   if (instance_ != NULL) {
+    MonitorLocker ml(instance_monitor_);
     instance_->isolate_table_[isolate_data] = isolate;
   }
 }
 
 
 void VmStats::RemoveIsolate(IsolateData* isolate_data) {
-  MonitorLocker ml(&instance_monitor_);
   if (instance_ != NULL) {
+    MonitorLocker ml(instance_monitor_);
     instance_->isolate_table_.erase(isolate_data);
   }
 }
@@ -294,6 +295,7 @@ VmStatusService* VmStatusService::instance_ = NULL;
 void VmStatusService::InitOnce() {
   ASSERT(VmStatusService::instance_ == NULL);
   VmStatusService::instance_ = new VmStatusService();
+  VmStatusService::mutex_ = new dart::Mutex();
 
   // Register built-in status plug-ins. RegisterPlugin is not used because
   // this isn't called within an isolate, and because parameter checking
@@ -305,7 +307,7 @@ void VmStatusService::InitOnce() {
 
 
 int VmStatusService::RegisterPlugin(Dart_VmStatusCallback callback) {
-  MutexLocker ml(&mutex_);
+  MutexLocker ml(mutex_);
   if (callback == NULL) {
     return -1;
   }

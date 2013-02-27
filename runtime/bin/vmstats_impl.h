@@ -43,7 +43,7 @@ class VmStats {
   int64_t bind_address_;
 
   static VmStats* instance_;
-  static dart::Monitor instance_monitor_;
+  static dart::Monitor* instance_monitor_;
 
   // Disallow copy constructor.
   DISALLOW_COPY_AND_ASSIGN(VmStats);
@@ -89,7 +89,7 @@ class VmStatusService {
   VmStatusService() : registered_plugin_list_(NULL) {}
 
   static VmStatusService* instance_;
-  static dart::Mutex mutex_;
+  static dart::Mutex* mutex_;
 
   VmStatusPlugin* registered_plugin_list_;
 
