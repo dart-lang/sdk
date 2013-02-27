@@ -199,10 +199,10 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
 
   List<E> getRange(int start, int length) {
     if (start < 0 || start > this.length) {
-      throw new RangeError(start, 0, this.length);
+      throw new RangeError.range(start, 0, this.length);
     }
     if (length < 0 || start + length > this.length) {
-      throw new RangeError(length, 0, this.length - start);
+      throw new RangeError.range(length, 0, this.length - start);
     }
     List<E> result = new List<E>(length);
     for (int i = 0; i < length; i++) {
