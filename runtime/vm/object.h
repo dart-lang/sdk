@@ -6300,6 +6300,9 @@ class Stacktrace : public Instance {
 
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
+  void SetCatchStacktrace(const Array& func_array,
+                          const Array& code_array,
+                          const Array& pc_offset_array) const;
 
   void Append(const Array& func_list,
               const Array& code_list,
@@ -6313,12 +6316,16 @@ class Stacktrace : public Instance {
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
-  const char* ToCStringInternal(bool verbose) const;
+  RawString* FullStacktrace() const;
+  const char* ToCStringInternal() const;
 
  private:
   void set_function_array(const Array& function_array) const;
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
+  void set_catch_func_array(const Array& function_array) const;
+  void set_catch_code_array(const Array& code_array) const;
+  void set_catch_pc_offset_array(const Array& pc_offset_array) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;

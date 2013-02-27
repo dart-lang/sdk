@@ -116,7 +116,7 @@ class ObjectPointerVisitor;
   V(TwoByteString, "_TwoByteString")                                           \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
-  V(Stacktrace, "Stacktrace")                                                  \
+  V(StackTrace, "StackTrace")                                                  \
   V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
@@ -183,6 +183,7 @@ class ObjectPointerVisitor;
   V(IllegalJSRegExpException, "IllegalJSRegExpException")                      \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "IsolateUnhandledException")                    \
+  V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
   V(InstanceOf, "InstanceOf")                                                  \

@@ -106,6 +106,9 @@ namespace dart {
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
+  V(Stacktrace_getFullStacktrace, 1)                                           \
+  V(Stacktrace_getStacktrace, 1)                                               \
+  V(Stacktrace_setupFullStacktrace, 1)                                         \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
   V(Float32x4_fromDoubles, 5)                                                  \

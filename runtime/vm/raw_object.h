@@ -1562,8 +1562,11 @@ class RawStacktrace : public RawInstance {
   RawArray* function_array_;  // Function for each frame in the stack trace.
   RawArray* code_array_;  // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
+  RawArray* catch_func_array_;  // Func for each frame in catch stack trace.
+  RawArray* catch_code_array_;  // Code for each frame in catch stack trace.
+  RawArray* catch_pc_offset_array_;  // Offset of PC for each catch stack frame.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->pc_offset_array_);
+    return reinterpret_cast<RawObject**>(&ptr()->catch_pc_offset_array_);
   }
 };
 

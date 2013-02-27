@@ -310,9 +310,21 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
       } else {
         stacktrace ^= existing_stacktrace.raw();
         stacktrace.Append(func_array, code_array, pc_offset_array);
+        // Since we are re throwing and appending to the existing stack trace
+        // we clear out the catch trace collected in the existing stack trace
+        // as that trace will not be valid anymore.
+        stacktrace.SetCatchStacktrace(Object::empty_array(),
+                                      Object::empty_array(),
+                                      Object::empty_array());
       }
     } else {
       stacktrace ^= existing_stacktrace.raw();
+      // Since we are re throwing and appending to the existing stack trace
+      // we clear out the catch trace collected in the existing stack trace
+      // as that trace will not be valid anymore.
+      stacktrace.SetCatchStacktrace(Object::empty_array(),
+                                    Object::empty_array(),
+                                    Object::empty_array());
     }
   }
   // We expect to find a handler_pc, if the exception is unhandled

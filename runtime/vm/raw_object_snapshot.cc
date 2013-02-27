@@ -2402,6 +2402,14 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
     result.set_code_array(array);
     array ^= reader->ReadObjectRef();
     result.set_pc_offset_array(array);
+
+    array ^= reader->ReadObjectRef();
+    result.set_catch_func_array(array);
+    array ^= reader->ReadObjectRef();
+    result.set_catch_code_array(array);
+    array ^= reader->ReadObjectRef();
+    result.set_catch_pc_offset_array(array);
+
     return result.raw();
   }
   UNREACHABLE();  // Stacktraces are not sent in a snapshot.

@@ -133,6 +133,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
 
 
 static void MarkFunctionAsInvisible(const Library& lib,
@@ -782,7 +783,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, Symbols::Stacktrace(), core_lib);
+  RegisterClass(cls, Symbols::StackTrace(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
@@ -12874,6 +12875,21 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
+void Stacktrace::set_catch_func_array(const Array& function_array) const {
+  StorePointer(&raw_ptr()->catch_func_array_, function_array.raw());
+}
+
+
+void Stacktrace::set_catch_code_array(const Array& code_array) const {
+  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
+}
+
+
+void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
+  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
+}
+
+
 RawStacktrace* Stacktrace::New(const Array& func_array,
                                const Array& code_array,
                                const Array& pc_offset_array,
@@ -12891,6 +12907,9 @@ RawStacktrace* Stacktrace::New(const Array& func_array,
   result.set_function_array(func_array);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
+  result.SetCatchStacktrace(Object::empty_array(),
+                            Object::empty_array(),
+                            Object::empty_array());
   return result.raw();
 }
 
@@ -12928,7 +12947,41 @@ void Stacktrace::Append(const Array& func_list,
 }
 
 
+void Stacktrace::SetCatchStacktrace(const Array& func_array,
+                                    const Array& code_array,
+                                    const Array& pc_offset_array) const {
+  StorePointer(&raw_ptr()->catch_func_array_, func_array.raw());
+  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
+  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
+}
+
+
+RawString* Stacktrace::FullStacktrace() const {
+  const Array& func_array = Array::Handle(raw_ptr()->catch_func_array_);
+  if (!func_array.IsNull() &&
+      func_array.raw() != Object::empty_array().raw()) {
+    const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
+    const Array& pc_offset_array =
+        Array::Handle(raw_ptr()->catch_pc_offset_array_);
+    const Stacktrace& catch_trace = Stacktrace::Handle(
+        Stacktrace::New(func_array, code_array, pc_offset_array));
+    const String& trace =
+        String::Handle(String::New(catch_trace.ToCStringInternal()));
+    const String& throw_trace =
+        String::Handle(String::New(ToCStringInternal()));
+    return String::Concat(throw_trace, trace);
+  }
+  return String::New(ToCStringInternal());
+}
+
+
 const char* Stacktrace::ToCString() const {
+  const String& trace = String::Handle(FullStacktrace());
+  return trace.ToCString();
+}
+
+
+const char* Stacktrace::ToCStringInternal() const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();

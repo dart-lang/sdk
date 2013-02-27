@@ -31,6 +31,7 @@
     'print.dart',
     'regexp.dart',
     'set.dart',
+    'stacktrace.dart',
     'stopwatch.dart',
     'string.dart',
     'string_buffer.dart',

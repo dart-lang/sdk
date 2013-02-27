@@ -6301,11 +6301,18 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
       // variable specified in this block.
+      ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
       LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
       ASSERT(catch_trace_var != NULL);
       current_block_->statements->Add(
           new StoreLocalNode(catch_pos, trace,
                              new LoadLocalNode(catch_pos, catch_trace_var)));
+      current_block_->statements->Add(
+          new InstanceCallNode(
+              catch_pos,
+              new LoadLocalNode(catch_pos, trace),
+              PrivateCoreLibName(Symbols::_setupFullStackTrace()),
+              no_args));
     }
 
     ParseStatementSequence();  // Parse the catch handler code.
