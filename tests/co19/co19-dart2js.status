@@ -563,6 +563,30 @@ LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 i
 LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
 
+LibTest/core/List/addLast_A01_t03: Fail  # List constructors, co19 issue 384
+LibTest/core/List/add_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/clear_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/getRange_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/insertRange_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/insertRange_A04_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/insertRange_A05_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/insertRange_A06_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/length_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/length_A02_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/length_A03_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/length_A05_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/removeLast_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/removeLast_A01_t02: Fail  # List constructors, co19 issue 384
+LibTest/core/List/removeRange_A01_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/removeRange_A03_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/removeRange_A04_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/removeRange_A05_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/setRange_A01_t02: Fail  # List constructors, co19 issue 384
+LibTest/core/List/setRange_A02_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/setRange_A02_t02: Fail  # List constructors, co19 issue 384
+LibTest/core/List/setRange_A03_t01: Fail  # List constructors, co19 issue 384
+LibTest/core/List/setRange_A03_t02: Fail  # List constructors, co19 issue 384
+
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
 LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367

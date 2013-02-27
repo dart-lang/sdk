@@ -155,6 +155,7 @@ class JSArray<E> implements List<E> {
   }
 
   void insertRange(int start, int length, [E initialValue]) {
+    checkGrowable(this, 'insertRange');
     return listInsertRange(this, start, length, initialValue);
   }
 
@@ -271,9 +272,9 @@ class JSArray<E> implements List<E> {
   int get length => JS('int', r'#.length', this);
 
   void set length(int newLength) {
+    checkGrowable(this, 'set length');
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);
-    checkGrowable(this, 'set length');
     JS('void', r'#.length = #', this, newLength);
   }
 

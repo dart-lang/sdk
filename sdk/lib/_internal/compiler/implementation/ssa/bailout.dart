@@ -21,7 +21,8 @@ class Environment {
                   loopMarkers = new List<HBasicBlock>();
   Environment.from(Environment other)
     : lives = new Set<HInstruction>.from(other.lives),
-      loopMarkers = new List<HBasicBlock>.from(other.loopMarkers);
+      loopMarkers = new List<HBasicBlock>.from(other.loopMarkers,
+                                               growable: true);
 
   void remove(HInstruction instruction) {
     lives.remove(instruction);

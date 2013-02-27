@@ -730,5 +730,6 @@ class _ParsedPath {
   }
 
   _ParsedPath clone() => new _ParsedPath(
-      style, root, new List.from(parts), new List.from(separators));
+      style, root, new List.from(parts, growable: true),
+                   new List.from(separators, growable: true));
 }

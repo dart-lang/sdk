@@ -66,7 +66,7 @@ abstract class List<E> implements Collection<E> {
    *
    * The length of the returned list is not fixed.
    */
-  factory List.from(Iterable other, { bool growable: true }) {
+  factory List.from(Iterable other, { bool growable: false }) {
     List<E> list = new List<E>();
     for (E e in other) {
       list.add(e);

@@ -471,8 +471,7 @@ class TaskQueue {
       var lines = task.toString().split("\n");
       var firstLine = task == highlight ?
           "> ${lines.first}" : "* ${lines.first}";
-      lines = new List.from(lines.skip(1).map((line) => "| $line"));
-      lines.insertRange(0, 1, firstLine);
+      lines = [firstLine]..addAll(lines.skip(1).map((line) => "| $line"));
       return lines.join("\n");
     }).join("\n");
   }
