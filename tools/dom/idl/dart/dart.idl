@@ -209,8 +209,8 @@ interface DataView {
   // We have to use custom code because our code generator does not support int8_t type.
   // int8_t getInt8(in unsigned long byteOffset);
   // uint8_t getUint8(in unsigned long byteOffset);
-  [Suppressed] DOMObject getInt8();
-  [Suppressed] DOMObject getUint8();
+  [Suppressed] any getInt8();
+  [Suppressed] any getUint8();
   byte getInt8(in unsigned long byteOffset)
       raises (DOMException);
   octet getUint8(in unsigned long byteOffset)
@@ -340,6 +340,25 @@ interface WebSocket {
   [Custom] void send(ArrayBuffer data) raises(DOMException);
   [Custom] void send(ArrayBufferView data) raises(DOMException);
 };
+
+[Supplemental]
+interface XMLHttpRequest {
+   [Custom] void send()
+       raises(DOMException);
+   [Custom] void send(in ArrayBuffer data) // FIXME: this should be eventually deprecated.
+       raises(DOMException);
+   [Custom] void send(in ArrayBufferView data)
+       raises(DOMException);
+   [Conditional=BLOB, Custom] void send(in Blob data)
+       raises(DOMException);
+   [Custom] void send(in Document data)
+       raises(DOMException);
+   [Custom] void send([StrictTypeChecking] in DOMString data)
+       raises(DOMException);
+   [Custom] void send(in DOMFormData data)
+       raises(DOMException);
+};
+
 
 [Suppressed]
 interface Entity {};
