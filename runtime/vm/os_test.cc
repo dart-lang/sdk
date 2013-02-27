@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,7 +15,7 @@ UNIT_TEST_CASE(Sleep) {
   int64_t sleep_time = 702;
   OS::Sleep(sleep_time);
   int64_t delta = OS::GetCurrentTimeMillis() - start_time;
-  const int kAcceptableSleepWakeupJitter = 100;  // Measured in milliseconds.
+  const int kAcceptableSleepWakeupJitter = 200;  // Measured in milliseconds.
   EXPECT_GE(delta, sleep_time - kAcceptableSleepWakeupJitter);
   EXPECT_LE(delta, sleep_time + kAcceptableSleepWakeupJitter);
 }
