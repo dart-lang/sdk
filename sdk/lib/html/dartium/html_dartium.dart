@@ -6601,7 +6601,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getInt8')
   @DocsEditable
-  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
+  Object getInt8({int byteOffset}) native "DataView_getInt8_Callback";
 
   int getUint16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6635,7 +6635,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getUint8')
   @DocsEditable
-  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
+  Object getUint8({int byteOffset}) native "DataView_getUint8_Callback";
 
   void setFloat32(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -13256,17 +13256,6 @@ class HtmlDocument extends Document {
   @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
-  }
-
-  /**
-   * Registers a custom Element subclass as an available HTML tag.
-   *
-   * Not yet implemented.
-   */
-  @Experimental
-  void register(String tagName, Type elementClass) {
-    // TODO: tagName validation
-    throw new Exception('Not yet implemented');
   }
 
   @DomName('Document.caretRangeFromPoint')

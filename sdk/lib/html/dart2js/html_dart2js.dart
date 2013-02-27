@@ -5922,7 +5922,7 @@ class DataView extends ArrayBufferView native "*DataView" {
 
   @DomName('DataView.getInt8')
   @DocsEditable
-  int getInt8(int byteOffset) native;
+  Object getInt8({int byteOffset}) native;
 
   @DomName('DataView.getUint16')
   @DocsEditable
@@ -5934,7 +5934,7 @@ class DataView extends ArrayBufferView native "*DataView" {
 
   @DomName('DataView.getUint8')
   @DocsEditable
-  int getUint8(int byteOffset) native;
+  Object getUint8({int byteOffset}) native;
 
   @DomName('DataView.setFloat32')
   @DocsEditable
@@ -12400,17 +12400,6 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
-  }
-
-  /**
-   * Registers a custom Element subclass as an available HTML tag.
-   *
-   * Not yet implemented.
-   */
-  @Experimental
-  void register(String tagName, Type elementClass) {
-    // TODO: tagName validation
-    throw new Exception('Not yet implemented');
   }
 
   @DomName('Document.caretRangeFromPoint')
