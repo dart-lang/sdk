@@ -190,7 +190,8 @@ abstract class Future<T> {
     Iterator iterator = input.iterator;
     void nextElement(_) {
       if (iterator.moveNext()) {
-        f(iterator.current).then(nextElement, onError: doneSignal._setError);
+        new Future.of(() => f(iterator.current))
+            .then(nextElement, onError: doneSignal._setError);
       } else {
         doneSignal._setValue(null);
       }
