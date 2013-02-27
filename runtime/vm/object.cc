@@ -747,7 +747,7 @@ RawError* Object::Init(Isolate* isolate) {
   type ^= Type::New(Object::Handle(cls.raw()),
                     TypeArguments::Handle(),
                     Scanner::kDummyTokenIndex);
-  type.set_is_finalized_instantiated();
+  type.SetIsFinalized();
   type ^= type.Canonicalize();
   object_store->set_array_type(type);
 
@@ -8728,7 +8728,7 @@ RawType* Instance::GetType() const {
   }
   const Type& type = Type::Handle(
       Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-  type.set_is_finalized_instantiated();
+  type.SetIsFinalized();
   return type.raw();
 }
 
@@ -9291,21 +9291,19 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   type ^= Type::New(Object::Handle(type_class.raw()),
                     no_type_arguments,
                     Scanner::kDummyTokenIndex);
-  type.set_is_finalized_instantiated();
+  type.SetIsFinalized();
   type ^= type.Canonicalize();
   return type.raw();
 }
 
 
-void Type::set_is_finalized_instantiated() const {
+void Type::SetIsFinalized() const {
   ASSERT(!IsFinalized());
-  set_type_state(RawType::kFinalizedInstantiated);
-}
-
-
-void Type::set_is_finalized_uninstantiated() const {
-  ASSERT(!IsFinalized());
-  set_type_state(RawType::kFinalizedUninstantiated);
+  if (IsInstantiated()) {
+    set_type_state(RawType::kFinalizedInstantiated);
+  } else {
+    set_type_state(RawType::kFinalizedUninstantiated);
+  }
 }
 
 
@@ -9419,7 +9417,7 @@ RawAbstractType* Type::InstantiateFrom(
       Type::New(cls, type_arguments, token_pos()));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
-  instantiated_type.set_is_finalized_instantiated();
+  instantiated_type.SetIsFinalized();
   return instantiated_type.raw();
 }
 

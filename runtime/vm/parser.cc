@@ -5105,7 +5105,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
         Type::Handle(Type::Function()).type_class());
     function_type = Type::New(
         unknown_signature_class, TypeArguments::Handle(), ident_pos);
-    function_type.set_is_finalized_instantiated();  // No finalization needed.
+    function_type.SetIsFinalized();  // No finalization needed.
 
     // Add the function variable to the scope before parsing the function in
     // order to allow self reference from inside the function.

@@ -771,11 +771,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Self referencing types may get finalized indirectly.
   if (!parameterized_type.IsFinalized()) {
     // Mark the type as finalized.
-    if (parameterized_type.IsInstantiated()) {
-      parameterized_type.set_is_finalized_instantiated();
-    } else {
-      parameterized_type.set_is_finalized_uninstantiated();
-    }
+    parameterized_type.SetIsFinalized();
   }
 
   // Upper bounds of the finalized type arguments are only verified in checked
@@ -1632,7 +1628,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
   }
   ASSERT(type.HasResolvedTypeClass());
   if (!type.IsFinalized()) {
-    type.set_is_finalized_instantiated();
+    type.SetIsFinalized();
     // Do not canonicalize malformed types, since they may not be resolved.
   } else {
     // The only case where the malformed type was already finalized is when its
