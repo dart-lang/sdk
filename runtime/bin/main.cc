@@ -819,7 +819,9 @@ int main(int argc, char** argv) {
   }
 
   Dart_ExitScope();
-  VmStats::Stop();
+  if (vmstats_port >= 0) {
+    VmStats::Stop();
+  }
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
   // Terminate process exit-code handler.
