@@ -54,8 +54,6 @@ interface HTMLOptionsCollection {
 interface HTMLSelectElement {
   [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
   [Suppressed, Custom] void remove();
-  [Custom] void remove(in long index);
-  [Custom] void remove(in HTMLOptionElement option);
 };
 
 [Supplemental]
