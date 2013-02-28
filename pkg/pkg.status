@@ -99,6 +99,3 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 
 [ $arch == simmips ]
 *: Skip
-
-[ $runtime == vm && $mode == debug]
-scheduled_test/test/scheduled_test_test: Skip # Timeout (Issue 8844).
