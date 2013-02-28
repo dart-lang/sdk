@@ -63,6 +63,14 @@ class StreamController<T> implements StreamSink<T> {
    */
   StreamSink<T> get sink => new StreamSinkView<T>(this);
 
+  /**
+   * Whether the stream is closed for adding more events.
+   *
+   * If true, the "done" event might not have fired yet, but it has been
+   * scheduled, and it is too late to add more events.
+   */
+  bool get isClosed => stream._isClosed;
+
   /** Whether one or more active subscribers have requested a pause. */
   bool get isPaused => stream._isPaused;
 

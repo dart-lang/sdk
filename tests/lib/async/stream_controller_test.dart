@@ -392,8 +392,22 @@ testExtraMethods() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 }
 
+testClosed() {
+  for (StreamController c in [new StreamController(),
+                              new StreamController.broadcast()]) {
+    Expect.isFalse(c.isClosed);
+    c.add(42);
+    Expect.isFalse(c.isClosed);
+    c.signalError("bad");
+    Expect.isFalse(c.isClosed);
+    c.close();
+    Expect.isTrue(c.isClosed);
+  }
+}
+
 main() {
   testMultiController();
   testSingleController();
   testExtraMethods();
+  testClosed();
 }

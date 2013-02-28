@@ -363,4 +363,9 @@ abstract class Completer<T> {
    * [AsyncError] and sent to this future's listeners.
    */
   void completeError(Object exception, [Object stackTrace]);
+
+  /**
+   * Whether the future has been completed.
+   */
+  bool get isCompleted;
 }

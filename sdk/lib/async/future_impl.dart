@@ -33,6 +33,8 @@ class _CompleterImpl<T> implements Completer<T> {
     _FutureImpl future = this.future;
     future._setError(asyncError);
   }
+
+  bool get isCompleted => _isComplete;
 }
 
 /**
