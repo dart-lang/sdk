@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:utf';
 
-import 'package:pathos/path.dart' as path;
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/src/utils.dart';
@@ -202,27 +201,5 @@ void main() {
         hello
         --{{boundary}}--
         '''));
-  });
-
-  test('with a file from disk', () {
-    var tempDir = new Directory('').createTempSync();
-
-    expect(new Future.of(() {
-      var filePath = path.join(tempDir.path, 'test-file');
-      new File(filePath).writeAsStringSync('hello');
-      return http.MultipartFile.fromPath('file', filePath);
-    }).then((file) {
-      var request = new http.MultipartRequest('POST', dummyUrl);
-      request.files.add(file);
-
-      expect(request, bodyMatches('''
-        --{{boundary}}
-        content-type: application/octet-stream
-        content-disposition: form-data; name="file"; filename="test-file"
-
-        hello
-        --{{boundary}}--
-        '''));
-    }).whenComplete(() => tempDir.delete(recursive: true)), completes);
   });
 }

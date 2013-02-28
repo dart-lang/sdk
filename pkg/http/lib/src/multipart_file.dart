@@ -7,8 +7,6 @@ library multipart_file;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
-
 import 'byte_stream.dart';
 import 'utils.dart';
 
@@ -80,15 +78,14 @@ class MultipartFile {
   }
 
   // TODO(nweiz): Infer the content-type from the filename.
-  /// Creates a new [MultipartFile] from a path to a file on disk.
+  /// Creates a new [MultipartFile] from a [File].
   ///
-  /// [filename] defaults to the basename of [filePath]. [contentType] currently
-  /// defaults to `application/octet-stream`, but in the future may be inferred
-  /// from [filename].
-  static Future<MultipartFile> fromPath(String field, String filePath,
+  /// [filename] defaults to the name of the file on disk. [contentType]
+  /// currently defaults to `application/octet-stream`, but in the future may be
+  /// inferred from [filename].
+  static Future<MultipartFile> fromFile(String field, File file,
       {String filename, ContentType contentType}) {
-    if (filename == null) filename = path.basename(filePath);
-    var file = new File(filePath);
+    if (filename == null) filename = new Path(file.name).filename;
     return file.length().then((length) {
       var stream = new ByteStream(file.openRead());
       return new MultipartFile(field, stream, length,
