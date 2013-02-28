@@ -59,16 +59,21 @@ class CodeEmitterTask extends CompilerTask {
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
-  CodeBuffer boundClosureBuffer;
   CodeBuffer mainBuffer;
   final CodeBuffer deferredBuffer = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
-  Set<ClassElement> neededClasses;
+  final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  final List<ClassElement> regularClasses = <ClassElement>[];
+  final List<ClassElement> deferredClasses = <ClassElement>[];
+  final List<ClassElement> nativeClasses = <ClassElement>[];
+
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
+
+  final List<jsAst.Expression> boundClosures = <jsAst.Expression>[];
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -120,8 +125,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
-      : boundClosureBuffer = new CodeBuffer(),
-        mainBuffer = new CodeBuffer(),
+      : mainBuffer = new CodeBuffer(),
         this.namer = namer,
         boundClosureCache = new Map<int, String>(),
         interceptorClosureCache = new Map<int, String>(),
@@ -484,7 +488,7 @@ class CodeEmitterTask extends CompilerTask {
     List copyFinishClasses = [];
     if (needsDefineClass) {
       copyFinishClasses.add(
-          // newIsolate.$finishClasses = oldIsolate.\$finishClasses;
+          // newIsolate.$finishClasses = oldIsolate.$finishClasses;
           js['newIsolate'][finishClassesProperty].assign(
               js['oldIsolate'][finishClassesProperty]));
     }
@@ -1311,10 +1315,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   void generateClass(ClassElement classElement, CodeBuffer buffer) {
     assert(invariant(classElement, classElement.isDeclaration));
-    if (classElement.isNative()) {
-      nativeEmitter.generateNativeClass(classElement);
-      return;
-    }
+    assert(invariant(classElement, !classElement.isNative()));
 
     needsDefineClass = true;
     String className = namer.getName(classElement);
@@ -1568,40 +1569,7 @@ class CodeEmitterTask extends CompilerTask {
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
 
-  void emitClasses(CodeBuffer buffer) {
-    // Compute the required type checks to know which classes need a
-    // 'is$' method.
-    computeRequiredTypeChecks();
-    List<ClassElement> sortedClasses =
-        new List<ClassElement>.from(neededClasses);
-    sortedClasses.sort((ClassElement class1, ClassElement class2) {
-      // We sort by the ids of the classes. There is no guarantee that these
-      // ids are meaningful (or even deterministic), but in the current
-      // implementation they are increasing within a source file.
-      return class1.id - class2.id;
-    });
-
-    // If we need noSuchMethod support, we run through all needed
-    // classes to figure out if we need the support on any native
-    // class. If so, we let the native emitter deal with it.
-    if (compiler.enabledNoSuchMethod) {
-      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      Selector noSuchMethodSelector = new Selector.noSuchMethod();
-      for (ClassElement element in sortedClasses) {
-        if (!element.isNative()) continue;
-        Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler)) {
-          nativeEmitter.handleNoSuchMethod = true;
-          break;
-        }
-      }
-    }
-
-    for (ClassElement element in sortedClasses) {
-      generateClass(element, bufferForElement(element, buffer));
-    }
-
+  void emitClosureClassIfNeeded(CodeBuffer buffer) {
     // The closure class could have become necessary because of the generation
     // of stubs.
     ClassElement closureClass = compiler.closureClass;
@@ -1617,7 +1585,7 @@ class CodeEmitterTask extends CompilerTask {
                  '${_}null)$N');
 
       // Reset the map.
-      buffer.add("$classesCollector$_=$_{}$N");
+      buffer.add("$classesCollector$_=${_}null$N$n");
     }
   }
 
@@ -1824,11 +1792,9 @@ class CodeEmitterTask extends CompilerTask {
         boundClosureBuilder.addProperty(operator, new jsAst.LiteralBool(true));
       });
 
-      jsAst.Expression init =
+      boundClosures.add(
           js[classesCollector][mangledName].assign(
-              boundClosureBuilder.toObjectInitializer());
-      boundClosureBuffer.add(jsAst.prettyPrint(init, compiler));
-      boundClosureBuffer.add("$N");
+              boundClosureBuilder.toObjectInitializer()));
 
       closureClass = namer.isolateAccess(closureClassElement);
 
@@ -2347,17 +2313,62 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     }
   }
 
+  /**
+   * Compute all the classes that must be emitted.
+   */
   void computeNeededClasses() {
     instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
-    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
-    for (ClassElement element in instantiatedClasses) {
+
+    // The set of classes that must be emitted are based on instantiated
+    // classes.
+    neededClasses.addAll(instantiatedClasses);
+
+    // Then add all superclasses of these classes.
+    for (ClassElement element in neededClasses.toList() /* copy */) {
       for (ClassElement superclass = element.superclass;
           superclass != null;
           superclass = superclass.superclass) {
         if (neededClasses.contains(superclass)) break;
         neededClasses.add(superclass);
+      }
+    }
+
+    // Finally, sort the classes.
+    List<ClassElement> sortedClasses = neededClasses.toList();
+    sortedClasses.sort((ClassElement class1, ClassElement class2) {
+      // We sort by the ids of the classes. There is no guarantee that these
+      // ids are meaningful (or even deterministic), but in the current
+      // implementation they are increasing within a source file.
+      return class1.id - class2.id;
+    });
+
+    // If we need noSuchMethod support, we run through all needed
+    // classes to figure out if we need the support on any native
+    // class. If so, we let the native emitter deal with it.
+    if (compiler.enabledNoSuchMethod) {
+      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
+      Selector noSuchMethodSelector = new Selector.noSuchMethod();
+      for (ClassElement element in sortedClasses) {
+        if (!element.isNative()) continue;
+        Element member = element.lookupLocalMember(noSuchMethodName);
+        if (member == null) continue;
+        if (noSuchMethodSelector.applies(member, compiler)) {
+          nativeEmitter.handleNoSuchMethod = true;
+          break;
+        }
+      }
+    }
+
+    for (ClassElement element in sortedClasses) {
+      if (element.isNative()) {
+        // For now, native classes cannot be deferred.
+        nativeClasses.add(element);
+      } else if (isDeferred(element)) {
+        deferredClasses.add(element);
+      } else {
+        regularClasses.add(element);
       }
     }
   }
@@ -2582,26 +2593,85 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   String assembleProgram() {
     measure(() {
       computeNeededClasses();
+
+      // Compute the required type checks to know which classes need a
+      // 'is$' method.
+      computeRequiredTypeChecks();
+
       mainBuffer.add(GENERATED_BY);
       addComment(HOOKS_API_USAGE, mainBuffer);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
-      // Shorten the code by using "$$" as temporary.
-      classesCollector = r"$$";
-      mainBuffer.add('var $classesCollector$_=$_{}$N');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolateProperties = namer.CURRENT_ISOLATE;
       mainBuffer.add(
           'var $isolateProperties$_=$_$isolatePropertiesName$N');
-      emitClasses(mainBuffer);
-      mainBuffer.add(boundClosureBuffer);
-      // Clear the buffer, so that we can reuse it for the native classes.
-      boundClosureBuffer.clear();
+
+      if (!regularClasses.isEmpty ||
+          !deferredClasses.isEmpty ||
+          !nativeClasses.isEmpty) {
+        // Shorten the code by using "$$" as temporary.
+        classesCollector = r"$$";
+        mainBuffer.add('var $classesCollector$_=$_{}$N$n');
+      }
+
+      // Emit native classes on [nativeBuffer].  As a side-effect,
+      // this will produce "bound closures" in [boundClosures].  The
+      // bound closures are JS AST nodes that add properties to $$
+      // [classesCollector].  The bound closures are not emitted until
+      // we have emitted all other classes (native or not).
+      final CodeBuffer nativeBuffer = new CodeBuffer();
+      if (!nativeClasses.isEmpty) {
+        addComment('Native classes', nativeBuffer);
+        for (ClassElement element in nativeClasses) {
+          nativeEmitter.generateNativeClass(element);
+        }
+        nativeEmitter.assembleCode(nativeBuffer);
+      }
+
+      // Might also create boundClosures.
+      if (!regularClasses.isEmpty) {
+        addComment('Classes', mainBuffer);
+        for (ClassElement element in regularClasses) {
+          generateClass(element, mainBuffer);
+        }
+      }
+
+      // Might also create boundClosures.
+      if (!deferredClasses.isEmpty) {
+        emitDeferredPreambleWhenEmpty(deferredBuffer);
+        deferredBuffer.add('\$\$$_=$_{}$N');
+
+        for (ClassElement element in deferredClasses) {
+          generateClass(element, deferredBuffer);
+        }
+
+        deferredBuffer.add('$finishClassesName(\$\$,'
+                           '$_${namer.CURRENT_ISOLATE},'
+                           '$_$isolatePropertiesName)$N');
+        // Reset the map.
+        deferredBuffer.add("\$\$$_=${_}null$N$n");
+      }
+
+      emitClosureClassIfNeeded(mainBuffer);
+
+      // Now that we have emitted all classes, we know all the bound
+      // closures that will be needed.
+      for (jsAst.Node node in boundClosures) {
+        // TODO(ahe): Some of these can be deferred.
+        mainBuffer.add(jsAst.prettyPrint(node, compiler));
+        mainBuffer.add("$N$n");
+      }
+
+      emitFinishClassesInvocationIfNecessary(mainBuffer);
+
+      // After this assignment we will produce invalid JavaScript code if we use
+      // the classesCollector variable.
+      classesCollector = 'classesCollector should not be used from now on';
+
       emitStaticFunctions(mainBuffer);
       emitStaticFunctionGetters(mainBuffer);
-      // We need to finish the classes before we construct compile time
-      // constants.
-      emitFinishClassesInvocationIfNecessary(mainBuffer);
+
       emitRuntimeTypeSupport(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
@@ -2615,19 +2685,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // The following code should not use the short-hand for the
       // initialStatics.
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_=${_}null$N');
-      if (!boundClosureBuffer.isEmpty) {
-        mainBuffer.add(boundClosureBuffer);
-        emitFinishClassesInvocationIfNecessary(mainBuffer);
-      }
-      // After this assignment we will produce invalid JavaScript code if we use
-      // the classesCollector variable.
-      classesCollector = 'classesCollector should not be used from now on';
 
       emitFinishIsolateConstructorInvocation(mainBuffer);
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_='
                      '${_}new ${namer.isolateName}()$N');
 
-      nativeEmitter.assembleCode(mainBuffer);
+      mainBuffer.add(nativeBuffer);
+
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);
       compiler.assembledCode = mainBuffer.getText();
@@ -2648,13 +2712,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitDeferredCode(CodeBuffer buffer) {
     if (buffer.isEmpty) return;
 
-    if (needsDefineClass) {
-      buffer.add('$finishClassesName(\$\$,'
-                 '$_${namer.CURRENT_ISOLATE},'
-                 '$_$isolatePropertiesName)$N');
-      // Reset the map.
-      buffer.add("\$\$$_=$_{}$N");
-    }
+    buffer.add(n);
 
     buffer.add('${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
 
@@ -2667,9 +2725,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
     if (!buffer.isEmpty) return;
-    final classesCollector = r"$$";
 
-    buffer.add('$classesCollector$_=$_{}$N');
+    buffer.add(GENERATED_BY);
+
     buffer.add('var old${namer.CURRENT_ISOLATE}$_='
                '$_${namer.CURRENT_ISOLATE}$N');
 
