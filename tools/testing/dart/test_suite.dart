@@ -1096,7 +1096,6 @@ class StandardTestSuite extends TestSuite {
         if (packageRoot != null) {
           args.add(packageRoot);
         }
-        if (compiler == 'dart2dart') args.add('--out=$outputFile');
         args.add('--out=$outputFile');
         args.add(inputFile);
         break;
@@ -1145,8 +1144,9 @@ class StandardTestSuite extends TestSuite {
     // '$compile-$runtime' directory name.
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
+    var csp = configuration['csp'] ? '-csp' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-                  "$checked$minified";
+                  "$checked$minified$csp";
     Path generatedTestPath = new Path(buildDir)
         .append('generated_tests')
         .append(dirName)
@@ -1813,6 +1813,9 @@ class TestUtils {
     if ((compiler == "dart2js" || compiler == "dart2dart") &&
         configuration["minified"]) {
       args.add("--minify");
+    }
+    if (compiler == "dart2js" && configuration["csp"]) {
+      args.add("--disallow-unsafe-eval");
     }
     return args;
   }

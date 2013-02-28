@@ -18,7 +18,7 @@ import 'utils.dart';
 
 /// Interface of the HTTP server:
 ///
-/// /echo: This will stream the data received in the request stream back 
+/// /echo: This will stream the data received in the request stream back
 ///        to the client.
 /// /root_dart/X: This will serve the corresponding file from the dart
 ///               directory (i.e. '$DartDirectory/X').
@@ -51,6 +51,8 @@ main() {
   parser.addOption('build-directory', help: 'The build directory to use.');
   parser.addOption('network', help: 'The network interface to use.',
       defaultsTo: '127.0.0.1');
+  parser.addFlag('csp', help: 'Use Content Security Policy restrictions.',
+      defaultsTo: false);
   var args = parser.parse(new Options().arguments);
   if (args['help']) {
     print(parser.getUsage());
@@ -63,7 +65,8 @@ main() {
         .join(new Path('../../test.dart'))
         .canonicalize()
         .toNativePath();
-    var servers = new TestingServers(new Path(args['build-directory']));
+    var servers = new TestingServers(new Path(args['build-directory']),
+                                     args['csp']);
     var port = int.parse(args['port']);
     var crossOriginPort = int.parse(args['crossOriginPort']);
     servers.startServers(args['network'],
@@ -81,8 +84,9 @@ main() {
 class TestingServers {
   List _serverList = [];
   Path _buildDirectory = null;
+  final bool useContentSecurityPolicy;
 
-  TestingServers(Path buildDirectory) {
+  TestingServers(Path buildDirectory, this.useContentSecurityPolicy) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
   }
 
@@ -109,8 +113,9 @@ class TestingServers {
     var dartDir = TestUtils.dartDir();
     var script = dartDir.join(new Path("tools/testing/dart/http_server.dart"));
     var buildDirectory = _buildDirectory.toNativePath();
+    var csp = useContentSecurityPolicy ? '--csp ' : '';
 
-    return '$dart $script -p $port -c $crossOriginPort '
+    return '$dart $script -p $port -c $crossOriginPort $csp'
            '--build-directory=$buildDirectory';
   }
 
@@ -273,6 +278,16 @@ class TestingServers {
       // No allowedPort specified. Allow from anywhere (but cross-origin
       // requests *with credentials* will fail because you can't use "*").
       response.headers.set("Access-Control-Allow-Origin", "*");
+    }
+    if (useContentSecurityPolicy) {
+      // Chrome respects the standardized Content-Security-Policy header,
+      // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
+      // still uses the WebKit- prefixed version.
+      for (var header in ["Content-Security-Policy",
+                          "X-Content-Security-Policy",
+                          "X-WebKit-CSP"]) {
+        response.headers.set(header, "script-src 'self'; object-src 'self'");
+      }
     }
     if (path.filename.endsWith('.html')) {
       response.headers.set('Content-Type', 'text/html');

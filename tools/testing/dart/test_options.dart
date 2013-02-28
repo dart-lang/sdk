@@ -138,6 +138,13 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'csp',
+              'Run tests under Content Security Policy restrictions',
+              ['--csp'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'timeout',
               'Timeout in seconds',
               ['-t', '--timeout'],

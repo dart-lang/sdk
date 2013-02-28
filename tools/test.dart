@@ -83,6 +83,7 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
+  var useContentSecurityPolicy = firstConf['csp'];
 
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
@@ -118,10 +119,11 @@ main() {
   for (var conf in configurations) {
     if (!listTests && runningBrowserTests) {
       // Start global http servers that serve the entire dart repo.
-      // The http server is available on window.location.port, and a second 
+      // The http server is available on window.location.port, and a second
       // server for cross-domain tests can be found by calling
       // getCrossOriginPortNumber().
-      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)));
+      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
+                                       useContentSecurityPolicy);
       servers.startServers('127.0.0.1');
       conf['_servers_'] = servers;
     }
