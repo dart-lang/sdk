@@ -591,19 +591,17 @@ Future _doProcess(Function fn, String executable, List<String> args,
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
 Future timeout(Future input, int milliseconds, String description) {
-  bool completed = false;
   var completer = new Completer();
   var timer = new Timer(new Duration(milliseconds: milliseconds), () {
-    completed = true;
     completer.completeError(new TimeoutException(
         'Timed out while $description.'));
   });
   input.then((value) {
-    if (completed) return;
+    if (completer.isCompleted) return;
     timer.cancel();
     completer.complete(value);
   }).catchError((e) {
-    if (completed) return;
+    if (completer.isCompleted) return;
     timer.cancel();
     completer.completeError(e.error, e.stackTrace);
   });
