@@ -347,7 +347,7 @@ typed_arrays_1_test/supported: Fail # dartbug.com/8496: missing substitution on 
 inner_frame_test: Skip # Timeout
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
-indexeddb_5_test/functional: Fail, OK # http://dartbug.com/8851
+indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome) ]
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
