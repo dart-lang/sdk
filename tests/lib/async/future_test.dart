@@ -53,10 +53,10 @@ testNeverComplete() {
 testComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
-  Expect.isFalse(completer.completed);
+  Expect.isFalse(completer.isCompleted);
 
   completer.complete(3);
-  Expect.isTrue(completer.completed);
+  Expect.isTrue(completer.isCompleted);
 
   future.then((v) => Expect.equals(3, v));
 }
@@ -71,9 +71,9 @@ testCompleteWithSuccessHandlerBeforeComplete() {
   future.then((int v) { value = v; });
   Expect.isNull(value);
 
-  Expect.isFalse(completer.completed);
+  Expect.isFalse(completer.isCompleted);
   completer.complete(3);
-  Expect.isTrue(completer.completed);
+  Expect.isTrue(completer.isCompleted);
 
   Expect.equals(3, value);
 }
@@ -141,9 +141,9 @@ testExceptionHandler() {
   var ex2;
   var done = future.catchError((e) { ex2 = e.error; });
 
-  Expect.isFalse(completer.completed);
+  Expect.isFalse(completer.isCompleted);
   completer.completeError(ex);
-  Expect.isTrue(completer.completed);
+  Expect.isTrue(completer.isCompleted);
 
   var port = new ReceivePort();
   done.then((_) {
@@ -161,9 +161,9 @@ testExceptionHandlerReturnsTrue() {
   future.catchError((e) { });
   future.catchError((e) { reached = true; }, test: (e) => false)
         .catchError((e) {});
-  Expect.isFalse(completer.completed);
+  Expect.isFalse(completer.isCompleted);
   completer.completeError(ex);
-  Expect.isTrue(completer.completed);
+  Expect.isTrue(completer.isCompleted);
   Expect.isFalse(reached);
 }
 
