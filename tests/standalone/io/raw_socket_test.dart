@@ -263,61 +263,7 @@ testPauseServerSocket() {
   });
 }
 
-testCancelResubscribeServerSocket() {
-  const int socketCount = 10;
-  var acceptCount = 0;
-  var doneCount = 0;
-  var closeCount = 0;
-  var errorCount = 0;
-
-  ReceivePort port = new ReceivePort();
-
-  RawServerSocket.bind().then((server) {
-    Expect.isTrue(server.port > 0);
-
-    void checkDone() {
-      if (doneCount == socketCount &&
-          closeCount + errorCount == socketCount) {
-        port.close();
-      }
-    }
-
-    // Subscribe the server socket. Then cancel subscription and
-    // subscribe again.
-    var subscription;
-    subscription = server.listen((client) {
-      if (++acceptCount == socketCount / 2) {
-        subscription.cancel();
-        Timer.run(() {
-          subscription = server.listen((_) {
-            // Close on cancel, so no more events.
-            Expect.fail("Event after closed through cancel");
-          });
-        });
-      }
-      // Close the client socket.
-      client.close();
-    });
-
-    // Connect a number of sockets.
-    for (int i = 0; i < socketCount; i++) {
-      RawSocket.connect("127.0.0.1", server.port).then((socket) {
-        socket.writeEventsEnabled = false;
-        var subscription;
-        subscription = socket.listen((event) {
-          Expect.equals(RawSocketEvent.READ_CLOSED, event);
-          socket.close();
-          closeCount++;
-          checkDone();
-        },
-        onDone: () { doneCount++; checkDone(); },
-        onError: (e) { errorCount++; checkDone(); });
-      });
-    }
-  });
-}
-
-testPauseSocket() {
+void testPauseSocket() {
   const messageSize = 1000;
   const loopCount = 10;
   Completer connected = new Completer();
@@ -407,6 +353,5 @@ main() {
   testServerListenAfterConnect();
   testSimpleReadWrite();
   testPauseServerSocket();
-  testCancelResubscribeServerSocket();
   testPauseSocket();
 }
