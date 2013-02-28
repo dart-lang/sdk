@@ -644,12 +644,27 @@ class CallSiteInliner : public ValueObject {
     return parsed_function;
   }
 
+  // Include special handling for List. factory: inlining it is not helpful
+  // if the incoming argument is a non-constant value.
+  // TODO(srdjan): Fix inlining of List. factory.
   void InlineStaticCalls() {
     const GrowableArray<StaticCallInstr*>& calls =
         inlining_call_sites_->static_calls();
     TRACE_INLINING(OS::Print("  Static Calls (%d)\n", calls.length()));
     for (intptr_t i = 0; i < calls.length(); ++i) {
       StaticCallInstr* call = calls[i];
+      if (call->function().name() == Symbols::ListFactory().raw()) {
+        // Inline only if no arguments or a constant was passed.
+        ASSERT(call->function().NumImplicitParameters() == 1);
+        ASSERT(call->ArgumentCount() <= 2);
+        // Arg 0: Instantiator type arguments.
+        // Arg 1: Length (optional).
+        if ((call->ArgumentCount() == 2) &&
+            (!call->PushArgumentAt(1)->value()->BindsToConstant())) {
+          // Do not inline since a non-constant argument was passed.
+          continue;
+        }
+      }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
