@@ -841,11 +841,14 @@ class _HttpClientConnection {
           _subscription.pause();
           // We assume the response is not here, until we have send the request.
           assert(_nextResponseCompleter != null);
-          _nextResponseCompleter.complete(incoming);
+          var completer = _nextResponseCompleter;
+          _nextResponseCompleter = null;
+          completer.complete(incoming);
         },
         onError: (error) {
           if (_nextResponseCompleter != null) {
             _nextResponseCompleter.completeError(error);
+            _nextResponseCompleter = null;
           }
         },
         onDone: () {
@@ -854,6 +857,8 @@ class _HttpClientConnection {
   }
 
   _HttpClientRequest send(Uri uri, int port, String method, bool isDirect) {
+    // Start with pausing the parser.
+    _subscription.pause();
     var outgoing = new _HttpOutgoing();
     // Create new request object, wrapping the outgoing connection.
     var request = new _HttpClientRequest(outgoing,
@@ -885,16 +890,13 @@ class _HttpClientConnection {
         _nextResponseCompleter = new Completer();
         // Listen for response.
         _nextResponseCompleter.future
-            .whenComplete(() {
-               _nextResponseCompleter = null;
-             })
             .then((incoming) {
               incoming.dataDone.then((_) {
                 if (incoming.headers.persistentConnection &&
                     request.persistentConnection) {
-                  _subscription.resume();
                   // Return connection, now we are done.
                   _httpClient._returnConnection(this);
+                  _subscription.resume();
                 } else {
                   destroy();
                 }
@@ -912,6 +914,8 @@ class _HttpClientConnection {
               destroy();
               request._onError(error);
             });
+        // Resume the parser now we have a handler.
+        _subscription.resume();
 
         return _socket.addStream(stream)
             .catchError((e) {
