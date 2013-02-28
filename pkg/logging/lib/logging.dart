@@ -9,6 +9,10 @@
  */
 library logging;
 
+import 'dart:async';
+
+import 'package:meta/meta.dart';
+
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
  * hierarchy. When false, all logging is merged in the root logger.
@@ -43,8 +47,11 @@ class Logger {
   /** Children in the hierarchy of loggers, indexed by their simple names. */
   Map<String, Logger> children;
 
-  /** Handlers used to process log entries in this logger. */
-  List<LoggerHandler> _handlers;
+  /** Controller used to notify when log entries are added to this logger. */
+  StreamController<LogRecord> _controller;
+
+  // TODO(sigmund): remove together with the deprecated [on] API.
+  Map<LoggerHandler, StreamSubscription> _deprecatedSubscriptions;
 
   /**
    * Singleton constructor. Calling `new Logger(name)` will return the same
@@ -109,38 +116,27 @@ class Logger {
    * by adding a [LoggerHandler] to an event from the event manager, for
    * instance:
    *    logger.on.record.add((record) { ... });
+   *
+   * This API is Deprecated. Use [onRecord] instead.
    */
+  @deprecated
   LoggerEvents get on => new LoggerEvents(this);
 
-  /** Adds a handler to listen whenever a log record is added to this logger. */
-  void _addHandler(LoggerHandler handler) {
+  /**
+   * Returns an stream of messages added to this [Logger]. You can listen for
+   * messages using the standard stream APIs, for instance:
+   *    logger.onRecord.listen((record) { ... });
+   */
+  Stream<LogRecord> get onRecord => _getStream();
+
+  void clearListeners() {
     if (hierarchicalLoggingEnabled || parent == null) {
-      if (_handlers == null) {
-        _handlers = new List<LoggerHandler>();
+      if (_controller != null) {
+        _controller.close();
+        _controller = null;
       }
-      _handlers.add(handler);
     } else {
-      root._addHandler(handler);
-    }
-  }
-
-  /** Remove a previously added handler. */
-  void _removeHandler(LoggerHandler handler) {
-    if (hierarchicalLoggingEnabled || parent == null) {
-      if (_handlers == null) return;
-      int index = _handlers.indexOf(handler);
-      if (index != -1) _handlers.removeRange(index, 1);
-    } else {
-      root._removeHandler(handler);
-    }
-  }
-
-  /** Removes all handlers previously added to this logger. */
-  void _clearHandlers() {
-    if (hierarchicalLoggingEnabled || parent == null) {
-      _handlers = null;
-    } else {
-      root._clearHandlers();
+      root.clearListeners();
     }
   }
 
@@ -194,9 +190,41 @@ class Logger {
   /** Log message at level [Level.SHOUT]. */
   void shout(String message) => log(Level.SHOUT, message);
 
+  Stream<LogRecord> _getStream() {
+    if (hierarchicalLoggingEnabled || parent == null) {
+      if (_controller == null) {
+        _controller = new StreamController<LogRecord>.broadcast();
+      }
+      return _controller.stream;
+    } else {
+      return root._getStream();
+    }
+  }
+
+  /** Adds a handler to listen whenever a log record is added to this logger. */
+  void _addHandler(LoggerHandler handler) {
+    if (_deprecatedSubscriptions == null) {
+      _deprecatedSubscriptions = new Map<LoggerHandler, StreamSubscription>();
+    }
+
+    _deprecatedSubscriptions[handler] = onRecord.listen(handler);
+  }
+
+  void _removeHandler(LoggerHandler handler) {
+    if (_deprecatedSubscriptions != null) {
+      var sub = _deprecatedSubscriptions.remove(handler);
+      if (sub != null) {
+        sub.cancel();
+      }
+      if (_deprecatedSubscriptions.isEmpty) {
+        _deprecatedSubscriptions = null;
+      }
+    }
+  }
+
   void _publish(LogRecord record) {
-    if (_handlers != null) {
-      _handlers.forEach((h) => h(record));
+    if (_controller != null) {
+      _controller.add(record);
     }
   }
 
@@ -231,7 +259,7 @@ class LoggerHandlerList {
 
   void add(LoggerHandler handler) => _logger._addHandler(handler);
   void remove(LoggerHandler handler) => _logger._removeHandler(handler);
-  void clear() => _logger._clearHandlers();
+  void clear() => _logger.clearListeners();
 }
 
 
