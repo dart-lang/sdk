@@ -433,6 +433,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
 
   final Socket _socket;
   int _readyState = WebSocket.CONNECTING;
+  bool _writeClosed = false;
 
   static final HttpClient _httpClient = new HttpClient();
 
@@ -545,6 +546,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         }
         _readyState = WebSocket.CLOSED;
       }
+      if (_readyState == WebSocket.CLOSED) return;
       _controller.add(new _WebSocketCloseEvent(clean, code, reason));
       _controller.close();
     };
@@ -553,6 +555,19 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         (data) => _processor.update(data, 0, data.length),
         onDone: () => _processor.closed(),
         onError: (error) => _controller.signalError(error));
+
+    _socket.done
+        .catchError((error) {
+          if (_readyState == WebSocket.CLOSED) return;
+          _readyState = WebSocket.CLOSED;
+          _controller.signalError(error);
+          _controller.close();
+          _processor.closed();
+          _socket.destroy();
+        })
+        .whenComplete(() {
+          _writeClosed = true;
+        });
   }
 
   StreamSubscription<Event> listen(void onData(Event event),
@@ -631,6 +646,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
   }
 
   void _sendFrame(int opcode, [List<int> data]) {
+    if (_writeClosed) return;
     bool mask = false;  // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
     // Determine the header size.

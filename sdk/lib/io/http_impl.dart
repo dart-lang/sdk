@@ -1503,6 +1503,7 @@ class _DetachedSocket implements Socket {
   void destroy() => _socket.destroy();
   void add(List<int> data) => _socket.add(data);
   Future<Socket> close() => _socket.close();
+  Future<Socket> get done => _socket.done;
 }
 
 

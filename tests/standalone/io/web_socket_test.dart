@@ -164,6 +164,50 @@ class SecurityConfiguration {
   }
 
 
+  void testDoubleCloseClient() {
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        webSocket.listen((event) {
+          if (event is CloseEvent) {
+            webSocket.close();
+          }
+        });
+      });
+
+      createClient(server.port).then((webSocket) {
+          webSocket.listen((event) {
+            if (event is CloseEvent) {
+              webSocket.close();
+            }
+          });
+          webSocket.close();
+        });
+    });
+  }
+
+
+  void testDoubleCloseServer() {
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        webSocket.listen((event) {
+          if (event is CloseEvent) {
+            webSocket.close();
+          }
+        });
+        webSocket.close();
+      });
+
+      createClient(server.port).then((webSocket) {
+          webSocket.listen((event) {
+            if (event is CloseEvent) {
+              webSocket.close();
+            }
+          });
+        });
+    });
+  }
+
+
   void testNoUpgrade() {
     createServer().then((server) {
       // Create a server which always responds with NOT_FOUND.
@@ -279,6 +323,8 @@ class SecurityConfiguration {
     testMessageLength(127);
     testMessageLength(65535);
     testMessageLength(65536);
+    testDoubleCloseClient();
+    testDoubleCloseServer();
     testNoUpgrade();
     testUsePOST();
     testW3CInterface(10, 3002, "Got tired");
