@@ -811,7 +811,7 @@ class JavaScriptBackend extends Backend {
     return result;
   }
 
-  void initializeInterceptorElements() {
+  void initializeHelperClasses() {
     objectInterceptorClass =
         compiler.findInterceptor(const SourceString('ObjectInterceptor'));
     getInterceptorMethod =
@@ -901,7 +901,6 @@ class JavaScriptBackend extends Backend {
 
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
     if (!seenAnyClass) {
-      initializeInterceptorElements();
       initializeNoSuchMethod();
       seenAnyClass = true;
     }

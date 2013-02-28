@@ -98,6 +98,8 @@ abstract class Backend {
           [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
       : this.constantSystem = constantSystem;
 
+  void initializeHelperClasses() {}
+
   void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
     lib.forEachExport((Element e) {
       if (e.isFunction()) world.addToWorkList(e);
@@ -566,6 +568,7 @@ abstract class Compiler implements DiagnosticListener {
     }
 
     types = new Types(this, dynamicClass);
+    backend.initializeHelperClasses();
   }
 
   void scanBuiltinLibraries() {
