@@ -86,6 +86,11 @@ abstract class Enqueuer {
   // the work list'?
   bool addElementToWorkList(Element element, [TreeElements elements]);
 
+  void registerInstantiatedType(InterfaceType type) {
+    universe.instantiatedTypes.add(type);
+    registerInstantiatedClass(type.element);
+  }
+
   void registerInstantiatedClass(ClassElement cls) {
     if (universe.instantiatedClasses.contains(cls)) return;
     if (!cls.isAbstract(compiler)) {

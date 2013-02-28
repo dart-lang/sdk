@@ -106,6 +106,11 @@ abstract class Backend {
     });
   }
 
+  // TODO(karlklose): get rid of this and add a factory constructor to [List]
+  // that creates an instance of JSArray to make the dependency visible in from
+  // the source code.
+  void addBackendRtiDependencies(World world);
+
   void enqueueHelpers(ResolutionEnqueuer world);
   void codegen(CodegenWorkItem work);
 

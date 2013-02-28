@@ -2525,14 +2525,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // TODO(karlklose): change construction of the representations to be GVN'able
   // (dartbug.com/7182).
   List<HInstruction> buildTypeArgumentRepresentations(DartType type) {
-    HInstruction createForeignArray(String code, inputs) {
-      return createForeign(code, HType.READABLE_ARRAY, inputs);
-    }
-
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
     HInstruction representations;
-    if (type.element.isTypeVariable()) {
+    if (type.kind == TypeKind.TYPE_VARIABLE) {
       return <HInstruction>[addTypeVariableReference(type)];
     } else {
       assert(type.element.isClass());
@@ -2544,7 +2540,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
         });
-        HInstruction representation = createForeignArray(template, inputs);
+        HInstruction representation =
+            createForeign(template, HType.READABLE_ARRAY, inputs);
         add(representation);
         arguments.add(representation);
       }
@@ -2585,16 +2582,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         return;
       }
-      if (type.element.isTypeVariable()) {
-        // TODO(karlklose): remove this check when the backend can deal with
-        // checks of the form [:o is T:] where [:T:] is a type variable.
-        stack.add(graph.addConstantBool(true, constantSystem));
-        return;
-      }
 
       HInstruction instruction;
-      if (type.element.isTypeVariable() ||
-          RuntimeTypeInformation.hasTypeArguments(type)) {
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        List<HInstruction> representations =
+            buildTypeArgumentRepresentations(type);
+        assert(representations.length == 1);
+        HInstruction runtimeType = addTypeVariableReference(type);
+        Element helper = backend.getGetObjectIsSubtype();
+        HInstruction helperCall = new HStatic(helper);
+        add(helperCall);
+        List<HInstruction> inputs = <HInstruction>[helperCall, expression,
+                                                   runtimeType];
+        instruction = new HInvokeStatic(inputs, HType.BOOLEAN);
+        add(instruction);
+        compiler.enqueuer.codegen.registerIsCheck(type);
+
+      } else if (RuntimeTypeInformation.hasTypeArguments(type)) {
 
         void argumentsCheck() {
           HInstruction typeInfo = getRuntimeTypeInfo(expression);
@@ -2623,7 +2627,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         void classCheck() { push(new HIs(type, <HInstruction>[expression])); }
 
         SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
-        branchBuilder.handleLogicalAndOr(classCheck, argumentsCheck, isAnd: true);
+        branchBuilder.handleLogicalAndOr(classCheck, argumentsCheck,
+                                         isAnd: true);
         instruction = pop();
       } else {
         instruction = new HIs(type, <HInstruction>[expression]);

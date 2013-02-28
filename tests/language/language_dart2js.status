@@ -35,6 +35,8 @@ full_stacktrace3_test: Skip # Stack trace interface is not implemented yet.
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
+mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
+mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
 prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
 type_variable_scope_test/none: Fail
@@ -167,7 +169,6 @@ function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters
 function_type_parameter_test: Fail # Internal Error: expected optional parameters
-generic_instanceof_test: Fail # cannot resolve type T
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
@@ -183,7 +184,6 @@ get_set_syntax_test/14: Fail # Fixed by https://chromiumcodereview.appspot.com/1
 get_set_syntax_test/15: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/16: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 implicit_scope_test: Fail # duplicate definition of a="bar"
-many_generic_instanceof_test: Fail # cannot resolve type T
 method_binding_test: Fail # internal error: super property read not implemented.
 method_override_test: Fail # cannot resolve type GetKeysFunctionType
 method_override2_test/00: Fail # accepts illegal override
@@ -205,9 +205,7 @@ on_catch_malformed_type_test: Fail # Malformed types cause compile-time errors.
 
 # Failing tests for mixin type parameters.
 mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
 
 
 # External tests.

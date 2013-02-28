@@ -62,6 +62,16 @@ class RuntimeTypeInformation {
         }
       }
     }
+
+    // TODO(karlklose): remove this temporary fix: we need to add the classes
+    // used in substitutions to addArguments.
+    allArguments.addAll([compiler.intClass,
+                         compiler.boolClass,
+                         compiler.numClass,
+                         compiler.doubleClass,
+                         compiler.stringClass,
+                         compiler.listClass]);
+
     return cachedRequiredChecks = requiredChecks;
   }
 
@@ -294,4 +304,14 @@ class TypeCheckMapping implements TypeChecks {
   }
 
   Iterator<ClassElement> get iterator => map.keys.iterator;
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    for (ClassElement holder in this) {
+      for (ClassElement check in [holder]) {
+        sb.add('${holder.name.slowToString()}.${check.name.slowToString()}, ');
+      }
+    }
+    return '[$sb]';
+  }
 }

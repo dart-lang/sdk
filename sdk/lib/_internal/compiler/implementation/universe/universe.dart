@@ -89,6 +89,41 @@ class Universe {
   bool hasFieldSetter(Element member, Compiler compiler) {
     return fieldSetters.contains(member);
   }
+
+  /**
+   * Compute type arguments of classes that use one of their type variables in
+   * is-checks and add the is-checks that they imply.
+   *
+   * This function must be called after all is-checks have been registered.
+   *
+   * TODO(karlklose): move these computations into a function producing an
+   * immutable datastructure.
+   */
+  void addImplicitChecks(Iterable<ClassElement> classesUsingChecks) {
+    // If there are no classes that use their variables in checks, there is
+    // nothing to do.
+    if (classesUsingChecks.isEmpty) return;
+    // Find all instantiated types that are a subtype of a class that uses
+    // one of its type arguments in an is-check and add the arguments to the
+    // set of is-checks.
+    // TODO(karlklose): replace this with code that uses a subtype lookup
+    // datastructure in the world.
+    for (DartType type in instantiatedTypes) {
+      if (type.kind != TypeKind.INTERFACE) continue;
+      InterfaceType classType = type;
+      for (ClassElement cls in classesUsingChecks) {
+        // We need the type as instance of its superclass anyway, so we just
+        // try to compute the substitution; if the result is [:null:], the
+        // classes are not related.
+        InterfaceType instance = classType.asInstanceOf(cls);
+        if (instance == null) continue;
+        Link<DartType> typeArguments = instance.typeArguments;
+        for (DartType argument in typeArguments) {
+          isChecks.add(argument);
+        }
+      }
+    }
+  }
 }
 
 class SelectorKind {

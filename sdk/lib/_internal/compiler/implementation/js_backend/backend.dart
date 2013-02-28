@@ -970,6 +970,12 @@ class JavaScriptBackend extends Backend {
     return new JavaScriptItemCompilationContext();
   }
 
+  void addBackendRtiDependencies(World world) {
+    if (jsArrayClass != null) {
+      world.registerRtiDependency(jsArrayClass, compiler.listClass);
+    }
+  }
+
   void enqueueHelpers(ResolutionEnqueuer world) {
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
@@ -1011,6 +1017,14 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getTraceFromException());
   }
 
+  void registerSetRuntimeType() {
+    enqueueInResolution(getSetRuntimeTypeInfo());
+  }
+
+  void registerGetRuntimeTypeArgument() {
+    enqueueInResolution(getGetRuntimeTypeArgument());
+  }
+
   void registerRuntimeType() {
     enqueueInResolution(getSetRuntimeTypeInfo());
     enqueueInResolution(getGetRuntimeTypeInfo());
@@ -1019,11 +1033,13 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerIsCheck(DartType type, Enqueuer world) {
-    if (!type.isRaw) {
+    bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
+    if (!type.isRaw || isTypeVariable) {
       enqueueInResolution(getSetRuntimeTypeInfo());
       enqueueInResolution(getGetRuntimeTypeInfo());
       enqueueInResolution(getGetRuntimeTypeArgument());
       enqueueInResolution(getCheckArguments());
+      if (isTypeVariable) enqueueInResolution(getGetObjectIsSubtype());
       world.registerInstantiatedClass(compiler.listClass);
     }
     // [registerIsCheck] is also called for checked mode checks, so we
@@ -1470,6 +1486,10 @@ class JavaScriptBackend extends Backend {
 
   Element getCheckArguments() {
     return compiler.findHelper(const SourceString('checkArguments'));
+  }
+
+  Element getGetObjectIsSubtype() {
+    return compiler.findHelper(const SourceString('objectIsSubtype'));
   }
 
   Element getThrowNoSuchMethod() {

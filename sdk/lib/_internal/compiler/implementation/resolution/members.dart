@@ -2507,7 +2507,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     ClassElement cls = constructor.getEnclosingClass();
     // [cls] might be the implementation element and only declaration elements
     // may be registered.
-    world.registerInstantiatedClass(cls.declaration);
+    world.registerInstantiatedType(mapping.getType(node));
     if (cls.isAbstract(compiler)) {
       compiler.backend.registerAbstractClassInstantiation();
     }
@@ -2577,9 +2577,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           analyzeTypeArgument(type, argument);
         });
       }
-      // TODO(ngeoffray): Also handle cases like:
-      // 1) a is T
-      // 2) T a (in checked mode).
+      // TODO(ngeoffray): Also handle T a (in checked mode).
     }
     return type;
   }

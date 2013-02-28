@@ -1535,9 +1535,45 @@ bool areSubtypes(List s, List t) {
   return true;
 }
 
-getArguments(var type) => JS('var', r'#.slice(1)', type);
+getArguments(var type) {
+  return isJsArray(type) ? JS('var', r'#.slice(1)', type) : null;
+}
 
 getField(var object, var name) => JS('var', r'#[#]', object, name);
+
+/**
+ * Tests whether the Dart object [o] is a subtype of the runtime type
+ * representation [t], which is a type representation as described in the
+ * comment on [isSubtype].
+ */
+bool objectIsSubtype(Object o, var t) {
+  if (JS('bool', '# == null', o) || JS('bool', '# == null', t)) return true;
+  // Get the runtime type information from the object here, because we may
+  // overwrite o with the interceptor below.
+  var rti = getRuntimeTypeInfo(o);
+  // Check for native objects and use the interceptor instead of the object.
+  var interceptor = getInterceptor(o);
+  // TODO(karlklose): remove the following reuse of _objectInterceptor.
+  if (!identical(interceptor, JSInvocationMirror._objectInterceptor)) {
+    o = interceptor;
+  }
+  // We can use the object as its own type representation because we install
+  // the subtype flags and the substitution on the prototype, so they are
+  // properties of the object in JS.
+  var type;
+  if (JS('bool', '# != null', rti)) {
+    // If the type has type variables (that is, [:rti != null:]), make a copy of
+    // the type arguments and insert [o] in the first position to create a
+    // compound type representation.
+    type = JS('List', '#.slice()', rti);
+    JS('', '#.splice(0, 0, #)', type, o);
+  } else {
+    // Use the object as representation of the raw type.
+    type = o;
+  }
+  return isSubtype(type, t);
+}
+
 
 /**
  * Check whether the type represented by [s] is a subtype of the type
@@ -1546,12 +1582,14 @@ getField(var object, var name) => JS('var', r'#[#]', object, name);
  * Type representations can be:
  *  1) a JavaScript constructor for a class C: the represented type is the raw
  *     type C.
- *  2) a JavaScript object: this represents a class for which there is no
+ *  2) a Dart object: this is the interceptor instance for a native type.
+ *  3) a JavaScript object: this represents a class for which there is no
  *     JavaScript constructor, because it is only used in type arguments or it
  *     is native. The represented type is the raw type of this class.
- *  3) a JavaScript array: the first entry is of type 1 or 2 and identifies the
- *     class of the type and the rest of the array are the type arguments.
- *  4) [:null:]: the dynamic type.
+ *  4) a JavaScript array: the first entry is of type 1, 2 or 3 and contains the
+ *     subtyping flags and the substitution of the type and the rest of the
+ *     array are the type arguments.
+ *  5) [:null:]: the dynamic type.
  */
 bool isSubtype(var s, var t) {
   // If either type is dynamic, [s] is a subtype of [t].
@@ -1565,14 +1603,19 @@ bool isSubtype(var s, var t) {
   // Check for a subtyping flag.
   var test = '${JS_OPERATOR_IS_PREFIX()}${runtimeTypeToString(typeOfT)}';
   if (getField(typeOfS, test) == null) return false;
-  // The class of [s] is a subclass of the class of [t]. If either of the types
-  // is raw, [s] is a subtype of [t].
-  if (!isJsArray(s) || !isJsArray(t)) return true;
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (JS('bool', '# !== #', typeOfT, typeOfS)) {
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
     substitution = getField(typeOfS, field);
+  }
+  // The class of [s] is a subclass of the class of [t].  If [s] has no type
+  // arguments and no substitution, it is used as raw type.  If [t] has no
+  // type arguments, it used as a raw type.  In both cases, [s] is a subtype
+  // of [t].
+  if ((!isJsArray(s) && JS('bool', '# == null', substitution)) ||
+      !isJsArray(t)) {
+    return true;
   }
   // Recursively check the type arguments.
   return checkArguments(substitution, getArguments(s), getArguments(t));

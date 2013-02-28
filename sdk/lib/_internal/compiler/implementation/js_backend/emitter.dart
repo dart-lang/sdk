@@ -107,6 +107,18 @@ class CodeEmitterTask extends CompilerTask {
 
   final bool generateSourceMap;
 
+  Iterable<ClassElement> cachedClassesUsingTypeVariableTests;
+
+  Iterable<ClassElement> get classesUsingTypeVariableTests {
+    if (cachedClassesUsingTypeVariableTests == null) {
+      cachedClassesUsingTypeVariableTests = compiler.codegenWorld.isChecks
+          .where((DartType t) => t is TypeVariableType)
+          .map((TypeVariableType v) => v.element.getEnclosingClass())
+          .toList();
+    }
+    return cachedClassesUsingTypeVariableTests;
+  }
+
   CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
       : boundClosureBuffer = new CodeBuffer(),
         mainBuffer = new CodeBuffer(),
@@ -123,7 +135,10 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void computeRequiredTypeChecks() {
-    assert(checkedClasses == null);
+    assert(checkedClasses == null && checkedTypedefs == null);
+
+    compiler.codegenWorld.addImplicitChecks(classesUsingTypeVariableTests);
+
     checkedClasses = new Set<ClassElement>();
     checkedTypedefs = new Set<TypedefElement>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
@@ -932,7 +947,10 @@ class CodeEmitterTask extends CompilerTask {
 
     void generateIsTest(Element other) {
       jsAst.Expression code;
-      if (compiler.objectClass == other) return;
+      if (other == compiler.objectClass && other != classElement) {
+        // Avoid emitting [:$isObject:] on all classes but [Object].
+        return;
+      }
       if (nativeEmitter.requiresNativeIsCheck(other)) {
         code = js.fun([], [js.return_(true)]);
       } else {
@@ -993,13 +1011,16 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitRuntimeClassesAndTests(CodeBuffer buffer) {
+  void emitRuntimeTypeSupport(CodeBuffer buffer) {
     RuntimeTypeInformation rti = backend.rti;
     TypeChecks typeChecks = rti.getRequiredChecks();
 
+    /// Classes that are not instantiated and native classes need a holder
+    /// object for their checks, because there will be no class defined for
+    /// them.
     bool needsHolder(ClassElement cls) {
       return !neededClasses.contains(cls) || cls.isNative() ||
-          rti.isJsNative(cls);
+        rti.isJsNative(cls);
     }
 
     /**
@@ -1422,6 +1443,11 @@ class CodeEmitterTask extends CompilerTask {
         emitted.add(superclass);
       }
       for (DartType supertype in cls.allSupertypes) {
+        ClassElement superclass = supertype.element;
+        if (classesUsingTypeVariableTests.contains(superclass)) {
+          emitSubstitution(superclass, emitNull: true);
+          emitted.add(superclass);
+        }
         for (ClassElement check in checkedClasses) {
           if (supertype.element == check && !emitted.contains(check)) {
             // Generate substitution.  If no substitution is necessary, emit
@@ -2559,7 +2585,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   String assembleProgram() {
     measure(() {
       computeNeededClasses();
-
       mainBuffer.add(GENERATED_BY);
       addComment(HOOKS_API_USAGE, mainBuffer);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
@@ -2580,7 +2605,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // We need to finish the classes before we construct compile time
       // constants.
       emitFinishClassesInvocationIfNecessary(mainBuffer);
-      emitRuntimeClassesAndTests(mainBuffer);
+      emitRuntimeTypeSupport(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.
