@@ -11,7 +11,6 @@ io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
 io/status_file_parser_test: fail
 io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
-io/io/secure_socket_bad_certificate_test: pass, timeout # Issue 8791
 
 [ $runtime == vm ]
 io/https_client_test: Pass, Timeout # Issue 8674
@@ -28,13 +27,14 @@ io/https_server_test: Pass, Timeout # Issue 8674
 io/https_client_socket_reuse_test: Pass, Timeout # Issue 8674
 io/http_client_request_test: Pass, Fail # Issue 8681
 io/http_proxy_test: Pass, Timeout # Issue 7773
-io/raw_secure_socket_test: Pass, Fail # Issue 8795
-io/raw_secure_server_socket_test: Pass, Fail, Crash # Issues 8795, 7157
-io/raw_secure_socket_pause_test: Pass, Fail # Issue 8795
-io/secure_socket_test: Pass, Fail # Issue 8795
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
+
+# Fails with a connection refused error on the buildbot.
+# Issue 8232.
+debugger/basic_debugger_test: Pass, Fail
+
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -49,11 +49,6 @@ io/directory_fuzz_test: Skip
 
 [ $runtime == vm && $system == macos ]
 io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
-
-[ $runtime == vm ]
-# Fails with a connection refused error on the buildbot.
-# Issue 8232.
-debugger/basic_debugger_test: Pass, Fail
 
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
