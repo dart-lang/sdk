@@ -108,12 +108,18 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
     controller = new StreamController<List<int>>(
         onSubscriptionStateChange: onSubscriptionStateChange,
         onPauseStateChange: onPauseStateChange);
-    pause();
-    if (oldResumeCompleter != null) oldResumeCompleter.complete();
-    subscription.resume();
-    subscription.onData(controller.add);
-    subscription.onDone(controller.close);
-    subscription.onError(controller.signalError);
+    if (subscription == null) {
+      // Socket was already closed.
+      if (carryOverData != null) controller.add(carryOverData);
+      controller.close();
+    } else {
+      pause();
+      if (oldResumeCompleter != null) oldResumeCompleter.complete();
+      subscription.resume();
+      subscription.onData(controller.add);
+      subscription.onDone(controller.close);
+      subscription.onError(controller.signalError);
+    }
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
