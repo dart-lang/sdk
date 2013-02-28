@@ -20,9 +20,9 @@ import sys
 import bot
 
 DART2JS_BUILDER = (
-    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(csp))?-?(\d*)-?(\d*)')
+    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -50,8 +50,10 @@ def GetBuildInfo(builder_name, is_buildbot):
     system = web_pattern.group(2)
     mode = 'release'
     test_set = web_pattern.group(4)
-    shard_index = web_pattern.group(6)
-    total_shards = web_pattern.group(7)
+    if dart2js_pattern.group(6) == 'csp':
+      csp = True
+    shard_index = web_pattern.group(8)
+    total_shards = web_pattern.group(9)
   elif dart2js_pattern:
     compiler = 'dart2js'
     system = dart2js_pattern.group(1)
@@ -72,10 +74,8 @@ def GetBuildInfo(builder_name, is_buildbot):
       host_checked = True
     if dart2js_pattern.group(10) == 'minified':
       minified = True
-    if dart2js_pattern.group(12) == 'csp':
-      csp = True
-    shard_index = dart2js_pattern.group(13)
-    total_shards = dart2js_pattern.group(14)
+    shard_index = dart2js_pattern.group(11)
+    total_shards = dart2js_pattern.group(12)
   else :
     return None
 
