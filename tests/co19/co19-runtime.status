@@ -10,6 +10,13 @@ LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeErro
 Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
 Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
 
+Language/13_Libraries_and_Scripts/1_Imports_A04_t03: Fail # co19 issue 385
+Language/13_Libraries_and_Scripts/2_Exports_A05_t01: Fail # co19 issue 385
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t20: Fail # co19 issue 387
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # co19 issue 387
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t22: Fail # co19 issue 387
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # co19 issue 387
+
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t10: Fail # co19 issue 348
 Language/07_Classes/3_Setters_A04_t01: Fail # co19 issue 383
 Language/07_Classes/3_Setters_A04_t04: Fail # co19 issue 383

@@ -4550,9 +4550,6 @@ void Parser::ParseLibraryDefinition() {
     return;
   }
 
-  const bool is_script = (script_.kind() == RawScript::kScriptTag);
-  const bool is_library = (script_.kind() == RawScript::kLibraryTag);
-  const bool is_patch = (script_.kind() == RawScript::kPatchTag);
   ASSERT(script_.kind() != RawScript::kSourceTag);
 
   // We may read metadata tokens that are part of the toplevel
@@ -4562,20 +4559,15 @@ void Parser::ParseLibraryDefinition() {
   intptr_t metadata_pos = TokenPos();
   SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
-    if (is_patch) {
+    if (is_patch_source()) {
       ErrorMsg("patch cannot override library name");
     }
     ParseLibraryName();
     metadata_pos = TokenPos();
     SkipMetadata();
-  } else if (is_library) {
-    ErrorMsg("library name definition expected");
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
-    if (is_script && (CurrentToken() == Token::kEXPORT)) {
-      ErrorMsg("export not allowed in scripts");
-    }
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
