@@ -1078,6 +1078,7 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _handleDone() {
+    _subscription = null;
     try {
       _transformer.handleDone(_sink);
     } catch (e, s) {

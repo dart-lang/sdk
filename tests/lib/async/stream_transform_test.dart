@@ -10,7 +10,7 @@ import 'event_helper.dart';
 
 
 main() {
-  // Regression tests for http://dartbug.com/8311
+  // Regression tests for http://dartbug.com/8310 and 8311
 
   test("simpleDone", () {
     StreamController c = new StreamController();
@@ -44,5 +44,18 @@ main() {
     actual.pause();
     input.replay(c);
     actual.resume();
+  });
+
+  test("closing after done", () {
+    var controller = new StreamController();
+    var buffer = new StringBuffer();
+    controller.stream.map((e) => e).transform(new StreamTransformer(
+        handleData: (element, sink) { sink.add(element); },
+        handleDone: (sink) { sink.close(); })
+    ).listen(expectAsync1((e) => expect(e, equals("foo"))));
+
+    controller.add("foo");
+    // Should not crash.
+    controller.close();
   });
 }
