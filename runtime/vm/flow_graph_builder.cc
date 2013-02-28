@@ -1976,22 +1976,40 @@ void EffectGraphVisitor::BuildConstructorCall(
 }
 
 
-static bool IsRecognizedConstructor(const Function& function,
-                                    const String& expected) {
-  const Class& clazz = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(clazz.library());
+// List of recognized factories in core lib (factories with known result-cid):
+// (factory-name-symbol, result-cid, fingerprint).
+#define RECOGNIZED_FACTORY_LIST(V)                                             \
+  V(ObjectArrayDot, kArrayCid, 97987288)                                       \
+  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
+  V(GrowableObjectArrayDot, kGrowableObjectArrayCid, 1896741574)               \
 
-  const String& expected_class_name =
-      String::Handle(lib.PrivateName(expected));
-  if (!String::Handle(clazz.Name()).Equals(expected_class_name)) {
-    return false;
+
+// Class that recognizes factories and returns corresponding result cid.
+class FactoryRecognizer : public AllStatic {
+ public:
+  // Return kDynamicCid if factory is not recognized.
+  static intptr_t ResultCid(const Function& factory) {
+    ASSERT(factory.IsFactory());
+    const Class& function_class = Class::Handle(factory.Owner());
+    const Library& lib = Library::Handle(function_class.library());
+    if (lib.raw() != Library::CoreLibrary()) {
+      // Only core library factories recognized.
+      return kDynamicCid;
+    }
+    const String& factory_name = String::Handle(factory.name());
+#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
+    if (String::EqualsIgnoringPrivateKey(                                      \
+        factory_name, Symbols::test_factory_symbol())) {                       \
+      ASSERT(factory.CheckSourceFingerprint(fp));                              \
+      return cid;                                                              \
+    }                                                                          \
+
+RECOGNIZED_FACTORY_LIST(RECOGNIZE_FACTORY);
+#undef RECOGNIZE_FACTORY
+
+    return kDynamicCid;
   }
-
-  const String& function_name = String::Handle(function.name());
-  const String& expected_function_name = String::Handle(
-      String::Concat(expected_class_name, Symbols::Dot()));
-  return function_name.Equals(expected_function_name);
-}
+};
 
 
 static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
@@ -2006,20 +2024,13 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     if ((function_class.Name() == Symbols::List().raw()) &&
         (function.name() == Symbols::ListFactory().raw())) {
+      // Special recognition of 'new List()' vs 'new List(n)'.
       if (node->arguments()->length() == 0) {
         return kGrowableObjectArrayCid;
       }
       return kArrayCid;
-    } else {
-      if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&
-          (node->arguments()->length() == 1)) {
-        return kArrayCid;
-      } else if (IsRecognizedConstructor(function,
-                                         Symbols::GrowableObjectArray()) &&
-                 (node->arguments()->length() == 0)) {
-        return kGrowableObjectArrayCid;
-      }
     }
+    return FactoryRecognizer::ResultCid(function);
   }
   return kDynamicCid;   // Result cid not known.
 }

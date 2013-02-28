@@ -49,13 +49,14 @@ void FlowGraphTypePropagator::Propagate() {
   // Collect all phis for a fixed point iteration.
   PropagateRecursive(flow_graph_->graph_entry());
 
-#ifdef DEBUG
   // Initially the worklist contains only phis.
+  // Reset compile type of all phis to None to ensure that
+  // types are correctly propagated through the cycles of
+  // phis.
   for (intptr_t i = 0; i < worklist_.length(); i++) {
     ASSERT(worklist_[i]->IsPhi());
-    ASSERT(worklist_[i]->Type()->IsNone());
+    *worklist_[i]->Type() = CompileType::None();
   }
-#endif
 
   // Iterate until a fixed point is reached, updating the types of
   // definitions.

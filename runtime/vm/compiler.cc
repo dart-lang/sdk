@@ -216,6 +216,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
+      // Propagate types and eliminate even more type tests.
+      if (FLAG_propagate_types) {
+        FlowGraphTypePropagator propagator(flow_graph);
+        propagator.Propagate();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      }
+
       // Unbox doubles. Performed after constant propagation to minimize
       // interference from phis merging double values and tagged
       // values comming from dead paths.

@@ -110,7 +110,10 @@ class ObjectPointerVisitor;
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(ObjectArray, "_ObjectArray")                                               \
+  V(ObjectArrayDot, "_ObjectArray.")                                           \
   V(GrowableObjectArray, "_GrowableObjectArray")                               \
+  V(GrowableObjectArrayDot, "_GrowableObjectArray.")                           \
+  V(GrowableObjectArrayWithData, "_GrowableObjectArray.withData")              \
   V(ImmutableArray, "_ImmutableArray")                                         \
   V(OneByteString, "_OneByteString")                                           \
   V(TwoByteString, "_TwoByteString")                                           \
