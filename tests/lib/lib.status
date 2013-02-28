@@ -18,9 +18,6 @@ async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/772
 async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
 
-[ $compiler == dart2js && $csp ]
-async/deferred/deferred_api_test: Fail, OK # Test cannot run under CSP restrictions.
-
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
