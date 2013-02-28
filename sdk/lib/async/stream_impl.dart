@@ -1186,7 +1186,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
 }
 
 class _SingleStreamMultiplexer<T> extends _MultiStreamImpl<T> {
-  final _SingleStreamImpl<T> _source;
+  final Stream<T> _source;
   StreamSubscription<T> _subscription;
 
   _SingleStreamMultiplexer(this._source);
