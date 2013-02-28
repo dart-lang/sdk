@@ -885,7 +885,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                                                         frame->fp(),
                                                         frame->sp(),
                                                         code);
-      if (get_saved_context) {
+      if (get_saved_context && !activation->code().is_optimized()) {
         ctx = activation->GetSavedContext();
       }
       activation->SetContext(ctx);

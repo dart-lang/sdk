@@ -7080,8 +7080,38 @@ void LocalVarDescriptors::GetInfo(intptr_t var_index,
 
 
 const char* LocalVarDescriptors::ToCString() const {
-  UNIMPLEMENTED();
-  return "LocalVarDescriptors";
+  intptr_t len = 1;  // Trailing '\0'.
+  const char* kFormat =
+      "%2"Pd" kind=%d scope=0x%04x begin=%"Pd" end=%"Pd" name=%s\n";
+  for (intptr_t i = 0; i < Length(); i++) {
+    String& var_name = String::Handle(GetName(i));
+    RawLocalVarDescriptors::VarInfo info;
+    GetInfo(i, &info);
+    len += OS::SNPrint(NULL, 0, kFormat,
+                       i,
+                       info.kind,
+                       info.scope_id,
+                       info.begin_pos,
+                       info.end_pos,
+                       var_name.ToCString());
+  }
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
+  intptr_t num_chars = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    String& var_name = String::Handle(GetName(i));
+    RawLocalVarDescriptors::VarInfo info;
+    GetInfo(i, &info);
+    num_chars += OS::SNPrint((buffer + num_chars),
+                             (len - num_chars),
+                             kFormat,
+                             i,
+                             info.kind,
+                             info.scope_id,
+                             info.begin_pos,
+                             info.end_pos,
+                             var_name.ToCString());
+  }
+  return buffer;
 }
 
 
