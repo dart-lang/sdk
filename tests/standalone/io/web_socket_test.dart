@@ -167,6 +167,7 @@ class SecurityConfiguration {
   void testDoubleCloseClient() {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
+        server.close();
         webSocket.listen((event) {
           if (event is CloseEvent) {
             webSocket.close();
@@ -189,6 +190,7 @@ class SecurityConfiguration {
   void testDoubleCloseServer() {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
+        server.close();
         webSocket.listen((event) {
           if (event is CloseEvent) {
             webSocket.close();

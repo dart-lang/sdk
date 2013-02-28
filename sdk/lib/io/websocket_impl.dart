@@ -562,7 +562,6 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
           _readyState = WebSocket.CLOSED;
           _controller.signalError(error);
           _controller.close();
-          _processor.closed();
           _socket.destroy();
         })
         .whenComplete(() {
