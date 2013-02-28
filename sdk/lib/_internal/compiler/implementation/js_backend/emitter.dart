@@ -246,7 +246,7 @@ class CodeEmitterTask extends CompilerTask {
         fun);
   }
 
-  jsAst.Fun get defineClassFunction {
+  List get defineClassFunction {
     // First the class name, then the field names in an array and the members
     // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -262,7 +262,7 @@ class CodeEmitterTask extends CompilerTask {
     // });
 
     // function(cls, fields, prototype) {
-    return js.fun(['cls', 'fields', 'prototype'], [
+    var defineClass = js.fun(['cls', 'fields', 'prototype'], [
       js['var constructor'],
 
       // if (typeof fields == "function") {
@@ -294,6 +294,13 @@ class CodeEmitterTask extends CompilerTask {
       // return constructor;
       js.return_('constructor')
     ]);
+    // Declare a function called "generateAccessor".  This is used in
+    // defineClassFunction (it's a local declaration in init()).
+    return [
+        generateAccessorFunction,
+        js['$generateAccessorHolder = generateAccessor'],
+        new jsAst.FunctionDeclaration(
+            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
   }
 
   /** Needs defineClass to be defined. */
@@ -584,17 +591,7 @@ class CodeEmitterTask extends CompilerTask {
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
     if (!needsDefineClass) return [];
-    return [
-      // Declare a function called "generateAccessor".  This is used in
-      // defineClassFunction (it's a local declaration in init()).
-      generateAccessorFunction,
-
-      js['$generateAccessorHolder = generateAccessor'],
-
-      // function defineClass ...
-      new jsAst.FunctionDeclaration(
-          new jsAst.VariableDeclaration('defineClass'), defineClassFunction)
-    ]
+    return defineClassFunction
     ..addAll(buildProtoSupportCheck())
     ..addAll([
       js[finishClassesName].assign(finishClassesFunction)
@@ -1224,7 +1221,7 @@ class CodeEmitterTask extends CompilerTask {
   void emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
                        { String superClass: "",
-                         bool classIsNative: false}) {
+                         bool classIsNative: false }) {
     bool isFirstField = true;
     StringBuffer buffer = new StringBuffer();
     if (!classIsNative) {

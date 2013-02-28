@@ -345,3 +345,11 @@ typed_arrays_1_test/supported: Fail # dartbug.com/8496: missing substitution on 
 
 [ $compiler == dart2js && $runtime == ff ]
 inner_frame_test: Skip # Timeout
+
+[ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome) ]
+indexeddb_2_test: Fail, OK             # Test cannot run under CSP restrictions.
+js_interop_1_test: Timeout, OK         # Test cannot run under CSP restrictions.
+js_interop_2_test: Fail, OK            # Test cannot run under CSP restrictions.
+js_interop_3_test: Timeout, OK         # Test cannot run under CSP restrictions.
+postmessage_structured_test: Fail, OK  # Test cannot run under CSP restrictions.
+shadow_dom_layout_test: Fail, OK       # Test cannot run under CSP restrictions.

@@ -30,8 +30,7 @@ part 'backend.dart';
 part 'constant_emitter.dart';
 part 'constant_system_javascript.dart';
 part 'emitter.dart';
-// TODO(8522): Restore --disallow-unsafe-eval.
-// part 'emitter_no_eval.dart';
+part 'emitter_no_eval.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';

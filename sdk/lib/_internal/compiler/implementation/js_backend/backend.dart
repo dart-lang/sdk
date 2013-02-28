@@ -738,8 +738,7 @@ class JavaScriptBackend extends Backend {
         interceptedClasses = new LinkedHashMap<ClassElement, ClassElement>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
-        // TODO(8522): Restore --disallow-unsafe-eval.
-        ? null // new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
+        ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
         : new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
