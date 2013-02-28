@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:utf';
 
 import 'package:unittest/unittest.dart';
+import '../../pathos/lib/path.dart' as path;
 import '../lib/http.dart' as http;
 import '../lib/src/utils.dart';
 
