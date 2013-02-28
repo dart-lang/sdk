@@ -20,7 +20,7 @@ import sys
 import bot
 
 DART2JS_BUILDER = (
-    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
+    r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(csp))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(\d+)-(\d+))?')
 
@@ -39,6 +39,7 @@ def GetBuildInfo(builder_name, is_buildbot):
   shard_index = None
   total_shards = None
   test_set = None
+  csp = None
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
   web_pattern = re.match(WEB_BUILDER, builder_name)
@@ -71,8 +72,10 @@ def GetBuildInfo(builder_name, is_buildbot):
       host_checked = True
     if dart2js_pattern.group(10) == 'minified':
       minified = True
-    shard_index = dart2js_pattern.group(11)
-    total_shards = dart2js_pattern.group(12)
+    if dart2js_pattern.group(12) == 'csp':
+      csp = True
+    shard_index = dart2js_pattern.group(13)
+    total_shards = dart2js_pattern.group(14)
   else :
     return None
 
@@ -91,7 +94,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     return None
   return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                        minified, shard_index, total_shards, is_buildbot,
-                       test_set)
+                       test_set, csp)
 
 
 def NeedsXterm(compiler, runtime):
@@ -293,6 +296,8 @@ def RunCompilerTests(build_info):
   if build_info.host_checked: test_flags += ['--host-checked']
 
   if build_info.minified: test_flags += ['--minified']
+
+  if build_info.csp: test_flags += ['--csp']
 
   TestCompiler(build_info.runtime, build_info.mode, build_info.system,
                list(test_flags), build_info.is_buildbot, build_info.test_set)

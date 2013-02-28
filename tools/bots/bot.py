@@ -42,7 +42,8 @@ class BuildInfo(object):
   """
   def __init__(self, compiler, runtime, mode, system, checked=False,
                host_checked=False, minified=False, shard_index=None,
-               total_shards=None, is_buildbot=False, test_set=None):
+               total_shards=None, is_buildbot=False, test_set=None,
+               csp=None):
     self.compiler = compiler
     self.runtime = runtime
     self.mode = mode
@@ -54,6 +55,7 @@ class BuildInfo(object):
     self.total_shards = total_shards
     self.is_buildbot = is_buildbot
     self.test_set = test_set
+    self.csp = csp
 
   def PrintBuildInfo(self):
     shard_description = ""
