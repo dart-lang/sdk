@@ -204,18 +204,24 @@ void main() {
         '''));
   });
 
-  test('with a file from disk', () {
-    var tempDir = new Directory('').createTempSync();
+  group('in a temp directory', () {
+    var tempDir;
+    setUp(() {
+      tempDir = new Directory('').createTempSync();
+    });
 
-    expect(new Future.of(() {
-      var filePath = path.join(tempDir.path, 'test-file');
-      new File(filePath).writeAsStringSync('hello');
-      return http.MultipartFile.fromPath('file', filePath);
-    }).then((file) {
-      var request = new http.MultipartRequest('POST', dummyUrl);
-      request.files.add(file);
+    tearDown(() => tempDir.deleteSync(recursive: true));
 
-      expect(request, bodyMatches('''
+    test('with a file from disk', () {
+      expect(new Future.of(() {
+        var filePath = path.join(tempDir.path, 'test-file');
+        new File(filePath).writeAsStringSync('hello');
+        return http.MultipartFile.fromPath('file', filePath);
+      }).then((file) {
+        var request = new http.MultipartRequest('POST', dummyUrl);
+        request.files.add(file);
+
+        expect(request, bodyMatches('''
         --{{boundary}}
         content-type: application/octet-stream
         content-disposition: form-data; name="file"; filename="test-file"
@@ -223,6 +229,7 @@ void main() {
         hello
         --{{boundary}}--
         '''));
-    }).whenComplete(() => tempDir.delete(recursive: true)), completes);
+      }), completes);
+    });
   });
 }
