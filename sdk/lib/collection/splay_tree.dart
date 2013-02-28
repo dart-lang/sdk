@@ -5,40 +5,48 @@
 part of dart.collection;
 
 /**
- * A node in a splay tree. It holds the key, the value and the left
+ * A node in a splay tree. It holds the sorting key and the left
  * and right children in the tree.
  */
-class SplayTreeNode<K, V> {
+class _SplayTreeNode<K> {
   final K key;
-  V value;
-  SplayTreeNode<K, V> left;
-  SplayTreeNode<K, V> right;
+  _SplayTreeNode<K> left;
+  _SplayTreeNode<K> right;
 
-  SplayTreeNode(K this.key, V this.value);
+  _SplayTreeNode(K this.key);
 }
 
 /**
- * A splay tree is a self-balancing binary
- * search tree with the additional property that recently accessed
- * elements are quick to access again. It performs basic operations
- * such as insertion, look-up and removal in O(log(n)) amortized time.
+ * A node in a splay tree based map.
  *
- * This implementation is a Dart version of the JavaScript
- * implementation in the V8 project.
+ * A [_SplayTreeNode] that also contains a value
  */
-class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
+class _SplayTreeMapNode<K, V> extends _SplayTreeNode<K> {
+  V value;
+  _SplayTreeMapNode(K key, V this.value) : super(key);
+}
 
+/**
+ * A splay tree is a self-balancing binary search tree.
+ *
+ * It has the additional property that recently accessed elements
+ * are quick to access again.
+ * It performs basic operations such as insertion, look-up and
+ * removal, in O(log(n)) amortized time.
+ */
+abstract class _SplayTree<K> {
   // The root node of the splay tree. It will contain either the last
   // element inserted, or the last element looked up.
-  SplayTreeNode<K, V> _root;
+  _SplayTreeNode<K> _root;
 
   // The dummy node used when performing a splay on the tree. It is a
   // local field of the class to avoid allocating a node each time a
   // splay is performed.
-  SplayTreeNode<K, V> _dummy;
+  // TODO(lrn); Should it be a getter backed by a static instead?
+  _SplayTreeNode<K> _dummy = new _SplayTreeNode<K>(null);
 
   // Number of elements in the splay tree.
-  int _count;
+  int _count = 0;
 
   /**
    * Counter incremented whenever the keys in the map changes.
@@ -46,6 +54,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
    * Used to detect concurrent modifications.
    */
   int _modificationCount = 0;
+
   /**
    * Counter incremented whenever the tree structure changes.
    *
@@ -54,9 +63,8 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
    */
   int _splayCount = 0;
 
-  SplayTreeMap() :
-    _dummy = new SplayTreeNode<K, V>(null, null),
-    _count = 0;
+  /** Comparison used to compare keys. */
+  int _compare(K key1, K key2);
 
   /**
    * Perform the splay operation for the given key. Moves the node with
@@ -75,9 +83,9 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
     // the L tree of the algorithm.  The left child of the dummy node
     // will hold the R tree of the algorithm.  Using a dummy node, left
     // and right will always be nodes and we avoid special cases.
-    SplayTreeNode<K, V> left = _dummy;
-    SplayTreeNode<K, V> right = _dummy;
-    SplayTreeNode<K, V> current = _root;
+    _SplayTreeNode<K> left = _dummy;
+    _SplayTreeNode<K> right = _dummy;
+    _SplayTreeNode<K> current = _root;
     int comp;
     while (true) {
       comp = current.key.compareTo(key);
@@ -86,7 +94,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
         comp = current.left.key.compareTo(key);
         if (comp > 0) {
           // Rotate right.
-          SplayTreeNode<K, V> tmp = current.left;
+          _SplayTreeNode<K> tmp = current.left;
           current.left = tmp.right;
           tmp.right = current;
           current = tmp;
@@ -101,7 +109,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
         comp = current.right.key.compareTo(key);
         if (comp < 0) {
           // Rotate left.
-          SplayTreeNode<K, V> tmp = current.right;
+          _SplayTreeNode<K> tmp = current.right;
           current.right = tmp.left;
           tmp.left = current;
           current = tmp;
@@ -128,26 +136,17 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
     return comp;
   }
 
-  V operator [](K key) {
-    if (_root != null) {
-      int comp = _splay(key);
-      if (comp == 0) return _root.value;
-    }
-    return null;
-  }
-
-  V remove(K key) {
+  _SplayTreeNode _remove(K key) {
     if (_root == null) return null;
     int comp = _splay(key);
     if (comp != 0) return null;
-    V value = _root.value;
-
+    _SplayTreeNode result = _root;
     _count--;
     // assert(_count >= 0);
     if (_root.left == null) {
       _root = _root.right;
     } else {
-      SplayTreeNode<K, V> right = _root.right;
+      _SplayTreeNode<K> right = _root.right;
       _root = _root.left;
       // Splay to make sure that the new root has an empty right child.
       _splay(key);
@@ -156,24 +155,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
       _root.right = right;
     }
     _modificationCount++;
-    return value;
-  }
-
-  void operator []=(K key, V value) {
-    if (_root == null) {
-      _count++;
-      _root = new SplayTreeNode(key, value);
-      _modificationCount++;
-      return;
-    }
-    // Splay on the key to move the last node on the search path for
-    // the key to the root of the tree.
-    int comp = _splay(key);
-    if (comp == 0) {
-      _root.value = value;
-      return;
-    }
-    _addNewRoot(key, value, comp);
+    return result;
   }
 
   /**
@@ -182,10 +164,14 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
    * The [comp] value is the result of comparing the existing root's key
    * with key.
    */
-  void _addNewRoot(K key, V value, int comp) {
-    SplayTreeNode<K, V> node = new SplayTreeNode(key, value);
-    // assert(_count >= 0);
+  void _addNewRoot(_SplayTreeNode<K> node, int comp) {
     _count++;
+    _modificationCount++;
+    if (_root == null) {
+      _root = node;
+      return;
+    }
+    // assert(_count >= 0);
     if (comp < 0) {
       node.left = _root;
       node.right = _root.right;
@@ -196,20 +182,87 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
       _root.left = null;
     }
     _root = node;
-    _modificationCount++;
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
-    if (_root == null) {
-      V value = ifAbsent();
-      if (_root != null) {
-        throw new ConcurrentModificationError(this);
-      }
-      _root = new SplayTreeNode(key, value);
-      _count++;
-      _modificationCount++;
-      return value;
+  _SplayTreeNode get _first {
+    if (_root == null) return null;
+    _SplayTreeNode<K> node = _root;
+    while (node.left != null) {
+      node = node.left;
     }
+    // Maybe implement a splay-method that can splay the minimum without
+    // performing comparisons.
+    _splay(node.key);
+    return node;
+  }
+
+  _SplayTreeNode get _last {
+    if (_root == null) return null;
+    _SplayTreeNode<K> node = _root;
+    while (node.right != null) {
+      node = node.right;
+    }
+    // Maybe implement a splay-method that can splay the minimum without
+    // performing comparisons.
+    _splay(node.key);
+    return node;
+  }
+
+  void _clear() {
+    _root = null;
+    _count = 0;
+    _modificationCount++;
+  }
+}
+
+/*
+ * A [Map] of objects that can be ordered relative to each other.
+ *
+ * The map is based on a self-balancing binary tree. It allows most operations
+ * in amortized logarithmic time.
+ *
+ * Keys of the map are compared using the `compare` function passed in
+ * the constructor. If that is omitted, the objects are assumed to be
+ * [Comparable], and are compared using their [Comparable.compareTo]
+ * method.
+ */
+class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
+  Comparator<K> _comparator;
+
+  SplayTreeMap([int compare(K key1, K key2)])
+      : _comparator = (compare == null) ? Comparable.compare : compare;
+
+  int _compare(K key1, K key2) => _comparator(key1, key2);
+
+  SplayTreeMap._internal();
+
+  V operator [](K key) {
+    if (_root != null) {
+      int comp = _splay(key);
+      if (comp == 0) return _root.value;
+    }
+    return null;
+  }
+
+  V remove(K key) {
+    _SplayTreeMapNode root = _remove(key);
+    if (root != null) return root.value;
+    return null;
+  }
+
+  void operator []=(K key, V value) {
+    // Splay on the key to move the last node on the search path for
+    // the key to the root of the tree.
+    int comp = _splay(key);
+    if (comp == 0) {
+      _root.value = value;
+      return;
+    }
+    _addNewRoot(new _SplayTreeMapNode(key, value), comp);
+  }
+
+
+  V putIfAbsent(K key, V ifAbsent()) {
     int comp = _splay(key);
     if (comp == 0) return _root.value;
     int modificationCount = _modificationCount;
@@ -223,7 +276,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
       // Key is still not there, otherwise _modificationCount would be changed.
       assert(comp != 0);
     }
-    _addNewRoot(key, value, comp);
+    _addNewRoot(new _SplayTreeMapNode(key, value), comp);
     return value;
   }
 
@@ -234,10 +287,10 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
   }
 
   void forEach(void f(K key, V value)) {
-    Iterator<SplayTreeNode<K, V>> nodes =
-        new _SplayTreeNodeIterator<K, V>(this);
+    Iterator<_SplayTreeNode<K>> nodes =
+        new _SplayTreeNodeIterator<K>(this);
     while (nodes.moveNext()) {
-      SplayTreeNode<K, V> node = nodes.current;
+      _SplayTreeMapNode<K, V> node = nodes.current;
       f(node.key, node.value);
     }
   }
@@ -247,8 +300,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
   }
 
   void clear() {
-    _root = null;
-    _count = 0;
+    _clear();
   }
 
   bool containsKey(K key) {
@@ -257,7 +309,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
 
   bool containsValue(V value) {
     bool found = false;
-    bool visit(SplayTreeNode node) {
+    bool visit(_SplayTreeNode node) {
       if (node == null) return false;
       if (node.value == value) return true;
       // TODO(lrn): Do we want to handle the case where node.value.operator==
@@ -267,9 +319,9 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
     return visit(_root);
   }
 
-  Iterable<K> get keys => new _SplayTreeKeyIterable(this);
+  Iterable<K> get keys => new _SplayTreeKeyIterable<K>(this);
 
-  Iterable<V> get values => new _SplayTreeValueIterable(this);
+  Iterable<V> get values => new _SplayTreeValueIterable<K, V>(this);
 
   String toString() {
     return Maps.mapToString(this);
@@ -279,30 +331,16 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
    * Get the first key in the map. Returns [null] if the map is empty.
    */
   K firstKey() {
-    if (_root == null) return null;
-    SplayTreeNode<K, V> node = _root;
-    while (node.left != null) {
-      node = node.left;
-    }
-    // Maybe implement a splay-method that can splay the minimum without
-    // performing comparisons.
-    _splay(node.key);
-    return node.key;
+    _SplayTreeNode node = _first;
+    return (node == null) ? null : node.key;
   }
 
   /**
    * Get the last key in the map. Returns [null] if the map is empty.
    */
   K lastKey() {
-    if (_root == null) return null;
-    SplayTreeNode<K, V> node = _root;
-    while (node.right != null) {
-      node = node.right;
-    }
-    // Maybe implement a splay-method that can splay the maximum without
-    // performing comparisons.
-    _splay(node.key);
-    return node.key;
+    _SplayTreeNode node = _last;
+    return (node == null) ? null : node.key;
   }
 
   /**
@@ -313,7 +351,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
     if (_root == null) return null;
     int comp = _splay(key);
     if (comp < 0) return _root.key;
-    SplayTreeNode<K, V> node = _root.left;
+    _SplayTreeNode<K> node = _root.left;
     if (node == null) return null;
     while (node.right != null) {
       node = node.right;
@@ -329,7 +367,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
     if (_root == null) return null;
     int comp = _splay(key);
     if (comp > 0) return _root.key;
-    SplayTreeNode<K, V> node = _root.right;
+    _SplayTreeNode<K> node = _root.right;
     if (node == null) return null;
     while (node.left != null) {
       node = node.left;
@@ -339,7 +377,7 @@ class SplayTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
 }
 
 abstract class _SplayTreeIterator<T> implements Iterator<T> {
-  final SplayTreeMap _map;
+  final _SplayTree _tree;
   /**
    * Worklist of nodes to visit.
    *
@@ -348,33 +386,33 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
    * and their right subtrees will visit the remainder of
    * the nodes of a full traversal.
    *
-   * Only valid as long as the original tree map isn't reordered.
+   * Only valid as long as the original tree isn't reordered.
    */
-  final List<SplayTreeNode> _workList = <SplayTreeNode>[];
+  final List<_SplayTreeNode> _workList = <_SplayTreeNode>[];
 
   /**
-   * Original modification counter of [_map].
+   * Original modification counter of [_tree].
    *
-   * Incremented on [_map] when a key is added or removed.
+   * Incremented on [_tree] when a key is added or removed.
    * If it changes, iteration is aborted.
    */
   final int _modificationCount;
 
   /**
-   * Count of splay operations on [_map] when [_workList] was built.
+   * Count of splay operations on [_tree] when [_workList] was built.
    *
-   * If the splay count on [_map] increases, [_workList] becomes invalid.
+   * If the splay count on [_tree] increases, [_workList] becomes invalid.
    */
   int _splayCount;
 
   /** Current node. */
-  SplayTreeNode _currentNode;
+  _SplayTreeNode _currentNode;
 
-  _SplayTreeIterator(SplayTreeMap map)
-      : _map = map,
-        _modificationCount = map._modificationCount,
-        _splayCount = map._splayCount {
-    _findLeftMostDescendent(map._root);
+  _SplayTreeIterator(_SplayTree tree)
+      : _tree = tree,
+        _modificationCount = tree._modificationCount,
+        _splayCount = tree._splayCount {
+    _findLeftMostDescendent(tree._root);
   }
 
   T get current {
@@ -382,7 +420,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
     return _getValue(_currentNode);
   }
 
-  void _findLeftMostDescendent(SplayTreeNode node) {
+  void _findLeftMostDescendent(_SplayTreeNode node) {
     while (node != null) {
       _workList.add(node);
       node = node.left;
@@ -390,28 +428,28 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
   }
 
   /**
-   * Called when the tree structure of the map has changed.
+   * Called when the tree structure of the tree has changed.
    *
    * This can be caused by a splay operation.
    * If the key-set changes, iteration is aborted before getting
    * here, so we know that the keys are the same as before, it's
    * only the tree that has been reordered.
    */
-  void _rebuildWorkList(SplayTreeNode currentNode) {
+  void _rebuildWorkList(_SplayTreeNode currentNode) {
     assert(!_workList.isEmpty);
     _workList.clear();
     if (currentNode == null) {
-      _findLeftMostDescendent(_map._root);
+      _findLeftMostDescendent(_tree._root);
     } else {
-      _map._splay(currentNode.key);
-      _findLeftMostDescendent(_map._root.right);
+      _tree._splay(currentNode.key);
+      _findLeftMostDescendent(_tree._root.right);
       assert(!_workList.isEmpty);
     }
   }
 
   bool moveNext() {
-    if (_modificationCount != _map._modificationCount) {
-      throw new ConcurrentModificationError(_map);
+    if (_modificationCount != _tree._modificationCount) {
+      throw new ConcurrentModificationError(_tree);
     }
     // Picks the next element in the worklist as current.
     // Updates the worklist with the left-most path of the current node's
@@ -422,7 +460,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
       _currentNode = null;
       return false;
     }
-    if (_map._splayCount != _splayCount) {
+    if (_tree._splayCount != _splayCount) {
       _rebuildWorkList(_currentNode);
     }
     _currentNode = _workList.removeLast();
@@ -430,34 +468,33 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
     return true;
   }
 
-  T _getValue(SplayTreeNode node);
+  T _getValue(_SplayTreeNode node);
 }
 
-
-class _SplayTreeKeyIterable<K, V> extends Iterable<K> {
-  SplayTreeMap<K, V> _map;
-  _SplayTreeKeyIterable(this._map);
-  Iterator<K> get iterator => new _SplayTreeKeyIterator<K, V>(_map);
+class _SplayTreeKeyIterable<K> extends Iterable<K> {
+  _SplayTree<K> _tree;
+  _SplayTreeKeyIterable(this._tree);
+  Iterator<K> get iterator => new _SplayTreeKeyIterator<K>(_tree);
 }
 
 class _SplayTreeValueIterable<K, V> extends Iterable<V> {
   SplayTreeMap<K, V> _map;
-  _SplayTreeValueIterable(this._map) ;
+  _SplayTreeValueIterable(this._map);
   Iterator<V> get iterator => new _SplayTreeValueIterator<K, V>(_map);
 }
 
-class _SplayTreeKeyIterator<K, V> extends _SplayTreeIterator<K> {
-  _SplayTreeKeyIterator(SplayTreeMap<K, V> map): super(map);
-  K _getValue(SplayTreeNode node) => node.key;
+class _SplayTreeKeyIterator<K> extends _SplayTreeIterator<K> {
+  _SplayTreeKeyIterator(_SplayTree<K> map): super(map);
+  K _getValue(_SplayTreeNode node) => node.key;
 }
 
 class _SplayTreeValueIterator<K, V> extends _SplayTreeIterator<V> {
   _SplayTreeValueIterator(SplayTreeMap<K, V> map): super(map);
-  V _getValue(SplayTreeNode node) => node.value;
+  V _getValue(_SplayTreeMapNode node) => node.value;
 }
 
-class _SplayTreeNodeIterator<K, V>
-    extends _SplayTreeIterator<SplayTreeNode<K, V>> {
-  _SplayTreeNodeIterator(SplayTreeMap<K, V> map): super(map);
-  SplayTreeNode<K, V> _getValue(SplayTreeNode node) => node;
+class _SplayTreeNodeIterator<K>
+    extends _SplayTreeIterator<_SplayTreeNode<K>> {
+  _SplayTreeNodeIterator(_SplayTree<K> map): super(map);
+  _SplayTreeNode<K> _getValue(_SplayTreeNode node) => node;
 }
