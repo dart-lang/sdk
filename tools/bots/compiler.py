@@ -50,7 +50,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     system = web_pattern.group(2)
     mode = 'release'
     test_set = web_pattern.group(4)
-    if dart2js_pattern.group(6) == 'csp':
+    if web_pattern.group(6) == 'csp':
       csp = True
     shard_index = web_pattern.group(8)
     total_shards = web_pattern.group(9)
