@@ -1681,7 +1681,10 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     node->ElementAt(i)->Visit(&for_value);
     Append(for_value);
     // No store barrier needed for constants.
-    const bool emit_store_barrier = !for_value.value()->BindsToConstant();
+    const StoreBarrierType emit_store_barrier =
+        for_value.value()->BindsToConstant()
+            ? kNoStoreBarrier
+            : kEmitStoreBarrier;
     StoreIndexedInstr* store = new StoreIndexedInstr(
         array, index, for_value.value(),
         emit_store_barrier, class_id, deopt_id);
@@ -2564,7 +2567,6 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        type,
                                        dst_name);
   }
-  const bool kEmitStoreBarrier = true;
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       node->field(), for_instance.value(), store_value, kEmitStoreBarrier);
   ReturnDefinition(store);

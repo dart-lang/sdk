@@ -882,10 +882,15 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
   }
 
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
-  // Check if store barrier is needed.
-  bool needs_store_barrier = !RawObject::IsByteArrayClassId(array_cid);
+  // Check if store barrier is needed. Byte arrays don't need a store barrier.
+  StoreBarrierType needs_store_barrier =
+      RawObject::IsByteArrayClassId(array_cid)
+          ? kNoStoreBarrier
+          : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
-    needs_store_barrier = false;
+    // No store barrier needed because checked value is a smi, an unboxed mint
+    // or unboxed double.
+    needs_store_barrier = kNoStoreBarrier;
     AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
                   call);
   }
@@ -1892,14 +1897,14 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   if (InstanceCallNeedsClassCheck(instr)) {
     AddReceiverCheck(instr);
   }
-  bool needs_store_barrier = true;
+  StoreBarrierType needs_store_barrier = kEmitStoreBarrier;
   if (ArgIsAlwaysSmi(*instr->ic_data(), 1)) {
     InsertBefore(instr,
                  new CheckSmiInstr(new Value(instr->ArgumentAt(1)),
                                    instr->deopt_id()),
                  instr->env(),
                  Definition::kEffect);
-    needs_store_barrier = false;
+    needs_store_barrier = kNoStoreBarrier;
   }
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       field,

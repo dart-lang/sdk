@@ -2732,12 +2732,18 @@ class NativeCallInstr : public TemplateDefinition<0> {
 };
 
 
+enum StoreBarrierType {
+  kNoStoreBarrier,
+  kEmitStoreBarrier
+};
+
+
 class StoreInstanceFieldInstr : public TemplateDefinition<2> {
  public:
   StoreInstanceFieldInstr(const Field& field,
                           Value* instance,
                           Value* value,
-                          bool emit_store_barrier)
+                          StoreBarrierType emit_store_barrier)
       : field_(field), emit_store_barrier_(emit_store_barrier) {
     SetInputAt(0, instance);
     SetInputAt(1, value);
@@ -2751,7 +2757,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
   bool ShouldEmitStoreBarrier() const {
-    return value()->NeedsStoreBuffer() && emit_store_barrier_;
+    return value()->NeedsStoreBuffer()
+        && (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2762,7 +2769,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
  private:
   const Field& field_;
-  const bool emit_store_barrier_;
+  const StoreBarrierType emit_store_barrier_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -2898,7 +2905,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   StoreIndexedInstr(Value* array,
                     Value* index,
                     Value* value,
-                    bool emit_store_barrier,
+                    StoreBarrierType emit_store_barrier,
                     intptr_t class_id,
                     intptr_t deopt_id)
       : emit_store_barrier_(emit_store_barrier),
@@ -2917,7 +2924,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   intptr_t class_id() const { return class_id_; }
 
   bool ShouldEmitStoreBarrier() const {
-    return value()->NeedsStoreBuffer() && emit_store_barrier_;
+    return value()->NeedsStoreBuffer()
+        && (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
   virtual bool CanDeoptimize() const { return false; }
@@ -2933,7 +2941,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   }
 
  private:
-  const bool emit_store_barrier_;
+  const StoreBarrierType emit_store_barrier_;
   const intptr_t class_id_;
   const intptr_t deopt_id_;
 
