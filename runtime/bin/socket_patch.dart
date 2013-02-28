@@ -902,11 +902,11 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void _consumerDone([error]) {
+    _done(error);
     if (_raw != null) {
       _raw.shutdown(SocketDirection.SEND);
       _disableWriteEvent();
     }
-    _done(error);
   }
 }
 
