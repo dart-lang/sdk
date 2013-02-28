@@ -375,6 +375,7 @@ abstract class Compiler implements DiagnosticListener {
       closureNamer = jsBackend.namer;
       backend = jsBackend;
     } else {
+      closureNamer = new closureMapping.ClosureNamer();
       backend = new dart_backend.DartBackend(this, strips);
     }
 

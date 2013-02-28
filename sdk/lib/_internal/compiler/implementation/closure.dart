@@ -12,8 +12,10 @@ import "tree/tree.dart";
 import "util/util.dart";
 import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
 
-abstract class ClosureNamer {
-  SourceString getClosureVariableName(SourceString name, int id);
+class ClosureNamer {
+  SourceString getClosureVariableName(SourceString name, int id) {
+    return new SourceString("${name.slowToString()}_$id");    
+  }
 }
 
 
@@ -190,6 +192,20 @@ class ClosureClassMap {
         this.parametersWithSentinel = new Map<Element, Element>();
 
   bool isClosure() => closureElement != null;
+
+  bool captures(Element element) => freeVariableMapping.containsKey(element);
+
+  bool mutates(Element element) {
+    Element copy = freeVariableMapping[element];
+    return copy != null && !copy.isMember();
+  }
+
+  void forEachCapturedVariable(void f(Element element)) {
+    freeVariableMapping.forEach((variable, _) {
+      if (variable is BoxElement) return;
+      f(variable);
+    });
+  }
 }
 
 class ClosureTranslator extends Visitor {

@@ -56,6 +56,7 @@ const String DEFAULT_HELPERLIB = r'''
   class Dynamic_ {}
   class LinkedHashMap {}
   S() {}
+  unwrapException(e) {}
   assertHelper(a){}
   createRuntimeType(a) {}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}

@@ -4,6 +4,7 @@
 
 library simple_types_inferrer;
 
+import '../closure.dart' show ClosureClassMap;
 import '../native_handler.dart' as native;
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
@@ -384,6 +385,13 @@ class SimpleTypesInferrer extends TypesInferrer {
     return result;
   }
 
+  bool isNotClosure(Element element) {
+    // If the outermost enclosing element of [element] is [element]
+    // itself, we know it cannot be a closure.
+    Element outermost = element.getOutermostEnclosingMemberOrTopLevel();
+    return outermost.declaration == element.declaration;
+  }
+
   /**
    * Registers that [caller] calls [callee] with the given
    * [arguments].
@@ -391,6 +399,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   void registerCalledElement(Element caller,
                              Element callee,
                              ArgumentsTypes arguments) {
+    assert(isNotClosure(caller));
     if (analyzeCount.containsKey(caller)) return;
     callee = callee.implementation;
     Set<Element> callers = callersOf.putIfAbsent(
@@ -404,6 +413,7 @@ class SimpleTypesInferrer extends TypesInferrer {
    */
   void registerGetterOnElement(Element caller,
                                Element callee) {
+    assert(isNotClosure(caller));
     if (analyzeCount.containsKey(caller)) return;
     callee = callee.implementation;
     Set<Element> callers = callersOf.putIfAbsent(
@@ -418,6 +428,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   void registerCalledSelector(Element caller,
                               Selector selector,
                               ArgumentsTypes arguments) {
+    assert(isNotClosure(caller));
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
@@ -433,6 +444,7 @@ class SimpleTypesInferrer extends TypesInferrer {
    * through a property access.
    */
   void registerGetterOnSelector(Element caller, Selector selector) {
+    assert(isNotClosure(caller));
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
@@ -447,6 +459,7 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Registers that [caller] closurizes [function].
    */
   void registerGetFunction(Element caller, Element function) {
+    assert(isNotClosure(caller));
     assert(caller.isImplementation);
     if (analyzeCount.containsKey(caller)) return;
     // We don't register that [caller] calls [function] because we
@@ -553,19 +566,114 @@ class ArgumentsTypes {
   toString() => "{ positional = $positional, named = $named }";
 }
 
+/**
+ * Placeholder for inferred types of local variables.
+ */
+class LocalsHandler {
+  final SimpleTypesInferrer inferrer;
+  final Map<Element, Element> locals;
+  final Set<Element> captured;
+  final bool inTryBlock;
+
+  LocalsHandler(this.inferrer)
+      : locals = new Map<Element, Element>(),
+        captured = new Set<Element>(),
+        inTryBlock = false;
+  LocalsHandler.from(LocalsHandler other, {bool inTryBlock: false})
+      : locals = new Map<Element, Element>.from(other.locals),
+        captured = new Set<Element>.from(other.captured),
+        inTryBlock = other.inTryBlock || inTryBlock,
+        inferrer = other.inferrer;
+
+  Element use(Element local) {
+    return locals[local];
+  }
+
+  void update(Element local, Element type) {
+    assert(type != null);
+    if (captured.contains(local) || inTryBlock) {
+      // If a local is captured or is set in a try block, we compute the
+      // LUB of its assignments. We don't know if an assignment in a try block
+      // will be executed, so all assigments in a try block are
+      // potential types after we have left the try block.
+      type = inferrer.computeLUB(locals[local], type);
+      if (type == inferrer.giveUpType) type = inferrer.compiler.dynamicClass;
+    }
+    locals[local] = type;
+  }
+
+  void setCaptured(Element local) {
+    captured.add(local);
+  }
+
+  /**
+   * Merge handlers [first] and [second] into [:this:] and returns
+   * whether the merge changed one of the variables types in [first].
+   */
+  bool merge(LocalsHandler other) {
+    bool changed = false;
+    List<Element> toRemove = <Element>[];
+    // Iterating over a map and just updating its entries is OK.
+    locals.forEach((local, oldType) {
+      Element otherType = other.locals[local];
+      if (otherType == null) {
+        // If [local] is not in the other map, we know it is not a
+        // local we want to keep. For example, in an if/else, we don't
+        // want to keep variables declared in the if or in the else
+        // branch at the merge point.
+        toRemove.add(local);
+        return;
+      }
+      var type = inferrer.computeLUB(oldType, otherType);
+      if (type == inferrer.giveUpType) type = inferrer.compiler.dynamicClass;
+      if (type != oldType) changed = true;
+      locals[local] = type;
+    });
+
+    // Remove locals that will not be used anymore.
+    toRemove.forEach((Element element) {
+      locals.remove(element);
+    });
+
+    // Update the locals that are captured.
+    other.captured.forEach((Element element) {
+      if (locals.containsKey(element)) {
+        captured.add(element);
+      }
+    });
+    return changed;
+  }
+}
+
 class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   final Element analyzedElement;
+  final Element outermostElement;
   final SimpleTypesInferrer inferrer;
   final Compiler compiler;
+  LocalsHandler locals;
   Element returnType;
 
-  SimpleTypeInferrerVisitor(Element element,
-                            Compiler compiler,
-                            this.inferrer)
-    : super(compiler.enqueuer.resolution.resolvedElements[element.declaration]),
-      analyzedElement = element,
-      compiler = compiler {
+  SimpleTypeInferrerVisitor.internal(TreeElements mapping,
+                                     this.analyzedElement,
+                                     this.outermostElement,
+                                     this.inferrer,
+                                     this.compiler,
+                                     this.locals)
+    : super(mapping);
+
+  factory SimpleTypeInferrerVisitor(Element element,
+                                    Compiler compiler,
+                                    SimpleTypesInferrer inferrer,
+                                    [LocalsHandler handler]) {
+    Element outermostElement =
+        element.getOutermostEnclosingMemberOrTopLevel().implementation;
+    TreeElements elements = compiler.enqueuer.resolution.resolvedElements[
+        outermostElement.declaration];
     assert(elements != null);
+    assert(outermostElement != null);
+    handler = handler != null ? handler : new LocalsHandler(inferrer);
+    return new SimpleTypeInferrerVisitor.internal(
+        elements, element, outermostElement, inferrer, compiler, handler);
   }
 
   Element run() {
@@ -576,12 +684,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       FunctionElement function = analyzedElement;
       FunctionSignature signature = function.computeSignature(compiler);
       signature.forEachParameter((element) {
+        // We don't track argument types yet, so just set the fields
+        // and parameters as dynamic.
         if (element.kind == ElementKind.FIELD_PARAMETER
             && element.modifiers.isFinal()) {
-          // We don't track argument types yet, so just set the field
-          // as dynamic.
           inferrer.recordFinalFieldType(
               analyzedElement, element.fieldElement, compiler.dynamicClass);
+        } else {
+          locals.update(element, compiler.dynamicClass);
         }
       });
       visit(node.initializers);
@@ -593,6 +703,13 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       // they return dynamic.
       returnType = compiler.dynamicClass;
     } else {
+      FunctionElement function = analyzedElement;
+      FunctionSignature signature = function.computeSignature(compiler);
+      signature.forEachParameter((element) {
+        // We don't track argument types yet, so just set the
+        // parameters as dynamic.
+        locals.update(element, compiler.dynamicClass);
+      });
       visit(node.body);
       if (returnType == null) {
         // No return in the body.
@@ -620,14 +737,36 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
+    // Fetch the closure data of [node] and mark all locals that are
+    // captured by [node] to be captured in the locals handler.
+    compiler.closureToClassMapper.computeClosureToClassMapping(
+        outermostElement, outermostElement.parseNode(compiler), elements);
+    ClosureClassMap nestedClosureData =
+        compiler.closureToClassMapper.getMappingForNestedFunction(node);
+
+    nestedClosureData.forEachCapturedVariable((variable) {
+      locals.setCaptured(variable);
+    });
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
-    SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(elements[node], compiler, inferrer);
+    LocalsHandler closureLocals = new LocalsHandler.from(locals);
+    SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor(
+        elements[node], compiler, inferrer, closureLocals);
     visitor.run();
+    // Do not register the runtime type, because the analysis may be
+    // invalidated due to updates on locals.
+    // TODO(ngeoffray): Track return types of closures.
+    // The closure may have updated the type of locals.
+    locals.merge(closureLocals);
     return compiler.functionClass;
   }
+
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    locals.update(elements[node], compiler.functionClass);
+    return visit(node.function);
+  }
+
 
   visitLiteralString(LiteralString node) {
     return compiler.stringClass;
@@ -696,16 +835,20 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
         return compiler.dynamicClass;
       }
     } else if (const SourceString("=") == op.source) {
-      // [: foo = 42 :]
-      visit(node.receiver);
+      // [: foo = 42 :] or [: foo.bar = 42 :].
+      if (element == null) {
+        visit(node.receiver);
+      }
       Link<Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       Element type = link.head.accept(this);
 
-      if (!Elements.isUnresolved(element)
-          && element.isField()
-          && element.modifiers.isFinal()) {
-        inferrer.recordFinalFieldType(analyzedElement, element, type);
+      if (!Elements.isUnresolved(element)) {
+        if (element.isField() && element.modifiers.isFinal()) {
+          inferrer.recordFinalFieldType(outermostElement, element, type);
+        } else if (element.isVariable()) {
+          locals.update(element, type);
+        }
       }
       return type;
     } else {
@@ -733,11 +876,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     }
     Selector selector = elements.getSelector(node);
     if (node.isPropertyAccess) {
-      inferrer.registerGetterOnElement(analyzedElement, element);
+      inferrer.registerGetterOnElement(outermostElement, element);
       return inferrer.returnTypeOfElement(element);
     } else if (element.isFunction()) {
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
-      inferrer.registerCalledElement(analyzedElement, element, arguments);
+      inferrer.registerCalledElement(outermostElement, element, arguments);
       return inferrer.returnTypeOfElement(element);
     } else {
       // Closure call on a getter. We don't have function types yet,
@@ -755,7 +898,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       return handleForeignSend(node);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    inferrer.registerCalledElement(analyzedElement, element, arguments);
+    inferrer.registerCalledElement(outermostElement, element, arguments);
     return inferrer.returnTypeOfElement(element);
   }
 
@@ -826,7 +969,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       return visitDynamicSend(node);
     } else if (const SourceString("&&") == op.source ||
                const SourceString("||") == op.source) {
-      node.visitChildren(this);
+      visit(node.receiver);
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      visit(node.arguments.head);
+      saved.merge(locals);
+      locals = saved;
       return compiler.boolClass;
     } else if (const SourceString("!") == op.source) {
       node.visitChildren(this);
@@ -862,23 +1009,28 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   visitGetterSend(Send node) {
     Element element = elements[node];
     if (Elements.isStaticOrTopLevelField(element)) {
-      inferrer.registerGetterOnElement(analyzedElement, element);
+      inferrer.registerGetterOnElement(outermostElement, element);
       return inferrer.returnTypeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
       ClassElement receiverType;
       if (node.receiver == null) {
-        receiverType = analyzedElement.getEnclosingClass();
+        receiverType = outermostElement.getEnclosingClass();
       } else {
         receiverType = node.receiver.accept(this);
       }
       Selector selector = elements.getSelector(node);
-      inferrer.registerGetterOnSelector(analyzedElement, selector);
+      inferrer.registerGetterOnSelector(outermostElement, selector);
       return inferrer.returnTypeOfSelector(selector);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      inferrer.registerGetFunction(analyzedElement, element);
+      inferrer.registerGetFunction(outermostElement, element);
       return compiler.functionClass;
+    } else if (Elements.isErroneousElement(element)) {
+      return compiler.dynamicClass;
+    } else if (Elements.isLocal(element)) {
+      assert(locals.use(element) != null);
+      return locals.use(element);
     } else {
-      // TODO: Analyze variable.
+      node.visitChildren(this);
       return compiler.dynamicClass;
     }
   }
@@ -891,13 +1043,13 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   visitDynamicSend(Send node) {
     ClassElement receiverType;
     if (node.receiver == null) {
-      receiverType = analyzedElement.getEnclosingClass();
+      receiverType = outermostElement.getEnclosingClass();
     } else {
       receiverType = node.receiver.accept(this);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    inferrer.registerCalledSelector(analyzedElement, selector, arguments);
+    inferrer.registerCalledSelector(outermostElement, selector, arguments);
     return inferrer.returnTypeOfSelector(selector);
   }
 
@@ -910,11 +1062,118 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
 
   visitConditional(Conditional node) {
     node.condition.accept(this);
+    LocalsHandler saved = new LocalsHandler.from(locals);
     Element firstType = node.thenExpression.accept(this);
+    LocalsHandler thenLocals = locals;
+    locals = saved;
     Element secondType = node.elseExpression.accept(this);
+    locals.merge(thenLocals);
     Element type = inferrer.computeLUB(firstType, secondType);
     if (type == inferrer.giveUpType) type = compiler.dynamicClass;
     return type;
+  }
+
+  visitVariableDefinitions(VariableDefinitions node) {
+    for (Link<Node> link = node.definitions.nodes;
+         !link.isEmpty;
+         link = link.tail) {
+      Node definition = link.head;
+      if (definition is Identifier) {
+        locals.update(elements[definition], compiler.nullClass);
+      } else {
+        assert(definition.asSendSet() != null);
+        visit(definition);
+      }
+    }
+  }
+
+  visitIf(If node) {
+    visit(node.condition);
+    LocalsHandler saved = new LocalsHandler.from(locals);
+    visit(node.thenPart);
+    LocalsHandler thenLocals = locals;
+    locals = saved;
+    visit(node.elsePart);
+    locals.merge(thenLocals);
+    return compiler.dynamicClass;
+  }
+
+  visitWhile(While node) {
+    bool changed = false;
+    do {
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      visit(node.condition);
+      visit(node.body);
+      changed = saved.merge(locals);
+      locals = saved;
+    } while (changed);
+
+    return compiler.dynamicClass;
+  }
+
+  visitDoWhile(DoWhile node) {
+    bool changed = false;
+    do {
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      visit(node.body);
+      visit(node.condition);
+      changed = saved.merge(locals);
+      locals = saved;
+    } while (changed);
+
+    return compiler.dynamicClass;
+  }
+
+  visitFor(For node) {
+    bool changed = false;
+    visit(node.initializer);
+    do {
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      visit(node.condition);
+      visit(node.body);
+      visit(node.update);
+      changed = saved.merge(locals);
+      locals = saved;
+    } while (changed);
+
+    return compiler.dynamicClass;
+  }
+
+  visitForIn(ForIn node) {
+    bool changed = false;
+    visit(node.expression);
+    Element variable;
+    if (node.declaredIdentifier.asSend() != null) {
+      variable = elements[node.declaredIdentifier];
+    } else {
+      assert(node.declaredIdentifier.asVariableDefinitions() != null);
+      VariableDefinitions variableDefinitions = node.declaredIdentifier;
+      variable = elements[variableDefinitions.definitions.nodes.head];
+    }
+    locals.update(variable, compiler.dynamicClass);
+    do {
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      visit(node.body);
+      changed = saved.merge(locals);
+      locals = saved;
+    } while (changed);
+
+    return compiler.dynamicClass;
+  }
+
+  visitTryStatement(TryStatement node) {
+    LocalsHandler saved = locals;
+    locals = new LocalsHandler.from(locals, inTryBlock: true);
+    visit(node.tryBlock);
+    saved.merge(locals);
+    locals = saved;
+    for (Node catchBlock in node.catchBlocks) {
+      saved = new LocalsHandler.from(locals);
+      visit(catchBlock);
+      saved.merge(locals);
+      locals = saved;
+    }
+    visit(node.finallyBlock);
   }
 
   internalError(String reason, {Node node}) {
