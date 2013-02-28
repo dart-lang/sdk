@@ -102,37 +102,12 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
 
 
 // Remove environments from the instructions which can't deoptimize.
-// Replace dead phis uses with null values in environments.
-void FlowGraphAllocator::EliminateEnvironmentUses() {
-  ConstantInstr* constant_null =
-      postorder_.Last()->AsGraphEntry()->constant_null();
+void FlowGraphAllocator::EliminateEnvironments() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* block = block_order_[i];
-    if (block->IsJoinEntry()) block->AsJoinEntry()->RemoveDeadPhis();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->CanDeoptimize()) {
-        ASSERT(current->env() != NULL);
-        for (Environment::DeepIterator it(current->env());
-             !it.Done();
-             it.Advance()) {
-          Value* use = it.CurrentValue();
-          Definition* def = use->definition();
-          PushArgumentInstr* push_argument = def->AsPushArgument();
-          if ((push_argument != NULL) && push_argument->WasEliminated()) {
-            it.SetCurrentValue(push_argument->value()->Copy());
-            continue;
-          }
-
-          PhiInstr* phi = def->AsPhi();
-          if ((phi != NULL) && !phi->is_alive()) {
-            it.SetCurrentValue(new Value(constant_null));
-            continue;
-          }
-        }
-      } else {
-        current->RemoveEnvironment();
-      }
+      if (!current->CanDeoptimize()) current->RemoveEnvironment();
     }
   }
 }
@@ -188,25 +163,22 @@ void FlowGraphAllocator::ComputeInitialSets() {
     // Handle phis.
     if (block->IsJoinEntry()) {
       JoinEntryInstr* join = block->AsJoinEntry();
-      if (join->phis() != NULL) {
-        for (intptr_t j = 0; j < join->phis()->length(); j++) {
-          PhiInstr* phi = (*join->phis())[j];
-          if (phi == NULL) continue;
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        ASSERT(phi != NULL);
+        kill->Add(phi->ssa_temp_index());
+        live_in->Remove(phi->ssa_temp_index());
 
-          kill->Add(phi->ssa_temp_index());
-          live_in->Remove(phi->ssa_temp_index());
+        // If a phi input is not defined by the corresponding predecessor it
+        // must be marked live-in for that predecessor.
+        for (intptr_t k = 0; k < phi->InputCount(); k++) {
+          Value* val = phi->InputAt(k);
+          if (val->BindsToConstant()) continue;
 
-          // If phi-operand is not defined by a predecessor it must be marked
-          // live-in for a predecessor.
-          for (intptr_t k = 0; k < phi->InputCount(); k++) {
-            Value* val = phi->InputAt(k);
-            if (val->BindsToConstant()) continue;
-
-            BlockEntryInstr* pred = block->PredecessorAt(k);
-            const intptr_t use = val->definition()->ssa_temp_index();
-            if (!kill_[pred->postorder_number()]->Contains(use)) {
-              live_in_[pred->postorder_number()]->Add(use);
-            }
+          BlockEntryInstr* pred = block->PredecessorAt(k);
+          const intptr_t use = val->definition()->ssa_temp_index();
+          if (!kill_[pred->postorder_number()]->Contains(use)) {
+            live_in_[pred->postorder_number()]->Add(use);
           }
         }
       }
@@ -707,12 +679,9 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
   const intptr_t pred_idx = join->IndexOfPredecessor(block);
 
   // Record the corresponding phi input use for each phi.
-  ZoneGrowableArray<PhiInstr*>* phis = join->phis();
   intptr_t move_idx = 0;
-  for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
-    PhiInstr* phi = (*phis)[phi_idx];
-    if (phi == NULL) continue;
-
+  for (PhiIterator it(join); !it.Done(); it.Advance()) {
+    PhiInstr* phi = it.Current();
     Value* val = phi->InputAt(pred_idx);
     MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
 
@@ -755,19 +724,13 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
 
   // All uses are recorded at the start position in the block.
   const intptr_t pos = join->start_pos();
-
-  ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-  if (phis == NULL) return;
-
   const bool is_loop_header = BlockInfoAt(join->start_pos())->is_loop_header();
-
   intptr_t move_idx = 0;
-  for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
-    PhiInstr* phi = (*phis)[phi_idx];
-    if (phi == NULL) continue;
-
+  for (PhiIterator it(join); !it.Done(); it.Advance()) {
+    PhiInstr* phi = it.Current();
+    ASSERT(phi != NULL);
     const intptr_t vreg = phi->ssa_temp_index();
-    ASSERT(vreg != -1);
+    ASSERT(vreg >= 0);
 
     // Expected shape of live range:
     //
@@ -1194,8 +1157,10 @@ void FlowGraphAllocator::NumberInstructions() {
     // For join entry predecessors create phi resolution moves if
     // necessary. They will be populated by the register allocator.
     JoinEntryInstr* join = block->AsJoinEntry();
-    if ((join != NULL) && (join->phi_count() > 0)) {
-      const intptr_t phi_count = join->phi_count();
+    if ((join != NULL) &&
+        (join->phis() != NULL) &&
+        !join->phis()->is_empty()) {
+      const intptr_t phi_count = join->phis()->length();
       for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
         // Insert the move between the last two instructions of the
         // predecessor block (all such blocks have at least two instructions:
@@ -1767,15 +1732,14 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
          !it.Done();
          it.Advance()) {
       PhiInstr* phi = it.Current();
-      if (phi->is_alive()) {
-        const intptr_t phi_vreg = phi->ssa_temp_index();
-        LiveRange* range = GetLiveRange(phi_vreg);
-        if (range->assigned_location().kind() == register_kind_) {
-          const intptr_t reg = range->assigned_location().register_code();
+      ASSERT(phi->is_alive());
+      const intptr_t phi_vreg = phi->ssa_temp_index();
+      LiveRange* range = GetLiveRange(phi_vreg);
+      if (range->assigned_location().kind() == register_kind_) {
+        const intptr_t reg = range->assigned_location().register_code();
 
-          if (!reaching_defs_.Get(phi)->Contains(unallocated->vreg())) {
-            used_on_backedge[reg] = true;
-          }
+        if (!reaching_defs_.Get(phi)->Contains(unallocated->vreg())) {
+          used_on_backedge[reg] = true;
         }
       }
     }
@@ -2457,7 +2421,7 @@ void FlowGraphAllocator::CollectRepresentations() {
 void FlowGraphAllocator::AllocateRegisters() {
   CollectRepresentations();
 
-  EliminateEnvironmentUses();
+  EliminateEnvironments();
 
   AnalyzeLiveness();
 

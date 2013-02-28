@@ -1119,8 +1119,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   JoinEntryInstr(intptr_t block_id, intptr_t try_index)
       : BlockEntryInstr(block_id, try_index),
         predecessors_(2),  // Two is the assumed to be the common case.
-        phis_(NULL),
-        phi_count_(0) { }
+        phis_(NULL) { }
 
   DECLARE_INSTRUCTION(JoinEntry)
 
@@ -1137,11 +1136,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
-  void RemoveDeadPhis();
+  void RemoveDeadPhis(Definition* replacement);
 
   void InsertPhi(PhiInstr* phi);
-
-  intptr_t phi_count() const { return phi_count_; }
 
   virtual void PrintTo(BufferFormatter* f) const;
 
@@ -1150,12 +1147,14 @@ class JoinEntryInstr : public BlockEntryInstr {
   friend class BlockEntryInstr;
   friend class ValueInliningContext;
 
+  // Direct access to phis_ in order to resize it due to phi elimination.
+  friend class ConstantPropagator;
+
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
 
   GrowableArray<BlockEntryInstr*> predecessors_;
   ZoneGrowableArray<PhiInstr*>* phis_;
-  intptr_t phi_count_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -1164,15 +1163,11 @@ class JoinEntryInstr : public BlockEntryInstr {
 class PhiIterator : public ValueObject {
  public:
   explicit PhiIterator(JoinEntryInstr* join)
-      : phis_(join->phis()), index_(-1) {
-    if (!Done()) Advance();  // Advance to the first phi.
-  }
+      : phis_(join->phis()), index_(0) { }
 
   void Advance() {
     ASSERT(!Done());
-    do {
-      index_++;
-    } while (!Done() && (Current() == NULL));
+    index_++;
   }
 
   bool Done() const {

@@ -172,9 +172,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
 
 void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join) {
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
-    if (it.Current()->is_alive()) {
-      worklist_.Add(it.Current());
-    }
+    worklist_.Add(it.Current());
   }
 }
 
@@ -528,12 +526,7 @@ CompileType PhiInstr::ComputeType() const {
 
 
 bool PhiInstr::RecomputeType() {
-  if (!is_alive()) {
-    return false;
-  }
-
   CompileType result = CompileType::None();
-
   for (intptr_t i = 0; i < InputCount(); i++) {
     if (FLAG_trace_type_propagation) {
       OS::Print("  phi %"Pd" input %"Pd": v%"Pd" has reaching type %s\n",

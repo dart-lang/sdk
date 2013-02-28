@@ -167,7 +167,7 @@ class FlowGraph : public ZoneAllocated {
       const GrowableArray<BitVector*>& assigned_vars,
       const GrowableArray<BitVector*>& dom_frontier);
 
-  void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
+  void RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis);
 
   void ReplacePredecessor(BlockEntryInstr* old_block,
                           BlockEntryInstr* new_block);

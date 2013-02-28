@@ -197,16 +197,14 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
     }
     // If the call has uses, create a phi of the returns.
     if (call->HasUses()) {
-      // Environment count: length before call - argument count (+ return)
-      intptr_t env_count = call->env()->Length() - call->ArgumentCount();
       // Add a phi of the return values.
-      join->InsertPhi(env_count, env_count + 1);
-      PhiInstr* phi = join->phis()->Last();
+      PhiInstr* phi = new PhiInstr(join, num_exits);
       phi->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
         phi->SetInputAt(i, ValueAt(i));
       }
+      join->InsertPhi(phi);
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);
     } else {

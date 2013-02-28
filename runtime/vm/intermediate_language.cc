@@ -760,9 +760,9 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
     // If the new and old predecessor index match there is nothing to update.
     if ((join->phis() == NULL) || (old_index == new_index)) return;
     // Otherwise, reorder the predecessor uses in each phi.
-    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
-      PhiInstr* phi = (*join->phis())[i];
-      if (phi == NULL) continue;
+    for (PhiIterator it(join); !it.Done(); it.Advance()) {
+      PhiInstr* phi = it.Current();
+      ASSERT(phi != NULL);
       ASSERT(pred_count == phi->InputCount());
       // Save the predecessor use.
       Value* pred_use = phi->InputAt(old_index);
@@ -793,7 +793,6 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   }
   ASSERT((*phis_)[var_index] == NULL);
   (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
-  phi_count_++;
 }
 
 
@@ -803,23 +802,32 @@ void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
     phis_ = new ZoneGrowableArray<PhiInstr*>(1);
   }
   phis_->Add(phi);
-  phi_count_++;
 }
 
 
-void JoinEntryInstr::RemoveDeadPhis() {
+void JoinEntryInstr::RemoveDeadPhis(Definition* replacement) {
   if (phis_ == NULL) return;
 
-  for (intptr_t i = 0; i < phis_->length(); i++) {
-    PhiInstr* phi = (*phis_)[i];
-    if ((phi != NULL) && !phi->is_alive()) {
-      (*phis_)[i] = NULL;
-      phi_count_--;
+  intptr_t to_index = 0;
+  for (intptr_t from_index = 0; from_index < phis_->length(); ++from_index) {
+    PhiInstr* phi = (*phis_)[from_index];
+    if (phi != NULL) {
+      if (phi->is_alive()) {
+        (*phis_)[to_index++] = phi;
+        for (intptr_t i = phi->InputCount() - 1; i >= 0; --i) {
+          Value* input = phi->InputAt(i);
+          input->definition()->AddInputUse(input);
+        }
+      } else {
+        phi->ReplaceUsesWith(replacement);
+      }
     }
   }
-
-  // Check if we removed all phis.
-  if (phi_count_ == 0) phis_ = NULL;
+  if (to_index == 0) {
+    phis_ = NULL;
+  } else {
+    phis_->TruncateTo(to_index);
+  }
 }
 
 

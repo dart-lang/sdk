@@ -145,18 +145,18 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if (defn != NULL) {
+    // Used definitions must have an SSA name.  We use the name to index
+    // into bit vectors during analyses.  Some definitions without SSA names
+    // (e.g., PushArgument) have environment uses.
+    ASSERT((defn->input_use_list() == NULL) || defn->HasSSATemp());
     Value* prev = NULL;
     Value* curr = defn->input_use_list();
     while (curr != NULL) {
       ASSERT(prev == curr->previous_use());
       ASSERT(defn == curr->definition());
       Instruction* instr = curr->instruction();
-      // The instruction should not be removed from the graph.  Removed
-      // instructions have a NULL previous link.  Phis are not removed until
-      // register allocation.  Comparisons used only in a branch will have a
-      // NULL previous link though they are still in the graph.
-      ASSERT(instr->IsPhi() ||
-             (instr->IsDefinition() && instr->AsDefinition()->IsComparison()) ||
+      // The instruction should not be removed from the graph.
+      ASSERT((instr->IsPhi() && instr->AsPhi()->is_alive()) ||
              (instr->previous() != NULL));
       ASSERT(curr == instr->InputAt(curr->use_index()));
       prev = curr;
@@ -170,8 +170,7 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
       ASSERT(defn == curr->definition());
       Instruction* instr = curr->instruction();
       ASSERT(curr == instr->env()->ValueAtUseIndex(curr->use_index()));
-      ASSERT(instr->IsPhi() ||
-             (instr->IsDefinition() && instr->AsDefinition()->IsComparison()) ||
+      ASSERT((instr->IsPhi() && instr->AsPhi()->is_alive()) ||
              (instr->previous() != NULL));
       prev = curr;
       curr = curr->next_use();
@@ -190,10 +189,11 @@ bool FlowGraph::VerifyUseLists() {
   for (intptr_t i = 0; i < preorder_.length(); ++i) {
     BlockEntryInstr* entry = preorder_[i];
     JoinEntryInstr* join = entry->AsJoinEntry();
-    if (join != NULL && join->phis() != NULL) {
-      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
-        PhiInstr* phi = (*join->phis())[i];
-        if (phi != NULL) VerifyUseListsInInstruction(phi);
+    if (join != NULL) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        ASSERT(phi != NULL);
+        VerifyUseListsInInstruction(phi);
       }
     }
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -216,8 +216,9 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
   Rename(&live_phis, inlining_parameters);
-  // Propagate alive mark transitively from alive phis.
-  MarkLivePhis(&live_phis);
+  // Propagate alive mark transitively from alive phis and then remove
+  // non-live ones.
+  RemoveDeadPhis(&live_phis);
 }
 
 
@@ -578,7 +579,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           // Rename input operand.
           Value* use = new Value((*env)[i]);
           phi->SetInputAt(pred_index, use);
-          use->definition()->AddInputUse(use);
         }
       }
     }
@@ -586,7 +586,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 }
 
 
-void FlowGraph::MarkLivePhis(GrowableArray<PhiInstr*>* live_phis) {
+void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   while (!live_phis->is_empty()) {
     PhiInstr* phi = live_phis->RemoveLast();
     for (intptr_t i = 0; i < phi->InputCount(); i++) {
@@ -597,6 +597,11 @@ void FlowGraph::MarkLivePhis(GrowableArray<PhiInstr*>* live_phis) {
         live_phis->Add(used_phi);
       }
     }
+  }
+
+  for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
+    JoinEntryInstr* join = it.Current()->AsJoinEntry();
+    if (join != NULL) join->RemoveDeadPhis(constant_null());
   }
 }
 

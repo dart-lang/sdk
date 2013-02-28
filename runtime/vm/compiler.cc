@@ -181,6 +181,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // TODO(srdjan): Moved before inlining until environment use list can
       // be used to detect when shift-left is outside the scope of bit-and.
       optimizer.TryOptimizeLeftShiftWithBitAndPattern();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       // Inlining (mutates the flow graph)
       if (FLAG_use_inlining) {
