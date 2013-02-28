@@ -52,6 +52,9 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
+[ $runtime == vm && $mode == debug]
+scheduled_test/test/scheduled_test_test: Skip # Timeout (Issue 8844).
+
 # Fails to recognize HashMap as an instance of Map.
 analyzer-experimental/test/generated/ast_test: Fail
 
