@@ -1296,21 +1296,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
         (ClassElement enclosingClass, Element member) {
-          TreeElements definitions = compiler.analyzeElement(member);
-          Node node = member.parseNode(compiler);
-          SendSet assignment = node.asSendSet();
-          HInstruction value;
-          if (assignment == null) {
-            value = graph.addConstantNull(constantSystem);
-          } else {
-            Node right = assignment.arguments.head;
-            TreeElements savedElements = elements;
-            elements = definitions;
-            right.accept(this);
-            elements = savedElements;
-            value = pop();
-          }
-          fieldValues[member] = value;
+          compiler.withCurrentElement(member, () {
+            TreeElements definitions = compiler.analyzeElement(member);
+            Node node = member.parseNode(compiler);
+            SendSet assignment = node.asSendSet();
+            HInstruction value;
+            if (assignment == null) {
+              value = graph.addConstantNull(constantSystem);
+            } else {
+              Node right = assignment.arguments.head;
+              TreeElements savedElements = elements;
+              elements = definitions;
+              // In case the field initializer uses closures, run the
+              // closure to class mapper.
+              compiler.closureToClassMapper.computeClosureToClassMapping(
+                  member, node, elements);
+              right.accept(this);
+              elements = savedElements;
+              value = pop();
+            }
+            fieldValues[member] = value;
+          });
         },
         includeBackendMembers: true,
         includeSuperMembers: false);
