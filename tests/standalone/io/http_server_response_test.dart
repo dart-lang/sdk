@@ -7,10 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "dart:async";
 import "dart:io";
 import "dart:scalarlist";
 
-void testServerRequest(void handler(server, request)) {
+void testServerRequest(void handler(server, request), {int bytes}) {
   HttpServer.bind().then((server) {
     server.listen((request) {
       handler(server, request);
@@ -23,11 +24,16 @@ void testServerRequest(void handler(server, request)) {
     client.get("127.0.0.1", server.port, "/")
       .then((request) => request.close())
       .then((response) {
-        response.listen((_) {}, onDone: () {
-          client.close();
-        }, onError: (error) {
-          Expect.isTrue(error.error is HttpParserException);
-        });
+        int received = 0;
+        response.listen(
+            (data) => received += data.length,
+            onDone: () {
+              if (bytes != null) Expect.equals(received, bytes);
+              client.close();
+            },
+            onError: (error) {
+              Expect.isTrue(error.error is HttpParserException);
+            });
       })
       .catchError((error) {
          client.close();
@@ -43,6 +49,39 @@ void testResponseDone() {
       server.close();
     });
   });
+}
+
+void testResponseAddStream() {
+  int bytes = new File(new Options().script).lengthSync();
+
+  testServerRequest((server, request) {
+    request.response.addStream(new File(new Options().script).openRead())
+        .then((response) {
+          response.close();
+          response.done.then((_) => server.close());
+        });
+  }, bytes: bytes);
+
+  testServerRequest((server, request) {
+    request.response.addStream(new File(new Options().script).openRead())
+        .then((response) {
+          request.response.addStream(new File(new Options().script).openRead())
+              .then((response) {
+                response.close();
+                response.done.then((_) => server.close());
+              });
+        });
+  }, bytes: bytes * 2);
+
+  testServerRequest((server, request) {
+    var controller = new StreamController();
+    request.response.addStream(controller.stream)
+        .then((response) {
+          response.close();
+          response.done.then((_) => server.close());
+        });
+    controller.close();
+  }, bytes: 0);
 }
 
 void testBadResponseAdd() {
@@ -95,6 +134,7 @@ void testBadResponseClose() {
 
 void main() {
   testResponseDone();
+  testResponseAddStream();
   testBadResponseAdd();
   testBadResponseClose();
 }

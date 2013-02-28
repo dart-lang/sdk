@@ -53,6 +53,7 @@ void test2(int totalConnections, int outputStreamWrites) {
           for (int i = 0; i < outputStreamWrites; i++) {
             request.addString("Hello, world!");
           }
+          request.done.catchError((_) {});
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -150,6 +151,7 @@ void test5(int totalConnections) {
               (_) { },
               onDone: () {
                 request.response.close();
+                request.response.done.catchError((e) {});
               },
               onError: (error) { });
         },
@@ -166,6 +168,7 @@ void test5(int totalConnections) {
             // TODO(sgjesse): Make this test work with
             //request.response instead of request.close() return
             //return request.response;
+            request.done.catchError((e) {});
             return request.close();
           })
         .then((response) { })

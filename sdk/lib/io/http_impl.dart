@@ -354,6 +354,16 @@ class _HttpOutboundMessage<T> extends IOSink {
     }
   }
 
+  Future addStream(Stream<List<int>> stream) {
+    _writeHeaders();
+    if (_ignoreBody) return new Future.immediate(this);
+    if (_chunked) {
+      // Transform when chunked.
+      stream = stream.transform(new _ChunkedTransformer(writeEnd: false));
+    }
+    return super.addStream(stream).then((_) => this);
+  }
+
   void close() {
     if (!_headersWritten && !_ignoreBody && headers.chunkedTransferEncoding) {
       // If no body was written, _ignoreBody is false (it's not a HEAD
@@ -670,21 +680,19 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
 
 
 // Transformer that transforms data to HTTP Chunked Encoding.
-class _ChunkedTransformer implements StreamTransformer<List<int>, List<int>> {
-  final StreamController<List<int>> _controller
-      = new StreamController<List<int>>();
+class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
+  final bool writeEnd;
+  _ChunkedTransformer({this.writeEnd: true});
 
-  Stream<List<int>> bind(Stream<List<int>> stream) {
-    var subscription = stream.listen(
-        (data) {
-          if (data.length == 0) return;  // Avoid close on 0-bytes payload.
-          _addChunk(data, _controller.add);
-       },
-       onDone: () {
-          _addChunk([], _controller.add);
-          _controller.close();
-       });
-    return _controller.stream;
+  void handleData(List<int> data, StreamSink<List<int>> sink) {
+    _addChunk(data, sink.add);
+  }
+
+  void handleDone(StreamSink<List<int>> sink) {
+    if (writeEnd) {
+      _addChunk([], sink.add);
+    }
+    sink.close();
   }
 
   static void _addChunk(List<int> data, void add(List<int> data)) {
@@ -908,8 +916,7 @@ class _HttpClientConnection {
         return _socket.addStream(stream)
             .catchError((e) {
               destroy();
-              if (e.error is HttpException) throw e;
-              // TODO(ajohnsen): Where to send Socket errors?
+              throw e;
             });
     });
     return request;
@@ -1214,8 +1221,7 @@ class _HttpConnection {
                 })
                 .catchError((e) {
                   destroy();
-                  if (e.error is HttpException) throw e;
-                  // TODO(ajohnsen): Where to send Socket errors?
+                  throw e;
                 });
           });
           response._ignoreBody = request.method == "HEAD";

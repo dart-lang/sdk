@@ -85,7 +85,7 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
       _controllerInstance = new StreamController<List<int>>(
           onPauseStateChange: _onPauseStateChange,
           onSubscriptionStateChange: _onSubscriptionStateChange);
-      _pipeFuture = _controller.stream.pipe(_target);
+      _pipeFuture = _controller.stream.pipe(_target).then((_) => this);
     }
     return _controllerInstance;
   }
@@ -139,15 +139,22 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
     if (unbind) {
       unbindCompleter = new Completer<T>();
     }
+    completeUnbind([error]) {
+      if (unbindCompleter == null) return;
+      var tmp = unbindCompleter;
+      unbindCompleter = null;
+      if (error == null) {
+        _bindSubscription = null;
+        tmp.complete();
+      } else {
+        tmp.completeError(error);
+      }
+    }
     _bindSubscription = stream.listen(
         _controller.add,
         onDone: () {
-          _bindSubscription = null;
           if (unbind) {
-            if (unbindCompleter != null) {
-              unbindCompleter.complete(null);
-              unbindCompleter = null;
-            }
+            completeUnbind();
           } else {
             _controller.close();
           }
@@ -155,15 +162,12 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
         onError: _controller.signalError);
     if (_paused) _pause();
     if (unbind) {
-      _pipeFuture.catchError((error) {
-        if (unbindCompleter != null) {
-          unbindCompleter.completeError(error);
-          unbindCompleter = null;
-        }
-      });
+      _pipeFuture
+          .then((_) => completeUnbind(),
+                onError: (error) => completeUnbind(error));
       return unbindCompleter.future;
     } else {
-      return _pipeFuture;
+      return _pipeFuture.then((_) => this);
     }
   }
 }
