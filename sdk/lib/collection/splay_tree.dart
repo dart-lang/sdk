@@ -476,12 +476,16 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
 class _SplayTreeKeyIterable<K> extends Iterable<K> {
   _SplayTree<K> _tree;
   _SplayTreeKeyIterable(this._tree);
+  int get length => _tree._count;
+  bool get isEmpty => _tree._count == 0;
   Iterator<K> get iterator => new _SplayTreeKeyIterator<K>(_tree);
 }
 
 class _SplayTreeValueIterable<K, V> extends Iterable<V> {
   SplayTreeMap<K, V> _map;
   _SplayTreeValueIterable(this._map);
+  int get length => _map._count;
+  bool get isEmpty => _map._count == 0;
   Iterator<V> get iterator => new _SplayTreeValueIterator<K, V>(_map);
 }
 

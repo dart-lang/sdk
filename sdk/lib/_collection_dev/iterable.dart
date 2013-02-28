@@ -28,7 +28,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     }
   }
 
-  bool get isEmpty => length != 0;
+  bool get isEmpty => length == 0;
 
   E get first {
     if (length == 0) throw new StateError("No elements");
