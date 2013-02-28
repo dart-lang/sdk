@@ -15,7 +15,6 @@ io/test_runner_test: fail
 [ $runtime == vm ]
 io/https_client_test: Pass, Timeout # Issue 8674
 io/secure_server_client_certificate_test: Fail
-io/web_socket_test: Pass, Timeout # Issue 8824
 
 [ $runtime == vm && ( $system == windows ) ]
 io/web_socket_no_secure_test: Fail, Pass # Issue 8495.

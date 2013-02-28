@@ -404,11 +404,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void set readEventsEnabled(bool value) {
     _readEventsEnabled = value;
-    if (_socketClosedRead) {
-      if (value) {
-        // We have no underlying socket to set off read events.
-        Timer.run(_readHandler);
-      }
+    if (value &&
+        ((_secureFilter != null &&
+          _secureFilter.buffers[READ_PLAINTEXT].length > 0) ||
+         _socketClosedRead)) {
+      // We might not have no underlying socket to set off read events.
+      Timer.run(_readHandler);
     }
   }
 
