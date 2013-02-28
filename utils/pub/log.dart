@@ -117,22 +117,22 @@ void process(String executable, List<String> arguments) {
 void processResult(String executable, PubProcessResult result) {
   // Log it all as one message so that it shows up as a single unit in the logs.
   var buffer = new StringBuffer();
-  buffer.add("Finished $executable. Exit code ${result.exitCode}.");
+  buffer.write("Finished $executable. Exit code ${result.exitCode}.");
 
   dumpOutput(String name, List<String> output) {
     if (output.length == 0) {
-      buffer.add("Nothing output on $name.");
+      buffer.write("Nothing output on $name.");
     } else {
-      buffer.add("$name:");
+      buffer.write("$name:");
       var numLines = 0;
       for (var line in output) {
         if (++numLines > 1000) {
-          buffer.add('[${output.length - 1000}] more lines of output '
-                     'truncated...]');
+          buffer.write('[${output.length - 1000}] more lines of output '
+              'truncated...]');
           break;
         }
 
-        buffer.add(line);
+        buffer.write(line);
       }
     }
   }

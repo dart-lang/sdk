@@ -50,7 +50,7 @@ class CommandLineConfiguration extends Configuration {
 
     _printStackTrace(testCase.stackTrace);
 
-    currentTestCase = null;
+    super.onTestResult(testCase);
   }
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
@@ -105,9 +105,9 @@ class CommandLineConfiguration extends Configuration {
     if (string.length >= length) return string;
 
     var result = new StringBuffer();
-    result.add(string);
+    result.write(string);
     for (var i = 0; i < length - string.length; i++) {
-      result.add(' ');
+      result.write(' ');
     }
 
     return result.toString();

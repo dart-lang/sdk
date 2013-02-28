@@ -72,10 +72,10 @@ class FutureGroup<T> {
 /// Pads [source] to [length] by adding spaces at the end.
 String padRight(String source, int length) {
   final result = new StringBuffer();
-  result.add(source);
+  result.write(source);
 
   while (result.length < length) {
-    result.add(' ');
+    result.write(' ');
   }
 
   return result.toString();
@@ -122,11 +122,11 @@ String replace(String source, Pattern matcher, String fn(Match)) {
   var buffer = new StringBuffer();
   var start = 0;
   for (var match in matcher.allMatches(source)) {
-    buffer.add(source.substring(start, match.start));
+    buffer.write(source.substring(start, match.start));
     start = match.end;
-    buffer.add(fn(match));
+    buffer.write(fn(match));
   }
-  buffer.add(source.substring(start));
+  buffer.write(source.substring(start));
   return buffer.toString();
 }
 
@@ -242,14 +242,14 @@ Stream<String> streamToLines(Stream<String> stream) {
         var leftover = lines.removeLast();
         for (var line in lines) {
           if (!buffer.isEmpty) {
-            buffer.add(line);
+            buffer.write(line);
             line = buffer.toString();
-            buffer.clear();
+            buffer = new StringBuffer();
           }
 
           sink.add(line);
         }
-        buffer.add(leftover);
+        buffer.write(leftover);
       },
       handleDone: (sink) {
         if (!buffer.isEmpty) sink.add(buffer.toString());

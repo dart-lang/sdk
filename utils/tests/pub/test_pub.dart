@@ -901,9 +901,9 @@ abstract class Descriptor {
         }
 
         var error = new StringBuffer();
-        error.add("No files named $name in $dir were valid:\n");
+        error.write("No files named $name in $dir were valid:\n");
         for (var failure in failures) {
-          error.add("  $failure\n");
+          error.write("  $failure\n");
         }
         completer.completeError(
             new TestFailure(error.toString()), stackTrace);

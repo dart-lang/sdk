@@ -188,7 +188,7 @@ Future<List<String>> listDir(String dir,
           log.fine("Listed directory $dir:\n${contents.join('\n')}");
           completer.complete(contents);
         },
-        onError: (error) => completer.completeError(error, stackTrace));
+        onError: (error) => completer.completeError(error));
 
     return completer.future.then((contents) {
       return Future.wait(children).then((childContents) {
@@ -603,7 +603,7 @@ Future timeout(Future input, int milliseconds, String description) {
   }).catchError((e) {
     if (completer.isCompleted) return;
     timer.cancel();
-    completer.completeError(e.error, e.stackTrace);
+    completer.completeError(e);
   });
   return completer.future;
 }
@@ -714,8 +714,8 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
 /// Returns a [ByteStream] that will emit the contents of the archive.
 ByteStream createTarGz(List contents, {baseDir}) {
   var buffer = new StringBuffer();
-  buffer.add('Creating .tag.gz stream containing:\n');
-  contents.forEach((file) => buffer.add('$file\n'));
+  buffer.write('Creating .tag.gz stream containing:\n');
+  contents.forEach((file) => buffer.write('$file\n'));
   log.fine(buffer.toString());
 
   var controller = new StreamController<List<int>>();

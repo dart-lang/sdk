@@ -91,12 +91,12 @@ class NameValidator extends Validator {
     var lastMatchEnd = 0;
     for (var match in new RegExp(r"[a-z]([A-Z])").allMatches(source)) {
       builder
-        ..add(source.substring(lastMatchEnd, match.start + 1))
-        ..add("_")
-        ..add(match.group(1).toLowerCase());
+        ..write(source.substring(lastMatchEnd, match.start + 1))
+        ..write("_")
+        ..write(match.group(1).toLowerCase());
       lastMatchEnd = match.end;
     }
-    builder.add(source.substring(lastMatchEnd));
+    builder.write(source.substring(lastMatchEnd));
     return builder.toString().toLowerCase();
   }
 }
