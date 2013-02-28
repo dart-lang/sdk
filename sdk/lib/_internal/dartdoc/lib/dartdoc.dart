@@ -471,7 +471,7 @@ class Dartdoc {
   }
 
   void write(String s) {
-    _file.add(s);
+    _file.write(s);
   }
 
   void writeln(String s) {

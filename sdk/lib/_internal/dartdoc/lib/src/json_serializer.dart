@@ -120,7 +120,7 @@ class JsonPrinter {
 
   void startObject(String name) {
     _start(name);
-    _sb.add('{');
+    _sb.write('{');
 
     _indent += 1;
     _inSet = false;
@@ -131,7 +131,7 @@ class JsonPrinter {
     if (_inSet) {
       _newline();
     }
-    _sb.add('}');
+    _sb.write('}');
     _inSet = true;
   }
 
@@ -139,7 +139,7 @@ class JsonPrinter {
     _start(name);
     _inSet = false;
 
-    _sb.add('[');
+    _sb.write('[');
     _indent += 1;
   }
 
@@ -148,49 +148,49 @@ class JsonPrinter {
     if (_inSet) {
       _newline();
     }
-    _sb.add(']');
+    _sb.write(']');
     _inSet = true;
   }
 
   void addString(String name, String value) {
     _start(name);
-    _sb.add('"');
+    _sb.write('"');
     _escape(_sb, value);
-    _sb.add('"');
+    _sb.write('"');
     _inSet = true;
   }
 
   void addBool(String name, bool value) {
     _start(name);
-    _sb.add(value.toString());
+    _sb.write(value.toString());
     _inSet = true;
   }
 
   void addNum(String name, num value) {
     _start(name);
-    _sb.add(value.toString());
+    _sb.write(value.toString());
     _inSet = true;
   }
 
   void _start(String name) {
     if (_inSet) {
-      _sb.add(',');
+      _sb.write(',');
     }
     // Do not print a newline at the beginning of the file.
     if (!_sb.isEmpty) {
       _newline();
     }
     if (name != null) {
-      _sb.add('"$name": ');
+      _sb.write('"$name": ');
     }
   }
 
   void _newline([int indent = 0]) {
-    _sb.add('\n');
+    _sb.write('\n');
     _indent += indent;
 
     for (var i = 0; i < _indent; ++i) {
-      _sb.add('  ');
+      _sb.write('  ');
     }
   }
 
@@ -248,6 +248,6 @@ class JsonPrinter {
         codeUnits.add(codeUnit);
       }
     }
-    sb.add(needsEscape ? new String.fromCharCodes(codeUnits) : s);
+    sb.write(needsEscape ? new String.fromCharCodes(codeUnits) : s);
   }
 }

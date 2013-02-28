@@ -24,17 +24,17 @@ class HtmlRenderer implements NodeVisitor {
   }
 
   void visitText(Text text) {
-    buffer.add(text.text);
+    buffer.write(text.text);
   }
 
   bool visitElementBefore(Element element) {
     // Hackish. Separate block-level elements with newlines.
     if (!buffer.isEmpty &&
         _BLOCK_TAGS.firstMatch(element.tag) != null) {
-      buffer.add('\n');
+      buffer.write('\n');
     }
 
-    buffer.add('<${element.tag}');
+    buffer.write('<${element.tag}');
 
     // Sort the keys so that we generate stable output.
     // TODO(rnystrom): This assumes keys returns a fresh mutable
@@ -42,20 +42,20 @@ class HtmlRenderer implements NodeVisitor {
     final attributeNames = element.attributes.keys.toList();
     attributeNames.sort((a, b) => a.compareTo(b));
     for (final name in attributeNames) {
-      buffer.add(' $name="${element.attributes[name]}"');
+      buffer.write(' $name="${element.attributes[name]}"');
     }
 
     if (element.isEmpty) {
       // Empty element like <hr/>.
-      buffer.add(' />');
+      buffer.write(' />');
       return false;
     } else {
-      buffer.add('>');
+      buffer.write('>');
       return true;
     }
   }
 
   void visitElementAfter(Element element) {
-    buffer.add('</${element.tag}>');
+    buffer.write('</${element.tag}>');
   }
 }
