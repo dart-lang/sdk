@@ -22,7 +22,7 @@ export 'package:scheduled_test/src/utils.dart';
 Future timeout(Future input, int milliseconds, onTimeout()) {
   bool completed = false;
   var completer = new Completer();
-  var timer = new Timer(milliseconds, (_) {
+  var timer = new Timer(new Duration(milliseconds: milliseconds), () {
     completed = true;
     chainToCompleter(new Future.immediate(null).then((_) => onTimeout()),
         completer);
@@ -42,7 +42,7 @@ Future timeout(Future input, int milliseconds, onTimeout()) {
 /// Returns a [Future] that will complete in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  mock_clock.newTimer(new Duration(milliseconds: milliseconds), (_) {
+  mock_clock.newTimer(new Duration(milliseconds: milliseconds), () {
     completer.complete();
   });
   return completer.future;

@@ -292,7 +292,7 @@ class Schedule {
 
   /// The callback to run when the timeout timer fires. Notifies the current
   /// queue that a timeout has occurred.
-  void _signalTimeout(_) {
+  void _signalTimeout() {
     // Reset the timer so that we can detect timeouts in the onException and
     // onComplete queues.
     _timeoutTimer = null;

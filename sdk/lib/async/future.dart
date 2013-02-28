@@ -149,11 +149,8 @@ abstract class Future<T> {
    * error.
    *
    * See [Completer]s, for futures with values that are computed asynchronously.
-   *
-   * *Deprecation note*: this method initially took an [int] as argument (the
-   * milliseconds to wait). It is now a [Duration].
    */
-  factory Future.delayed(var duration, [T computation()]) {
+  factory Future.delayed(Duration duration, [T computation()]) {
     // TODO(floitsch): no need to allocate a ThenFuture when the computation is
     // null.
     if (computation == null) computation = (() => null);

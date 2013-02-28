@@ -54,7 +54,7 @@ void main() {
       void runPauseTest() {
         subscription.pause();
         paused = true;
-        new Timer(500, (_) {
+        new Timer(const Duration(milliseconds: 500), () {
             paused = false;
             subscription.resume();
         });
@@ -65,7 +65,7 @@ void main() {
         readEventsTested = true;
         socket.readEventsEnabled = false;
         readEventsPaused = true;
-        new Timer(500, (_) {
+        new Timer(const Duration(milliseconds: 500), () {
             readEventsPaused = false;
             socket.readEventsEnabled = true;
         });

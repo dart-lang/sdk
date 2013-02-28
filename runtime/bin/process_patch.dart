@@ -156,7 +156,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     var completer = new Completer();
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
-    new Timer(0, (_) {
+    Timer.run(() {
       var status = new _ProcessStartStatus();
       bool success = _startNative(_path,
                                   _arguments,

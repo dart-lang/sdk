@@ -30,7 +30,7 @@ Clock mock() {
   return _clock;
 }
 
-typedef void TimerCallback(Timer timer);
+typedef void TimerCallback();
 
 /// Returns a new (possibly mocked) [Timer]. Works the same as [new Timer].
 Timer newTimer(Duration duration, TimerCallback callback) =>
@@ -94,7 +94,7 @@ class _MockTimer implements Timer {
     _subscription = _clock.onTick.listen((time) {
       if (_cancelled || time < _time) return;
       _subscription.cancel();
-      _callback(this);
+      _callback();
     });
   }
 

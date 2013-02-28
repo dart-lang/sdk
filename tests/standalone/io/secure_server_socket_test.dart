@@ -119,7 +119,7 @@ void testServerListenAfterConnect() {
   SecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
-    new Timer(500, (_) {
+    new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
         clientEndFuture.then((clientEnd) {
           clientEnd.close();

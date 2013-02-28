@@ -11,9 +11,8 @@ abstract class Timer {
   /**
    * Creates a new timer.
    *
-   * The [callback] callback is invoked after the given [duration]
-   * (a [Duration]) has passed. A negative duration is treated similar to
-   * a duration of 0.
+   * The [callback] callback is invoked after the given [duration].
+   * A negative duration is treated similar to a duration of 0.
    *
    * If the [duration] is statically known to be 0, consider using [run].
    *
@@ -28,24 +27,16 @@ abstract class Timer {
    *       var duration = milliseconds == null ? TIMEOUT : ms * milliseconds;
    *       return new Timer(duration, handleTimeout);
    *     }
-   *
-   * *Deprecation warning*: this constructor used to take an [int] (the time
-   * in milliseconds) and a callback with one argument (the timer). This has
-   * changed to a [Duration] and a callback without arguments.
    */
-  // TODO(floitsch): add types.
-  external factory Timer(var duration, Function callback);
+  external factory Timer(Duration duration, void callback());
 
   /**
    * Creates a new repeating timer.
    *
    * The [callback] is invoked repeatedly with [duration] intervals until
    * canceled. A negative duration is treated similar to a duration of 0.
-   *
-   * *Deprecation warning*: this constructor used to take an [int] (the time
-   * in milliseconds). This has changed to a [Duration].
    */
-  external factory Timer.repeating(var duration,
+  external factory Timer.repeating(Duration duration,
                                    void callback(Timer timer));
 
   /**

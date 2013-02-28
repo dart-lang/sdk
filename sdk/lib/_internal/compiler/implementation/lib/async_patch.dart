@@ -7,34 +7,15 @@
 import 'dart:_isolate_helper' show IsolateNatives, TimerImpl;
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 
-typedef void _TimerCallback0();
-typedef void _TimerCallback1(Timer timer);
-
 patch class Timer {
-  patch factory Timer(var duration, var callback) {
-    // TODO(floitsch): remove these checks when we remove the deprecated
-    // millisecond argument and the 1-argument callback. Also remove the
-    // int-test below.
-    if (callback is! _TimerCallback0 && callback is! _TimerCallback1) {
-      throw new ArgumentError(callback);
-    }
-    int milliseconds = duration is int ? duration : duration.inMilliseconds;
+  patch factory Timer(Duration duration, void callback()) {
+    int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    Timer timer;
-    _TimerCallback0 zeroArgumentCallback =
-        callback is _TimerCallback0 ? callback : () => callback(timer);
-    timer = new TimerImpl(milliseconds, zeroArgumentCallback);
-    return timer;
+    return new TimerImpl(milliseconds, callback);
   }
 
-  /**
-   * Creates a new repeating timer. The [callback] is invoked every
-   * [milliseconds] millisecond until cancelled.
-   */
-  patch factory Timer.repeating(var duration, void callback(Timer timer)) {
-    // TODO(floitsch): remove this check when we remove the deprecated
-    // millisecond argument.
-    int milliseconds = duration is int ? duration : duration.inMilliseconds;
+  patch factory Timer.repeating(Duration duration, void callback(Timer timer)) {
+    int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return new TimerImpl.repeating(milliseconds, callback);
   }
@@ -78,7 +59,7 @@ Future<bool> _load(String libraryName, String uri) {
     JS('', '#.addEventListener("load", #, false)', script, onLoad);
     JS('', 'document.body.appendChild(#)', script);
   } else if (JS('String', 'typeof load') == 'function') {
-    new Timer(0, (_) {
+    Timer.run(() {
       JS('void', 'load(#)', uri);
       completer.complete(true);
     });

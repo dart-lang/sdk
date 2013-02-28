@@ -394,7 +394,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _controller.hasSubscribers &&
         _secureFilter != null &&
         _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
-      new Timer(0, (_) => _controller.add(RawSocketEvent.WRITE));
+      Timer.run(() => _controller.add(RawSocketEvent.WRITE));
     } else {
       _writeEventsEnabled = value;
     }
@@ -407,7 +407,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_socketClosedRead) {
       if (value) {
         // We have no underlying socket to set off read events.
-        new Timer(0, (_) => _readHandler());
+        Timer.run(_readHandler);
       }
     }
   }
@@ -437,7 +437,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
     // Set up a read event if the filter still has data.
     if (!_filterReadEmpty) {
-      new Timer(0, (_) => _readHandler());
+      Timer.run(_readHandler);
     }
 
     if (_socketClosedRead) {  // An onClose event is pending.
@@ -451,7 +451,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       if (_filterReadEmpty) {
         // This can't be an else clause: the value of _filterReadEmpty changes.
         // This must be asynchronous, because we are in a read call.
-        new Timer(0, (_) => _closeHandler());
+        Timer.run(_closeHandler);
       }
     }
 
@@ -537,7 +537,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           }
           if (_socketClosedRead) {
             // Keep firing read events until we are paused or buffer is empty.
-            new Timer(0, (_) => _readHandler());
+            Timer.run(_readHandler);
           }
         }
       } else if (_socketClosedRead) {
@@ -607,7 +607,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       // If we complete the future synchronously, user code will run here,
       // and modify the state of the RawSecureSocket.  For example, it
       // could close the socket, and set _filter to null.
-      new Timer(0, (_) => _handshakeComplete.complete(this));
+      Timer.run(() => _handshakeComplete.complete(this));
     }
   }
 

@@ -288,7 +288,7 @@ testCancelResubscribeServerSocket() {
     subscription = server.listen((client) {
       if (++acceptCount == socketCount / 2) {
         subscription.cancel();
-        new Timer(0, (_) {
+        Timer.run(() {
           subscription = server.listen((_) {
             // Close on cancel, so no more events.
             Expect.fail("Event after closed through cancel");
