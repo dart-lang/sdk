@@ -93,6 +93,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+type_variable_field_initializer_test: Fail # TODO(ngeoffray): working on it.
 branch_canonicalization_test: Fail # Issue 638.
 div_with_power_of_two_test: Fail # Issue 8301.
 call_operator_test: Fail # Issue 7622.

@@ -1124,6 +1124,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   inlinedFrom(Element element, f()) {
+    assert(element is FunctionElement || element is VariableElement);
     return compiler.withCurrentElement(element, () {
       sourceElementStack.add(element);
       var result = f();
@@ -1163,10 +1164,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             element: constructor);
       }
 
-      sourceElementStack.add(constructor.enclosingElement);
-      buildFieldInitializers(constructor.enclosingElement.implementation,
-                             fieldValues);
-      sourceElementStack.removeLast();
+      inlinedFrom(constructor, () {
+        buildFieldInitializers(constructor.enclosingElement.implementation,
+                               fieldValues);
+      });
 
       int index = 0;
       FunctionSignature params = constructor.computeSignature(compiler);
@@ -1252,9 +1253,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           SendSet init = link.head;
           Link<Node> arguments = init.arguments;
           assert(!arguments.isEmpty && arguments.tail.isEmpty);
-          sourceElementStack.add(constructor);
-          visit(arguments.head);
-          sourceElementStack.removeLast();
+          inlinedFrom(constructor, () {
+            visit(arguments.head);
+          });
           fieldValues[elements[init]] = pop();
         }
       }
