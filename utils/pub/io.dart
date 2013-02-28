@@ -593,7 +593,7 @@ Future _doProcess(Function fn, String executable, List<String> args,
 Future timeout(Future input, int milliseconds, String description) {
   bool completed = false;
   var completer = new Completer();
-  var timer = new Timer(new Duration(milliseconds: milliseconds), (_) {
+  var timer = new Timer(new Duration(milliseconds: milliseconds), () {
     completed = true;
     completer.completeError(new TimeoutException(
         'Timed out while $description.'));
