@@ -7,6 +7,8 @@ library multipart_file;
 import 'dart:async';
 import 'dart:io';
 
+import '../../../../pkg/pathos/lib/path.dart' as path;
+
 import 'byte_stream.dart';
 import 'utils.dart';
 

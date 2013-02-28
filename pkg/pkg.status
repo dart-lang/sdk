@@ -58,6 +58,9 @@ scheduled_test/test/scheduled_test_test: Skip # Timeout (Issue 8844).
 # Fails to recognize HashMap as an instance of Map.
 analyzer-experimental/test/generated/ast_test: Fail
 
+# Issue 8843
+http/multipart_test: Pass,Fail
+
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 

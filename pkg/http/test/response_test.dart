@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:unittest/unittest.dart';
-import 'package:http/http.dart' as http;
+import '../lib/http.dart' as http;
 
 void main() {
   group('()', () {

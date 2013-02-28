@@ -10,9 +10,9 @@ import 'dart:json' as json;
 import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
-import 'package:http/src/utils.dart';
+import '../lib/http.dart' as http;
+import '../lib/testing.dart';
+import '../lib/src/utils.dart';
 import 'utils.dart';
 
 void main() {
