@@ -888,15 +888,29 @@ class _HttpClientConnection {
     _streamFuture = outgoing.onStream((stream) {
         // Sending request, set up response completer.
         _nextResponseCompleter = new Completer();
+
+        var requestFuture = _socket.addStream(stream)
+            .catchError((e) {
+              destroy();
+              throw e;
+            });
+
         // Listen for response.
         _nextResponseCompleter.future
             .then((incoming) {
               incoming.dataDone.then((_) {
                 if (incoming.headers.persistentConnection &&
                     request.persistentConnection) {
-                  // Return connection, now we are done.
-                  _httpClient._returnConnection(this);
-                  _subscription.resume();
+                  // Be sure we have written the full request.
+                  requestFuture
+                      .then((_) {
+                        // Return connection, now we are done.
+                        _httpClient._returnConnection(this);
+                        _subscription.resume();
+                      },
+                      onError: (_) {
+                        // Already handled.
+                      });
                 } else {
                   destroy();
                 }
@@ -916,12 +930,7 @@ class _HttpClientConnection {
             });
         // Resume the parser now we have a handler.
         _subscription.resume();
-
-        return _socket.addStream(stream)
-            .catchError((e) {
-              destroy();
-              throw e;
-            });
+        return requestFuture;
     });
     return request;
   }
