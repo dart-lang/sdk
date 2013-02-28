@@ -1315,10 +1315,9 @@ class ScheduledProcess {
       _process = p;
 
       byteStreamToLines(stream) {
-        var handledErrors = wrapStream(stream.handleError((e) {
+        return streamToLines(new ByteStream(stream.handleError((e) {
           registerException(e.error, e.stackTrace);
-        }));
-        return streamToLines(new ByteStream(handledErrors).toStringStream());
+        })).toStringStream());
       }
 
       var stdoutTee = tee(byteStreamToLines(p.stdout));

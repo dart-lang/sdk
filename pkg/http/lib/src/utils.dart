@@ -250,16 +250,3 @@ Future forEachFuture(Iterable input, Future fn(element)) {
   }
   return nextElement(null);
 }
-
-// TODO(nweiz): remove this when issue 8310 is fixed.
-/// Returns a [Stream] identical to [stream], but piped through a new
-/// [StreamController]. This exists to work around issue 8310.
-Stream wrapStream(Stream stream) {
-  var controller = stream.isBroadcast
-      ? new StreamController.broadcast()
-      : new StreamController();
-  stream.listen(controller.add,
-      onError: (e) => controller.signalError(e),
-      onDone: controller.close);
-  return controller.stream;
-}

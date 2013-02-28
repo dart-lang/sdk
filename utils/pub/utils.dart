@@ -236,7 +236,7 @@ final RegExp _lineRegexp = new RegExp(r"\r\n|\r|\n");
 /// newline is ignored.
 Stream<String> streamToLines(Stream<String> stream) {
   var buffer = new StringBuffer();
-  return wrapStream(stream.transform(new StreamTransformer(
+  return stream.transform(new StreamTransformer(
       handleData: (chunk, sink) {
         var lines = chunk.split(_lineRegexp);
         var leftover = lines.removeLast();
@@ -254,20 +254,7 @@ Stream<String> streamToLines(Stream<String> stream) {
       handleDone: (sink) {
         if (!buffer.isEmpty) sink.add(buffer.toString());
         sink.close();
-      })));
-}
-
-// TODO(nweiz): remove this when issue 8310 is fixed.
-/// Returns a [Stream] identical to [stream], but piped through a new
-/// [StreamController]. This exists to work around issue 8310.
-Stream wrapStream(Stream stream) {
-  var controller = stream.isBroadcast
-      ? new StreamController.broadcast()
-      : new StreamController();
-  stream.listen(controller.add,
-      onError: (e) => controller.signalError(e),
-      onDone: controller.close);
-  return controller.stream;
+      }));
 }
 
 /// Like [Iterable.where], but allows [test] to return [Future]s and uses the
