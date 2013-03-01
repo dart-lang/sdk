@@ -14,7 +14,44 @@ part of dart.io;
  * or [addStream]) any call to the [IOSink] will throw a
  * [StateError].
  */
-class IOSink<T> implements StreamConsumer<List<int>, T> {
+abstract class IOSink<T> implements StreamConsumer<List<int>, T> {
+  factory IOSink(StreamConsumer<List<int>, T> target)
+      => new _IOSinkImpl(target);
+
+  /**
+   * Provide functionality for piping to the [IOSink].
+   */
+  Future<T> consume(Stream<List<int>> stream);
+
+  /**
+   * Like [consume], but will not close the target when done.
+   */
+  Future<T> addStream(Stream<List<int>> stream);
+
+  /**
+   * Write a list of bytes to the target.
+   */
+  void add(List<int> data);
+
+  /**
+   * Write a String to the target.
+   */
+  void addString(String string, [Encoding encoding = Encoding.UTF_8]);
+
+  /**
+   * Close the target.
+   */
+  void close();
+
+  /**
+   * Get future that will complete when all data has been written to
+   * the IOSink and it has been closed.
+   */
+  Future<T> get done;
+}
+
+
+class _IOSinkImpl<T> implements IOSink<T> {
   final StreamConsumer<List<int>, T> _target;
 
   StreamController<List<int>> _controllerInstance;
@@ -22,11 +59,8 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
   StreamSubscription<List<int>> _bindSubscription;
   bool _paused = true;
 
-  IOSink(StreamConsumer<List<int>, T> target) : _target = target;
+  _IOSinkImpl(StreamConsumer<List<int>, T> target) : _target = target;
 
-  /**
-   * Provide functionality for piping to the [IOSink].
-   */
   Future<T> consume(Stream<List<int>> stream) {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
@@ -34,9 +68,6 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
     return _fillFromStream(stream);
   }
 
-  /**
-   * Like [consume], but will not close the target when done.
-   */
   Future<T> addStream(Stream<List<int>> stream) {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
@@ -44,9 +75,6 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
     return _fillFromStream(stream, unbind: true);
   }
 
-  /**
-   * Write a list of bytes to the target.
-   */
   void add(List<int> data) {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
@@ -54,16 +82,10 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
     _controller.add(data);
   }
 
-  /**
-   * Write a String to the target.
-   */
   void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
     add(_encodeString(string, encoding));
   }
 
-  /**
-   * Close the target.
-   */
   void close() {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
@@ -71,10 +93,6 @@ class IOSink<T> implements StreamConsumer<List<int>, T> {
     _controller.close();
   }
 
-  /**
-   * Get future that will complete when all data has been written to
-   * the IOSink and it has been closed.
-   */
   Future<T> get done {
     _controller;
     return _pipeFuture.then((_) => this);

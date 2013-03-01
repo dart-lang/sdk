@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
-part '../../../sdk/lib/io/io_stream_consumer.dart';
+part '../../../sdk/lib/io/io_sink.dart';
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";

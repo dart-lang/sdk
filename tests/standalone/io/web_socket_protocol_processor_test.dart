@@ -6,7 +6,7 @@ import "dart:math";
 import "dart:async";
 
 part "../../../sdk/lib/io/http.dart";
-part "../../../sdk/lib/io/io_stream_consumer.dart";
+part "../../../sdk/lib/io/io_sink.dart";
 part "../../../sdk/lib/io/websocket.dart";
 part "../../../sdk/lib/io/websocket_impl.dart";
 

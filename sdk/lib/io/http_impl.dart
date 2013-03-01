@@ -318,14 +318,21 @@ class _HttpClientResponse
 }
 
 
-abstract class _HttpOutboundMessage<T> extends IOSink {
+abstract class _HttpOutboundMessage<T> implements IOSink {
   // Used to mark when the body should be written. This is used for HEAD
   // requests and in error handling.
   bool _ignoreBody = false;
+  bool _headersWritten = false;
+  bool _chunked = false;
+
+  final IOSink _ioSink;
+  final _HttpOutgoing _outgoing;
+
+  final _HttpHeaders headers;
 
   _HttpOutboundMessage(String protocolVersion, _HttpOutgoing outgoing)
-      : super(outgoing),
-        _outgoing = outgoing,
+      : _outgoing = outgoing,
+        _ioSink = new IOSink(outgoing),
         headers = new _HttpHeaders(protocolVersion);
 
   int get contentLength => headers.contentLength;
@@ -345,27 +352,31 @@ abstract class _HttpOutboundMessage<T> extends IOSink {
       // Transform when chunked.
       stream = stream.transform(new _ChunkedTransformer());
     }
-    return super.consume(stream).then((_) => this);
+    return _ioSink.consume(stream).then((_) => this);
   }
 
   void add(List<int> data) {
     _writeHeaders();
     if (_ignoreBody || data.length == 0) return;
     if (_chunked) {
-      _ChunkedTransformer._addChunk(data, super.add);
+      _ChunkedTransformer._addChunk(data, _ioSink.add);
     } else {
-      super.add(data);
+      _ioSink.add(data);
     }
   }
 
-  Future addStream(Stream<List<int>> stream) {
+  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
+    add(_encodeString(string, encoding));
+  }
+
+  Future<T> addStream(Stream<List<int>> stream) {
     _writeHeaders();
     if (_ignoreBody) return new Future.immediate(this);
     if (_chunked) {
       // Transform when chunked.
       stream = stream.transform(new _ChunkedTransformer(writeEnd: false));
     }
-    return super.addStream(stream).then((_) => this);
+    return _ioSink.addStream(stream).then((_) => this);
   }
 
   void close() {
@@ -377,11 +388,13 @@ abstract class _HttpOutboundMessage<T> extends IOSink {
     _writeHeaders();
     if (!_ignoreBody) {
       if (_chunked) {
-        _ChunkedTransformer._addChunk([], super.add);
+        _ChunkedTransformer._addChunk([], _ioSink.add);
       }
     }
-    super.close();
+    _ioSink.close();
   }
+
+  Future<T> get done => _ioSink.done.then((_) => this);
 
   void _writeHeaders() {
     if (_headersWritten) return;
@@ -391,7 +404,7 @@ abstract class _HttpOutboundMessage<T> extends IOSink {
     _writeHeader();
     _ignoreBody = _tmpIgnoreBody;
     if (_ignoreBody) {
-      super.close();
+      _ioSink.close();
       return;
     }
     _chunked = headers.chunkedTransferEncoding;
@@ -401,12 +414,6 @@ abstract class _HttpOutboundMessage<T> extends IOSink {
   }
 
   void _writeHeader();  // TODO(ajohnsen): Better name.
-
-  final _HttpHeaders headers;
-
-  final _HttpOutgoing _outgoing;
-  bool _headersWritten = false;
-  bool _chunked = false;
 }
 
 
@@ -1485,7 +1492,7 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
 }
 
 
-class _DetachedSocket implements Socket {
+class _DetachedSocket extends Stream<List<int>> implements Socket {
   final Stream<List<int>> _incoming;
   final Socket _socket;
 
@@ -1517,6 +1524,9 @@ class _DetachedSocket implements Socket {
   void add(List<int> data) => _socket.add(data);
   void close() => _socket.close();
   Future<Socket> get done => _socket.done;
+  int get port => _socket.port;
+  String get remoteHost => _socket.remoteHost;
+  int get remotePort => _socket.remotePort;
 }
 
 
