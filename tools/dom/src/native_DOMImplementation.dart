@@ -5,6 +5,11 @@
 part of html;
 
 class _Utils {
+  static double dateTimeToDouble(DateTime dateTime) =>
+      dateTime.millisecondsSinceEpoch.toDouble();
+  static DateTime doubleToDateTime(double dateTime) =>
+      new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
