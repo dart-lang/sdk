@@ -1215,7 +1215,10 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
       type = 'RefPtr<%s>' % type
     if type == 'String':
       type = 'DartStringAdapter'
-    return '%s', type, 'DartUtilities', 'dartTo%s' % self._capitalized_native_type()
+    target_type = self._capitalized_native_type()
+    if self.idl_type() == 'Date':
+      target_type = 'Date'
+    return '%s', type, 'DartUtilities', 'dartTo%s' % target_type
 
   def parameter_type(self):
     if self.native_type() == 'String':
@@ -1226,8 +1229,14 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return []
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    function_name = self._capitalized_native_type()
-    function_name = function_name[0].lower() + function_name[1:]
+    # TODO(antonm): if there are more instances of the case
+    # when conversion depends on both Dart type and C++ type,
+    # consider introducing a corresponding argument/class.
+    if self.idl_type() == 'Date':
+      function_name = 'date'
+    else:
+      function_name = self._capitalized_native_type()
+      function_name = function_name[0].lower() + function_name[1:]
     function_name = 'DartUtilities::%sToDart' % function_name
     if attributes and 'TreatReturnedNullStringAs' in attributes:
       function_name += 'WithNullCheck'
