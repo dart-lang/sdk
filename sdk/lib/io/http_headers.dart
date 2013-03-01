@@ -50,6 +50,7 @@ class _HttpHeaders implements HttpHeaders {
       if (index != -1) {
         values.removeRange(index, 1);
       }
+      if (values.length == 0) _headers.remove(name);
     }
   }
 
@@ -322,8 +323,12 @@ class _HttpHeaders implements HttpHeaders {
   void _finalize() {
     // If the content length is not known make sure chunked transfer
     // encoding is used for HTTP 1.1.
-    if (contentLength < 0 && protocolVersion == "1.1") {
-      chunkedTransferEncoding = true;
+    if (contentLength < 0) {
+      if (protocolVersion == "1.0") {
+        persistentConnection = false;
+      } else {
+        chunkedTransferEncoding = true;
+      }
     }
     // If a Transfer-Encoding header field is present the
     // Content-Length header MUST NOT be sent (RFC 2616 section 4.4).

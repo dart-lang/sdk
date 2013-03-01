@@ -395,7 +395,7 @@ class _HttpOutboundMessage<T> extends IOSink {
       return;
     }
     _chunked = headers.chunkedTransferEncoding;
-    if (!_chunked) {
+    if (headers.contentLength >= 0) {
       _outgoing.setTransferLength(headers.contentLength);
     }
   }

@@ -202,38 +202,6 @@ void testBodyChunked(int totalConnections, bool useHeader) {
   });
 }
 
-void testHttp10() {
-  HttpServer.bind("127.0.0.1", 0, 5).then((server) {
-    server.listen(
-        (HttpRequest request) {
-          Expect.isNull(request.headers.value('content-length'));
-          Expect.equals(-1, request.contentLength);
-          var response = request.response;
-          response.contentLength = 0;
-          Expect.equals("1.0", request.protocolVersion);
-          response.done
-              .then((_) => Expect.fail("Unexpected response completion"))
-              .catchError((e) => Expect.isTrue(e.error is HttpException));
-          response.addString("x");
-          response.close();
-          Expect.throws(() => response.addString("x"),
-                        (e) => e is StateError);
-        },
-        onError: (e) => Expect.fail("Unexpected error $e"));
-
-    Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.addString("GET / HTTP/1.0\r\n\r\n");
-      socket.close();
-      socket.listen(
-          (d) { },
-          onDone: () {
-            socket.destroy();
-            server.close();
-          });
-    });
-  });
-}
-
 void testSetContentLength() {
   HttpServer.bind().then((server) {
     server.listen(
@@ -269,6 +237,5 @@ void main() {
   testBody(5, true);
   testBodyChunked(5, false);
   testBodyChunked(5, true);
-  testHttp10();
   testSetContentLength();
 }
