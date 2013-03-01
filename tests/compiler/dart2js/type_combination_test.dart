@@ -2025,7 +2025,7 @@ void testIntersection(MockCompiler compiler) {
 }
 
 void testRegressions(MockCompiler compiler) {
-  HType nonNullPotentialString = new HBoundedPotentialPrimitiveString(
+  HType nonNullPotentialString = new HBoundedType(
       new TypeMask.nonNullSubtype(compiler.stringClass.computeType(compiler)));
   Expect.equals(
       potentialString, STRING_OR_NULL.union(nonNullPotentialString, compiler));
@@ -2046,7 +2046,7 @@ void main() {
       compiler.functionClass.computeType(compiler), compiler);
   potentialArray = new HBoundedType(
       new TypeMask.subtype(compiler.listClass.computeType(compiler)));
-  potentialString = new HBoundedPotentialPrimitiveString(
+  potentialString = new HBoundedType(
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   jsArrayOrNull = new HType.fromMask(
       new TypeMask.exact(compiler.backend.jsArrayClass.computeType(compiler)),
