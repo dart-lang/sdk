@@ -11,7 +11,7 @@ library logging;
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
+import '../../meta/lib/meta.dart';
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
