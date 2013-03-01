@@ -666,7 +666,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // returned the object).
     HType type = node.receiver.instructionType;
     if (!type.canBePrimitive(compiler)) {
-      print('IN HERE BECAUSE OF $type');
       if (!(type.canBeNull()
             && node.interceptedClasses.contains(compiler.objectClass))) {
         return node.receiver;
