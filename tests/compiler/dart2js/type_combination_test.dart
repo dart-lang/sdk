@@ -2033,17 +2033,25 @@ void testRegressions(MockCompiler compiler) {
 
 void main() {
   MockCompiler compiler = new MockCompiler();
+  compiler.interceptorsLibrary.forEachLocalMember((Element element) {
+    if (element.isClass()) {
+      compiler.enqueuer.resolution.registerInstantiatedClass(element);
+    }
+  });
+  compiler.world.populate();
+
   nonPrimitive1 = new HType.nonNullSubtype(
       compiler.mapClass.computeType(compiler), compiler);
   nonPrimitive2 = new HType.nonNullSubtype(
       compiler.functionClass.computeType(compiler), compiler);
-  potentialArray = new HBoundedPotentialPrimitiveArray(
+  potentialArray = new HBoundedType(
       new TypeMask.subtype(compiler.listClass.computeType(compiler)));
   potentialString = new HBoundedPotentialPrimitiveString(
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   jsArrayOrNull = new HType.fromMask(
       new TypeMask.exact(compiler.backend.jsArrayClass.computeType(compiler)),
       compiler);
+
   testUnion(compiler);
   testIntersection(compiler);
   testRegressions(compiler);

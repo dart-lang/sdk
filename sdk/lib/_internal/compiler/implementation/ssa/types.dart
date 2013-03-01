@@ -45,10 +45,7 @@ abstract class HType {
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
     } else if (mask.isSubtype) {
-      if (element == compiler.listClass
-          || Elements.isListSupertype(element, compiler)) {
-        return new HBoundedPotentialPrimitiveArray(mask);
-      } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+      if (Elements.isNumberOrStringSupertype(element, compiler)) {
         return new HBoundedPotentialPrimitiveNumberOrString(mask);
       } else if (Elements.isStringOnlySupertype(element, compiler)) {
         return new HBoundedPotentialPrimitiveString(mask);
@@ -151,22 +148,22 @@ abstract class HType {
   }
 
   factory HType.readableArrayOrNull(Compiler compiler) {
-    return new HBoundedPotentialPrimitiveArray(
+    return new HBoundedType(
         READABLE_ARRAY.computeMask(compiler).nullable());
   }
 
   factory HType.mutableArrayOrNull(Compiler compiler) {
-    return new HBoundedPotentialPrimitiveArray(
+    return new HBoundedType(
         MUTABLE_ARRAY.computeMask(compiler).nullable());
   }
 
   factory HType.fixedArrayOrNull(Compiler compiler) {
-    return new HBoundedPotentialPrimitiveArray(
+    return new HBoundedType(
         FIXED_ARRAY.computeMask(compiler).nullable());
   }
 
   factory HType.extendableArrayOrNull(Compiler compiler) {
-    return new HBoundedPotentialPrimitiveArray(
+    return new HBoundedType(
         EXTENDABLE_ARRAY.computeMask(compiler).nullable());
   }
 
@@ -917,6 +914,12 @@ class HBoundedType extends HType {
 
   bool canBeNull() => mask.isNullable;
 
+  bool canBePrimitiveArray(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    DartType jsArrayType = backend.jsArrayClass.computeType(compiler);
+    return mask.contains(jsArrayType, compiler);
+  }
+
   DartType computeType(Compiler compiler) => mask.base;
   TypeMask computeMask(Compiler compiler) => mask;
 
@@ -961,10 +964,6 @@ class HBoundedType extends HType {
         return new HBoundedType(mask.nullable());
       }
     }
-
-    // TODO(kasperl): Not sure this is strictly necessary if we make
-    // sure the mock compiler treats JSArray as a subtype of List.
-    if (canBePrimitiveArray(compiler) && other.isArray()) return this;
 
     TypeMask otherMask = other.computeMask(compiler);
     if (otherMask != null) {
@@ -1060,12 +1059,6 @@ class HBoundedPotentialPrimitiveNumberOrString
     }
     return super.intersection(other, compiler);
   }
-}
-
-class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
-  const HBoundedPotentialPrimitiveArray(TypeMask mask)
-      : super(mask, false);
-  bool canBePrimitiveArray(Compiler compiler) => true;
 }
 
 class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {

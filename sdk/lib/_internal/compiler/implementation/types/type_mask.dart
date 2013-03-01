@@ -55,6 +55,26 @@ class TypeMask {
     return isNullable ? this : new TypeMask.internal(base, flags | 1);
   }
 
+  /**
+   * Returns whether or not this type mask contains the given type.
+   */
+  bool contains(DartType type, Compiler compiler) {
+    // TODO(kasperl): Get rid of this handling.
+    if (base.isMalformed) return isSubtype;
+    assert(!type.isMalformed);
+    ClassElement baseElement = base.element;
+    ClassElement typeElement = type.element;
+    if (isExact) {
+      return identical(baseElement, typeElement);
+    } else if (isSubclass) {
+      return typeElement.isSubclassOf(baseElement);
+    } else {
+      assert(isSubtype);
+      Set<ClassElement> subtypes = compiler.world.subtypes[baseElement];
+      return subtypes != null ? subtypes.contains(typeElement) : false;
+    }
+  }
+
   // TODO(kasperl): This implementation is a bit sketchy, but it
   // behaves the same as the old implementation on HType. The plan is
   // to extend this and add proper testing of it.
