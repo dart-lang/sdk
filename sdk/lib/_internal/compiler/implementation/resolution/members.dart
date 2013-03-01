@@ -1638,7 +1638,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       typeResolver = new TypeResolver(compiler),
       scope = element.buildScope(),
       inCheckContext = compiler.enableTypeAssertions &&
-          !element.enclosingElement.isTypedef(),
+          (element.enclosingElement == null ||
+           !element.enclosingElement.isTypedef()),
       inCatchBlock = false,
       super(compiler);
 
