@@ -283,11 +283,10 @@ css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 document_test/supports_cssCanvasContext: Fail
+element_types_test/constructors: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
-element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
-element_types_test/supported_object: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
