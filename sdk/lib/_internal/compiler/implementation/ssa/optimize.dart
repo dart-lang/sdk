@@ -317,27 +317,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    // Check if this call does not need to be intercepted.
-    HType type = input.instructionType;
-    // TODO(kasperl): Get rid of this refinement once the receiver
-    // specialization phase takes care of it.
-    Selector refined = type.refine(selector, compiler);
-    Set<ClassElement> classes = backend.getInterceptedClassesOn(
-        refined, canBeNull: type.canBeNull());
-    if (classes == null) {
-      if (selector.isGetter()) {
-        // Change the call to a regular invoke dynamic call.
-        return new HInvokeDynamicGetter(selector, null, input, false);
-      } else if (selector.isSetter()) {
-        return new HInvokeDynamicSetter(
-            selector, null, input, node.inputs[2], false);
-      } else {
-        // Change the call to a regular invoke dynamic call.
-        return new HInvokeDynamicMethod(
-            selector, node.inputs.getRange(1, node.inputs.length - 1));
-      }
-    }
-
     // If the intercepted call is through a constant interceptor, we
     // know which element to call.
     if (node is !HOneShotInterceptor
@@ -375,7 +354,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    if (node.isInterceptorCall) return handleInterceptorCall(node);
+    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
     HType receiverType = node.receiver.instructionType;
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
@@ -609,7 +588,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    if (node.isInterceptorCall) return handleInterceptorCall(node);
+    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
 
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
@@ -645,12 +624,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    if (node.isInterceptorCall) return handleInterceptorCall(node);
+    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
 
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
-    HInstruction value = node.inputs[1];
+    // Use [:node.inputs.last:] in case the call follows the
+    // interceptor calling convention, but is not a call on an
+    // interceptor.
+    HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
       HInstruction other = value.convertType(
           compiler,
@@ -679,9 +661,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitInterceptor(HInterceptor node) {
     if (node.isConstant()) return node;
+    // If the intercepted object does not need to be intercepted, just
+    // return the object (the [:getInterceptor:] method would have
+    // returned the object).
+    HType type = node.receiver.instructionType;
+    if (!type.canBePrimitive(compiler)) {
+      print('IN HERE BECAUSE OF $type');
+      if (!(type.canBeNull()
+            && node.interceptedClasses.contains(compiler.objectClass))) {
+        return node.receiver;
+      }
+    }
     HInstruction constant = tryComputeConstantInterceptor(
         node.inputs[0], node.interceptedClasses);
     if (constant == null) return node;
+
     return constant;
   }
 

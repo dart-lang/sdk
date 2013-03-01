@@ -1316,11 +1316,26 @@ abstract class HInvokeDynamic extends HInvoke {
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
 
+  /**
+   * Returns whether this call is on an intercepted method.
+   */
   bool get isInterceptorCall {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
     return inputs.length - 2 == selector.argumentCount;
+  }
+
+  /**
+   * Returns whether this call is on an interceptor object.
+   */
+  bool get isCallOnInterceptor {
+    // When the optimizers know this call does not need an
+    // interceptor, they udpate the receiver of the call to be the
+    // actual receiver.
+    // TODO(ngeoffray): This is very fragile and we should inspect the
+    // receiver instead.
+    return isInterceptorCall && inputs[0] != inputs[1];
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;

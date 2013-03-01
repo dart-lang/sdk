@@ -15,7 +15,8 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_HAS_EQUALS,
                                    RAW_DART_FUNCTION_REF,
                                    UNINTERCEPTED;
-import 'dart:_interceptors' show getInterceptor;
+import 'dart:_interceptors' show getInterceptor,
+                                 interceptedNames;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -98,13 +99,16 @@ class JSInvocationMirror implements InvocationMirror {
     return map;
   }
 
-  static final _objectInterceptor = getInterceptor(new Object());
   invokeOn(Object object) {
     var interceptor = getInterceptor(object);
     var receiver = object;
     var name = _internalName;
     var arguments = _arguments;
-    if (identical(interceptor, _objectInterceptor)) {
+    // TODO(ngeoffray): If this functionality ever become performance
+    // critical, we might want to dynamically change [interceptedNames]
+    // to be a JavaScript object with intercepted names as property
+    // instead of a JavaScript array.
+    if (JS('int', '#.indexOf(#)', interceptedNames, name) == -1) {
       if (!isJsArray(arguments)) arguments = new List.from(arguments);
     } else {
       arguments = [object]..addAll(arguments);
@@ -1552,11 +1556,7 @@ bool objectIsSubtype(Object o, var t) {
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
   // Check for native objects and use the interceptor instead of the object.
-  var interceptor = getInterceptor(o);
-  // TODO(karlklose): remove the following reuse of _objectInterceptor.
-  if (!identical(interceptor, JSInvocationMirror._objectInterceptor)) {
-    o = interceptor;
-  }
+  o = getInterceptor(o);
   // We can use the object as its own type representation because we install
   // the subtype flags and the substitution on the prototype, so they are
   // properties of the object in JS.

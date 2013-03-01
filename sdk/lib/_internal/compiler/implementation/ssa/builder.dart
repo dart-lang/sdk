@@ -11,10 +11,8 @@ part of ssa;
  */
 class InterceptedElement extends ElementX {
   final HType ssaType;
-  InterceptedElement(this.ssaType, Element enclosing)
-      : super(const SourceString('receiver'),
-              ElementKind.PARAMETER,
-              enclosing);
+  InterceptedElement(this.ssaType, SourceString name, Element enclosing)
+      : super(name, ElementKind.PARAMETER, enclosing);
 
   DartType computeType(Compiler compiler) => ssaType.computeType(compiler);
 }
@@ -324,10 +322,12 @@ class LocalsHandler {
     }
 
     // If this method is an intercepted method, add the extra
-    // parameter to it, that is the actual receiver.
+    // parameter to it, that is the actual receiver for intercepted
+    // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
-    if (builder.backend.isInterceptorClass(cls)) {
+    if (builder.backend.isInterceptedMethod(element)) {
       HType type = HType.UNKNOWN;
+      SourceString name = const SourceString('receiver');
       if (cls == builder.backend.jsArrayClass) {
         type = HType.READABLE_ARRAY;
       } else if (cls == builder.backend.jsStringClass) {
@@ -342,12 +342,21 @@ class LocalsHandler {
         type = HType.NULL;
       } else if (cls == builder.backend.jsBoolClass) {
         type = HType.BOOLEAN;
+      } else if (cls == builder.backend.jsFunctionClass) {
+        type = HType.UNKNOWN;
+      } else if (cls != compiler.objectClass) {
+        JavaScriptBackend backend = compiler.backend;
+        assert(!backend.isInterceptorClass(cls));
+        name = const SourceString('_');
       }
-      Element parameter = new InterceptedElement(type, element);
+      Element parameter = new InterceptedElement(type, name, element);
       HParameterValue value = new HParameterValue(parameter);
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
-      directLocals[closureData.thisElement] = value;
+      if (builder.backend.isInterceptorClass(cls.declaration)) {
+        // Only use the extra parameter in intercepted classes.
+        directLocals[closureData.thisElement] = value;
+      }
       value.instructionType = type;
     }
   }
@@ -894,6 +903,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // check at the beginning of the method. This is to avoid having
     // call sites do the null check.
     if (name == const SourceString('==')) {
+      if (functionElement.getEnclosingClass() == compiler.objectClass) {
+        // We special case [Object.operator==] because we know the
+        // receiver is not null and therefore can just do an identity
+        // check on [:this:]. The interceptor classes have their own
+        // synthesized [:operator==:] method.
+        HInstruction parameter = parameters.values.first;
+        HIdentity identity = new HIdentity(graph.thisInstruction, parameter);
+        add(identity);
+        HReturn ret = new HReturn(identity);
+        close(ret).addSuccessor(graph.exit);
+        return closeFunction();
+      }
       handleIf(
           function,
           () {
@@ -2327,20 +2348,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
-   * Returns a set of interceptor classes that contain a member whose
-   * signature matches the given [selector].
+   * Returns a set of interceptor classes that contain the given
+   * [selector].
    */
-  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
-    return backend.getInterceptedClassesOn(selector);
-  }
-
   void generateInstanceGetterWithCompiledReceiver(Send send,
                                                   Selector selector,
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
     assert(selector.isGetter());
     SourceString getterName = selector.name;
-    Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
+    Set<ClassElement> interceptedClasses =
+        backend.getInterceptedClassesOn(getterName);
 
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
     HInstruction instruction;
@@ -2416,7 +2434,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(selector.isSetter());
     SourceString setterName = selector.name;
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
-    Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
+    Set<ClassElement> interceptedClasses =
+        backend.getInterceptedClassesOn(setterName);
     if (interceptedClasses != null) {
       // If we're using an interceptor class, emit a call to the
       // getInterceptor method and then the actual dynamic call on the
@@ -3078,10 +3097,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       argumentNamesInstruction,
                       HType.UNKNOWN);
 
-    var inputs = <HInstruction>[
-        target,
-        self,
-        pop()];
+    var inputs = <HInstruction>[target, self];
+    if (backend.isInterceptedMethod(element)) {
+      inputs.add(self);
+    }
+    inputs.add(pop());
     push(new HInvokeSuper(inputs));
   }
 
@@ -3105,6 +3125,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
+    if (backend.isInterceptedMethod(element)) {
+      inputs.add(context);
+    }
     if (node.isPropertyAccess) {
       push(new HInvokeSuper(inputs));
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
@@ -3543,7 +3566,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                           Selector selector,
                                           HInstruction receiver,
                                           List<HInstruction> arguments) {
-    Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
+    Set<ClassElement> interceptedClasses =
+        backend.getInterceptedClassesOn(selector.name);
     List<HInstruction> inputs = <HInstruction>[];
     bool isIntercepted = interceptedClasses != null;
     if (isIntercepted) {
@@ -3901,7 +3925,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction iterator;
     void buildInitializer() {
       Selector selector = elements.getIteratorSelector(node);
-      Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
+      Set<ClassElement> interceptedClasses =
+          backend.getInterceptedClassesOn(selector.name);
       visit(node.expression);
       HInstruction receiver = pop();
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);

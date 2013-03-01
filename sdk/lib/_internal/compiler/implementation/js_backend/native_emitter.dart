@@ -484,7 +484,9 @@ function(cls, desc) {
     emitIsChecks();
 
     jsAst.Expression makeCallOnThis(String functionName) {
-      return js.fun([], js.return_(js['$functionName(this)']));
+      // Because we know the function is intercepted, we need an extra
+      // parameter.
+      return js.fun(['_'], js.return_(js['$functionName(this)']));
     }
 
     // In order to have the toString method on every native class,
@@ -501,7 +503,9 @@ function(cls, desc) {
     // Same as above, but for operator==.
     String equalsName = backend.namer.publicInstanceMethodNameByArity(
         const SourceString('=='), 1);
-    addProperty(equalsName, js.fun(['a'],
+    // Because we know the function is intercepted, we need an extra
+    // parameter.
+    addProperty(equalsName, js.fun(['_', 'a'],
         js.return_(js['this === a'])));
 
     // If the native emitter has been asked to take care of the
