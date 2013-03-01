@@ -789,7 +789,7 @@ class JavaScriptBackend extends Backend {
   Set<ClassElement> getInterceptedClassesOn(SourceString name) {
     Set<Element> intercepted = interceptedElements[name];
     if (intercepted == null) return null;
-    Set<Element> result = interceptedClassesCache.putIfAbsent(name, () {
+    return interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
       Set<ClassElement> result = new Set<ClassElement>();
@@ -798,7 +798,6 @@ class JavaScriptBackend extends Backend {
       }
       return result;
     });
-    return result;
   }
 
   void initializeHelperClasses() {

@@ -1300,6 +1300,13 @@ class CodeEmitterTask extends CompilerTask {
           assert(!needsSetter);
           generateCheckedSetter(member, name, accessorName, builder);
         }
+        if (backend.isInterceptedMethod(member)
+            && instanceFieldNeedsSetter(member)) {
+          // The caller of this method sets [needsSetter] as false
+          // when the setter is intercepted.
+          assert(!needsSetter);
+          generateSetter(member, name, accessorName, builder);
+        }
         if (!getterAndSetterCanBeImplementedByFieldSpec) {
           if (needsGetter) {
             generateGetter(member, name, accessorName, builder);
@@ -1307,9 +1314,6 @@ class CodeEmitterTask extends CompilerTask {
           if (needsSetter) {
             generateSetter(member, name, accessorName, builder);
           }
-        } else if (backend.isInterceptedMethod(member)
-                   && instanceFieldNeedsSetter(member)) {
-          generateSetter(member, name, accessorName, builder);
         }
       });
     });
