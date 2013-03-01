@@ -4,8 +4,7 @@
 
 part of dart.io;
 
-class _HttpIncoming
-    extends Stream<List<int>> implements StreamSink<List<int>> {
+class _HttpIncoming extends Stream<List<int>> {
   final int _transferLength;
   final Completer _dataCompleter = new Completer();
   Stream<List<int>> _stream;
@@ -54,7 +53,7 @@ class _HttpIncoming
   }
 }
 
-class _HttpInboundMessage extends Stream<List<int>> {
+abstract class _HttpInboundMessage extends Stream<List<int>> {
   final _HttpIncoming _incoming;
   List<Cookie> _cookies;
 
@@ -65,7 +64,7 @@ class _HttpInboundMessage extends Stream<List<int>> {
     return _cookies = headers._parseCookies();
   }
 
-  HttpHeaders get headers => _incoming.headers;
+  _HttpHeaders get headers => _incoming.headers;
   String get protocolVersion => headers.protocolVersion;
   int get contentLength => headers.contentLength;
   bool get persistentConnection => headers.persistentConnection;
@@ -82,7 +81,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
   final _HttpConnection _httpConnection;
 
-  HttpSession _session;
+  _HttpSession _session;
 
   _HttpRequest(_HttpResponse this.response,
                _HttpIncoming _incoming,
@@ -166,6 +165,11 @@ class _HttpClientResponse
 
   int get statusCode => _incoming.statusCode;
   String get reasonPhrase => _incoming.reasonPhrase;
+
+  X509Certificate get certificate {
+    var socket = _httpRequest._httpClientConnection._socket;
+    return socket.peerCertificate;
+  }
 
   List<Cookie> get cookies {
     if (_cookies != null) return _cookies;

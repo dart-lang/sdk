@@ -948,7 +948,6 @@ abstract class HttpClientRequest
  * HTTP response for a client connection. The [HttpClientResponse] is a
  * [Stream] of the body content of the response. Listen to the body to handle
  * the data and be notified once the entire body is received.
-
  */
 abstract class HttpClientResponse implements Stream<List<int>> {
   /**
