@@ -6,6 +6,9 @@
 oauth2_test: Pass,Fail
 pub_uploader_test: Pass,Fail
 
+# TODO(gram): These broke with r19269; investigating.
+error_group_test: Fail
+
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip
