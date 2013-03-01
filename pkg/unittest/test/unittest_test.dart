@@ -386,8 +386,8 @@ main() {
     buildStatusString(1, 0, 0, tests[9], count: 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
     buildStatusString(1, 0, 1, 'testOne',
-        message: 'Callback called after test case testOne has already '
-                 'been marked as done.:testTwo:'),
+        message: 'Callback called (2) after test case testOne has already '
+                 'been marked as pass.:testTwo:'),
     buildStatusString(2, 1, 0,
         'testOne::testTwo:Expected: false but: was <true>.:testThree'),
     buildStatusString(2, 0, 3, 

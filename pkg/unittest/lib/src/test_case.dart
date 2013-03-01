@@ -78,7 +78,12 @@ class TestCase {
 
   Future _runTest() {
     _prepTest();
+    // Increment/decrement callbackFunctionsOutstanding to prevent
+    // synchronous 'async' callbacks from causing the  test to be
+    // marked as complete before the body is completely executed.
+    ++callbackFunctionsOutstanding;
     var f = test();
+    --callbackFunctionsOutstanding;
     if (f is Future) {
       f.then((_) => _finishTest())
        .catchError((e) => fail("${e.error}"));
@@ -203,5 +208,11 @@ class TestCase {
 
   void error(String messageText, [String stack = '']) {
     _complete(ERROR, messageText, stack);
+  }
+
+  void markCallbackComplete() {
+    if (--callbackFunctionsOutstanding == 0 && !isComplete) {
+      pass();
+    }
   }
 }

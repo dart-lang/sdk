@@ -362,8 +362,9 @@ class _SpreadArgsHelper {
       // if it previously passed.
       if (testCase.result == PASS) {
         testCase.error(
-            'Callback ${id}called after test case ${testCase.description} '
-            'has already been marked as done.', '');
+            'Callback ${id}called ($actualCalls) after test case '
+            '${testCase.description} has already been marked as '
+            '${testCase.result}.', '');
       }
       return false;
     } else if (maxExpectedCalls >= 0 && actualCalls > maxExpectedCalls) {
@@ -381,10 +382,7 @@ class _SpreadArgsHelper {
       // Mark this callback as complete and remove it from the testcase
       // oustanding callback count; if that hits zero the testcase is done.
       complete = true;
-      if (--testCase.callbackFunctionsOutstanding == 0 &&
-         !testCase.isComplete) {
-        testCase.pass();
-      }
+      testCase.markCallbackComplete();
     }
   }
 
@@ -811,7 +809,7 @@ void ensureInitialized() {
   }
   _initialized = true;
   // Hook our async guard into the matcher library.
-  wrapAsync = expectAsync1;
+  wrapAsync = (f, [id]) => expectAsync1(f, id: id);
 
   _tests = <TestCase>[];
   _testRunner = _nextBatch;

@@ -316,7 +316,7 @@ void _setUpScheduledTest([void setUpFn()]) {
 /// initialized.
 void _ensureInitialized() {
   unittest.ensureInitialized();
-  unittest.wrapAsync = (f) {
+  unittest.wrapAsync = (f, [id = '']) {
     if (currentSchedule == null) {
       throw new StateError("Unexpected call to wrapAsync with no current "
           "schedule.");

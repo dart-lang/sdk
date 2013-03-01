@@ -25,7 +25,7 @@ class TestFailure {
  * used safely. For example, the unittest library will set this
  * to be expectAsync1. By default this is an identity function.
  */
-Function wrapAsync = (f) => f;
+Function wrapAsync = (f, [id]) => f;
 
 /**
  * This is the main assertion function. It asserts that [actual]

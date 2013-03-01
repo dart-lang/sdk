@@ -9,9 +9,6 @@ pub_uploader_test: Pass,Fail
 pub_lish_test: Pass, Fail # Issue 8868
 validator_test: Pass, Fail # Issue 8868
 
-# TODO(gram): These broke with r19269; investigating.
-error_group_test: Fail
-
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
 *: Skip
