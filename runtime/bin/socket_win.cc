@@ -288,4 +288,26 @@ void Socket::Close(intptr_t fd) {
   client_socket->Close();
 }
 
+
+static bool SetBlockingHelper(intptr_t fd, bool blocking) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  u_long iMode = blocking ? 0 : 1;
+  int status = ioctlsocket(handle->socket(), FIONBIO, &iMode);
+  if (status != NO_ERROR) {
+    Log::PrintErr("ioctlsocket FIONBIO failed: %d\n", status);
+    return false;
+  }
+  return true;
+}
+
+
+bool Socket::SetNonBlocking(intptr_t fd) {
+  return SetBlockingHelper(fd, false);
+}
+
+
+bool Socket::SetBlocking(intptr_t fd) {
+  return SetBlockingHelper(fd, true);
+}
+
 #endif  // defined(TARGET_OS_WINDOWS)

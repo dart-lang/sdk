@@ -34,7 +34,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   }
 
   FDUtils::SetCloseOnExec(fd);
-  FDUtils::SetNonBlocking(fd);
+  Socket::SetNonBlocking(fd);
 
   server = gethostbyname(host);
   if (server == NULL) {
@@ -218,7 +218,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
     return -1;
   }
 
-  FDUtils::SetNonBlocking(fd);
+  Socket::SetNonBlocking(fd);
   return fd;
 }
 
@@ -247,7 +247,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       socket = kTemporaryFailure;
     }
   } else {
-    FDUtils::SetNonBlocking(socket);
+    Socket::SetNonBlocking(socket);
   }
   return socket;
 }
@@ -262,6 +262,16 @@ void Socket::Close(intptr_t fd) {
     strerror_r(errno, error_message, kBufferSize);
     Log::PrintErr("%s\n", error_message);
   }
+}
+
+
+bool Socket::SetNonBlocking(intptr_t fd) {
+  return FDUtils::SetNonBlocking(fd);
+}
+
+
+bool Socket::SetBlocking(intptr_t fd) {
+  return FDUtils::SetBlocking(fd);
 }
 
 #endif  // defined(TARGET_OS_ANDROID)
