@@ -185,39 +185,38 @@ class LocalsHandler {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData != null) {
-      HInstruction box;
-      // The scope has captured variables.
-      if (element != null && element.isGenerativeConstructorBody()) {
-        // The box is passed as a parameter to a generative
-        // constructor body.
-        box = builder.addParameter(scopeData.boxElement);
-      } else {
-        box = createBox();
-      }
-      // Add the box to the known locals.
-      directLocals[scopeData.boxElement] = box;
-      // Make sure that accesses to the boxed locals go into the box. We also
-      // need to make sure that parameters are copied into the box if necessary.
-      scopeData.capturedVariableMapping.forEach((Element from, Element to) {
-        // The [from] can only be a parameter for function-scopes and not
-        // loop scopes.
-        if (from.isParameter() && !element.isGenerativeConstructorBody()) {
-          // Now that the redirection is set up, the update to the local will
-          // write the parameter value into the box.
-          // Store the captured parameter in the box. Get the current value
-          // before we put the redirection in place.
-          // We don't need to update the local for a generative
-          // constructor body, because it receives a box that already
-          // contains the updates as the last parameter.
-          HInstruction instruction = readLocal(from);
-          redirectElement(from, to);
-          updateLocal(from, instruction);
-        } else {
-          redirectElement(from, to);
-        }
-      });
+    if (scopeData == null) return;
+    HInstruction box;
+    // The scope has captured variables.
+    if (element != null && element.isGenerativeConstructorBody()) {
+      // The box is passed as a parameter to a generative
+      // constructor body.
+      box = builder.addParameter(scopeData.boxElement);
+    } else {
+      box = createBox();
     }
+    // Add the box to the known locals.
+    directLocals[scopeData.boxElement] = box;
+    // Make sure that accesses to the boxed locals go into the box. We also
+    // need to make sure that parameters are copied into the box if necessary.
+    scopeData.capturedVariableMapping.forEach((Element from, Element to) {
+      // The [from] can only be a parameter for function-scopes and not
+      // loop scopes.
+      if (from.isParameter() && !element.isGenerativeConstructorBody()) {
+        // Now that the redirection is set up, the update to the local will
+        // write the parameter value into the box.
+        // Store the captured parameter in the box. Get the current value
+        // before we put the redirection in place.
+        // We don't need to update the local for a generative
+        // constructor body, because it receives a box that already
+        // contains the updates as the last parameter.
+        HInstruction instruction = readLocal(from);
+        redirectElement(from, to);
+        updateLocal(from, instruction);
+      } else {
+        redirectElement(from, to);
+      }
+    });
   }
 
   /**
@@ -1144,7 +1143,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues,
-                             FunctionElement inlinedFromElement) {
+                             FunctionElement inlinedFromElement,
+                             Node callNode) {
     compiler.withCurrentElement(constructor, () {
       assert(invariant(constructor, constructor.isImplementation));
       constructors.addLast(constructor);
@@ -1162,6 +1162,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.internalError(
             "Parameters and arguments didn't match for super/redirect call",
             element: constructor);
+      }
+
+      ClassElement superclass = constructor.getEnclosingClass();
+      if (compiler.world.needsRti(superclass)) {
+        // If [superclass] needs RTI, we have to give a value to its
+        // type parameters. Those values are in the [supertype]
+        // declaration of [subclass].
+        ClassElement subclass = inlinedFromElement.getEnclosingClass();
+        DartType supertype = subclass.supertype;
+        Link<DartType> typeVariables = superclass.typeVariables;
+        supertype.typeArguments.forEach((DartType argument) {
+          localsHandler.updateLocal(typeVariables.head.element,
+              analyzeTypeArgument(argument, callNode));
+          typeVariables = typeVariables.tail;
+        });
+        // If the supertype is a raw type, we need to set to null the
+        // type variables.
+        assert(typeVariables.isEmpty
+               || superclass.typeVariables == typeVariables);
+        while (!typeVariables.isEmpty) {
+          localsHandler.updateLocal(typeVariables.head.element,
+              graph.addConstantNull(constantSystem));
+          typeVariables = typeVariables.tail;
+        }
       }
 
       inlinedFrom(constructor, () {
@@ -1246,7 +1270,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
           inlineSuperOrRedirect(target, selector, arguments, constructors,
-                                fieldValues, constructor);
+                                fieldValues, constructor, call);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1281,7 +1305,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               const Link<Node>(),
                               constructors,
                               fieldValues,
-                              constructor);
+                              constructor,
+                              functionNode);
       }
     }
   }
@@ -1389,12 +1414,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(newObject);
 
     // Create the runtime type information, if needed.
-    List<HInstruction> inputs = <HInstruction>[];
     if (compiler.world.needsRti(classElement)) {
+      List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        inputs.add(localsHandler.directLocals[typeVariable.element]);
+        rtiInputs.add(localsHandler.readLocal(typeVariable.element));
       });
-      callSetRuntimeTypeInfo(classElement, inputs, newObject);
+      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
     }
 
     // Generate calls to the constructor bodies.
@@ -1405,23 +1430,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (body == null) continue;
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
-      FunctionSignature functionSignature = body.computeSignature(compiler);
-      functionSignature.orderedForEachParameter((parameter) {
-        if (!localsHandler.isBoxed(parameter)) {
-          // The parameter will be a field in the box passed as the
-          // last parameter. So no need to pass it.
-          bodyCallInputs.add(localsHandler.readLocal(parameter));
-        }
-      });
-
-      // If parameters are checked, we pass the already computed
-      // boolean to the constructor body.
       TreeElements elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
       Node node = constructor.parseNode(compiler);
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
+
+
+      FunctionSignature functionSignature = body.computeSignature(compiler);
       functionSignature.orderedForEachParameter((parameter) {
+        // if [parameter] is boxed, it will be a field in the box passed as the
+        // last parameter. So no need to direclty pass it.
+        if (!localsHandler.isBoxed(parameter)) {
+          bodyCallInputs.add(localsHandler.readLocal(parameter));
+        }
+        // If [parameter] is checked, we pass the already computed
+        // boolean to the constructor body.
         if (elements.isParameterChecked(parameter)) {
           Element fieldCheck =
               parameterClosureData.parametersWithSentinel[parameter];
@@ -1429,7 +1453,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       });
 
-      // If there are locals that escape (ie used in closures), we
+      ClassElement currentClass = constructor.getEnclosingClass();
+      if (compiler.world.needsRti(currentClass)) {
+        // If [currentClass] needs RTI, we add the type variables as
+        // parameters of the generative constructor body.
+        currentClass.typeVariables.forEach((DartType argument) {
+          bodyCallInputs.add(localsHandler.readLocal(argument.element));
+        });
+      }
+
+      // If there are locals that escape (ie mutated in closures), we
       // pass the box to the constructor.
       ClosureScope scopeData = parameterClosureData.capturingScopes[node];
       if (scopeData != null) {
@@ -1560,7 +1593,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Add the type parameters of the class as parameters of this
     // method.
     var enclosing = element.enclosingElement;
-    if (element.isConstructor() && compiler.world.needsRti(enclosing)) {
+    if ((element.isConstructor() || element.isGenerativeConstructorBody())
+        && compiler.world.needsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = addParameter(typeVariable.element);
         localsHandler.directLocals[typeVariable.element] = param;
@@ -3104,11 +3138,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       member = closureClass.methodElement;
       member = member.getOutermostEnclosingMemberOrTopLevel();
     }
-    if (member.isFactoryConstructor()) {
+    if (member.isConstructor() || member.isGenerativeConstructorBody()) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
-    } else if (member.isInstanceMember() ||
-               member.isGenerativeConstructor()) {
+    } else if (member.isInstanceMember()) {
       // The type variable is stored on the object.  Generate code to extract
       // the type arguments from the object, substitute them as an instance
       // of the type we are testing against (if necessary), and extract the

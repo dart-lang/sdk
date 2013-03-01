@@ -447,11 +447,10 @@ class ClosureTranslator extends Visitor {
     }
     if (outermostElement.isMember() &&
         compiler.world.needsRti(outermostElement.getEnclosingClass())) {
-      if (outermostElement.isInstanceMember()
-          || outermostElement.isGenerativeConstructor()) {
-        if (hasTypeVariable(type)) useLocal(closureData.thisElement);
-      } else if (outermostElement.isFactoryConstructor()) {
+      if (outermostElement.isConstructor()) {
         analyzeTypeVariables(type);
+      } else if (outermostElement.isInstanceMember()) {
+        if (hasTypeVariable(type)) useLocal(closureData.thisElement);
       }
     }
 

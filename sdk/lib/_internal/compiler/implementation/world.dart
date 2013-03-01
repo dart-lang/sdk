@@ -51,7 +51,11 @@ class World {
       }
     }
 
-    compiler.resolverWorld.instantiatedClasses.forEach(addSubtypes);
+    // Use the [:seenClasses:] set to include non-instantiated
+    // classes: if the superclass of these classes require RTI, then
+    // they also need RTI, so that a constructor passes the type
+    // variables to the super constructor.
+    compiler.enqueuer.resolution.seenClasses.forEach(addSubtypes);
 
     // Find the classes that need runtime type information. Such
     // classes are:
@@ -64,6 +68,7 @@ class World {
       if (classesNeedingRti.contains(cls)) return;
       classesNeedingRti.add(cls);
 
+      // TODO(ngeoffray): This should use subclasses, not subtypes.
       Set<ClassElement> classes = subtypes[cls];
       if (classes != null) {
         classes.forEach((ClassElement sub) {
