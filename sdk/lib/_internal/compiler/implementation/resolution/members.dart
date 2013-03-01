@@ -1637,7 +1637,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       this.statementScope = new StatementScope(),
       typeResolver = new TypeResolver(compiler),
       scope = element.buildScope(),
+      // The type annotations on a typedef do not imply type checks.
+      // TODO(karlklose): clean this up (dartbug.com/8870).
       inCheckContext = compiler.enableTypeAssertions &&
+          !element.isTypedef() &&
           (element.enclosingElement == null ||
            !element.enclosingElement.isTypedef()),
       inCatchBlock = false,
