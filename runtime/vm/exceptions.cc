@@ -587,10 +587,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::NullThrownError();
       break;
-    case kIllegalJSRegExp:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::IllegalJSRegExpException();
-      break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();

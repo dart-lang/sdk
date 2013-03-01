@@ -53,8 +53,9 @@ class JSSyntaxRegExp implements RegExp {
     if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
-    throw new IllegalJSRegExpException(
-        pattern, JS('String', r'String(#)', regexp));
+    String errorMessage = JS('String', r'String(#)', regexp);
+    throw new FormatException(
+        "Illegal RegExp pattern: $pattern, $errorMessage");
   }
 
   Match firstMatch(String str) {

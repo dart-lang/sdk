@@ -558,6 +558,11 @@ LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 i
 LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
 
+LibTest/core/RegExp/RegExp_A01_t03: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t03: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/IllegalJSRegExpException/toString_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/IllegalJSRegExpException/IllegalJSRegExpException_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+
 LibTest/core/List/addLast_A01_t03: Fail  # List constructors, co19 issue 384
 LibTest/core/List/add_A01_t01: Fail  # List constructors, co19 issue 384
 LibTest/core/List/clear_A01_t01: Fail  # List constructors, co19 issue 384

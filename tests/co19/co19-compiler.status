@@ -481,6 +481,12 @@ LibTest/core/Strings/concatAll_A02_t01: Fail # Strings class has been removed. c
 LibTest/core/Strings/concatAll_A03_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
 
+LibTest/core/RegExp/RegExp_A01_t03: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t03: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/IllegalJSRegExpException/toString_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+LibTest/core/IllegalJSRegExpException/IllegalJSRegExpException_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
+
 LibTest/core/String/charCodeAt_A01_t01: Fail # Deprecated string members removed (issue 382).
 LibTest/core/String/charCodeAt_A02_t01: Fail # Deprecated string members removed (issue 382).
 LibTest/core/String/charCodeAt_A03_t01: Fail # Deprecated string members removed (issue 382).

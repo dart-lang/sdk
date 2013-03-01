@@ -183,7 +183,6 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(InternalError, "InternalError")                                            \
   V(NullThrownError, "NullThrownError")                                        \
-  V(IllegalJSRegExpException, "IllegalJSRegExpException")                      \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "IsolateUnhandledException")                    \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \

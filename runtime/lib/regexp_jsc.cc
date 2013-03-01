@@ -41,13 +41,13 @@ static void JSREFree(void* ptr) {
 static void ThrowExceptionOnError(const String& pattern,
                                   const char* error_msg) {
   if (error_msg == NULL) {
-    error_msg = "Unknown regexp compile error";
+    error_msg = "Unknown regexp compile error. ";
   }
   const String& errmsg = String::Handle(String::New(error_msg));
-  const Array& args = Array::Handle(Array::New(2));
-  args.SetAt(0, pattern);
-  args.SetAt(1, errmsg);
-  Exceptions::ThrowByType(Exceptions::kIllegalJSRegExp, args);
+  const String& message = String::Handle(String::Concat(errmsg, pattern));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
 }
 
 

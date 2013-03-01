@@ -53,16 +53,6 @@ class FormatException implements Exception {
   String toString() => "FormatException: $message";
 }
 
-/**
- * Deprecated. Replaced by [FormatException].
- */
-@deprecated
-class IllegalJSRegExpException extends FormatException {
-  IllegalJSRegExpException(String pattern, String errmsg)
-      : super("Illegal pattern: $pattern, $errmsg");
-}
-
-
 class IntegerDivisionByZeroException implements Exception {
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";
