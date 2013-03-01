@@ -371,6 +371,16 @@ abstract class HttpHeaders {
    * effect.
    */
   ContentType contentType;
+
+  /**
+   * Gets and sets the content length header value.
+   */
+  int contentLength;
+
+  /**
+   * Gets and sets the persistent connection header value.
+   */
+  bool persistentConnection;
 }
 
 
@@ -805,23 +815,6 @@ abstract class HttpClient {
    * Add credentials to be used for authorizing HTTP requests.
    */
   void addCredentials(Uri url, String realm, HttpClientCredentials credentials);
-
-  /**
-   * If [sendClientCertificate] is set to true, authenticate with a client
-   * certificate when connecting with an HTTPS server that requests one.
-   * Select the certificate from the certificate database that matches
-   * the authorities listed by the HTTPS server as valid.
-   * If [clientCertificate] is set, send the certificate with that nickname
-   * instead.
-   */
-  set sendClientCertificate(bool send);
-
-  /**
-   * If [clientCertificate] is non-null and [sendClientCertificate] is true,
-   * use [clientCertificate] to select the certificate to send from the
-   * certificate database, looking it up by its nickname.
-   */
-  set clientCertificate(String nickname);
 
   /**
    * Sets the function used to resolve the proxy server to be used for

@@ -215,7 +215,7 @@ class _HttpParser
   }
 
 
-  StreamSubscription<_HttpIncoming> listen(void onData(List<int> event),
+  StreamSubscription<_HttpIncoming> listen(void onData(_HttpIncoming event),
                                            {void onError(AsyncError error),
                                             void onDone(),
                                             bool unsubscribeOnError}) {

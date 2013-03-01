@@ -318,7 +318,7 @@ class _HttpClientResponse
 }
 
 
-class _HttpOutboundMessage<T> extends IOSink {
+abstract class _HttpOutboundMessage<T> extends IOSink {
   // Used to mark when the body should be written. This is used for HEAD
   // requests and in error handling.
   bool _ignoreBody = false;
@@ -334,7 +334,7 @@ class _HttpOutboundMessage<T> extends IOSink {
   }
 
   bool get persistentConnection => headers.persistentConnection;
-  bool set persistentConnection(bool p) {
+  void set persistentConnection(bool p) {
     headers.persistentConnection = p;
   }
 
@@ -1086,7 +1086,7 @@ class _HttpClient implements HttpClient {
   Future<HttpClientRequest> _openUrlFromRequest(String method,
                                                 Uri uri,
                                                 _HttpClientRequest previous) {
-    return openUrl(method, uri).then((request) {
+    return openUrl(method, uri).then((_HttpClientRequest request) {
           // Only follow redirects if initial request did.
           request.followRedirects = previous.followRedirects;
           // Allow same number of redirects.
@@ -1515,7 +1515,7 @@ class _DetachedSocket implements Socket {
 
   void destroy() => _socket.destroy();
   void add(List<int> data) => _socket.add(data);
-  Future<Socket> close() => _socket.close();
+  void close() => _socket.close();
   Future<Socket> get done => _socket.done;
 }
 
