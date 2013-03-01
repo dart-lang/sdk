@@ -231,6 +231,34 @@ void testHttp10() {
   });
 }
 
+void testSetContentLength() {
+  HttpServer.bind().then((server) {
+    server.listen(
+        (HttpRequest request) {
+          var response = request.response;
+          Expect.isNull(response.headers.value('content-length'));
+          Expect.equals(-1, response.contentLength);
+          response.headers.set("content-length", 3);
+          Expect.equals("3", response.headers.value('content-length'));
+          Expect.equals(3, response.contentLength);
+          response.addString("xxx");
+          response.close();
+        });
+
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+          response.listen(
+              (_) { },
+              onDone: () {
+                client.close();
+                server.close();
+              });
+        });
+  });
+}
+
 void main() {
   testNoBody(5, false);
   testNoBody(5, true);
@@ -239,4 +267,5 @@ void main() {
   testBodyChunked(5, false);
   testBodyChunked(5, true);
   testHttp10();
+  testSetContentLength();
 }
