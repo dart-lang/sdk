@@ -60,7 +60,6 @@ class TypeMask {
    */
   bool contains(DartType type, Compiler compiler) {
     // TODO(kasperl): Do this error handling earlier.
-    if (base.isMalformed) return isSubtype;
     if (base.kind != TypeKind.INTERFACE) return false;
     assert(type.kind == TypeKind.INTERFACE);
     // Compare the interface types.
