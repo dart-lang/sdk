@@ -53,6 +53,7 @@ io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+io/raw_secure_server_socket_intense_test: Skip
 
 # These tests pass on MacOS 10.8.2 but fails on the buildbot machines
 # that are running an earlier version of MacOS. The issue is that the
