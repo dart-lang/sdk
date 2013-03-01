@@ -158,7 +158,7 @@ class Configuration {
   /** Handle errors that happen outside the tests. */
   // TODO(vsm): figure out how to expose the stack trace here
   // Currently e.message works in dartium, but not in dartc.
-  handleExternalError(e, String message) =>
+  void handleExternalError(e, String message) =>
       _reportTestError('$message\nCaught $e', '');
 
   _postMessage(String message) {

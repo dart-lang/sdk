@@ -202,7 +202,7 @@ String groupSep = ' ';
 List<TestCase> _tests;
 
 /** Get the list of tests. */
-get testCases => _tests;
+List<TestCase> get testCases => _tests;
 
 /**
  * Callback used to run tests. Entrypoints can replace this with their own
@@ -309,7 +309,7 @@ class _SpreadArgsHelper {
       : this.callback = callback,
         minExpectedCalls = minExpected,
         maxExpectedCalls = (maxExpected == 0 && minExpected > 0)
-            ? minExpected 
+            ? minExpected
             : maxExpected,
         this.isDone = isDone,
         testNum = _currentTest,
@@ -515,7 +515,7 @@ Function _expectAsyncUntil(Function callback, Function isDone, {String id}) {
  * [expectAsyncUntil0] will also ensure that errors that occur within
  * [callback] are tracked and reported. [callback] should take 0 positional
  * arguments (named arguments are not supported). [id] can be used to
- * identify the callback in error messages (for example if it is called 
+ * identify the callback in error messages (for example if it is called
  * after the test case is complete).
  */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
@@ -676,7 +676,7 @@ _defer(void callback()) {
   (new Future.immediate(null)).then((_) => callback());
 }
 
-rerunTests() {
+void rerunTests() {
   _uncaughtErrorMessage = null;
   _initialized = true; // We don't want to reset the test array.
   runTests();
@@ -701,7 +701,7 @@ void filterTests(testFilter) {
 }
 
 /** Runs all queued tests, one at a time. */
-runTests() {
+void runTests() {
   _currentTest = 0;
   _currentGroup = '';
 
@@ -718,10 +718,12 @@ runTests() {
 }
 
 /**
- * Run [tryBody] guarded in a try-catch block. If an exception is thrown, update
- * the [_currentTest] status accordingly.
+ * Run [tryBody] guarded in a try-catch block. If an exception is thrown, it is
+ * passed to the corresponding test.
+ *
+ * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
-guardAsync(tryBody, [finallyBody, testNum = -1]) {
+guardAsync(Function tryBody, [Function finallyBody, int testNum = -1]) {
   if (testNum < 0) testNum = _currentTest;
   try {
     return tryBody();
@@ -735,7 +737,7 @@ guardAsync(tryBody, [finallyBody, testNum = -1]) {
 /**
  * Registers that an exception was caught for the current test.
  */
-registerException(e, [trace]) {
+void registerException(e, [trace]) {
   _registerException(_currentTest, e, trace);
 }
 
@@ -803,7 +805,7 @@ String _fullSpec(String spec) {
 /**
  * Lazily initializes the test library if not already initialized.
  */
-ensureInitialized() {
+void ensureInitialized() {
   if (_initialized) {
     return;
   }
