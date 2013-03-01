@@ -1,125 +1,127 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
 const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
+const CERTIFICATE = "localhost_cert";
 
-void WriteAndClose(Socket socket, String message) {
-  var data = message.codeUnits;
-  int written = 0;
-  void write() {
-    written += socket.writeList(data, written, data.length - written);
-    if (written < data.length) {
-      socket.onWrite = write;
-    } else {
-      socket.close(true);
-    }
-  }
-  write();
+void testClientCertificate() {
+  ReceivePort port = new ReceivePort();
+  SecureServerSocket.bind(SERVER_ADDRESS,
+                          0,
+                          5,
+                          CERTIFICATE,
+                          requestClientCertificate: true).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST_NAME,
+                                               server.port,
+                                               sendClientCertificate: true);
+    server.listen((serverEnd) {
+      X509Certificate certificate = serverEnd.peerCertificate;
+      Expect.isNotNull(certificate);
+      Expect.equals("CN=localhost", certificate.subject);
+      Expect.equals("CN=myauthority", certificate.issuer);
+      clientEndFuture.then((clientEnd) {
+        X509Certificate certificate = clientEnd.peerCertificate;
+        Expect.isNotNull(certificate);
+        Expect.equals("CN=localhost", certificate.subject);
+        Expect.equals("CN=myauthority", certificate.issuer);
+        clientEnd.close();
+        serverEnd.close();
+        server.close();
+        port.close();
+      });
+    });
+  });
 }
 
-class SecureTestServer {
-  void onConnection(Socket connection) {
-    connection.onConnect = () {
-      numConnections++;
-      var certificate = connection.peerCertificate;
-      Expect.isTrue(certificate.subject.contains("CN="));
-    };
-    String received = "";
-    connection.onData = () {
-      received = received.concat(new String.fromCharCodes(connection.read()));
-    };
-    connection.onClosed = () {
-      Expect.isTrue(received.contains("Hello from client "));
-      String name = received.substring(received.indexOf("client ") + 7);
-      WriteAndClose(connection, "Welcome, client $name");
-    };
-  }
-
-  void errorHandlerServer(Exception e) {
-    Expect.fail("Server socket error $e");
-  }
-
-  int start() {
-    server = new SecureServerSocket(SERVER_ADDRESS,
-                                    0,
-                                    10,
-                                    "localhost_cert",
-                                    requireClientCertificate: true);
-    Expect.isNotNull(server);
-    server.onConnection = onConnection;
-    server.onError = errorHandlerServer;
-    return server.port;
-  }
-
-  void stop() {
-    server.close();
-  }
-
-  int numConnections = 0;
-  SecureServerSocket server;
+void testRequiredClientCertificate() {
+  ReceivePort port = new ReceivePort();
+  SecureServerSocket.bind(SERVER_ADDRESS,
+                          0,
+                          5,
+                          CERTIFICATE,
+                          requireClientCertificate: true).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST_NAME,
+                                               server.port,
+                                               sendClientCertificate: true);
+    server.listen((serverEnd) {
+      X509Certificate certificate = serverEnd.peerCertificate;
+      Expect.isNotNull(certificate);
+      Expect.equals("CN=localhost", certificate.subject);
+      Expect.equals("CN=myauthority", certificate.issuer);
+      clientEndFuture.then((clientEnd) {
+        X509Certificate certificate = clientEnd.peerCertificate;
+        Expect.isNotNull(certificate);
+        Expect.equals("CN=localhost", certificate.subject);
+        Expect.equals("CN=myauthority", certificate.issuer);
+        clientEnd.close();
+        serverEnd.close();
+        server.close();
+        port.close();
+      });
+    });
+  });
 }
 
-class SecureTestClient {
-  SecureTestClient(int this.port, String this.name) {
-    socket = new SecureSocket(HOST_NAME, port, sendClientCertificate: true);
-    socket.onConnect = this.onConnect;
-    socket.onData = () {
-      reply = reply.concat(new String.fromCharCodes(socket.read()));
-    };
-    socket.onClosed = done;
-    reply = "";
-  }
-
-  void onConnect() {
-    numRequests++;
-    WriteAndClose(socket, "Hello from client $name");
-  }
-
-  void done() {
-    Expect.equals("Welcome, client $name", reply);
-    numReplies++;
-    if (numReplies == CLIENT_NAMES.length) {
-      Expect.equals(numRequests, numReplies);
-      EndTest();
-    }
-  }
-
-  static int numRequests = 0;
-  static int numReplies = 0;
-
-  int port;
-  String name;
-  SecureSocket socket;
-  String reply;
+void testNoClientCertificate() {
+  ReceivePort port = new ReceivePort();
+  SecureServerSocket.bind(SERVER_ADDRESS,
+                          0,
+                          5,
+                          CERTIFICATE,
+                          requestClientCertificate: true).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST_NAME,
+                                               server.port);
+    server.listen((serverEnd) {
+      X509Certificate certificate = serverEnd.peerCertificate;
+      Expect.isNull(certificate);
+      clientEndFuture.then((clientEnd) {
+        clientEnd.close();
+        serverEnd.close();
+        server.close();
+        port.close();
+      });
+    });
+  });
 }
 
-Function EndTest;
-
-const CLIENT_NAMES = const ['able', 'baker', 'camera', 'donut', 'echo'];
+void testNoRequiredClientCertificate() {
+  ReceivePort port = new ReceivePort();
+  bool clientError = false;
+  SecureServerSocket.bind(SERVER_ADDRESS,
+                          0,
+                          5,
+                          CERTIFICATE,
+                          requireClientCertificate: true).then((server) {
+    Future clientDone = SecureSocket.connect(HOST_NAME, server.port)
+      .catchError((e) { clientError = true; });
+    server.listen((serverEnd) {
+      Expect.fail("Got a unverifiable connection");
+    },
+    onError: (e) {
+      clientDone.then((_) {
+        Expect.isTrue(clientError);
+        server.close();
+        port.close();
+      });
+    });
+  });
+}
 
 void main() {
-  ReceivePort keepAlive = new ReceivePort();
   Path scriptDir = new Path(new Options().script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',
                           useBuiltinRoots: false);
 
-  var server = new SecureTestServer();
-  int port = server.start();
-
-  EndTest = () {
-    Expect.equals(CLIENT_NAMES.length, server.numConnections);
-    server.stop();
-    keepAlive.close();
-  };
-
-  for (var x in CLIENT_NAMES) {
-    new SecureTestClient(port, x);
-  }
+  testClientCertificate();
+  testRequiredClientCertificate();
+  testNoClientCertificate();
+  testNoRequiredClientCertificate();
 }

@@ -12,9 +12,6 @@ io/status_file_parser_test: fail
 io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
 
-[ $runtime == vm ]
-io/secure_server_client_certificate_test: Fail
-
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 io/http_client_request_test: Pass, Fail # Issue 8874
