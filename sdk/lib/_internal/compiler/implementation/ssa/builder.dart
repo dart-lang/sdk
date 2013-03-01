@@ -1144,8 +1144,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Link<Node> arguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues,
-                             FunctionElement inlinedFromElement,
-                             Node callNode) {
+                             FunctionElement inlinedFromElement) {
     compiler.withCurrentElement(constructor, () {
       assert(invariant(constructor, constructor.isImplementation));
       constructors.addLast(constructor);
@@ -1163,27 +1162,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.internalError(
             "Parameters and arguments didn't match for super/redirect call",
             element: constructor);
-      }
-
-      ClassElement superclass = constructor.getEnclosingClass();
-      if (compiler.world.needsRti(superclass)) {
-        // If [superclass] needs rti, we have to give a value to its
-        // type parameters. Those values are in the [supertype]
-        // declaration of [subclass].
-        ClassElement subclass = inlinedFromElement.getEnclosingClass();
-        DartType supertype = subclass.supertype;
-        Link<DartType> typeVariable = superclass.typeVariables;
-        supertype.typeArguments.forEach((DartType argument) {
-          localsHandler.directLocals[typeVariable.head.element] =
-              analyzeTypeArgument(argument, callNode);
-          typeVariable = typeVariable.tail;
-        });
-        // Also add null to non-provided type variables.
-        while (!typeVariable.isEmpty) {
-          localsHandler.directLocals[typeVariable.head.element] =
-              graph.addConstantNull(constantSystem);
-          typeVariable = typeVariable.tail;
-        }
       }
 
       inlinedFrom(constructor, () {
@@ -1268,7 +1246,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
           inlineSuperOrRedirect(target, selector, arguments, constructors,
-                                fieldValues, constructor, call);
+                                fieldValues, constructor);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1303,8 +1281,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               const Link<Node>(),
                               constructors,
                               fieldValues,
-                              constructor,
-                              functionNode);
+                              constructor);
       }
     }
   }
@@ -3127,10 +3104,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       member = closureClass.methodElement;
       member = member.getOutermostEnclosingMemberOrTopLevel();
     }
-    if (member.isConstructor()) {
+    if (member.isFactoryConstructor()) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
-    } else if (member.isInstanceMember()) {
+    } else if (member.isInstanceMember() ||
+               member.isGenerativeConstructor()) {
       // The type variable is stored on the object.  Generate code to extract
       // the type arguments from the object, substitute them as an instance
       // of the type we are testing against (if necessary), and extract the
