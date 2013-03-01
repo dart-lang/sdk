@@ -92,6 +92,13 @@ main() {
             successCallback: expectAsync1((FileEntry e) {
               expect(e.name, equals('file4'));
               expect(e.isFile, isTrue);
+
+              // Bug 8836 Re-enable once Dartium supports DateTime properties.
+              //e.getMetadata(expectAsync1((Metadata metadata) {
+              //  var changeTime = metadata.modificationTime;
+              //  expect(new DateTime.now().difference(changeTime).inSeconds,
+              //    lessThan(60));
+              //}));
             }),
             errorCallback: (e) {
               fail('Got file error: ${e.code}');

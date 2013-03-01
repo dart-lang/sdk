@@ -6605,7 +6605,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getInt8')
   @DocsEditable
-  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
+  Object getInt8({int byteOffset}) native "DataView_getInt8_Callback";
 
   int getUint16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6639,7 +6639,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getUint8')
   @DocsEditable
-  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
+  Object getUint8({int byteOffset}) native "DataView_getUint8_Callback";
 
   void setFloat32(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -11126,7 +11126,7 @@ class File extends Blob {
 
   @DomName('File.lastModifiedDate')
   @DocsEditable
-  Date get lastModifiedDate native "File_lastModifiedDate_Getter";
+  DateTime get lastModifiedDate native "File_lastModifiedDate_Getter";
 
   @DomName('File.name')
   @DocsEditable
@@ -14633,11 +14633,11 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
+  DateTime get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  void set valueAsDate(Date value) native "HTMLInputElement_valueAsDate_Setter";
+  void set valueAsDate(DateTime value) native "HTMLInputElement_valueAsDate_Setter";
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable
@@ -17936,7 +17936,7 @@ class Metadata extends NativeFieldWrapperClass1 {
 
   @DomName('Metadata.modificationTime')
   @DocsEditable
-  Date get modificationTime native "Metadata_modificationTime_Getter";
+  DateTime get modificationTime native "Metadata_modificationTime_Getter";
 
   @DomName('Metadata.size')
   @DocsEditable
@@ -21034,7 +21034,7 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 
   @DomName('RTCStatsElement.timestamp')
   @DocsEditable
-  Date get timestamp native "RTCStatsElement_timestamp_Getter";
+  DateTime get timestamp native "RTCStatsElement_timestamp_Getter";
 
   @DomName('RTCStatsElement.names')
   @DocsEditable

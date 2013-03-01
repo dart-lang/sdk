@@ -421,6 +421,10 @@ _serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
 dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
+    'Date get':
+      Conversion('_convertNativeToDart_DateTime', 'dynamic', 'DateTime'),
+    'Date set':
+      Conversion('_convertDartToNative_DateTime', 'DateTime', 'dynamic'),
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
@@ -1332,7 +1336,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
-    'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
+    'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to

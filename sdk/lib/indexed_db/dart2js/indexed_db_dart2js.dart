@@ -210,13 +210,13 @@ class Cursor native "*IDBCursor" {
 @DomName('IDBCursorWithValue')
 class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 
-  dynamic get value => _convertNativeToDart_IDBAny(this._value);
+  dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
   @JSName('value')
   @DomName('IDBCursorWithValue.value')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _value;
+  final dynamic _get_value;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1072,12 +1072,12 @@ class Request extends EventTarget native "*IDBRequest" {
   @DocsEditable
   final String readyState;
 
-  dynamic get result => _convertNativeToDart_IDBAny(this._result);
+  dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @DomName('IDBRequest.result')
   @DocsEditable
   @Creates('Null')
-  final dynamic _result;
+  final dynamic _get_result;
 
   @DomName('IDBRequest.source')
   @DocsEditable
