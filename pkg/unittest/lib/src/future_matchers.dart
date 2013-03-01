@@ -34,8 +34,7 @@ class _Completes extends BaseMatcher {
   final Matcher _matcher;
   final String _id;
 
-  const _Completes(this._matcher, String id)
-      : this._id = (id == '') ? '' : '$id ';
+  const _Completes(this._matcher, this._id);
 
   bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
@@ -44,7 +43,8 @@ class _Completes extends BaseMatcher {
     item.then((value) {
       done(() { if (_matcher != null) expect(value, _matcher); });
     }, onError: (e) {
-      var reason = 'Expected future ${_id}to complete successfully, '
+      var id = _id == '' ? '' : '${_id} ';
+      var reason = 'Expected future ${id}to complete successfully, '
                    'but it failed with ${e.error}';
       if (e.stackTrace != null) {
         var stackTrace = e.stackTrace.toString();
