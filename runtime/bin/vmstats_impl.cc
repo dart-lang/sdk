@@ -149,6 +149,7 @@ void VmStats::WebServer(uword bind_address) {
       // Stop() closed the socket.
       return;
     }
+    Socket::SetBlocking(socket);
 
     // TODO(tball): rewrite this to use STL, so as to eliminate the static
     // buffer and support resource URLs that are longer than BUFSIZE.
@@ -159,10 +160,6 @@ void VmStats::WebServer(uword bind_address) {
     if (len <= 0) {
       // Invalid HTTP request, ignore.
       continue;
-    }
-    intptr_t n;
-    while ((n = Socket::Read(socket, buffer + len, BUFSIZE - len)) > 0) {
-      len += n;
     }
     buffer[len] = '\0';
 
