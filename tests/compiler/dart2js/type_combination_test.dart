@@ -2033,7 +2033,7 @@ void testRegressions(MockCompiler compiler) {
 
 void main() {
   MockCompiler compiler = new MockCompiler();
-  compiler.interceptorsLibrary.forEachLocalMember((Element element) {
+  compiler.interceptorsLibrary.forEachLocalMember((element) {
     if (element.isClass()) {
       compiler.enqueuer.resolution.registerInstantiatedClass(element);
     }

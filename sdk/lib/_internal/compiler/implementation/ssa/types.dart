@@ -914,6 +914,11 @@ class HBoundedType extends HType {
 
   bool canBeNull() => mask.isNullable;
 
+  bool canBePrimitive(Compiler compiler) {
+    // TODO(kasperl): Check for string, etc.
+    return canBePrimitiveArray(compiler);
+  }
+
   bool canBePrimitiveArray(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     DartType jsArrayType = backend.jsArrayClass.computeType(compiler);

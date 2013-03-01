@@ -59,9 +59,11 @@ class TypeMask {
    * Returns whether or not this type mask contains the given type.
    */
   bool contains(DartType type, Compiler compiler) {
-    // TODO(kasperl): Get rid of this handling.
+    // TODO(kasperl): Do this error handling earlier.
     if (base.isMalformed) return isSubtype;
-    assert(!type.isMalformed);
+    if (base.kind != TypeKind.INTERFACE) return false;
+    assert(type.kind == TypeKind.INTERFACE);
+    // Compare the interface types.
     ClassElement baseElement = base.element;
     ClassElement typeElement = type.element;
     if (isExact) {
