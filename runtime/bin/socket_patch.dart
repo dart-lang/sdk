@@ -785,8 +785,8 @@ class _Socket extends Stream<List<int>> implements Socket {
   void destroy() {
     // Destroy can always be called to get rid of a socket.
     if (_raw == null) return;
-    _closeRawSocket();
     _consumer.stop();
+    _closeRawSocket();
     _controllerClosed = true;
     _controller.close();
   }
