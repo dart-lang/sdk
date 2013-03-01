@@ -17083,7 +17083,13 @@ class _ChildNodeListLazy implements List {
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      iterable = new List.from(iterable);
+      if (iterable._this != _this) {
+        // Optimized route for copying between nodes.
+        for (var i = 0, len = iterable.length; i < len; ++i) {
+          _this.$dom_appendChild(iterable[0]);
+        }
+      }
+      return;
     }
     for (Node node in iterable) {
       _this.$dom_appendChild(node);
