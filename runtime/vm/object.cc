@@ -13066,7 +13066,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
     frame_strings.Add(chars);
   }
 
-  // Now concatentate the frame descriptions into a single C string.
+  // Now concatenate the frame descriptions into a single C string.
   chars = isolate->current_zone()->Alloc<char>(total_len + 1);
   intptr_t index = 0;
   for (intptr_t i = 0; i < frame_strings.length(); i++) {
@@ -13075,6 +13075,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
                          "%s",
                          frame_strings[i]);
   }
+  chars[total_len] = '\0';
   return chars;
 }
 
