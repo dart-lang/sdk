@@ -28,7 +28,7 @@ DEFINE_NATIVE_ENTRY(Stacktrace_getFullStacktrace, 1) {
 DEFINE_NATIVE_ENTRY(Stacktrace_getStacktrace, 1) {
   const Stacktrace& trace =
       Stacktrace::CheckedHandle(arguments->NativeArgAt(0));
-  return String::New(trace.ToCStringInternal());
+  return String::New(trace.ToCStringInternal(0));
 }
 
 

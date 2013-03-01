@@ -12989,20 +12989,20 @@ void Stacktrace::SetCatchStacktrace(const Array& func_array,
 
 RawString* Stacktrace::FullStacktrace() const {
   const Array& func_array = Array::Handle(raw_ptr()->catch_func_array_);
-  if (!func_array.IsNull() &&
-      func_array.raw() != Object::empty_array().raw()) {
+  if (!func_array.IsNull() && (func_array.Length() > 0)) {
     const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
     const Array& pc_offset_array =
         Array::Handle(raw_ptr()->catch_pc_offset_array_);
     const Stacktrace& catch_trace = Stacktrace::Handle(
         Stacktrace::New(func_array, code_array, pc_offset_array));
+    intptr_t idx = Length();
     const String& trace =
-        String::Handle(String::New(catch_trace.ToCStringInternal()));
+        String::Handle(String::New(catch_trace.ToCStringInternal(idx)));
     const String& throw_trace =
-        String::Handle(String::New(ToCStringInternal()));
+        String::Handle(String::New(ToCStringInternal(0)));
     return String::Concat(throw_trace, trace);
   }
-  return String::New(ToCStringInternal());
+  return String::New(ToCStringInternal(0));
 }
 
 
@@ -13012,7 +13012,7 @@ const char* Stacktrace::ToCString() const {
 }
 
 
-const char* Stacktrace::ToCStringInternal() const {
+const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -13052,14 +13052,14 @@ const char* Stacktrace::ToCStringInternal() const {
       script.GetTokenLocation(token_pos, &line, &column);
     }
     intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                               i,
+                               (frame_index + i),
                                function_name.ToCString(),
                                url.ToCString(),
                                line, column);
     total_len += len;
     chars = isolate->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
-                i,
+                (frame_index + i),
                 function_name.ToCString(),
                 url.ToCString(),
                 line, column);
