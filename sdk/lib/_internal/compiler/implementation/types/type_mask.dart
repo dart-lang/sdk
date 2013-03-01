@@ -59,19 +59,43 @@ class TypeMask {
   // behaves the same as the old implementation on HType. The plan is
   // to extend this and add proper testing of it.
   TypeMask union(TypeMask other, Types types) {
+    // TODO(kasperl): Add subclass handling.
+    if (base == other.base) {
+      return unionSame(other, types);
+    } else if (types.isSubtype(other.base, base)) {
+      return unionSubtype(other, types);
+    } else if (types.isSubtype(base, other.base)) {
+      return other.unionSubtype(this, types);
+    }
+    return null;
+  }
+
+  TypeMask unionSame(TypeMask other, Types types) {
+    assert(base == other.base);
+    // The two masks share the base type, so we must chose the least
+    // constraining kind (the highest) of the two. If either one of
+    // the masks are nullable the result should be nullable too.
     int combined = (flags > other.flags)
         ? flags | (other.flags & 1)
         : other.flags | (flags & 1);
-    if (base == other.base) {
-      if (flags == combined) {
-        return this;
-      } else if (other.flags == combined) {
-        return other;
-      } else {
-        return new TypeMask.internal(base, combined);
-      }
+    if (flags == combined) {
+      return this;
+    } else if (other.flags == combined) {
+      return other;
+    } else {
+      return new TypeMask.internal(base, combined);
     }
-    return null;
+  }
+
+  TypeMask unionSubtype(TypeMask other, Types types) {
+    assert(types.isSubtype(other.base, base));
+    // Since the other mask is a subtype of this mask, we need the
+    // resulting union to be a subtype too. If either one of the masks
+    // are nullable the result should be nullable too.
+    int combined = (SUBTYPE << 1) | ((flags | other.flags) & 1);
+    return (flags != combined)
+        ? new TypeMask.internal(base, combined)
+        : this;
   }
 
   // TODO(kasperl): This implementation is a bit sketchy, but it

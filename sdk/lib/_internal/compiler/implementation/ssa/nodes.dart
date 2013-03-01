@@ -885,8 +885,9 @@ abstract class HInstruction implements Spannable {
   bool isTypeUnknown() => instructionType.isUnknown();
   bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
   bool isPrimitive() => instructionType.isPrimitive();
-  bool canBePrimitive() => instructionType.canBePrimitive();
   bool canBeNull() => instructionType.canBeNull();
+  bool canBePrimitive(Compiler compiler) =>
+      instructionType.canBePrimitive(compiler);
 
   /**
    * Type of the unstruction.

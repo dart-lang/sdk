@@ -214,7 +214,7 @@ abstract class HType {
   bool isPrimitiveOrNull() => false;
 
   bool canBeNull() => false;
-  bool canBePrimitive() => false;
+  bool canBePrimitive(Compiler compiler) => false;
   bool canBePrimitiveNumber(Compiler compiler) => false;
   bool canBePrimitiveString(Compiler compiler) => false;
   bool canBePrimitiveArray(Compiler compiler) => false;
@@ -280,7 +280,7 @@ abstract class HAnalysisType extends HType {
 
 class HUnknownType extends HAnalysisType {
   const HUnknownType() : super("unknown");
-  bool canBePrimitive() => true;
+  bool canBePrimitive(Compiler compiler) => true;
   bool canBeNull() => true;
 
   HType union(HType other, Compiler compiler) => this;
@@ -289,7 +289,7 @@ class HUnknownType extends HAnalysisType {
 
 class HConflictingType extends HAnalysisType {
   const HConflictingType() : super("conflicting");
-  bool canBePrimitive() => true;
+  bool canBePrimitive(Compiler compiler) => true;
   bool canBeNull() => true;
 
   HType union(HType other, Compiler compiler) => other;
@@ -299,7 +299,7 @@ class HConflictingType extends HAnalysisType {
 abstract class HPrimitiveType extends HType {
   const HPrimitiveType();
   bool isPrimitive() => true;
-  bool canBePrimitive() => true;
+  bool canBePrimitive(Compiler compiler) => true;
   bool isPrimitiveOrNull() => true;
   bool isExact() => true;
 }
@@ -343,7 +343,7 @@ class HNullType extends HPrimitiveType {
 
 abstract class HPrimitiveOrNullType extends HType {
   const HPrimitiveOrNullType();
-  bool canBePrimitive() => true;
+  bool canBePrimitive(Compiler compiler) => true;
   bool canBeNull() => true;
   bool isPrimitiveOrNull() => true;
 }
@@ -800,7 +800,7 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   }
 
   TypeMask computeMask(Compiler compiler) {
-    return new TypeMask.exact(computeType(compiler));
+    return new TypeMask.nonNullExact(computeType(compiler));
   }
 
   HType union(HType other, Compiler compiler) {
@@ -930,9 +930,22 @@ class HBoundedType extends HType {
     if (this == other) return this;
     if (other.isConflicting()) return HType.CONFLICTING;
     if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
-    if (other is HBoundedType) {
-      HType helped = intersectionHelper(other, compiler);
-      if (helped != null) return helped;
+
+    if (canBePrimitiveArray(compiler)) {
+      if (other.isArray()) return other;
+      if (other.isStringOrNull()) {
+        return other.isString() ? HType.CONFLICTING : HType.NULL;
+      }
+      if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
+    }
+
+    TypeMask otherMask = other.computeMask(compiler);
+    if (otherMask != null) {
+      TypeMask intersection = mask.intersection(otherMask, compiler.types);
+      if (intersection != null) {
+        if (intersection == mask) return this;
+        return new HBoundedType(intersection);
+      }
     }
     if (other.isUnknown()) return this;
     if (other.canBeNull() && canBeNull()) return HType.NULL;
@@ -948,25 +961,20 @@ class HBoundedType extends HType {
         return new HBoundedType(mask.nullable());
       }
     }
-    if (other is HBoundedType) return unionHelper(other, compiler);
+
+    // TODO(kasperl): Not sure this is strictly necessary if we make
+    // sure the mock compiler treats JSArray as a subtype of List.
+    if (canBePrimitiveArray(compiler) && other.isArray()) return this;
+
+    TypeMask otherMask = other.computeMask(compiler);
+    if (otherMask != null) {
+      TypeMask union = mask.union(otherMask, compiler.types);
+      if (union == null) return HType.UNKNOWN;
+      if (union == mask) return this;
+      return new HBoundedType(union);
+    }
     if (other.isConflicting()) return this;
     return HType.UNKNOWN;
-  }
-
-  HType unionHelper(HBoundedType other, Compiler compiler) {
-    TypeMask union = mask.union(other.mask, compiler.types);
-    if (union == null) return HType.UNKNOWN;
-    if (union == mask) return this;
-    if (union == other.mask) return other;
-    return new HBoundedType(union);
-  }
-
-  HType intersectionHelper(HBoundedType other, Compiler compiler) {
-    TypeMask intersection = mask.intersection(other.mask, compiler.types);
-    if (intersection == null) return null;
-    if (intersection == mask) return this;
-    if (intersection == other.mask) return other;
-    return new HBoundedType(intersection);
   }
 
   String toString() {
@@ -983,7 +991,7 @@ class HBoundedPotentialPrimitiveType extends HBoundedType {
     return 'BoundedPotentialPrimitiveType(mask=$mask)';
   }
 
-  bool canBePrimitive() => true;
+  bool canBePrimitive(Compiler compiler) => true;
   bool isTop() => _isObject;
 
   HType union(HType other, Compiler compiler) {
@@ -1057,31 +1065,7 @@ class HBoundedPotentialPrimitiveNumberOrString
 class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
   const HBoundedPotentialPrimitiveArray(TypeMask mask)
       : super(mask, false);
-
   bool canBePrimitiveArray(Compiler compiler) => true;
-
-  HType union(HType other, Compiler compiler) {
-    if (other.isString()) return HType.UNKNOWN;
-    if (other.isReadableArray()) return this;
-    // TODO(ngeoffray): implement union types.
-    if (other.isIndexablePrimitive()) return HType.UNKNOWN;
-    if (other.isNull()) {
-      if (canBeNull()) {
-        return this;
-      } else {
-        return new HBoundedPotentialPrimitiveArray(mask.nullable());
-      }
-    }
-    return super.union(other, compiler);
-  }
-
-  HType intersection(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isString()) return HType.CONFLICTING;
-    if (other.isReadableArray()) return other;
-    if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
-    return super.intersection(other, compiler);
-  }
 }
 
 class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {

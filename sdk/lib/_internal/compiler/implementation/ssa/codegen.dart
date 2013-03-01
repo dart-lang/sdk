@@ -2365,7 +2365,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, type);
       push(new js.Binary('&&', nullTest, pop()));
       attachLocationToLast(node);
-    } else if (input.canBePrimitive() || input.canBeNull()) {
+    } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
       checkObject(input, '===');
       js.Expression objectTest = pop();
       checkType(input, type);
