@@ -108,9 +108,14 @@ runTest() {
         () =>_defer(expectAsync0((){ ++_testconfig.count;})));
     } else if (testName == 'excess callback test') {
       test(testName, () {
-        var _callback = expectAsync0(() => ++_testconfig.count);
-        _defer(_callback);
-        _defer(_callback);
+        var _callback0 = expectAsync0(() => ++_testconfig.count);
+        var _callback1 = expectAsync0(() => ++_testconfig.count);
+        var _callback2 = expectAsync0(() {
+          _callback1();
+          _callback1();
+          _callback0();
+        });
+        _defer(_callback2);
       });
     } else if (testName == 'completion test') {
       test(testName, () {
@@ -129,15 +134,13 @@ runTest() {
         _defer(() => guardAsync(() { throw "error!"; }));
       });
     } else if (testName == 'late exception test') {
+      var f;
       test('testOne', () {
-        var f = expectAsync0(() {});
-        _defer(protectAsync0(() {
-          _defer(protectAsync0(() => fail('first failure')));
-          fail('second failure');
-        }));
+        f = expectAsync0(() {});
+        _defer(f);
       });
       test('testTwo', () {
-        _defer(expectAsync0(() {}));
+        _defer(expectAsync0(() { f(); }));
       });
     } else if (testName == 'middle exception test') {
       test('testOne', () { expect(true, isTrue); });
@@ -296,7 +299,6 @@ runTest() {
             guardAsync(() {
               excesscallback();
               excesscallback();
-              excesscallback();
               callback();
             });
           });
@@ -319,6 +321,7 @@ runTest() {
         return _defer(() {
           Timer.run(() {
             guardAsync(() {
+              excesscallback();
               excesscallback();
               excesscallback();
               callback();
@@ -378,13 +381,13 @@ main() {
     buildStatusString(1, 0, 0, 'a ${tests[6]}', count: 0,
         setup: 'setup', teardown: 'teardown'),
     buildStatusString(1, 0, 0, tests[7], count: 1),
-    buildStatusString(0, 0, 1, tests[8], count: 1,
-        message: 'Callback called more times than expected (2 > 1).'),
+    buildStatusString(0, 1, 0, tests[8], count: 1,
+        message: 'Callback called more times than expected (1).'),
     buildStatusString(1, 0, 0, tests[9], count: 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
     buildStatusString(1, 0, 1, 'testOne',
-        message: 'Callback called after already being marked as done '
-                 '(1).:testTwo:'),
+        message: 'Callback called after test case testOne has already '
+                 'been marked as done.:testTwo:'),
     buildStatusString(2, 1, 0,
         'testOne::testTwo:Expected: false but: was <true>.:testThree'),
     buildStatusString(2, 0, 3, 
@@ -396,19 +399,19 @@ main() {
         'bad setup/bad teardown foo4:bad setup/bad teardown '
         'foo4: Test teardown failed: Failed to complete tearDown:'
         'post groups'),
-    buildStatusString(2, 2, 2,
+    buildStatusString(2, 4, 0,
         'successful::'
-        'error1:Callback called more times than expected (3 > 1).:'
+        'error1:Callback called more times than expected (1).:'
         'fail1:Expected: <false> but: was <true>.:'
-        'error2:Callback called more times than expected (2 > 1).:'
+        'error2:Callback called more times than expected (1).:'
         'fail2:failure:'
         'foo5'),
-    buildStatusString(2, 2, 2,
+    buildStatusString(2, 4, 0,
         'successful::'
         'fail1:Expected: <false> but: was <true>.:'
-        'error1:Callback called more times than expected (3 > 1).:'
+        'error1:Callback called more times than expected (1).:'
         'fail2:failure:'
-        'error2:Callback called more times than expected (2 > 1).:'
+        'error2:Callback called more times than expected (1).:'
         'foo6'),
   ];
 
