@@ -811,6 +811,7 @@ unwrapException(ex) {
     if (message is String) {
       if (message == 'null has no properties' ||
           message == "'null' is not an object" ||
+          message == "'undefined' is not an object" ||
           message.endsWith('is null') ||
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined') ||

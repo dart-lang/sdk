@@ -355,7 +355,6 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 arithmetic_test: Fail # Issue: 7414
-invocation_mirror_invoke_on2_test: Fail # Issue 8876
 
 
 [ $runtime == opera ]
