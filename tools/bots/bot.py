@@ -216,7 +216,7 @@ def RunTest(name, build_info, targets, flags=None):
     cmd.extend(flags)
     cmd.extend(targets)
 
-    print 'Running: %s' % (' '.join(cmd))
+    print 'Running: %s' % (' '.join(map(lambda arg: '"%s"' % arg, cmd)))
     RunProcess(cmd)
 
 
