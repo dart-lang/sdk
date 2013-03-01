@@ -395,7 +395,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   nativeRead(int len) native "Socket_Read";
   nativeWrite(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
-  bool nativeCreateConnect(String host, int port) native "Socket_CreateConnect";
+  nativeCreateConnect(String host, int port) native "Socket_CreateConnect";
   nativeCreateBindListen(String address, int port, int backlog)
       native "ServerSocket_CreateBindListen";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
