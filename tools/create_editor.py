@@ -5,11 +5,12 @@
 # BSD-style license that can be found in the LICENSE file.
 #
 # A script which will be invoked from gyp to create a build of the editor.
-# 
-# TODO(devoncarew): currently this script is not callable from tools/build.py
-# Usage: ./tools/build.py editor
-#  -or-
-# Usage: ./tools/build_editor.py [--mode <mode>] [--arch <arch>] output
+#
+# Usage: ./tools/create_editor.py
+#            [--mode <mode>] [--arch <arch>] [--out <output>] [--build <build>]
+#
+# DO NOT CALL THIS SCRIPT DIRECTLY, instead invoke:
+# ./tools/build.py -mrelease editor
 
 import glob
 import optparse
@@ -23,6 +24,7 @@ import zipfile
 from os.path import join
 
 OUTPUT = None
+BUILD = None
 
 OS_CONFIG = {
   'win32': 'win32, win32',
@@ -61,19 +63,15 @@ def ProcessEditorArchive(archive, outDir):
 
 
 def GetEditorTemp():
-  return join(GetBuildRoot(), 'editor.build.temp')
+  return join(BUILD, 'editor.build.temp')
 
 
 def GetDownloadCache():
   return GetEclipseBuildRoot()
 
 
-def GetBuildRoot():
-  return os.path.abspath(utils.GetBuildRoot(utils.GuessOS()))
-
-
 def GetEclipseBuildRoot():
-  return join(GetBuildRoot(), 'editor.build.cache')
+  return join(BUILD, 'editor.build.cache')
 
 
 def GetSdkPath():
@@ -86,35 +84,42 @@ def GetOutputParent():
 
 def BuildOptions():
   options = optparse.OptionParser(usage='usage: %prog [options] <output>')
-  options.add_option("-m", "--mode",
-      help='Build variant',
-      metavar='[debug,release]')
-  options.add_option("-a", "--arch",
-      help='Target architecture',
-      metavar='[ia32,x64]')
+  options.add_option("-m", "--mode", metavar='[debug,release]')
+  options.add_option("-a", "--arch", metavar='[ia32,x64]')
+  options.add_option("-o", "--out")
+  options.add_option("-b", "--build")
   return options
 
-  
+
 def Main():
   global OUTPUT
-  
+  global BUILD
+
   parser = BuildOptions()
   (options, args) = parser.parse_args()
-  
-  if len(args) > 1:
+
+  if args:
     parser.print_help()
     return 1
-  
+
   osName = utils.GuessOS()
   mode = 'debug'
   arch = utils.GuessArchitecture()
-  
-  if args:
+
+  if not options.build:
+    print >> sys.stderr, 'Error: no --build option specified'
+    exit(1)
+  else:
+    BUILD = options.build
+
+  if not options.out:
+    print >> sys.stderr, 'Error: no --out option specified'
+    exit(1)
+  else:
     # TODO(devoncarew): Currently we scrape the output path to determine the
     # mode and arch. This is fragile and should moved into one location
     # (utils.py?) or made more explicit.
-    OUTPUT = args[0]
-    
+    OUTPUT = options.out
     mode = ('release', 'debug')['Debug' in OUTPUT]
     arch = ('ia32', 'x64')['X64' in OUTPUT]
 
@@ -124,18 +129,15 @@ def Main():
   if options.arch:
     arch = options.arch
 
-  # If an output dir was not given, create one from os, mode, and arch.
-  if not OUTPUT:
-    OUTPUT = join(utils.GetBuildRoot(osName, mode, arch), 'editor')
-  
   OUTPUT = os.path.abspath(OUTPUT)
-  
+  BUILD = os.path.abspath(BUILD)
+
   print "\nBuilding the editor"
   print "  config : %s, %s, %s" % (osName, arch, mode)
   print "  output : %s" % OUTPUT
 
   # Clean the editor output directory.
-  print '  cleaning %s' % OUTPUT
+  print '\ncleaning %s' % OUTPUT
   shutil.rmtree(OUTPUT, True)
 
   # These are the valid eclipse build configurations that we can produce.
@@ -151,12 +153,10 @@ def Main():
   sys.stdout.flush()
   sys.stderr.flush()
 
-  buildScript = join('editor', 'tools', 'features', 
-                     'com.google.dart.tools.deploy.feature_releng', 
+  buildScript = join('editor', 'tools', 'features',
+                     'com.google.dart.tools.deploy.feature_releng',
                      'build_rcp.xml')
-
-  buildRcpStatus = subprocess.call(
-      [AntPath(), 
+  build_cmd = [AntPath(),
       '-lib',
       join('third_party', 'bzip2', 'bzip2.jar'),
       '-Dbuild.out=' + OUTPUT,
@@ -169,8 +169,9 @@ def Main():
       '-Dbuild.dart.sdk=' + GetSdkPath(),
       '-Dbuild.no.properties=true',
       '-buildfile',
-      buildScript],
-    shell=utils.IsWindows())
+      buildScript]
+  print build_cmd
+  buildRcpStatus = subprocess.call(build_cmd, shell=utils.IsWindows())
 
   if buildRcpStatus != 0:
     sys.exit(buildRcpStatus)
@@ -180,7 +181,7 @@ def Main():
   # dart/ subdirectory. We unzip the contents of the archive into OUTPUT. It
   # will use the ../dart-sdk directory as its SDK.
   archives = glob.glob(join(OUTPUT, '*.zip'))
-  
+
   if archives:
     ProcessEditorArchive(archives[0], OUTPUT)
 
