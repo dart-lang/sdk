@@ -356,6 +356,11 @@ abstract class Enqueuer {
   }
 
   void registerIsCheck(DartType type) {
+    // Even in checked mode, type annotations for return type and argument
+    // types do not imply type checks, so there should never be a check
+    // against the type variable of a typedef.
+    assert(type.kind != TypeKind.TYPE_VARIABLE ||
+           !type.element.enclosingElement.isTypedef());
     universe.isChecks.add(type);
     compiler.backend.registerIsCheck(type, this);
   }
