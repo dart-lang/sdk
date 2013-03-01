@@ -68,6 +68,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
 
 void testBody(int totalConnections, bool useHeader) {
   HttpServer.bind("127.0.0.1", 0, totalConnections).then((server) {
+    int serverCount = 0;
     server.listen(
         (HttpRequest request) {
           Expect.equals("2", request.headers.value('content-length'));
@@ -91,7 +92,10 @@ void testBody(int totalConnections, bool useHeader) {
                       Expect.fail("Unexpected successful response completion");
                     })
                     .catchError((e) {
-                      Expect.isTrue(e.error is HttpException, "[$e] [${e.error}]");
+                      Expect.isTrue(e.error is HttpException, "[$e]");
+                      if (++serverCount == totalConnections) {
+                        server.close();
+                      }
                     });
                 response.close();
                 Expect.throws(() => response.addString("x"),
@@ -100,7 +104,7 @@ void testBody(int totalConnections, bool useHeader) {
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
 
-    int count = 0;
+    int clientCount = 0;
     HttpClient client = new HttpClient();
     for (int i = 0; i < totalConnections; i++) {
       client.get("127.0.0.1", server.port, "/")
@@ -123,9 +127,8 @@ void testBody(int totalConnections, bool useHeader) {
             response.listen(
                 (d) {},
                 onDone: () {
-                  if (++count == totalConnections) {
+                  if (++clientCount == totalConnections) {
                     client.close();
-                    server.close();
                   }
                 });
           });
