@@ -389,9 +389,10 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
     } else if (FLAG_use_cha && type_->HasResolvedTypeClass()) {
-      const intptr_t cid = Class::Handle(type_->type_class()).id();
-      if (!CHA::HasSubclasses(cid)) {
-        cid_ = cid;
+      const Class& type_class = Class::Handle(type_->type_class());
+      if (!type_class.is_implemented() &&
+          !CHA::HasSubclasses(type_class.id())) {
+        cid_ = type_class.id();
       } else {
         cid_ = kDynamicCid;
       }
@@ -548,17 +549,6 @@ bool PhiInstr::RecomputeType() {
 }
 
 
-static bool CanTrustParameterType(const Function& function, intptr_t index) {
-  // Parameter is receiver.
-  if (index == 0) {
-    return function.IsDynamicFunction() || function.IsConstructor();
-  }
-
-  // Parameter is the constructor phase.
-  return (index == 1) && function.IsConstructor();
-}
-
-
 CompileType ParameterInstr::ComputeType() const {
   // Note that returning the declared type of the formal parameter would be
   // incorrect, because ParameterInstr is used as input to the type check
@@ -566,19 +556,36 @@ CompileType ParameterInstr::ComputeType() const {
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
   // for example receiver and construction phase.
-  if (!CanTrustParameterType(block_->parsed_function().function(),
-                             index())) {
-    return CompileType::Dynamic();
-  }
-
+  const Function& function = block_->parsed_function().function();
   LocalScope* scope = block_->parsed_function().node_sequence()->scope();
-
   const AbstractType& type = scope->VariableAt(index())->type();
 
-  // Only receiver of methods on Object and Null types can be null.
-  const bool is_nullable = (index() == 0) &&
-      (type.IsObjectType() || type.IsNullType());
-  return CompileType::FromAbstractType(type, is_nullable);
+  // Parameter is the constructor phase.
+  if ((index() == 1) && function.IsConstructor()) {
+    return CompileType::FromAbstractType(type, CompileType::kNonNullable);
+  }
+
+  // Parameter is the receiver.
+  if ((index() == 0) &&
+      (function.IsDynamicFunction() || function.IsConstructor())) {
+    if (type.IsObjectType() || type.IsNullType()) {
+      // Receiver can be null.
+      return CompileType::FromAbstractType(type, CompileType::kNullable);
+    }
+
+    // Receiver can't be null but can be an instance of a subclass.
+    intptr_t cid = kDynamicCid;
+    if (FLAG_use_cha && type.HasResolvedTypeClass()) {
+      const Class& type_class = Class::Handle(type.type_class());
+      if (!CHA::HasSubclasses(type_class.id())) {
+        cid = type_class.id();
+      }
+    }
+
+    return CompileType(CompileType::kNonNullable, cid, &type);
+  }
+
+  return CompileType::Dynamic();
 }
 
 

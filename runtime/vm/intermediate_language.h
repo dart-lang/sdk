@@ -118,6 +118,9 @@ class CompileType : public ValueObject {
   static const bool kNullable = true;
   static const bool kNonNullable = false;
 
+  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
+      : is_nullable_(is_nullable), cid_(cid), type_(type) { }
+
   CompileType(const CompileType& other)
       : ValueObject(),
         is_nullable_(other.is_nullable_),
@@ -210,9 +213,6 @@ class CompileType : public ValueObject {
   const char* ToCString() const;
 
  private:
-  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
-      : is_nullable_(is_nullable), cid_(cid), type_(type) { }
-
   bool CanComputeIsInstanceOf(const AbstractType& type,
                               bool is_nullable,
                               bool* is_instance);
