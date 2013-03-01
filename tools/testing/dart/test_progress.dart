@@ -210,7 +210,7 @@ class ProgressIndicator {
       output.add('');
       String message = (c == test.commands.last
           ? "Command line" : "Compilation command");
-      output.add('$message: ${c.commandLine}');
+      output.add('$message: $c');
     }
     return output;
   }

@@ -1018,7 +1018,7 @@ class StandardTestSuite extends TestSuite {
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
               '--browser=$runtime',
               '--timeout=${configuration["timeout"] - 2}',
-              '--out="$fullHtmlPath"'];
+              '--out=$fullHtmlPath'];
           if (runtime == 'dartium') {
             args.add('--executable=$dartiumFilename');
           }
