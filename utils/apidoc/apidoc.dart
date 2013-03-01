@@ -116,6 +116,11 @@ void main() {
           var path = new Path(entity.path);
           var libName = path.filename;
 
+          // Ignore hidden directories (like .svn) as well as pkg.xcodeproj.
+          if (libName.startsWith('.') || libName.endsWith('.xcodeproj')) {
+            return;
+          }
+
           // TODO(rnystrom): Get rid of oldStylePath support when all
           // packages are using new layout. See #5106.
           var oldStylePath = path.append('${libName}.dart');
