@@ -641,7 +641,12 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
     } else {
       opcode = _WebSocketOpcode.TEXT;
     }
-    _sendFrame(opcode, data);
+    try {
+      _sendFrame(opcode, data);
+    } catch (_) {
+      // The socket can be closed before _socket.done have a chance
+      // to complete.
+    }
   }
 
   void _sendFrame(int opcode, [List<int> data]) {
