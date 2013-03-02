@@ -388,7 +388,7 @@ class _SpreadArgsHelper {
 
   invoke([arg0 = sentinel, arg1 = sentinel, arg2 = sentinel,
           arg3 = sentinel, arg4 = sentinel]) {
-    return guardAsync(() {
+    return _guardAsync(() {
       if (!shouldCallBack()) {
         return;
       } else if (arg0 == sentinel) {
@@ -412,7 +412,7 @@ class _SpreadArgsHelper {
   }
 
   invoke0() {
-    return guardAsync(
+    return _guardAsync(
         () {
           if (shouldCallBack()) {
             return callback();
@@ -422,7 +422,7 @@ class _SpreadArgsHelper {
   }
 
   invoke1(arg1) {
-    return guardAsync(
+    return _guardAsync(
         () {
           if (shouldCallBack()) {
             return callback(arg1);
@@ -432,7 +432,7 @@ class _SpreadArgsHelper {
   }
 
   invoke2(arg1, arg2) {
-    return guardAsync(
+    return _guardAsync(
         () {
           if (shouldCallBack()) {
             return callback(arg1, arg2);
@@ -721,8 +721,12 @@ void runTests() {
  *
  * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
-guardAsync(Function tryBody, [Function finallyBody, int testNum = -1]) {
-  if (testNum < 0) testNum = _currentTest;
+guardAsync(Function tryBody) {
+  return _guardAsync(tryBody, null, _currentTest);
+}
+
+_guardAsync(Function tryBody, Function finallyBody, int testNum) {
+  assert(testNum >= 0);
   try {
     return tryBody();
   } catch (e, trace) {
@@ -764,7 +768,7 @@ _nextBatch() {
       break;
     }
     final testCase = _tests[_currentTest];
-    var f = guardAsync(testCase.run, null, _currentTest);
+    var f = _guardAsync(testCase.run, null, _currentTest);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
