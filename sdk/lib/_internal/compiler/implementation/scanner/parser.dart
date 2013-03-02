@@ -404,10 +404,8 @@ class Parser {
     if (identical(kind, KEYWORD_TOKEN)) {
       Keyword keyword = token.value;
       String value = keyword.stringValue;
-      // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
       return keyword.isPseudo
           || (identical(value, 'dynamic'))
-          || (identical(value, 'Dynamic'))
           || (identical(value, 'void'));
     }
     return false;

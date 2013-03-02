@@ -660,46 +660,17 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
     bool isAscii = true;
 
-    // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-    bool isDynamicBuiltIn = false;
-
-    if (identical(next, $D)) {
-      next = advance();
-      if (identical(next, $y)) {
-        next = advance();
-        if (identical(next, $n)) {
-          next = advance();
-          if (identical(next, $a)) {
-            next = advance();
-            if (identical(next, $m)) {
-              next = advance();
-              if (identical(next, $i)) {
-                next = advance();
-                if (identical(next, $c)) {
-                  isDynamicBuiltIn = true;
-                  next = advance();
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
     while (true) {
       if (($a <= next && next <= $z) ||
           ($A <= next && next <= $Z) ||
           ($0 <= next && next <= $9) ||
           identical(next, $_) ||
           (identical(next, $$) && allowDollar)) {
-        isDynamicBuiltIn = false;
         next = advance();
       } else if ((next < 128) || (identical(next, $NBSP))) {
         // Identifier ends here.
         if (start == byteOffset) {
           return error(const SourceString("expected identifier"));
-        } else if (isDynamicBuiltIn) {
-          appendKeywordToken(Keyword.DYNAMIC_DEPRECATED);
         } else if (isAscii) {
           appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
         } else {
@@ -707,7 +678,6 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         }
         return next;
       } else {
-        isDynamicBuiltIn = false;
         int nonAsciiStart = byteOffset;
         do {
           next = nextByte();

@@ -68,9 +68,6 @@ class Keyword extends Iterable<int> implements SourceString {
       const Keyword("show", isPseudo: true),
       const Keyword("source", isPseudo: true) ];
 
-  // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-  static const DYNAMIC_DEPRECATED = const Keyword("Dynamic", isBuiltIn: true);
-
   final String syntax;
   final bool isPseudo;
   final bool isBuiltIn;
