@@ -9,10 +9,10 @@ import 'dart:html';
 
 // Some rounding errors in the browsers.
 checkPixel(List<int> pixel, List<int> expected) {
-  expect(pixel[0], closeTo(expected[0], 1));
-  expect(pixel[1], closeTo(expected[1], 1));
-  expect(pixel[2], closeTo(expected[2], 1));
-  expect(pixel[3], closeTo(expected[3], 1));
+  expect(pixel[0], closeTo(expected[0], 2));
+  expect(pixel[1], closeTo(expected[1], 2));
+  expect(pixel[2], closeTo(expected[2], 2));
+  expect(pixel[3], closeTo(expected[3], 2));
 }
 
 main() {
@@ -37,13 +37,13 @@ main() {
   test('setFillColorHsl hue', () {
     context.setFillColorHsl(0, 100, 50);
     context.fillRect(0, 0, canvas.width, canvas.height);
-    expect(readPixel(), [255, 0, 0, 255]);
+    checkPixel(readPixel(), [255, 0, 0, 255]);
   });
 
   test('setFillColorHsl hue 2', () {
     context.setFillColorHsl(240, 100, 50);
     context.fillRect(0, 0, canvas.width, canvas.height);
-    expect(readPixel(), [0, 0, 255, 255]);
+    checkPixel(readPixel(), [0, 0, 255, 255]);
   });
 
   test('setFillColorHsl sat', () {
@@ -83,7 +83,7 @@ main() {
   test('fillStyle', () {
     context.fillStyle = "red";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    expect(readPixel(), [255, 0, 0, 255]);
+    checkPixel(readPixel(), [255, 0, 0, 255]);
   });
 
   test('strokeStyle', () {
