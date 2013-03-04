@@ -25,6 +25,10 @@ abstract class ListBase<E> extends ListIterable<E> implements List<E> {
     return this[index];
   }
 
+  Map<int, E> asMap() {
+    return new ListMapView(this);
+  }
+
   List<E> getRange(int start, int length) {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
@@ -264,4 +268,58 @@ class CodeUnits extends UnmodifiableListBase<int> {
 
   int get length => _string.length;
   int operator[](int i) => _string.codeUnitAt(i);
+}
+
+class _ListIndicesIterable extends ListIterable<int> {
+  List _backedList;
+
+  _ListIndicesIterable(this._backedList);
+
+  int get length => _backedList.length;
+  int elementAt(int index) {
+    if (index < 0 || index >= length) throw new RangeError(index);
+    return index;
+  }
+}
+
+class ListMapView<E> implements Map<int, E> {
+  List<E> _values;
+
+  ListMapView(this._values);
+
+  E operator[] (int key) => containsKey(key) ? _values[key] : null;
+  int get length => _values.length;
+
+  Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
+  Iterable<int> get keys => new _ListIndicesIterable(_values);
+
+  bool get isEmpty => _values.isEmpty;
+  bool containsValue(E value) => _values.contains(value);
+  bool containsKey(int key) => key is int && key >= 0 && key < length;
+
+  void forEach(void f(int key, E value)) {
+    int length = _values.length;
+    for (int i = 0; i < length; i++) {
+      f(i, _values[i]);
+      if (length != _values.length) {
+        throw new ConcurrentModificationError(_values);
+      }
+    }
+  }
+
+  void operator[]= (int key, E value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+
+  E putIfAbsent(int key, E ifAbsent()) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+
+  E remove(int key) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
 }

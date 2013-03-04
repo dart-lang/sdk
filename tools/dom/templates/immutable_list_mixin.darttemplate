@@ -187,4 +187,7 @@ $endif
   List<$E> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <$E>[]);
 
+  Map<int, $E> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<$E> mixins.

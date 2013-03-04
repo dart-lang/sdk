@@ -247,6 +247,8 @@ $endif
   }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
+
+  Map<int, Node> asMap() => IterableMixinWorkaround.asMapList(this);
 }
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {

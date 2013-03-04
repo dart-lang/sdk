@@ -124,6 +124,8 @@ class _WrappedList<E> implements List<E> {
   void insertRange(int start, int length, [E fill]) {
     _list.insertRange(start, length, fill);
   }
+
+  Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
 }
 
 /**

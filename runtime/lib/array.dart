@@ -235,6 +235,10 @@ class _ObjectArray<E> implements List<E> {
   Set<E> toSet() {
     return new Set<E>.from(this);
   }
+
+  Map<int, E> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
 }
 
 
@@ -473,6 +477,10 @@ class _ImmutableArray<E> implements List<E> {
 
   Set<E> toSet() {
     return new Set<E>.from(this);
+  }
+
+  Map<int, E> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 

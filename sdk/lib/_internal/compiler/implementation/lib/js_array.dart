@@ -297,4 +297,8 @@ class JSArray<E> implements List<E> {
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);
   }
+
+  Map<int, E> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
 }

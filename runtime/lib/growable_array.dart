@@ -323,4 +323,8 @@ class _GrowableObjectArray<T> implements List<T> {
   Set<T> toSet() {
     return new Set<T>.from(this);
   }
+
+  Map<int, T> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
 }

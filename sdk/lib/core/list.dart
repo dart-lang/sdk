@@ -257,4 +257,12 @@ abstract class List<E> implements Collection<E> {
    * [start] is greater than the length of the list.
    */
   void insertRange(int start, int length, [E fill]);
+
+  /**
+   * Returns an unmodifiable [Map] view of `this`.
+   *
+   * It has the indices of this list as keys, and the corresponding elements
+   * as values.
+   */
+  Map<int, E> asMap();
 }

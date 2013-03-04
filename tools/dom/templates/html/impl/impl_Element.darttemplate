@@ -260,6 +260,10 @@ class _ChildrenElementList implements List {
   Element max([int compare(Element a, Element b)]) {
     return IterableMixinWorkaround.max(this, compare);
   }
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -460,6 +464,10 @@ class _FrozenElementList implements List {
 
   Element max([int compare(Element a, Element b)]) {
     return IterableMixinWorkaround.max(this, compare);
+  }
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 

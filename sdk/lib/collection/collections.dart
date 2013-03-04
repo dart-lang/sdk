@@ -384,6 +384,10 @@ class IterableMixinWorkaround {
 
     Arrays.copy(from, startFrom, list, start, length);
   }
+
+  static Map<int, dynamic> asMapList(List l) {
+    return new ListMapView(l);
+  }
 }
 
 class Collections {

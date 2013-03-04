@@ -205,4 +205,8 @@ class FilteredElementList implements List {
   Element min([int compare(Element a, Element b)]) => _filtered.min(compare);
 
   Element max([int compare(Element a, Element b)]) => _filtered.max(compare);
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
 }

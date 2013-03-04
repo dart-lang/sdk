@@ -2066,6 +2066,10 @@ class _ByteArrayViewBase extends Collection<int> {
         "Cannot add to a non-extendable array");
   }
 
+  Map<int, int> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
+
   final ByteArray _array;
   final int _offset;
   final int length;
