@@ -18,7 +18,7 @@ abstract class HType {
       // TODO(ngeoffray): Can we do better here?
       DartType base = compiler.objectClass.computeType(compiler);
       mask = new TypeMask.internal(base, mask.flags);
-      return new HBoundedPotentialPrimitiveType(mask, true);
+      return new HBoundedType(mask);
     }
 
     bool isNullable = mask.isNullable;
@@ -44,11 +44,6 @@ abstract class HType {
       return isNullable
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
-    }
-
-    if (!mask.isExact && (element == compiler.objectClass ||
-                          element == compiler.dynamicClass)) {
-      return new HBoundedPotentialPrimitiveType(mask, true);
     }
     return new HBoundedType(mask);
   }
@@ -944,6 +939,7 @@ class HBoundedType extends HType {
   HType intersection(HType other, Compiler compiler) {
     if (this == other) return this;
     if (other.isConflicting()) return HType.CONFLICTING;
+    if (mask.containsAll(compiler)) return other;
     if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
 
     if (canBePrimitiveArray(compiler)) {
@@ -978,6 +974,7 @@ class HBoundedType extends HType {
 
   HType union(HType other, Compiler compiler) {
     if (this == other) return this;
+    if (mask.containsAll(compiler)) return this;
     if (other.isNull()) {
       if (canBeNull()) {
         return this;
@@ -999,41 +996,5 @@ class HBoundedType extends HType {
 
   String toString() {
     return 'BoundedType(mask=$mask)';
-  }
-}
-
-class HBoundedPotentialPrimitiveType extends HBoundedType {
-  final bool _isObject;
-  const HBoundedPotentialPrimitiveType(TypeMask mask, this._isObject)
-      : super(mask);
-
-  String toString() {
-    return 'BoundedPotentialPrimitiveType(mask=$mask)';
-  }
-
-  bool canBePrimitive(Compiler compiler) => true;
-  bool isTop() => _isObject;
-
-  HType union(HType other, Compiler compiler) {
-    if (isTop()) {
-      // The union of the top type and another type is the top type.
-      if (!canBeNull() && other.canBeNull()) {
-        return new HBoundedPotentialPrimitiveType(mask, true);
-      } else {
-        return this;
-      }
-    } else {
-      return super.union(other, compiler);
-    }
-  }
-
-  HType intersection(HType other, Compiler compiler) {
-    if (isTop()) {
-      // The intersection of the top type and any other type is the other type.
-      // TODO(ngeoffray): Also update the canBeNull information.
-      return other;
-    } else {
-      return super.intersection(other, compiler);
-    }
   }
 }
