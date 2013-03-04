@@ -166,7 +166,7 @@ class NumberFormat {
     // to be printed as an integer and pad the remainder with zeros.
     var paddingDigits = new StringBuffer();
     while ((intValue & 0x7fffffff) != intValue) {
-      paddingDigits.add(symbols.ZERO_DIGIT);
+      paddingDigits.write(symbols.ZERO_DIGIT);
       intValue = intValue ~/ 10;
     }
     var integerDigits = "${intValue}${paddingDigits}".codeUnits;
@@ -227,10 +227,10 @@ class NumberFormat {
   /** A group of methods that provide support for writing digits and other
    * required characters into [_buffer] easily.
    */
-  void _add(String x) { _buffer.add(x);}
-  void _addCharCode(int x) { _buffer.addCharCode(x); }
-  void _addZero() { _buffer.add(symbols.ZERO_DIGIT); }
-  void _addDigit(int x) { _buffer.addCharCode(_localeZero + x - _zero); }
+  void _add(String x) { _buffer.write(x);}
+  void _addCharCode(int x) { _buffer.writeCharCode(x); }
+  void _addZero() { _buffer.write(symbols.ZERO_DIGIT); }
+  void _addDigit(int x) { _buffer.writeCharCode(_localeZero + x - _zero); }
 
   /** Print padding up to [numberOfDigits] above what's included in [basic]. */
   void _pad(int numberOfDigits, [String basic = '']) {
