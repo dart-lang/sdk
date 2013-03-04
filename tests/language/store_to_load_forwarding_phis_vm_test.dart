@@ -5,6 +5,8 @@
 // by store to load forwarding.
 // VMOptions=--optimization_counter_threshold=100
 
+library store_to_load_forwarding_phis_vm_test;
+
 import 'dart:async';
 
 class A {
