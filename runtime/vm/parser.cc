@@ -5931,10 +5931,9 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   if (IsForInStatement()) {
     return ParseForInStatement(for_pos, label);
   }
-  OpenBlock();
-  // The label is added to the implicit scope that also contains
-  // the loop variable declarations.
-  current_block_->scope->AddLabel(label);
+  // Open a block that contains the loop variable. Make it a loop block so
+  // that we allocate a new context if the loop variable is captured.
+  OpenLoopBlock();
   AstNode* initializer = NULL;
   const intptr_t init_pos = TokenPos();
   LocalScope* init_scope = current_block_->scope;
@@ -5953,13 +5952,12 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   ExpectSemicolon();
   AstNode* increment = NULL;
   const intptr_t incr_pos = TokenPos();
-  LocalScope* incr_scope = current_block_->scope;
   if (CurrentToken() != Token::kRPAREN) {
     increment = ParseExprList();
   }
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body =  true;
-  SequenceNode* body = ParseNestedStatement(parsing_loop_body, NULL);
+  SequenceNode* body = ParseNestedStatement(parsing_loop_body, label);
 
   // Check whether any of the variables in the initializer part of
   // the for statement are captured by a closure. If so, we insert a
@@ -5968,7 +5966,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   for (int i = 0; i < init_scope->num_variables(); i++) {
     if (init_scope->VariableAt(i)->is_captured() &&
         (init_scope->VariableAt(i)->owner() == init_scope)) {
-      SequenceNode* incr_sequence = new SequenceNode(incr_pos, incr_scope);
+      SequenceNode* incr_sequence = new SequenceNode(incr_pos, NULL);
       incr_sequence->Add(new CloneContextNode(for_pos));
       if (increment != NULL) {
         incr_sequence->Add(increment);
@@ -5977,13 +5975,15 @@ AstNode* Parser::ParseForStatement(String* label_name) {
       break;
     }
   }
-  CloseBlock();
-  return new ForNode(for_pos,
-                     label,
-                     NodeAsSequenceNode(init_pos, initializer, init_scope),
-                     condition,
-                     NodeAsSequenceNode(incr_pos, increment, incr_scope),
-                     body);
+  AstNode* for_node =
+      new ForNode(for_pos,
+                  label,
+                  NodeAsSequenceNode(init_pos, initializer, NULL),
+                  condition,
+                  NodeAsSequenceNode(incr_pos, increment, NULL),
+                  body);
+  current_block_->statements->Add(for_node);
+  return CloseBlock();
 }
 
 

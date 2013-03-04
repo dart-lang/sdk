@@ -29,11 +29,11 @@ void testShadowingCapture1() {
 
 void testShadowingCapture2() {
   var f = null;
-  // this one uses a reentrent block
+  // this one uses a reentrant block
   for (int i = 0; i < 2; i++) {
     var foo = i + 888;
     if (f == null) f = () => foo;
-  } while(false);
+  }
   var foo = -888;
 
   // this could break if it doesn't bind the right "foo"
