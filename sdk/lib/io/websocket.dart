@@ -24,25 +24,54 @@ abstract class WebSocketStatus {
 }
 
 /**
- * The [WebSocketTransformer] is implemented as a stream transformer that
- * transforms a stream of HttpRequest into a stream of WebSockets by upgrading
- * each HttpRequest from the HTTP or HTTPS server, to the WebSocket protocol.
+ * The [WebSocketTransformer] provides the ability to upgrade a
+ * [HttpRequest] to a [WebSocket] connection. It supports both
+ * upgrading a single [HttpRequest] and upgrading a stream of
+ * [HttpRequest]s.
  *
- * Example of usage:
+ * To upgrade a single [HttpRequest] use the static [upgrade] method.
+ *
+ *     HttpServer server;
+ *     server.listen((request) {
+ *       if (...) {
+ *         WebSocketTransformer.upgrade(request).then(websocket) {
+ *           ...
+ *         }
+ *       } else {
+ *         // Do normal HTTP request processing.
+ *       }
+ *     });
+ *
+ * To transform a stream of [HttpRequest] events as it implements a
+ * stream transformer that transforms a stream of HttpRequest into a
+ * stream of WebSockets by upgrading each HttpRequest from the HTTP or
+ * HTTPS server, to the WebSocket protocol.
  *
  *     server.transform(new WebSocketTransformer()).listen((webSocket) => ...);
- *
- * or
- *
- *     server
- *         .where((request) => request.uri.scheme == "ws")
- *         .transform(new WebSocketTransformer()).listen((webSocket) => ...);
  *
  * This transformer strives to implement web sockets as specified by RFC6455.
  */
 abstract class WebSocketTransformer
     implements StreamTransformer<HttpRequest, WebSocket> {
   factory WebSocketTransformer() => new _WebSocketTransformerImpl();
+
+  /**
+   * Upgrades a [HttpRequest] to a [WebSocket] connection. If the
+   * request is not a valid web socket upgrade request a HTTP response
+   * with status code 500 will be returned. Otherwise the returned
+   * future will complete with the [WebSocket] when the upgrade pocess
+   * is complete.
+   */
+  static Future<WebSocket> upgrade(HttpRequest request) {
+    return _WebSocketTransformerImpl._upgrade(request);
+  }
+
+  /**
+   * Checks whether the request is a valid WebSocket upgrade request.
+   */
+  static bool isUpgradeRequest(HttpRequest request) {
+    return _WebSocketTransformerImpl._isUpgradeRequest(request);
+  }
 }
 
 

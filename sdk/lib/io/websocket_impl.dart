@@ -363,40 +363,42 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
     stream.listen((request) {
-      var response = request.response;
-      if (!_isWebSocketUpgrade(request)) {
-        _controller.signalError(
-            new AsyncError(
-                new WebSocketException("Invalid WebSocket upgrade request")));
-        request.listen((_) {}, onDone: () {
-          response.statusCode = HttpStatus.BAD_REQUEST;
-          response.contentLength = 0;
-          response.close();
-        });
-        return;
-      }
-      // Send the upgrade response.
-      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
-      response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
-      response.headers.add(HttpHeaders.UPGRADE, "websocket");
-      String key = request.headers.value("Sec-WebSocket-Key");
-      SHA1 sha1 = new SHA1();
-      sha1.add("$key$_webSocketGUID".codeUnits);
-      String accept = _Base64._encode(sha1.close());
-      response.headers.add("Sec-WebSocket-Accept", accept);
-      response.headers.contentLength = 0;
-      response.detachSocket()
-        .then((socket) {
-          _controller.add(new _WebSocketImpl._fromSocket(socket));
-        }, onError: (error) {
-          _controller.signalError(error);
-        });
+        _upgrade(request)
+            .then((WebSocket webSocket) => _controller.add(webSocket))
+            .catchError((error) => _controller.signalError(error));
     });
 
     return _controller.stream;
   }
 
-  bool _isWebSocketUpgrade(HttpRequest request) {
+  static Future<WebSocket> _upgrade(HttpRequest request) {
+    var response = request.response;
+    if (!_isUpgradeRequest(request)) {
+      // Send error response and drain the request.
+      request.listen((_) {}, onDone: () {
+        response.statusCode = HttpStatus.BAD_REQUEST;
+        response.contentLength = 0;
+        response.close();
+      });
+      return new Future.immediateError(
+          new WebSocketException("Invalid WebSocket upgrade request"));
+    }
+
+    // Send the upgrade response.
+    response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
+    response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
+    response.headers.add(HttpHeaders.UPGRADE, "websocket");
+    String key = request.headers.value("Sec-WebSocket-Key");
+    SHA1 sha1 = new SHA1();
+    sha1.add("$key$_webSocketGUID".codeUnits);
+    String accept = _Base64._encode(sha1.close());
+    response.headers.add("Sec-WebSocket-Accept", accept);
+    response.headers.contentLength = 0;
+    return response.detachSocket()
+        .then((socket) => new _WebSocketImpl._fromSocket(socket));
+  }
+
+  static bool _isUpgradeRequest(HttpRequest request) {
     if (request.method != "GET") {
       return false;
     }

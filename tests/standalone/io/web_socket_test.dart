@@ -288,6 +288,53 @@ class SecurityConfiguration {
     });
   }
 
+  testIndivitualUpgrade(int connections) {
+    createServer().then((server) {
+      server.listen((request) {
+          if (WebSocketTransformer.isUpgradeRequest(request)) {
+            WebSocketTransformer.upgrade(request).then((webSocket) {
+                webSocket.listen((_) { webSocket.close(); });
+                webSocket.send("Hello");
+            });
+          } else {
+            Expect.isFalse(WebSocketTransformer.isUpgradeRequest(request));
+            request.response.statusCode = HttpStatus.OK;
+            request.response.close();
+          }
+      });
+
+      var futures = [];
+
+      var wsProtocol = '${secure ? "wss" : "ws"}';
+      var baseWsUrl = '$wsProtocol://$HOST_NAME:${server.port}/';
+      var httpProtocol = '${secure ? "https" : "http"}';
+      var baseHttpUrl = '$httpProtocol://$HOST_NAME:${server.port}/';
+      HttpClient client = new HttpClient();
+
+      for (int i = 0; i < connections; i++) {
+        var completer = new Completer();
+        futures.add(completer.future);
+        WebSocket.connect('${baseWsUrl}')
+            .then((websocket) {
+                websocket.listen((_) { websocket.close(); },
+                               onDone: completer.complete);
+            });
+
+        futures.add(client.openUrl("GET", new Uri.fromString('${baseHttpUrl}'))
+             .then((request) => request.close())
+             .then((response) {
+               response.listen((_) { });
+               Expect.equals(HttpStatus.OK, response.statusCode);
+               }));
+      }
+
+      Future.wait(futures).then((_) {
+        server.close();
+        client.close();
+      });
+    });
+  }
+
   void runTests() {
     testRequestResponseClientCloses(2, null, null);
     testRequestResponseClientCloses(2, 3001, null);
@@ -305,6 +352,7 @@ class SecurityConfiguration {
     testNoUpgrade();
     testUsePOST();
     testConnections(10, 3002, "Got tired");
+    testIndivitualUpgrade(5);
   }
 }
 
