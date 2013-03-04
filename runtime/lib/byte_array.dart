@@ -325,11 +325,12 @@ abstract class _ByteArrayBase {
   }
 
   int indexOf(element, [int start = 0]) {
-    return IterableMixinWorkaround.indexOfList(this, element, start);
+    return Arrays.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(element, [int start = null]) {
-    return IterableMixinWorkaround.lastIndexOfList(this, element, start);
+    if (start == null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -570,8 +571,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-         this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -635,8 +635,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -701,8 +700,7 @@ class _Uint8ClampedArray extends _ByteArrayBase implements Uint8ClampedList {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -765,8 +763,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -829,8 +826,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -893,8 +889,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -958,8 +953,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1022,8 +1016,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1086,8 +1079,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1150,8 +1142,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1214,8 +1205,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1267,8 +1257,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1318,7 +1307,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1370,8 +1359,7 @@ class _ExternalUint8ClampedArray
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1421,8 +1409,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1472,8 +1459,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1525,8 +1511,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1578,8 +1563,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1631,8 +1615,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1684,8 +1667,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1737,8 +1719,7 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1790,8 +1771,7 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 
@@ -1993,11 +1973,12 @@ class _ByteArrayViewBase extends Collection<int> {
   }
 
   int indexOf(element, [int start = 0]) {
-    return IterableMixinWorkaround.indexOfList(this, element, start);
+    return Arrays.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(element, [int start = null]) {
-    return IterableMixinWorkaround.lastIndexOfList(this, element, start);
+    if (start == null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -2113,7 +2094,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2177,7 +2158,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2241,7 +2222,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2305,7 +2286,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2369,7 +2350,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2433,7 +2414,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2497,7 +2478,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2561,7 +2542,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2625,7 +2606,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
   }
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -2689,7 +2670,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
   }
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {

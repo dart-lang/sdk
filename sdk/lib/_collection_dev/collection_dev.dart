@@ -4,7 +4,6 @@
 
 library dart._collection.dev;
 
-part 'arrays.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'sort.dart';

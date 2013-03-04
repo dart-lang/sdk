@@ -7,7 +7,6 @@
   'sources': [
     'collection_dev.dart',
     # The above file needs to be first as it lists the parts below.
-    'arrays.dart',
     'iterable.dart',
     'list.dart',
     'sort.dart',

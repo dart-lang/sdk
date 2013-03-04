@@ -7,6 +7,7 @@
   'sources': [
     'collection.dart',
     # The above file needs to be first as it lists the parts below.
+    'arrays.dart',
     'collections.dart',
     'hash_map.dart',
     'hash_set.dart',

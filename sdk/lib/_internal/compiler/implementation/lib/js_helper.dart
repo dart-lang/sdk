@@ -561,6 +561,32 @@ ioore(index) {
   throw new RangeError.value(index);
 }
 
+listInsertRange(receiver, start, length, initialValue) {
+  if (length == 0) {
+    return;
+  }
+  if (length is !int) throw new ArgumentError(length);
+  if (length < 0) throw new ArgumentError(length);
+  if (start is !int) throw new ArgumentError(start);
+
+  var receiverLength = JS('num', r'#.length', receiver);
+  if (start < 0 || start > receiverLength) {
+    throw new RangeError.value(start);
+  }
+  receiver.length = receiverLength + length;
+  Arrays.copy(receiver,
+              start,
+              receiver,
+              start + length,
+              receiverLength - start);
+  if (initialValue != null) {
+    for (int i = start; i < start + length; i++) {
+      receiver[i] = initialValue;
+    }
+  }
+  receiver.length = receiverLength + length;
+}
+
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 

@@ -613,8 +613,7 @@ class _Float32x4Array extends _ByteArrayBase
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
   String toString() {
@@ -676,7 +675,7 @@ class _Float32x4ArrayView extends _ByteArrayViewBase
 
   void setRange(int start, int length, List<Float32x4> from,
                [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   String toString() {
@@ -732,8 +731,7 @@ class _ExternalFloat32x4Array extends _ByteArrayBase
                 from,
                 startFrom * _BYTES_PER_ELEMENT);
     } else {
-      IterableMixinWorkaround.setRangeList(
-          this, start, length, from, startFrom);
+      Arrays.copy(from, startFrom, this, start, length);
     }
   }
 

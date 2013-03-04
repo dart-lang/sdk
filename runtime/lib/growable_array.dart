@@ -48,7 +48,10 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    if (length < 0) {
+      throw new ArgumentError("negative length $length");
+    }
+    Arrays.copy(from, startFrom, this, start, length);
   }
 
   void removeRange(int start, int length) {
@@ -191,11 +194,12 @@ class _GrowableObjectArray<T> implements List<T> {
   T max([int compare(T a, T b)]) => IterableMixinWorkaround.max(this, compare);
 
   int indexOf(T element, [int start = 0]) {
-    return IterableMixinWorkaround.indexOfList(this, element, start);
+    return Arrays.indexOf(this, element, start, length);
   }
 
   int lastIndexOf(T element, [int start = null]) {
-    return IterableMixinWorkaround.lastIndexOfList(this, element, start);
+    if (start == null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
   }
 
   void _grow(int new_length) {
