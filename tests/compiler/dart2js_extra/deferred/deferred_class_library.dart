@@ -7,6 +7,8 @@
 library deferred_class_library;
 
 class MyClass {
+  const MyClass();
+
   foo(x) {
     print('MyClass.foo($x)');
     return (x - 3) ~/ 2;

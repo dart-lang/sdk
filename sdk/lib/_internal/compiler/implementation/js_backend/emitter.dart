@@ -1926,7 +1926,7 @@ class CodeEmitterTask extends CompilerTask {
     return null;
   }
 
-  void emitCompileTimeConstants(CodeBuffer buffer) {
+  void emitCompileTimeConstants(CodeBuffer eagerBuffer) {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     bool addedMakeConstantList = false;
@@ -1943,8 +1943,10 @@ class CodeEmitterTask extends CompilerTask {
       if (name == null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
-        emitMakeConstantList(buffer);
+        emitMakeConstantList(eagerBuffer);
       }
+      CodeBuffer buffer =
+          bufferForElement(constant.computeType(compiler).element, eagerBuffer);
       jsAst.Expression init = js[isolateProperties][name].assign(
           constantInitializerExpression(constant));
       buffer.add(jsAst.prettyPrint(init, compiler));
