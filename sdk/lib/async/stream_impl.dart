@@ -6,6 +6,7 @@ part of dart.async;
 
 // States shared by single/multi stream implementations.
 
+// Completion state of the stream.
 /// Initial and default state where the stream can receive and send events.
 const int _STREAM_OPEN = 0;
 /// The stream has received a request to complete, but hasn't done so yet.
@@ -15,17 +16,26 @@ const int _STREAM_CLOSED = 1;
 /// Also counts as closed. The stream must not be paused when it's completed.
 /// Always used in conjunction with [_STREAM_CLOSED].
 const int _STREAM_COMPLETE = 2;
+
 /// Bit that alternates between events, and listeners are updated to the
 /// current value when they are notified of the event.
 const int _STREAM_EVENT_ID = 4;
 const int _STREAM_EVENT_ID_SHIFT = 2;
+
+// The activity state of the stream: What is it currently doing.
 /// Bit set while firing and clear while not.
 const int _STREAM_FIRING = 8;
 /// Bit set while calling a pause-state or subscription-state change callback.
 const int _STREAM_CALLBACK = 16;
+
+// The pause state of the stream.
+/// Bit set when resuming with pending events. Cleared after all pending events
+/// have been transmitted. Means that the controller still considers the
+/// stream paused, even if the listener doesn't.
+const int _STREAM_PENDING_RESUME = 32;
 /// The count of times a stream has paused is stored in the
 /// state, shifted by this amount.
-const int _STREAM_PAUSE_COUNT_SHIFT = 5;
+const int _STREAM_PAUSE_COUNT_SHIFT = 6;
 
 // States for listeners.
 
@@ -36,9 +46,11 @@ const int _LISTENER_SUBSCRIBED = 1;
 /// The listener is subscribed until it has been notified of the current event.
 /// This flag bit is always used in conjuction with [_LISTENER_SUBSCRIBED].
 const int _LISTENER_PENDING_UNSUBSCRIBE = 2;
+
 /// Bit that contains the last sent event's "id bit".
 const int _LISTENER_EVENT_ID = 4;
 const int _LISTENER_EVENT_ID_SHIFT = 2;
+
 /// The count of times a listener has paused is stored in the
 /// state, shifted by this amount.
 const int _LISTENER_PAUSE_COUNT_SHIFT = 3;
@@ -92,11 +104,16 @@ abstract class _StreamImpl<T> extends Stream<T> {
    */
   void _add(T value) {
     if (_isClosed) throw new StateError("Sending on closed stream");
-    if (!_canFireEvent) {
+    if (!_mayFireState) {
+      // Not the time to send events.
       _addPendingEvent(new _DelayedData<T>(value));
       return;
     }
-    _sendData(value);
+    if (_hasPendingEvent) {
+      _addPendingEvent(new _DelayedData<T>(value));
+    } else {
+      _sendData(value);
+    }
     _handlePendingEvents();
   }
 
@@ -108,11 +125,16 @@ abstract class _StreamImpl<T> extends Stream<T> {
    */
   void _signalError(AsyncError error) {
     if (_isClosed) throw new StateError("Sending on closed stream");
-    if (!_canFireEvent) {
+    if (!_mayFireState) {
+      // Not the time to send events.
       _addPendingEvent(new _DelayedError(error));
       return;
     }
-    _sendError(error);
+    if (_hasPendingEvent) {
+      _addPendingEvent(new _DelayedError(error));
+    } else {
+      _sendError(error);
+    }
     _handlePendingEvents();
   }
 
@@ -125,19 +147,29 @@ abstract class _StreamImpl<T> extends Stream<T> {
   void _close() {
     if (_isClosed) return;
     _state |= _STREAM_CLOSED;
-    if (!_canFireEvent) {
-      // You can't enqueue an event after the Done, so make it const.
+    if (!_mayFireState) {
+      // Not the time to send events.
       _addPendingEvent(const _DelayedDone());
       return;
     }
-    _sendDone();
-    assert(!_hasPendingEvent);
+    if (_hasPendingEvent) {
+      _addPendingEvent(new _DelayedDone());
+      _handlePendingEvents();
+    } else {
+      _sendDone();
+      assert(_isComplete);
+      assert(!_hasPendingEvent);
+    }
   }
 
   // -------------------------------------------------------------------
   // Internal implementation.
 
-  // State prediates.
+  // State predicates.
+
+  // Lifecycle state.
+  /** Whether the stream is in the default, open, state for events. */
+  bool get _isOpen => (_state & (_STREAM_CLOSED | _STREAM_COMPLETE)) == 0;
 
   /** Whether the stream has been closed (a done event requested). */
   bool get _isClosed => (_state & _STREAM_CLOSED) != 0;
@@ -145,25 +177,64 @@ abstract class _StreamImpl<T> extends Stream<T> {
   /** Whether the stream is completed. */
   bool get _isComplete => (_state & _STREAM_COMPLETE) != 0;
 
+  // Pause state.
+
   /** Whether one or more active subscribers have requested a pause. */
   bool get _isPaused => _state >= (1 << _STREAM_PAUSE_COUNT_SHIFT);
 
+  /** How many times the stream has been paused. */
+  int get _pauseCount => _state >> _STREAM_PAUSE_COUNT_SHIFT;
+
+  /**
+   * Whether a controller thinks the stream is paused.
+   *
+   * When this changes, a pause-state change callback is performed.
+   *
+   * It may differ from [_isPaused] if there are pending events
+   * in the queue when the listeners resume. The controller won't
+   * be informed until all queued events have been fired.
+   */
+  bool get _isInputPaused => _state >= (_STREAM_PENDING_RESUME);
+
+  /** Whether we have a pending resume scheduled. */
+  bool get _hasPendingResume => (_state & _STREAM_PENDING_RESUME) != 0;
+
+
+  // Action state. If the stream makes a call-out to external code,
+  // this state tracks it and avoids reentrancy problems.
+
+  /** Whether the stream is not currently firing or calling a callback. */
+  bool get _isInactive => (_state & (_STREAM_CALLBACK | _STREAM_FIRING)) == 0;
+
   /** Whether we are currently executing a state-chance callback. */
   bool get _isInCallback => (_state & _STREAM_CALLBACK) != 0;
+
+  /** Whether we are currently firing an event. */
+  bool get _isFiring => (_state & _STREAM_FIRING) != 0;
 
   /** Check whether the pending event queue is non-empty */
   bool get _hasPendingEvent =>
       _pendingEvents != null && !_pendingEvents.isEmpty;
 
-  /** Whether we are currently firing an event. */
-  bool get _isFiring => (_state & _STREAM_FIRING) != 0;
+  /**
+   * The bit representing the current or last event fired.
+   *
+   * This bit matches a bit on listeners that have received the corresponding
+   * event. It is toggled for each new event being fired.
+   */
+  int get _currentEventIdBit =>
+      (_state & _STREAM_EVENT_ID ) >> _STREAM_EVENT_ID_SHIFT;
+
+  /** Whether there is currently a subscriber on this [Stream]. */
+  bool get _hasSubscribers;
+
 
   /** Whether the state bits allow firing. */
   bool get _mayFireState {
-    // The state disallows firing if:
-    // - an event is currently firing
-    // - a stat-change callback is being called
-    // - the pause-count is not zero.
+    // The state allows firing unless:
+    // - it's currently firing
+    // - it's currently in a callback
+    // - it's paused
     const int mask =
         _STREAM_FIRING |
         _STREAM_CALLBACK |
@@ -171,20 +242,12 @@ abstract class _StreamImpl<T> extends Stream<T> {
     return (_state & mask) == 0;
   }
 
-  int get _currentEventIdBit =>
-      (_state & _STREAM_EVENT_ID ) >> _STREAM_EVENT_ID_SHIFT;
-
-  /** Whether there is currently a subscriber on this [Stream]. */
-  bool get _hasSubscribers;
-
-  /** Whether the stream can fire a new event. */
-  bool get _canFireEvent => _mayFireState && !_hasPendingEvent;
-
   // State modification.
 
   /** Record an increases in the number of times the listener has paused. */
   void _incrementPauseCount(_StreamListener<T> listener) {
     listener._incrementPauseCount();
+    _state &= ~_STREAM_PENDING_RESUME;
     _updatePauseCount(1);
   }
 
@@ -222,6 +285,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
 
   void _startFiring() {
     assert(!_isFiring);
+    assert(!_isInCallback);
     assert(_hasSubscribers);
     assert(!_isPaused);
     // This sets the _STREAM_FIRING bit and toggles the _STREAM_EVENT_ID
@@ -231,14 +295,11 @@ abstract class _StreamImpl<T> extends Stream<T> {
     _state ^= _STREAM_FIRING | _STREAM_EVENT_ID;
   }
 
-  void _endFiring() {
+  void _endFiring(bool wasInputPaused) {
     assert(_isFiring);
     _state ^= _STREAM_FIRING;
-    if (!_hasSubscribers) {
-      _callOnSubscriptionStateChange();
-    } else if (_isPaused) {
-      _callOnPauseStateChange();
-    }
+    // Had listeners, or we wouldn't have fired.
+    _checkCallbacks(true, wasInputPaused);
   }
 
   /**
@@ -256,13 +317,20 @@ abstract class _StreamImpl<T> extends Stream<T> {
       throw new StateError("Subscription has been canceled.");
     }
     assert(!_isComplete);  // There can be no subscribers when complete.
+    bool wasInputPaused = _isInputPaused;
     bool wasPaused = _isPaused;
     _incrementPauseCount(listener);
     if (resumeSignal != null) {
       resumeSignal.whenComplete(() { this._resume(listener, true); });
     }
-    if (!wasPaused && !_isFiring) {
-      _callOnPauseStateChange();
+    if (!wasPaused && _hasPendingEvent && _pendingEvents.isScheduled) {
+      _pendingEvents.cancelSchedule();
+    }
+    if (_isInactive && !wasInputPaused) {
+      _checkCallbacks(true, false);
+      if (!_isPaused && _hasPendingEvent) {
+        _schedulePendingEvents();
+      }
     }
   }
 
@@ -273,13 +341,25 @@ abstract class _StreamImpl<T> extends Stream<T> {
     assert(_isPaused);
     _decrementPauseCount(listener);
     if (!_isPaused) {
-      if (!_isFiring) _callOnPauseStateChange();
       if (_hasPendingEvent) {
+        _state |= _STREAM_PENDING_RESUME;
+        // Controller's pause state hasn't changed.
         // If we can fire events now, fire any pending events right away.
-        if (fromEvent && !_isFiring) {
-          _handlePendingEvents();
-        } else {
-          _schedulePendingEvents();
+        if (_isInactive) {
+          if (fromEvent) {
+            _handlePendingEvents();
+          } else {
+            _schedulePendingEvents();
+          }
+        }
+      } else if (_isInactive) {
+        _checkCallbacks(true, true);
+        if (!_isPaused && _hasPendingEvent) {
+          if (fromEvent) {
+            _handlePendingEvents();
+          } else {
+            _schedulePendingEvents();
+          }
         }
       }
     }
@@ -330,27 +410,34 @@ abstract class _StreamImpl<T> extends Stream<T> {
    */
   void _forEachSubscriber(void action(_StreamSubscriptionImpl<T> subscription));
 
-  /** Calls [_onPauseStateChange] while setting callback bit. */
-  void _callOnPauseStateChange() {
-    // After calling [_close], all pauses are handled internally by the Stream.
-    if (_isClosed) return;
-    if (!_isInCallback) {
-      _state |= _STREAM_CALLBACK;
-      _onPauseStateChange();
-      _state ^= _STREAM_CALLBACK;
-    } else {
-      _onPauseStateChange();
+  /**
+   * Checks whether the subscription/pause state has changed.
+   *
+   * Calls the appropriate callback if the state has changed from the
+   * provided one. Repeats calling callbacks as long as the call changes
+   * the state.
+   */
+  void _checkCallbacks(bool hadSubscribers, bool wasPaused) {
+    assert(!_isFiring);
+    // Will be handled after the current callback.
+    if (_isInCallback) return;
+    if (_hasPendingResume && !_hasPendingEvent) {
+      _state ^= _STREAM_PENDING_RESUME;
     }
-  }
-
-  /** Calls [_onSubscriptionStateChange] while setting callback bit. */
-  void _callOnSubscriptionStateChange() {
-    if (!_isInCallback) {
-      _state |= _STREAM_CALLBACK;
-      _onSubscriptionStateChange();
-      _state ^= _STREAM_CALLBACK;
-    } else {
-      _onSubscriptionStateChange();
+    _state |= _STREAM_CALLBACK;
+    while (true) {
+      bool hasSubscribers = _hasSubscribers;
+      bool isPaused = _isInputPaused;
+      if (hadSubscribers != hasSubscribers) {
+        _onSubscriptionStateChange();
+      } else if (isPaused != wasPaused) {
+        _onPauseStateChange();
+      } else {
+        _state ^= _STREAM_CALLBACK;
+        return;
+      }
+      wasPaused = isPaused;
+      hadSubscribers = hasSubscribers;
     }
   }
 
@@ -368,20 +455,32 @@ abstract class _StreamImpl<T> extends Stream<T> {
    */
   void _onSubscriptionStateChange() {}
 
-  /** Add a pending event at the end of the pending event queue. */
+  /**
+   * Add a pending event at the end of the pending event queue.
+   *
+   * Schedules events if currently not paused and inside a callback.
+   */
   void _addPendingEvent(_DelayedEvent event) {
     if (_pendingEvents == null) _pendingEvents = new _StreamImplEvents();
     _StreamImplEvents events = _pendingEvents;
     events.add(event);
+    if (_isPaused || _isFiring) return;
+    if (_isInCallback) {
+      _schedulePendingEvents();
+      return;
+    }
   }
 
-  /** Fire any pending events until the pending event queue. */
+  /** Fire any pending events until the pending event queue is empty. */
   void _handlePendingEvents() {
+    assert(_isInactive);
+    if (!_hasPendingEvent) return;
     _PendingEvents events = _pendingEvents;
-    if (events == null) return;
-    while (!events.isEmpty && !_isPaused) {
+    do {
+      if (_isPaused) return;
+      if (events.isScheduled) events.cancelSchedule();
       events.handleNext(this);
-    }
+    } while (!events.isEmpty);
   }
 
   /**
@@ -390,6 +489,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   _sendData(T value) {
     assert(!_isPaused);
     assert(!_isComplete);
+    if (!_hasSubscribers) return;
     _forEachSubscriber((subscriber) {
       try {
         subscriber._sendData(value);
@@ -407,6 +507,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   void _sendError(AsyncError error) {
     assert(!_isPaused);
     assert(!_isComplete);
+    if (!_hasSubscribers) return;
     _forEachSubscriber((subscriber) {
       try {
         subscriber._sendError(error);
@@ -467,7 +568,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
  *                               when losing the last subscriber.
  * * [_onPauseStateChange]: Called when entering or leaving paused mode.
  * * [_hasSubscribers]: Test whether there are currently any subscribers.
- * * [_isPaused]: Test whether the stream is currently paused.
+ * * [_isInputPaused]: Test whether the stream is currently paused.
  * The user should not add new events while the stream is paused, but if it
  * happens anyway, the stream will enqueue the events just as when new events
  * arrive while still firing an old event.
@@ -475,25 +576,16 @@ abstract class _StreamImpl<T> extends Stream<T> {
 class _SingleStreamImpl<T> extends _StreamImpl<T> {
   _StreamListener _subscriber = null;
 
-  // A single-stream is considered paused when it has no subscriber.
-  // Exception is when it's complete (which only matters for pause-state-change
-  // callbacks), where it's not considered paused.
-  bool get _isPaused => (!_hasSubscribers && !_isComplete) || super._isPaused;
-
-
-  bool get _canFireEvent {
-    // A single-stream is considered paused when it has no subscriber and
-    // isn't complete, so it can't fire if there is no subscriber.
-    // It won't try to fire when completed, so no need to check that.
-    return _mayFireState && !_hasPendingEvent && _hasSubscribers;
-  }
-
-
   /** Whether there is currently a subscriber on this [Stream]. */
   bool get _hasSubscribers => _subscriber != null;
 
   // -------------------------------------------------------------------
   // Internal implementation.
+
+  _SingleStreamImpl() {
+    // Start out paused.
+    _updatePauseCount(1);
+  }
 
   /**
    * Create the new subscription object.
@@ -508,14 +600,19 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
   }
 
   void _addListener(_StreamListener subscription) {
+    assert(!_isComplete);
     if (_hasSubscribers) {
       throw new StateError("Stream already has subscriber.");
     }
+    assert(_pauseCount == 1);
+    _updatePauseCount(-1);
     _subscriber = subscription;
     subscription._setSubscribed(0);
-    _callOnSubscriptionStateChange();
-    if (_hasPendingEvent) {
-      _schedulePendingEvents();
+    if (_isInactive) {
+      _checkCallbacks(false, true);
+      if (!_isPaused && _hasPendingEvent) {
+        _schedulePendingEvents();
+      }
     }
   }
 
@@ -523,9 +620,6 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
    * Handle a cancel requested from a [_StreamSubscriptionImpl].
    *
    * This method is called from [_StreamSubscriptionImpl.cancel].
-   *
-   * If an event is currently firing, the cancel is delayed
-   * until after the subscriber has received the event.
    */
   void _cancel(_StreamListener subscriber) {
     assert(identical(subscriber._source, this));
@@ -538,21 +632,27 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
     }
     _subscriber = null;
     // Unsubscribing a paused subscription also cancels its pauses.
-    int subscriptionPauseCount = subscriber._setUnsubscribed();
-    _updatePauseCount(-subscriptionPauseCount);
-    if (!_isFiring) {
-      _callOnSubscriptionStateChange();
+    int resumeCount = subscriber._setUnsubscribed();
+    // Keep being paused while there is no subscriber and the stream is not
+    // complete.
+    _updatePauseCount(_isComplete ? -resumeCount : -resumeCount + 1);
+    if (_isInactive) {
+      _checkCallbacks(true, resumeCount > 0);
+      if (!_isPaused && _hasPendingEvent) {
+        _schedulePendingEvents();
+      }
     }
   }
 
   void _forEachSubscriber(
       void action(_StreamListener<T> subscription)) {
     assert(!_isPaused);
+    bool wasInputPaused = _isInputPaused;
     _StreamListener subscription = _subscriber;
     assert(subscription != null);
     _startFiring();
     action(subscription);
-    _endFiring();
+    _endFiring(wasInputPaused);
   }
 }
 
@@ -638,6 +738,7 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
       void action(_StreamListener<T> subscription)) {
     assert(!_isFiring);
     if (!_hasSubscribers) return;
+    bool wasInputPaused = _isInputPaused;
     _startFiring();
     _InternalLink cursor = this._nextLink;
     while (!identical(cursor, this)) {
@@ -652,15 +753,18 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
         _removeListener(current);
       }
     }
-    _endFiring();
+    _endFiring(wasInputPaused);
   }
 
   void _addListener(_StreamListener listener) {
     listener._setSubscribed(_currentEventIdBit);
-    bool firstSubscriber = !_hasSubscribers;
+    bool hadSubscribers = _hasSubscribers;
     _InternalLinkList.add(this, listener);
-    if (firstSubscriber) {
-      _callOnSubscriptionStateChange();
+    if (!hadSubscribers && _isInactive) {
+      _checkCallbacks(false, false);
+      if (!_isPaused && _hasPendingEvent) {
+        _schedulePendingEvents();
+      }
     }
   }
 
@@ -681,7 +785,7 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
     if (_isFiring) {
       if (listener._needsEvent(_currentEventIdBit)) {
         assert(listener._isSubscribed);
-        listener._setPendingUnsubscribe();
+        listener._setPendingUnsubscribe(_currentEventIdBit);
       } else {
         // The listener has been notified of the event (or don't need to,
         // if it's still pending subscription) so it's safe to remove it.
@@ -690,10 +794,14 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
       // Pause and subscription state changes are reported when we end
       // firing.
     } else {
-      bool wasPaused = _isPaused;
+      bool wasInputPaused = _isInputPaused;
       _removeListener(listener);
-      if (wasPaused != _isPaused) _onPauseStateChange();
-      if (!_hasSubscribers) _callOnSubscriptionStateChange();
+      if (_isInactive) {
+        _checkCallbacks(true, wasInputPaused);
+        if (!_isPaused && _hasPendingEvent) {
+          _schedulePendingEvents();
+        }
+      }
     }
   }
 
@@ -705,8 +813,13 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
    */
   void _removeListener(_StreamListener listener) {
     int pauseCount = listener._setUnsubscribed();
-    _updatePauseCount(-pauseCount);
     _InternalLinkList.remove(listener);
+    if (pauseCount > 0) {
+      _updatePauseCount(-pauseCount);
+      if (!_isPaused && _hasPendingEvent) {
+        _state |= _STREAM_PENDING_RESUME;
+      }
+    }
   }
 }
 
@@ -1031,9 +1144,13 @@ abstract class _StreamListener<T> extends _InternalLink
     _state = _LISTENER_SUBSCRIBED | (eventIdBit << _LISTENER_EVENT_ID_SHIFT);
   }
 
-  void _setPendingUnsubscribe() {
+  void _setPendingUnsubscribe(int currentEventIdBit) {
     assert(_isSubscribed);
-    _state |= _LISTENER_PENDING_UNSUBSCRIBE;
+    // Sets the pending unsubscribe, and ensures that the listener
+    // won't get the current event.
+    _state |= _LISTENER_PENDING_UNSUBSCRIBE | _LISTENER_EVENT_ID;
+    _state ^= (1 ^ currentEventIdBit) << _LISTENER_EVENT_ID_SHIFT;
+    assert(!_needsEvent(currentEventIdBit));
   }
 
   /**
@@ -1115,7 +1232,7 @@ class _StreamImplEvents extends _PendingEvents {
   }
 
   void handleNext(_StreamImpl stream) {
-    if (isScheduled) cancelSchedule();
+    assert(!isScheduled);
     _DelayedEvent event = firstPendingEvent;
     firstPendingEvent = event.next;
     if (firstPendingEvent == null) {
@@ -1156,8 +1273,12 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
     if (_isComplete) {
       throw new StateError("Subscription has been canceled.");
     }
-    if (_timer != null) _timer.cancel();
+    if (_timer != null) {
+      _timer.cancel();
+      _timer = null;
+    }
     _pauseCount++;
+    if (signal != null) signal.whenComplete(resume);
   }
 
   void resume() {

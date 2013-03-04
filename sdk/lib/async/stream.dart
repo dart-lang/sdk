@@ -20,8 +20,14 @@ part of dart.async;
  * or to temporarily pause events from the stream.
  *
  * When an event is fired, the listeners at that time are informed.
- * If a listener is added or removed while an event is being fired, the change
- * will only take effect after the event is completely fired.
+ * If a listener is added while an event is being fired, the change
+ * will only take effect after the event is completely fired. If a listener
+ * is canceled, it immediately stops receiving events.
+ *
+ * When the "done" event is fired, subscribers are unsubscribed before
+ * receiving the event. After the event has been sent, the stream has no
+ * subscribers. Adding new subscribers after this point is allowed, but
+ * they will just receive a new "done" event as soon as possible.
  *
  * Streams always respect "pause" requests. If necessary they need to buffer
  * their input, but often, and preferably, they can simply request their input

@@ -20,30 +20,29 @@ class AsyncError {
   AsyncError(this.error, [this.stackTrace]): cause = null;
   AsyncError.withCause(this.error, this.stackTrace, this.cause);
 
-  void _writeOn(StringBuffer buffer) {
-    buffer.add("'");
+  void _writeOn(StringSink buffer) {
+    buffer.write("'");
     String message;
     try {
       message = error.toString();
     } catch (e) {
       message = Error.safeToString(error);
     }
-    buffer.add(message);
-    buffer.add("'\n");
+    buffer.write(message);
+    buffer.write("'\n");
     if (stackTrace != null) {
-      buffer.add("Stack trace:\n");
-      buffer.add(stackTrace.toString());
-      buffer.add("\n");
+      buffer.write("Stack trace:\n");
+      buffer.writeln(stackTrace.toString());
     }
   }
 
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    buffer.add("AsyncError: ");
+    buffer.write("AsyncError: ");
     _writeOn(buffer);
     AsyncError cause = this.cause;
     while (cause != null) {
-      buffer.add("Caused by: ");
+      buffer.write("Caused by: ");
       cause._writeOn(buffer);
       cause = cause.cause;
     }
