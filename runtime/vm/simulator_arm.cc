@@ -135,14 +135,14 @@ void SimulatorDebugger::Stop(Instr* instr, const char* message) {
 }
 
 
-static Register LookupCoreRegisterByName(const char* name) {
+static Register LookupCpuRegisterByName(const char* name) {
   static const char* kNames[] = {
       "r0",  "r1",  "r2",  "r3",
       "r4",  "r5",  "r6",  "r7",
       "r8",  "r9",  "r10", "r11",
       "r12", "r13", "r14", "r15",
       "pc",  "lr",  "sp",  "ip",
-      "fp",  "sl"
+      "fp",  "pp",  "ctx"
   };
   static const Register kRegisters[] = {
       R0,  R1,  R2,  R3,
@@ -150,7 +150,7 @@ static Register LookupCoreRegisterByName(const char* name) {
       R8,  R9,  R10, R11,
       R12, R13, R14, R15,
       PC,  LR,  SP,  IP,
-      FP,  R10
+      FP,  R10, R9
   };
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
@@ -183,7 +183,7 @@ static DRegister LookupDRegisterByName(const char* name) {
 
 
 bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
-  Register reg = LookupCoreRegisterByName(desc);
+  Register reg = LookupCpuRegisterByName(desc);
   if (reg != kNoRegister) {
     if (reg == PC) {
       *value = sim_->get_pc();
@@ -680,11 +680,11 @@ class Redirection {
     return reinterpret_cast<uword>(&svc_instruction_);
   }
 
-  void* external_function() const { return external_function_; }
+  uword external_function() const { return external_function_; }
 
   uint32_t argument_count() const { return argument_count_; }
 
-  static Redirection* Get(void* external_function, uint32_t argument_count) {
+  static Redirection* Get(uword external_function, uint32_t argument_count) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->external_function_ == external_function) return current;
@@ -702,7 +702,7 @@ class Redirection {
  private:
   static const int32_t kRedirectSvcInstruction =
     ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
-  Redirection(void* external_function, uint32_t argument_count)
+  Redirection(uword external_function, uint32_t argument_count)
       : external_function_(external_function),
         argument_count_(argument_count),
         svc_instruction_(kRedirectSvcInstruction),
@@ -710,7 +710,7 @@ class Redirection {
     list_ = this;
   }
 
-  void* external_function_;
+  uword external_function_;
   const uint32_t argument_count_;
   uint32_t svc_instruction_;
   Redirection* next_;
@@ -721,7 +721,7 @@ class Redirection {
 Redirection* Redirection::list_ = NULL;
 
 
-uword Simulator::RedirectExternalReference(void* function,
+uword Simulator::RedirectExternalReference(uword function,
                                            uint32_t argument_count) {
   Redirection* redirection = Redirection::Get(function, argument_count);
   return redirection->address_of_svc_instruction();
@@ -1325,8 +1325,7 @@ void Simulator::SupervisorCall(Instr* instr) {
 
         int32_t saved_lr = get_register(LR);
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
-        intptr_t external =
-            reinterpret_cast<intptr_t>(redirection->external_function());
+        uword external = redirection->external_function();
         SimulatorRuntimeCall target =
             reinterpret_cast<SimulatorRuntimeCall>(external);
         if (FLAG_trace_sim) {

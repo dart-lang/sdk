@@ -34,7 +34,7 @@ class StackFrame : public ValueObject {
 
   void SetEntrypointMarker(uword value) {
     ASSERT(!(IsStubFrame() || IsEntryFrame() || IsExitFrame()));
-    *reinterpret_cast<uword*>(fp_ - kWordSize) = value;
+    *reinterpret_cast<uword*>(fp_ + EntrypointMarkerOffsetFromFp()) = value;
   }
 
   // Visit objects in the frame.
@@ -73,6 +73,7 @@ class StackFrame : public ValueObject {
 
   // Target specific implementations for locating pc and caller fp/sp values.
   static intptr_t PcAddressOffsetFromSp();
+  static intptr_t EntrypointMarkerOffsetFromFp();
   uword GetCallerSp() const;
   uword GetCallerFp() const;
 

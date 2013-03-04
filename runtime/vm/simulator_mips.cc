@@ -48,6 +48,21 @@ Simulator* Simulator::Current() {
 }
 
 
+// Sets the register in the architecture state. It will also deal with updating
+// Simulator internal state for special registers such as PC.
+void Simulator::set_register(Register reg, int32_t value) {
+  UNIMPLEMENTED();
+}
+
+
+// Get the register from the architecture state. This function does handle
+// the special case of accessing the PC register.
+int32_t Simulator::get_register(Register reg) const {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
 uword Simulator::StackTop() const {

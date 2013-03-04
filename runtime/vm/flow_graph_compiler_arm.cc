@@ -383,7 +383,20 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          const ExternalLabel* label,
                                          PcDescriptors::Kind kind,
                                          LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                         deopt_id,
+                         token_pos);
+  }
 }
 
 
@@ -435,7 +448,16 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ LoadObject(R4, arguments_descriptor);
+  // Do not use the code from the function, but let the code be patched so that
+  // we can record the outgoing edges to other code.
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
+  AddStaticCallTarget(function);
+  __ Drop(argument_count);
 }
 
 

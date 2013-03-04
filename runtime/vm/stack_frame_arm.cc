@@ -15,12 +15,18 @@ namespace dart {
 // code in the InvokeDartCode stub.
 static const int kSavedContextOffsetInEntryFrame = -10 * kWordSize;
 static const int kExitLinkOffsetInEntryFrame = -9 * kWordSize;
-static const int kPcAddressOffsetFromSp = -1 * kWordSize;
+static const int kPcAddressOffsetFromSp = -2 * kWordSize;
+static const int kEntrypointMarkerOffsetFromFp = 2 * kWordSize;
 static const int kSpOffsetFromPreviousFp = 3 * kWordSize;
 
 
 intptr_t StackFrame::PcAddressOffsetFromSp() {
   return kPcAddressOffsetFromSp;
+}
+
+
+intptr_t StackFrame::EntrypointMarkerOffsetFromFp() {
+  return kEntrypointMarkerOffsetFromFp;
 }
 
 

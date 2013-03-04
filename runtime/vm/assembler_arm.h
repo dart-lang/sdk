@@ -15,6 +15,9 @@
 
 namespace dart {
 
+// Forward declarations.
+class RuntimeEntry;
+
 class Label : public ValueObject {
  public:
   Label() : position_(0) { }
@@ -523,6 +526,7 @@ class Assembler : public ValueObject {
   void LoadDImmediate(DRegister dd, double value,
                       Register scratch, Condition cond = AL);
   void MarkExceptionHandler(Label* label);
+  void Drop(intptr_t stack_elements);
   void LoadObject(Register rd, const Object& object);
   void LoadFromOffset(LoadOperandType type,
                       Register reg,
@@ -580,6 +584,14 @@ class Assembler : public ValueObject {
   void LeaveFrame(RegList regs);
   void Ret();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  // Create a frame for calling into runtime that preserves all volatile
+  // registers.  Frame's SP is guaranteed to be correctly aligned and
+  // frame_space bytes are reserved under it.
+  void EnterCallRuntimeFrame(intptr_t frame_space);
+  void LeaveCallRuntimeFrame();
+
+  void CallRuntime(const RuntimeEntry& entry);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

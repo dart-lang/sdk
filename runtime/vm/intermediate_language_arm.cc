@@ -23,9 +23,12 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 
+// Generic summary for call instructions that have all arguments pushed
+// on the stack and return the result in a fixed register R0.
 LocationSummary* Instruction::MakeCallSummary() {
-  UNIMPLEMENTED();
-  return NULL;
+  LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
+  result->set_out(Location::RegisterLocation(R0));
+  return result;
 }
 
 

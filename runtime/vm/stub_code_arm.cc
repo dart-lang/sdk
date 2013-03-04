@@ -7,6 +7,7 @@
 
 #include "vm/assembler.h"
 #include "vm/assembler_macros.h"
+#include "vm/code_generator.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/stack_frame.h"
@@ -16,8 +17,115 @@
 
 namespace dart {
 
+// Input parameters:
+//   LR : return address.
+//   SP : address of last argument in argument array.
+//   SP + 4*R4 - 4 : address of first argument in argument array.
+//   SP + 4*R4 : address of return value.
+//   R5 : address of the runtime function to call.
+//   R4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  __ Unimplemented("CallToRuntime stub");
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+
+  // Load current Isolate pointer from Context structure into R0.
+  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  {
+    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
+    // restriction on the offset.
+    const intptr_t offset = Isolate::top_exit_frame_info_offset();
+    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    __ AddImmediate(IP, R0, offset12_hi);
+    __ str(SP, Address(IP, offset12_lo));
+  }
+
+  // Save current Context pointer into Isolate structure.
+  {
+    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
+    // restriction on the offset.
+    const intptr_t offset = Isolate::top_context_offset();
+    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    __ AddImmediate(IP, R0, offset12_hi);
+    __ str(CTX, Address(IP, offset12_lo));
+  }
+
+  // Cache Isolate pointer into CTX while executing runtime code.
+  __ mov(CTX, ShifterOperand(R0));
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  // NativeArguments are passed in registers.
+  ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
+  __ ReserveAlignedFrameSpace(0);
+
+  // Pass NativeArguments structure by value and call runtime.
+  // Registers R0, R1, R2, and R3 are used.
+
+  ASSERT(isolate_offset == 0 * kWordSize);
+  __ mov(R0, ShifterOperand(CTX));  // Set isolate in NativeArgs.
+
+  // There are no runtime calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  __ mov(R1, ShifterOperand(R4));  // Set argc in NativeArguments.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  __ add(R2, FP, ShifterOperand(R4, LSL, 2));  // Compute argv.
+  __ AddImmediate(R2, kWordSize);  // Set argv in NativeArguments.
+
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ add(R3, R2, ShifterOperand(kWordSize));  // Retval is next to 1st argument.
+
+  // Call runtime or redirection via simulator.
+  __ blx(R5);
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0);
+  {
+    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
+    // restriction on the offset.
+    const intptr_t offset = Isolate::top_exit_frame_info_offset();
+    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    __ AddImmediate(IP, CTX, offset12_hi);
+    __ str(R2, Address(IP, offset12_lo));
+  }
+
+  // Load Context pointer from Isolate structure into R2.
+  {
+    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
+    // restriction on the offset.
+    const intptr_t offset = Isolate::top_context_offset();
+    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    __ AddImmediate(IP, CTX, offset12_hi);
+    __ ldr(R2, Address(IP, offset12_lo));
+  }
+
+  // Reset Context pointer in Isolate structure.
+  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+  {
+    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
+    // restriction on the offset.
+    const intptr_t offset = Isolate::top_context_offset();
+    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    __ AddImmediate(IP, CTX, offset12_hi);
+    __ str(R3, Address(IP, offset12_lo));
+  }
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ mov(CTX, ShifterOperand(R2));
+
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ Ret();
 }
 
 
@@ -31,8 +139,22 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   R4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  __ Unimplemented("CallStaticFunction stub");
+  AssemblerMacros::EnterStubFrame(assembler);
+  // Setup space on stack for return value and preserve arguments descriptor.
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ PushList((1 << R0) | (1 << R4));
+  __ CallRuntime(kPatchStaticCallRuntimeEntry);
+  // Get Code object result and restore arguments descriptor array.
+  __ PopList((1 << R0) | (1 << R4));
+  // Remove the stub frame as we are about to jump to the dart function.
+  AssemblerMacros::LeaveStubFrame(assembler);
+
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
 }
 
 
@@ -83,8 +205,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
 
   // Save new context and C++ ABI callee-saved registers.
-  const intptr_t kNewContextOffset = -(1 + kAbiPreservedRegCount) * kWordSize;
-  __ PushList((1 << R3) | kAbiPreservedRegs);
+  const intptr_t kNewContextOffset =
+      -(1 + kAbiPreservedCpuRegCount) * kWordSize;
+  __ PushList((1 << R3) | kAbiPreservedCpuRegs);
 
   // The new Context structure contains a pointer to the current Isolate
   // structure. Cache the Context pointer in the CTX register so that it is
@@ -192,7 +315,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   }
 
   // Restore C++ ABI callee-saved registers.
-  __ PopList((1 << R3) | kAbiPreservedRegs);  // Ignore restored R3.
+  __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
 
   // Restore the frame pointer.
   AssemblerMacros::LeaveStubFrame(assembler);

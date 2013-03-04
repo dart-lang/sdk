@@ -40,9 +40,9 @@ void AssemblerMacros::EnterDartFrame(Assembler* assembler,
 
   // Setup pool pointer for this dart function.
   const intptr_t object_pool_pc_dist =
-      Instr::kPCReadOffset - assembler->CodeSize() -
-      Instructions::HeaderSize() + Instructions::object_pool_offset();
-  __ ldr(PP, Address(PC, object_pool_pc_dist));
+     Instructions::HeaderSize() - Instructions::object_pool_offset() +
+     assembler->CodeSize() + Instr::kPCReadOffset;
+  __ ldr(PP, Address(PC, -object_pool_pc_dist));
 
   // Reserve space for locals.
   __ AddImmediate(SP, -frame_size);

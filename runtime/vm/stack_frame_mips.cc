@@ -15,6 +15,12 @@ intptr_t StackFrame::PcAddressOffsetFromSp() {
 }
 
 
+intptr_t StackFrame::EntrypointMarkerOffsetFromFp() {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
 uword StackFrame::GetCallerFp() const {
   UNIMPLEMENTED();
   return 0;

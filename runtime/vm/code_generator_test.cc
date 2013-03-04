@@ -31,9 +31,6 @@ CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {
 CODEGEN_TEST_RUN(SimpleReturnCodegen, Instance::null())
 
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-
-
 CODEGEN_TEST_GENERATE(SmiReturnCodegen, test) {
   LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
@@ -48,6 +45,9 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
       new ReturnNode(kPos, new StaticCallNode(kPos, function, no_arguments)));
 }
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
+
+
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 
 // Helper to allocate and return a LocalVariable.

@@ -7,6 +7,7 @@
 
 #include "vm/assembler.h"
 
+#include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -1125,6 +1126,14 @@ void Assembler::MarkExceptionHandler(Label* label) {
 }
 
 
+void Assembler::Drop(intptr_t stack_elements) {
+  ASSERT(stack_elements >= 0);
+  if (stack_elements > 0) {
+    AddImmediate(SP, SP, stack_elements * kWordSize);
+  }
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
   if (object.IsNull() ||
       object.IsSmi() ||
@@ -1661,8 +1670,43 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // the C++ world.
   AddImmediate(SP, -frame_space);
   if (OS::ActivationFrameAlignment() > 0) {
-    and_(SP, SP, ShifterOperand(~(OS::ActivationFrameAlignment() - 1)));
+    bic(SP, SP, ShifterOperand(OS::ActivationFrameAlignment() - 1));
   }
+}
+
+
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  // Preserve volatile CPU registers.
+  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
+
+  // Preserve all volatile FPU registers.
+  // TODO(regis): Use vstmd instruction once supported.
+  // vstmd(DB_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+
+void Assembler::LeaveCallRuntimeFrame() {
+  // SP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  const intptr_t kPushedRegistersSize =
+      kDartVolatileCpuRegCount * kWordSize;
+  // TODO(regis): + kDartVolatileFpuRegCount * 2 * kWordSize;
+  AddImmediate(SP, FP, -kPushedRegistersSize);
+
+  // Restore all volatile FPU registers.
+  // TODO(regis): Use vldmd instruction once supported.
+  // vldmd(IA_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+
+  // Restore volatile CPU registers.
+  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
+}
+
+
+void Assembler::CallRuntime(const RuntimeEntry& entry) {
+  entry.Call(this);
 }
 
 

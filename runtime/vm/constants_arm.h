@@ -151,11 +151,29 @@ typedef uint16_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 
 
-// C++ ABI call registers
-const RegList kAbiArgumentRegs = (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
-const RegList kAbiPreservedRegs = (1 << R4) | (1 << R5) | (1 << R6) |
-    (1 << R7) | (1 << R8) | (1 << R9) | (1 << 10);
-const int kAbiPreservedRegCount = 7;
+// C++ ABI call registers.
+const RegList kAbiArgumentCpuRegs =
+    (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
+const RegList kAbiPreservedCpuRegs =
+    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
+    (1 << R8) | (1 << R9) | (1 << R10);
+const int kAbiPreservedCpuRegCount = 7;
+const DRegister kAbiFirstPreservedFpuReg = D8;
+const DRegister kAbiLastPreservedFpuReg =
+    static_cast<DRegister>(kNumberOfDRegisters - 1);
+
+// CPU registers available to Dart allocator.
+const RegList kDartAvailableCpuRegs =
+    (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3) |
+    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) | (1 << R8);
+
+// Registers available to Dart that are not preserved by runtime calls.
+const RegList kDartVolatileCpuRegs =
+    kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
+const int kDartVolatileCpuRegCount = 4;
+const DRegister kDartFirstVolatileFpuReg = D0;
+const DRegister kDartLastVolatileFpuReg = D7;
+const int kDartVolatileFpuRegCount = 8;
 
 
 // Values for the condition field as defined in section A3.2.

@@ -78,7 +78,7 @@ class Simulator {
                                uword new_value);
 
   // Runtime call support.
-  static uword RedirectExternalReference(void* function,
+  static uword RedirectExternalReference(uword function,
                                          uint32_t argument_count);
 
   void Longjmp(int32_t pc, int32_t sp, int32_t fp, const Instance& object);

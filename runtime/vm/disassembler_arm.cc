@@ -101,10 +101,11 @@ void ARMDecoder::PrintCondition(Instr* instr) {
 
 
 // These register names are defined in a way to match the native disassembler
-// formatting. See for example the command "objdump -d <binary file>".
+// formatting, except for register aliases ctx (r9) and pp (r10).
+// See for example the command "objdump -d <binary file>".
 static const char* reg_names[kNumberOfCpuRegisters] = {
   "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
-  "r8", "r9", "sl", "fp", "ip", "sp", "lr", "pc",
+  "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
 };
 
 
