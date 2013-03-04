@@ -7,11 +7,22 @@ part of dart.core;
 /**
  * A [Duration] represents a time span. A duration can be negative.
  */
-class Duration implements Comparable {
+class Duration implements Comparable<Duration> {
+  static const int MICROSECONDS_PER_MILLISECOND = 1000;
   static const int MILLISECONDS_PER_SECOND = 1000;
   static const int SECONDS_PER_MINUTE = 60;
   static const int MINUTES_PER_HOUR = 60;
   static const int HOURS_PER_DAY = 24;
+
+  static const int MICROSECONDS_PER_SECOND =
+      MICROSECONDS_PER_MILLISECOND * MILLISECONDS_PER_SECOND;
+  static const int MICROSECONDS_PER_MINUTE =
+      MICROSECONDS_PER_SECOND * SECONDS_PER_MINUTE;
+  static const int MICROSECONDS_PER_HOUR =
+      MICROSECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  static const int MICROSECONDS_PER_DAY =
+      MICROSECONDS_PER_HOUR * HOURS_PER_DAY;
+
 
   static const int MILLISECONDS_PER_MINUTE =
       MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE;
@@ -28,9 +39,9 @@ class Duration implements Comparable {
   static const Duration ZERO = const Duration(seconds: 0);
 
   /**
-   * This [Duration] in milliseconds.
+   * This [Duration] in microseconds.
    */
-  final int inMilliseconds;
+  final int _duration;
 
   /**
    * The duration is the sum of all individual parts. This means that individual
@@ -44,18 +55,20 @@ class Duration implements Comparable {
                   int hours: 0,
                   int minutes: 0,
                   int seconds: 0,
-                  int milliseconds: 0})
-      : inMilliseconds = days * Duration.MILLISECONDS_PER_DAY +
-                         hours * Duration.MILLISECONDS_PER_HOUR +
-                         minutes * Duration.MILLISECONDS_PER_MINUTE +
-                         seconds * Duration.MILLISECONDS_PER_SECOND +
-                         milliseconds;
+                  int milliseconds: 0,
+                  int microseconds: 0})
+      : _duration = days * MICROSECONDS_PER_DAY +
+                    hours * MICROSECONDS_PER_HOUR +
+                    minutes * MICROSECONDS_PER_MINUTE +
+                    seconds * MICROSECONDS_PER_SECOND +
+                    milliseconds * MICROSECONDS_PER_MILLISECOND +
+                    microseconds;
 
   /**
    * Returns the sum of this [Duration] and [other]  as a new [Duration].
    */
   Duration operator +(Duration other) {
-    return new Duration(milliseconds: inMilliseconds + other.inMilliseconds);
+    return new Duration(microseconds: _duration + other._duration);
   }
 
   /**
@@ -63,7 +76,7 @@ class Duration implements Comparable {
    * [Duration].
    */
   Duration operator -(Duration other) {
-    return new Duration(milliseconds: inMilliseconds - other.inMilliseconds);
+    return new Duration(microseconds: _duration - other._duration);
   }
 
   /**
@@ -71,7 +84,7 @@ class Duration implements Comparable {
    * as a new [Duration].
    */
   Duration operator *(int factor) {
-    return new Duration(milliseconds: inMilliseconds * factor);
+    return new Duration(microseconds: _duration * factor);
   }
 
   /**
@@ -84,85 +97,87 @@ class Duration implements Comparable {
     // By doing the check here instead of relying on "~/" below we get the
     // exception even with dart2js.
     if (quotient == 0) throw new IntegerDivisionByZeroException();
-    return new Duration(milliseconds: inMilliseconds ~/ quotient);
+    return new Duration(microseconds: _duration ~/ quotient);
   }
 
-  bool operator <(Duration other) => this.inMilliseconds < other.inMilliseconds;
+  bool operator <(Duration other) => this._duration < other._duration;
 
-  bool operator >(Duration other) => this.inMilliseconds > other.inMilliseconds;
+  bool operator >(Duration other) => this._duration > other._duration;
 
-  bool operator <=(Duration other) =>
-      this.inMilliseconds <= other.inMilliseconds;
+  bool operator <=(Duration other) => this._duration <= other._duration;
 
-  bool operator >=(Duration other) =>
-      this.inMilliseconds >= other.inMilliseconds;
+  bool operator >=(Duration other) => this._duration >= other._duration;
 
   /**
    * This [Duration] in days. Incomplete days are discarded
    */
-  int get inDays {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_DAY;
-  }
+  int get inDays => _duration ~/ Duration.MICROSECONDS_PER_DAY;
 
   /**
    * This [Duration] in hours. Incomplete hours are discarded.
+   *
    * The returned value can be greater than 23.
    */
-  int get inHours {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_HOUR;
-  }
+  int get inHours => _duration ~/ Duration.MICROSECONDS_PER_HOUR;
 
   /**
    * This [Duration] in minutes. Incomplete minutes are discarded.
+   *
    * The returned value can be greater than 59.
    */
-  int get inMinutes {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_MINUTE;
-  }
+  int get inMinutes => _duration ~/ Duration.MICROSECONDS_PER_MINUTE;
 
   /**
    * This [Duration] in seconds. Incomplete seconds are discarded.
+   *
    * The returned value can be greater than 59.
    */
-  int get inSeconds {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_SECOND;
-  }
+  int get inSeconds => _duration ~/ Duration.MICROSECONDS_PER_SECOND;
+
+  /**
+   * This [Duration] in milliseconds. Incomplete milliseconds are discarded.
+   *
+   * The returned value can be greater than 999.
+   */
+  int get inMilliseconds => _duration ~/ Duration.MICROSECONDS_PER_MILLISECOND;
+
+  /**
+   * This [Duration] in microseconds.
+   */
+  int get inMicroseconds => _duration;
 
   bool operator ==(other) {
     if (other is !Duration) return false;
-    return inMilliseconds == other.inMilliseconds;
+    return _duration == other._duration;
   }
 
-  int get hashCode {
-    return inMilliseconds.hashCode;
-  }
+  int get hashCode => _duration.hashCode;
 
-  int compareTo(Duration other) {
-    return inMilliseconds.compareTo(other.inMilliseconds);
-  }
+  int compareTo(Duration other) => _duration.compareTo(other._duration);
 
   String toString() {
-    String threeDigits(int n) {
-      if (n >= 100) return "$n";
-      if (n > 10) return "0$n";
-      return "00$n";
+    String sixDigits(int n) {
+      if (n >= 100000) return "$n";
+      if (n >= 10000) return "0$n";
+      if (n >= 1000) return "00$n";
+      if (n >= 100) return "000$n";
+      if (n > 10) return "0000$n";
+      return "00000$n";
     }
     String twoDigits(int n) {
       if (n >= 10) return "$n";
       return "0$n";
     }
 
-    if (inMilliseconds < 0) {
+    if (inMicroseconds < 0) {
       Duration duration =
-          new Duration(milliseconds: -inMilliseconds);
+          new Duration(microseconds: -inMicroseconds);
       return "-$duration";
     }
-    String twoDigitMinutes =
-        twoDigits(inMinutes.remainder(Duration.MINUTES_PER_HOUR));
-    String twoDigitSeconds =
-        twoDigits(inSeconds.remainder(Duration.SECONDS_PER_MINUTE));
-    String threeDigitMs =
-        threeDigits(inMilliseconds.remainder(Duration.MILLISECONDS_PER_SECOND));
-    return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$threeDigitMs";
+    String twoDigitMinutes = twoDigits(inMinutes.remainder(MINUTES_PER_HOUR));
+    String twoDigitSeconds = twoDigits(inSeconds.remainder(SECONDS_PER_MINUTE));
+    String sixDigitUs =
+        sixDigits(inMicroseconds.remainder(MICROSECONDS_PER_SECOND));
+    return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
   }
 }
