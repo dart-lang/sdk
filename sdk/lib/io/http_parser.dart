@@ -874,7 +874,7 @@ class _HttpParser
     assert(_incoming == null);
     assert(_bodyController == null);
     _bodyController = new StreamController<List<int>>(
-        onSubscriptionStateChange: _updateParsePauseState,
+        onSubscriptionStateChange: _bodySubscriptionStateChange,
         onPauseStateChange: _updateParsePauseState);
     _incoming = new _HttpIncoming(
         _headers, transferLength, _bodyController.stream);
@@ -900,6 +900,14 @@ class _HttpParser
 
   void _pauseParsing() {
     _paused = true;
+  }
+
+  void _bodySubscriptionStateChange() {
+    if (_incoming != null && !_bodyController.hasSubscribers) {
+      _closeIncoming();
+    } else {
+      _updateParsePauseState();
+    }
   }
 
   void _updateParsePauseState() {
