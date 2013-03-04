@@ -110,9 +110,9 @@ class ObjectPointerVisitor;
   V(_Double, "_Double")                                                        \
   V(Bool, "bool")                                                              \
   V(ObjectArray, "_ObjectArray")                                               \
-  V(ObjectArrayDot, "_ObjectArray.")                                           \
+  V(ObjectArrayFactory, "_ObjectArray.")                                       \
   V(GrowableObjectArray, "_GrowableObjectArray")                               \
-  V(GrowableObjectArrayDot, "_GrowableObjectArray.")                           \
+  V(GrowableObjectArrayFactory, "_GrowableObjectArray.")                       \
   V(GrowableObjectArrayWithData, "_GrowableObjectArray.withData")              \
   V(ImmutableArray, "_ImmutableArray")                                         \
   V(OneByteString, "_OneByteString")                                           \
@@ -129,17 +129,28 @@ class ObjectPointerVisitor;
   V(Float32x4, "Float32x4")                                                    \
   V(Uint32x4, "Uint32x4")                                                      \
   V(Int8List, "Int8List")                                                      \
+  V(Int8ListFactory, "Int8List.")                                              \
   V(Uint8List, "Uint8List")                                                    \
+  V(Uint8ListFactory, "Uint8List.")                                            \
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
+  V(Uint8ClampedListFactory, "Uint8ClampedList.")                              \
   V(Int16List, "Int16List")                                                    \
+  V(Int16ListFactory, "Int16List.")                                            \
   V(Uint16List, "Uint16List")                                                  \
+  V(Uint16ListFactory, "Uint16List.")                                          \
   V(Int32List, "Int32List")                                                    \
+  V(Int32ListFactory, "Int32List.")                                            \
   V(Uint32List, "Uint32List")                                                  \
+  V(Uint32ListFactory, "Uint32List.")                                          \
   V(Int64List, "Int64List")                                                    \
+  V(Int64ListFactory, "Int64List.")                                            \
   V(Uint64List, "Uint64List")                                                  \
+  V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
   V(Float32List, "Float32List")                                                \
+  V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \
+  V(Float64ListFactory, "Float64List.")                                        \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Uint8Array, "_Uint8Array")                                                \
   V(_Uint8ClampedArray, "_Uint8ClampedArray")                                  \

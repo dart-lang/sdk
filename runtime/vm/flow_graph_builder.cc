@@ -1976,12 +1976,25 @@ void EffectGraphVisitor::BuildConstructorCall(
 }
 
 
-// List of recognized factories in core lib (factories with known result-cid):
+// List of recognized list factories in core lib:
 // (factory-name-symbol, result-cid, fingerprint).
-#define RECOGNIZED_FACTORY_LIST(V)                                             \
-  V(ObjectArrayDot, kArrayCid, 97987288)                                       \
+// TODO(srdjan): Store the values in the snapshot instead.
+// TODO(srdjan): Add Float32x4List.
+#define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
+  V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
-  V(GrowableObjectArrayDot, kGrowableObjectArrayCid, 1896741574)               \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1896741574)           \
+  V(Int8ListFactory, kInt8ArrayCid, 817410959)                                 \
+  V(Uint8ListFactory, kUint8ArrayCid, 220896178)                               \
+  V(Uint8ClampedListFactory, kUint8ClampedArrayCid, 422034060)                 \
+  V(Int16ListFactory, kInt16ArrayCid, 214246025)                               \
+  V(Uint16ListFactory, kUint16ArrayCid, 137929963)                             \
+  V(Int32ListFactory, kInt32ArrayCid, 1977571010)                              \
+  V(Uint32ListFactory, kUint32ArrayCid, 407638944)                             \
+  V(Int64ListFactory, kInt64ArrayCid, 885130273)                               \
+  V(Uint64ListFactory, kUint64ArrayCid, 1471017221)                            \
+  V(Float64ListFactory, kFloat64ArrayCid, 1037441059)                          \
+  V(Float32ListFactory, kFloat32ArrayCid, 2035252095)                          \
 
 
 // Class that recognizes factories and returns corresponding result cid.
@@ -1992,10 +2005,8 @@ class FactoryRecognizer : public AllStatic {
     ASSERT(factory.IsFactory());
     const Class& function_class = Class::Handle(factory.Owner());
     const Library& lib = Library::Handle(function_class.library());
-    if (lib.raw() != Library::CoreLibrary()) {
-      // Only core library factories recognized.
-      return kDynamicCid;
-    }
+    ASSERT((lib.raw() == Library::CoreLibrary()) ||
+        (lib.raw() == Library::ScalarlistLibrary()));
     const String& factory_name = String::Handle(factory.name());
 #define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
     if (String::EqualsIgnoringPrivateKey(                                      \
@@ -2004,7 +2015,7 @@ class FactoryRecognizer : public AllStatic {
       return cid;                                                              \
     }                                                                          \
 
-RECOGNIZED_FACTORY_LIST(RECOGNIZE_FACTORY);
+RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY);
 #undef RECOGNIZE_FACTORY
 
     return kDynamicCid;
@@ -2012,12 +2023,12 @@ RECOGNIZED_FACTORY_LIST(RECOGNIZE_FACTORY);
 };
 
 
-static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
+static intptr_t GetResultCidOfListFactory(ConstructorCallNode* node) {
   const Function& function = node->constructor();
   const Class& function_class = Class::Handle(function.Owner());
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
 
-  if (function_class.library() != core_lib.raw()) {
+  if ((function_class.library() != Library::CoreLibrary()) &&
+      (function_class.library() != Library::ScalarlistLibrary())) {
     return kDynamicCid;
   }
 
@@ -2032,7 +2043,7 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
     }
     return FactoryRecognizer::ResultCid(function);
   }
-  return kDynamicCid;   // Result cid not known.
+  return kDynamicCid;   // Not a known list constructor.
 }
 
 
@@ -2051,10 +2062,15 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
                             node->constructor(),
                             node->arguments()->names(),
                             arguments);
-    // List factories return kArrayCid or kGrowableObjectArrayCid.
-    const intptr_t result_cid = GetResultCidOfConstructor(node);
-    call->set_result_cid(result_cid);
-    call->set_is_known_constructor(result_cid != kDynamicCid);
+    const intptr_t result_cid = GetResultCidOfListFactory(node);
+    if (result_cid != kDynamicCid) {
+      call->set_result_cid(result_cid);
+      call->set_is_known_list_constructor(true);
+      // Recognized fixed length array factory must have two arguments:
+      // (0) type-arguments, (1) length.
+      ASSERT(!LoadFieldInstr::IsFixedLengthArrayCid(result_cid) ||
+             arguments->length() == 2);
+    }
     ReturnDefinition(call);
     return;
   }

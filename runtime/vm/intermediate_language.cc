@@ -1141,6 +1141,28 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
 }
 
 
+bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
 Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   if (!IsImmutableLengthLoad()) return this;
 
@@ -1148,9 +1170,9 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // call we can replace the length load with the length argument passed to
   // the constructor.
   StaticCallInstr* call = value()->definition()->AsStaticCall();
-  if (call != NULL &&
-      call->is_known_constructor() &&
-      (call->Type()->ToCid() == kArrayCid)) {
+  if ((call != NULL) &&
+      call->is_known_list_constructor() &&
+      IsFixedLengthArrayCid(call->Type()->ToCid())) {
     return call->ArgumentAt(1);
   }
   return this;
@@ -2095,24 +2117,7 @@ bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
 
 
 bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
-      return true;
-    default:
-      return false;
-  }
+  return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
 

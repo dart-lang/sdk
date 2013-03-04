@@ -2589,7 +2589,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
         argument_names_(argument_names),
         arguments_(arguments),
         result_cid_(kDynamicCid),
-        is_known_constructor_(false) {
+        is_known_list_constructor_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2615,9 +2615,9 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
-  bool is_known_constructor() const { return is_known_constructor_; }
-  void set_is_known_constructor(bool is_known_constructor) {
-    is_known_constructor_ = is_known_constructor;
+  bool is_known_list_constructor() const { return is_known_list_constructor_; }
+  void set_is_known_list_constructor(bool value) {
+    is_known_list_constructor_ = value;
   }
 
  private:
@@ -2627,8 +2627,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
 
-  // Some library constructors have known semantics.
-  bool is_known_constructor_;
+  // 'True' for recognized list constructors.
+  bool is_known_list_constructor_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -3203,6 +3203,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
+
+  static bool IsFixedLengthArrayCid(intptr_t cid);
 
  private:
   const intptr_t offset_in_bytes_;
