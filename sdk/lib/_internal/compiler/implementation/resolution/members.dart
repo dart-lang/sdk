@@ -3152,6 +3152,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return mixin;
   }
 
+  // TODO(johnniwinther): Remove when default class is no longer supported.
+  DartType visitTypeAnnotation(TypeAnnotation node) {
+    return visit(node.typeName);
+  }
+
   DartType resolveType(TypeAnnotation node) {
     return typeResolver.resolveTypeAnnotation(node, scope, element);
   }
