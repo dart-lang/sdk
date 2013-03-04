@@ -25,14 +25,14 @@ main() {
     scriptFile =
         new File("../tests/standalone/io/process_check_arguments_script.dart");
   }
-  test([scriptFile.name, '3', '0', 'a']);
-  test([scriptFile.name, '3', '0', 'a b']);
-  test([scriptFile.name, '3', '0', 'a\tb']);
-  test([scriptFile.name, '3', '1', 'a\tb"']);
-  test([scriptFile.name, '3', '1', 'a"\tb']);
-  test([scriptFile.name, '3', '1', 'a"\t\\\\"b"']);
-  test([scriptFile.name, '4', '0', 'a\tb', 'a']);
-  test([scriptFile.name, '4', '0', 'a\tb', 'a\t\t\t\tb']);
-  test([scriptFile.name, '4', '0', 'a\tb', 'a    b']);
+  test([scriptFile.path, '3', '0', 'a']);
+  test([scriptFile.path, '3', '0', 'a b']);
+  test([scriptFile.path, '3', '0', 'a\tb']);
+  test([scriptFile.path, '3', '1', 'a\tb"']);
+  test([scriptFile.path, '3', '1', 'a"\tb']);
+  test([scriptFile.path, '3', '1', 'a"\t\\\\"b"']);
+  test([scriptFile.path, '4', '0', 'a\tb', 'a']);
+  test([scriptFile.path, '4', '0', 'a\tb', 'a\t\t\t\tb']);
+  test([scriptFile.path, '4', '0', 'a\tb', 'a    b']);
 }
 

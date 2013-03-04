@@ -601,14 +601,14 @@ class NoVersionException implements Exception {
 
   String toString() {
     var buffer = new StringBuffer();
-    buffer.add("Package '$package' has no versions that match $constraint "
+    buffer.write("Package '$package' has no versions that match $constraint "
         "derived from:\n");
 
     var keys = new List.from(_dependencies.keys);
     keys.sort();
 
     for (var key in keys) {
-      buffer.add("- '$key' depends on version "
+      buffer.write("- '$key' depends on version "
           "${_dependencies[key].constraint}\n");
     }
 
@@ -641,13 +641,13 @@ class DisjointConstraintException implements Exception {
 
   String toString() {
     var buffer = new StringBuffer();
-    buffer.add("Incompatible version constraints on '$package':\n");
+    buffer.write("Incompatible version constraints on '$package':\n");
 
     var keys = new List.from(_dependencies.keys);
     keys.sort();
 
     for (var key in keys) {
-      buffer.add("- '$key' depends on version "
+      buffer.write("- '$key' depends on version "
           "${_dependencies[key].constraint}\n");
     }
 

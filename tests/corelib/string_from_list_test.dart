@@ -4,7 +4,7 @@
 
 class StringFromListTest {
   static testMain() {
-    Expect.equals("", new String.fromCharCodes(new List.fixedLength(0)));
+    Expect.equals("", new String.fromCharCodes(new List(0)));
     Expect.equals("", new String.fromCharCodes([]));
     Expect.equals("", new String.fromCharCodes(const []));
     Expect.equals("AB", new String.fromCharCodes([65, 66]));

@@ -200,6 +200,36 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
 
 DEFINE_NATIVE_ENTRY(Double_parse, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+  if (value.IsOneByteString()) {
+    // Quick conversion for unpadded doubles in strings.
+    const intptr_t len = value.Length();
+    if (len > 0) {
+      const char* cstr = value.ToCString();
+      ASSERT(cstr != NULL);
+      // Dart differences from strtod:
+      // a) '5.' is not a valid double (no digit after period).
+      // b) '+5.0' is not a valid double (leading plus).
+      if (cstr[0] != '+') {
+        bool dot_ok = true;
+        const char* tmp = cstr;
+        while (*tmp != '\0') {
+          const char ch = *tmp++;
+          if (ch == '.') {
+            const char nextCh = *tmp;
+            dot_ok = ('0' <= nextCh) && (nextCh <= '9');
+            break;
+          }
+        }
+        if (dot_ok) {
+          char* p_end = NULL;
+          const double double_value = strtod(cstr, &p_end);
+          if (p_end == (cstr + len)) {
+            return Double::New(double_value);
+          }
+        }
+      }
+    }
+  }
   Scanner scanner(value, Symbols::Empty());
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   String* number_string;

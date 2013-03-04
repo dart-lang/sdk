@@ -15,7 +15,8 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_HAS_EQUALS,
                                    RAW_DART_FUNCTION_REF,
                                    UNINTERCEPTED;
-import 'dart:_interceptors' show getInterceptor;
+import 'dart:_interceptors' show getInterceptor,
+                                 interceptedNames;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -23,7 +24,7 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 
 bool isJsArray(var value) {
-  return value != null && JS('bool', r'#.constructor === Array', value);
+  return value != null && JS('bool', r'(#.constructor === Array)', value);
 }
 
 checkMutable(list, reason) {
@@ -98,13 +99,16 @@ class JSInvocationMirror implements InvocationMirror {
     return map;
   }
 
-  static final _objectInterceptor = getInterceptor(new Object());
   invokeOn(Object object) {
     var interceptor = getInterceptor(object);
     var receiver = object;
     var name = _internalName;
     var arguments = _arguments;
-    if (identical(interceptor, _objectInterceptor)) {
+    // TODO(ngeoffray): If this functionality ever become performance
+    // critical, we might want to dynamically change [interceptedNames]
+    // to be a JavaScript object with intercepted names as property
+    // instead of a JavaScript array.
+    if (JS('int', '#.indexOf(#)', interceptedNames, name) == -1) {
       if (!isJsArray(arguments)) arguments = new List.from(arguments);
     } else {
       arguments = [object]..addAll(arguments);
@@ -157,7 +161,7 @@ class Primitives {
     // This is somewhat nasty, but we don't want to drag in a bunch of
     // dependencies to handle a situation that cannot happen. So we
     // avoid using Dart [:throw:] and Dart [toString].
-    JS('void', "throw 'Unable to print message: ' + String(#)", string);
+    JS('void', 'throw "Unable to print message: " + String(#)', string);
   }
 
   static void _throwFormatException(String string) {
@@ -210,19 +214,19 @@ class Primitives {
           if (radix <= 10) {
             // Allow all digits less than the radix. For example 0, 1, 2 for
             // radix 3.
-            // "0".charCodeAt(0) + radix - 1;
+            // "0".codeUnitAt(0) + radix - 1;
             maxCharCode = 0x30 + radix - 1;
           } else {
             // Characters are located after the digits in ASCII. Therefore we
             // only check for the character code. The regexp above made already
             // sure that the string does not contain anything but digits or
             // characters.
-            // "0".charCodeAt(0) + radix - 1;
+            // "0".codeUnitAt(0) + radix - 1;
             maxCharCode = 0x61 + radix - 10 - 1;
           }
           String digitsPart = match[digitsIndex].toLowerCase();
           for (int i = 0; i < digitsPart.length; i++) {
-            if (digitsPart.charCodeAt(i) > maxCharCode) {
+            if (digitsPart.codeUnitAt(i) > maxCharCode) {
               return handleError(source);
             }
           }
@@ -255,7 +259,7 @@ class Primitives {
     return result;
   }
 
-  /** [: r"$".charCodeAt(0) :] */
+  /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
   static String objectTypeName(Object object) {
@@ -270,7 +274,7 @@ class Primitives {
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
-    if (identical(name.charCodeAt(0), DOLLAR_CHAR_VALUE)) name = name.substring(1);
+    if (identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) name = name.substring(1);
     return name;
   }
 
@@ -557,32 +561,6 @@ ioore(index) {
   throw new RangeError.value(index);
 }
 
-listInsertRange(receiver, start, length, initialValue) {
-  if (length == 0) {
-    return;
-  }
-  if (length is !int) throw new ArgumentError(length);
-  if (length < 0) throw new ArgumentError(length);
-  if (start is !int) throw new ArgumentError(start);
-
-  var receiverLength = JS('num', r'#.length', receiver);
-  if (start < 0 || start > receiverLength) {
-    throw new RangeError.value(start);
-  }
-  receiver.length = receiverLength + length;
-  Arrays.copy(receiver,
-              start,
-              receiver,
-              start + length,
-              receiverLength - start);
-  if (initialValue != null) {
-    for (int i = start; i < start + length; i++) {
-      receiver[i] = initialValue;
-    }
-  }
-  receiver.length = receiverLength + length;
-}
-
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
@@ -807,6 +785,7 @@ unwrapException(ex) {
     if (message is String) {
       if (message == 'null has no properties' ||
           message == "'null' is not an object" ||
+          message == "'undefined' is not an object" ||
           message.endsWith('is null') ||
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined') ||
@@ -845,7 +824,7 @@ unwrapException(ex) {
 
   // Check for the Firefox specific stack overflow signal.
   if (JS('bool',
-         r"typeof InternalError == 'function' && # instanceof InternalError",
+         r'typeof InternalError == "function" && # instanceof InternalError',
          ex)) {
     if (message is String && message == 'too much recursion') {
       return new StackOverflowError();
@@ -914,23 +893,20 @@ convertDartClosureToJS(closure, int arity) {
   if (closure == null) return null;
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
-  // By fetching the current isolate before creating the JavaScript
-  // function, we prevent the compiler from inlining its use in
-  // the JavaScript function below (the compiler generates code for
-  // fetching the isolate before creating the JavaScript function).
-  // If it was inlined, the JavaScript function would not get the
-  // current isolate, but the one that is active when the callback
-  // executes.
-  var currentIsolate = JS_CURRENT_ISOLATE();
 
   // We use $0 and $1 to not clash with variable names used by the
   // compiler and/or minifier.
-  function = JS("var",
-                r"""function($0, $1) { return #(#, #, #, $0, $1); }""",
-                DART_CLOSURE_TO_JS(invokeClosure),
+  function = JS('var',
+                r'(function ($2, $3) {'
+                    r' return function($0, $1) { '
+                        r'return $3(#, $2, #, $0, $1) }})(#, #)',
                 closure,
+                arity,
+                // Capture the current isolate now.  Remember that "#"
+                // in JS is simply textual substitution of compiled
+                // expressions.
                 JS_CURRENT_ISOLATE(),
-                arity);
+                DART_CLOSURE_TO_JS(invokeClosure));
 
   JS('void', r'#.$identity = #', closure, function);
   return function;
@@ -1494,7 +1470,7 @@ String getRuntimeTypeString(var object) {
   return "$className<${joinArguments(typeInfo, 0)}>";
 }
 
-bool isJsFunction(var o) => JS('bool', r"typeof # == 'function'", o);
+bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);
 
 Object invoke(function, arguments) {
   return JS('var', r'#.apply(null, #)', function, arguments);
@@ -1538,9 +1514,41 @@ bool areSubtypes(List s, List t) {
   return true;
 }
 
-getArguments(var type) => JS('var', r'#.slice(1)', type);
+getArguments(var type) {
+  return isJsArray(type) ? JS('var', r'#.slice(1)', type) : null;
+}
 
 getField(var object, var name) => JS('var', r'#[#]', object, name);
+
+/**
+ * Tests whether the Dart object [o] is a subtype of the runtime type
+ * representation [t], which is a type representation as described in the
+ * comment on [isSubtype].
+ */
+bool objectIsSubtype(Object o, var t) {
+  if (JS('bool', '# == null', o) || JS('bool', '# == null', t)) return true;
+  // Get the runtime type information from the object here, because we may
+  // overwrite o with the interceptor below.
+  var rti = getRuntimeTypeInfo(o);
+  // Check for native objects and use the interceptor instead of the object.
+  o = getInterceptor(o);
+  // We can use the object as its own type representation because we install
+  // the subtype flags and the substitution on the prototype, so they are
+  // properties of the object in JS.
+  var type;
+  if (JS('bool', '# != null', rti)) {
+    // If the type has type variables (that is, [:rti != null:]), make a copy of
+    // the type arguments and insert [o] in the first position to create a
+    // compound type representation.
+    type = JS('List', '#.slice()', rti);
+    JS('', '#.splice(0, 0, #)', type, o);
+  } else {
+    // Use the object as representation of the raw type.
+    type = o;
+  }
+  return isSubtype(type, t);
+}
+
 
 /**
  * Check whether the type represented by [s] is a subtype of the type
@@ -1549,12 +1557,14 @@ getField(var object, var name) => JS('var', r'#[#]', object, name);
  * Type representations can be:
  *  1) a JavaScript constructor for a class C: the represented type is the raw
  *     type C.
- *  2) a JavaScript object: this represents a class for which there is no
+ *  2) a Dart object: this is the interceptor instance for a native type.
+ *  3) a JavaScript object: this represents a class for which there is no
  *     JavaScript constructor, because it is only used in type arguments or it
  *     is native. The represented type is the raw type of this class.
- *  3) a JavaScript array: the first entry is of type 1 or 2 and identifies the
- *     class of the type and the rest of the array are the type arguments.
- *  4) [:null:]: the dynamic type.
+ *  4) a JavaScript array: the first entry is of type 1, 2 or 3 and contains the
+ *     subtyping flags and the substitution of the type and the rest of the
+ *     array are the type arguments.
+ *  5) [:null:]: the dynamic type.
  */
 bool isSubtype(var s, var t) {
   // If either type is dynamic, [s] is a subtype of [t].
@@ -1568,14 +1578,19 @@ bool isSubtype(var s, var t) {
   // Check for a subtyping flag.
   var test = '${JS_OPERATOR_IS_PREFIX()}${runtimeTypeToString(typeOfT)}';
   if (getField(typeOfS, test) == null) return false;
-  // The class of [s] is a subclass of the class of [t]. If either of the types
-  // is raw, [s] is a subtype of [t].
-  if (!isJsArray(s) || !isJsArray(t)) return true;
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (JS('bool', '# !== #', typeOfT, typeOfS)) {
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
     substitution = getField(typeOfS, field);
+  }
+  // The class of [s] is a subclass of the class of [t].  If [s] has no type
+  // arguments and no substitution, it is used as raw type.  If [t] has no
+  // type arguments, it used as a raw type.  In both cases, [s] is a subtype
+  // of [t].
+  if ((!isJsArray(s) && JS('bool', '# == null', substitution)) ||
+      !isJsArray(t)) {
+    return true;
   }
   // Recursively check the type arguments.
   return checkArguments(substitution, getArguments(s), getArguments(t));

@@ -16,11 +16,17 @@ namespace dart {
 static const int kSavedContextOffsetInEntryFrame = -5 * kWordSize;
 static const int kExitLinkOffsetInEntryFrame = -4 * kWordSize;
 static const int kPcAddressOffsetFromSp = -1 * kWordSize;
+static const int kEntrypointMarkerOffsetFromFp = -1 * kWordSize;
 static const int kSpOffsetFromPreviousFp = 2 * kWordSize;
 
 
 intptr_t StackFrame::PcAddressOffsetFromSp() {
   return kPcAddressOffsetFromSp;
+}
+
+
+intptr_t StackFrame::EntrypointMarkerOffsetFromFp() {
+  return kEntrypointMarkerOffsetFromFp;
 }
 
 

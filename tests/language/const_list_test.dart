@@ -5,8 +5,8 @@
 class ConstListTest {
 
   static testMain() {
-    List fixedList = new List.fixedLength(4);
-    List fixedList2 = new List.fixedLength(4);
+    List fixedList = new List(4);
+    List fixedList2 = new List(4);
     List growableList = new List();
     List growableList2 = new List();
     for (int i = 0; i < 4; i++) {

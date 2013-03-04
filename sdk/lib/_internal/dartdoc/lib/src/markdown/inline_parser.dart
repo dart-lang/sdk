@@ -7,62 +7,59 @@ part of markdown;
 /// Maintains the internal state needed to parse inline span elements in
 /// markdown.
 class InlineParser {
-  static List<InlineSyntax> get syntaxes {
-    // Lazy initialize.
-    if (_syntaxes == null) {
-      _syntaxes = <InlineSyntax>[
-        // This first regexp matches plain text to accelerate parsing.  It must
-        // be written so that it does not match any prefix of any following
-        // syntax.  Most markdown is plain text, so it is faster to match one
-        // regexp per 'word' rather than fail to match all the following regexps
-        // at each non-syntax character position.  It is much more important
-        // that the regexp is fast than complete (for example, adding grouping
-        // is likely to slow the regexp down enough to negate its benefit).
-        // Since it is purely for optimization, it can be removed for debugging.
-        new TextSyntax(r'\s*[A-Za-z0-9]+'),
+  static List<InlineSyntax>  defaultSyntaxes = <InlineSyntax>[
+    // This first regexp matches plain text to accelerate parsing.  It must
+    // be written so that it does not match any prefix of any following
+    // syntax.  Most markdown is plain text, so it is faster to match one
+    // regexp per 'word' rather than fail to match all the following regexps
+    // at each non-syntax character position.  It is much more important
+    // that the regexp is fast than complete (for example, adding grouping
+    // is likely to slow the regexp down enough to negate its benefit).
+    // Since it is purely for optimization, it can be removed for debugging.
 
-        // The real syntaxes.
+    // TODO(amouravski): this regex will glom up any custom syntaxes unless
+    // they're at the beginning.
+    new TextSyntax(r'\s*[A-Za-z0-9]+'),
 
-        new AutolinkSyntax(),
-        new LinkSyntax(),
-        // "*" surrounded by spaces is left alone.
-        new TextSyntax(r' \* '),
-        // "_" surrounded by spaces is left alone.
-        new TextSyntax(r' _ '),
-        // Leave already-encoded HTML entities alone. Ensures we don't turn
-        // "&amp;" into "&amp;amp;"
-        new TextSyntax(r'&[#a-zA-Z0-9]*;'),
-        // Encode "&".
-        new TextSyntax(r'&', sub: '&amp;'),
-        // Encode "<". (Why not encode ">" too? Gruber is toying with us.)
-        new TextSyntax(r'<', sub: '&lt;'),
-        // Parse "**strong**" tags.
-        new TagSyntax(r'\*\*', tag: 'strong'),
-        // Parse "__strong__" tags.
-        new TagSyntax(r'__', tag: 'strong'),
-        // Parse "*emphasis*" tags.
-        new TagSyntax(r'\*', tag: 'em'),
-        // Parse "_emphasis_" tags.
-        // TODO(rnystrom): Underscores in the middle of a word should not be
-        // parsed as emphasis like_in_this.
-        new TagSyntax(r'_', tag: 'em'),
-        // Parse inline code within double backticks: "``code``".
-        new CodeSyntax(r'``\s?((?:.|\n)*?)\s?``'),
-        // Parse inline code within backticks: "`code`".
-        new CodeSyntax(r'`([^`]*)`')
-      ];
-    }
+    // The real syntaxes.
 
-    return _syntaxes;
-  }
-
-  static List<InlineSyntax> _syntaxes;
+    new AutolinkSyntax(),
+    new LinkSyntax(),
+    // "*" surrounded by spaces is left alone.
+    new TextSyntax(r' \* '),
+    // "_" surrounded by spaces is left alone.
+    new TextSyntax(r' _ '),
+    // Leave already-encoded HTML entities alone. Ensures we don't turn
+    // "&amp;" into "&amp;amp;"
+    new TextSyntax(r'&[#a-zA-Z0-9]*;'),
+    // Encode "&".
+    new TextSyntax(r'&', sub: '&amp;'),
+    // Encode "<". (Why not encode ">" too? Gruber is toying with us.)
+    new TextSyntax(r'<', sub: '&lt;'),
+    // Parse "**strong**" tags.
+    new TagSyntax(r'\*\*', tag: 'strong'),
+    // Parse "__strong__" tags.
+    new TagSyntax(r'__', tag: 'strong'),
+    // Parse "*emphasis*" tags.
+    new TagSyntax(r'\*', tag: 'em'),
+    // Parse "_emphasis_" tags.
+    // TODO(rnystrom): Underscores in the middle of a word should not be
+    // parsed as emphasis like_in_this.
+    new TagSyntax(r'_', tag: 'em'),
+    // Parse inline code within double backticks: "``code``".
+    new CodeSyntax(r'``\s?((?:.|\n)*?)\s?``'),
+    // Parse inline code within backticks: "`code`".
+    new CodeSyntax(r'`([^`]*)`')
+    // We will add the LinkSyntax once we know about the specific link resolver.
+  ];
 
   /// The string of markdown being parsed.
   final String source;
 
   /// The markdown document this parser is parsing.
   final Document document;
+
+  List<InlineSyntax> syntaxes;
 
   /// The current read position.
   int pos = 0;
@@ -73,7 +70,19 @@ class InlineParser {
   final List<TagState> _stack;
 
   InlineParser(this.source, this.document)
-    : _stack = <TagState>[];
+    : _stack = <TagState>[] {
+    /// User specified syntaxes will be the first syntaxes to be evaluated.
+    if (document.inlineSyntaxes != null) {
+      syntaxes = [];
+      syntaxes.addAll(document.inlineSyntaxes);
+      syntaxes.addAll(defaultSyntaxes);
+    } else {
+      syntaxes = defaultSyntaxes;
+    }
+    // Custom link resolver goes after the generic text syntax.
+    syntaxes.insertRange(1, 1,
+        new LinkSyntax(linkResolver: document.linkResolver));
+  }
 
   List<Node> parse() {
     // Make a fake top tag to hold the results.
@@ -236,6 +245,8 @@ class TagSyntax extends InlineSyntax {
 
 /// Matches inline links like `[blah] [id]` and `[blah] (url)`.
 class LinkSyntax extends TagSyntax {
+  Resolver linkResolver;
+
   /// The regex for the end of a link needs to handle both reference style and
   /// inline styles as well as optional titles for inline links. To make that
   /// a bit more palatable, this breaks it into pieces.
@@ -253,7 +264,7 @@ class LinkSyntax extends TagSyntax {
     // 4: Contains the title, if present, for an inline link.
   }
 
-  LinkSyntax()
+  LinkSyntax({this.linkResolver})
     : super(r'\[', end: linkPattern);
 
   bool onMatchEnd(InlineParser parser, Match match, TagState state) {
@@ -263,10 +274,10 @@ class LinkSyntax extends TagSyntax {
     // If we didn't match refLink or inlineLink, then it means there was
     // nothing after the first square bracket, so it isn't a normal markdown
     // link at all. Instead, we allow users of the library to specify a special
-    // resolver function ([setImplicitLinkResolver]) that may choose to handle
+    // resolver function ([linkResolver]) that may choose to handle
     // this. Otherwise, it's just treated as plain text.
     if ((match[1] == null) || (match[1] == '')) {
-      if (_implicitLinkResolver == null) return false;
+      if (linkResolver == null) return false;
 
       // Only allow implicit links if the content is just text.
       // TODO(rnystrom): Do we want to relax this?
@@ -276,7 +287,7 @@ class LinkSyntax extends TagSyntax {
       Text link = state.children[0];
 
       // See if we have a resolver that will generate a link for us.
-      final node = _implicitLinkResolver(link.text);
+      final node = linkResolver(link.text);
       if (node == null) return false;
 
       parser.addNode(node);

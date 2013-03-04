@@ -120,7 +120,7 @@ class AnalysisError {
   /**
    * An empty array of errors used when no errors are expected.
    */
-  static List<AnalysisError> NO_ERRORS = new List<AnalysisError>.fixedLength(0);
+  static List<AnalysisError> NO_ERRORS = new List<AnalysisError>(0);
   /**
    * The error code associated with the error.
    */

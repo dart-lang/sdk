@@ -4,6 +4,18 @@
 
 part of matcher;
 
+/** The objects thrown by the default failure handler. */
+class TestFailure {
+  String _message;
+
+  get message => _message;
+  set message(String value) => _message = value;
+
+  TestFailure(String message) : _message = message;
+
+  String toString() => _message;
+}
+
 /**
  * Some matchers, like those for Futures and exception testing,
  * can fail in asynchronous sections, and throw exceptions.
@@ -13,7 +25,7 @@ part of matcher;
  * used safely. For example, the unittest library will set this
  * to be expectAsync1. By default this is an identity function.
  */
-Function wrapAsync = (f) => f;
+Function wrapAsync = (f, [id]) => f;
 
 /**
  * This is the main assertion function. It asserts that [actual]
@@ -24,8 +36,8 @@ Function wrapAsync = (f) => f;
  * [matcher] can be a value in which case it will be wrapped in an
  * [equals] matcher.
  *
- * If the assertion fails, then the default behavior is to throw an
- * [ExpectException], but this behavior can be changed by calling
+ * If the assertion fails, then the default behavior is to throw a
+ * [TestFailure], but this behavior can be changed by calling
  * [configureExpectFailureHandler] and providing an alternative handler that
  * implements the [IFailureHandler] interface. It is also possible to
  * pass a [failureHandler] to [expect] as a final parameter for fine-
@@ -56,6 +68,13 @@ void expect(actual, matcher, {String reason, FailureHandler failureHandler,
   }
 }
 
+void fail(String message, {FailureHandler failureHandler}) {
+  if (failureHandler == null) {
+    failureHandler = getOrCreateExpectFailureHandler();
+  }
+  failureHandler.fail(message);
+}
+
 /**
  * Takes an argument and returns an equivalent matcher.
  * If the argument is already a matcher this does nothing,
@@ -75,7 +94,7 @@ Matcher wrapMatcher(x) {
 // The handler for failed asserts.
 FailureHandler _assertFailureHandler = null;
 
-// The default failure handler that throws ExpectExceptions.
+// The default failure handler that throws [TestFailure]s.
 class DefaultFailureHandler implements FailureHandler {
   DefaultFailureHandler() {
     if (_assertErrorFormatter == null) {
@@ -83,7 +102,7 @@ class DefaultFailureHandler implements FailureHandler {
     }
   }
   void fail(String reason) {
-    throw new ExpectException(reason);
+    throw new TestFailure(reason);
   }
   void failMatch(actual, Matcher matcher, String reason,
       MatchState matchState, bool verbose) {
@@ -95,7 +114,7 @@ class DefaultFailureHandler implements FailureHandler {
  * Changes or resets to the default the failure handler for expect()
  * [handler] is a reference to the new handler; if this is omitted
  * or null then the failure handler is reset to the default, which
- * throws [ExpectExceptions] on [expect] assertion failures.
+ * throws [TestFailure]s on [expect] assertion failures.
  */
 void configureExpectFailureHandler([FailureHandler handler = null]) {
   if (handler == null) {

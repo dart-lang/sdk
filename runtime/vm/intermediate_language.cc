@@ -70,13 +70,12 @@ CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
     : unary_checks_(unary_checks) {
-  ASSERT(value != NULL);
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
-  ASSERT(!unary_checks_.IsNull() &&
-         (unary_checks_.NumberOfChecks() > 0) &&
-         (unary_checks_.num_args_tested() == 1));
-  inputs_[0] = value;
+  ASSERT(!unary_checks_.IsNull());
+  ASSERT(unary_checks_.NumberOfChecks() > 0);
+  ASSERT(unary_checks_.num_args_tested() == 1);
+  SetInputAt(0, value);
   deopt_id_ = deopt_id;
   // Otherwise use CheckSmiInstr.
   ASSERT((unary_checks_.NumberOfChecks() != 1) ||
@@ -319,6 +318,25 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
 
+void Instruction::SetEnvironment(Environment* deopt_env) {
+  intptr_t use_index = 0;
+  for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    use->set_instruction(this);
+    use->set_use_index(use_index++);
+  }
+  env_ = deopt_env;
+}
+
+
+void Instruction::RemoveEnvironment() {
+  for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
+    it.CurrentValue()->RemoveFromUseList();
+  }
+  env_ = NULL;
+}
+
+
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
   ASSERT(!IsControl());
@@ -327,26 +345,20 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsReThrow());
   ASSERT(!IsGoto());
   ASSERT(previous() != NULL);
+  // We cannot assert that the instruction, if it is a definition, has no
+  // uses.  This function is used to remove instructions from the graph and
+  // reinsert them elsewhere (e.g., hoisting).
   Instruction* prev_instr = previous();
   Instruction* next_instr = next();
   ASSERT(next_instr != NULL);
   ASSERT(!next_instr->IsBlockEntry());
   prev_instr->LinkTo(next_instr);
-  // Reset successor and previous instruction to indicate
-  // that the instruction is removed from the graph.
+  UnuseAllInputs();
+  // Reset the successor and previous instruction to indicate that the
+  // instruction is removed from the graph.
   set_previous(NULL);
   set_next(NULL);
   return return_previous ? prev_instr : next_instr;
-}
-
-
-void Instruction::InsertBefore(Instruction* next) {
-  ASSERT(previous_ == NULL);
-  ASSERT(next_ == NULL);
-  next_ = next;
-  previous_ = next->previous_;
-  next->previous_ = this;
-  previous_->next_ = this;
 }
 
 
@@ -357,6 +369,13 @@ void Instruction::InsertAfter(Instruction* prev) {
   next_ = prev->next_;
   next_->previous_ = this;
   previous_->next_ = this;
+
+  // Update def-use chains whenever instructions are added to the graph
+  // after initial graph construction.
+  for (intptr_t i = InputCount() - 1; i >= 0; --i) {
+    Value* input = InputAt(i);
+    input->definition()->AddInputUse(input);
+  }
 }
 
 
@@ -473,7 +492,6 @@ void Value::RemoveFromUseList() {
     if (next != NULL) next->set_previous_use(prev);
   }
 
-  set_definition(NULL);
   set_previous_use(NULL);
   set_next_use(NULL);
 }
@@ -535,28 +553,18 @@ void Definition::ReplaceWith(Definition* other,
   for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
     Value* input = other->InputAt(i);
     input->definition()->AddInputUse(input);
-    input->set_instruction(other);
-    input->set_use_index(i);
   }
   // Take other's environment from this definition.
   ASSERT(other->env() == NULL);
-  intptr_t use_index = 0;
-  for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
-    Value* use = it.CurrentValue();
-    use->set_instruction(other);
-    use->set_use_index(use_index++);
-  }
-  other->set_env(env());
-  set_env(NULL);
+  other->SetEnvironment(env());
+  env_ = NULL;
   // Replace all uses of this definition with other.
   ReplaceUsesWith(other);
   // Reuse this instruction's SSA name for other.
   ASSERT(!other->HasSSATemp());
   if (HasSSATemp()) other->set_ssa_temp_index(ssa_temp_index());
-  // Remove this definition's input uses.
-  UnuseAllInputs();
 
-  // Finally remove this definition from the graph.
+  // Finally insert the other definition in place of this one in the graph.
   previous()->LinkTo(other);
   if ((iterator != NULL) && (this == iterator->Current())) {
     // Remove through the iterator.
@@ -564,34 +572,42 @@ void Definition::ReplaceWith(Definition* other,
     iterator->RemoveCurrentFromGraph();
   } else {
     other->LinkTo(next());
+    // Remove this definition's input uses.
+    UnuseAllInputs();
   }
   set_previous(NULL);
   set_next(NULL);
 }
 
 
+BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
+    : comparison_(comparison), is_checked_(is_checked) {
+  for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
+    comparison->InputAt(i)->set_instruction(this);
+  }
+}
+
+
+void BranchInstr::RawSetInputAt(intptr_t i, Value* value) {
+  comparison()->RawSetInputAt(i, value);
+}
+
+
 // A misleadingly named function for use in template functions that replace
 // both definitions with definitions and branch comparisons with
 // comparisons.  In the branch case, leave the branch intact and replace its
-// comparison with another comparison.
+// comparison with a new comparison not currently in the graph.
 void BranchInstr::ReplaceWith(ComparisonInstr* other,
                               ForwardInstructionIterator* ignored) {
-  // Record the new comparison's input uses.
-  for (intptr_t i = other->InputCount() - 1; i >= 0; --i) {
-    Value* input = other->InputAt(i);
-    input->definition()->AddInputUse(input);
-  }
   SetComparison(other);
 }
 
 
 void BranchInstr::SetComparison(ComparisonInstr* comp) {
-  // The new comparison's input uses are already recorded in their
-  // definition's use lists.
   for (intptr_t i = comp->InputCount() - 1; i >= 0; --i) {
     Value* input = comp->InputAt(i);
+    input->definition()->AddInputUse(input);
     input->set_instruction(this);
-    input->set_use_index(i);
   }
   // There should be no need to copy or unuse an environment.
   ASSERT(comparison()->env() == NULL);
@@ -744,9 +760,9 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
     // If the new and old predecessor index match there is nothing to update.
     if ((join->phis() == NULL) || (old_index == new_index)) return;
     // Otherwise, reorder the predecessor uses in each phi.
-    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
-      PhiInstr* phi = (*join->phis())[i];
-      if (phi == NULL) continue;
+    for (PhiIterator it(join); !it.Done(); it.Advance()) {
+      PhiInstr* phi = it.Current();
+      ASSERT(phi != NULL);
       ASSERT(pred_count == phi->InputCount());
       // Save the predecessor use.
       Value* pred_use = phi->InputAt(old_index);
@@ -755,13 +771,10 @@ void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
       for (intptr_t use_idx = old_index;
            use_idx != new_index;
            use_idx += step) {
-        Value* use = phi->InputAt(use_idx + step);
-        phi->SetInputAt(use_idx, use);
-        use->set_use_index(use_idx);
+        phi->SetInputAt(use_idx, phi->InputAt(use_idx + step));
       }
       // Write the predecessor use.
       phi->SetInputAt(new_index, pred_use);
-      pred_use->set_use_index(new_index);
     }
   }
 }
@@ -780,7 +793,6 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   }
   ASSERT((*phis_)[var_index] == NULL);
   (*phis_)[var_index] = new PhiInstr(this, PredecessorCount());
-  phi_count_++;
 }
 
 
@@ -790,23 +802,32 @@ void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
     phis_ = new ZoneGrowableArray<PhiInstr*>(1);
   }
   phis_->Add(phi);
-  phi_count_++;
 }
 
 
-void JoinEntryInstr::RemoveDeadPhis() {
+void JoinEntryInstr::RemoveDeadPhis(Definition* replacement) {
   if (phis_ == NULL) return;
 
-  for (intptr_t i = 0; i < phis_->length(); i++) {
-    PhiInstr* phi = (*phis_)[i];
-    if ((phi != NULL) && !phi->is_alive()) {
-      (*phis_)[i] = NULL;
-      phi_count_--;
+  intptr_t to_index = 0;
+  for (intptr_t from_index = 0; from_index < phis_->length(); ++from_index) {
+    PhiInstr* phi = (*phis_)[from_index];
+    if (phi != NULL) {
+      if (phi->is_alive()) {
+        (*phis_)[to_index++] = phi;
+        for (intptr_t i = phi->InputCount() - 1; i >= 0; --i) {
+          Value* input = phi->InputAt(i);
+          input->definition()->AddInputUse(input);
+        }
+      } else {
+        phi->ReplaceUsesWith(replacement);
+      }
     }
   }
-
-  // Check if we removed all phis.
-  if (phi_count_ == 0) phis_ = NULL;
+  if (to_index == 0) {
+    phis_ = NULL;
+  } else {
+    phis_->TruncateTo(to_index);
+  }
 }
 
 
@@ -1169,9 +1190,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     // It is ok to insert instructions before the current during
     // forward iteration.
     optimizer->InsertBefore(this, null_constant, NULL, Definition::kValue);
-    instantiator_type_arguments()->RemoveFromUseList();
-    instantiator_type_arguments()->set_definition(null_constant);
-    null_constant->AddInputUse(instantiator_type_arguments());
+    instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
 }
@@ -1200,9 +1219,6 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
         (comp->input_use_list()->next_use() == NULL) &&
         (comp->env_use_list() == NULL)) {
       comp->RemoveFromGraph();
-      // It is safe to pass a NULL iterator because we're replacing the
-      // comparison wrapped in a BranchInstr which does not modify the
-      // linked list of instructions.
       SetComparison(comp);
       if (FLAG_trace_optimization) {
         OS::Print("Merging comparison v%"Pd"\n", comp->ssa_temp_index());
@@ -1536,14 +1552,11 @@ void Environment::DeepCopyTo(Instruction* instr) const {
   }
 
   Environment* copy = DeepCopy();
-  intptr_t use_index = 0;
+  instr->SetEnvironment(copy);
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
-    value->set_instruction(instr);
-    value->set_use_index(use_index++);
     value->definition()->AddEnvUse(value);
   }
-  instr->set_env(copy);
 }
 
 
@@ -1555,6 +1568,7 @@ void Environment::DeepCopyToOuter(Instruction* instr) const {
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
   Environment* copy = DeepCopy(values_.length() - argument_count);
+  instr->env()->outer_ = copy;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
@@ -1562,7 +1576,6 @@ void Environment::DeepCopyToOuter(Instruction* instr) const {
     value->set_use_index(use_index++);
     value->definition()->AddEnvUse(value);
   }
-  instr->env()->outer_ = copy;
 }
 
 
@@ -2171,16 +2184,34 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
 }
 
 
+InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
+    ZoneGrowableArray<Value*>* inputs,
+    InstanceCallInstr* instance_call,
+    MethodRecognizer::Kind recognized_kind)
+    : inputs_(inputs),
+      locs_(NULL),
+      recognized_kind_(recognized_kind) {
+  ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
+  for (intptr_t i = 0; i < inputs_->length(); ++i) {
+    ASSERT((*inputs)[i] != NULL);
+    (*inputs)[i]->set_instruction(this);
+    (*inputs)[i]->set_use_index(i);
+  }
+  deopt_id_ = instance_call->deopt_id();
+}
+
+
 intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     MethodRecognizer::Kind kind) {
   switch (kind) {
     case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleRound:
     case MethodRecognizer::kDoubleFloor:
     case MethodRecognizer::kDoubleCeil: {
       ASSERT(!CPUFeatures::double_truncate_round_supported());
       return 1;
     }
+    case MethodRecognizer::kDoubleRound:
+      return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoublePow:
       return 2;

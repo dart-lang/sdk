@@ -41,8 +41,8 @@ class _MimeMultipartParser {
   // [boundary]. The boundary should be as specified in the content
   // type parameter, that is without the -- prefix.
   _MimeMultipartParser(String boundary) {
-    List<int> charCodes = boundary.charCodes;
-    _boundary = new List<int>.fixedLength(4 + charCodes.length);
+    List<int> charCodes = boundary.codeUnits;
+    _boundary = new List<int>(4 + charCodes.length);
     // Set-up the matching boundary preceding it with CRLF and two
     // dashes.
     _boundary[0] = _CharCode.CR;
@@ -293,9 +293,9 @@ class _MimeMultipartParser {
   }
 
   int _toLowerCase(int byte) {
-    final int aCode = "A".charCodeAt(0);
-    final int zCode = "Z".charCodeAt(0);
-    final int delta = "a".charCodeAt(0) - aCode;
+    final int aCode = "A".codeUnitAt(0);
+    final int zCode = "Z".codeUnitAt(0);
+    final int delta = "a".codeUnitAt(0) - aCode;
     return (aCode <= byte && byte <= zCode) ? byte + delta : byte;
   }
 

@@ -1979,38 +1979,6 @@ void Assembler::DoubleAbs(XmmRegister reg) {
 }
 
 
-void Assembler::DoubleRound(XmmRegister dst, XmmRegister src, XmmRegister tmp) {
-  ASSERT(tmp != src);
-  static double kZeroFiveConst = 0.5;
-  static double kNegZeroFiveConst = -0.5;
-  static double kOneConst = 1.0;
-  static double kNegOneConst = -1.0;
-  Label is_negative, round;
-  if (src != dst) {
-    movsd(dst, src);
-  }
-  // Special handling: 0.5 -> 1.0, -0.5 -> -1.0;
-  Label done, equal_point5, equal_neg_point5;
-  movsd(tmp, Address::Absolute(reinterpret_cast<intptr_t>(&kZeroFiveConst)));
-  comisd(tmp, dst);
-  j(EQUAL, &equal_point5, Assembler::kNearJump);
-  movsd(tmp, Address::Absolute(reinterpret_cast<intptr_t>(&kNegZeroFiveConst)));
-  comisd(tmp, dst);
-  j(EQUAL, &equal_neg_point5, Assembler::kNearJump);
-
-  roundsd(dst, dst, Assembler::kRoundToNearest);
-  jmp(&done, Assembler::kNearJump);
-
-  Bind(&equal_point5);
-  movsd(dst, Address::Absolute(reinterpret_cast<intptr_t>(&kOneConst)));
-  jmp(&done);
-
-  Bind(&equal_neg_point5);
-  movsd(dst, Address::Absolute(reinterpret_cast<intptr_t>(&kNegOneConst)));
-  Bind(&done);
-}
-
-
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();

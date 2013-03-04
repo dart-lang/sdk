@@ -86,6 +86,11 @@ abstract class Enqueuer {
   // the work list'?
   bool addElementToWorkList(Element element, [TreeElements elements]);
 
+  void registerInstantiatedType(InterfaceType type) {
+    universe.instantiatedTypes.add(type);
+    registerInstantiatedClass(type.element);
+  }
+
   void registerInstantiatedClass(ClassElement cls) {
     if (universe.instantiatedClasses.contains(cls)) return;
     if (!cls.isAbstract(compiler)) {
@@ -317,7 +322,7 @@ abstract class Enqueuer {
            || selector.isOperator()
            || selector.isIndex()
            || selector.isIndexSet());
-    if (element.isFunction()) {
+    if (element.isFunction() || element.isGetter()) {
       addToWorkList(element);
     } else if (element.isAbstractField()) {
       AbstractFieldElement field = element;
@@ -351,6 +356,11 @@ abstract class Enqueuer {
   }
 
   void registerIsCheck(DartType type) {
+    // Even in checked mode, type annotations for return type and argument
+    // types do not imply type checks, so there should never be a check
+    // against the type variable of a typedef.
+    assert(type.kind != TypeKind.TYPE_VARIABLE ||
+           !type.element.enclosingElement.isTypedef());
     universe.isChecks.add(type);
     compiler.backend.registerIsCheck(type, this);
   }

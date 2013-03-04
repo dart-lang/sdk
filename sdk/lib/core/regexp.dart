@@ -94,6 +94,8 @@ abstract class RegExp implements Pattern {
   /**
    * Constructs a regular expression. The default implementation of a
    * [RegExp] sets [multiLine] to false and [caseSensitive] to true.
+   * Throws a [FormatException] if [pattern] is not a valid regular
+   * exression pattern.
    */
   external factory RegExp(String pattern, {bool multiLine: false,
                                            bool caseSensitive: true});

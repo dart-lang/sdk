@@ -166,10 +166,10 @@ class NumberFormat {
     // to be printed as an integer and pad the remainder with zeros.
     var paddingDigits = new StringBuffer();
     while ((intValue & 0x7fffffff) != intValue) {
-      paddingDigits.add(symbols.ZERO_DIGIT);
+      paddingDigits.write(symbols.ZERO_DIGIT);
       intValue = intValue ~/ 10;
     }
-    var integerDigits = "${intValue}${paddingDigits}".charCodes;
+    var integerDigits = "${intValue}${paddingDigits}".codeUnits;
     var digitLength = integerDigits.length;
 
     if (_hasPrintableIntegerPart(intValue)) {
@@ -191,7 +191,7 @@ class NumberFormat {
    * Format the part after the decimal place in a fixed point number.
    */
   void _formatFractionPart(String fractionPart) {
-    var fractionCodes = fractionPart.charCodes;
+    var fractionCodes = fractionPart.codeUnits;
     var fractionLength = fractionPart.length;
     while (fractionPart[fractionLength - 1] == '0' &&
            fractionLength > _minimumFractionDigits + 1) {
@@ -227,17 +227,17 @@ class NumberFormat {
   /** A group of methods that provide support for writing digits and other
    * required characters into [_buffer] easily.
    */
-  void _add(String x) { _buffer.add(x);}
-  void _addCharCode(int x) { _buffer.addCharCode(x); }
-  void _addZero() { _buffer.add(symbols.ZERO_DIGIT); }
-  void _addDigit(int x) { _buffer.addCharCode(_localeZero + x - _zero); }
+  void _add(String x) { _buffer.write(x);}
+  void _addCharCode(int x) { _buffer.writeCharCode(x); }
+  void _addZero() { _buffer.write(symbols.ZERO_DIGIT); }
+  void _addDigit(int x) { _buffer.writeCharCode(_localeZero + x - _zero); }
 
   /** Print padding up to [numberOfDigits] above what's included in [basic]. */
   void _pad(int numberOfDigits, [String basic = '']) {
     for (var i = 0; i < numberOfDigits - basic.length; i++) {
       _add(symbols.ZERO_DIGIT);
     }
-    for (var x in basic.charCodes) {
+    for (var x in basic.codeUnits) {
       _addDigit(x);
     }
   }

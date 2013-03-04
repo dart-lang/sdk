@@ -28,8 +28,12 @@ Function test() {
     HttpClient client = new HttpClient();
     client.getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
         .then((request) => request.close())
-        .then((response) =>
-            response.reduce(<int>[], (message, data) => message..addAll(data)))
+        .then((response) {
+          Expect.equals('CN=localhost', response.certificate.subject);
+          Expect.equals('CN=myauthority', response.certificate.issuer);
+          return response.reduce(<int>[],
+                                 (message, data) => message..addAll(data));
+        })
         .then((message) {
           String received = new String.fromCharCodes(message);
           Expect.equals(received, "Hello");

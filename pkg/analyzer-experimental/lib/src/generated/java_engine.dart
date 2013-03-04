@@ -45,7 +45,7 @@ import "element.dart";
 //}
 
 class StringUtilities {
-  static List<String> EMPTY_ARRAY = new List.fixedLength(0);
+  static List<String> EMPTY_ARRAY = new List(0);
 }
 
 File createFile(String path) => new File(path);

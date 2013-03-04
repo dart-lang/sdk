@@ -59,16 +59,21 @@ class CodeEmitterTask extends CompilerTask {
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
-  CodeBuffer boundClosureBuffer;
   CodeBuffer mainBuffer;
   final CodeBuffer deferredBuffer = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
-  Set<ClassElement> neededClasses;
+  final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  final List<ClassElement> regularClasses = <ClassElement>[];
+  final List<ClassElement> deferredClasses = <ClassElement>[];
+  final List<ClassElement> nativeClasses = <ClassElement>[];
+
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
+
+  final List<jsAst.Expression> boundClosures = <jsAst.Expression>[];
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -107,9 +112,20 @@ class CodeEmitterTask extends CompilerTask {
 
   final bool generateSourceMap;
 
+  Iterable<ClassElement> cachedClassesUsingTypeVariableTests;
+
+  Iterable<ClassElement> get classesUsingTypeVariableTests {
+    if (cachedClassesUsingTypeVariableTests == null) {
+      cachedClassesUsingTypeVariableTests = compiler.codegenWorld.isChecks
+          .where((DartType t) => t is TypeVariableType)
+          .map((TypeVariableType v) => v.element.getEnclosingClass())
+          .toList();
+    }
+    return cachedClassesUsingTypeVariableTests;
+  }
+
   CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
-      : boundClosureBuffer = new CodeBuffer(),
-        mainBuffer = new CodeBuffer(),
+      : mainBuffer = new CodeBuffer(),
         this.namer = namer,
         boundClosureCache = new Map<int, String>(),
         interceptorClosureCache = new Map<int, String>(),
@@ -123,7 +139,10 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void computeRequiredTypeChecks() {
-    assert(checkedClasses == null);
+    assert(checkedClasses == null && checkedTypedefs == null);
+
+    compiler.codegenWorld.addImplicitChecks(classesUsingTypeVariableTests);
+
     checkedClasses = new Set<ClassElement>();
     checkedTypedefs = new Set<TypedefElement>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
@@ -231,7 +250,7 @@ class CodeEmitterTask extends CompilerTask {
         fun);
   }
 
-  jsAst.Fun get defineClassFunction {
+  List get defineClassFunction {
     // First the class name, then the field names in an array and the members
     // (inside an Object literal).
     // The caller can also pass in the constructor as a function if needed.
@@ -247,11 +266,11 @@ class CodeEmitterTask extends CompilerTask {
     // });
 
     // function(cls, fields, prototype) {
-    return js.fun(['cls', 'fields', 'prototype'], [
+    var defineClass = js.fun(['cls', 'fields', 'prototype'], [
       js['var constructor'],
 
-      // if (typeof fields == 'function') {
-      js.if_(js["typeof fields == 'function'"], [
+      // if (typeof fields == "function") {
+      js.if_(js['typeof fields == "function"'], [
         js['constructor = fields']
       ], /* else */ [
         js['var str = "function " + cls + "("'],
@@ -279,6 +298,13 @@ class CodeEmitterTask extends CompilerTask {
       // return constructor;
       js.return_('constructor')
     ]);
+    // Declare a function called "generateAccessor".  This is used in
+    // defineClassFunction (it's a local declaration in init()).
+    return [
+        generateAccessorFunction,
+        js['$generateAccessorHolder = generateAccessor'],
+        new jsAst.FunctionDeclaration(
+            new jsAst.VariableDeclaration('defineClass'), defineClass) ];
   }
 
   /** Needs defineClass to be defined. */
@@ -295,11 +321,11 @@ class CodeEmitterTask extends CompilerTask {
 
     return [
       js['var $supportsProtoName = false'],
-      js["var tmp = (defineClass('c', ['f?'], {})).prototype"],
+      js['var tmp = (defineClass("c", ["f?"], {})).prototype'],
 
       js.if_(js['tmp.__proto__'], [
         js['tmp.__proto__ = {}'],
-        js.if_(js[r"typeof tmp.get$f != 'undefined'"],
+        js.if_(js[r'typeof tmp.get$f != "undefined"'],
                js['$supportsProtoName = true'])
 
       ])
@@ -341,13 +367,13 @@ class CodeEmitterTask extends CompilerTask {
            * Super;field1,field2 from the null-string property on the
            * descriptor.
            */
-          // var fields = desc[''], supr;
-          js["var fields = desc[''], supr"],
+          // var fields = desc[""], supr;
+          js['var fields = desc[""], supr'],
 
-          js.if_(js["typeof fields == 'string'"], [
+          js.if_(js['typeof fields == "string"'], [
             js['var s = fields.split(";")'],
             js['supr = s[0]'],
-            js["fields = s[1] == '' ? [] : s[1].split(',')"],
+            js['fields = s[1] == "" ? [] : s[1].split(",")'],
           ], /* else */ [
             js['supr = desc.super']
           ]),
@@ -462,7 +488,7 @@ class CodeEmitterTask extends CompilerTask {
     List copyFinishClasses = [];
     if (needsDefineClass) {
       copyFinishClasses.add(
-          // newIsolate.$finishClasses = oldIsolate.\$finishClasses;
+          // newIsolate.$finishClasses = oldIsolate.$finishClasses;
           js['newIsolate'][finishClassesProperty].assign(
               js['oldIsolate'][finishClassesProperty]));
     }
@@ -569,17 +595,7 @@ class CodeEmitterTask extends CompilerTask {
 
   List buildDefineClassAndFinishClassFunctionsIfNecessary() {
     if (!needsDefineClass) return [];
-    return [
-      // Declare a function called "generateAccessor".  This is used in
-      // defineClassFunction (it's a local declaration in init()).
-      generateAccessorFunction,
-
-      js['$generateAccessorHolder = generateAccessor'],
-
-      // function defineClass ...
-      new jsAst.FunctionDeclaration(
-          new jsAst.VariableDeclaration('defineClass'), defineClassFunction)
-    ]
+    return defineClassFunction
     ..addAll(buildProtoSupportCheck())
     ..addAll([
       js[finishClassesName].assign(finishClassesFunction)
@@ -637,12 +653,11 @@ class CodeEmitterTask extends CompilerTask {
     if (alreadyGenerated.contains(invocationName)) return;
     alreadyGenerated.add(invocationName);
 
-    bool isInterceptorClass =
-        backend.isInterceptorClass(member.getEnclosingClass());
+    bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
-    // If the method is in an interceptor class, we need to also pass
+    // If the method is intercepted, we need to also pass
     // the actual receiver.
-    int extraArgumentCount = isInterceptorClass ? 1 : 0;
+    int extraArgumentCount = isInterceptedMethod ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
     // '$receiver' works because [:namer.safeName:] used for getting parameter
     // names never returns a name beginning with a single '$'.
@@ -650,15 +665,14 @@ class CodeEmitterTask extends CompilerTask {
 
     // The parameters that this stub takes.
     List<jsAst.Parameter> parametersBuffer =
-        new List<jsAst.Parameter>.fixedLength(
-            selector.argumentCount + extraArgumentCount);
+        new List<jsAst.Parameter>(selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
     List<jsAst.Expression> argumentsBuffer =
-        new List<jsAst.Expression>.fixedLength(
+        new List<jsAst.Expression>(
             parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
-    if (isInterceptorClass) {
+    if (isInterceptedMethod) {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
       argumentsBuffer[0] = js[receiverArgumentName];
@@ -898,11 +912,6 @@ class CodeEmitterTask extends CompilerTask {
   void emitInstanceMembers(ClassElement classElement,
                            ClassBuilder builder) {
     assert(invariant(classElement, classElement.isDeclaration));
-    if (classElement == backend.objectInterceptorClass) {
-      emitInterceptorMethods(builder);
-      // The ObjectInterceptor does not have any instance methods.
-      return;
-    }
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(classElement, member.isDeclaration));
@@ -933,7 +942,10 @@ class CodeEmitterTask extends CompilerTask {
 
     void generateIsTest(Element other) {
       jsAst.Expression code;
-      if (compiler.objectClass == other) return;
+      if (other == compiler.objectClass && other != classElement) {
+        // Avoid emitting [:$isObject:] on all classes but [Object].
+        return;
+      }
       if (nativeEmitter.requiresNativeIsCheck(other)) {
         code = js.fun([], [js.return_(true)]);
       } else {
@@ -977,13 +989,10 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
-    if (backend.isInterceptorClass(classElement)) {
-      // The operator== method in [:Object:] does not take the same
-      // number of arguments as an intercepted method, therefore we
-      // explicitely add one to all interceptor classes. Note that we
-      // would not have do do that if all intercepted methods had
-      // a calling convention where the receiver is the first
-      // parameter.
+    if (backend.isInterceptorClass(classElement)
+        && classElement != compiler.objectClass) {
+      // We optimize the operator== on interceptor classes to
+      // just do a JavaScript double or triple equals.
       String name = backend.namer.publicInstanceMethodNameByArity(
           const SourceString('=='), 1);
       Function kind = (classElement == backend.jsNullClass)
@@ -994,13 +1003,16 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitRuntimeClassesAndTests(CodeBuffer buffer) {
+  void emitRuntimeTypeSupport(CodeBuffer buffer) {
     RuntimeTypeInformation rti = backend.rti;
     TypeChecks typeChecks = rti.getRequiredChecks();
 
+    /// Classes that are not instantiated and native classes need a holder
+    /// object for their checks, because there will be no class defined for
+    /// them.
     bool needsHolder(ClassElement cls) {
       return !neededClasses.contains(cls) || cls.isNative() ||
-          rti.isJsNative(cls);
+        rti.isJsNative(cls);
     }
 
     /**
@@ -1013,7 +1025,7 @@ class CodeEmitterTask extends CompilerTask {
       if (!needsHolder(cls)) return;
       String holder = namer.isolateAccess(cls);
       String name = namer.getName(cls);
-      buffer.add("$holder$_=$_{builtin\$cls:$_'$name'");
+      buffer.add('$holder$_=$_{builtin\$cls:$_"$name"');
       buffer.add('}$N');
     }
 
@@ -1108,10 +1120,15 @@ class CodeEmitterTask extends CompilerTask {
             ? member.fixedBackendName()
             : (isMixinNativeField ? member.name.slowToString() : accessorName);
         bool needsCheckedSetter = false;
-        if (needsSetter && compiler.enableTypeAssertions
-            && canGenerateCheckedSetter(member)) {
-          needsCheckedSetter = true;
-          needsSetter = false;
+        if (needsSetter) {
+          if (compiler.enableTypeAssertions
+              && canGenerateCheckedSetter(member)) {
+            needsCheckedSetter = true;
+            needsSetter = false;
+          } else if (backend.isInterceptedMethod(member)) {
+            // The [addField] will take care of generating the setter.
+            needsSetter = false;
+          }
         }
         // Getters and setters with suffixes will be generated dynamically.
         addField(member,
@@ -1149,6 +1166,7 @@ class CodeEmitterTask extends CompilerTask {
 
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
+    assert(!backend.isInterceptorClass(member));
     String getterName = namer.getterNameFromAccessorName(accessorName);
     builder.addProperty(getterName,
         js.fun([], js.return_(js['this'][fieldName])));
@@ -1156,9 +1174,13 @@ class CodeEmitterTask extends CompilerTask {
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
+    assert(!backend.isInterceptorClass(member));
     String setterName = namer.setterNameFromAccessorName(accessorName);
+    List<String> args = backend.isInterceptedMethod(member)
+        ? ['receiver', 'v']
+        : ['v'];
     builder.addProperty(setterName,
-        js.fun(['v'], js['this'][fieldName].assign('v')));
+        js.fun(args, js['this'][fieldName].assign('v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -1189,8 +1211,11 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
+    List<String> args = backend.isInterceptedMethod(member)
+        ? ['receiver', 'v']
+        : ['v'];
     builder.addProperty(setterName,
-        js.fun(['v'], js['this'][fieldName].assign(js[helperName](arguments))));
+        js.fun(args, js['this'][fieldName].assign(js[helperName](arguments))));
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -1204,7 +1229,7 @@ class CodeEmitterTask extends CompilerTask {
   void emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
                        { String superClass: "",
-                         bool classIsNative: false}) {
+                         bool classIsNative: false }) {
     bool isFirstField = true;
     StringBuffer buffer = new StringBuffer();
     if (!classIsNative) {
@@ -1275,6 +1300,13 @@ class CodeEmitterTask extends CompilerTask {
           assert(!needsSetter);
           generateCheckedSetter(member, name, accessorName, builder);
         }
+        if (backend.isInterceptedMethod(member)
+            && instanceFieldNeedsSetter(member)) {
+          // The caller of this method sets [needsSetter] as false
+          // when the setter is intercepted.
+          assert(!needsSetter);
+          generateSetter(member, name, accessorName, builder);
+        }
         if (!getterAndSetterCanBeImplementedByFieldSpec) {
           if (needsGetter) {
             generateGetter(member, name, accessorName, builder);
@@ -1294,10 +1326,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   void generateClass(ClassElement classElement, CodeBuffer buffer) {
     assert(invariant(classElement, classElement.isDeclaration));
-    if (classElement.isNative()) {
-      nativeEmitter.generateNativeClass(classElement);
-      return;
-    }
+    assert(invariant(classElement, !classElement.isNative()));
 
     needsDefineClass = true;
     String className = namer.getName(classElement);
@@ -1342,38 +1371,6 @@ class CodeEmitterTask extends CompilerTask {
     String name2 = selector2.name.toString();
     if (name1 != name2) return Comparable.compare(name1, name2);
     return _selectorRank(selector1) - _selectorRank(selector2);
-  }
-
-  void emitInterceptorMethods(ClassBuilder builder) {
-    // Emit forwarders for the ObjectInterceptor class. We need to
-    // emit all possible sends on intercepted methods. Because of
-    // typed selectors we have to avoid generating the same forwarder
-    // multiple times.
-    Set<String> alreadyGenerated = new Set<String>();
-    for (Selector selector in
-         backend.usedInterceptors.toList()..sort(_compareSelectorNames)) {
-      String name = backend.namer.invocationName(selector);
-      if (alreadyGenerated.contains(name)) continue;
-      alreadyGenerated.add(name);
-
-      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-      List<jsAst.Expression> arguments = <jsAst.Expression>[];
-      parameters.add(new jsAst.Parameter('receiver'));
-
-      if (selector.isSetter()) {
-        parameters.add(new jsAst.Parameter('value'));
-        arguments.add(js['value']);
-      } else {
-        for (int i = 0; i < selector.argumentCount; i++) {
-          String argName = 'a$i';
-          parameters.add(new jsAst.Parameter(argName));
-          arguments.add(js[argName]);
-        }
-      }
-      jsAst.Fun function =
-          js.fun(parameters, js.return_(js['receiver'][name](arguments)));
-      builder.addProperty(name, function);
-    }
   }
 
   Iterable<Element> getTypedefChecksOn(DartType type) {
@@ -1423,6 +1420,11 @@ class CodeEmitterTask extends CompilerTask {
         emitted.add(superclass);
       }
       for (DartType supertype in cls.allSupertypes) {
+        ClassElement superclass = supertype.element;
+        if (classesUsingTypeVariableTests.contains(superclass)) {
+          emitSubstitution(superclass, emitNull: true);
+          emitted.add(superclass);
+        }
         for (ClassElement check in checkedClasses) {
           if (supertype.element == check && !emitted.contains(check)) {
             // Generate substitution.  If no substitution is necessary, emit
@@ -1537,8 +1539,9 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     // Add unneeded interceptors to the [unneededClasses] set.
-    for (ClassElement interceptor in backend.interceptedClasses.keys) {
-      if (!needed.contains(interceptor)) {
+    for (ClassElement interceptor in backend.interceptedClasses) {
+      if (!needed.contains(interceptor)
+          && interceptor != compiler.objectClass) {
         unneededClasses.add(interceptor);
       }
     }
@@ -1546,40 +1549,7 @@ class CodeEmitterTask extends CompilerTask {
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
 
-  void emitClasses(CodeBuffer buffer) {
-    // Compute the required type checks to know which classes need a
-    // 'is$' method.
-    computeRequiredTypeChecks();
-    List<ClassElement> sortedClasses =
-        new List<ClassElement>.from(neededClasses);
-    sortedClasses.sort((ClassElement class1, ClassElement class2) {
-      // We sort by the ids of the classes. There is no guarantee that these
-      // ids are meaningful (or even deterministic), but in the current
-      // implementation they are increasing within a source file.
-      return class1.id - class2.id;
-    });
-
-    // If we need noSuchMethod support, we run through all needed
-    // classes to figure out if we need the support on any native
-    // class. If so, we let the native emitter deal with it.
-    if (compiler.enabledNoSuchMethod) {
-      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      Selector noSuchMethodSelector = new Selector.noSuchMethod();
-      for (ClassElement element in sortedClasses) {
-        if (!element.isNative()) continue;
-        Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler)) {
-          nativeEmitter.handleNoSuchMethod = true;
-          break;
-        }
-      }
-    }
-
-    for (ClassElement element in sortedClasses) {
-      generateClass(element, bufferForElement(element, buffer));
-    }
-
+  void emitClosureClassIfNeeded(CodeBuffer buffer) {
     // The closure class could have become necessary because of the generation
     // of stubs.
     ClassElement closureClass = compiler.closureClass;
@@ -1595,7 +1565,7 @@ class CodeEmitterTask extends CompilerTask {
                  '${_}null)$N');
 
       // Reset the map.
-      buffer.add("$classesCollector$_=$_{}$N");
+      buffer.add("$classesCollector$_=${_}null$N$n");
     }
   }
 
@@ -1721,9 +1691,9 @@ class CodeEmitterTask extends CompilerTask {
 
     Map<int, String> cache;
     String extraArg = null;
-    // Methods on interceptor classes take an extra parameter, which is the
-    // actual receiver of the call.
-    bool inInterceptor = backend.isInterceptorClass(member.getEnclosingClass());
+    // Intercepted methods take an extra parameter, which is the
+    // receiver of the call.
+    bool inInterceptor = backend.isInterceptedMethod(member);
     if (inInterceptor) {
       cache = interceptorClosureCache;
       extraArg = 'receiver';
@@ -1802,11 +1772,9 @@ class CodeEmitterTask extends CompilerTask {
         boundClosureBuilder.addProperty(operator, new jsAst.LiteralBool(true));
       });
 
-      jsAst.Expression init =
+      boundClosures.add(
           js[classesCollector][mangledName].assign(
-              boundClosureBuilder.toObjectInitializer());
-      boundClosureBuffer.add(jsAst.prettyPrint(init, compiler));
-      boundClosureBuffer.add("$N");
+              boundClosureBuilder.toObjectInitializer()));
 
       closureClass = namer.isolateAccess(closureClassElement);
 
@@ -1846,10 +1814,9 @@ class CodeEmitterTask extends CompilerTask {
                              DefineStubFunction defineStub) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
-    // If the class is an interceptor class, the stub gets the
+    // If the method is intercepted, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
-    bool isInterceptorClass =
-        backend.isInterceptorClass(member.getEnclosingClass());
+    bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
     const String receiverArgumentName = r'$receiver';
 
@@ -1857,7 +1824,7 @@ class CodeEmitterTask extends CompilerTask {
       if (member.isGetter()) {
         String getterName = namer.getterName(member);
         return js['this'][getterName](
-            isInterceptorClass
+            isInterceptedMethod
                 ? <jsAst.Expression>[js[receiverArgumentName]]
                 : <jsAst.Expression>[]);
       } else {
@@ -1885,7 +1852,7 @@ class CodeEmitterTask extends CompilerTask {
 
         List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
         List<jsAst.Expression> arguments = <jsAst.Expression>[];
-        if (isInterceptorClass) {
+        if (isInterceptedMethod) {
           parameters.add(new jsAst.Parameter(receiverArgumentName));
         }
 
@@ -1909,6 +1876,8 @@ class CodeEmitterTask extends CompilerTask {
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
+      // [:interceptedNames:] is handled in [emitInterceptedNames].
+      if (element == backend.interceptedNames) continue;
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         jsAst.Expression init =
@@ -1957,7 +1926,7 @@ class CodeEmitterTask extends CompilerTask {
     return null;
   }
 
-  void emitCompileTimeConstants(CodeBuffer buffer) {
+  void emitCompileTimeConstants(CodeBuffer eagerBuffer) {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     bool addedMakeConstantList = false;
@@ -1974,8 +1943,10 @@ class CodeEmitterTask extends CompilerTask {
       if (name == null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
-        emitMakeConstantList(buffer);
+        emitMakeConstantList(eagerBuffer);
       }
+      CodeBuffer buffer =
+          bufferForElement(constant.computeType(compiler).element, eagerBuffer);
       jsAst.Expression init = js[isolateProperties][name].assign(
           constantInitializerExpression(constant));
       buffer.add(jsAst.prettyPrint(init, compiler));
@@ -2047,14 +2018,19 @@ class CodeEmitterTask extends CompilerTask {
       String createInvocationMirror = namer.getName(
           compiler.createInvocationMirrorElement);
 
+      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
       jsAst.Expression expression = js['this.$noSuchMethodName'](
-          js[namer.CURRENT_ISOLATE][createInvocationMirror]([
-              js.string(methodName),
-              js.string(internalName),
-              type,
-              new jsAst.ArrayInitializer.from(
-                  parameters.map((param) => js[param.name]).toList()),
-              new jsAst.ArrayInitializer.from(argNames)]));
+          [js['this'],
+           js[namer.CURRENT_ISOLATE][createInvocationMirror]([
+               js.string(methodName),
+               js.string(internalName),
+               type,
+               new jsAst.ArrayInitializer.from(
+                   parameters.map((param) => js[param.name]).toList()),
+               new jsAst.ArrayInitializer.from(argNames)])]);
+      parameters = backend.isInterceptedName(selector.name)
+          ? ([new jsAst.Parameter('\$receiver')]..addAll(parameters))
+          : parameters;
       return js.fun(parameters, js.return_(expression));
     }
 
@@ -2068,36 +2044,22 @@ class CodeEmitterTask extends CompilerTask {
         // class has a member that matches the current name and
         // selector (grabbed from the scope).
         bool hasMatchingMember(ClassElement holder) {
-          Element element = holder.lookupMember(selector.name);
-          if (element == null) return false;
-
-          // TODO(kasperl): Consider folding this logic into the
-          // Selector.applies() method.
-          if (element is AbstractFieldElement) {
-            AbstractFieldElement field = element;
-            if (selector.isGetter()) {
-              return field.getter != null;
-            } else if (selector.isSetter()) {
-              return field.setter != null;
-            } else {
-              return false;
-            }
-          } else if (element is VariableElement) {
-            if (selector.isSetter() && element.modifiers.isFinalOrConst()) {
-              return false;
-            }
-          }
-          return selector.applies(element, compiler);
+          Element element = holder.lookupSelector(selector);
+          return (element != null)
+              ? selector.applies(element, compiler)
+              : false;
         }
 
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
+
+        // TODO(kasperl): This shouldn't depend on the internals of
+        // the type mask. Move more of this code to the type mask.
         ClassElement receiverClass = objectClass;
-        if (selector is TypedSelector) {
-          TypedSelector typedSelector = selector;
-          DartType receiverType = typedSelector.receiverType;
-          receiverClass = receiverType.element;
+        TypeMask mask = selector.mask;
+        if (mask != null) {
+          receiverClass = mask.base.element;
         }
 
         // If the receiver class is guaranteed to have a member that
@@ -2187,10 +2149,10 @@ class CodeEmitterTask extends CompilerTask {
     }
     addComment('BEGIN invoke [main].', buffer);
     buffer.add("""
-if (typeof document !== 'undefined' && document.readyState !== 'complete') {
-  document.addEventListener('readystatechange', function () {
-    if (document.readyState == 'complete') {
-      if (typeof dartMainRunner === 'function') {
+if (typeof document !== "undefined" && document.readyState !== "complete") {
+  document.addEventListener("readystatechange", function () {
+    if (document.readyState == "complete") {
+      if (typeof dartMainRunner === "function") {
         dartMainRunner(function() { ${mainCall}; });
       } else {
         ${mainCall};
@@ -2198,7 +2160,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }, false);
 } else {
-  if (typeof dartMainRunner === 'function') {
+  if (typeof dartMainRunner === "function") {
     dartMainRunner(function() { ${mainCall}; });
   } else {
     ${mainCall};
@@ -2209,7 +2171,6 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   }
 
   void emitGetInterceptorMethod(CodeBuffer buffer,
-                                String objectName,
                                 String key,
                                 Collection<ClassElement> classes) {
     jsAst.Statement buildReturnInterceptor(ClassElement cls) {
@@ -2261,10 +2222,11 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       else if (cls == backend.jsNullClass) hasNull = true;
       else if (cls == backend.jsNumberClass) hasNumber = true;
       else if (cls == backend.jsStringClass) hasString = true;
-      else throw 'Internal error: $cls';
+      else {
+        assert(cls == compiler.objectClass);
+      }
     }
     if (hasDouble) {
-      assert(!hasNumber);
       hasNumber = true;
     }
     if (hasInt) hasNumber = true;
@@ -2317,7 +2279,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     if (hasArray) {
       block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
-    block.statements.add(js.return_(js[objectName]['prototype']));
+    block.statements.add(js.return_(receiver));
 
     buffer.add(jsAst.prettyPrint(
         js[isolateProperties][key].assign(js.fun(['receiver'], block)),
@@ -2329,27 +2291,69 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
    * Emit all versions of the [:getInterceptor:] method.
    */
   void emitGetInterceptorMethods(CodeBuffer buffer) {
-    // If no class needs to be intercepted, just return.
-    if (backend.objectInterceptorClass == null) return;
-    String objectName = namer.isolateAccess(backend.objectInterceptorClass);
     var specializedGetInterceptors = backend.specializedGetInterceptors;
     for (String name in specializedGetInterceptors.keys.toList()..sort()) {
       Collection<ClassElement> classes = specializedGetInterceptors[name];
-      emitGetInterceptorMethod(buffer, objectName, name, classes);
+      emitGetInterceptorMethod(buffer, name, classes);
     }
   }
 
+  /**
+   * Compute all the classes that must be emitted.
+   */
   void computeNeededClasses() {
     instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
-    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
-    for (ClassElement element in instantiatedClasses) {
+
+    // The set of classes that must be emitted are based on instantiated
+    // classes.
+    neededClasses.addAll(instantiatedClasses);
+
+    // Then add all superclasses of these classes.
+    for (ClassElement element in neededClasses.toList() /* copy */) {
       for (ClassElement superclass = element.superclass;
           superclass != null;
           superclass = superclass.superclass) {
         if (neededClasses.contains(superclass)) break;
         neededClasses.add(superclass);
+      }
+    }
+
+    // Finally, sort the classes.
+    List<ClassElement> sortedClasses = neededClasses.toList();
+    sortedClasses.sort((ClassElement class1, ClassElement class2) {
+      // We sort by the ids of the classes. There is no guarantee that these
+      // ids are meaningful (or even deterministic), but in the current
+      // implementation they are increasing within a source file.
+      return class1.id - class2.id;
+    });
+
+    // If we need noSuchMethod support, we run through all needed
+    // classes to figure out if we need the support on any native
+    // class. If so, we let the native emitter deal with it.
+    if (compiler.enabledNoSuchMethod) {
+      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
+      Selector noSuchMethodSelector = new Selector.noSuchMethod();
+      for (ClassElement element in sortedClasses) {
+        if (!element.isNative()) continue;
+        Element member = element.lookupLocalMember(noSuchMethodName);
+        if (member == null) continue;
+        if (noSuchMethodSelector.applies(member, compiler)) {
+          nativeEmitter.handleNoSuchMethod = true;
+          break;
+        }
+      }
+    }
+
+    for (ClassElement element in sortedClasses) {
+      if (element.isNative()) {
+        // For now, native classes cannot be deferred.
+        nativeClasses.add(element);
+      } else if (isDeferred(element)) {
+        deferredClasses.add(element);
+      } else {
+        regularClasses.add(element);
       }
     }
   }
@@ -2386,7 +2390,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       return isNumber(variable).binary('&&',
           js['Math']['floor'](receiver).equals(receiver));
     }
-    
+
     jsAst.Expression tripleShiftZero(jsAst.Expression receiver) {
       return receiver.binary('>>>', js.toExpression(0));
     }
@@ -2516,7 +2520,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     for (String name in names) {
       Selector selector = backend.oneShotInterceptors[name];
       Set<ClassElement> classes =
-          backend.getInterceptedClassesOn(selector);
+          backend.getInterceptedClassesOn(selector.name);
       String getInterceptorName =
           namer.getInterceptorName(backend.getInterceptorMethod, classes);
 
@@ -2558,6 +2562,32 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
+  /**
+   * If [:invokeOn:] has been compiled, emit all the possible selector names
+   * that are intercepted into the [:interceptedNames:] top-level
+   * variable. The implementation of [:invokeOn:] will use it to
+   * determine whether it should call the method with an extra
+   * parameter.
+   */
+  void emitInterceptedNames(CodeBuffer buffer) {
+    if (!compiler.enabledInvokeOn) return;
+    String name = backend.namer.getName(backend.interceptedNames);
+    jsAst.PropertyAccess property = js[isolateProperties][name];
+
+    int index = 0;
+    List<jsAst.ArrayElement> elements = backend.usedInterceptors.map(
+      (Selector selector) {
+        jsAst.Literal str = js.string(namer.invocationName(selector));
+        return new jsAst.ArrayElement(index++, str);
+      }).toList();
+    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(
+        backend.usedInterceptors.length,
+        elements);
+
+    buffer.add(jsAst.prettyPrint(property.assign(array), compiler));
+    buffer.add(N);
+  }
+
   void emitInitFunction(CodeBuffer buffer) {
     jsAst.Fun fun = js.fun([], [
       js['$isolateProperties = {}'],
@@ -2575,32 +2605,91 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     measure(() {
       computeNeededClasses();
 
+      // Compute the required type checks to know which classes need a
+      // 'is$' method.
+      computeRequiredTypeChecks();
+
       mainBuffer.add(GENERATED_BY);
       addComment(HOOKS_API_USAGE, mainBuffer);
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
-      // Shorten the code by using "$$" as temporary.
-      classesCollector = r"$$";
-      mainBuffer.add('var $classesCollector$_=$_{}$N');
       // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
       isolateProperties = namer.CURRENT_ISOLATE;
       mainBuffer.add(
           'var $isolateProperties$_=$_$isolatePropertiesName$N');
-      emitClasses(mainBuffer);
-      mainBuffer.add(boundClosureBuffer);
-      // Clear the buffer, so that we can reuse it for the native classes.
-      boundClosureBuffer.clear();
+
+      if (!regularClasses.isEmpty ||
+          !deferredClasses.isEmpty ||
+          !nativeClasses.isEmpty) {
+        // Shorten the code by using "$$" as temporary.
+        classesCollector = r"$$";
+        mainBuffer.add('var $classesCollector$_=$_{}$N$n');
+      }
+
+      // Emit native classes on [nativeBuffer].  As a side-effect,
+      // this will produce "bound closures" in [boundClosures].  The
+      // bound closures are JS AST nodes that add properties to $$
+      // [classesCollector].  The bound closures are not emitted until
+      // we have emitted all other classes (native or not).
+      final CodeBuffer nativeBuffer = new CodeBuffer();
+      if (!nativeClasses.isEmpty) {
+        addComment('Native classes', nativeBuffer);
+        for (ClassElement element in nativeClasses) {
+          nativeEmitter.generateNativeClass(element);
+        }
+        nativeEmitter.assembleCode(nativeBuffer);
+      }
+
+      // Might also create boundClosures.
+      if (!regularClasses.isEmpty) {
+        addComment('Classes', mainBuffer);
+        for (ClassElement element in regularClasses) {
+          generateClass(element, mainBuffer);
+        }
+      }
+
+      // Might also create boundClosures.
+      if (!deferredClasses.isEmpty) {
+        emitDeferredPreambleWhenEmpty(deferredBuffer);
+        deferredBuffer.add('\$\$$_=$_{}$N');
+
+        for (ClassElement element in deferredClasses) {
+          generateClass(element, deferredBuffer);
+        }
+
+        deferredBuffer.add('$finishClassesName(\$\$,'
+                           '$_${namer.CURRENT_ISOLATE},'
+                           '$_$isolatePropertiesName)$N');
+        // Reset the map.
+        deferredBuffer.add("\$\$$_=${_}null$N$n");
+      }
+
+      emitClosureClassIfNeeded(mainBuffer);
+
+      // Now that we have emitted all classes, we know all the bound
+      // closures that will be needed.
+      for (jsAst.Node node in boundClosures) {
+        // TODO(ahe): Some of these can be deferred.
+        mainBuffer.add(jsAst.prettyPrint(node, compiler));
+        mainBuffer.add("$N$n");
+      }
+
+      emitFinishClassesInvocationIfNecessary(mainBuffer);
+
+      // After this assignment we will produce invalid JavaScript code if we use
+      // the classesCollector variable.
+      classesCollector = 'classesCollector should not be used from now on';
+
       emitStaticFunctions(mainBuffer);
       emitStaticFunctionGetters(mainBuffer);
-      // We need to finish the classes before we construct compile time
-      // constants.
-      emitFinishClassesInvocationIfNecessary(mainBuffer);
-      emitRuntimeClassesAndTests(mainBuffer);
+
+      emitRuntimeTypeSupport(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitOneShotInterceptors(mainBuffer);
+      emitInterceptedNames(mainBuffer);
       emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
@@ -2608,19 +2697,13 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // The following code should not use the short-hand for the
       // initialStatics.
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_=${_}null$N');
-      if (!boundClosureBuffer.isEmpty) {
-        mainBuffer.add(boundClosureBuffer);
-        emitFinishClassesInvocationIfNecessary(mainBuffer);
-      }
-      // After this assignment we will produce invalid JavaScript code if we use
-      // the classesCollector variable.
-      classesCollector = 'classesCollector should not be used from now on';
 
       emitFinishIsolateConstructorInvocation(mainBuffer);
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_='
                      '${_}new ${namer.isolateName}()$N');
 
-      nativeEmitter.assembleCode(mainBuffer);
+      mainBuffer.add(nativeBuffer);
+
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);
       compiler.assembledCode = mainBuffer.getText();
@@ -2641,13 +2724,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
   void emitDeferredCode(CodeBuffer buffer) {
     if (buffer.isEmpty) return;
 
-    if (needsDefineClass) {
-      buffer.add('$finishClassesName(\$\$,'
-                 '$_${namer.CURRENT_ISOLATE},'
-                 '$_$isolatePropertiesName)$N');
-      // Reset the map.
-      buffer.add("\$\$$_=$_{}$N");
-    }
+    buffer.add(n);
 
     buffer.add('${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
 
@@ -2660,9 +2737,9 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
 
   void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
     if (!buffer.isEmpty) return;
-    final classesCollector = r"$$";
 
-    buffer.add('$classesCollector$_=$_{}$N');
+    buffer.add(GENERATED_BY);
+
     buffer.add('var old${namer.CURRENT_ISOLATE}$_='
                '$_${namer.CURRENT_ISOLATE}$N');
 

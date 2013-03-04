@@ -578,4 +578,28 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id);
 */
 DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id);
 
+
+/**
+ * Returns VM status information. VM status is implemented using a
+ * different status plug-in for each type of status; for example, there
+ * might be an "isolate" plug-in that returns information about the
+ * current isolates.
+ *
+ * To get a list of status types, this function is called with a
+ * status_type parameter of "statustypes". This list is useful when
+ * building a status dashboard.
+ *
+ * TODO(tball): we need to figure out which isolate this command needs
+ * to be sent to after parsing the string and then send an OOB message
+ * to that isolate.
+ *
+ * \param request A REST-like string, which uses '/' to separate
+ *     parameters. The first parameter is always the status type.
+ *
+ * \return The requested status as a JSON formatted string, with the
+ *     contents defined by the status plug-in. The caller is responsible
+ *     for freeing this string.
+ */
+DART_EXPORT char* Dart_GetVmStatus(const char* request);
+
 #endif  // INCLUDE_DART_DEBUGGER_API_H_

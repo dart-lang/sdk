@@ -11,6 +11,7 @@
 #include "embedders/openglui/common/dart_host.h"
 #include "embedders/openglui/common/events.h"
 #include "embedders/openglui/common/input_handler.h"
+#include "embedders/openglui/common/log.h"
 #include "embedders/openglui/common/sound_handler.h"
 #include "embedders/openglui/common/vm_glue.h"
 #include "embedders/openglui/emulator/emulator_graphics_handler.h"
@@ -55,7 +56,24 @@ void keyboard(unsigned char key, int x, int y) {
   input_handler_ptr->OnKeyEvent(kKeyDown, time(0), 0, key, 0, 0);
   input_handler_ptr->OnKeyEvent(kKeyUp, time(0), 0, key, 0, 0);
   if (key == 27) {
+    lifecycle_handler_ptr->Pause();
+    lifecycle_handler_ptr->Deactivate();
+    lifecycle_handler_ptr->FreeAllResources();
     exit(0);
+  } else if (key == '0') {
+    LOGI("Simulating suspend");
+    lifecycle_handler_ptr->Pause();
+    lifecycle_handler_ptr->Deactivate();
+  } else if (key == '1') {
+    LOGI("Simulating resume");
+    lifecycle_handler_ptr->Activate();
+    lifecycle_handler_ptr->Resume();
+  } else if (key == '+') {
+    LOGI("Simulating focus gain");
+    lifecycle_handler_ptr->Resume();
+  } else if (key == '-') {
+    LOGI("Simulating focus loss");
+    lifecycle_handler_ptr->Pause();
   }
 }
 
@@ -84,7 +102,9 @@ DART_EXPORT void emulator_main(int argc, char** argv, const char* script) {
   glutReshapeFunc(reshape);
   glutDisplayFunc(display);
   glutKeyboardFunc(keyboard);
-  lifecycle_handler_ptr->OnActivate();
+  lifecycle_handler_ptr->OnStart();
+  lifecycle_handler_ptr->Activate();
+  lifecycle_handler_ptr->Resume();
   gettimeofday(&tvStart, NULL);
   glutTimerFunc(1, tick, 0);
   glutMainLoop();

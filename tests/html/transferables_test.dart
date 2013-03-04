@@ -14,10 +14,21 @@ main() {
       predicate((x) => x is ArrayBuffer, 'is an ArrayBuffer');
 
   test('TransferableTest', () {
-    window.onMessage.listen(expectAsync1((messageEvent) {
-      expect(messageEvent.data, isArrayBuffer);
-    }));
+    if (!ArrayBuffer.supported) {
+      return;
+    }
+
     final buffer = (new Float32Array(3)).buffer;
-    window.postMessage(buffer, '*', [buffer]);
+    window.postMessage({
+        'id': 'transferable data',
+        'buffer': buffer
+      }, '*', [buffer]);
+
+    return window.onMessage.firstMatching(
+      (e) {
+        return e.data is Map && e.data['id'] == 'transferable data';
+      }).then((messageEvent) {
+        expect(messageEvent.data['buffer'], isArrayBuffer);
+      });
   });
 }

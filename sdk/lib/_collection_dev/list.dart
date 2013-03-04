@@ -10,104 +10,49 @@ part of dart._collection.dev;
  * Implements all read-only operations, except [:operator[]:] and [:length:],
  * in terms of those two operations.
  */
-abstract class ListBase<E> extends Collection<E> implements List<E> {
-  Iterator<E> get iterator => new ListIterator(this);
+abstract class ListBase<E> extends ListIterable<E> implements List<E> {
+  // List interface.
+  int get length;
+  E operator[](int index);
 
-  void forEach(f(E element)) {
-    for (int i = 0; i < this.length; i++) f(this[i]);
-  }
+  // Collection interface.
+  // Implement in a fully mutable specialized class if necessary.
+  // The fixed-length and unmodifiable lists throw on all members
+  // of the collection interface.
 
-  bool contains(E value) {
-    for (int i = 0; i < length; i++) {
-      if (this[i] == value) return true;
-    }
-    return false;
-  }
-
-  reduce(initialValue, combine(previousValue, E element)) {
-    var value = initialValue;
-    for (int i = 0; i < this.length; i++) {
-      value = combine(value, this[i]);
-    }
-    return value;
-  }
-
-  bool every(bool f(E element)) {
-    for (int i = 0; i < this.length; i++) {
-      if (!f(this[i])) return false;
-    }
-    return true;
-  }
-
-  bool any(bool f(E element)) {
-    for (int i = 0; i < this.length; i++) {
-      if (f(this[i])) return true;
-    }
-    return false;
-  }
-
-  bool get isEmpty {
-    return this.length == 0;
-  }
-
+  // Iterable interface.
   E elementAt(int index) {
     return this[index];
   }
 
-  int indexOf(E value, [int start = 0]) {
-    for (int i = start; i < length; i++) {
-      if (this[i] == value) return i;
-    }
-    return -1;
-  }
-
-  int lastIndexOf(E value, [int start]) {
-    if (start == null) start = length - 1;
-    for (int i = start; i >= 0; i--) {
-      if (this[i] == value) return i;
-    }
-    return -1;
-  }
-
-  E get first {
-    if (length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  E get last {
-    if (length > 0) return this[length - 1];
-    throw new StateError("No elements");
-  }
-
-  E get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
+  Map<int, E> asMap() {
+    return new ListMapView(this);
   }
 
   List<E> getRange(int start, int length) {
-    List<E> result = <E>[];
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
+    }
+    if (length < 0 || start + length > this.length) {
+      throw new RangeError.range(length, 0, this.length - start);
+    }
+    List<E> result = new List<E>(length);
     for (int i = 0; i < length; i++) {
-      result.add(this[start + i]);
+      result[i] = this[start + i];
     }
     return result;
   }
 
-  Iterable map(f(E element)) {
-    return new MappedIterable(this, f);
+  int indexOf(E element, [int start = 0]) {
+    return Arrays.indexOf(this, element, start, this.length);
   }
 
-  Iterable<E> take(int n) {
-    return new SubListIterable(this, 0, n);
-  }
-
-  Iterable<E> skip(int n) {
-    return new SubListIterable(this, n, null);
+  int lastIndexOf(E element, [int start = null]) {
+    if (start == null) start = length - 1;
+    return Arrays.lastIndexOf(this, element, start);
   }
 
   Iterable<E> get reversed => new ReversedListIterable(this);
-
-  String toString() => ToString.collectionToString(this);
 }
 
 /**
@@ -166,6 +111,11 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
   }
 
   void removeMatching(bool test(E element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a fixed-length list");
+  }
+
+  void retainMatching(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -246,6 +196,11 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
         "Cannot remove from an unmodifiable list");
   }
 
+  void retainMatching(bool test(E element)) {
+    throw new UnsupportedError(
+        "Cannot remove from an unmodifiable list");
+  }
+
   void sort([Comparator<E> compare]) {
     throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
@@ -300,4 +255,71 @@ class ReversedListIterable<E> extends ListIterable<E> {
   int get length => _source.length;
 
   E elementAt(int index) => _source.elementAt(_source.length - 1 - index);
+}
+
+/**
+ * An [Iterable] of the UTF-16 code units of a [String] in index order.
+ */
+class CodeUnits extends UnmodifiableListBase<int> {
+  /** The string that this is the code units of. */
+  String _string;
+
+  CodeUnits(this._string);
+
+  int get length => _string.length;
+  int operator[](int i) => _string.codeUnitAt(i);
+}
+
+class _ListIndicesIterable extends ListIterable<int> {
+  List _backedList;
+
+  _ListIndicesIterable(this._backedList);
+
+  int get length => _backedList.length;
+  int elementAt(int index) {
+    if (index < 0 || index >= length) throw new RangeError(index);
+    return index;
+  }
+}
+
+class ListMapView<E> implements Map<int, E> {
+  List<E> _values;
+
+  ListMapView(this._values);
+
+  E operator[] (int key) => containsKey(key) ? _values[key] : null;
+  int get length => _values.length;
+
+  Iterable<E> get values => new SubListIterable<E>(_values, 0, null);
+  Iterable<int> get keys => new _ListIndicesIterable(_values);
+
+  bool get isEmpty => _values.isEmpty;
+  bool containsValue(E value) => _values.contains(value);
+  bool containsKey(int key) => key is int && key >= 0 && key < length;
+
+  void forEach(void f(int key, E value)) {
+    int length = _values.length;
+    for (int i = 0; i < length; i++) {
+      f(i, _values[i]);
+      if (length != _values.length) {
+        throw new ConcurrentModificationError(_values);
+      }
+    }
+  }
+
+  void operator[]= (int key, E value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+
+  E putIfAbsent(int key, E ifAbsent()) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+
+  E remove(int key) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
 }

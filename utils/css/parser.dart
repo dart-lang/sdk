@@ -999,7 +999,7 @@ class Parser {
     var result = 0;
 
     for (int i = 0; i < hex.length; i++) {
-      var digit = _hexDigit(hex.charCodeAt(i));
+      var digit = _hexDigit(hex.codeUnitAt(i));
       if (digit < 0) {
         throw new HexNumberException();
       }

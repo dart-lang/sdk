@@ -14,7 +14,7 @@ checkOutput(encoding, output) {
   } else if (encoding == 'latin1') {
     Expect.equals(output, 'æøå');
   } else if (encoding == 'utf8') {
-    Expect.listEquals(output.charCodes, [955]);
+    Expect.listEquals(output.codeUnits, [955]);
   }
 }
 
@@ -57,11 +57,11 @@ main() {
         new File("../tests/standalone/io/process_std_io_script2.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(scriptFile.name, 'ascii', 'stdout');
-  test(scriptFile.name, 'ascii', 'stderr');
-  test(scriptFile.name, 'latin1', 'stdout');
-  test(scriptFile.name, 'latin1', 'stderr');
-  test(scriptFile.name, 'utf8', 'stdout');
-  test(scriptFile.name, 'utf8', 'stderr');
+  test(scriptFile.path, 'ascii', 'stdout');
+  test(scriptFile.path, 'ascii', 'stderr');
+  test(scriptFile.path, 'latin1', 'stdout');
+  test(scriptFile.path, 'latin1', 'stderr');
+  test(scriptFile.path, 'utf8', 'stdout');
+  test(scriptFile.path, 'utf8', 'stderr');
 
 }

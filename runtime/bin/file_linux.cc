@@ -168,7 +168,7 @@ bool File::Delete(const char* name) {
 }
 
 
-off_t File::LengthFromName(const char* name) {
+off_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
     return st.st_size;

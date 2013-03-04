@@ -7,10 +7,12 @@ library dartdocTests;
 
 import 'dart:async';
 import 'dart:io';
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart' as dd;
-import '../lib/markdown.dart' as md;
+import '../lib/markdown.dart';
+import 'markdown_test.dart';
 
 // TODO(rnystrom): Better path to unittest.
 import '../../../../../pkg/unittest/lib/unittest.dart';
@@ -120,6 +122,80 @@ main() {
     });
   });
 
+  group('dartdoc markdown', () {
+    group('[::] blocks', () {
+
+      validateDartdocMarkdown('simple case', '''
+        before [:source:] after
+        ''', '''
+        <p>before <code>source</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('unmatched [:', '''
+        before [: after
+        ''', '''
+        <p>before [: after</p>
+        ''');
+      validateDartdocMarkdown('multiple spans in one text', '''
+        a [:one:] b [:two:] c
+        ''', '''
+        <p>a <code>one</code> b <code>two</code> c</p>
+        ''');
+
+      validateDartdocMarkdown('multi-line', '''
+        before [:first
+        second:] after
+        ''', '''
+        <p>before <code>first
+        second</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('contain backticks', '''
+        before [:can `contain` backticks:] after
+        ''', '''
+        <p>before <code>can `contain` backticks</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('contain double backticks', '''
+        before [:can ``contain`` backticks:] after
+        ''', '''
+        <p>before <code>can ``contain`` backticks</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('contain backticks with spaces', '''
+        before [: `tick` :] after
+        ''', '''
+        <p>before <code>`tick`</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('multiline with spaces', '''
+        before [:in `tick`
+        another:] after
+        ''', '''
+        <p>before <code>in `tick`
+        another</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('ignore markup inside code', '''
+        before [:*b* _c_:] after
+        ''', '''
+        <p>before <code>*b* _c_</code> after</p>
+        ''');
+
+      validateDartdocMarkdown('escape HTML characters', '''
+        [:<&>:]
+        ''', '''
+        <p><code>&lt;&amp;&gt;</code></p>
+        ''');
+
+      validateDartdocMarkdown('escape HTML tags', '''
+        '*' [:<em>:]
+        ''', '''
+        <p>'*' <code>&lt;em&gt;</code></p>
+        ''');
+    });
+  });
+
   group('integration tests', () {
     test('no entrypoints', () {
       expect(_runDartdoc([], exitCode: 1), completes);
@@ -138,16 +214,31 @@ main() {
               'package_test_file.dart').toNativePath()]),
         completes);
     });
-
   });
 }
 
 Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
   var dartBin = new Options().executable;
-  var dartdoc = 'bin/dartdoc.dart';
+
+  var dir = path.absolute(new Options().script);
+  while (path.basename(dir) != 'dartdoc') {
+    if (!path.absolute(dir).contains('dartdoc') || dir == path.dirname(dir)) {
+      fail('Unable to find root dartdoc directory.');
+    }
+    dir = path.dirname(dir);
+  }
+
+  var dartdoc = path.join(path.absolute(dir), 'bin/dartdoc.dart');
   arguments.insertRange(0, 1, dartdoc);
   return Process.run(dartBin, arguments)
       .then((result) {
         expect(result.exitCode, exitCode);
       });
+}
+
+validateDartdocMarkdown(String description, String markdown,
+    String html) {
+  var dartdoc = new dd.Dartdoc();
+  validate(description, markdown, html, linkResolver: dartdoc.dartdocResolver,
+      inlineSyntaxes: dartdoc.dartdocSyntaxes);
 }

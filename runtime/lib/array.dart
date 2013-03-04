@@ -6,7 +6,7 @@
 // TODO(srdjan): Use shared array implementation.
 class _ObjectArray<E> implements List<E> {
 
-  factory _ObjectArray(int length) native "ObjectArray_allocate";
+  factory _ObjectArray(length) native "ObjectArray_allocate";
 
   E operator [](int index) native "ObjectArray_getIndexed";
 
@@ -228,12 +228,16 @@ class _ObjectArray<E> implements List<E> {
 
   E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
-  List<E> toList() {
-    return new List<E>.from(this);
+  List<E> toList({ bool growable: true}) {
+    return new List<E>.from(this, growable: growable);
   }
 
   Set<E> toSet() {
     return new Set<E>.from(this);
+  }
+
+  Map<int, E> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 
@@ -467,12 +471,16 @@ class _ImmutableArray<E> implements List<E> {
 
   E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
-  List<E> toList() {
-    return new List<E>.from(this);
+  List<E> toList({ bool growable: true }) {
+    return new List<E>.from(this, growable: growable);
   }
 
   Set<E> toSet() {
     return new Set<E>.from(this);
+  }
+
+  Map<int, E> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 

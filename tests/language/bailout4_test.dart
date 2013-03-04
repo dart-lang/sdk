@@ -10,7 +10,7 @@ class A {
 }
 
 var a = new A();
-var b = new List.fixedLength(4);
+var b = new List(4);
 int count = 0;
 
 main() {

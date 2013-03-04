@@ -138,8 +138,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
-        replacement.instructionType = replacement.instructionType.intersection(
+        HType newType = replacement.instructionType.intersection(
             instruction.instructionType, compiler);
+        if (!newType.isConflicting()) {
+          // [HType.intersection] may give up when doing the
+          // intersection of two types is too complicated, and return
+          // [HType.CONFLICTING]. We do not want instructions to have
+          // [HType.CONFLICTING], so we only update the type if the
+          // intersection did not give up.
+          replacement.instructionType = newType;
+        }
 
         // If the replacement instruction does not know its
         // source element, use the source element of the
@@ -309,27 +317,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    // Check if this call does not need to be intercepted.
-    HType type = input.instructionType;
-    // TODO(kasperl): Get rid of this refinement once the receiver
-    // specialization phase takes care of it.
-    Selector refined = type.refine(selector, compiler);
-    Set<ClassElement> classes = backend.getInterceptedClassesOn(
-        refined, canBeNull: type.canBeNull());
-    if (classes == null) {
-      if (selector.isGetter()) {
-        // Change the call to a regular invoke dynamic call.
-        return new HInvokeDynamicGetter(selector, null, input, false);
-      } else if (selector.isSetter()) {
-        return new HInvokeDynamicSetter(
-            selector, null, input, node.inputs[2], false);
-      } else {
-        // Change the call to a regular invoke dynamic call.
-        return new HInvokeDynamicMethod(
-            selector, node.inputs.getRange(1, node.inputs.length - 1));
-      }
-    }
-
     // If the intercepted call is through a constant interceptor, we
     // know which element to call.
     if (node is !HOneShotInterceptor
@@ -337,7 +324,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         && selector.isCall()) {
       DartType type = interceptor.instructionType.computeType(compiler);
       ClassElement cls = type.element;
-      node.element = cls.lookupSelector(selector);
+      Element target = cls.lookupSelector(selector);
+      if (target != null && selector.applies(target, compiler)) {
+        node.element = target;
+      }
     }
     return node;
   }
@@ -347,7 +337,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (backend.fixedLengthListConstructor == null) {
       backend.fixedLengthListConstructor =
         compiler.listClass.lookupConstructor(
-            new Selector.callConstructor(const SourceString("fixedLength"),
+            new Selector.callConstructor(const SourceString(""),
                                          compiler.listClass.getLibrary()));
     }
     // TODO(ngeoffray): checking if the second input is an integer
@@ -355,6 +345,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // other optimizations to reason on a fixed length constructor
     // that we know takes an int.
     return element == backend.fixedLengthListConstructor
+        && node.inputs.length == 2
         && node.inputs[1].isInteger();
   }
 
@@ -366,7 +357,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    if (node.isInterceptorCall) return handleInterceptorCall(node);
+    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
     HType receiverType = node.receiver.instructionType;
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
@@ -589,7 +580,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (node.element == backend.jsArrayLength) {
       if (node.receiver is HInvokeStatic) {
         // Try to recognize the length getter with input
-        // [:new List.fixedLength(int):].
+        // [:new List(int):].
         HInvokeStatic call = node.receiver;
         if (isFixedSizeListConstructor(call)) {
           return call.inputs[1];
@@ -600,7 +591,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    if (node.isInterceptorCall) return handleInterceptorCall(node);
+    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
 
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
@@ -615,6 +606,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
     HFieldGet result = new HFieldGet(
         field, node.inputs[0], isAssignable: !isFinalOrConst);
+
+    // Some native fields are views of data that may be changed by operations.
+    // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
+    // TODO(sra): Refine the effect classification so that native effects are
+    // distinct from ordinary Dart effects.
+    if (field.isNative()) {
+      result.setDependsOnSomething();
+    }
 
     if (field.getEnclosingClass().isNative()) {
       result.instructionType =
@@ -636,12 +635,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    if (node.isInterceptorCall) return handleInterceptorCall(node);
+    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
 
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
-    HInstruction value = node.inputs[1];
+    // Use [:node.inputs.last:] in case the call follows the
+    // interceptor calling convention, but is not a call on an
+    // interceptor.
+    HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
       HInstruction other = value.convertType(
           compiler,
@@ -670,9 +672,20 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitInterceptor(HInterceptor node) {
     if (node.isConstant()) return node;
+    // If the intercepted object does not need to be intercepted, just
+    // return the object (the [:getInterceptor:] method would have
+    // returned the object).
+    HType type = node.receiver.instructionType;
+    if (!type.canBePrimitive(compiler)) {
+      if (!(type.canBeNull()
+            && node.interceptedClasses.contains(compiler.objectClass))) {
+        return node.receiver;
+      }
+    }
     HInstruction constant = tryComputeConstantInterceptor(
         node.inputs[0], node.interceptedClasses);
     if (constant == null) return node;
+
     return constant;
   }
 
@@ -1080,8 +1093,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>.fixedLength(length);
-    loopChangesFlags = new List<int>.fixedLength(length);
+    blockChangesFlags = new List<int>(length);
+    loopChangesFlags = new List<int>(length);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -1156,7 +1169,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>.fixedLength(graph.blocks.length);
+    values = new List<ValueSet>(graph.blocks.length);
     for (int i = 0; i < graph.blocks.length; i++) {
       values[graph.blocks[i].id] = new ValueSet();
     }

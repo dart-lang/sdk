@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -363,40 +363,42 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
     stream.listen((request) {
-      var response = request.response;
-      if (!_isWebSocketUpgrade(request)) {
-        _controller.signalError(
-            new AsyncError(
-                new WebSocketException("Invalid WebSocket upgrade request")));
-        request.listen((_) {}, onDone: () {
-          response.statusCode = HttpStatus.BAD_REQUEST;
-          response.contentLength = 0;
-          response.close();
-        });
-        return;
-      }
-      // Send the upgrade response.
-      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
-      response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
-      response.headers.add(HttpHeaders.UPGRADE, "websocket");
-      String key = request.headers.value("Sec-WebSocket-Key");
-      SHA1 sha1 = new SHA1();
-      sha1.add("$key$_webSocketGUID".charCodes);
-      String accept = _Base64._encode(sha1.close());
-      response.headers.add("Sec-WebSocket-Accept", accept);
-      response.headers.contentLength = 0;
-      response.detachSocket()
-        .then((socket) {
-          _controller.add(new _WebSocketImpl._fromSocket(socket));
-        }, onError: (error) {
-          _controller.signalError(error);
-        });
+        _upgrade(request)
+            .then((WebSocket webSocket) => _controller.add(webSocket))
+            .catchError((error) => _controller.signalError(error));
     });
 
     return _controller.stream;
   }
 
-  bool _isWebSocketUpgrade(HttpRequest request) {
+  static Future<WebSocket> _upgrade(HttpRequest request) {
+    var response = request.response;
+    if (!_isUpgradeRequest(request)) {
+      // Send error response and drain the request.
+      request.listen((_) {}, onDone: () {
+        response.statusCode = HttpStatus.BAD_REQUEST;
+        response.contentLength = 0;
+        response.close();
+      });
+      return new Future.immediateError(
+          new WebSocketException("Invalid WebSocket upgrade request"));
+    }
+
+    // Send the upgrade response.
+    response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
+    response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
+    response.headers.add(HttpHeaders.UPGRADE, "websocket");
+    String key = request.headers.value("Sec-WebSocket-Key");
+    SHA1 sha1 = new SHA1();
+    sha1.add("$key$_webSocketGUID".codeUnits);
+    String accept = _Base64._encode(sha1.close());
+    response.headers.add("Sec-WebSocket-Accept", accept);
+    response.headers.contentLength = 0;
+    return response.detachSocket()
+        .then((socket) => new _WebSocketImpl._fromSocket(socket));
+  }
+
+  static bool _isUpgradeRequest(HttpRequest request) {
     if (request.method != "GET") {
       return false;
     }
@@ -425,14 +427,17 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 }
 
 
-class _WebSocketImpl extends Stream<Event> implements WebSocket {
-  final StreamController<Event> _controller = new StreamController<Event>();
+class _WebSocketImpl extends Stream implements WebSocket {
+  final StreamController _controller = new StreamController();
 
   final _WebSocketProtocolProcessor _processor =
       new _WebSocketProtocolProcessor();
 
   final Socket _socket;
   int _readyState = WebSocket.CONNECTING;
+  bool _writeClosed = false;
+  int _closeCode;
+  String _closeReason;
 
   static final HttpClient _httpClient = new HttpClient();
 
@@ -447,7 +452,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
 
     Random random = new Random();
     // Generate 16 random bytes.
-    List<int> nonceData = new List<int>.fixedLength(16);
+    List<int> nonceData = new List<int>(16);
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
@@ -490,7 +495,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
           error("Response did not contain a 'Sec-WebSocket-Accept' header");
         }
         SHA1 sha1 = new SHA1();
-        sha1.add("$nonce$_webSocketGUID".charCodes);
+        sha1.add("$nonce$_webSocketGUID".codeUnits);
         List<int> expectedAccept = sha1.close();
         List<int> receivedAccept = _Base64._decode(accept);
         if (expectedAccept.length != receivedAccept.length) {
@@ -528,9 +533,9 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
     };
     _processor.onMessageEnd = () {
       if (type == _WebSocketMessageType.TEXT) {
-        _controller.add(new _WebSocketMessageEvent(data.toString()));
+        _controller.add(data.toString());
       } else {
-        _controller.add(new _WebSocketMessageEvent(data));
+        _controller.add(data);
       }
     };
     _processor.onClosed = (code, reason) {
@@ -545,7 +550,9 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         }
         _readyState = WebSocket.CLOSED;
       }
-      _controller.add(new _WebSocketCloseEvent(clean, code, reason));
+      if (_readyState == WebSocket.CLOSED) return;
+      _closeCode = code;
+      _closeReason = reason;
       _controller.close();
     };
 
@@ -553,12 +560,25 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         (data) => _processor.update(data, 0, data.length),
         onDone: () => _processor.closed(),
         onError: (error) => _controller.signalError(error));
+
+    _socket.done
+        .catchError((error) {
+          if (_readyState == WebSocket.CLOSED) return;
+          _readyState = WebSocket.CLOSED;
+          _closeCode = ABNORMAL_CLOSURE;
+          _controller.signalError(error);
+          _controller.close();
+          _socket.destroy();
+        })
+        .whenComplete(() {
+          _writeClosed = true;
+        });
   }
 
-  StreamSubscription<Event> listen(void onData(Event event),
-                                   {void onError(AsyncError error),
-                                    void onDone(),
-                                    bool unsubscribeOnError}) {
+  StreamSubscription listen(void onData(message),
+                            {void onError(AsyncError error),
+                             void onDone(),
+                             bool unsubscribeOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
@@ -566,10 +586,11 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
   }
 
   int get readyState => _readyState;
-  int get bufferedAmount => 0;
 
   String get extensions => null;
   String get protocol => null;
+  int get closeCode => _closeCode;
+  String get closeReason => _closeReason;
 
   void close([int code, String reason]) {
     if (_readyState < WebSocket.CLOSING) _readyState = WebSocket.CLOSING;
@@ -627,10 +648,16 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
     } else {
       opcode = _WebSocketOpcode.TEXT;
     }
-    _sendFrame(opcode, data);
+    try {
+      _sendFrame(opcode, data);
+    } catch (_) {
+      // The socket can be closed before _socket.done have a chance
+      // to complete.
+    }
   }
 
   void _sendFrame(int opcode, [List<int> data]) {
+    if (_writeClosed) return;
     bool mask = false;  // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
     // Determine the header size.
@@ -640,7 +667,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
     } else if (dataLength > 125) {
       headerSize += 2;
     }
-    List<int> header = new List<int>.fixedLength(headerSize);
+    List<int> header = new List<int>(headerSize);
     int index = 0;
     // Set FIN and opcode.
     header[index++] = 0x80 | opcode;
@@ -664,22 +691,4 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
       _socket.add(data);
     }
   }
-}
-
-
-class _WebSocketMessageEvent implements MessageEvent {
-  _WebSocketMessageEvent(this._data);
-  get data => _data;
-  var _data;
-}
-
-
-class _WebSocketCloseEvent implements CloseEvent {
-  _WebSocketCloseEvent(this._wasClean, this._code, this._reason);
-  bool get wasClean => _wasClean;
-  int get code => _code;
-  String get reason => _reason;
-  bool _wasClean;
-  int _code;
-  String _reason;
 }

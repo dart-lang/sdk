@@ -30,6 +30,8 @@ class LinkedHashSet<E> extends Collection<E> implements Set<E> {
     }
   }
 
+  int get length => _table._elementCount;
+
   bool get isEmpty => _table._elementCount == 0;
 
   bool contains(Object object) => _table._get(object) >= 0;

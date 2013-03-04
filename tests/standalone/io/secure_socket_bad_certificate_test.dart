@@ -49,7 +49,7 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
                               onBadCertificate: badCertificateCallback)
       .then((socket) {
         Expect.isTrue(acceptCertificate);
-        socket.add("GET / HTTP/1.0\r\nHost: $host\r\n\r\n".charCodes);
+        socket.add("GET / HTTP/1.0\r\nHost: $host\r\n\r\n".codeUnits);
         socket.close();
         return socket.reduce(<int>[], (message, data)  => message..addAll(data))
             .then((message) {

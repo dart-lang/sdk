@@ -10,9 +10,9 @@ import 'dart:json' as json;
 import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
-import 'package:http/src/byte_stream.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/src/utils.dart';
+import '../lib/src/byte_stream.dart';
+import '../lib/http.dart' as http;
+import '../lib/src/utils.dart';
 
 /// The current server instance.
 HttpServer _server;
@@ -107,6 +107,33 @@ Future startServer() {
 void stopServer() {
   _server.close();
   _server = null;
+}
+
+/// Removes eight spaces of leading indentation from a multiline string.
+///
+/// Note that this is very sensitive to how the literals are styled. They should
+/// be:
+///     '''
+///     Text starts on own line. Lines up with subsequent lines.
+///     Lines are indented exactly 8 characters from the left margin.
+///     Close is on the same line.'''
+///
+/// This does nothing if text is only a single line.
+// TODO(nweiz): Make this auto-detect the indentation level from the first
+// non-whitespace line.
+String cleanUpLiteral(String text) {
+  var lines = text.split('\n');
+  if (lines.length <= 1) return text;
+
+  for (var j = 0; j < lines.length; j++) {
+    if (lines[j].length > 8) {
+      lines[j] = lines[j].substring(8, lines[j].length);
+    } else {
+      lines[j] = '';
+    }
+  }
+
+  return lines.join('\n');
 }
 
 /// A matcher that matches JSON that parses to a value that matches the inner

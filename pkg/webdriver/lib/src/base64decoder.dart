@@ -11,7 +11,7 @@ part of webdriver;
 class Base64Decoder {
 
   static int getVal(String s, pos) {
-    int code = s.charCodeAt(pos);
+    int code = s.codeUnitAt(pos);
     if (code >= 65 && code < (65+26)) { // 'A'..'Z'
       return code - 65;
     } else if (code >= 97 && code < (97+26)) { // 'a'..'z'

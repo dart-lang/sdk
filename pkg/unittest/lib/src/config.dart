@@ -15,19 +15,19 @@ class Configuration {
   // The VM won't shut down if a receive port is open. Use this to make sure
   // we correctly wait for asynchronous tests.
   ReceivePort _receivePort;
-  TestCase currentTestCase = null;
 
   /**
    * Subclasses can override this with something useful for diagnostics.
    * Particularly useful in cases where we have parent/child configurations
    * such as layout tests.
    */
-  get name => 'Configuration';
+  String get name => 'Configuration';
+
   /**
    * If true, then tests are started automatically (otherwise [runTests]
    * must be called explicitly after the tests are set up.
    */
-  get autoStart => true;
+  bool get autoStart => true;
 
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
@@ -49,15 +49,24 @@ class Configuration {
    * a test suite.
    */
   void onTestStart(TestCase testCase) {
-    currentTestCase = testCase;
+    assert(testCase != null);	
   }
 
   /**
-   * Called when each test is completed. Useful to show intermediate progress on
-   * a test suite.
+   * Called when each test is first completed. Useful to show intermediate
+   * progress on a test suite.
    */
   void onTestResult(TestCase testCase) {
-    currentTestCase = null;
+    assert(testCase != null);	
+  }
+
+  /**
+   * Called when an already completed test changes state; for example a test
+   * that was marked as passing may later be marked as being in error because
+   * it still had callbacks being invoked.
+   */
+  void onTestResultChanged(TestCase testCase) {
+    assert(testCase != null);
   }
 
   /**
@@ -66,12 +75,9 @@ class Configuration {
    * should instead override logMessage which is passed the test case.
    */
   void logMessage(String message) {
-    if (currentTestCase == null || _currentTest >= _tests.length ||
-        currentTestCase.id != _tests[_currentTest].id) {
-      // Before or after tests run, or with a mismatch between what the
-      // config and the test harness think is the current test. In this
-      // case we pass null for the test case reference and let the config
-      // decide what to do with this.
+    if (currentTestCase == null) {
+      // Before or after tests run. In this case we pass null for the test
+      // case reference and let the config decide what to do with this.
       logTestCaseMessage(null, message);
     } else {
       logTestCaseMessage(currentTestCase, message);
@@ -152,23 +158,8 @@ class Configuration {
   /** Handle errors that happen outside the tests. */
   // TODO(vsm): figure out how to expose the stack trace here
   // Currently e.message works in dartium, but not in dartc.
-  handleExternalError(e, String message) =>
+  void handleExternalError(e, String message) =>
       _reportTestError('$message\nCaught $e', '');
-
-  /**
-   * Send messages to the test controller code (see 'test_controller.js'). This
-   * is only needed to support browser tests with dart2js. Note: we could wrap
-   * tests and send the appropriate messages to the controller through the
-   * wrapper, but using wrappers has a noticeable overhead in the testing bots,
-   * so we use this approach instead.
-   *
-   * Configurations that will not run in DRT (such as vm_config and
-   * compact_vm_config), can safely override this method to avoid printing extra
-   * mesages in the console.
-   */
-  // TODO(sigmund): find a way to unify notifyController and _postMessage
-  void notifyController(String message) {
-  }
 
   _postMessage(String message) {
     // In dart2js browser tests, the JavaScript-based test controller

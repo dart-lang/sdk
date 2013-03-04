@@ -466,7 +466,7 @@ class Utf8Tests extends TestClass {
 
     IterableUtf8Decoder kataDecoder = decodeUtf8AsIterable(testKatakanaUtf8);
     // get the first character
-    Expect.equals(testKatakanaPhrase.charCodes[0], kataDecoder.first);
+    Expect.equals(testKatakanaPhrase.codeUnits[0], kataDecoder.first);
     // get the whole translation using the Iterable interface
     Expect.stringEquals(testKatakanaPhrase,
         new String.fromCharCodes(new List<int>.from(kataDecoder)));

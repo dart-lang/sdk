@@ -125,7 +125,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // (Library, class name, method name)
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, Object, _noSuchMethod)                                        \
-  V(CoreLibrary, List, _throwArgumentError)                                    \
+  V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
   V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
   V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \
   V(CoreLibrary, FallThroughErrorImplementation, _throwNew)                    \
@@ -133,6 +133,7 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
   V(CoreLibrary, int, _throwFormatException)                                   \
   V(CoreLibrary, int, _parse)                                                  \
+  V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
 
 
 static void MarkFunctionAsInvisible(const Library& lib,
@@ -140,7 +141,7 @@ static void MarkFunctionAsInvisible(const Library& lib,
                                     const char* function_name) {
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::New(class_name))));
+      lib.LookupClassAllowPrivate(String::Handle(String::New(class_name))));
   ASSERT(!cls.IsNull());
   const Function& function =
       Function::Handle(
@@ -631,14 +632,29 @@ void Object::RegisterPrivateClass(const Class& cls,
   lib.AddClass(cls);
 }
 
-#define INIT_LIBRARY(name, raw_script, raw_lib)                                \
-  script ^= raw_script;                                                        \
-  Library::Init##name##Library(isolate);                                       \
-  lib ^= raw_lib;                                                              \
-  ASSERT(!lib.IsNull());                                                       \
+
+#define LOAD_LIBRARY(name, raw_name)                                           \
+  url = Symbols::Dart##name().raw();                                           \
+  lib = Library::LookupLibrary(url);                                           \
+  if (lib.IsNull()) {                                                          \
+    lib = Library::NewLibraryHelper(url, true);                                \
+    lib.Register();                                                            \
+  }                                                                            \
+  isolate->object_store()->set_##raw_name##_library(lib);                      \
+
+#define INIT_LIBRARY(name, raw_name, has_patch)                                \
+  LOAD_LIBRARY(name, raw_name)                                                 \
+  script = Bootstrap::Load##name##Script(false);                               \
   error = Bootstrap::Compile(lib, script);                                     \
   if (!error.IsNull()) {                                                       \
     return error.raw();                                                        \
+  }                                                                            \
+  if (has_patch) {                                                             \
+    script = Bootstrap::Load##name##Script(true);                              \
+    error = lib.Patch(script);                                                 \
+    if (!error.IsNull()) {                                                     \
+      return error.raw();                                                      \
+    }                                                                          \
   }                                                                            \
 
 
@@ -649,6 +665,10 @@ RawError* Object::Init(Isolate* isolate) {
   Class& cls = Class::Handle();
   Type& type = Type::Handle();
   Array& array = Array::Handle();
+  String& url = String::Handle();
+  Library& lib = Library::Handle();
+  Script& script = Script::Handle();
+  Error& error = Error::Handle();
 
   // All RawArray fields will be initialized to an empty array, therefore
   // initialize array class first.
@@ -698,8 +718,10 @@ RawError* Object::Init(Isolate* isolate) {
       GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
   object_store->set_libraries(libraries);
 
-  // Basic infrastructure has been setup, initialize the class dictionary.
+  // Pre-register the core library.
   Library::InitCoreLibrary(isolate);
+
+  // Basic infrastructure has been setup, initialize the class dictionary.
   Library& core_lib = Library::Handle(Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
 
@@ -726,7 +748,7 @@ RawError* Object::Init(Isolate* isolate) {
   type ^= Type::New(Object::Handle(cls.raw()),
                     TypeArguments::Handle(),
                     Scanner::kDummyTokenIndex);
-  type.set_is_finalized_instantiated();
+  type.SetIsFinalized();
   type ^= type.Canonicalize();
   object_store->set_array_type(type);
 
@@ -761,7 +783,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, Symbols::Stacktrace(), core_lib);
+  RegisterClass(cls, Symbols::StackTrace(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
@@ -771,7 +793,7 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
-  Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
+  script = Bootstrap::LoadCoreScript(false);
 
   // Allocate and initialize the pre-allocated classes in the core library.
   cls = Class::New<Instance>(kInstanceCid);
@@ -821,8 +843,25 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_weak_property_class(cls);
   RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
-  Library::InitScalarlistLibrary(isolate);
+  // Setup some default native field classes which can be extended for
+  // specifying native fields in dart classes.
+  Library::InitNativeWrappersLibrary(isolate);
+  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
+
+  // Pre-register the scalarlist library so the native class implementations
+  // can be hooked up before compiling it.
+  LOAD_LIBRARY(Scalarlist, scalarlist);
+
   Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
+  ASSERT(!scalarlist_lib.IsNull());
+
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Float32x4(), scalarlist_lib);
+
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Uint32x4(), scalarlist_lib);
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
@@ -859,6 +898,10 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
   RegisterPrivateClass(cls, Symbols::_Uint64Array(), scalarlist_lib);
+
+  cls = Class::New<Float32x4Array>();
+  object_store->set_float32x4_array_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Float32x4Array(), scalarlist_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
@@ -905,6 +948,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
   RegisterPrivateClass(cls, Symbols::_ExternalUint64Array(), scalarlist_lib);
+
+  cls = Class::New<ExternalFloat32x4Array>();
+  object_store->set_external_float32x4_array_class(cls);
+  RegisterPrivateClass(cls, Symbols::_ExternalFloat32x4Array(),
+                       scalarlist_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
@@ -993,120 +1041,22 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
 
-  // Setup some default native field classes which can be extended for
-  // specifying native fields in dart classes.
-  Library::InitNativeWrappersLibrary(isolate);
-  ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
-
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
-  Error& error = Error::Handle();
-  error = Bootstrap::Compile(core_lib, script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
-  error = core_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  Library::InitASyncLibrary(isolate);
-  const Script& async_script =
-      Script::Handle(Bootstrap::LoadASyncScript(false));
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  ASSERT(!async_lib.IsNull());
-  error = Bootstrap::Compile(async_lib, async_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadASyncScript(true);
-  error = async_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& collection_script =
-      Script::Handle(Bootstrap::LoadCollectionScript(false));
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  ASSERT(!collection_lib.IsNull());
-  error = Bootstrap::Compile(collection_lib, collection_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& collection_dev_script =
-      Script::Handle(Bootstrap::LoadCollectionDevScript(false));
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  ASSERT(!collection_dev_lib.IsNull());
-  error = Bootstrap::Compile(collection_dev_lib, collection_dev_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  ASSERT(!math_lib.IsNull());
-  error = Bootstrap::Compile(math_lib, math_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadMathScript(true);
-  error = math_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& isolate_script = Script::Handle(
-      Bootstrap::LoadIsolateScript(false));
-  Library::InitIsolateLibrary(isolate);
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  error = Bootstrap::Compile(isolate_lib, isolate_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadIsolateScript(true);
-  error = isolate_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& mirrors_script = Script::Handle(
-      Bootstrap::LoadMirrorsScript(false));
-  Library::InitMirrorsLibrary(isolate);
-  const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
-  ASSERT(!mirrors_lib.IsNull());
-  error = Bootstrap::Compile(mirrors_lib, mirrors_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadMirrorsScript(true);
-  error = mirrors_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  const Script& scalarlist_script = Script::Handle(
-      Bootstrap::LoadScalarlistScript(false));
-  ASSERT(!scalarlist_lib.IsNull());
-  error = Bootstrap::Compile(scalarlist_lib, scalarlist_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  patch_script = Bootstrap::LoadScalarlistScript(true);
-  error = scalarlist_lib.Patch(patch_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  Library& lib = Library::Handle();
-  INIT_LIBRARY(Crypto,
-               Bootstrap::LoadCryptoScript(false),
-               Library::CryptoLibrary());
-  INIT_LIBRARY(Json,
-               Bootstrap::LoadJsonScript(false),
-               Library::JsonLibrary());
-  INIT_LIBRARY(Utf,
-               Bootstrap::LoadUtfScript(false),
-               Library::UtfLibrary());
-  INIT_LIBRARY(Uri,
-               Bootstrap::LoadUriScript(false),
-               Library::UriLibrary());
+  INIT_LIBRARY(Core, core, true);
+
+  INIT_LIBRARY(Async, async, true);
+  INIT_LIBRARY(Collection, collection, false);
+  INIT_LIBRARY(CollectionDev, collection_dev, false);
+  INIT_LIBRARY(Crypto, crypto, false);
+  INIT_LIBRARY(Isolate, isolate, true);
+  INIT_LIBRARY(Json, json, true);
+  INIT_LIBRARY(Math, math, true);
+  INIT_LIBRARY(Mirrors, mirrors, true);
+  INIT_LIBRARY(Scalarlist, scalarlist, true);
+  INIT_LIBRARY(Utf, utf, false);
+  INIT_LIBRARY(Uri, uri, false);
+
   Bootstrap::SetupNativeResolver();
 
   // Remove the Object superclass cycle by setting the super type to null (not
@@ -1151,6 +1101,12 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
 
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
+
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
 
@@ -1177,6 +1133,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
+
+  cls = Class::New<Float32x4Array>();
+  object_store->set_float32x4_array_class(cls);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
@@ -1210,6 +1169,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
+
+  cls = Class::New<ExternalFloat32x4Array>();
+  object_store->set_external_float32x4_array_class(cls);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
@@ -1413,6 +1375,10 @@ RawString* Class::UserVisibleName() const {
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
       return Symbols::List().raw();
+    case kFloat32x4Cid:
+      return Symbols::Float32x4().raw();
+    case kUint32x4Cid:
+      return Symbols::Uint32x4().raw();
     case kInt8ArrayCid:
     case kExternalInt8ArrayCid:
       return Symbols::Int8List().raw();
@@ -1440,6 +1406,9 @@ RawString* Class::UserVisibleName() const {
     case kUint64ArrayCid:
     case kExternalUint64ArrayCid:
       return Symbols::Uint64List().raw();
+    case kFloat32x4ArrayCid:
+    case kExternalFloat32x4ArrayCid:
+      return Symbols::Float32x4List().raw();
     case kFloat32ArrayCid:
     case kExternalFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -6340,37 +6309,12 @@ RawLibrary* Library::New(const String& url) {
 }
 
 
-void Library::InitASyncLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartAsync();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_async_library(lib);
-}
-
-
 void Library::InitCoreLibrary(Isolate* isolate) {
   const String& core_lib_url = Symbols::DartCore();
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
   isolate->object_store()->set_core_library(core_lib);
-  Library::InitMathLibrary(isolate);
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  Library::InitCollectionDevLibrary(isolate);
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  const Namespace& collection_dev_ns = Namespace::Handle(
-      Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
-  Library::InitCollectionLibrary(isolate);
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  const Namespace& collection_ns = Namespace::Handle(
-      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
-  core_lib.AddImport(math_ns);
-  core_lib.AddImport(collection_ns);
-  core_lib.AddImport(collection_dev_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -6378,92 +6322,6 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   // isolates so setting their library pointers would be wrong.
   const Class& cls = Class::Handle(Object::dynamic_class());
   core_lib.AddObject(cls, String::Handle(cls.Name()));
-}
-
-
-void Library::InitCollectionLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartCollection();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  const Namespace& collection_dev_ns = Namespace::Handle(
-      Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(math_ns);
-  lib.AddImport(collection_dev_ns);
-  isolate->object_store()->set_collection_library(lib);
-}
-
-
-void Library::InitCollectionDevLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartCollectionDev();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_collection_dev_library(lib);
-}
-
-
-void Library::InitCryptoLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartCrypto();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(math_ns);
-  isolate->object_store()->set_crypto_library(lib);
-}
-
-
-void Library::InitIsolateLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartIsolate();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  const Namespace& async_ns = Namespace::Handle(
-      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(async_ns);
-  isolate->object_store()->set_isolate_library(lib);
-}
-
-
-void Library::InitJsonLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartJson();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_json_library(lib);
-}
-
-
-void Library::InitMathLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartMath();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_math_library(lib);
-}
-
-
-void Library::InitMirrorsLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartMirrors();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  const Namespace& isolate_ns = Namespace::Handle(
-      Namespace::New(isolate_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(isolate_ns);
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  const Namespace& async_ns = Namespace::Handle(
-      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(async_ns);
-  const Library& wrappers_lib =
-      Library::Handle(Library::NativeWrappersLibrary());
-  const Namespace& wrappers_ns = Namespace::Handle(
-      Namespace::New(wrappers_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(wrappers_ns);
-  isolate->object_store()->set_mirrors_library(lib);
 }
 
 
@@ -6489,47 +6347,6 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
     cls_name = Symbols::New(name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
-}
-
-
-void Library::InitScalarlistLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartScalarlist();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  const Namespace& collection_ns = Namespace::Handle(
-      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(collection_ns);
-  isolate->object_store()->set_scalarlist_library(lib);
-}
-
-
-void Library::InitUriLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartUri();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& math_lib = Library::Handle(Library::MathLibrary());
-  const Namespace& math_ns = Namespace::Handle(
-      Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  const Library& utf_lib = Library::Handle(Library::UtfLibrary());
-  const Namespace& utf_ns = Namespace::Handle(
-      Namespace::New(utf_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(math_ns);
-  lib.AddImport(utf_ns);
-  isolate->object_store()->set_uri_library(lib);
-}
-
-
-void Library::InitUtfLibrary(Isolate* isolate) {
-  const String& url = Symbols::DartUtf();
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  const Library& async_lib = Library::Handle(Library::ASyncLibrary());
-  const Namespace& async_ns = Namespace::Handle(
-      Namespace::New(async_lib, Array::Handle(), Array::Handle()));
-  lib.AddImport(async_ns);
-  isolate->object_store()->set_utf_library(lib);
 }
 
 
@@ -6626,7 +6443,7 @@ void Library::Register() const {
 }
 
 
-RawLibrary* Library::ASyncLibrary() {
+RawLibrary* Library::AsyncLibrary() {
   return Isolate::Current()->object_store()->async_library();
 }
 
@@ -7263,8 +7080,38 @@ void LocalVarDescriptors::GetInfo(intptr_t var_index,
 
 
 const char* LocalVarDescriptors::ToCString() const {
-  UNIMPLEMENTED();
-  return "LocalVarDescriptors";
+  intptr_t len = 1;  // Trailing '\0'.
+  const char* kFormat =
+      "%2"Pd" kind=%d scope=0x%04x begin=%"Pd" end=%"Pd" name=%s\n";
+  for (intptr_t i = 0; i < Length(); i++) {
+    String& var_name = String::Handle(GetName(i));
+    RawLocalVarDescriptors::VarInfo info;
+    GetInfo(i, &info);
+    len += OS::SNPrint(NULL, 0, kFormat,
+                       i,
+                       info.kind,
+                       info.scope_id,
+                       info.begin_pos,
+                       info.end_pos,
+                       var_name.ToCString());
+  }
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
+  intptr_t num_chars = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    String& var_name = String::Handle(GetName(i));
+    RawLocalVarDescriptors::VarInfo info;
+    GetInfo(i, &info);
+    num_chars += OS::SNPrint((buffer + num_chars),
+                             (len - num_chars),
+                             kFormat,
+                             i,
+                             info.kind,
+                             info.scope_id,
+                             info.begin_pos,
+                             info.end_pos,
+                             var_name.ToCString());
+  }
+  return buffer;
 }
 
 
@@ -8912,7 +8759,7 @@ RawType* Instance::GetType() const {
   }
   const Type& type = Type::Handle(
       Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-  type.set_is_finalized_instantiated();
+  type.SetIsFinalized();
   return type.raw();
 }
 
@@ -9475,21 +9322,19 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   type ^= Type::New(Object::Handle(type_class.raw()),
                     no_type_arguments,
                     Scanner::kDummyTokenIndex);
-  type.set_is_finalized_instantiated();
+  type.SetIsFinalized();
   type ^= type.Canonicalize();
   return type.raw();
 }
 
 
-void Type::set_is_finalized_instantiated() const {
+void Type::SetIsFinalized() const {
   ASSERT(!IsFinalized());
-  set_type_state(RawType::kFinalizedInstantiated);
-}
-
-
-void Type::set_is_finalized_uninstantiated() const {
-  ASSERT(!IsFinalized());
-  set_type_state(RawType::kFinalizedUninstantiated);
+  if (IsInstantiated()) {
+    set_type_state(RawType::kFinalizedInstantiated);
+  } else {
+    set_type_state(RawType::kFinalizedUninstantiated);
+  }
 }
 
 
@@ -9603,7 +9448,7 @@ RawAbstractType* Type::InstantiateFrom(
       Type::New(cls, type_arguments, token_pos()));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
-  instantiated_type.set_is_finalized_instantiated();
+  instantiated_type.SetIsFinalized();
   return instantiated_type.raw();
 }
 
@@ -10655,6 +10500,7 @@ const char* Bigint::ToCString() const {
 }
 
 
+// Synchronize with implementation in compiler (intrinsifier).
 class StringHasher : ValueObject {
  public:
   StringHasher() : hash_(0) {}
@@ -10683,9 +10529,15 @@ intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(len >= 0);
   ASSERT((begin_index + len) <= str.Length());
   StringHasher hasher;
-  CodePointIterator it(str, begin_index, len);
-  while (it.Next()) {
-    hasher.Add(it.Current());
+  if (str.IsOneByteString()) {
+    for (intptr_t i = 0; i < len; i++) {
+      hasher.Add(*OneByteString::CharAddr(str, i + begin_index));
+    }
+  } else {
+    CodePointIterator it(str, begin_index, len);
+    while (it.Next()) {
+      hasher.Add(it.Current());
+    }
   }
   return hasher.Finalize(String::kHashBits);
 }
@@ -10727,13 +10579,13 @@ int32_t String::CharAt(intptr_t index) const {
   ASSERT(RawObject::IsStringClassId(class_id));
   NoGCScope no_gc;
   if (class_id == kOneByteStringCid) {
-      return *OneByteString::CharAddr(*this, index);
+    return *OneByteString::CharAddr(*this, index);
   }
   if (class_id == kTwoByteStringCid) {
-      return *TwoByteString::CharAddr(*this, index);
+    return *TwoByteString::CharAddr(*this, index);
   }
   if (class_id == kExternalOneByteStringCid) {
-      return *ExternalOneByteString::CharAddr(*this, index);
+    return *ExternalOneByteString::CharAddr(*this, index);
   }
   ASSERT(class_id == kExternalTwoByteStringCid);
   return *ExternalTwoByteString::CharAddr(*this, index);
@@ -11206,7 +11058,30 @@ RawString* String::SubString(const String& str,
 
 
 const char* String::ToCString() const {
-  intptr_t len = Utf8::Length(*this);
+  if (IsOneByteString()) {
+    // Quick conversion if OneByteString contains only ASCII characters.
+    intptr_t len = Length();
+    if (len == 0) {
+      return "";
+    }
+    Zone* zone = Isolate::Current()->current_zone();
+    uint8_t* result = zone->Alloc<uint8_t>(len + 1);
+    NoGCScope no_gc;
+    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
+    for (intptr_t i = 0; i < len; i++) {
+      if (original_str[i] <= Utf8::kMaxOneByteChar) {
+        result[i] = original_str[i];
+      } else {
+        len = -1;
+        break;
+      }
+    }
+    if (len > 0) {
+      result[len] = 0;
+      return reinterpret_cast<const char*>(result);
+    }
+  }
+  const intptr_t len = Utf8::Length(*this);
   Zone* zone = Isolate::Current()->current_zone();
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
   ToUTF8(result, len);
@@ -11508,17 +11383,16 @@ RawOneByteString* OneByteString::New(intptr_t len,
     // This should be caught before we reach here.
     FATAL1("Fatal error in OneByteString::New: invalid len %"Pd"\n", len);
   }
-  String& result = String::Handle();
   {
     RawObject* raw = Object::Allocate(OneByteString::kClassId,
                                       OneByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetHash(0);
+    RawOneByteString* result = reinterpret_cast<RawOneByteString*>(raw);
+    result->ptr()->length_ = Smi::New(len);
+    result->ptr()->hash_ = 0;
+    return result;
   }
-  return OneByteString::raw(result);
 }
 
 
@@ -12149,6 +12023,206 @@ const char* GrowableObjectArray::ToCString() const {
 }
 
 
+RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
+                                       Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+         Class::null());
+  Float32x4& result = Float32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float32x4::kClassId,
+                                      Float32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_x(v0);
+  result.set_y(v1);
+  result.set_z(v2);
+  result.set_w(v3);
+  return result.raw();
+}
+
+
+RawFloat32x4* Float32x4::New(simd_value_t value, Heap::Space space) {
+ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+         Class::null());
+  Float32x4& result = Float32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float32x4::kClassId,
+                                      Float32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_value(value);
+  return result.raw();
+}
+
+
+simd_value_t Float32x4::value() const {
+  return simd_value_safe_load(&raw_ptr()->value_[0]);
+}
+
+
+void Float32x4::set_value(simd_value_t value) const {
+  simd_value_safe_store(&raw_ptr()->value_[0], value);
+}
+
+
+void Float32x4::set_x(float value) const {
+  raw_ptr()->value_[0] = value;
+}
+
+
+void Float32x4::set_y(float value) const {
+  raw_ptr()->value_[1] = value;
+}
+
+
+void Float32x4::set_z(float value) const {
+  raw_ptr()->value_[2] = value;
+}
+
+
+void Float32x4::set_w(float value) const {
+  raw_ptr()->value_[3] = value;
+}
+
+
+float Float32x4::x() const {
+  return raw_ptr()->value_[0];
+}
+
+
+float Float32x4::y() const {
+  return raw_ptr()->value_[1];
+}
+
+
+float Float32x4::z() const {
+  return raw_ptr()->value_[2];
+}
+
+
+float Float32x4::w() const {
+  return raw_ptr()->value_[3];
+}
+
+
+const char* Float32x4::ToCString() const {
+  const char* kFormat = "[%f, %f, %f, %f]";
+  float _x = x();
+  float _y = y();
+  float _z = z();
+  float _w = w();
+  // Calculate the size of the string.
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
+  return chars;
+}
+
+
+RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
+                           Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->uint32x4_class() !=
+         Class::null());
+  Uint32x4& result = Uint32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
+                                      Uint32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_x(v0);
+  result.set_y(v1);
+  result.set_z(v2);
+  result.set_w(v3);
+  return result.raw();
+}
+
+
+RawUint32x4* Uint32x4::New(simd_value_t value, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+         Class::null());
+  Uint32x4& result = Uint32x4::Handle();
+  {
+    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
+                                      Uint32x4::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_value(value);
+  return result.raw();
+}
+
+
+void Uint32x4::set_x(uint32_t value) const {
+  raw_ptr()->value_[0] = value;
+}
+
+
+void Uint32x4::set_y(uint32_t value) const {
+  raw_ptr()->value_[1] = value;
+}
+
+
+void Uint32x4::set_z(uint32_t value) const {
+  raw_ptr()->value_[2] = value;
+}
+
+
+void Uint32x4::set_w(uint32_t value) const {
+  raw_ptr()->value_[3] = value;
+}
+
+
+uint32_t Uint32x4::x() const {
+  return raw_ptr()->value_[0];
+}
+
+
+uint32_t Uint32x4::y() const {
+  return raw_ptr()->value_[1];
+}
+
+
+uint32_t Uint32x4::z() const {
+  return raw_ptr()->value_[2];
+}
+
+
+uint32_t Uint32x4::w() const {
+  return raw_ptr()->value_[3];
+}
+
+
+simd_value_t Uint32x4::value() const {
+  return simd_value_safe_load(&raw_ptr()->value_[0]);
+}
+
+
+void Uint32x4::set_value(simd_value_t value) const {
+  simd_value_safe_store(&raw_ptr()->value_[0], value);
+}
+
+
+const char* Uint32x4::ToCString() const {
+  const char* kFormat = "[%08x, %08x, %08x, %08x]";
+  uint32_t _x = x();
+  uint32_t _y = y();
+  uint32_t _z = z();
+  uint32_t _w = w();
+  // Calculate the size of the string.
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
+  return chars;
+}
+
+
 void ByteArray::Copy(void* dst,
                      const ByteArray& src,
                      intptr_t src_offset,
@@ -12481,6 +12555,30 @@ const char* Uint64Array::ToCString() const {
 }
 
 
+RawFloat32x4Array* Float32x4Array::New(intptr_t len,
+                                                 Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32x4_array_class() !=
+         Class::null());
+  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, len,
+                                                              space);
+}
+
+
+RawFloat32x4Array* Float32x4Array::New(const simd_value_t* data,
+                                                 intptr_t len,
+                                                 Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
+         Class::null());
+  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, data,
+                                                              len, space);
+}
+
+
+const char* Float32x4Array::ToCString() const {
+  return "_Float32x4Array";
+}
+
+
 RawFloat32Array* Float32Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
          Class::null());
@@ -12661,6 +12759,24 @@ const char* ExternalUint64Array::ToCString() const {
 }
 
 
+RawExternalFloat32x4Array* ExternalFloat32x4Array::New(
+    simd_value_t* data,
+    intptr_t len,
+    Heap::Space space) {
+  RawClass* cls =
+     Isolate::Current()->object_store()->external_float32x4_array_class();
+  ASSERT(cls != Class::null());
+  return NewExternalImpl<ExternalFloat32x4Array,
+                         RawExternalFloat32x4Array>(kClassId, data, len,
+                                                         space);
+}
+
+
+const char* ExternalFloat32x4Array::ToCString() const {
+  return "_ExternalFloat32x4Array";
+}
+
+
 RawExternalFloat32Array* ExternalFloat32Array::New(float* data,
                                                    intptr_t len,
                                                    Heap::Space space) {
@@ -12742,15 +12858,36 @@ RawFunction* Stacktrace::FunctionAtFrame(intptr_t frame_index) const {
 }
 
 
+void Stacktrace::SetFunctionAtFrame(intptr_t frame_index,
+                                    const Function& func) const {
+  const Array& function_array = Array::Handle(raw_ptr()->function_array_);
+  function_array.SetAt(frame_index, func);
+}
+
+
 RawCode* Stacktrace::CodeAtFrame(intptr_t frame_index) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   return reinterpret_cast<RawCode*>(code_array.At(frame_index));
 }
 
 
+void Stacktrace::SetCodeAtFrame(intptr_t frame_index,
+                                const Code& code) const {
+  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
+  code_array.SetAt(frame_index, code);
+}
+
+
 RawSmi* Stacktrace::PcOffsetAtFrame(intptr_t frame_index) const {
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   return reinterpret_cast<RawSmi*>(pc_offset_array.At(frame_index));
+}
+
+
+void Stacktrace::SetPcOffsetAtFrame(intptr_t frame_index,
+                                    const Smi& pc_offset) const {
+  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
+  pc_offset_array.SetAt(frame_index, pc_offset);
 }
 
 
@@ -12769,9 +12906,24 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
-                               const GrowableObjectArray& code_list,
-                               const GrowableObjectArray& pc_offset_list,
+void Stacktrace::set_catch_func_array(const Array& function_array) const {
+  StorePointer(&raw_ptr()->catch_func_array_, function_array.raw());
+}
+
+
+void Stacktrace::set_catch_code_array(const Array& code_array) const {
+  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
+}
+
+
+void Stacktrace::set_catch_pc_offset_array(const Array& pc_offset_array) const {
+  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
+}
+
+
+RawStacktrace* Stacktrace::New(const Array& func_array,
+                               const Array& code_array,
+                               const Array& pc_offset_array,
                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
          Class::null());
@@ -12783,21 +12935,19 @@ RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
     NoGCScope no_gc;
     result ^= raw;
   }
-  // Create arrays for the function, code and pc_offset triplet for each frame.
-  const Array& function_array = Array::Handle(Array::MakeArray(func_list));
-  const Array& code_array = Array::Handle(Array::MakeArray(code_list));
-  const Array& pc_offset_array =
-      Array::Handle(Array::MakeArray(pc_offset_list));
-  result.set_function_array(function_array);
+  result.set_function_array(func_array);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
+  result.SetCatchStacktrace(Object::empty_array(),
+                            Object::empty_array(),
+                            Object::empty_array());
   return result.raw();
 }
 
 
-void Stacktrace::Append(const GrowableObjectArray& func_list,
-                        const GrowableObjectArray& code_list,
-                        const GrowableObjectArray& pc_offset_list) const {
+void Stacktrace::Append(const Array& func_list,
+                        const Array& code_list,
+                        const Array& pc_offset_list) const {
   intptr_t old_length = Length();
   intptr_t new_length = old_length + pc_offset_list.Length();
   ASSERT(pc_offset_list.Length() == func_list.Length());
@@ -12828,7 +12978,42 @@ void Stacktrace::Append(const GrowableObjectArray& func_list,
 }
 
 
+void Stacktrace::SetCatchStacktrace(const Array& func_array,
+                                    const Array& code_array,
+                                    const Array& pc_offset_array) const {
+  StorePointer(&raw_ptr()->catch_func_array_, func_array.raw());
+  StorePointer(&raw_ptr()->catch_code_array_, code_array.raw());
+  StorePointer(&raw_ptr()->catch_pc_offset_array_, pc_offset_array.raw());
+}
+
+
+RawString* Stacktrace::FullStacktrace() const {
+  const Array& func_array = Array::Handle(raw_ptr()->catch_func_array_);
+  if (!func_array.IsNull() && (func_array.Length() > 0)) {
+    const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
+    const Array& pc_offset_array =
+        Array::Handle(raw_ptr()->catch_pc_offset_array_);
+    const Stacktrace& catch_trace = Stacktrace::Handle(
+        Stacktrace::New(func_array, code_array, pc_offset_array));
+    intptr_t idx = Length();
+    const String& trace =
+        String::Handle(String::New(catch_trace.ToCStringInternal(idx)));
+    const String& throw_trace =
+        String::Handle(String::New(ToCStringInternal(0)));
+    return String::Concat(throw_trace, trace);
+  }
+  return String::New(ToCStringInternal(0));
+}
+
+
 const char* Stacktrace::ToCString() const {
+  const String& trace = String::Handle(FullStacktrace());
+  return trace.ToCString();
+}
+
+
+const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
+  Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
   Script& script = Script::Handle();
@@ -12840,8 +13025,21 @@ const char* Stacktrace::ToCString() const {
   intptr_t total_len = 0;
   const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
   GrowableArray<char*> frame_strings;
+  char* chars;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
+    if (function.IsNull()) {
+      // Check if null function object indicates a stack trace overflow.
+      if ((i < (Length() - 1)) &&
+          (FunctionAtFrame(i + 1) != Function::null())) {
+        const char* kTruncated = "...\n...\n";
+        intptr_t truncated_len = strlen(kTruncated) + 1;
+        chars = isolate->current_zone()->Alloc<char>(truncated_len);
+        OS::SNPrint(chars, truncated_len, "%s", kTruncated);
+        frame_strings.Add(chars);
+      }
+      continue;
+    }
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
     intptr_t token_pos = code.GetTokenIndexOfPC(pc);
@@ -12854,22 +13052,22 @@ const char* Stacktrace::ToCString() const {
       script.GetTokenLocation(token_pos, &line, &column);
     }
     intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                               i,
+                               (frame_index + i),
                                function_name.ToCString(),
                                url.ToCString(),
                                line, column);
     total_len += len;
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    chars = isolate->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
-                i,
+                (frame_index + i),
                 function_name.ToCString(),
                 url.ToCString(),
                 line, column);
     frame_strings.Add(chars);
   }
 
-  // Now concatentate the frame descriptions into a single C string.
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(total_len + 1);
+  // Now concatenate the frame descriptions into a single C string.
+  chars = isolate->current_zone()->Alloc<char>(total_len + 1);
   intptr_t index = 0;
   for (intptr_t i = 0; i < frame_strings.length(); i++) {
     index += OS::SNPrint((chars + index),
@@ -12877,6 +13075,7 @@ const char* Stacktrace::ToCString() const {
                          "%s",
                          frame_strings[i]);
   }
+  chars[total_len] = '\0';
   return chars;
 }
 

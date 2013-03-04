@@ -278,7 +278,7 @@ TEST_CASE(StackmapGC) {
   // is called, this should then cause the stack map of function 'A.foo'
   // to be traversed and the appropriate objects visited.
   const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function_foo, Object::empty_array()));
+      DartEntry::InvokeFunction(function_foo, Object::empty_array()));
   EXPECT(!result.IsError());
 }
 

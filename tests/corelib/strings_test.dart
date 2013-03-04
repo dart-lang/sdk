@@ -13,9 +13,9 @@ class StringsTest {
   }
   static testCreation() {
     String s = "Hello";
-    List<int> l = new List.fixedLength(s.length);
+    List<int> l = new List(s.length);
     for (int i = 0; i < l.length; i++) {
-      l[i] = s.charCodeAt(i);
+      l[i] = s.codeUnitAt(i);
     }
     String s2 = new String.fromCharCodes(l);
     Expect.equals(s, s2);

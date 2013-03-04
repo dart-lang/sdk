@@ -183,7 +183,7 @@ import 'src/utils.dart';
 
 export 'package:unittest/matcher.dart';
 export 'package:unittest/unittest.dart' show
-    config, configure, Configuration, logMessage, expectThrow, fail;
+    config, configure, Configuration, logMessage, expectThrow;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
@@ -316,7 +316,7 @@ void _setUpScheduledTest([void setUpFn()]) {
 /// initialized.
 void _ensureInitialized() {
   unittest.ensureInitialized();
-  unittest.wrapAsync = (f) {
+  unittest.wrapAsync = (f, [id = '']) {
     if (currentSchedule == null) {
       throw new StateError("Unexpected call to wrapAsync with no current "
           "schedule.");

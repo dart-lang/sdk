@@ -125,7 +125,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     element.typeVariables = typeVariables4;
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl.con1(element);
     int typeVariableCount = typeVariables4.length;
-    List<Type2> typeArguments = new List<Type2>.fixedLength(typeVariableCount);
+    List<Type2> typeArguments = new List<Type2>(typeVariableCount);
     for (int i = 0; i < typeVariableCount; i++) {
       TypeVariableElementImpl typeVariable = (typeVariables4[i] as TypeVariableElementImpl);
       TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
@@ -148,7 +148,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     element.typeVariables = typeVariables5;
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl.con1(element);
     int typeVariableCount = typeVariables5.length;
-    List<Type2> typeArguments = new List<Type2>.fixedLength(typeVariableCount);
+    List<Type2> typeArguments = new List<Type2>(typeVariableCount);
     for (int i = 0; i < typeVariableCount; i++) {
       TypeVariableElementImpl typeVariable = (typeVariables5[i] as TypeVariableElementImpl);
       TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
@@ -1996,7 +1996,7 @@ class LibraryResolver {
    */
   List<String> getIdentifiers(NodeList<SimpleIdentifier> names) {
     int count = names.length;
-    List<String> identifiers = new List<String>.fixedLength(count);
+    List<String> identifiers = new List<String>(count);
     for (int i = 0; i < count; i++) {
       identifiers[i] = names[i].name;
     }
@@ -3536,7 +3536,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       int parameterCount = parameters.length;
       if (parameterCount > 0) {
         DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
-        List<Type2> arguments = new List<Type2>.fixedLength(parameterCount);
+        List<Type2> arguments = new List<Type2>(parameterCount);
         for (int i = 0; i < parameterCount; i++) {
           arguments[i] = dynamicType;
         }

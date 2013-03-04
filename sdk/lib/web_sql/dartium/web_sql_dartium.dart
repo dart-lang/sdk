@@ -1,3 +1,13 @@
+/**
+ * An API for storing data in the browser that can be queried with SQL.
+ *
+ * **Caution:** this specification is no longer actively maintained by the Web
+ * Applications Working Group and may be removed at any time.
+ * See [the W3C Web SQL Database specification](http://www.w3.org/TR/webdatabase/)
+ * for more information.
+ *
+ * The [dart:indexed_db] APIs is a recommended alternatives.
+ */
 library dart.dom.web_sql;
 
 import 'dart:async';
@@ -82,6 +92,18 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
   @DocsEditable
   String get version native "Database_version_Getter";
 
+  /**
+   * Atomically update the database version to [newVersion], asynchronously
+   * running [callback] on the [SqlTransaction] representing this
+   * [changeVersion] transaction.
+   *
+   * If [callback] runs successfully, then [successCallback] is called.
+   * Otherwise, [errorCallback] is called.
+   *
+   * [oldVersion] should match the database's current [version] exactly.
+   *
+   * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
+   */
   @DomName('Database.changeVersion')
   @DocsEditable
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
@@ -287,7 +309,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Map> toList() => new List<Map>.from(this);
+  List<Map> toList({ bool growable: true }) =>
+      new List<Map>.from(this, growable: growable);
+
   Set<Map> toSet() => new Set<Map>.from(this);
 
   bool get isEmpty => this.length == 0;

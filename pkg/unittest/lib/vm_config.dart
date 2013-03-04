@@ -21,8 +21,6 @@ class VMConfiguration extends Configuration {
       exit(1);
     }
   }
-
-  void notifyController(String msg) {}
 }
 
 void useVMConfiguration() {

@@ -42,22 +42,21 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
 
 void FlowGraphTypePropagator::Propagate() {
   if (FLAG_trace_type_propagation) {
-    OS::Print("Before type propagation:\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
+    FlowGraphPrinter::PrintGraph("Before type propagation", flow_graph_);
   }
 
   // Walk the dominator tree and propagate reaching types to all Values.
   // Collect all phis for a fixed point iteration.
   PropagateRecursive(flow_graph_->graph_entry());
 
-#ifdef DEBUG
   // Initially the worklist contains only phis.
+  // Reset compile type of all phis to None to ensure that
+  // types are correctly propagated through the cycles of
+  // phis.
   for (intptr_t i = 0; i < worklist_.length(); i++) {
     ASSERT(worklist_[i]->IsPhi());
-    ASSERT(worklist_[i]->Type()->IsNone());
+    *worklist_[i]->Type() = CompileType::None();
   }
-#endif
 
   // Iterate until a fixed point is reached, updating the types of
   // definitions.
@@ -84,9 +83,7 @@ void FlowGraphTypePropagator::Propagate() {
   }
 
   if (FLAG_trace_type_propagation) {
-    OS::Print("After type propagation:\n");
-    FlowGraphPrinter printer(*flow_graph_);
-    printer.PrintBlocks();
+    FlowGraphPrinter::PrintGraph("After type propagation", flow_graph_);
   }
 }
 
@@ -176,9 +173,7 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
 
 void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join) {
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
-    if (it.Current()->is_alive()) {
-      worklist_.Add(it.Current());
-    }
+    worklist_.Add(it.Current());
   }
 }
 
@@ -289,14 +284,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
-
-  Value* use = check_clone->InputAt(0);
-  use->set_instruction(check_clone);
-  use->set_use_index(0);
-  use->definition()->AddInputUse(use);
-
-  assert->env()->DeepCopyTo(check_clone);
   check_clone->InsertBefore(assert);
+  assert->env()->DeepCopyTo(check_clone);
 
   (*asserts_)[defn->ssa_temp_index()] = kStrengthenedAssertMarker;
 }
@@ -352,7 +341,7 @@ CompileType CompileType::Create(intptr_t cid, const AbstractType& type) {
 
 
 CompileType CompileType::FromAbstractType(const AbstractType& type,
-                                           bool is_nullable) {
+                                          bool is_nullable) {
   return CompileType(is_nullable, kIllegalCid, &type);
 }
 
@@ -400,9 +389,10 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
     } else if (FLAG_use_cha && type_->HasResolvedTypeClass()) {
-      const intptr_t cid = Class::Handle(type_->type_class()).id();
-      if (!CHA::HasSubclasses(cid)) {
-        cid_ = cid;
+      const Class& type_class = Class::Handle(type_->type_class());
+      if (!type_class.is_implemented() &&
+          !CHA::HasSubclasses(type_class.id())) {
+        cid_ = type_class.id();
       } else {
         cid_ = kDynamicCid;
       }
@@ -538,12 +528,7 @@ CompileType PhiInstr::ComputeType() const {
 
 
 bool PhiInstr::RecomputeType() {
-  if (!is_alive()) {
-    return false;
-  }
-
   CompileType result = CompileType::None();
-
   for (intptr_t i = 0; i < InputCount(); i++) {
     if (FLAG_trace_type_propagation) {
       OS::Print("  phi %"Pd" input %"Pd": v%"Pd" has reaching type %s\n",
@@ -564,17 +549,6 @@ bool PhiInstr::RecomputeType() {
 }
 
 
-static bool CanTrustParameterType(const Function& function, intptr_t index) {
-  // Parameter is receiver.
-  if (index == 0) {
-    return function.IsDynamicFunction() || function.IsConstructor();
-  }
-
-  // Parameter is the constructor phase.
-  return (index == 1) && function.IsConstructor();
-}
-
-
 CompileType ParameterInstr::ComputeType() const {
   // Note that returning the declared type of the formal parameter would be
   // incorrect, because ParameterInstr is used as input to the type check
@@ -582,14 +556,36 @@ CompileType ParameterInstr::ComputeType() const {
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
   // for example receiver and construction phase.
-  if (!CanTrustParameterType(block_->parsed_function().function(),
-                             index())) {
-    return CompileType::Dynamic();
+  const Function& function = block_->parsed_function().function();
+  LocalScope* scope = block_->parsed_function().node_sequence()->scope();
+  const AbstractType& type = scope->VariableAt(index())->type();
+
+  // Parameter is the constructor phase.
+  if ((index() == 1) && function.IsConstructor()) {
+    return CompileType::FromAbstractType(type, CompileType::kNonNullable);
   }
 
-  LocalScope* scope = block_->parsed_function().node_sequence()->scope();
-  return CompileType::FromAbstractType(scope->VariableAt(index())->type(),
-                                       CompileType::kNonNullable);
+  // Parameter is the receiver.
+  if ((index() == 0) &&
+      (function.IsDynamicFunction() || function.IsConstructor())) {
+    if (type.IsObjectType() || type.IsNullType()) {
+      // Receiver can be null.
+      return CompileType::FromAbstractType(type, CompileType::kNullable);
+    }
+
+    // Receiver can't be null but can be an instance of a subclass.
+    intptr_t cid = kDynamicCid;
+    if (FLAG_use_cha && type.HasResolvedTypeClass()) {
+      const Class& type_class = Class::Handle(type.type_class());
+      if (!CHA::HasSubclasses(type_class.id())) {
+        cid = type_class.id();
+      }
+    }
+
+    return CompileType(CompileType::kNonNullable, cid, &type);
+  }
+
+  return CompileType::Dynamic();
 }
 
 

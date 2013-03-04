@@ -111,7 +111,7 @@ String decodeString(List<int> bytes, Encoding encoding) {
 /// Converts [string] into a byte array according to [encoding].
 List<int> encodeString(String string, Encoding encoding) {
   // TODO(nweiz): implement this once issue 6284 is fixed.
-  return string.charCodes;
+  return string.codeUnits;
 }
 
 /// A regular expression that matches strings that are composed entirely of
@@ -147,65 +147,6 @@ Stream onDone(Stream stream, void onDone()) {
   var pair = tee(stream);
   pair.first.listen((_) {}, onError: (_) {}, onDone: onDone);
   return pair.last;
-}
-
-// TODO(nweiz): remove this once issue 7785 is fixed.
-/// Wraps [stream] in a single-subscription [ByteStream] that emits the same
-/// data.
-ByteStream wrapInputStream(InputStream stream) {
-  if (stream.closed) return emptyStream;
-
-  var controller = new StreamController();
-  stream.onClosed = controller.close;
-  stream.onData = () => controller.add(stream.read());
-  stream.onError = (e) => controller.signalError(new AsyncError(e));
-  return new ByteStream(controller.stream);
-}
-
-// TODO(nweiz): remove this once issue 7785 is fixed.
-/// Wraps [stream] in a [StreamConsumer] so that [Stream]s can by piped into it
-/// using [Stream.pipe].
-StreamConsumer<List<int>, dynamic> wrapOutputStream(OutputStream stream) =>
-  new _OutputStreamConsumer(stream);
-
-/// A [StreamConsumer] that pipes data into an [OutputStream].
-class _OutputStreamConsumer implements StreamConsumer<List<int>, dynamic> {
-  final OutputStream _outputStream;
-
-  _OutputStreamConsumer(this._outputStream);
-
-  Future consume(Stream<List<int>> stream) {
-    // TODO(nweiz): we have to manually keep track of whether or not the
-    // completer has completed since the output stream could signal an error
-    // after close() has been called but before it has shut down internally. See
-    // the following TODO.
-    var completed = false;
-    var completer = new Completer();
-    stream.listen((data) {
-      // Writing empty data to a closed stream can cause errors.
-      if (data.isEmpty) return;
-
-      // TODO(nweiz): remove this try/catch when issue 7836 is fixed.
-      try {
-        _outputStream.write(data);
-      } catch (e, stack) {
-        if (!completed) completer.completeError(e, stack);
-        completed = true;
-      }
-    }, onDone: () => _outputStream.close());
-
-    _outputStream.onError = (e) {
-      if (!completed) completer.completeError(e);
-      completed = true;
-    };
-
-    _outputStream.onClosed = () {
-      if (!completed) completer.complete();
-      completed = true;
-    };
-
-    return completer.future;
-  }
 }
 
 // TODO(nweiz): remove this when issue 7786 is fixed.
@@ -308,17 +249,4 @@ Future forEachFuture(Iterable input, Future fn(element)) {
     return fn(iterator.current).then(nextElement);
   }
   return nextElement(null);
-}
-
-// TODO(nweiz): remove this when issue 8310 is fixed.
-/// Returns a [Stream] identical to [stream], but piped through a new
-/// [StreamController]. This exists to work around issue 8310.
-Stream wrapStream(Stream stream) {
-  var controller = stream.isBroadcast
-      ? new StreamController.broadcast()
-      : new StreamController();
-  stream.listen(controller.add,
-      onError: (e) => controller.signalError(e),
-      onDone: controller.close);
-  return controller.stream;
 }

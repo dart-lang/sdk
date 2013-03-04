@@ -39,12 +39,6 @@ main() {
     });
   });
 
-  group('supported_datetime', () {
-    test('supported', () {
-      expect(DateTimeInputElement.supported, true);
-    });
-  });
-
   group('supported_date', () {
     test('supported', () {
       expect(DateInputElement.supported, true);
@@ -117,11 +111,6 @@ main() {
       check(new PasswordInputElement(), 'password');
     });
 
-    test('datetime', () {
-      check(new DateTimeInputElement(), 'datetime',
-          DateTimeInputElement.supported);
-    });
-
     test('date', () {
       check(new DateInputElement(), 'date', DateInputElement.supported);
     });
@@ -136,6 +125,15 @@ main() {
 
     test('time', () {
       check(new TimeInputElement(), 'time', TimeInputElement.supported);
+      if (TimeInputElement.supported) {
+        var element = new TimeInputElement();
+        var now = new DateTime.now();
+        element.valueAsDate = now;
+        expect(element.valueAsDate is DateTime, isTrue);
+
+        // Bug 8813, setting it is just going to the epoch.
+        //expect(element.valueAsDate, now);
+      }
     });
 
     test('datetime-local', () {

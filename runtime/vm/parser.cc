@@ -3415,6 +3415,13 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
+
+  // TODO(hausner): Handle mixin application aliases with generics.
+  if (mixin_application.NumTypeParameters() > 0) {
+    ErrorMsg(classname_pos,
+             "type parameters on mixin applications not yet supported");
+  }
+
   ExpectToken(Token::kASSIGN);
 
   if (CurrentToken() == Token::kABSTRACT) {
@@ -3438,8 +3445,15 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
     ErrorMsg("mixin application 'with Type' expected");
   }
 
-  Type& mixin_application_type = Type::Handle(ParseMixins(mixin_super_type));
-  // The result of ParseMixins() is a chain of super classes that is the
+  const Type& mixin_application_type =
+      Type::Handle(ParseMixins(mixin_super_type));
+  // TODO(hausner): Implement generic mixin support.
+  if (mixin_application_type.arguments() != AbstractTypeArguments::null()) {
+    ErrorMsg(mixin_application_type.token_pos(),
+             "mixin class with type arguments not yet supported");
+  }
+
+  // The result of ParseMixins() is a chain of super types that is the
   // result of the mixin composition 'S with M1, M2, ...'. The mixin
   // application classes are anonymous (i.e. not registered in the current
   // library). We steal the super type and mixin type from the bottom of
@@ -3838,7 +3852,7 @@ RawType* Parser::ParseMixins(const Type& super_type) {
   // TODO(hausner): Remove this restriction.
   if (super_type.arguments() != AbstractTypeArguments::null()) {
     ErrorMsg(super_type.token_pos(),
-             "super class of mixin may not have type arguments");
+             "super class in mixin application may not have type arguments");
   }
 
   AbstractType& mixin_type = AbstractType::Handle();
@@ -3848,7 +3862,6 @@ RawType* Parser::ParseMixins(const Type& super_type) {
   Type& mixin_application_type = Type::Handle();
   Type& mixin_super_type = Type::Handle(super_type.raw());
   Array& mixin_application_interfaces = Array::Handle();
-  const TypeArguments& no_type_arguments = TypeArguments::Handle();
   do {
     ConsumeToken();
     const intptr_t mixin_pos = TokenPos();
@@ -3858,22 +3871,14 @@ RawType* Parser::ParseMixins(const Type& super_type) {
                "mixin type '%s' may not be a type parameter",
                String::Handle(mixin_type.UserVisibleName()).ToCString());
     }
-    // TODO(hausner): Remove this check once we handle mixins with type
-    // arguments.
-    mixin_type_arguments = mixin_type.arguments();
-    if (!mixin_type_arguments.IsNull()) {
-      ErrorMsg(mixin_pos,
-               "mixin type '%s' may not have type arguments",
-               String::Handle(mixin_type.UserVisibleName()).ToCString());
-    }
 
     // The name of the mixin application class is a combination of
     // the superclass and mixin class.
     String& mixin_app_name = String::Handle();
-    mixin_app_name = mixin_super_type.Name();
+    mixin_app_name = mixin_super_type.ClassName();
     mixin_app_name = String::Concat(mixin_app_name, Symbols::Ampersand());
     mixin_app_name = String::Concat(mixin_app_name,
-                                     String::Handle(mixin_type.Name()));
+                                     String::Handle(mixin_type.ClassName()));
     mixin_app_name = Symbols::New(mixin_app_name);
 
     mixin_application = Class::New(mixin_app_name, script_, mixin_pos);
@@ -3887,10 +3892,17 @@ RawType* Parser::ParseMixins(const Type& super_type) {
     mixin_application_interfaces.SetAt(0, mixin_type);
     mixin_application.set_interfaces(mixin_application_interfaces);
 
-    // TODO(hausner): Need to support type arguments.
+    // For the type arguments of the mixin application type, we need
+    // a copy of the type arguments to the mixin type. The simplest way
+    // to get the copy is to rewind the parser, parse the mixin type
+    // again and steal its type arguments.
+    SetPosition(mixin_pos);
+    mixin_type = ParseType(ClassFinalizer::kTryResolve);
+    mixin_type_arguments = mixin_type.arguments();
+
     mixin_application_type = Type::New(mixin_application,
-                                       no_type_arguments,
-                                       Scanner::kDummyTokenIndex);
+                                       mixin_type_arguments,
+                                       mixin_pos);
     mixin_super_type = mixin_application_type.raw();
   } while (CurrentToken() == Token::kCOMMA);
   return mixin_application_type.raw();
@@ -4252,23 +4264,36 @@ void Parser::ParseLibraryNameObsoleteSyntax() {
 }
 
 
-Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
+RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
                                           const String& url) {
   Isolate* isolate = Isolate::Current();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
+    if (url.StartsWith(Symbols::DartScheme())) {
+      if (tag == kCanonicalizeUrl) {
+        return url.raw();
+      }
+      return Object::null();
+    }
     ErrorMsg(token_pos, "no library handler registered");
   }
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate, library_.raw()),
                                Api::NewHandle(isolate, url.raw()));
   if (Dart_IsError(result)) {
+    // In case of an error we append an explanatory error message to the
+    // error obtained from the library tag handler.
     Error& prev_error = Error::Handle();
     prev_error ^= Api::UnwrapHandle(result);
     AppendErrorMsg(prev_error, token_pos, "library handler failed");
   }
-  return result;
+  if (tag == kCanonicalizeUrl) {
+    if (!Dart_IsString(result)) {
+      ErrorMsg(token_pos, "library handler failed URI canonicalization");
+    }
+  }
+  return Api::UnwrapHandle(result);
 }
 
 
@@ -4303,10 +4328,8 @@ void Parser::ParseLibraryImportObsoleteSyntax() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
-                                               import_pos,
-                                               url);
-    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+    const String& canon_url = String::CheckedHandle(
+        CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
     if (library.IsNull()) {
@@ -4352,10 +4375,8 @@ void Parser::ParseLibraryIncludeObsoleteSyntax() {
     ConsumeToken();
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
-    Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
-                                               source_pos,
-                                               url);
-    const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+    const String& canon_url = String::CheckedHandle(
+        CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url));
     CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
   }
 }
@@ -4442,9 +4463,8 @@ void Parser::ParseLibraryImportExport() {
   ExpectSemicolon();
 
   // Canonicalize library URL.
-  Dart_Handle handle =
-      CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url);
-  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  const String& canon_url = String::CheckedHandle(
+      CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url));
   // Lookup the library URL.
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
@@ -4496,9 +4516,8 @@ void Parser::ParseLibraryPart() {
   const String& url = *CurrentLiteral();
   ConsumeToken();
   ExpectSemicolon();
-  Dart_Handle handle =
-      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url);
-  const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
+  const String& canon_url = String::CheckedHandle(
+      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url));
   CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
 }
 
@@ -4531,8 +4550,6 @@ void Parser::ParseLibraryDefinition() {
     return;
   }
 
-  const bool is_script = (script_.kind() == RawScript::kScriptTag);
-  const bool is_library = (script_.kind() == RawScript::kLibraryTag);
   ASSERT(script_.kind() != RawScript::kSourceTag);
 
   // We may read metadata tokens that are part of the toplevel
@@ -4542,17 +4559,15 @@ void Parser::ParseLibraryDefinition() {
   intptr_t metadata_pos = TokenPos();
   SkipMetadata();
   if (CurrentToken() == Token::kLIBRARY) {
+    if (is_patch_source()) {
+      ErrorMsg("patch cannot override library name");
+    }
     ParseLibraryName();
     metadata_pos = TokenPos();
     SkipMetadata();
-  } else if (is_library) {
-    ErrorMsg("library name definition expected");
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
-    if (is_script && (CurrentToken() == Token::kEXPORT)) {
-      ErrorMsg("export not allowed in scripts");
-    }
     ParseLibraryImportExport();
     metadata_pos = TokenPos();
     SkipMetadata();
@@ -4617,7 +4632,7 @@ void Parser::ParseTopLevel() {
       Class::New(Symbols::TopLevel(), script_, TokenPos()));
   toplevel_class.set_library(library_);
 
-  if (is_library_source()) {
+  if (is_library_source() || is_patch_source()) {
     ParseLibraryDefinition();
   } else if (is_part_source()) {
     ParsePartHeader();
@@ -5082,7 +5097,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
         Type::Handle(Type::Function()).type_class());
     function_type = Type::New(
         unknown_signature_class, TypeArguments::Handle(), ident_pos);
-    function_type.set_is_finalized_instantiated();  // No finalization needed.
+    function_type.SetIsFinalized();  // No finalization needed.
 
     // Add the function variable to the scope before parsing the function in
     // order to allow self reference from inside the function.
@@ -6278,11 +6293,18 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
       // variable specified in this block.
+      ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
       LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
       ASSERT(catch_trace_var != NULL);
       current_block_->statements->Add(
           new StoreLocalNode(catch_pos, trace,
                              new LoadLocalNode(catch_pos, catch_trace_var)));
+      current_block_->statements->Add(
+          new InstanceCallNode(
+              catch_pos,
+              new LoadLocalNode(catch_pos, trace),
+              PrivateCoreLibName(Symbols::_setupFullStackTrace()),
+              no_args));
     }
 
     ParseStatementSequence();  // Parse the catch handler code.
@@ -8185,7 +8207,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
       Object& const_value = Object::Handle(
-          DartEntry::InvokeStatic(func, Object::empty_array()));
+          DartEntry::InvokeFunction(func, Object::empty_array()));
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
@@ -8248,9 +8270,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
       Array::Handle(ArgumentsDescriptor::New(num_arguments,
                                              arguments->names()));
   const Object& result =
-      Object::Handle(DartEntry::InvokeStatic(constructor,
-                                             arg_values,
-                                             arg_descriptor));
+      Object::Handle(DartEntry::InvokeFunction(constructor,
+                                               arg_values,
+                                               arg_descriptor));
   if (result.IsError()) {
       if (result.IsUnhandledException()) {
         return result.raw();
@@ -9459,7 +9481,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 
   // Call interpolation function.
   String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeStatic(func, interpolate_arg);
+  concatenated ^= DartEntry::InvokeFunction(func, interpolate_arg);
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }

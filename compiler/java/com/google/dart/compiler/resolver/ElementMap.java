@@ -4,8 +4,9 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartObsoleteMetadata;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
@@ -17,7 +18,8 @@ import java.util.List;
  * A more efficient version of {@link com.google.common.collect.Multimap} specifically for
  * {@link NodeElement}
  */
-class ElementMap {
+@VisibleForTesting
+public class ElementMap {
 
   /**
    * A synthetic place holder for an element where the name given to the element map does not match
@@ -98,7 +100,8 @@ class ElementMap {
   private NodeElement[] elements;
   private List<NodeElement> ordered = new ArrayList<NodeElement>();
 
-  ElementMap() {
+  @VisibleForTesting
+  public ElementMap() {
     clear();
   }
 
@@ -106,7 +109,8 @@ class ElementMap {
    * Associate the specified element with the specified name. If the element is already associated
    * with that name, do not associate it again.
    */
-  void add(String name, NodeElement element) {
+  @VisibleForTesting
+  public void add(String name, NodeElement element) {
 
     // Most of the time name equals getName() thus holder == element
     NodeElement newHolder;
@@ -161,7 +165,8 @@ class ElementMap {
    * 
    * @return the element or <code>null</code> if none
    */
-  NodeElement get(String name) {
+  @VisibleForTesting
+  public NodeElement get(String name) {
     NodeElement element = internalGet(name);
     if (element instanceof ElementHolder) {
       return ((ElementHolder) element).element;
@@ -175,7 +180,8 @@ class ElementMap {
    * 
    * @return the element of that kind or <code>null</code> if none
    */
-  NodeElement get(String name, ElementKind kind) {
+  @VisibleForTesting
+  public NodeElement get(String name, ElementKind kind) {
     NodeElement element = internalGet(name);
     if (element instanceof ElementHolder) {
       ElementHolder holder = (ElementHolder) element;
@@ -197,15 +203,18 @@ class ElementMap {
     return null;
   }
 
-  boolean isEmpty() {
+  @VisibleForTesting
+  public boolean isEmpty() {
     return ordered.isEmpty();
   }
 
-  int size() {
+  @VisibleForTesting
+  public int size() {
     return ordered.size();
   }
 
-  List<NodeElement> values() {
+  @VisibleForTesting
+  public List<NodeElement> values() {
     return ordered;
   }
 

@@ -14,6 +14,8 @@ abstract class ListIterable<E> extends Iterable<E> {
   int get length;
   E elementAt(int i);
 
+  const ListIterable();
+
   Iterator<E> get iterator => new ListIterator<E>(this);
 
   void forEach(void action(E element)) {
@@ -26,7 +28,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     }
   }
 
-  bool get isEmpty => length != 0;
+  bool get isEmpty => length == 0;
 
   E get first {
     if (length == 0) throw new StateError("No elements");
@@ -217,8 +219,13 @@ abstract class ListIterable<E> extends Iterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
 
-  List<E> toList() {
-    List<E> result = new List(length);
+  List<E> toList({ bool growable: true }) {
+    List<E> result;
+    if (growable) {
+      result = new List<E>()..length = length;
+    } else {
+      result = new List<E>(length);
+    }
     for (int i = 0; i < length; i++) {
       result[i] = elementAt(i);
     }
@@ -674,7 +681,7 @@ class EmptyIterable<E> extends Iterable<E> {
 
   Iterable<E> takeWhile(bool test(E element)) => this;
 
-  List toList() => <E>[];
+  List toList({ bool growable: true }) => growable ? <E>[] : new List<E>(0);
 
   Set toSet() => new Set<E>();
 }
@@ -687,6 +694,6 @@ class EmptyIterator<E> implements Iterator<E> {
 }
 
 /** An [Iterator] that can move in both directions. */
-abstract class BiDirectionalIterator<T> implements Iterator<T> {
+abstract class BidirectionalIterator<T> implements Iterator<T> {
   bool movePrevious();
 }

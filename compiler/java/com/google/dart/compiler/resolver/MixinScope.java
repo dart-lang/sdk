@@ -8,11 +8,11 @@ package com.google.dart.compiler.resolver;
  * Lexical scope corresponding to a mixin.
  */
 class MixinScope extends Scope {
-  private final ClassElement classElement;
+  private final ClassElement mixinElement;
 
-  MixinScope(ClassElement classElement, Scope parent) {
-    super(classElement.getName(), parent.getLibrary(), parent);
-    this.classElement = classElement;
+  MixinScope(ClassElement mixinElement) {
+    super(mixinElement.getName(), mixinElement.getLibrary(), null);
+    this.mixinElement = mixinElement;
   }
 
   @Override
@@ -22,6 +22,6 @@ class MixinScope extends Scope {
 
   @Override
   public Element findLocalElement(String name) {
-    return Elements.findElement(classElement, name);
+    return Elements.findElement(mixinElement, name);
   }
 }

@@ -244,11 +244,11 @@ class Bidi {
       var startIndex = 0;
       Match match = new RegExp('<\\w+').firstMatch(html);
       if (match != null) {
-        buffer..add(html.substring(startIndex, match.end))
-              ..add(' dir=$direction');
+        buffer..write(html.substring(startIndex, match.end))
+              ..write(' dir=$direction');
         startIndex = match.end;
       }
-      return (buffer..add(html.substring(startIndex))).toString();
+      return (buffer..write(html.substring(startIndex))).toString();
     }
     // '\n' is important for FF so that it won't incorrectly merge span groups.
     return '\n<span dir=$direction>$html</span>';
@@ -298,13 +298,13 @@ class Bidi {
     var startIndex = 0;
     Iterable matches = regexp.allMatches(str);
     for (Match match in matches) {
-      buffer..add(str.substring(startIndex, match.start))
-            ..add(before)
-            ..add(str.substring(match.start, match.end))
-            ..add(after);
+      buffer..write(str.substring(startIndex, match.start))
+            ..write(before)
+            ..write(str.substring(match.start, match.end))
+            ..write(after);
       startIndex = match.end;
     }
-    return (buffer..add(str.substring(startIndex))).toString();
+    return (buffer..write(str.substring(startIndex))).toString();
   }
 
   /**
@@ -359,19 +359,19 @@ class Bidi {
   static String normalizeHebrewQuote(String str) {
     StringBuffer buf = new StringBuffer();
     if (str.length > 0) {
-      buf.add(str.substring(0, 1));
+      buf.write(str.substring(0, 1));
     }
     // Start at 1 because we're looking for the patterns [\u0591-\u05f2])" or
     // [\u0591-\u05f2]'.
     for (int i = 1; i < str.length; i++) {
       if (str.substring(i, i+1) == '"'
           && new RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
-        buf.add('\u05f4');
+        buf.write('\u05f4');
       } else if (str.substring(i, i+1) == "'"
           && new RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
-        buf.add('\u05f3');
+        buf.write('\u05f3');
       } else {
-        buf.add(str.substring(i, i+1));
+        buf.write(str.substring(i, i+1));
       }
     }
     return buf.toString();

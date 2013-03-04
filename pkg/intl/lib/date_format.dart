@@ -225,7 +225,7 @@ class DateFormat {
   String format(DateTime date) {
     // TODO(efortuna): read optional TimeZone argument (or similar)?
     var result = new StringBuffer();
-    _formatFields.forEach((field) => result.add(field.format(date)));
+    _formatFields.forEach((field) => result.write(field.format(date)));
     return result.toString();
   }
 

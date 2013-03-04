@@ -374,12 +374,17 @@ bool Intrinsifier::String_getLength(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
+bool Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   return false;
 }
 
 
 bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   return false;
 }
 

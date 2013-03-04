@@ -49,7 +49,7 @@ class ListTest {
   }
 
   static void testList() {
-    List list = new List.fixedLength(4);
+    List list = new List(4);
     Expect.equals(list.length, 4);
     list[0] = 4;
     expectValues(list, 4, null, null, null);

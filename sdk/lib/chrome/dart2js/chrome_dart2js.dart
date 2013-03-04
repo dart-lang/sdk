@@ -1,3 +1,10 @@
+/// Native wrappers for the Chrome Packaged App APIs.
+///
+/// These functions allow direct access to the Packaged App APIs, allowing
+/// Chrome Packaged Apps to be written using Dart.
+///
+/// For more information on these APIs, see the
+/// [Chrome APIs Documentation](http://developer.chrome.com/extensions/api_index.html)
 library chrome;
 
 import 'dart:_foreign_helper' show JS;
@@ -13,13 +20,6 @@ import 'dart:html';
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:chrome library.
 
-/// Native wrappers for the Chrome Packaged App APIs.
-///
-/// These functions allow direct access to the Packaged App APIs, allowing
-/// Chrome Packaged Apps to be written using Dart.
-///
-/// For more information on these APIs, see the Chrome.* APIs Documentation:
-///   http://developer.chrome.com/extensions/api_index.html
 
 /* TODO(sashab): Add "show convertDartClosureToJS" once 'show' works. */
 

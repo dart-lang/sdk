@@ -111,12 +111,13 @@ main() {
   futures.add(testWaitWithMultipleErrors());
   futures.add(testForEachEmpty());
   futures.add(testForEach());
+  futures.add(testForEachWithException());
 
   // Use a receive port for blocking the test.
   // Note that if the test fails, the program will not end.
   ReceivePort port = new ReceivePort();
   Future.wait(futures).then((List list) {
-    Expect.equals(8, list.length);
+    Expect.equals(9, list.length);
     port.close();
   });
 }

@@ -26,7 +26,7 @@ main() {
     var arrayBuffer = new ArrayBuffer(byteString.length);
     var dataArray = new Uint8Array.fromBuffer(arrayBuffer);
     for (var i = 0; i < byteString.length; i++) {
-      dataArray[i] = byteString.charCodeAt(i);
+      dataArray[i] = byteString.codeUnitAt(i);
     }
 
     var blob = new Blob([arrayBuffer], 'image/png');

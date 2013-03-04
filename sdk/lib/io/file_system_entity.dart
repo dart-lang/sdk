@@ -15,4 +15,5 @@ part of dart.io;
  *     if (entity is File) (entity as File).readAsStringSync();
  */
 abstract class FileSystemEntity {
+  String get path;
 }

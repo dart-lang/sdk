@@ -359,6 +359,8 @@ _js_support_checks_additional_element = [
 
 js_support_checks = dict({
     'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
+    'Crypto':
+        "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
     'Database': "JS('bool', '!!(window.openDatabase)')",
     'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
@@ -669,10 +671,27 @@ class Dart2JSBackend(HtmlDartGenerator):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) => JS("$TYPE", "#[#]", this, index);\n',
-        TYPE=self.SecureOutputType(element_type))
+
+    ext_attrs = self._interface.ext_attrs
+    has_indexed_getter = ('IndexedGetter' in ext_attrs or
+      'CustomIndexedSetter' in ext_attrs)
+
+    if has_indexed_getter:
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) => '
+          'JS("$TYPE", "#[#]", this, index);\n',
+          TYPE=self.SecureOutputType(element_type))
+    else:
+      if any(op.id == 'getItem' for op in self._interface.operations):
+        indexed_getter = 'this.getItem(index)'
+      elif any(op.id == 'item' for op in self._interface.operations):
+        indexed_getter = 'this.item(index)'
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) => $INDEXED_GETTER;\n',
+          INDEXED_GETTER=indexed_getter,
+          TYPE=self.SecureOutputType(element_type))
 
     if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
@@ -801,9 +820,9 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def _AddConvertingGetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
-        '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._$(HTML_NAME));'
+        '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._get_$(HTML_NAME));'
         "\n  @JSName('$NAME')"
-        '\n  $(ANNOTATIONS)final $NATIVE_TYPE _$HTML_NAME;'
+        '\n  $(ANNOTATIONS)final $NATIVE_TYPE _get_$HTML_NAME;'
         '\n',
         ANNOTATIONS=self._Annotations(attr.type.id, html_name),
         CONVERT=conversion.function_name,
@@ -816,9 +835,9 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
         '\n  void set $HTML_NAME($INPUT_TYPE value) {'
-        '\n    this._$HTML_NAME = $CONVERT(value);'
+        '\n    this._set_$HTML_NAME = $CONVERT(value);'
         '\n  }'
-        '\n  void set _$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+        '\n  void set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
         '\n    JS("void", "#.$NAME = #", this, value);'
         '\n  }'
         '\n',

@@ -748,7 +748,7 @@ void scrapeSection(Element root, String sectionSelector, String currentType,
 
       // Figure out which column in the table contains member names by
       // tracking how many member names each column contains.
-      final numMatches = new List<int>.fixedLength(i);
+      final numMatches = new List<int>(i);
       for (int j = 0; j < i; j++) {
         numMatches[j] = 0;
       }

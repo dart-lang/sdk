@@ -30,8 +30,8 @@ String repeat(String text, int count, {String separator}) {
   // TODO(rnystrom): Should be in corelib.
   final buffer = new StringBuffer();
   for (int i = 0; i < count; i++) {
-    buffer.add(text);
-    if ((i < count - 1) && (separator != null)) buffer.add(separator);
+    buffer.write(text);
+    if ((i < count - 1) && (separator != null)) buffer.write(separator);
   }
 
   return buffer.toString();

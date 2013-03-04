@@ -55,23 +55,48 @@ int32_t AndroidSoundHandler::Start() {
 }
 
 void AndroidSoundHandler::Stop() {
-  StopBackground();
-  if (output_mix_ != NULL) {
-    (*output_mix_)->Destroy(output_mix_);
-    output_mix_ = NULL;
-  }
-  if (engine_ != NULL) {
-    (*engine_)->Destroy(engine_);
-    engine_ = NULL;
-    engine_if_ = NULL;
-  }
+  LOGI("Stopping SoundService");
   if (sample_player_ != NULL) {
+    LOGI("Destroying sample player");
     (*sample_player_)->Destroy(sample_player_);
     sample_player_ = NULL;
     sample_player_if_ = NULL;
     sample_player_queue_ = NULL;
   }
   samples_.clear();
+  if (output_mix_ != NULL) {
+    LOGI("Destroying output mix");
+    (*output_mix_)->Destroy(output_mix_);
+    output_mix_ = NULL;
+  }
+  if (engine_ != NULL) {
+    LOGI("Destroying engine");
+    (*engine_)->Destroy(engine_);
+    engine_ = NULL;
+    engine_if_ = NULL;
+  }
+}
+
+int32_t AndroidSoundHandler::SetBackgroundPlayerState(int state) {
+  if (background_player_if_ != NULL) {
+    SLuint32 state;
+    (*background_player_)->GetState(background_player_, &state);
+    if (state == SL_OBJECT_STATE_REALIZED) {
+      (*background_player_if_)->SetPlayState(background_player_if_,
+                                             state);
+      return 0;
+    }
+  }
+  return -1;
+}
+
+int32_t AndroidSoundHandler::Pause() {
+  return SetBackgroundPlayerState(SL_PLAYSTATE_PAUSED);
+}
+
+
+int32_t AndroidSoundHandler::Resume() {
+  return SetBackgroundPlayerState(SL_PLAYSTATE_PLAYING);
 }
 
 int32_t AndroidSoundHandler::CreateAudioPlayer(SLEngineItf engine_if,
@@ -171,18 +196,11 @@ int32_t AndroidSoundHandler::PlayBackground(const char* path) {
 }
 
 void AndroidSoundHandler::StopBackground() {
-  if (background_player_if_ != NULL) {
-    SLuint32 state;
-    (*background_player_)->GetState(background_player_, &state);
-    if (state == SL_OBJECT_STATE_REALIZED) {
-      (*background_player_if_)->SetPlayState(background_player_if_,
-                                           SL_PLAYSTATE_PAUSED);
-
-      (*background_player_)->Destroy(background_player_);
-      background_player_ = NULL;
-      background_player_if_ = NULL;
-      background_player_seek_if_ = NULL;
-    }
+  if (Pause() == 0) {
+    (*background_player_)->Destroy(background_player_);
+    background_player_ = NULL;
+    background_player_if_ = NULL;
+    background_player_seek_if_ = NULL;
   }
 }
 

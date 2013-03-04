@@ -11,7 +11,7 @@ import 'dart:uri';
 
 import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 import 'directory_tree.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'git.dart' as git;

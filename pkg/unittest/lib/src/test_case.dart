@@ -76,9 +76,25 @@ class TestCase {
     runningTime = null;
   }
 
-  void _runTest() {
+  Future _runTest() {
     _prepTest();
-    test();
+    // Increment/decrement callbackFunctionsOutstanding to prevent
+    // synchronous 'async' callbacks from causing the  test to be
+    // marked as complete before the body is completely executed.
+    ++callbackFunctionsOutstanding;
+    var f = test();
+    --callbackFunctionsOutstanding;
+    if (f is Future) {
+      f.then((_) => _finishTest())
+       .catchError((e) => fail("${e.error}"));
+      return f;
+    } else {
+      _finishTest();
+      return null;
+    }
+  }
+
+  void _finishTest() {
     if (result == null && callbackFunctionsOutstanding == 0) {
       pass();
     }
@@ -98,19 +114,21 @@ class TestCase {
     _doneTeardown = false;
     var rtn = _setUp == null ? null : _setUp();
     if (rtn is Future) {
-      rtn.then(expectAsync1((_) =>_runTest(),
-          id: '[Async setUp completion handler]'))
-      .catchError((e) {
-        _prepTest();
-        // Calling error() will result in the tearDown being done.
-        // One could debate whether tearDown should be done after
-        // a failed setUp. There is no right answer, but doing it
-        // seems to be the more conservative approach, because 
-        // unittest will not stop at a test failure.
-        error("$description: Test setup failed: ${e.error}");
-      });
+      rtn.then((_) => _runTest())
+         .catchError((e) {
+          _prepTest();
+          // Calling error() will result in the tearDown being done.
+          // One could debate whether tearDown should be done after
+          // a failed setUp. There is no right answer, but doing it
+          // seems to be the more conservative approach, because 
+          // unittest will not stop at a test failure.
+          error("$description: Test setup failed: ${e.error}");
+        });
     } else {
-      _runTest();
+      var f = _runTest();
+      if (f != null) {
+        return f;
+      }
     }
     if (result == null) { // Not complete.
       _testComplete = new Completer();
@@ -126,71 +144,75 @@ class TestCase {
     }
   }
 
-  void _complete() {
+  // Set the results, notify the config, and return true if this
+  // is the first time the result is being set.
+  void _setResult(String testResult, String messageText, String stack) {
+    message = messageText;
+    stackTrace = stack;
+    if (result == null) {
+      result = testResult;
+      _config.onTestResult(this);
+    } else {
+      result = testResult;
+      _config.onTestResultChanged(this);
+    }
+  }
+
+  void _complete(String testResult,
+                [String messageText = '',
+                 String stack = '']) {
     if (runningTime == null) {
       // TODO(gram): currently the duration measurement code is blocked
       // by issue 4437. When that is fixed replace the line below with:
       //    runningTime = new DateTime.now().difference(startTime);
       runningTime = new Duration(milliseconds: 0);
     }
+    _setResult(testResult, messageText, stack);
     if (!_doneTeardown) {
       _doneTeardown = true;
       if (_tearDown != null) {
         var rtn = _tearDown();
         if (rtn is Future) {
           rtn.then((_) {
-            if (result == null) {
-              // The test passed. In some cases we will already
-              // have set this result (e.g. if the test was async
-              // and all callbacks completed). If not, we do it here.
-              pass();
-            } else {
-              // The test has already been marked as pass/fail.
-              // Just report the updated result.
-              _config.onTestResult(this);
-            }
             _notifyComplete();
           })
           .catchError((e) {
             // We don't call fail() as that will potentially result in
             // spurious messages like 'test failed more than once'.
-            result = ERROR;
-            message = "$description: Test teardown failed: ${e.error}";
-            _config.onTestResult(this);
+            _setResult(ERROR, "$description: Test teardown failed: ${e.error}",
+                e.stackTrace.toString());
             _notifyComplete();
           });
           return;
         }
       }
     }
-    _config.onTestResult(this);
     _notifyComplete();
   }
 
   void pass() {
-    result = PASS;
-    _complete();
+    _complete(PASS);
   }
 
   void fail(String messageText, [String stack = '']) {
     if (result != null) {
-      if (result == PASS) {
-        error('Test failed after initially passing: $messageText', stack);
-      } else if (result == FAIL) {
-        error('Test failed more than once: $messageText', stack);
-      }
+      String newMessage = (result == PASS)
+          ? 'Test failed after initially passing: $messageText'
+          : 'Test failed more than once: $messageText';
+      // TODO(gram): Should we combine the stack with the old one?
+      _complete(ERROR, newMessage, stack);
     } else {
-      result = FAIL;
-      message = messageText;
-      stackTrace = stack;
-      _complete();
+      _complete(FAIL, messageText, stack);
     }
   }
 
   void error(String messageText, [String stack = '']) {
-    result = ERROR;
-    message = messageText;
-    stackTrace = stack;
-    _complete();
+    _complete(ERROR, messageText, stack);
+  }
+
+  void markCallbackComplete() {
+    if (--callbackFunctionsOutstanding == 0 && !isComplete) {
+      pass();
+    }
   }
 }

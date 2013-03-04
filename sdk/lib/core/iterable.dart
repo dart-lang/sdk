@@ -156,7 +156,8 @@ abstract class Iterable<E> {
     return false;
   }
 
-  List<E> toList() => new List<E>.from(this);
+  List<E> toList({ bool growable: true }) =>
+      new List<E>.from(this, growable: growable);
   Set<E> toSet() => new Set<E>.from(this);
 
   /**
@@ -430,7 +431,7 @@ class _GeneratorIterator<E> implements Iterator<E> {
 /**
  * An [Iterator] that allows moving backwards as well as forwards.
  */
-abstract class BiDirectionalIterator<T> extends Iterator<T> {
+abstract class BidirectionalIterator<T> extends Iterator<T> {
   /**
    * Move back to the previous element.
    *

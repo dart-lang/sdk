@@ -51,7 +51,11 @@ class World {
       }
     }
 
-    compiler.resolverWorld.instantiatedClasses.forEach(addSubtypes);
+    // Use the [:seenClasses:] set to include non-instantiated
+    // classes: if the superclass of these classes require RTI, then
+    // they also need RTI, so that a constructor passes the type
+    // variables to the super constructor.
+    compiler.enqueuer.resolution.seenClasses.forEach(addSubtypes);
 
     // Find the classes that need runtime type information. Such
     // classes are:
@@ -64,6 +68,7 @@ class World {
       if (classesNeedingRti.contains(cls)) return;
       classesNeedingRti.add(cls);
 
+      // TODO(ngeoffray): This should use subclasses, not subtypes.
       Set<ClassElement> classes = subtypes[cls];
       if (classes != null) {
         classes.forEach((ClassElement sub) {
@@ -79,12 +84,31 @@ class World {
       }
     }
 
+    Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
     compiler.resolverWorld.isChecks.forEach((DartType type) {
-      if (type is InterfaceType) {
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        classesUsingTypeVariableTests.add(variable.enclosingElement);
+      }
+    });
+    // Add is-checks that result from classes using type variables in checks.
+    compiler.resolverWorld.addImplicitChecks(classesUsingTypeVariableTests);
+    // Add the rti dependencies that are implicit in the way the backend
+    // generates code: when we create a new [List], we actually create
+    // a JSArray in the backend and we need to add type arguments to
+    // the calls of the list constructor whenever we determine that
+    // JSArray needs type arguments.
+    compiler.backend.addBackendRtiDependencies(this);
+    // Compute the set of all classes that need runtime type information.
+    compiler.resolverWorld.isChecks.forEach((DartType type) {
+      if (type.kind == TypeKind.INTERFACE) {
         InterfaceType itf = type;
         if (!itf.isRaw) {
           potentiallyAddForRti(itf.element);
         }
+      } else if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        potentiallyAddForRti(variable.enclosingElement);
       }
     });
   }
@@ -101,7 +125,6 @@ class World {
     Set<MixinApplicationElement> uses = mixinUses[cls];
     return uses != null && !uses.isEmpty;
   }
-
 
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
@@ -154,10 +177,11 @@ class World {
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.getEnclosingClass();
-    DartType receiverType = selector.receiverType;
-    ClassElement receiverTypeElement = (receiverType == null)
+    // TODO(kasperl): Move this code to the type mask.
+    ti.TypeMask mask = selector.mask;
+    ClassElement receiverTypeElement = (mask == null)
         ? compiler.objectClass
-        : receiverType.element;
+        : mask.base.element;
     // We only return the found element if it is guaranteed to be
     // implemented on the exact receiver type. It could be found in a
     // subclass or in an inheritance-wise unrelated class in case of
@@ -167,10 +191,9 @@ class World {
 
   Iterable<ClassElement> locateNoSuchMethodHolders(Selector selector) {
     Selector noSuchMethodSelector = new Selector.noSuchMethod();
-    DartType receiverType = selector.receiverType;
-    if (receiverType != null) {
-      noSuchMethodSelector = new TypedSelector(
-          receiverType, selector.typeKind, noSuchMethodSelector);
+    ti.TypeMask mask = selector.mask;
+    if (mask != null) {
+      noSuchMethodSelector = new TypedSelector(mask, noSuchMethodSelector);
     }
     ClassElement objectClass = compiler.objectClass;
     return allFunctions

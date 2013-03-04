@@ -395,11 +395,15 @@ class TextMetrics {
   TextMetrics(this.width);
 }
 
+void shutdown() {
+  CanvasRenderingContext2D.next_handle = 0;
+}
+
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   // TODO(gram): We need to support multiple contexts, for cached content
   // prerendered to an offscreen buffer. For this we will use handles, with
   // handle 0 being the physical display.
-  static int _next_handle = 0;
+  static int next_handle = 0;
   int _handle = 0;
   get handle => _handle;
 
@@ -412,7 +416,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D(canvas, width, height) : super(canvas) {
     _width = width;
     _height = height;
-    C2DCreateNativeContext(_handle = _next_handle++, width, height);
+    C2DCreateNativeContext(_handle = next_handle++, width, height);
   }
 
   double _alpha = 1.0;

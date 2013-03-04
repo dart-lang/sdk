@@ -410,11 +410,6 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
-  /**
-   * The set of servers that have been started to run these tests (Could be
-   * none).
-   */
-  List serverList;
 
   static final RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
 
@@ -423,8 +418,7 @@ class StandardTestSuite extends TestSuite {
                     Path suiteDirectory,
                     this.statusFilePaths,
                     {this.isTestFilePredicate,
-                    bool recursive: false,
-                    this.serverList: const []})
+                    bool recursive: false})
   : super(configuration, suiteName),
     dartDir = TestUtils.dartDir(),
     listRecursively = recursive,
@@ -461,14 +455,14 @@ class StandardTestSuite extends TestSuite {
    * been started up by the test harness, to be used by browser tests.
    */
   factory StandardTestSuite.forDirectory(
-      Map configuration, Path directory, {List serverList : const []}) {
+      Map configuration, Path directory) {
     final name = directory.filename;
 
     return new StandardTestSuite(configuration,
         name, directory,
         ['$directory/$name.status', '$directory/${name}_dart2js.status'],
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
-        recursive: true, serverList: serverList);
+        recursive: true);
   }
 
   Collection<Uri> get dart2JsBootstrapDependencies {
@@ -843,13 +837,13 @@ class StandardTestSuite extends TestSuite {
                             subtestNames,
                             subtestIndex) {
     // Note: If we run test.py with the "--list" option, no http servers
-    // will be started. Therefore serverList is an empty list in this
-    // case. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
+    // will be started. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
     var serverPort = "PORT";
     var crossOriginPort = "CROSS_ORIGIN_PORT";
     if (!configuration['list']) {
-      serverPort = serverList[0].port.toString();
-      crossOriginPort = serverList[1].port.toString();
+      Expect.isTrue(configuration.containsKey('_servers_'));
+      serverPort = configuration['_servers_'].port;
+      crossOriginPort = configuration['_servers_'].crossOriginPort;
     }
 
     var url= 'http://127.0.0.1:$serverPort$pathComponent'
@@ -1024,7 +1018,7 @@ class StandardTestSuite extends TestSuite {
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
               '--browser=$runtime',
               '--timeout=${configuration["timeout"] - 2}',
-              '--out="$fullHtmlPath"'];
+              '--out=$fullHtmlPath'];
           if (runtime == 'dartium') {
             args.add('--executable=$dartiumFilename');
           }
@@ -1102,7 +1096,6 @@ class StandardTestSuite extends TestSuite {
         if (packageRoot != null) {
           args.add(packageRoot);
         }
-        if (compiler == 'dart2dart') args.add('--out=$outputFile');
         args.add('--out=$outputFile');
         args.add(inputFile);
         break;
@@ -1151,8 +1144,9 @@ class StandardTestSuite extends TestSuite {
     // '$compile-$runtime' directory name.
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
+    var csp = configuration['csp'] ? '-csp' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-                  "$checked$minified";
+                  "$checked$minified$csp";
     Path generatedTestPath = new Path(buildDir)
         .append('generated_tests')
         .append(dirName)
@@ -1665,7 +1659,7 @@ class JUnitTestSuite extends TestSuite {
          '$buildDir/analyzer/dart_analyzer_tests.jar',
          // Third party libraries.
          '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
-         '$dartDir/third_party/guava/r09/guava-r09.jar',
+         '$dartDir/third_party/guava/r13/guava-13.0.1.jar',
          '$dartDir/third_party/rhino/1_7R3/js.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
@@ -1819,6 +1813,9 @@ class TestUtils {
     if ((compiler == "dart2js" || compiler == "dart2dart") &&
         configuration["minified"]) {
       args.add("--minify");
+    }
+    if (compiler == "dart2js" && configuration["csp"]) {
+      args.add("--disallow-unsafe-eval");
     }
     return args;
   }

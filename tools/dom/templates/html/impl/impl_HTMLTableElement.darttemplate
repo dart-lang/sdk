@@ -1,0 +1,42 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  @DomName('HTMLTableElement.tBodies')
+  List<TableSectionElement> get tBodies =>
+  new _WrappedList<TableSectionElement>($dom_tBodies);
+
+  @DomName('HTMLTableElement.rows')
+  List<TableRowElement> get rows =>
+      new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableCaptionElement createCaption() => $dom_createCaption();
+  TableSectionElement createTBody() => $dom_createTBody();
+  TableSectionElement createTFoot() => $dom_createTFoot();
+  TableSectionElement createTHead() => $dom_createTHead();
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+$if DART2JS
+  TableSectionElement $dom_createTBody() {
+    if (JS('bool', '!!#.createTBody', this)) {
+      return this._createTBody();
+    }
+    var tbody = new Element.tag('tbody');
+    this.children.add(tbody);
+    return tbody;
+  }
+
+  @JSName('createTBody')
+  TableSectionElement _createTBody() native;
+$endif
+
+$!MEMBERS}

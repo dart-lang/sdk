@@ -62,6 +62,8 @@ class Element {
    */
   String line;
 
+  // TODO(jacobr): refactor the code so that lookupMdnComment does not need to
+  // be passed to every Element constructor.
   Element(Mirror mirror, this.kind, this.name, String id, this.comment,
       MdnComment lookupMdnComment(Mirror))
       : line = mirror.location.line.toString(),
@@ -116,33 +118,78 @@ Reference _optionalReference(Mirror mirror) {
 }
 
 /**
+ * Helper class to track what members of a library should be included.
+ */
+class LibrarySubset {
+  final LibraryMirror library;
+  Set<String> includedChildren;
+
+  LibrarySubset(this.library) : includedChildren = new Set<String>();
+}
+
+/**
  * [Element] describing a Dart library.
  */
 class LibraryElement extends Element {
-  LibraryElement(String name, LibraryMirror mirror,
-      MdnComment lookupMdnComment(Mirror))
-      : super(mirror, 'library', _libraryName(mirror), name,
-          computeComment(mirror), lookupMdnComment) {
+  /**
+   * Partial versions of LibraryElements containing classes that are extended
+   * or implemented by classes in this library.
+   */
+  List<LibraryElement> dependencies;
   
+  /**
+   * Construct a LibraryElement from a [mirror].
+   *
+   * If [includedChildren] is specified, only elements matching names in
+   * [includedChildren] are included and no dependencies are included.
+   * [lookupMdnComment] is an optional function that returns the MDN
+   * documentation for elements. [dependencies] is an optional map
+   * tracking all classes dependend on by this [ClassElement].
+   */
+  LibraryElement(LibraryMirror mirror,
+      {MdnComment lookupMdnComment(Mirror), Set<String> includedChildren})
+      : super(mirror, 'library', _libraryName(mirror), mirror.displayName,
+          computeComment(mirror), lookupMdnComment) {
+    var requiredDependencies;
+    // We don't need to track our required dependencies when generating a
+    // filtered version of this library which will be used as a dependency for
+    // another library.
+    if (includedChildren == null)
+      requiredDependencies = new Map<String, LibrarySubset>();
     mirror.functions.forEach((childName, childMirror) {
-      addChild(new MethodElement(childName, childMirror, lookupMdnComment));
+      if (includedChildren == null || includedChildren.contains(childName))
+        addChild(new MethodElement(childName, childMirror, lookupMdnComment));
     });
 
     mirror.getters.forEach((childName, childMirror) {
-      addChild(new GetterElement(childName, childMirror, lookupMdnComment));
+      if (includedChildren == null || includedChildren.contains(childName))
+        addChild(new GetterElement(childName, childMirror, lookupMdnComment));
     });
 
     mirror.variables.forEach((childName, childMirror) {
+      if (includedChildren == null || includedChildren.contains(childName))
         addChild(new VariableElement(childName, childMirror, lookupMdnComment));
     });
 
     mirror.classes.forEach((className, classMirror) {
-      if (classMirror is TypedefMirror) {
-        addChild(new TypedefElement(className, classMirror));
-      } else {
-        addChild(new ClassElement(className, classMirror, lookupMdnComment));
+      if (includedChildren == null || includedChildren.contains(className)) {
+        if (classMirror is TypedefMirror) {
+          addChild(new TypedefElement(className, classMirror));
+        } else {
+          addChild(new ClassElement(classMirror,
+              dependencies: requiredDependencies,
+              lookupMdnComment: lookupMdnComment));
+        }
       }
     });
+
+    if (requiredDependencies != null && !requiredDependencies.isEmpty) {
+      dependencies = requiredDependencies.values.map((librarySubset) =>
+          new LibraryElement(
+              librarySubset.library,
+              lookupMdnComment: lookupMdnComment,
+              includedChildren: librarySubset.includedChildren)).toList();
+    }
   }
 
   static String _libraryName(LibraryMirror mirror) {
@@ -168,6 +215,16 @@ class LibraryElement extends Element {
       }
     } else {
       return mirror.uri.toString();
+    }
+  }
+
+  void stripDuplicateUris(String parentUri, parentLine) {
+    super.stripDuplicateUris(parentUri, parentLine);
+
+    if (dependencies != null) {
+      for (var child in dependencies) {
+        child.stripDuplicateUris(null, null);
+      }
     }
   }
 }
@@ -196,14 +253,46 @@ class ClassElement extends Element {
   List<Reference> interfaces;
   /** Whether the class implements or extends [Error] or [Exception]. */
   bool isThrowable;
-
-  ClassElement(String name, ClassMirror mirror,
-      MdnComment lookupMdnComment(Mirror))
-      : super(mirror, 'class', mirror.simpleName, name, computeComment(mirror),
+  
+  /**
+   * Constructs a [ClassElement] from a [ClassMirror].
+   *
+   * [dependencies] is an optional map updated as a side effect of running
+   * this constructor that tracks what classes from other libraries are
+   * dependencies of classes in this library.  A class is considered a
+   * dependency if it implements or extends another class.
+   * [lookupMdnComment] is an optional function that returns the MDN
+   * documentation for elements. [dependencies] is an optional map
+   * tracking all classes dependend on by this [ClassElement].
+   */
+  ClassElement(ClassMirror mirror,
+      {Map<String, LibrarySubset> dependencies,
+       MdnComment lookupMdnComment(Mirror)})
+      : super(mirror, 'class', mirror.simpleName, mirror.simpleName, computeComment(mirror),
           lookupMdnComment),
         superclass = _optionalReference(mirror.superclass),
-        isAbstract = _optionalBool(mirror.isAbstract) {
-        isThrowable = _optionalBool(_isThrowable(mirror));
+        isAbstract = _optionalBool(mirror.isAbstract),
+        isThrowable = _optionalBool(_isThrowable(mirror)){
+
+    addCrossLibraryDependencies(clazz) {
+      if (clazz == null) return;
+
+      if (mirror.library != clazz.library) {
+        var libraryStub = dependencies.putIfAbsent(clazz.library.simpleName,
+            () => new LibrarySubset(clazz.library));
+        libraryStub.includedChildren.add(clazz.simpleName);
+      }
+
+      for (var interface in clazz.superinterfaces) {
+        addCrossLibraryDependencies(interface);
+      }
+      addCrossLibraryDependencies(clazz.superclass);
+    }
+
+    if (dependencies != null) {
+      addCrossLibraryDependencies(mirror);
+    }
+
     for (var interface in mirror.superinterfaces) {
       if (this.interfaces == null) {
         this.interfaces = <Reference>[];

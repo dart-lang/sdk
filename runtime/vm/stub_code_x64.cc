@@ -668,26 +668,23 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
 
   __ pushq(raw_null);  // Setup space on stack for result from call.
-  __ pushq(R13);  // Non-closure object.
   __ pushq(R10);  // Arguments descriptor.
   // Load smi-tagged arguments array length, including the non-closure.
   __ movq(R10, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  // See stack layout below explaining "wordSize * 6" offset.
-  PushArgumentsArray(assembler, (kWordSize * 6));
+  // See stack layout below explaining "wordSize * 5" offset.
+  PushArgumentsArray(assembler, (kWordSize * 5));
 
   // Stack:
   // TOS + 0: Argument array.
   // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Non-closure object.
-  // TOS + 3: Place for result from the call.
-  // TOS + 4: PC marker => RawInstruction object.
-  // TOS + 5: Saved RBP of previous frame. <== RBP
-  // TOS + 6: Dart code return address
-  // TOS + 7: Last argument of caller.
+  // TOS + 2: Place for result from the call.
+  // TOS + 3: PC marker => RawInstruction object.
+  // TOS + 4: Saved RBP of previous frame. <== RBP
+  // TOS + 5: Dart code return address
+  // TOS + 6: Last argument of caller.
   // ....
   __ CallRuntime(kInvokeNonClosureRuntimeEntry);
   // Remove arguments.
-  __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RAX);  // Get result into RAX.

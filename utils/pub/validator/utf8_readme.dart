@@ -7,7 +7,7 @@ library utf8_readme_validator;
 import 'dart:async';
 import 'dart:utf';
 
-import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/pathos/lib/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';

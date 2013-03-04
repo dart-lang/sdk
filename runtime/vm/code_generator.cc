@@ -1109,20 +1109,16 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
 
 // A non-closure object was invoked as a closure, so call the "call" method
 // on it.
-// Arg0: non-closure object.
-// Arg1: arguments descriptor.
-// Arg2: arguments array, including non-closure object.
-DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
+// Arg0: arguments descriptor.
+// Arg1: arguments array, including non-closure object.
+DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 2) {
   ASSERT(arguments.ArgCount() ==
          kInvokeNonClosureRuntimeEntry.argument_count());
-  const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(1));
-  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(2));
+  const Array& args_descriptor = Array::CheckedHandle(arguments.ArgAt(0));
+  const Array& function_args = Array::CheckedHandle(arguments.ArgAt(1));
 
   const Object& result = Object::Handle(
-      DartEntry::InvokeClosure(instance,
-                               function_args,
-                               args_descriptor));
+      DartEntry::InvokeClosure(function_args, args_descriptor));
   CheckResultError(result);
   arguments.SetReturn(result);
 }
@@ -1154,7 +1150,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   // 2. Invoke the getter.
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);
-  const Object& value = Object::Handle(DartEntry::InvokeDynamic(getter, args));
+  const Object& value = Object::Handle(DartEntry::InvokeFunction(getter, args));
 
   // 3. If the getter threw an exception, treat it as no such method.
   if (value.IsUnhandledException()) return false;
@@ -1166,9 +1162,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   Instance& instance = Instance::Handle();
   instance ^= value.raw();
   arguments.SetAt(0, instance);
-  *result = DartEntry::InvokeClosure(instance,
-                                     arguments,
-                                     arguments_descriptor);
+  *result = DartEntry::InvokeClosure(arguments, arguments_descriptor);
   CheckResultError(*result);
   return true;
 }

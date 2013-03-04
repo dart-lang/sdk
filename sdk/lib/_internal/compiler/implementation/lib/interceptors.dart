@@ -16,7 +16,6 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               checkNum,
                               checkString,
                               getRuntimeTypeString,
-                              listInsertRange,
                               regExpGetNative,
                               stringContainsUnchecked,
                               stringLastIndexOfUnchecked,
@@ -31,14 +30,6 @@ part 'js_number.dart';
 part 'js_string.dart';
 
 /**
- * The interceptor class for all non-primitive objects. All its
- * members are synthethized by the compiler's emitter.
- */
-class ObjectInterceptor {
-  const ObjectInterceptor();
-}
-
-/**
  * Get the interceptor for [object]. Called by the compiler when it needs
  * to emit a call to an intercepted method, that is a method that is
  * defined in an interceptor class.
@@ -48,6 +39,13 @@ getInterceptor(object) {
   // depending on the uses of intercepted methods and instantiated
   // primitive types.
 }
+
+/**
+ * If [InvocationMirror.invokeOn] is being used, this variable
+ * contains a JavaScript array with the names of methods that are
+ * intercepted.
+ */
+var interceptedNames;
 
 /**
  * The interceptor class for tear-off static methods. Unlike

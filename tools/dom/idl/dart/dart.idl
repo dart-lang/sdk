@@ -41,7 +41,7 @@ interface HTMLCanvasElement {
   [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
   [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
 
-  [Suppressed] DOMObject getContext(in DOMString contextId);
+  [Suppressed] any getContext(in DOMString contextId);
   [Custom] CanvasRenderingContext getContext(in DOMString contextId, [Optional] in Dictionary attrs);
 };
 
@@ -54,8 +54,6 @@ interface HTMLOptionsCollection {
 interface HTMLSelectElement {
   [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
   [Suppressed, Custom] void remove();
-  [Custom] void remove(in long index);
-  [Custom] void remove(in HTMLOptionElement option);
 };
 
 [Supplemental]
@@ -209,8 +207,8 @@ interface DataView {
   // We have to use custom code because our code generator does not support int8_t type.
   // int8_t getInt8(in unsigned long byteOffset);
   // uint8_t getUint8(in unsigned long byteOffset);
-  [Suppressed] DOMObject getInt8();
-  [Suppressed] DOMObject getUint8();
+  [Suppressed] any getInt8();
+  [Suppressed] any getUint8();
   byte getInt8(in unsigned long byteOffset)
       raises (DOMException);
   octet getUint8(in unsigned long byteOffset)
@@ -322,7 +320,7 @@ interface MutationObserver {
 interface SQLResultSetRowList {
   // Change the return type to Dictionary so that rows are exposed in the Dart
   // API as a Maps, with the appropriate conversion in JavaScript.
-  [Suppressed] DOMObject item(in unsigned long index);
+  [Suppressed] any item(in unsigned long index);
   [Custom] Dictionary item(in unsigned long index);
 };
 
@@ -340,6 +338,25 @@ interface WebSocket {
   [Custom] void send(ArrayBuffer data) raises(DOMException);
   [Custom] void send(ArrayBufferView data) raises(DOMException);
 };
+
+[Supplemental]
+interface XMLHttpRequest {
+   [Custom] void send()
+       raises(DOMException);
+   [Custom] void send(in ArrayBuffer data) // FIXME: this should be eventually deprecated.
+       raises(DOMException);
+   [Custom] void send(in ArrayBufferView data)
+       raises(DOMException);
+   [Conditional=BLOB, Custom] void send(in Blob data)
+       raises(DOMException);
+   [Custom] void send(in Document data)
+       raises(DOMException);
+   [Custom] void send([StrictTypeChecking] in DOMString data)
+       raises(DOMException);
+   [Custom] void send(in DOMFormData data)
+       raises(DOMException);
+};
+
 
 [Suppressed]
 interface Entity {};

@@ -10,6 +10,7 @@ namespace dart {
 enum Register {
   ZR =  0,
   AT =  1,
+  kFirstFreeCpuRegister = 2,
   V0 =  2,
   V1 =  3,
   A0 =  4,
@@ -34,6 +35,7 @@ enum Register {
   S7 = 23,
   T8 = 24,
   T9 = 25,
+  kLastFreeCpuRegister = 25,
   K0 = 26,
   K1 = 27,
   GP = 28,
@@ -91,10 +93,11 @@ const int kNumberOfFpuRegisters = kNumberOfFRegisters;
 
 
 // Register aliases.
-const Register TMP = AT;
-const Register CTX = S7;  // Caches current context in generated code.
-const Register SPREG = SP;
-const Register FPREG = FP;
+const Register TMP = AT;  // Used as scratch register by assembler.
+const Register CTX = S6;  // Caches current context in generated code.
+const Register PP = S7;  // Caches object pool pointer in generated code.
+const Register SPREG = SP;  // Stack pointer register.
+const Register FPREG = FP;  // Frame pointer register.
 
 
 // Values for the condition field.  // UNIMPLEMENTED.

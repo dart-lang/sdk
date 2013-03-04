@@ -22,7 +22,7 @@ import bot
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -39,6 +39,7 @@ def GetBuildInfo(builder_name, is_buildbot):
   shard_index = None
   total_shards = None
   test_set = None
+  csp = None
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
   web_pattern = re.match(WEB_BUILDER, builder_name)
@@ -49,8 +50,10 @@ def GetBuildInfo(builder_name, is_buildbot):
     system = web_pattern.group(2)
     mode = 'release'
     test_set = web_pattern.group(4)
-    shard_index = web_pattern.group(6)
-    total_shards = web_pattern.group(7)
+    if web_pattern.group(6) == 'csp':
+      csp = True
+    shard_index = web_pattern.group(8)
+    total_shards = web_pattern.group(9)
   elif dart2js_pattern:
     compiler = 'dart2js'
     system = dart2js_pattern.group(1)
@@ -91,7 +94,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     return None
   return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                        minified, shard_index, total_shards, is_buildbot,
-                       test_set)
+                       test_set, csp)
 
 
 def NeedsXterm(compiler, runtime):
@@ -146,7 +149,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
       cmd.extend(flags)
     cmd.extend(targets)
 
-    print 'running %s' % (' '.join(cmd))
+    print 'Running: %s' % (' '.join(map(lambda arg: '"%s"' % arg, cmd)))
     bot.RunProcess(cmd)
 
 
@@ -293,6 +296,8 @@ def RunCompilerTests(build_info):
   if build_info.host_checked: test_flags += ['--host-checked']
 
   if build_info.minified: test_flags += ['--minified']
+
+  if build_info.csp: test_flags += ['--csp']
 
   TestCompiler(build_info.runtime, build_info.mode, build_info.system,
                list(test_flags), build_info.is_buildbot, build_info.test_set)

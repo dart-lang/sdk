@@ -38,7 +38,7 @@
             'scripts/dart_analyzer.bat',
             'scripts/analyzer_metrics.sh',
             '../third_party/args4j/2.0.12/args4j-2.0.12.jar',
-            '../third_party/guava/r09/guava-r09.jar',
+            '../third_party/guava/r13/guava-13.0.1.jar',
             '../third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
             '../third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
             '../third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
@@ -50,7 +50,7 @@
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer.bat',
             '<(PRODUCT_DIR)/analyzer/util/analyzer/dart_analyzer.jar',
             '<(PRODUCT_DIR)/analyzer/util/analyzer/args4j/2.0.12/args4j-2.0.12.jar',
-            '<(PRODUCT_DIR)/analyzer/util/analyzer/guava/r09/guava-r09.jar',
+            '<(PRODUCT_DIR)/analyzer/util/analyzer/guava/r13/guava-13.0.1.jar',
           ],
           'action' : [
             '../third_party/apache_ant/1.8.4/bin/ant<(script_suffix)',

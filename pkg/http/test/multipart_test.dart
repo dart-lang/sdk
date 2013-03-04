@@ -8,11 +8,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:utf';
 
-// TODO(nweiz): get rid of this import before packaging this
-import '../../../tests/utils/test_utils.dart';
 import 'package:unittest/unittest.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/src/utils.dart';
+import '../../pathos/lib/path.dart' as path;
+import '../lib/http.dart' as http;
+import '../lib/src/utils.dart';
 
 import 'utils.dart';
 
@@ -203,5 +202,34 @@ void main() {
         hello
         --{{boundary}}--
         '''));
+  });
+
+  group('in a temp directory', () {
+    var tempDir;
+    setUp(() {
+      tempDir = new Directory('').createTempSync();
+    });
+
+    tearDown(() => tempDir.deleteSync(recursive: true));
+
+    test('with a file from disk', () {
+      expect(new Future.of(() {
+        var filePath = path.join(tempDir.path, 'test-file');
+        new File(filePath).writeAsStringSync('hello');
+        return http.MultipartFile.fromPath('file', filePath);
+      }).then((file) {
+        var request = new http.MultipartRequest('POST', dummyUrl);
+        request.files.add(file);
+
+        expect(request, bodyMatches('''
+        --{{boundary}}
+        content-type: application/octet-stream
+        content-disposition: form-data; name="file"; filename="test-file"
+
+        hello
+        --{{boundary}}--
+        '''));
+      }), completes);
+    });
   });
 }

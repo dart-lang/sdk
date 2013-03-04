@@ -32,6 +32,14 @@ void BufferFormatter::VPrint(const char* format, va_list args) {
 }
 
 
+void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
+  OS::Print("*** BEGIN CFG\n%s\n", phase);
+  FlowGraphPrinter printer(*flow_graph);
+  printer.PrintBlocks();
+  OS::Print("*** END CFG\n");
+}
+
+
 void FlowGraphPrinter::PrintBlocks() {
   if (!function_.IsNull()) {
     OS::Print("==== %s\n", function_.ToFullyQualifiedCString());

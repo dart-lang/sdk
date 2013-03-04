@@ -32,11 +32,11 @@ Future<SecureServerSocket> startEchoServer() {
 
 Future testClient(server) {
   return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
-    socket.add("Hello server.".charCodes);
+    socket.add("Hello server.".codeUnits);
     socket.close();
     return socket.reduce(<int>[], (message, data) => message..addAll(data))
         .then((message) {
-          Expect.listEquals("Hello server.".charCodes, message);
+          Expect.listEquals("Hello server.".codeUnits, message);
           return server;
         });
   });

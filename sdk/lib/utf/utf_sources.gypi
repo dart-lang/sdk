@@ -3,11 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file contains all sources for the dart:utf library.
-#
-# TODO(ager): When the VM can use the #source directive for libraries.
-# At that point utf.dart should be the only utf library file.
 {
   'sources': [
+    'utf.dart',
+    # The above file needs to be first as it lists the parts below.
     'utf_core.dart',
     'utf_stream.dart',
     'utf8.dart',

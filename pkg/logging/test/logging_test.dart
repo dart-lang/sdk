@@ -5,7 +5,7 @@
 
 library logging_test;
 
-import 'package:logging/logging.dart';
+import '../../../pkg/logging/lib/logging.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
@@ -123,12 +123,12 @@ main() {
       c.level = null;
       d.level = null;
       e.level = null;
-      root.on.record.clear();
-      a.on.record.clear();
-      b.on.record.clear();
-      c.on.record.clear();
-      d.on.record.clear();
-      e.on.record.clear();
+      root.clearListeners();
+      a.clearListeners();
+      b.clearListeners();
+      c.clearListeners();
+      d.clearListeners();
+      e.clearListeners();
       hierarchicalLoggingEnabled = false;
       root.level = Level.INFO;
     });
@@ -182,11 +182,11 @@ main() {
     test('add/remove handlers - no hierarchy', () {
       int calls = 0;
       var handler = (_) { calls++; };
-      c.on.record.add(handler);
+      final sub = c.onRecord.listen(handler);
       root.info("foo");
       root.info("foo");
       expect(calls, equals(2));
-      c.on.record.remove(handler);
+      sub.cancel();
       root.info("foo");
       expect(calls, equals(2));
     });
@@ -195,7 +195,7 @@ main() {
       hierarchicalLoggingEnabled = true;
       int calls = 0;
       var handler = (_) { calls++; };
-      c.on.record.add(handler);
+      c.onRecord.listen(handler);
       root.info("foo");
       root.info("foo");
       expect(calls, equals(0));
@@ -204,7 +204,7 @@ main() {
     test('logging methods store appropriate level', () {
       root.level = Level.ALL;
       var rootMessages = [];
-      root.on.record.add((record) {
+      root.onRecord.listen((record) {
         rootMessages.add('${record.level}: ${record.message}');
       });
 
@@ -233,13 +233,13 @@ main() {
       var rootMessages = [];
       var aMessages = [];
       var cMessages = [];
-      c.on.record.add((record) {
+      c.onRecord.listen((record) {
         cMessages.add('${record.level}: ${record.message}');
       });
-      a.on.record.add((record) {
+      a.onRecord.listen((record) {
         aMessages.add('${record.level}: ${record.message}');
       });
-      root.on.record.add((record) {
+      root.onRecord.listen((record) {
         rootMessages.add('${record.level}: ${record.message}');
       });
 
@@ -281,13 +281,13 @@ main() {
       var rootMessages = [];
       var aMessages = [];
       var cMessages = [];
-      c.on.record.add((record) {
+      c.onRecord.listen((record) {
         cMessages.add('${record.level}: ${record.message}');
       });
-      a.on.record.add((record) {
+      a.onRecord.listen((record) {
         aMessages.add('${record.level}: ${record.message}');
       });
-      root.on.record.add((record) {
+      root.onRecord.listen((record) {
         rootMessages.add('${record.level}: ${record.message}');
       });
 

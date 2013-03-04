@@ -493,6 +493,9 @@ void ActivationFrame::VariableAt(intptr_t i,
   if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
     *value = GetLocalVarValue(var_info.index);
   } else {
+    // TODO(tball): enable context variables once problem with VariableAt() is
+    // fixed, where frame_ctx_level is sometimes off by 1 (issues 8593 and 8594)
+    /*
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
     ASSERT(!ctx_.IsNull());
     // The context level at the PC/token index of this activation frame.
@@ -513,7 +516,8 @@ void ActivationFrame::VariableAt(intptr_t i,
       }
       ASSERT(!ctx.IsNull());
       *value = ctx.At(ctx_slot);
-    }
+    } */
+    *value = Symbols::New("<unknown>");
   }
 }
 
@@ -881,7 +885,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                                                         frame->fp(),
                                                         frame->sp(),
                                                         code);
-      if (get_saved_context) {
+      if (get_saved_context && !activation->code().is_optimized()) {
         ctx = activation->GetSavedContext();
       }
       activation->SetContext(ctx);
@@ -1223,7 +1227,7 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   if (setjmp(*jump.Set()) == 0) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, object);
-    result = DartEntry::InvokeDynamic(getter_func, args);
+    result = DartEntry::InvokeFunction(getter_func, args);
   } else {
     result = isolate_->object_store()->sticky_error();
   }
@@ -1260,7 +1264,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
-    result = DartEntry::InvokeStatic(getter_func, Object::empty_array());
+    result = DartEntry::InvokeFunction(getter_func, Object::empty_array());
   } else {
     result = isolate_->object_store()->sticky_error();
   }

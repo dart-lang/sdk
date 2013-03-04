@@ -1,0 +1,43 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  @DomName('IDBDatabase.createObjectStore')
+  @DocsEditable
+  ObjectStore createObjectStore(String name,
+      {String keyPath, bool autoIncrement}) {
+    var options = {};
+    if (keyPath != null) {
+      options['keyPath'] = keyPath;
+    }
+    if (autoIncrement != null) {
+      options['autoIncrement'] = autoIncrement;
+    }
+
+    return $dom_createObjectStore(name, options);
+  }
+
+$if DART2JS
+  Transaction transaction(storeName_OR_storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError(mode);
+    }
+
+    // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
+    // and copy to JavaScript array if necessary.
+
+    // Try and create a transaction with a string mode.  Browsers that expect a
+    // numeric mode tend to convert the string into a number.  This fails
+    // silently, resulting in zero ('readonly').
+    return _transaction(storeName_OR_storeNames, mode);
+  }
+
+  @JSName('transaction')
+  Transaction _transaction(stores, mode) native;
+$endif
+
+$!MEMBERS}

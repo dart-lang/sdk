@@ -44,9 +44,9 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_invoke, 4) {
                                            invoke_arguments,
                                            fun_args_desc);
   } else {
-    result = DartEntry::InvokeDynamic(function,
-                                      invoke_arguments,
-                                      fun_args_desc);
+    result = DartEntry::InvokeFunction(function,
+                                       invoke_arguments,
+                                       fun_args_desc);
   }
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));

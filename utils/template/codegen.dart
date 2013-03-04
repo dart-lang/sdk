@@ -757,7 +757,7 @@ Nested #each or #with must have a localName;
 
       bool identifier = true;
       if (m.start > 0)  {
-        int charCode = expr.charCodeAt(m.start - 1);
+        int charCode = expr.codeUnitAt(m.start - 1);
         // Starts with ' or " then it's not an identifier.
         identifier = charCode != 34 /* " */ && charCode != 39 /* ' */;
       }

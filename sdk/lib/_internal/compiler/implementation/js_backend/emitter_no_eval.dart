@@ -10,85 +10,12 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
                         bool generateSourceMap)
       : super(compiler, namer, generateSourceMap);
 
-  String get generateGetterSetterFunction {
-    return """
-function() {
-  throw 'Internal Error: no dynamic generation of getters and setters allowed';
-}""";
-  }
+  bool get getterAndSetterCanBeImplementedByFieldSpec => false;
 
-  String get defineClassFunction {
-    return """
-function(cls, constructor, prototype) {
-  constructor.prototype = prototype;
-  constructor.builtin\$cls = cls;
-  return constructor;
-}""";
-  }
-
-  String get protoSupportCheck {
-    // We don't modify the prototypes in CSP mode. Therefore we can have an
-    // easier prototype-check.
-    return 'var $supportsProtoName = !!{}.__proto__;\n';
-  }
-
-  String get finishIsolateConstructorFunction {
-    // We replace the old Isolate function with a new one that initializes
-    // all its field with the initial (and often final) value of all globals.
-    //
-    // We also copy over old values like the prototype, and the
-    // isolateProperties themselves.
-    return """
-function(oldIsolate) {
-  var isolateProperties = oldIsolate.${namer.isolatePropertiesName};
-  function Isolate() {
-    for (var staticName in isolateProperties) {
-      if (Object.prototype.hasOwnProperty.call(isolateProperties, staticName)) {
-        this[staticName] = isolateProperties[staticName];
-      }
+  void emitSuper(String superName, ClassBuilder builder) {
+    if (superName != '') {
+      builder.addProperty('super', js.string(superName));
     }
-    // Use the newly created object as prototype. In Chrome this creates a
-    // hidden class for the object and makes sure it is fast to access.
-    function ForceEfficientMap() {}
-    ForceEfficientMap.prototype = this;
-    new ForceEfficientMap;
-  }
-  Isolate.prototype = oldIsolate.prototype;
-  Isolate.prototype.constructor = Isolate;
-  Isolate.${namer.isolatePropertiesName} = isolateProperties;
-  return Isolate;
-}""";
-  }
-
-  String get lazyInitializerFunction {
-    return """
-function(prototype, staticName, fieldName, getterName, lazyValue, getter) {
-$lazyInitializerLogic
-}""";
-  }
-
-  js.Expression buildLazyInitializedGetter(VariableElement element) {
-    String isolate = namer.CURRENT_ISOLATE;
-    return js.fun([],
-        js.block1(
-            js.return_(
-                js.fieldAccess(js.use(isolate), namer.getName(element)))));
-  }
-
-  js.Expression buildConstructor(String mangledName, List<String> fieldNames) {
-    return new js.NamedFunction(
-        new js.VariableDeclaration(mangledName),
-        new js.Fun(
-            fieldNames
-                .map((fieldName) => new js.Parameter(fieldName))
-                .toList(),
-            new js.Block(
-                fieldNames.map((fieldName) =>
-                    new js.ExpressionStatement(
-                        new js.Assignment(
-                            new js.This().dot(fieldName),
-                            new js.VariableUse(fieldName))))
-                    .toList())));
   }
 
   void emitBoundClosureClassHeader(String mangledName,
@@ -96,7 +23,16 @@ $lazyInitializerLogic
                                    List<String> fieldNames,
                                    ClassBuilder builder) {
     builder.addProperty('', buildConstructor(mangledName, fieldNames));
-    builder.addProperty('super', js.string(superName));
+    emitSuper(superName, builder);
+  }
+
+
+  void emitClassFields(ClassElement classElement,
+                       ClassBuilder builder,
+                       { String superClass: "",
+                         bool classIsNative: false }) {
+    // Class fields are dynamically generated so they have to be
+    // emitted using getters and setters instead.
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -118,21 +54,80 @@ $lazyInitializerLogic
       fields.add(name);
     });
     String constructorName = namer.safeName(classElement.name.slowToString());
-
     builder.addProperty('', buildConstructor(constructorName, fields));
   }
 
-  void emitSuper(String superName, ClassBuilder builder) {
-    if (superName != '') {
-      builder.addProperty('super', js.string(superName));
-    }
+  List get defineClassFunction {
+    return [new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('defineClass'),
+        js.fun(['cls', 'constructor', 'prototype'],
+               [js[r'constructor.prototype = prototype'],
+                js[r'constructor.builtin$cls = cls'],
+                js.return_('constructor')]))];
   }
 
-  void emitClassFields(ClassElement classElement,
-                       ClassBuilder builder,
-                       { String superClass: "",
-                         bool classIsNative: false}) {
+  List buildProtoSupportCheck() {
+    // We don't modify the prototypes in CSP mode. Therefore we can have an
+    // easier prototype-check.
+    return [js['var $supportsProtoName = !(!({}.__proto__))']];
   }
 
-  bool get getterAndSetterCanBeImplementedByFieldSpec => false;
+  jsAst.Expression buildConstructor(String mangledName,
+                                    List<String> fieldNames) {
+    return new jsAst.NamedFunction(
+        new jsAst.VariableDeclaration(mangledName),
+        js.fun(fieldNames, fieldNames.map(
+            (name) => js['this.$name = $name']).toList()));
+  }
+
+  jsAst.FunctionDeclaration get generateAccessorFunction {
+    String message =
+        'Internal error: no dynamic generation of accessors allowed.';
+    return new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('generateAccessor'),
+        js.fun([], new jsAst.Throw(js.string(message))));
+  }
+
+  jsAst.Expression buildLazyInitializedGetter(VariableElement element) {
+    String isolate = namer.CURRENT_ISOLATE;
+    String name = namer.getName(element);
+    return js.fun([], js.return_(js['$isolate.$name']));
+  }
+
+  jsAst.Fun get lazyInitializerFunction {
+    // function(prototype, staticName, fieldName,
+    //          getterName, lazyValue, getter) {
+    var parameters = <String>['prototype', 'staticName', 'fieldName',
+                              'getterName', 'lazyValue', 'getter'];
+    return js.fun(parameters, addLazyInitializerLogic());
+  }
+
+  jsAst.Fun get finishIsolateConstructorFunction {
+    // We replace the old Isolate function with a new one that initializes
+    // all its fields with the initial (and often final) value of all globals.
+    //
+    // We also copy over old values like the prototype, and the
+    // isolateProperties themselves.
+    return js.fun('oldIsolate', [
+      js['var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'],
+      new jsAst.FunctionDeclaration(
+        new jsAst.VariableDeclaration('Isolate'),
+          js.fun([], [
+            js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
+            js.forIn('staticName', 'isolateProperties',
+              js.if_(js['hasOwnProperty.call(isolateProperties, staticName)'],
+                js['this[staticName] = isolateProperties[staticName]'])),
+            // Use the newly created object as prototype. In Chrome,
+            // this creates a hidden class for the object and makes
+            // sure it is fast to access.
+            new jsAst.FunctionDeclaration(
+              new jsAst.VariableDeclaration('ForceEfficientMap'),
+              js.fun([], [])),
+            js['ForceEfficientMap.prototype = this'],
+            js['new ForceEfficientMap()']])),
+      js['Isolate.prototype = oldIsolate.prototype'],
+      js['Isolate.prototype.constructor = Isolate'],
+      js['Isolate.${namer.isolatePropertiesName} = isolateProperties'],
+      js.return_('Isolate')]);
+  }
 }

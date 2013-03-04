@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.async;
+
 /**
  * Indicates that loading of [libraryName] is deferred.
  *
@@ -9,21 +11,19 @@
  *
  * Example usage:
  *
- * [:
- * @lazy
- * import 'foo.dart' as foo;
+ *     @lazy
+ *     import 'foo.dart' as foo;
  *
- * const lazy = const DeferredLibrary('com.example.foo');
+ *     const lazy = const DeferredLibrary('com.example.foo');
  *
- * void main() {
- *   foo.method(); // Throws a NoSuchMethodError, foo is not loaded yet.
- *   lazy.load().then(onFooLoaded);
- * }
+ *     void main() {
+ *       foo.method(); // Throws a NoSuchMethodError, foo is not loaded yet.
+ *       lazy.load().then(onFooLoaded);
+ *     }
  *
- * void onFooLoaded(_) {
- *   foo.method();
- * }
- * :]
+ *     void onFooLoaded(_) {
+ *       foo.method();
+ *     }
  */
 class DeferredLibrary {
   final String libraryName;

@@ -68,8 +68,7 @@ main() {
       "109<Foo>::${deprecatedMessage('conflicting constructor')}\n"
 
       "129<bar>::info: This member conflicts with a constructor.\n"
-      "200<Dynamic>::${deprecatedMessage('Dynamic')}\n"
-      "221<()>::${deprecatedMessage('getter parameters')}\n",
+      "205<()>::${deprecatedMessage('getter parameters')}\n",
       messages.toString());
 }
 
@@ -95,7 +94,6 @@ class Foo {
   static bar() => new Foo.bar();
   factory Fisk() {}
   factory Fisk.hest() {}
-  Dynamic fisk;
   get x() => null;
 }
 

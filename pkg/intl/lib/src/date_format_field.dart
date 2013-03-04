@@ -398,9 +398,9 @@ class _DateFormatPatternField extends _DateFormatField {
     if (basicString.length >= width) return basicString;
     var buffer = new StringBuffer();
     for (var i = 0; i < width - basicString.length; i++) {
-      buffer.add('0');
+      buffer.write('0');
      }
-    buffer.add(basicString);
+    buffer.write(basicString);
     return buffer.toString();
   }
 }

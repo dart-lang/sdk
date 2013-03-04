@@ -13,8 +13,6 @@ part of _interceptors;
 class JSString implements String {
   const JSString();
 
-  int charCodeAt(index) => codeUnitAt(index);
-
   int codeUnitAt(int index) {
     if (index is !num) throw new ArgumentError(index);
     if (index < 0) throw new RangeError.value(index);
@@ -69,10 +67,6 @@ class JSString implements String {
     } else {
       throw "String.split(Pattern) UNIMPLEMENTED";
     }
-  }
-
-  List<String> splitChars() {
-    return JS('=List', r'#.split("")', this);
   }
 
   bool startsWith(String other) {
@@ -141,15 +135,7 @@ class JSString implements String {
     return JS('String', r'#.trim()', this);
   }
 
-  List<int> get charCodes  {
-    List<int> result = new List<int>.fixedLength(length);
-    for (int i = 0; i < length; i++) {
-      result[i] = JS('int', '#.charCodeAt(#)', this, i);
-    }
-    return result;
-  }
-
-  Iterable<int> get codeUnits => new CodeUnits(this);
+  List<int> get codeUnits => new CodeUnits(this);
 
   Runes get runes => new Runes(this);
 

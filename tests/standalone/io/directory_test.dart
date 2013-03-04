@@ -27,9 +27,9 @@ class DirectoryTest {
     void testSyncListing(bool recursive) {
       for (var entry in directory.listSync(recursive: recursive)) {
         if (entry is File) {
-          Expect.isTrue(entry.name.contains(directory.path));
-          Expect.isTrue(entry.name.contains('subdir'));
-          Expect.isTrue(entry.name.contains('file.txt'));
+          Expect.isTrue(entry.path.contains(directory.path));
+          Expect.isTrue(entry.path.contains('subdir'));
+          Expect.isTrue(entry.path.contains('file.txt'));
           Expect.isFalse(listedFile);
           listedFile = true;
         } else {
@@ -54,7 +54,7 @@ class DirectoryTest {
     directory.list(recursive: true).listen(
         (FileSystemEntity entity) {
           if (entity is File) {
-            var path = entity.name;
+            var path = entity.path;
             listedFile = true;
             Expect.isTrue(path.contains(directory.path));
             Expect.isTrue(path.contains('subdir'));

@@ -42,8 +42,8 @@ class OptionalParameterTypes {
   final List<HType> types;
 
   OptionalParameterTypes(int optionalArgumentsCount)
-      : names = new List<SourceString>.fixedLength(optionalArgumentsCount),
-        types = new List<HType>.fixedLength(optionalArgumentsCount);
+      : names = new List<SourceString>(optionalArgumentsCount),
+        types = new List<HType>(optionalArgumentsCount);
 
   int get length => names.length;
   SourceString name(int index) => names[index];
@@ -69,10 +69,10 @@ class HTypeList {
   final List<SourceString> namedArguments;
 
   HTypeList(int length)
-      : types = new List<HType>.fixedLength(length),
+      : types = new List<HType>(length),
         namedArguments = null;
   HTypeList.withNamedArguments(int length, this.namedArguments)
-      : types = new List<HType>.fixedLength(length);
+      : types = new List<HType>(length);
   const HTypeList.withAllUnknown()
       : types = null,
         namedArguments = null;
@@ -90,6 +90,7 @@ class HTypeList {
     HTypeList result = new HTypeList(node.inputs.length - 1);
     for (int i = 0; i < result.types.length; i++) {
       result.types[i] = node.inputs[i + 1].instructionType;
+      assert(!result.types[i].isConflicting());
     }
     return result;
   }
@@ -115,6 +116,7 @@ class HTypeList {
 
     for (int i = 0; i < result.types.length; i++) {
       result.types[i] = node.inputs[i + startInvokeIndex].instructionType;
+      assert(!result.types[i].isConflicting());
     }
     return result;
   }
@@ -276,6 +278,7 @@ class FieldTypesRegistry {
                          Element field,
                          HType type) {
     assert(field.isField());
+    assert(!type.isConflicting());
     HType before = optimisticFieldType(field);
 
     HType oldType = typeMap[field];
@@ -639,7 +642,6 @@ class JavaScriptBackend extends Backend {
   ClassElement jsFunctionClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
-  ClassElement objectInterceptorClass;
   Element jsArrayLength;
   Element jsStringLength;
   Element jsArrayRemoveLast;
@@ -648,6 +650,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringConcat;
   Element jsStringToString;
   Element getInterceptorMethod;
+  Element interceptedNames;
   Element fixedLengthListConstructor;
   bool seenAnyClass = false;
 
@@ -702,11 +705,9 @@ class JavaScriptBackend extends Backend {
   final Map<String, Collection<ClassElement>> specializedGetInterceptors;
 
   /**
-   * Set of classes whose instances are intercepted. Implemented as a
-   * [LinkedHashMap] to preserve the insertion order.
-   * TODO(ngeoffray): No need to preserve order anymore.
+   * Set of classes whose methods are intercepted.
    */
-  final Map<ClassElement, ClassElement> interceptedClasses;
+  final Set<ClassElement> interceptedClasses;
 
   /**
    * Set of selectors that are used from within loops. Used by the
@@ -732,11 +733,10 @@ class JavaScriptBackend extends Backend {
         rti = new RuntimeTypeInformation(compiler),
         specializedGetInterceptors =
             new Map<String, Collection<ClassElement>>(),
-        interceptedClasses = new LinkedHashMap<ClassElement, ClassElement>(),
+        interceptedClasses = new Set<ClassElement>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
-        // TODO(8522): Restore --disallow-unsafe-eval.
-        ? null // new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
+        ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
         : new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -753,7 +753,7 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptorClass(Element element) {
     if (element == null) return false;
-    return interceptedClasses.containsKey(element);
+    return interceptedClasses.contains(element);
   }
 
   void addInterceptedSelector(Selector selector) {
@@ -761,7 +761,7 @@ class JavaScriptBackend extends Backend {
   }
 
   String registerOneShotInterceptor(Selector selector) {
-    Set<ClassElement> classes = getInterceptedClassesOn(selector);
+    Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
     String name = namer.getOneShotInterceptorName(selector, classes);
     if (!oneShotInterceptors.containsKey(name)) {
       registerSpecializedGetInterceptor(classes);
@@ -770,50 +770,43 @@ class JavaScriptBackend extends Backend {
     return name;
   }
 
-  final Map<Selector, Set<ClassElement>> interceptedClassesCache =
-      new Map<Selector, Set<ClassElement>>();
-  final Map<Selector, Set<ClassElement>> interceptedClassesNonNullCache =
-      new Map<Selector, Set<ClassElement>>();
-
-  /**
-   * Returns a set of interceptor classes that contain a member whose
-   * signature matches the given [selector]. Returns [:null:] if there
-   * is no class.
-   */
-  Set<ClassElement> getInterceptedClassesOn(Selector selector,
-                                            {bool canBeNull: true}) {
-    Set<Element> intercepted = interceptedElements[selector.name];
-    if (intercepted == null) return null;
-    // Pick the right cache and query it.
-    Map<Selector, Set<ClassElement>> cache = canBeNull
-        ? interceptedClassesCache
-        : interceptedClassesNonNullCache;
-    if (cache.containsKey(selector)) return cache[selector];
-    // Populate the cache by running through all the elements and
-    // determine if the given selector applies to them.
-    Set<ClassElement> result = new Set<ClassElement>();
-    for (Element element in intercepted) {
-      ClassElement enclosing = element.getEnclosingClass();
-      // We have to treat null as a bottom type, so we use the untyped
-      // applies method for those elements that are implemented on the
-      // null class.
-      bool applies = (enclosing == jsNullClass)
-          ? canBeNull && selector.appliesUntyped(element, compiler)
-          : selector.applies(element, compiler);
-      if (applies) result.add(enclosing);
-    }
-    if (result.isEmpty) result = null;
-    cache[selector] = result;
-    assert(cache.containsKey(selector));
-    return result;
+  bool isInterceptedMethod(Element element) {
+    return element.isInstanceMember()
+        && interceptedElements[element.name] != null;
   }
 
-  void initializeInterceptorElements() {
-    objectInterceptorClass =
-        compiler.findInterceptor(const SourceString('ObjectInterceptor'));
+  bool isInterceptedName(SourceString name) {
+    return interceptedElements[name] != null;
+  }
+
+  final Map<SourceString, Set<ClassElement>> interceptedClassesCache =
+      new Map<SourceString, Set<ClassElement>>();
+
+  /**
+   * Returns a set of interceptor classes that contain a member named
+   * [name]. Returns [:null:] if there is no class.
+   */
+  Set<ClassElement> getInterceptedClassesOn(SourceString name) {
+    Set<Element> intercepted = interceptedElements[name];
+    if (intercepted == null) return null;
+    return interceptedClassesCache.putIfAbsent(name, () {
+      // Populate the cache by running through all the elements and
+      // determine if the given selector applies to them.
+      Set<ClassElement> result = new Set<ClassElement>();
+      for (Element element in intercepted) {
+        result.add(element.getEnclosingClass());
+      }
+      return result;
+    });
+  }
+
+  void initializeHelperClasses() {
     getInterceptorMethod =
         compiler.findInterceptor(const SourceString('getInterceptor'));
+    interceptedNames =
+        compiler.findInterceptor(const SourceString('interceptedNames'));
     List<ClassElement> classes = [
+      compiler.objectClass,
       jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
       jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
       // The int class must be before the double class, because the
@@ -845,7 +838,7 @@ class JavaScriptBackend extends Backend {
         jsStringClass, const SourceString('toString'));
 
     for (ClassElement cls in classes) {
-      if (cls != null) interceptedClasses[cls] = null;
+      if (cls != null) interceptedClasses.add(cls);
     }
   }
 
@@ -863,23 +856,11 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    compiler.enqueuer.codegen.registerInstantiatedClass(objectInterceptorClass);
     String name = namer.getInterceptorName(getInterceptorMethod, classes);
     if (classes.contains(compiler.objectClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
-      specializedGetInterceptors.putIfAbsent(name, () {
-        // It is important to take the order provided by the map,
-        // because we want the int type check to happen before the
-        // double type check: the double type check covers the int
-        // type check. Also we don't need to do a number type check
-        // because that is covered by the double type check.
-        List<ClassElement> keys = <ClassElement>[];
-        interceptedClasses.forEach((ClassElement cls, _) {
-          if (cls != jsNumberClass) keys.add(cls);
-        });
-        return keys;
-      });
+      specializedGetInterceptors[name] = interceptedClasses;
     } else {
       specializedGetInterceptors[name] = classes;
     }
@@ -890,14 +871,14 @@ class JavaScriptBackend extends Backend {
     // make sure all [noSuchMethod] methods know they might take a
     // [JsInvocationMirror] as parameter.
     HTypeList types = new HTypeList(1);
-    types[0] = new HBoundedType.exact(
-        compiler.jsInvocationMirrorClass.computeType(compiler));
+    types[0] = new HType.nonNullExact(
+        compiler.jsInvocationMirrorClass.computeType(compiler),
+        compiler);
     argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());
   }
 
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
     if (!seenAnyClass) {
-      initializeInterceptorElements();
       initializeNoSuchMethod();
       seenAnyClass = true;
     }
@@ -967,6 +948,12 @@ class JavaScriptBackend extends Backend {
     return new JavaScriptItemCompilationContext();
   }
 
+  void addBackendRtiDependencies(World world) {
+    if (jsArrayClass != null) {
+      world.registerRtiDependency(jsArrayClass, compiler.listClass);
+    }
+  }
+
   void enqueueHelpers(ResolutionEnqueuer world) {
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
@@ -1008,6 +995,14 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getTraceFromException());
   }
 
+  void registerSetRuntimeType() {
+    enqueueInResolution(getSetRuntimeTypeInfo());
+  }
+
+  void registerGetRuntimeTypeArgument() {
+    enqueueInResolution(getGetRuntimeTypeArgument());
+  }
+
   void registerRuntimeType() {
     enqueueInResolution(getSetRuntimeTypeInfo());
     enqueueInResolution(getGetRuntimeTypeInfo());
@@ -1016,11 +1011,13 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerIsCheck(DartType type, Enqueuer world) {
-    if (!type.isRaw) {
+    bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
+    if (!type.isRaw || isTypeVariable) {
       enqueueInResolution(getSetRuntimeTypeInfo());
       enqueueInResolution(getGetRuntimeTypeInfo());
       enqueueInResolution(getGetRuntimeTypeArgument());
       enqueueInResolution(getCheckArguments());
+      if (isTypeVariable) enqueueInResolution(getGetObjectIsSubtype());
       world.registerInstantiatedClass(compiler.listClass);
     }
     // [registerIsCheck] is also called for checked mode checks, so we
@@ -1467,6 +1464,10 @@ class JavaScriptBackend extends Backend {
 
   Element getCheckArguments() {
     return compiler.findHelper(const SourceString('checkArguments'));
+  }
+
+  Element getGetObjectIsSubtype() {
+    return compiler.findHelper(const SourceString('objectIsSubtype'));
   }
 
   Element getThrowNoSuchMethod() {

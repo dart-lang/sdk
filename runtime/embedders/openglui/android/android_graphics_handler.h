@@ -10,7 +10,8 @@
 
 class AndroidGraphicsHandler : public GraphicsHandler {
   public:
-    explicit AndroidGraphicsHandler(android_app* application);
+    AndroidGraphicsHandler(android_app* application,
+                           const char* resource_path);
 
     int32_t Start();
     void Stop();

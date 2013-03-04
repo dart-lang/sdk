@@ -79,7 +79,7 @@ abstract class Process {
                                             [ProcessOptions options]);
 
   /**
-   * Returns an input stream of the process stdout.
+   * Returns the standard output stream of the process as a [:Stream:].
    *
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
@@ -87,7 +87,7 @@ abstract class Process {
   Stream<List<int>> get stdout;
 
   /**
-   * Returns an input stream of the process stderr.
+   * Returns the standard error stream of the process as a [:Stream:].
    *
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
@@ -95,7 +95,7 @@ abstract class Process {
   Stream<List<int>> get stderr;
 
   /**
-   * Returns an output stream to the process stdin.
+   * Returns the standard input stream of the process as an [IOSink].
    *
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
@@ -103,8 +103,8 @@ abstract class Process {
   IOSink<Process> get stdin;
 
   /**
-   * Sets an exit handler which gets invoked when the process
-   * terminates.
+   * Returns a [:Future:] which completes with the exit code of the process
+   * when the process completes.
    *
    * Throws an [UnsupportedError] if the process is
    * non-interactive.

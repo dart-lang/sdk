@@ -222,7 +222,7 @@ abstract class Utf32BytesDecoder implements _ListRangeIterator {
   }
 
   List<int> decodeRest() {
-    List<int> codeunits = new List<int>.fixedLength(remaining);
+    List<int> codeunits = new List<int>(remaining);
     int i = 0;
     while (moveNext()) {
       codeunits[i++] = current;

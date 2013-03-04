@@ -7,7 +7,7 @@ library http_test;
 import 'dart:io';
 
 import 'package:unittest/unittest.dart';
-import 'package:http/http.dart' as http;
+import '../lib/http.dart' as http;
 import 'utils.dart';
 
 main() {

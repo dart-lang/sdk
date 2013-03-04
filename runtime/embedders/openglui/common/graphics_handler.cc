@@ -9,13 +9,38 @@
 extern void CheckGLError(const char *function);
 
 GraphicsHandler* graphics;
+extern CanvasContext* display_context;
 
-GraphicsHandler::GraphicsHandler()
-  : ag(),
+GraphicsHandler::GraphicsHandler(const char* resource_path)
+  : resource_path_(resource_path),
+    ag(),
     grcontext(NULL),
     width_(0),
     height_(0) {
   graphics = this;
+  DecoderHack(0, NULL);
+}
+
+void GraphicsHandler::DecoderHack(int x, SkStream* s) {
+  if (x) {  // hack to keep the linker from throwing these out
+    extern SkImageDecoder* sk_libpng_dfactory(SkStream* s);
+    sk_libpng_dfactory(s);
+
+    // TODO(gram): For some reason I get linker errors on these, even though
+    // they are defined in libskia_images. Figure out why...
+    /*
+    extern SkImageDecoder* sk_libjpeg_dfactory(SkStream* s);
+    extern SkImageDecoder* sk_libbmp_dfactory(SkStream* s);
+    extern SkImageDecoder* sk_libgif_dfactory(SkStream* s);
+    extern SkImageDecoder* sk_libico_dfactory(SkStream* s);
+    extern SkImageDecoder* sk_libwbmp_dfactory(SkStream* s);
+    sk_libjpeg_dfactory(s);
+    sk_libbmp_dfactory(s);
+    sk_libgif_dfactory(s);
+    sk_libico_dfactory(s);
+    sk_libwbmp_dfactory(s);
+    */
+  }
 }
 
 // Kludge to get around an issue with Android emulator, which returns
@@ -31,7 +56,6 @@ const GrGLubyte* myGLGetString(GLenum name) {
 }
 
 int32_t GraphicsHandler::Start() {
-  SkGraphics::Init();
   GrGLInterface* fGL = const_cast<GrGLInterface*>(GrGLCreateNativeInterface());
   LOGI("Created native interface %s\n", fGL ? "succeeded" : "failed");
   fGL->fGetString = myGLGetString;
@@ -41,7 +65,10 @@ int32_t GraphicsHandler::Start() {
 }
 
 void GraphicsHandler::Stop() {
-  SkGraphics::Term();
+  LOGI("Releasing display context");
+  FreeContexts();
+  grcontext->unref();
+  grcontext = NULL;
 }
 
 SkCanvas* GraphicsHandler::CreateDisplayCanvas() {
@@ -82,15 +109,12 @@ void GraphicsHandler::SetViewport(int left, int top, int width, int height) {
 }
 
 int32_t GraphicsHandler::Update() {
-  extern CanvasContext* display_context;
-  if (display_context != NULL) {
+  if (display_context != NULL && display_context->isDirty()) {
     LOGI("Flushing display context\n");
     display_context->Flush();
+    SwapBuffers();
+    display_context->clearDirty();
   }
-  SwapBuffers();
   return 0;
 }
-
-
-
 

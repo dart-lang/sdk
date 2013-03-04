@@ -126,8 +126,6 @@ class HtmlConfiguration extends Configuration {
     window.postMessage('unittest-suite-wait-for-done', '*');
   }
 
-  void onTestResult(TestCase testCase) {}
-
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     _showResultsInPage(passed, failed, errors, results, _isLayoutTest,

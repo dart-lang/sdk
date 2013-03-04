@@ -7,7 +7,7 @@ library pub_tests;
 import 'dart:io';
 
 import 'test_pub.dart';
-import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/pathos/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 
 main() {

@@ -37,7 +37,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /**
    * An empty array of errors used when no errors are expected.
    */
-  static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>.fixedLength(0);
+  static List<AnalysisError> _NO_ERRORS = new List<AnalysisError>(0);
   /**
    * Initialize a newly created error listener to collect errors.
    */
@@ -351,7 +351,7 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertNotNull(actualValues);
     int expectedLength = expectedValues.length;
     JUnitTestCase.assertEquals(expectedLength, actualValues.length);
-    List<bool> found = new List<bool>.fixedLength(expectedLength);
+    List<bool> found = new List<bool>(expectedLength);
     for (int i = 0; i < expectedLength; i++) {
       found[i] = false;
     }

@@ -399,7 +399,7 @@ abstract class ExportElement implements Element {
   /**
    * An empty array of export elements.
    */
-  static List<ExportElement> EMPTY_ARRAY = new List<ExportElement>.fixedLength(0);
+  static List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
   /**
    * Return an array containing the combinators that were specified as part of the export directive
    * in the order in which they were specified.
@@ -498,7 +498,7 @@ abstract class ImportElement implements Element {
   /**
    * An empty array of import elements.
    */
-  static List<ImportElement> EMPTY_ARRAY = new List<ImportElement>.fixedLength(0);
+  static List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
   /**
    * Return an array containing the combinators that were specified as part of the import directive
    * in the order in which they were specified.
@@ -629,7 +629,7 @@ abstract class NamespaceCombinator {
   /**
    * An empty array of namespace combinators.
    */
-  static List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>.fixedLength(0);
+  static List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
 }
 /**
  * The interface {@code ParameterElement} defines the behavior of elements representing a parameter
@@ -815,7 +815,7 @@ class AnnotationImpl implements Annotation {
   /**
    * An empty array of annotations.
    */
-  static List<AnnotationImpl> EMPTY_ARRAY = new List<AnnotationImpl>.fixedLength(0);
+  static List<AnnotationImpl> EMPTY_ARRAY = new List<AnnotationImpl>(0);
   /**
    * Initialize a newly created annotation.
    * @param element the element representing the field, variable, or constructor being used as an
@@ -871,7 +871,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   /**
    * An empty array of type elements.
    */
-  static List<ClassElement> EMPTY_ARRAY = new List<ClassElement>.fixedLength(0);
+  static List<ClassElement> EMPTY_ARRAY = new List<ClassElement>(0);
   /**
    * Initialize a newly created class element to have the given name.
    * @param name the name of this element
@@ -1213,7 +1213,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   /**
    * An empty array of compilation unit elements.
    */
-  static List<CompilationUnitElement> EMPTY_ARRAY = new List<CompilationUnitElement>.fixedLength(0);
+  static List<CompilationUnitElement> EMPTY_ARRAY = new List<CompilationUnitElement>(0);
   /**
    * Initialize a newly created compilation unit element to have the given name.
    * @param name the name of this element
@@ -1332,7 +1332,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   /**
    * An empty array of constructor elements.
    */
-  static List<ConstructorElement> EMPTY_ARRAY = new List<ConstructorElement>.fixedLength(0);
+  static List<ConstructorElement> EMPTY_ARRAY = new List<ConstructorElement>(0);
   /**
    * Initialize a newly created constructor element to have the given name.
    * @param name the name of this element
@@ -1689,7 +1689,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   /**
    * An empty array of executable elements.
    */
-  static List<ExecutableElement> EMPTY_ARRAY = new List<ExecutableElement>.fixedLength(0);
+  static List<ExecutableElement> EMPTY_ARRAY = new List<ExecutableElement>(0);
   /**
    * Initialize a newly created executable element to have the given name.
    * @param name the name of this element
@@ -1858,7 +1858,7 @@ class FieldElementImpl extends VariableElementImpl implements FieldElement {
   /**
    * An empty array of field elements.
    */
-  static List<FieldElement> EMPTY_ARRAY = new List<FieldElement>.fixedLength(0);
+  static List<FieldElement> EMPTY_ARRAY = new List<FieldElement>(0);
   /**
    * Initialize a newly created field element to have the given name.
    * @param name the name of this element
@@ -1920,7 +1920,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   /**
    * An empty array of function elements.
    */
-  static List<FunctionElement> EMPTY_ARRAY = new List<FunctionElement>.fixedLength(0);
+  static List<FunctionElement> EMPTY_ARRAY = new List<FunctionElement>(0);
   /**
    * Initialize a newly created synthetic function element.
    */
@@ -2009,7 +2009,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
    * An empty array of HTML file elements.
    */
-  static List<HtmlElement> EMPTY_ARRAY = new List<HtmlElement>.fixedLength(0);
+  static List<HtmlElement> EMPTY_ARRAY = new List<HtmlElement>(0);
   /**
    * The analysis context in which this library is defined.
    */
@@ -2129,7 +2129,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
    * An empty array of label elements.
    */
-  static List<LabelElement> EMPTY_ARRAY = new List<LabelElement>.fixedLength(0);
+  static List<LabelElement> EMPTY_ARRAY = new List<LabelElement>(0);
   /**
    * Initialize a newly created label element to have the given name.
    * @param name the name of this element
@@ -2160,7 +2160,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * An empty array of library elements.
    */
-  static List<LibraryElement> EMPTY_ARRAY = new List<LibraryElement>.fixedLength(0);
+  static List<LibraryElement> EMPTY_ARRAY = new List<LibraryElement>(0);
   /**
    * The analysis context in which this library is defined.
    */
@@ -2316,7 +2316,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**
    * An empty array of method elements.
    */
-  static List<MethodElement> EMPTY_ARRAY = new List<MethodElement>.fixedLength(0);
+  static List<MethodElement> EMPTY_ARRAY = new List<MethodElement>(0);
   /**
    * Initialize a newly created method element to have the given name.
    * @param name the name of this element
@@ -2484,7 +2484,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   /**
    * An empty array of field elements.
    */
-  static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>.fixedLength(0);
+  static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>(0);
   /**
    * Initialize a newly created parameter element to have the given name.
    * @param name the name of this element
@@ -2528,7 +2528,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
    * An empty array of prefix elements.
    */
-  static List<PrefixElement> EMPTY_ARRAY = new List<PrefixElement>.fixedLength(0);
+  static List<PrefixElement> EMPTY_ARRAY = new List<PrefixElement>(0);
   /**
    * Initialize a newly created prefix element to have the given name.
    * @param name the name of this element
@@ -2564,7 +2564,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   /**
    * An empty array of property accessor elements.
    */
-  static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>.fixedLength(0);
+  static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>(0);
   /**
    * Initialize a newly created synthetic property accessor element to be associated with the given
    * field.
@@ -2677,7 +2677,7 @@ class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
   /**
    * An empty array of type alias elements.
    */
-  static List<TypeAliasElement> EMPTY_ARRAY = new List<TypeAliasElement>.fixedLength(0);
+  static List<TypeAliasElement> EMPTY_ARRAY = new List<TypeAliasElement>(0);
   /**
    * Initialize a newly created type alias element to have the given name.
    * @param name the name of this element
@@ -2776,7 +2776,7 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
   /**
    * An empty array of type variable elements.
    */
-  static List<TypeVariableElement> EMPTY_ARRAY = new List<TypeVariableElement>.fixedLength(0);
+  static List<TypeVariableElement> EMPTY_ARRAY = new List<TypeVariableElement>(0);
   /**
    * Initialize a newly created type variable element to have the given name.
    * @param name the name of this element
@@ -2833,7 +2833,7 @@ class VariableElementImpl extends ElementImpl implements VariableElement {
   /**
    * An empty array of variable elements.
    */
-  static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>.fixedLength(0);
+  static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>(0);
   /**
    * Initialize a newly created variable element to have the given name.
    * @param name the name of this element
@@ -3244,7 +3244,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * An empty array of types.
    */
-  static List<InterfaceType> EMPTY_ARRAY = new List<InterfaceType>.fixedLength(0);
+  static List<InterfaceType> EMPTY_ARRAY = new List<InterfaceType>(0);
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object.
    * @param type the {@link Type} to compute the longest inheritance path of from the passed{@link Type} to Object
@@ -3367,7 +3367,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     si.retainAll(sj);
     Set<InterfaceType> s = si;
     List<InterfaceType> sn = new List.from(s);
-    List<int> depths = new List<int>.fixedLength(sn.length);
+    List<int> depths = new List<int>(sn.length);
     int maxDepth = 0;
     for (int n = 0; n < sn.length; n++) {
       depths[n] = computeLongestInheritancePathToObject(sn[n]);
@@ -3557,7 +3557,7 @@ abstract class TypeImpl implements Type2 {
    */
   static List<Type2> substitute(List<Type2> types, List<Type2> argumentTypes, List<Type2> parameterTypes) {
     int length6 = types.length;
-    List<Type2> newTypes = new List<Type2>.fixedLength(length6);
+    List<Type2> newTypes = new List<Type2>(length6);
     for (int i = 0; i < length6; i++) {
       newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
     }
@@ -3575,7 +3575,7 @@ abstract class TypeImpl implements Type2 {
   /**
    * An empty array of types.
    */
-  static List<Type2> EMPTY_ARRAY = new List<Type2>.fixedLength(0);
+  static List<Type2> EMPTY_ARRAY = new List<Type2>(0);
   /**
    * Initialize a newly created type to be declared by the given element and to have the given name.
    * @param element the element representing the declaration of the type
@@ -3621,7 +3621,7 @@ class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
    */
   static List<TypeVariableType> getTypes(List<TypeVariableElement> typeVariables) {
     int count = typeVariables.length;
-    List<TypeVariableType> types = new List<TypeVariableType>.fixedLength(count);
+    List<TypeVariableType> types = new List<TypeVariableType>(count);
     for (int i = 0; i < count; i++) {
       types[i] = typeVariables[i].type;
     }

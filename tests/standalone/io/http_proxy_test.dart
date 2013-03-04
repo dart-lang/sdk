@@ -189,15 +189,26 @@ void testProxy() {
   setupServer(1, directRequestPaths: ["/4"], secure: true).then((secureServer) {
     HttpClient client = new HttpClient();
 
-    List<String> proxy =
-        ["PROXY localhost:${proxyServer.port}",
-         "PROXY localhost:${proxyServer.port}; PROXY hede.hule.hest:8080",
-         "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer.port}",
-         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181;"
-             " PROXY localhost:${proxyServer.port}",
-         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
-         "PROXY localhost:${proxyServer.port}; DIRECT"];
-
+    List<String> proxy;
+    if (Platform.operatingSystem == "windows") {
+      proxy =
+          ["PROXY localhost:${proxyServer.port}",
+           "PROXY localhost:${proxyServer.port}; PROXY hede.hule.hest:8080",
+           "PROXY localhost:${proxyServer.port}",
+           ""
+               " PROXY localhost:${proxyServer.port}",
+           "DIRECT",
+           "PROXY localhost:${proxyServer.port}; DIRECT"];
+    } else {
+      proxy =
+          ["PROXY localhost:${proxyServer.port}",
+           "PROXY localhost:${proxyServer.port}; PROXY hede.hule.hest:8080",
+           "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer.port}",
+           "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181;"
+               " PROXY localhost:${proxyServer.port}",
+           "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
+           "PROXY localhost:${proxyServer.port}; DIRECT"];
+    }
     client.findProxy = (Uri uri) {
       // Pick the proxy configuration based on the request path.
       int index = int.parse(uri.path.substring(1));
@@ -248,13 +259,25 @@ void testProxyChain() {
   setupServer(2, directRequestPaths: ["/4"]).then((server) {
     HttpClient client = new HttpClient();
 
-    List<String> proxy =
-        ["PROXY localhost:${proxyServer1.port}",
-         "PROXY localhost:${proxyServer1.port}; PROXY hede.hule.hest:8080",
-         "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer1.port}",
-         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; PROXY localhost:${proxyServer1.port}",
-         "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
-         "PROXY localhost:${proxyServer1.port}; DIRECT"];
+    List<String> proxy;
+    if (Platform.operatingSystem == "windows") {
+      proxy =
+          ["PROXY localhost:${proxyServer1.port}",
+           "PROXY localhost:${proxyServer1.port}; PROXY hede.hule.hest:8080",
+           "PROXY localhost:${proxyServer1.port}",
+           "PROXY localhost:${proxyServer1.port}",
+           "DIRECT",
+           "PROXY localhost:${proxyServer1.port}; DIRECT"];
+    } else {
+      proxy =
+          ["PROXY localhost:${proxyServer1.port}",
+           "PROXY localhost:${proxyServer1.port}; PROXY hede.hule.hest:8080",
+           "PROXY hede.hule.hest:8080; PROXY localhost:${proxyServer1.port}",
+           "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181;"
+               " PROXY localhost:${proxyServer1.port}",
+           "PROXY hede.hule.hest:8080; PROXY hede.hule.hest:8181; DIRECT",
+           "PROXY localhost:${proxyServer1.port}; DIRECT"];
+    }
 
     client.findProxy = (Uri uri) {
       // Pick the proxy configuration based on the request path.

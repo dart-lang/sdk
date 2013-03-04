@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,8 +20,14 @@ part of dart.async;
  * or to temporarily pause events from the stream.
  *
  * When an event is fired, the listeners at that time are informed.
- * If a listener is added or removed while an event is being fired, the change
- * will only take effect after the event is completely fired.
+ * If a listener is added while an event is being fired, the change
+ * will only take effect after the event is completely fired. If a listener
+ * is canceled, it immediately stops receiving events.
+ *
+ * When the "done" event is fired, subscribers are unsubscribed before
+ * receiving the event. After the event has been sent, the stream has no
+ * subscribers. Adding new subscribers after this point is allowed, but
+ * they will just receive a new "done" event as soon as possible.
  *
  * Streams always respect "pause" requests. If necessary they need to buffer
  * their input, but often, and preferably, they can simply request their input
@@ -77,7 +83,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Whether the stream is a broadcast stream.
+   * Reports whether this stream is a broadcast stream.
    */
   bool get isBroadcast => false;
 
@@ -97,9 +103,9 @@ abstract class Stream<T> {
   }
 
   /**
-   * Add a subscription to this stream.
+   * Adds a subscription to this stream.
    *
-   * On each data event from this stream, the subscribers [onData] handler
+   * On each data event from this stream, the subscriber's [onData] handler
    * is called. If [onData] is null, nothing happens.
    *
    * On errors from this stream, the [onError] handler is given a
@@ -126,7 +132,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Create a new stream that converts each element of this stream
+   * Creates a new stream that converts each element of this stream
    * to a new value using the [convert] function.
    */
   Stream map(convert(T event)) {
@@ -134,7 +140,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Create a wrapper Stream that intercepts some errors from this stream.
+   * Creates a wrapper Stream that intercepts some errors from this stream.
    *
    * If this stream sends an error that matches [test], then it is intercepted
    * by the [handle] function.
@@ -155,7 +161,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Create a new stream from this stream that converts each element
+   * Creates a new stream from this stream that converts each element
    * into zero or more events.
    *
    * Each incoming event is converted to an [Iterable] of new events,
@@ -167,14 +173,14 @@ abstract class Stream<T> {
   }
 
   /**
-   * Bind this stream as the input of the provided [StreamConsumer].
+   * Binds this stream as the input of the provided [StreamConsumer].
    */
   Future pipe(StreamConsumer<T, dynamic> streamConsumer) {
     return streamConsumer.consume(this);
   }
 
   /**
-   * Chain this stream as the input of the provided [StreamTransformer].
+   * Chains this stream as the input of the provided [StreamTransformer].
    *
    * Returns the result of [:streamTransformer.bind:] itself.
    */
@@ -225,7 +231,7 @@ abstract class Stream<T> {
 
 
   /**
-   * Check whether [match] occurs in the elements provided by this stream.
+   * Checks whether [match] occurs in the elements provided by this stream.
    *
    * Completes the [Future] when the answer is known.
    * If this stream reports an error, the [Future] will report that error.
@@ -257,7 +263,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Check whether [test] accepts all elements provided by this stream.
+   * Checks whether [test] accepts all elements provided by this stream.
    *
    * Completes the [Future] when the answer is known.
    * If this stream reports an error, the [Future] will report that error.
@@ -289,7 +295,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Check whether [test] accepts any element provided by this stream.
+   * Checks whether [test] accepts any element provided by this stream.
    *
    * Completes the [Future] when the answer is known.
    * If this stream reports an error, the [Future] will report that error.
@@ -440,7 +446,7 @@ abstract class Stream<T> {
     return future;
   }
 
-  /** Collect the data of this stream in a [List]. */
+  /** Collects the data of this stream in a [List]. */
   Future<List<T>> toList() {
     List<T> result = <T>[];
     _FutureImpl<List<T>> future = new _FutureImpl<List<T>>();
@@ -458,7 +464,7 @@ abstract class Stream<T> {
     return future;
   }
 
-  /** Collect the data of this stream in a [Set]. */
+  /** Collects the data of this stream in a [Set]. */
   Future<Set<T>> toSet() {
     Set<T> result = new Set<T>();
     _FutureImpl<Set<T>> future = new _FutureImpl<Set<T>>();
@@ -477,7 +483,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Provide at most the first [n] values of this stream.
+   * Provides at most the first [n] values of this stream.
    *
    * Forwards the first [n] data events of this stream, and all error
    * events, to the returned stream, and ends with a done event.
@@ -521,7 +527,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Skip data events if they are equal to the previous data event.
+   * Skips data events if they are equal to the previous data event.
    *
    * The returned stream provides the same events as this stream, except
    * that it never provides two consequtive data events that are equal.
@@ -624,7 +630,7 @@ abstract class Stream<T> {
   }
 
   /**
-   * Find the first element of this stream matching [test].
+   * Finds the first element of this stream matching [test].
    *
    * Returns a future that is filled with the first element of this stream
    * that [test] returns true for.
@@ -1014,6 +1020,7 @@ class EventTransformStream<S, T> extends Stream<T> {
                                { void onError(AsyncError error),
                                  void onDone(),
                                  bool unsubscribeOnError }) {
+    unsubscribeOnError = identical(true, unsubscribeOnError);
     return new _EventTransformStreamSubscription(_source, _transformer,
                                                  onData, onError, onDone,
                                                  unsubscribeOnError);
@@ -1077,6 +1084,7 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _handleDone() {
+    _subscription = null;
     try {
       _transformer.handleDone(_sink);
     } catch (e, s) {

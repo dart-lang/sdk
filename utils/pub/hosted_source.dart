@@ -11,7 +11,7 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 
 import 'http.dart';
 import 'io.dart';
@@ -95,7 +95,7 @@ class HostedSource extends Source {
     var parsed = _parseDescription(id.description);
     var url = parsed.last.replaceAll(new RegExp(r"^https?://"), "");
     var urlDir = replace(url, new RegExp(r'[<>:"\\/|?*%]'), (match) {
-      return '%${match[0].charCodeAt(0)}';
+      return '%${match[0].codeUnitAt(0)}';
     });
 
     return new Future.immediate(

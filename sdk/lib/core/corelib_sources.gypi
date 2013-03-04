@@ -4,6 +4,8 @@
 
 {
   'sources': [
+    'core.dart',
+    # The above file needs to be first as it lists the parts below.
     'bool.dart',
     'collection.dart',
     'comparable.dart',
@@ -29,6 +31,7 @@
     'print.dart',
     'regexp.dart',
     'set.dart',
+    'stacktrace.dart',
     'stopwatch.dart',
     'string.dart',
     'string_buffer.dart',

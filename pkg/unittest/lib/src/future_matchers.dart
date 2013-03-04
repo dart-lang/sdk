@@ -13,7 +13,7 @@ part of matcher;
  * To test that a Future completes with an exception, you can use [throws] and
  * [throwsA].
  */
-Matcher completes = const _Completes(null);
+Matcher completes = const _Completes(null, '');
 
 /**
  * Matches a [Future] that completes succesfully with a value that matches
@@ -23,29 +23,35 @@ Matcher completes = const _Completes(null);
  *
  * To test that a Future completes with an exception, you can use [throws] and
  * [throwsA].
+ *
+ * [id] is an optional tag that can be used to identify the completion matcher
+ * in error messages.
  */
-Matcher completion(matcher) => new _Completes(wrapMatcher(matcher));
+Matcher completion(matcher, [String id = '']) =>
+    new _Completes(wrapMatcher(matcher), id);
 
 class _Completes extends BaseMatcher {
   final Matcher _matcher;
+  final String _id;
 
-  const _Completes(this._matcher);
+  const _Completes(this._matcher, this._id);
 
   bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
-    var done = wrapAsync((fn) => fn());
+    var done = wrapAsync((fn) => fn(), _id);
 
     item.then((value) {
       done(() { if (_matcher != null) expect(value, _matcher); });
     }, onError: (e) {
-      var reason = 'Expected future to complete successfully, but it failed '
-                   'with ${e.error}';
+      var id = _id == '' ? '' : '${_id} ';
+      var reason = 'Expected future ${id}to complete successfully, '
+                   'but it failed with ${e.error}';
       if (e.stackTrace != null) {
         var stackTrace = e.stackTrace.toString();
         stackTrace = '  ${stackTrace.replaceAll('\n', '\n  ')}';
         reason = '$reason\nStack trace:\n$stackTrace';
       }
-      done(() => expect(false, isTrue, reason: reason));
+      done(() => fail(reason));
     });
 
     return true;

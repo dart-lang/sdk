@@ -76,7 +76,7 @@ class ClassScope extends Scope {
       InterfaceType mixin = mixins.get(i);
       ClassElement mixinElement = mixin.getElement();
       if (!examinedTypes.contains(mixinElement)) {
-        MixinScope scope = new MixinScope(mixinElement, null);
+        MixinScope scope = new MixinScope(mixinElement);
         element = scope.findElement(inLibrary, name);
         if (element != null) {
           return element;

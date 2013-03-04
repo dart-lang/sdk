@@ -130,7 +130,7 @@ class int64 implements intx {
       i++;
     }
     for (; i < s.length; i++) {
-      int c = s.charCodeAt(i);
+      int c = s.codeUnitAt(i);
       int digit = int32._decodeHex(c);
       if (digit < 0 || digit >= radix) {
         throw new Exception("Non-radix char code: $c");
@@ -625,7 +625,7 @@ class int64 implements intx {
   }
 
   List<int> toBytes() {
-    List<int> result = new List<int>.fixedLength(8);
+    List<int> result = new List<int>(8);
     result[0] = _l & 0xff;
     result[1] = (_l >> 8) & 0xff;
     result[2] = ((_m << 6) & 0xfc) | ((_l >> 16) & 0x3f);

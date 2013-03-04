@@ -10,7 +10,7 @@ import 'dart:io';
 import 'dart:math';
 
 import '../../pkg/args/lib/args.dart';
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 
 import 'command_help.dart';
 import 'command_install.dart';
@@ -227,7 +227,7 @@ abstract class PubCommand {
     globalOptions = globalOptions_;
 
     try {
-     commandOptions = commandParser.parse(commandArgs);
+      commandOptions = commandParser.parse(commandArgs);
     } on FormatException catch (e) {
       log.error(e.message);
       log.error('Use "pub help" for more information.');

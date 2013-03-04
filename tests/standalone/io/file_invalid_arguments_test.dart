@@ -144,10 +144,10 @@ String getFilename(String path) {
 main() {
   testReadInvalidArgs('asdf');
   testReadListInvalidArgs(12, 0, 1);
-  testReadListInvalidArgs(new List.fixedLength(10), '0', 1);
-  testReadListInvalidArgs(new List.fixedLength(10), 0, '1');
+  testReadListInvalidArgs(new List(10), '0', 1);
+  testReadListInvalidArgs(new List(10), 0, '1');
   testWriteByteInvalidArgs('asdf');
   testWriteListInvalidArgs(12, 0, 1);
-  testWriteListInvalidArgs(new List.fixedLength(10), '0', 1);
-  testWriteListInvalidArgs(new List.fixedLength(10), 0, '1');
+  testWriteListInvalidArgs(new List(10), '0', 1);
+  testWriteListInvalidArgs(new List(10), 0, '1');
 }

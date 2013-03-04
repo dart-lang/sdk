@@ -15,9 +15,10 @@ import 'dart:io';
 
 /// The various HTML libraries.
 const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
+                                               'dart:indexed_db',
                                                'dart:svg',
                                                'dart:web_audio',
-                                               'dart:indexed_db'];
+                                               'dart:web_sql'];
 /**
  * Converts the libraries in [HTML_LIBRARY_NAMES] to a json file at [jsonPath]
  * given the library path at [libPath].

@@ -10,7 +10,7 @@ class StringTest {
     testIllegalArgument();
     testConcat();
     testIndex();
-    testCharCodeAt();
+    testCodeUnitAt();
     testEquals();
     testEndsWith();
     testStartsWith();
@@ -19,7 +19,6 @@ class StringTest {
     testContains();
     testReplaceAll();
     testCompareTo();
-    testToList();
     testCharCodes();
   }
 
@@ -56,10 +55,10 @@ class StringTest {
     }
   }
 
-  static testCharCodeAt() {
+  static testCodeUnitAt() {
     String str = "string";
     for (int i = 0; i < str.length; i++) {
-      Expect.equals(true, str.charCodeAt(i) is int);
+      Expect.equals(true, str.codeUnitAt(i) is int);
     }
   }
 
@@ -271,25 +270,12 @@ class StringTest {
     Expect.equals(-1, "".compareTo("string"));
   }
 
-  static testToList() {
-    test(str) {
-      var list = str.splitChars();
-      Expect.equals(str.length, list.length);
-      for (int i = 0; i < str.length; i++) {
-        Expect.equals(str[i], list[i]);
-      }
-    }
-    test("abc");
-    test("");
-    test(" ");
-  }
-
   static testCharCodes() {
     test(str) {
-      var list = str.charCodes;
+      var list = str.codeUnits;
       Expect.equals(str.length, list.length);
       for (int i = 0; i < str.length; i++) {
-        Expect.equals(str.charCodeAt(i), list[i]);
+        Expect.equals(str.codeUnitAt(i), list[i]);
       }
     }
     test("abc");

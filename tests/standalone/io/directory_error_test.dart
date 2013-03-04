@@ -170,7 +170,7 @@ void testRenameFileAsDirectory(Directory temp, Function done) {
   File f = new File("${temp.path}/file");
   var newPath = "${temp.path}/file2";
   f.createSync();
-  var d = new Directory(f.name);
+  var d = new Directory(f.path);
   Expect.throws(() => d.renameSync(newPath),
                 (e) => e is DirectoryIOException);
   var renameDone = d.rename(newPath);

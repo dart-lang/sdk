@@ -2,60 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test optimized charCodeAt and array access.
+// Test optimized CodeUnitAt and array access.
 
 String one_byte = "hest";
 String two_byte = "høns";
 
-int testOneByteCharCodeAt(String x, int j) {
+int testOneByteCodeUnitAt(String x, int j) {
   int test() {
-    return x.charCodeAt(j);
+    return x.codeUnitAt(j);
   }
   for (int i = 0; i < 10000; i++) test();
   return test();
 }
 
 
-int testTwoByteCharCodeAt(String x, int j) {
+int testTwoByteCodeUnitAt(String x, int j) {
   int test() {
-    return x.charCodeAt(j);
+    return x.codeUnitAt(j);
   }
   for (int i = 0; i < 10000; i++) test();
   return test();
 }
 
 
-int testConstantStringCharCodeAt(int j) {
+int testConstantStringCodeUnitAt(int j) {
   int test() {
-    return "høns".charCodeAt(j);
+    return "høns".codeUnitAt(j);
   }
   for (int i = 0; i < 10000; i++) test();
   return test();
 }
 
 
-int testConstantIndexCharCodeAt(String x) {
+int testConstantIndexCodeUnitAt(String x) {
   int test() {
-    return x.charCodeAt(1);
+    return x.codeUnitAt(1);
   }
   for (int i = 0; i < 10000; i++) test();
   return test();
 }
 
 
-int testOneByteCharCodeAtInLoop(var x) {
+int testOneByteCodeUnitAtInLoop(var x) {
   var result = 0;
   for (int i = 0; i < x.length; i++) {
-    result += x.charCodeAt(i);
+    result += x.codeUnitAt(i);
   }
   return result;
 }
 
 
-int testTwoByteCharCodeAtInLoop(var x) {
+int testTwoByteCodeUnitAtInLoop(var x) {
   var result = 0;
   for (int i = 0; i < x.length; i++) {
-    result += x.charCodeAt(i);
+    result += x.codeUnitAt(i);
   }
   return result;
 }
@@ -63,15 +63,15 @@ int testTwoByteCharCodeAtInLoop(var x) {
 
 main() {
   for (int j = 0; j < 10; j++) {
-    Expect.equals(101, testOneByteCharCodeAt(one_byte, 1));
-    Expect.equals(248, testTwoByteCharCodeAt(two_byte, 1));
-    Expect.equals(248, testConstantStringCharCodeAt(1));
-    Expect.equals(101, testConstantIndexCharCodeAt(one_byte));
+    Expect.equals(101, testOneByteCodeUnitAt(one_byte, 1));
+    Expect.equals(248, testTwoByteCodeUnitAt(two_byte, 1));
+    Expect.equals(248, testConstantStringCodeUnitAt(1));
+    Expect.equals(101, testConstantIndexCodeUnitAt(one_byte));
   }
   for (int j = 0; j < 2000; j++) {
-    Expect.equals(436, testOneByteCharCodeAtInLoop(one_byte));
-    Expect.equals(577, testTwoByteCharCodeAtInLoop(two_byte));
+    Expect.equals(436, testOneByteCodeUnitAtInLoop(one_byte));
+    Expect.equals(577, testTwoByteCodeUnitAtInLoop(two_byte));
   }
-  Expect.throws(() => testOneByteCharCodeAtInLoop(123));
-  Expect.throws(() => testTwoByteCharCodeAtInLoop(123));
+  Expect.throws(() => testOneByteCodeUnitAtInLoop(123));
+  Expect.throws(() => testTwoByteCodeUnitAtInLoop(123));
 }

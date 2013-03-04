@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -180,12 +180,25 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
       Dart_SetReturnValue(args, err);
     } else {
       if (bytes_read < length) {
-        // TODO(ager): cache the 'length' string if this becomes a bottle neck.
-        Dart_SetField(external_array,
-                      DartUtils::NewString("length"),
-                      Dart_NewInteger(bytes_read));
+        const int kNumArgs = 3;
+        Dart_Handle dart_args[kNumArgs];
+        dart_args[0] = external_array;
+        dart_args[1] = Dart_NewInteger(0);
+        dart_args[2] = Dart_NewInteger(bytes_read);
+        // TODO(sgjesse): Cache the _makeUint8ListView function somewhere.
+        Dart_Handle io_lib =
+            Dart_LookupLibrary(DartUtils::NewString("dart:io"));
+        if (Dart_IsError(io_lib)) Dart_PropagateError(io_lib);
+        Dart_Handle array_view =
+            Dart_Invoke(io_lib,
+                        DartUtils::NewString("_makeUint8ListView"),
+                        kNumArgs,
+                        dart_args);
+        if (Dart_IsError(array_view)) Dart_PropagateError(array_view);
+        Dart_SetReturnValue(args, array_view);
+      } else {
+        Dart_SetReturnValue(args, external_array);
       }
-      Dart_SetReturnValue(args, external_array);
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
@@ -349,11 +362,11 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_LengthFromName)(Dart_NativeArguments args) {
+void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  const char* name =
+  const char* path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  intptr_t return_value = File::LengthFromName(name);
+  intptr_t return_value = File::LengthFromPath(path);
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
@@ -689,10 +702,10 @@ static CObject* FileLengthRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
+static CObject* FileLengthFromPathRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    intptr_t return_value = File::LengthFromName(filename.CString());
+    CObjectString filepath(request[1]);
+    intptr_t return_value = File::LengthFromPath(filepath.CString());
     if (return_value >= 0) {
       return new CObjectIntptr(CObject::NewIntptr(return_value));
     } else {
@@ -705,8 +718,8 @@ static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
 
 static CObject* FileLastModifiedRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    int64_t return_value = File::LastModified(filename.CString());
+    CObjectString filepath(request[1]);
+    int64_t return_value = File::LastModified(filepath.CString());
     if (return_value >= 0) {
       return new CObjectIntptr(CObject::NewInt64(return_value * kMSPerSecond));
     } else {
@@ -933,8 +946,8 @@ static void FileService(Dart_Port dest_port_id,
         case File::kLengthRequest:
           response = FileLengthRequest(request);
           break;
-        case File::kLengthFromNameRequest:
-          response = FileLengthFromNameRequest(request);
+        case File::kLengthFromPathRequest:
+          response = FileLengthFromPathRequest(request);
           break;
         case File::kLastModifiedRequest:
           response = FileLastModifiedRequest(request);

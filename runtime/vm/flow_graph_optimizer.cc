@@ -290,7 +290,6 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
       OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
     }
   }
-  current->UnuseAllInputs();
   iterator->RemoveCurrentFromGraph();
 }
 
@@ -333,9 +332,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // Convert by boxing/unboxing.
     // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
     BoxIntegerInstr* boxed = new BoxIntegerInstr(use->CopyWithType());
-    use->RemoveFromUseList();
-    use->set_definition(boxed);
-    boxed->AddInputUse(use);
+    use->BindTo(boxed);
     InsertBefore(insert_before, boxed, NULL, Definition::kValue);
 
     const intptr_t deopt_id = (deopt_target != NULL) ?
@@ -363,9 +360,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     }
   }
   ASSERT(converted != NULL);
-  use->RemoveFromUseList();
-  use->set_definition(converted);
-  converted->AddInputUse(use);
+  use->BindTo(converted);
   InsertBefore(insert_before, converted, use->instruction()->env(),
                Definition::kValue);
 }
@@ -388,8 +383,7 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
     Instruction* deopt_target;
     PhiInstr* phi = use->instruction()->AsPhi();
     if (phi != NULL) {
-      if (!phi->is_alive()) continue;
-
+      ASSERT(phi->is_alive());
       // For phis conversions have to be inserted in the predecessor.
       insert_before =
           phi->block()->PredecessorAt(use->use_index())->last_instruction();
@@ -407,12 +401,10 @@ void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of type Double.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
-    if (join_entry == NULL) continue;
-
-    if (join_entry->phis() != NULL) {
-      for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
-        PhiInstr* phi = (*join_entry->phis())[i];
-        if (phi == NULL) continue;
+    if (join_entry != NULL) {
+      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        ASSERT(phi != NULL);
         if (phi->Type()->ToCid() == kDoubleCid) {
           phi->set_representation(kUnboxedDouble);
         }
@@ -430,17 +422,15 @@ void FlowGraphOptimizer::SelectRepresentations() {
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
-
     JoinEntryInstr* join_entry = entry->AsJoinEntry();
-    if ((join_entry != NULL) && (join_entry->phis() != NULL)) {
-      for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
-        PhiInstr* phi = (*join_entry->phis())[i];
-        if ((phi != NULL) && (phi->is_alive())) {
-          InsertConversionsFor(phi);
-        }
+    if (join_entry != NULL) {
+      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        ASSERT(phi != NULL);
+        ASSERT(phi->is_alive());
+        InsertConversionsFor(phi);
       }
     }
-
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Definition* def = it.Current()->AsDefinition();
       if (def != NULL) {
@@ -565,7 +555,6 @@ void FlowGraphOptimizer::ReplaceCall(Definition* call,
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
     push->ReplaceUsesWith(push->value()->definition());
-    push->UnuseAllInputs();
     push->RemoveFromGraph();
   }
   call->ReplaceWith(replacement, current_iterator());
@@ -893,10 +882,15 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
   }
 
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
-  // Check if store barrier is needed.
-  bool needs_store_barrier = !RawObject::IsByteArrayClassId(array_cid);
+  // Check if store barrier is needed. Byte arrays don't need a store barrier.
+  StoreBarrierType needs_store_barrier =
+      RawObject::IsByteArrayClassId(array_cid)
+          ? kNoStoreBarrier
+          : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
-    needs_store_barrier = false;
+    // No store barrier needed because checked value is a smi, an unboxed mint
+    // or unboxed double.
+    needs_store_barrier = kNoStoreBarrier;
     AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
                   call);
   }
@@ -1240,12 +1234,9 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       field.Offset(),
       AbstractType::ZoneHandle(field.type()),
       field.is_final());
-  // Detach environment from the original instruction because it can't
-  // deoptimize.
-  for (Environment::DeepIterator it(call->env()); !it.Done(); it.Advance()) {
-    it.CurrentValue()->RemoveFromUseList();
-  }
-  call->set_env(NULL);
+  // Discard the environment from the original instruction because the load
+  // can't deoptimize.
+  call->RemoveEnvironment();
   ReplaceCall(call, load);
 }
 
@@ -1414,7 +1405,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
+LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
     InstanceCallInstr* call,
     intptr_t cid) {
   Definition* str = call->ArgumentAt(0);
@@ -1536,11 +1527,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       break;
   }
 
-  if ((recognized_kind == MethodRecognizer::kStringBaseCharCodeAt) &&
+  if ((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) &&
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
        (class_ids[0] == kTwoByteStringCid))) {
-    LoadIndexedInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
+    LoadIndexedInstr* instr = BuildStringCodeUnitAt(call, class_ids[0]);
     ReplaceCall(call, instr);
     return true;
   }
@@ -1549,7 +1540,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (class_ids[0] == kOneByteStringCid)) {
     // TODO(fschneider): Handle TwoByteString.
     LoadIndexedInstr* load_char_code =
-        BuildStringCharCodeAt(call, class_ids[0]);
+        BuildStringCodeUnitAt(call, class_ids[0]);
     InsertBefore(call, load_char_code, NULL, Definition::kValue);
     StringFromCharCodeInstr* char_at =
         new StringFromCharCodeInstr(new Value(load_char_code),
@@ -1587,10 +1578,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       }
       case MethodRecognizer::kDoubleMod:
       case MethodRecognizer::kDoublePow:
+      case MethodRecognizer::kDoubleRound:
         ReplaceWithMathCFunction(call, recognized_kind);
         return true;
       case MethodRecognizer::kDoubleTruncate:
-      case MethodRecognizer::kDoubleRound:
       case MethodRecognizer::kDoubleFloor:
       case MethodRecognizer::kDoubleCeil:
         if (!CPUFeatures::double_truncate_round_supported()) {
@@ -1906,26 +1897,23 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   if (InstanceCallNeedsClassCheck(instr)) {
     AddReceiverCheck(instr);
   }
-  bool needs_store_barrier = true;
+  StoreBarrierType needs_store_barrier = kEmitStoreBarrier;
   if (ArgIsAlwaysSmi(*instr->ic_data(), 1)) {
     InsertBefore(instr,
                  new CheckSmiInstr(new Value(instr->ArgumentAt(1)),
                                    instr->deopt_id()),
                  instr->env(),
                  Definition::kEffect);
-    needs_store_barrier = false;
+    needs_store_barrier = kNoStoreBarrier;
   }
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       field,
       new Value(instr->ArgumentAt(0)),
       new Value(instr->ArgumentAt(1)),
       needs_store_barrier);
-  // Detach environment from the original instruction because it can't
-  // deoptimize.
-  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
-    it.CurrentValue()->RemoveFromUseList();
-  }
-  instr->set_env(NULL);
+  // Discard the environment from the original instruction because the store
+  // can't deoptimize.
+  instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
 }
@@ -2268,12 +2256,9 @@ void RangeAnalysis::RenameDominatedUses(Definition* def,
 
     // Skip dead phis.
     PhiInstr* phi = use->instruction()->AsPhi();
-    if ((phi != NULL) && !phi->is_alive()) continue;
-
+    ASSERT((phi == NULL) || phi->is_alive());
     if (IsDominatedUse(dom, use)) {
-      use->RemoveFromUseList();
-      use->set_definition(other);
-      other->AddInputUse(use);
+      use->BindTo(other);
     }
   }
 }
@@ -2618,7 +2603,6 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) {
-        current->UnuseAllInputs();
         it.RemoveCurrentFromGraph();
       }
     }
@@ -2660,7 +2644,6 @@ void RangeAnalysis::RemoveConstraints() {
       def = def->AsConstraint()->value()->definition();
     }
     constraints_[i]->ReplaceUsesWith(def);
-    constraints_[i]->UnuseAllInputs();
     constraints_[i]->RemoveFromGraph();
   }
 }
@@ -2683,6 +2666,10 @@ static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
 }
 
 
+LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
+}
+
+
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
@@ -2696,13 +2683,11 @@ void LICM::Hoist(ForwardInstructionIterator* it,
               pre_header->block_id());
   }
   // Move the instruction out of the loop.
+  current->RemoveEnvironment();
   it->RemoveCurrentFromGraph();
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
-  current->InsertBefore(last);
-  // Attach the environment of the Goto instruction to the hoisted
-  // instruction and set the correct deopt_id.
-  ASSERT(last->env() != NULL);
-  last->env()->DeepCopyTo(current);
+  // Using kind kEffect will not assign a fresh ssa temporary index.
+  flow_graph()->InsertBefore(last, current, last->env(), Definition::kEffect);
   current->deopt_id_ = last->GetDeoptId();
 }
 
@@ -2717,7 +2702,6 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   }
 
   if (phi->Type()->ToCid() == kSmiCid) {
-    current->UnuseAllInputs();
     it->RemoveCurrentFromGraph();
     return;
   }
@@ -2748,19 +2732,16 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   // Host CheckSmi instruction and make this phi smi one.
   Hoist(it, pre_header, current);
 
-  // Replace value we are checking with phi's input. Maintain use lists.
-  Definition* non_smi_input_defn = phi->InputAt(non_smi_input)->definition();
-  current->value()->RemoveFromUseList();
-  current->value()->set_definition(non_smi_input_defn);
-  non_smi_input_defn->AddInputUse(current->value());
+  // Replace value we are checking with phi's input.
+  current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
 
   phi->UpdateType(CompileType::FromCid(kSmiCid));
 }
 
 
-void LICM::Optimize(FlowGraph* flow_graph) {
+void LICM::Optimize() {
   GrowableArray<BlockEntryInstr*> loop_headers;
-  flow_graph->ComputeLoops(&loop_headers);
+  flow_graph()->ComputeLoops(&loop_headers);
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
@@ -2771,7 +2752,7 @@ void LICM::Optimize(FlowGraph* flow_graph) {
     for (BitVector::Iterator loop_it(header->loop_info());
          !loop_it.Done();
          loop_it.Advance()) {
-      BlockEntryInstr* block = flow_graph->preorder()[loop_it.Current()];
+      BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block);
            !it.Done();
            it.Advance()) {
@@ -3127,7 +3108,6 @@ class LoadOptimizer : public ValueObject {
           }
 
           defn->ReplaceUsesWith(replacement);
-          defn->UnuseAllInputs();
           instr_it.RemoveCurrentFromGraph();
           continue;
         } else if (!kill->Contains(expr_id)) {
@@ -3289,10 +3269,6 @@ class LoadOptimizer : public ValueObject {
       Definition* replacement = (*pred_out_values)[expr_id]->Replacement();
       Value* input = new Value(replacement);
       phi->SetInputAt(i, input);
-
-      // TODO(vegorov): add a helper function to handle input insertion.
-      input->set_instruction(phi);
-      input->set_use_index(i);
       replacement->AddInputUse(input);
     }
 
@@ -3339,7 +3315,6 @@ class LoadOptimizer : public ValueObject {
           }
 
           load->ReplaceUsesWith(replacement);
-          load->UnuseAllInputs();
           load->RemoveFromGraph();
           load->SetReplacement(replacement);
         }
@@ -3400,13 +3375,19 @@ class LoadOptimizer : public ValueObject {
     return true;
   }
 
-  // Emit non-redundant phis created during ComputeOutValues and ForwardLoads.
+  // Phis have not yet been inserted into the graph but they have uses of
+  // their inputs.  Insert the non-redundant ones and clear the input uses
+  // of the redundant ones.
   void EmitPhis() {
     for (intptr_t i = 0; i < phis_.length(); i++) {
       PhiInstr* phi = phis_[i];
-      if ((phi->input_use_list() != NULL) && !EliminateRedundantPhi(phi)) {
+      if (phi->HasUses() && !EliminateRedundantPhi(phi)) {
         phi->mark_alive();
         phi->block()->InsertPhi(phi);
+      } else {
+        for (intptr_t j = phi->InputCount() - 1; j >= 0; --j) {
+          phi->InputAt(j)->RemoveFromUseList();
+        }
       }
     }
   }
@@ -4275,42 +4256,46 @@ void ConstantPropagator::Transform() {
       // Predecessors will be recomputed (in block id order) after removing
       // unreachable code so we merely have to keep the phi inputs in order.
       ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-      if (phis != NULL) {
+      if ((phis != NULL) && !phis->is_empty()) {
         intptr_t pred_count = join->PredecessorCount();
         intptr_t live_count = 0;
         for (intptr_t pred_idx = 0; pred_idx < pred_count; ++pred_idx) {
           if (reachable_->Contains(
                   join->PredecessorAt(pred_idx)->preorder_number())) {
             if (live_count < pred_idx) {
-              for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
-                PhiInstr* phi = (*phis)[phi_idx];
-                if (phi == NULL) continue;
-                Value* input = phi->inputs_[pred_idx];
-                input->set_use_index(live_count);
-                phi->inputs_[live_count] = input;
+              for (PhiIterator it(join); !it.Done(); it.Advance()) {
+                PhiInstr* phi = it.Current();
+                ASSERT(phi != NULL);
+                phi->SetInputAt(live_count, phi->InputAt(pred_idx));
               }
             }
             ++live_count;
           } else {
-            for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
-              PhiInstr* phi = (*phis)[phi_idx];
-              if (phi == NULL) continue;
-              phi->inputs_[pred_idx]->RemoveFromUseList();
+            for (PhiIterator it(join); !it.Done(); it.Advance()) {
+              PhiInstr* phi = it.Current();
+              ASSERT(phi != NULL);
+              phi->InputAt(pred_idx)->RemoveFromUseList();
             }
           }
         }
         if (live_count < pred_count) {
-          for (intptr_t phi_idx = 0; phi_idx < phis->length(); ++phi_idx) {
-            PhiInstr* phi = (*phis)[phi_idx];
-            if (phi == NULL) continue;
+          intptr_t to_idx = 0;
+          for (intptr_t from_idx = 0; from_idx < phis->length(); ++from_idx) {
+            PhiInstr* phi = (*phis)[from_idx];
+            ASSERT(phi != NULL);
             if (FLAG_remove_redundant_phis && (live_count == 1)) {
               Value* input = phi->InputAt(0);
               phi->ReplaceUsesWith(input->definition());
               input->RemoveFromUseList();
-              (*phis)[phi_idx] = NULL;
             } else {
               phi->inputs_.TruncateTo(live_count);
+              (*phis)[to_idx++] = phi;
             }
+          }
+          if (to_idx == 0) {
+            join->phis_ = NULL;
+          } else {
+            phis->TruncateTo(to_idx);
           }
         }
       }

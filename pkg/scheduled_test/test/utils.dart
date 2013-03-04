@@ -20,19 +20,16 @@ export 'package:scheduled_test/src/utils.dart';
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
 Future timeout(Future input, int milliseconds, onTimeout()) {
-  bool completed = false;
   var completer = new Completer();
-  var timer = new Timer(milliseconds, (_) {
-    completed = true;
-    chainToCompleter(new Future.immediate(null).then((_) => onTimeout()),
-        completer);
+  var timer = new Timer(new Duration(milliseconds: milliseconds), () {
+    chainToCompleter(new Future.of(onTimeout), completer);
   });
   input.then((value) {
-    if (completed) return;
+    if (completer.isCompleted) return;
     timer.cancel();
     completer.complete(value);
   }).catchError((e) {
-    if (completed) return;
+    if (completer.isCompleted) return;
     timer.cancel();
     completer.completeError(e.error, e.stackTrace);
   });
@@ -42,7 +39,7 @@ Future timeout(Future input, int milliseconds, onTimeout()) {
 /// Returns a [Future] that will complete in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  mock_clock.newTimer(new Duration(milliseconds: milliseconds), (_) {
+  mock_clock.newTimer(new Duration(milliseconds: milliseconds), () {
     completer.complete();
   });
   return completer.future;

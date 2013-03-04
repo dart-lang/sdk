@@ -286,26 +286,26 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   // Test function type mirrors.
   var func_cls_mirror = typedef_mirror.referent;
   Expect.isTrue(func_cls_mirror is FunctionTypeMirror);
-  Expect.equals('void (dart:core.String)', func_cls_mirror.simpleName);
+  Expect.equals('void (dart.core.String)', func_cls_mirror.simpleName);
   Expect.equals('void', func_cls_mirror.returnType.simpleName);
 }
 
 void testLibrariesMap(Map libraries) {
   // Just look for a couple of well-known libs.
-  LibraryMirror core_lib = libraries['dart:core'];
+  LibraryMirror core_lib = libraries['dart.core'];
   Expect.isTrue(core_lib is LibraryMirror);
 
-  LibraryMirror mirror_lib = libraries['dart:mirrors'];
+  LibraryMirror mirror_lib = libraries['dart.mirrors'];
   Expect.isTrue(mirror_lib is LibraryMirror);
 
   // Lookup an interface from a library and make sure it is sane.
   ClassMirror list_intf = core_lib.members['List'];
   Expect.isTrue(list_intf is ClassMirror);
   Expect.equals('List', list_intf.simpleName);
-  Expect.equals('dart:core.List', list_intf.qualifiedName);
+  Expect.equals('dart.core.List', list_intf.qualifiedName);
   Expect.isFalse(list_intf.isPrivate);
   Expect.equals('Object', list_intf.superclass.simpleName);
-  Expect.equals('dart:core', list_intf.owner.simpleName);
+  Expect.equals('dart.core', list_intf.owner.simpleName);
   Expect.isTrue(list_intf.isClass);
   Expect.equals('Collection', list_intf.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'List'", list_intf.toString());
@@ -314,11 +314,11 @@ void testLibrariesMap(Map libraries) {
   ClassMirror oom_cls = core_lib.members['OutOfMemoryError'];
   Expect.isTrue(oom_cls is ClassMirror);
   Expect.equals('OutOfMemoryError', oom_cls.simpleName);
-  Expect.equals('dart:core.OutOfMemoryError', oom_cls.qualifiedName);
+  Expect.equals('dart.core.OutOfMemoryError', oom_cls.qualifiedName);
   Expect.isFalse(oom_cls.isPrivate);
   Expect.equals('Object', oom_cls.superclass.simpleName);
   Expect.isTrue(oom_cls.defaultFactory == null);
-  Expect.equals('dart:core', oom_cls.owner.simpleName);
+  Expect.equals('dart.core', oom_cls.owner.simpleName);
   Expect.isTrue(oom_cls.isClass);
   Expect.equals('Error', oom_cls.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'OutOfMemoryError'",

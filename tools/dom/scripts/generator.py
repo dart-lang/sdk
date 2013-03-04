@@ -421,6 +421,10 @@ _serialize_SSV = Conversion('convertDartToNative_SerializedScriptValue',
                            'dynamic', 'dynamic')
 
 dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
+    'Date get':
+      Conversion('_convertNativeToDart_DateTime', 'dynamic', 'DateTime'),
+    'Date set':
+      Conversion('_convertDartToNative_DateTime', 'DateTime', 'dynamic'),
     # Wrap non-local Windows.  We need to check EventTarget (the base type)
     # as well.  Note, there are no functions that take a non-local Window
     # as a parameter / setter.
@@ -583,6 +587,7 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     'IDBRequest.source':  ["@Creates('Null')"],
 
     'IDBFactory.open': ["@Creates('Database')"],
+    'IDBFactory.webkitGetDatabaseNames': ["@Creates('DomStringList')"],
 
     'IDBObjectStore.put': ["@_annotation_Creates_IDBKey"],
     'IDBObjectStore.add': ["@_annotation_Creates_IDBKey"],
@@ -634,6 +639,15 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     ],
 
     'SQLResultSetRowList.item': ["@Creates('=Object')"],
+
+    'WebGLRenderingContext.getParameter': [
+      # Taken from http://www.khronos.org/registry/webgl/specs/latest/
+      # Section 5.14.3 Setting and getting state
+      "@Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+      "@Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+    ],
 
     'XMLHttpRequest.response': [
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
@@ -710,6 +724,7 @@ _webkit_experimental_annotations = [
 dart_annotations = monitored.Dict('generator.dart_annotations', {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
   'DatabaseSync': _web_sql_annotations,
   'DOMApplicationCache': [
@@ -1200,7 +1215,10 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
       type = 'RefPtr<%s>' % type
     if type == 'String':
       type = 'DartStringAdapter'
-    return '%s', type, 'DartUtilities', 'dartTo%s' % self._capitalized_native_type()
+    target_type = self._capitalized_native_type()
+    if self.idl_type() == 'Date':
+      target_type = 'Date'
+    return '%s', type, 'DartUtilities', 'dartTo%s' % target_type
 
   def parameter_type(self):
     if self.native_type() == 'String':
@@ -1211,8 +1229,14 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return []
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    function_name = self._capitalized_native_type()
-    function_name = function_name[0].lower() + function_name[1:]
+    # TODO(antonm): if there are more instances of the case
+    # when conversion depends on both Dart type and C++ type,
+    # consider introducing a corresponding argument/class.
+    if self.idl_type() == 'Date':
+      function_name = 'date'
+    else:
+      function_name = self._capitalized_native_type()
+      function_name = function_name[0].lower() + function_name[1:]
     function_name = 'DartUtilities::%sToDart' % function_name
     if attributes and 'TreatReturnedNullStringAs' in attributes:
       function_name += 'WithNullCheck'
@@ -1321,7 +1345,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
-    'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
+    'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to

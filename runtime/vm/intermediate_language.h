@@ -73,7 +73,7 @@ class Range;
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 711547329)                    \
-  V(_StringBase, charCodeAt, StringBaseCharCodeAt, 984449525)                  \
+  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
@@ -113,10 +113,26 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
 // operation for the lattice.
-class CompileType {
+class CompileType : public ValueObject {
  public:
   static const bool kNullable = true;
   static const bool kNonNullable = false;
+
+  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
+      : is_nullable_(is_nullable), cid_(cid), type_(type) { }
+
+  CompileType(const CompileType& other)
+      : ValueObject(),
+        is_nullable_(other.is_nullable_),
+        cid_(other.cid_),
+        type_(other.type_) { }
+
+  CompileType& operator=(const CompileType& other) {
+    is_nullable_ = other.is_nullable_;
+    cid_ = other.cid_;
+    type_ =  other.type_;
+    return *this;
+  }
 
   // Return type such that concrete value's type in runtime is guaranteed to
   // be subtype of it.
@@ -197,9 +213,6 @@ class CompileType {
   const char* ToCString() const;
 
  private:
-  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
-      : is_nullable_(is_nullable), cid_(cid), type_(type) { }
-
   bool CanComputeIsInstanceOf(const AbstractType& type,
                               bool is_nullable,
                               bool* is_instance);
@@ -274,6 +287,9 @@ class Value : public ZoneAllocated {
   static void AddToList(Value* value, Value** list);
   void RemoveFromUseList();
 
+  // Change the definition after use lists have been computed.
+  inline void BindTo(Definition* definition);
+
   Value* Copy() { return new Value(definition_); }
 
   // This function must only be used when the new Value is dominated by
@@ -336,9 +352,7 @@ enum Representation {
 template<typename T, intptr_t N>
 class EmbeddedArray {
  public:
-  EmbeddedArray() {
-    for (intptr_t i = 0; i < N; i++) elements_[i] = NULL;
-  }
+  EmbeddedArray() : elements_() { }
 
   intptr_t length() const { return N; }
 
@@ -510,7 +524,12 @@ class Instruction : public ZoneAllocated {
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
-  virtual void SetInputAt(intptr_t i, Value* value) = 0;
+  void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(value != NULL);
+    value->set_instruction(this);
+    value->set_use_index(i);
+    RawSetInputAt(i, value);
+  }
 
   // Remove all inputs (including in the environment) from their
   // definition's use lists.
@@ -561,7 +580,9 @@ class Instruction : public ZoneAllocated {
     next->set_previous(this);
   }
 
-  // Removed this instruction from the graph.
+  // Removed this instruction from the graph, after use lists have been
+  // computed.  If the instruction is a definition with uses, those uses are
+  // unaffected (so the instruction can be reinserted, e.g., hoisting).
   Instruction* RemoveFromGraph(bool return_previous = true);
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
@@ -607,7 +628,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
   Environment* env() const { return env_; }
-  void set_env(Environment* env) { env_ = env; }
+  void SetEnvironment(Environment* deopt_env);
+  void RemoveEnvironment();
 
   intptr_t lifetime_position() const { return lifetime_position_; }
   void set_lifetime_position(intptr_t pos) {
@@ -641,10 +663,12 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // change.
   virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
-  // Insert this instruction before 'next'.
-  void InsertBefore(Instruction* next);
+  // Insert this instruction before 'next' after use lists are computed.
+  // Instructions cannot be inserted before a block entry or any other
+  // instruction without a previous instruction.
+  void InsertBefore(Instruction* next) { InsertAfter(next->previous()); }
 
-  // Insert this instruction after 'prev'.
+  // Insert this instruction after 'prev' after use lists are computed.
   void InsertAfter(Instruction* prev);
 
   // Returns true if the instruction is affected by side effects.
@@ -708,6 +732,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
 
+  virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
+
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
   Instruction* previous_;
@@ -726,10 +752,6 @@ class TemplateInstruction: public Instruction {
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
-    inputs_[i] = value;
-  }
 
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
@@ -742,6 +764,10 @@ class TemplateInstruction: public Instruction {
   EmbeddedArray<Value*, N> inputs_;
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
+
   LocationSummary* locs_;
 };
 
@@ -923,7 +949,6 @@ class BlockEntryInstr : public Instruction {
     UNREACHABLE();
     return NULL;
   }
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -960,6 +985,8 @@ class BlockEntryInstr : public Instruction {
         loop_info_(NULL) { }
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
@@ -1092,8 +1119,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   JoinEntryInstr(intptr_t block_id, intptr_t try_index)
       : BlockEntryInstr(block_id, try_index),
         predecessors_(2),  // Two is the assumed to be the common case.
-        phis_(NULL),
-        phi_count_(0) { }
+        phis_(NULL) { }
 
   DECLARE_INSTRUCTION(JoinEntry)
 
@@ -1110,11 +1136,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
-  void RemoveDeadPhis();
+  void RemoveDeadPhis(Definition* replacement);
 
   void InsertPhi(PhiInstr* phi);
-
-  intptr_t phi_count() const { return phi_count_; }
 
   virtual void PrintTo(BufferFormatter* f) const;
 
@@ -1123,12 +1147,14 @@ class JoinEntryInstr : public BlockEntryInstr {
   friend class BlockEntryInstr;
   friend class ValueInliningContext;
 
+  // Direct access to phis_ in order to resize it due to phi elimination.
+  friend class ConstantPropagator;
+
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
 
   GrowableArray<BlockEntryInstr*> predecessors_;
   ZoneGrowableArray<PhiInstr*>* phis_;
-  intptr_t phi_count_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
@@ -1137,15 +1163,11 @@ class JoinEntryInstr : public BlockEntryInstr {
 class PhiIterator : public ValueObject {
  public:
   explicit PhiIterator(JoinEntryInstr* join)
-      : phis_(join->phis()), index_(-1) {
-    if (!Done()) Advance();  // Advance to the first phi.
-  }
+      : phis_(join->phis()), index_(0) { }
 
   void Advance() {
     ASSERT(!Done());
-    do {
-      index_++;
-    } while (!Done() && (Current() == NULL));
+    index_++;
   }
 
   bool Done() const {
@@ -1369,9 +1391,17 @@ class Definition : public Instruction {
 };
 
 
+// Change a value's definition after use lists have been computed.
+inline void Value::BindTo(Definition* def) {
+  RemoveFromUseList();
+  set_definition(def);
+  def->AddInputUse(this);
+}
+
+
 class PhiInstr : public Definition {
  public:
-  explicit PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
+  PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
     : block_(block),
       inputs_(num_inputs),
       is_alive_(false),
@@ -1394,8 +1424,6 @@ class PhiInstr : public Definition {
   intptr_t InputCount() const { return inputs_.length(); }
 
   Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -1437,7 +1465,11 @@ class PhiInstr : public Definition {
   }
 
  private:
-  friend class ConstantPropagator;  // Direct access to inputs_.
+  // Direct access to inputs_ in order to resize it due to unreachable
+  // predecessors.
+  friend class ConstantPropagator;
+
+  void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
   JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;
@@ -1452,7 +1484,7 @@ class PhiInstr : public Definition {
 
 class ParameterInstr : public Definition {
  public:
-  explicit ParameterInstr(intptr_t index, GraphEntryInstr* block)
+  ParameterInstr(intptr_t index, GraphEntryInstr* block)
       : index_(index), block_(block) { }
 
   DECLARE_INSTRUCTION(Parameter)
@@ -1469,7 +1501,6 @@ class ParameterInstr : public Definition {
     UNREACHABLE();
     return NULL;
   }
-  void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -1485,6 +1516,8 @@ class ParameterInstr : public Definition {
   virtual CompileType ComputeType() const;
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
   const intptr_t index_;
   GraphEntryInstr* block_;
 
@@ -1494,8 +1527,8 @@ class ParameterInstr : public Definition {
 
 class PushArgumentInstr : public Definition {
  public:
-  explicit PushArgumentInstr(Value* value) : value_(value), locs_(NULL) {
-    ASSERT(value != NULL);
+  explicit PushArgumentInstr(Value* value) : locs_(NULL) {
+    SetInputAt(0, value);
     set_use_kind(kEffect);  // Override the default.
   }
 
@@ -1505,10 +1538,6 @@ class PushArgumentInstr : public Definition {
   Value* InputAt(intptr_t i) const {
     ASSERT(i == 0);
     return value_;
-  }
-  void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(i == 0);
-    value_ = value;
   }
 
   virtual intptr_t ArgumentCount() const { return 0; }
@@ -1536,6 +1565,11 @@ class PushArgumentInstr : public Definition {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    ASSERT(i == 0);
+    value_ = value;
+  }
+
   Value* value_;
   LocationSummary* locs_;
 
@@ -1552,8 +1586,7 @@ class ReturnInstr : public TemplateInstruction<1> {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
       : token_pos_(token_pos) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(Return)
@@ -1691,15 +1724,13 @@ class ControlInstruction : public Instruction {
 
 class BranchInstr : public ControlInstruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false)
-      : comparison_(comparison), is_checked_(is_checked) { }
+  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false);
 
   DECLARE_INSTRUCTION(Branch)
 
   virtual intptr_t ArgumentCount() const;
   intptr_t InputCount() const;
   Value* InputAt(intptr_t i) const;
-  void SetInputAt(intptr_t i, Value* value);
   virtual bool CanDeoptimize() const;
 
   virtual bool HasSideEffect() const;
@@ -1726,6 +1757,8 @@ class BranchInstr : public ControlInstruction {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value);
+
   ComparisonInstr* comparison_;
   const bool is_checked_;
 
@@ -1736,8 +1769,7 @@ class BranchInstr : public ControlInstruction {
 class StoreContextInstr : public TemplateInstruction<1> {
  public:
   explicit StoreContextInstr(Value* value) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(StoreContext);
@@ -1762,10 +1794,6 @@ class TemplateDefinition : public Definition {
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
-    inputs_[i] = value;
-  }
 
   // Returns a structure describing the location constraints required
   // to emit native code for this definition.
@@ -1781,6 +1809,10 @@ class TemplateDefinition : public Definition {
 
  private:
   friend class BranchInstr;
+
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
 
   LocationSummary* locs_;
 };
@@ -1949,8 +1981,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
  public:
   ConstraintInstr(Value* value, Range* constraint)
       : constraint_(constraint) {
-    inputs_[0] = value;
-    inputs_[1] = NULL;  // Dependency.
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(Constraint)
@@ -1979,19 +2010,13 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
   void AddDependency(Definition* defn) {
     Value* val = new Value(defn);
-    val->set_use_index(1);
-    val->set_instruction(this);
     defn->AddInputUse(val);
-    set_dependency(val);
+    SetInputAt(1, val);
   }
 
  private:
   Value* dependency() {
     return inputs_[1];
-  }
-
-  void set_dependency(Value* value) {
-    inputs_[1] = value;
   }
 
   Range* constraint_;
@@ -2039,14 +2064,11 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
       : token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name) {
-    ASSERT(value != NULL);
-    ASSERT(instantiator != NULL);
-    ASSERT(instantiator_type_arguments != NULL);
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
-    inputs_[0] = value;
-    inputs_[1] = instantiator;
-    inputs_[2] = instantiator_type_arguments;
+    SetInputAt(0, value);
+    SetInputAt(1, instantiator);
+    SetInputAt(2, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -2088,8 +2110,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
  public:
   AssertBooleanInstr(intptr_t token_pos, Value* value)
       : token_pos_(token_pos) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(AssertBoolean)
@@ -2121,8 +2142,7 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
   ArgumentDefinitionTestInstr(ArgumentDefinitionTestNode* node,
                               Value* saved_arguments_descriptor)
       : ast_node_(*node) {
-    ASSERT(saved_arguments_descriptor != NULL);
-    inputs_[0] = saved_arguments_descriptor;
+    SetInputAt(0, saved_arguments_descriptor);
   }
 
   DECLARE_INSTRUCTION(ArgumentDefinitionTest)
@@ -2314,10 +2334,8 @@ class ComparisonInstr : public TemplateDefinition<2> {
  public:
   ComparisonInstr(Token::Kind kind, Value* left, Value* right)
       : kind_(kind) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+    SetInputAt(0, left);
+    SetInputAt(1, right);
   }
 
   Value* left() const { return inputs_[0]; }
@@ -2348,11 +2366,6 @@ inline intptr_t BranchInstr::InputCount() const {
 
 inline Value* BranchInstr::InputAt(intptr_t i) const {
   return comparison()->InputAt(i);
-}
-
-
-inline void BranchInstr::SetInputAt(intptr_t i, Value* value) {
-  comparison()->SetInputAt(i, value);
 }
 
 
@@ -2657,8 +2670,7 @@ class StoreLocalInstr : public TemplateDefinition<1> {
                   intptr_t context_level)
       : local_(local),
         context_level_(context_level) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(StoreLocal)
@@ -2720,17 +2732,21 @@ class NativeCallInstr : public TemplateDefinition<0> {
 };
 
 
+enum StoreBarrierType {
+  kNoStoreBarrier,
+  kEmitStoreBarrier
+};
+
+
 class StoreInstanceFieldInstr : public TemplateDefinition<2> {
  public:
   StoreInstanceFieldInstr(const Field& field,
                           Value* instance,
                           Value* value,
-                          bool emit_store_barrier)
+                          StoreBarrierType emit_store_barrier)
       : field_(field), emit_store_barrier_(emit_store_barrier) {
-    ASSERT(instance != NULL);
-    ASSERT(value != NULL);
-    inputs_[0] = instance;
-    inputs_[1] = value;
+    SetInputAt(0, instance);
+    SetInputAt(1, value);
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
@@ -2741,7 +2757,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
   bool ShouldEmitStoreBarrier() const {
-    return value()->NeedsStoreBuffer() && emit_store_barrier_;
+    return value()->NeedsStoreBuffer()
+        && (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2752,7 +2769,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
  private:
   const Field& field_;
-  const bool emit_store_barrier_;
+  const StoreBarrierType emit_store_barrier_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -2788,8 +2805,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   StoreStaticFieldInstr(const Field& field, Value* value)
       : field_(field) {
     ASSERT(field.IsZoneHandle());
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(StoreStaticField);
@@ -2819,10 +2835,8 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
                    intptr_t class_id,
                    intptr_t deopt_id)
       : index_scale_(index_scale), class_id_(class_id) {
-    ASSERT(array != NULL);
-    ASSERT(index != NULL);
-    inputs_[0] = array;
-    inputs_[1] = index;
+    SetInputAt(0, array);
+    SetInputAt(1, index);
     deopt_id_ = deopt_id;
   }
 
@@ -2858,13 +2872,12 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
 class StringFromCharCodeInstr : public TemplateDefinition<1> {
  public:
-  explicit StringFromCharCodeInstr(Value* char_code,
-                                   intptr_t cid) : cid_(cid) {
+  StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
     ASSERT(char_code != NULL);
     ASSERT(char_code->definition()->IsLoadIndexed() &&
            (char_code->definition()->AsLoadIndexed()->class_id() ==
             kOneByteStringCid));
-    inputs_[0] = char_code;
+    SetInputAt(0, char_code);
   }
 
   DECLARE_INSTRUCTION(StringFromCharCode)
@@ -2892,18 +2905,15 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   StoreIndexedInstr(Value* array,
                     Value* index,
                     Value* value,
-                    bool emit_store_barrier,
+                    StoreBarrierType emit_store_barrier,
                     intptr_t class_id,
                     intptr_t deopt_id)
       : emit_store_barrier_(emit_store_barrier),
         class_id_(class_id),
         deopt_id_(deopt_id) {
-    ASSERT(array != NULL);
-    ASSERT(index != NULL);
-    ASSERT(value != NULL);
-    inputs_[0] = array;
-    inputs_[1] = index;
-    inputs_[2] = value;
+    SetInputAt(0, array);
+    SetInputAt(1, index);
+    SetInputAt(2, value);
   }
 
   DECLARE_INSTRUCTION(StoreIndexed)
@@ -2914,7 +2924,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   intptr_t class_id() const { return class_id_; }
 
   bool ShouldEmitStoreBarrier() const {
-    return value()->NeedsStoreBuffer() && emit_store_barrier_;
+    return value()->NeedsStoreBuffer()
+        && (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
   virtual bool CanDeoptimize() const { return false; }
@@ -2930,7 +2941,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   }
 
  private:
-  const bool emit_store_barrier_;
+  const StoreBarrierType emit_store_barrier_;
   const intptr_t class_id_;
   const intptr_t deopt_id_;
 
@@ -2942,8 +2953,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 class BooleanNegateInstr : public TemplateDefinition<1> {
  public:
   explicit BooleanNegateInstr(Value* value) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(BooleanNegate)
@@ -2971,13 +2981,10 @@ class InstanceOfInstr : public TemplateDefinition<3> {
       : token_pos_(token_pos),
         type_(type),
         negate_result_(negate_result) {
-    ASSERT(value != NULL);
-    ASSERT(instantiator != NULL);
-    ASSERT(instantiator_type_arguments != NULL);
     ASSERT(!type.IsNull());
-    inputs_[0] = value;
-    inputs_[1] = instantiator;
-    inputs_[2] = instantiator_type_arguments;
+    SetInputAt(0, value);
+    SetInputAt(1, instantiator);
+    SetInputAt(2, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -3052,10 +3059,8 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
                                      Value* type_arguments,
                                      Value* instantiator)
       : ast_node_(*node) {
-    ASSERT(type_arguments != NULL);
-    ASSERT(instantiator != NULL);
-    inputs_[0] = type_arguments;
-    inputs_[1] = instantiator;
+    SetInputAt(0, type_arguments);
+    SetInputAt(1, instantiator);
   }
 
   DECLARE_INSTRUCTION(AllocateObjectWithBoundsCheck)
@@ -3085,13 +3090,10 @@ class CreateArrayInstr : public TemplateDefinition<1> {
       : token_pos_(token_pos),
         num_elements_(num_elements),
         type_(type) {
-#if defined(DEBUG)
-    ASSERT(element_type != NULL);
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
     ASSERT(type_.IsFinalized());
-#endif
-    inputs_[0] = element_type;
+    SetInputAt(0, element_type);
   }
 
   DECLARE_INSTRUCTION(CreateArray)
@@ -3164,9 +3166,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         result_cid_(kDynamicCid),
         immutable_(immutable),
         recognized_kind_(MethodRecognizer::kUnknown) {
-    ASSERT(value != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   DECLARE_INSTRUCTION(LoadField)
@@ -3222,11 +3223,9 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
                     Value* value,
                     const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
-    ASSERT(value != NULL);
-    ASSERT(dest != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    inputs_[0] = value;
-    inputs_[1] = dest;
+    SetInputAt(0, value);
+    SetInputAt(1, dest);
   }
 
   DECLARE_INSTRUCTION(StoreVMField)
@@ -3259,8 +3258,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
       : token_pos_(token_pos),
         type_arguments_(type_arguments) {
     ASSERT(type_arguments.IsZoneHandle());
-    ASSERT(instantiator != NULL);
-    inputs_[0] = instantiator;
+    SetInputAt(0, instantiator);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
@@ -3293,8 +3291,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
       Value* instantiator)
       : token_pos_(token_pos),
         type_arguments_(type_arguments) {
-    ASSERT(instantiator != NULL);
-    inputs_[0] = instantiator;
+    SetInputAt(0, instantiator);
   }
 
   DECLARE_INSTRUCTION(ExtractConstructorTypeArguments)
@@ -3324,8 +3321,7 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
   ExtractConstructorInstantiatorInstr(ConstructorCallNode* ast_node,
                                       Value* instantiator)
       : ast_node_(*ast_node) {
-    ASSERT(instantiator != NULL);
-    inputs_[0] = instantiator;
+    SetInputAt(0, instantiator);
   }
 
   DECLARE_INSTRUCTION(ExtractConstructorInstantiator)
@@ -3378,8 +3374,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 class ChainContextInstr : public TemplateInstruction<1> {
  public:
   explicit ChainContextInstr(Value* context_value) {
-    ASSERT(context_value != NULL);
-    inputs_[0] = context_value;
+    SetInputAt(0, context_value);
   }
 
   DECLARE_INSTRUCTION(ChainContext)
@@ -3401,8 +3396,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
  public:
   CloneContextInstr(intptr_t token_pos, Value* context_value)
       : token_pos_(token_pos) {
-    ASSERT(context_value != NULL);
-    inputs_[0] = context_value;
+    SetInputAt(0, context_value);
   }
 
   intptr_t token_pos() const { return token_pos_; }
@@ -3454,10 +3448,8 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
   CheckEitherNonSmiInstr(Value* left,
                          Value* right,
                          InstanceCallInstr* instance_call) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3488,8 +3480,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
  public:
   BoxDoubleInstr(Value* value, InstanceCallInstr* instance_call)
       : token_pos_((instance_call != NULL) ? instance_call->token_pos() : 0) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
@@ -3521,8 +3512,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
 class BoxIntegerInstr : public TemplateDefinition<1> {
  public:
   explicit BoxIntegerInstr(Value* value) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
@@ -3550,8 +3540,7 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 class UnboxDoubleInstr : public TemplateDefinition<1> {
  public:
   UnboxDoubleInstr(Value* value, intptr_t deopt_id) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
@@ -3582,8 +3571,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 class UnboxIntegerInstr : public TemplateDefinition<1> {
  public:
   UnboxIntegerInstr(Value* value, intptr_t deopt_id) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
@@ -3616,8 +3604,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 class MathSqrtInstr : public TemplateDefinition<1> {
  public:
   MathSqrtInstr(Value* value, StaticCallInstr* instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3661,10 +3648,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
                       Value* right,
                       InstanceCallInstr* instance_call)
       : op_kind_(op_kind) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3720,10 +3705,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
                            InstanceCallInstr* instance_call)
       : op_kind_(op_kind),
         instance_call_(instance_call) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3785,11 +3768,9 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
                    Value* right,
                    InstanceCallInstr* instance_call)
       : op_kind_(op_kind) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
     ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3842,9 +3823,8 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
                           Value* value,
                           InstanceCallInstr* instance_call)
       : op_kind_(op_kind) {
-    ASSERT(value != NULL);
     ASSERT(op_kind == Token::kBIT_NOT);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3900,10 +3880,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
         instance_call_(instance_call),
         overflow_(true),
         is_truncating_(false) {
-    ASSERT(left != NULL);
-    ASSERT(right != NULL);
-    inputs_[0] = left;
-    inputs_[1] = right;
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -3966,8 +3944,7 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
                   Value* value)
       : op_kind_(op_kind) {
     ASSERT((op_kind == Token::kNEGATE) || (op_kind == Token::kBIT_NOT));
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -4039,8 +4016,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
  public:
   DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
       : instance_call_(instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
@@ -4067,8 +4043,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
 class DoubleToSmiInstr : public TemplateDefinition<1> {
  public:
   DoubleToSmiInstr(Value* value, InstanceCallInstr* instance_call) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -4099,8 +4074,7 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
                       InstanceCallInstr* instance_call,
                       MethodRecognizer::Kind recognized_kind)
     : recognized_kind_(recognized_kind) {
-    ASSERT(value != NULL);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = instance_call->deopt_id();
   }
 
@@ -4137,11 +4111,7 @@ class InvokeMathCFunctionInstr : public Definition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
                            InstanceCallInstr* instance_call,
-                           MethodRecognizer::Kind recognized_kind)
-    : inputs_(inputs), locs_(NULL), recognized_kind_(recognized_kind) {
-    ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
-    deopt_id_ = instance_call->deopt_id();
-  }
+                           MethodRecognizer::Kind recognized_kind);
 
   static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);
 
@@ -4176,11 +4146,6 @@ class InvokeMathCFunctionInstr : public Definition {
     return (*inputs_)[i];
   }
 
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
-    (*inputs_)[i] = value;
-  }
-
   // Returns a structure describing the location constraints required
   // to emit native code for this definition.
   LocationSummary* locs() {
@@ -4191,6 +4156,10 @@ class InvokeMathCFunctionInstr : public Definition {
   }
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
+
   ZoneGrowableArray<Value*>* inputs_;
 
   LocationSummary* locs_;
@@ -4237,9 +4206,8 @@ class CheckClassInstr : public TemplateInstruction<1> {
 class CheckSmiInstr : public TemplateInstruction<1> {
  public:
   CheckSmiInstr(Value* value, intptr_t original_deopt_id) {
-    ASSERT(value != NULL);
     ASSERT(original_deopt_id != Isolate::kNoDeoptId);
-    inputs_[0] = value;
+    SetInputAt(0, value);
     deopt_id_ = original_deopt_id;
   }
 
@@ -4271,10 +4239,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
                        intptr_t array_type,
                        InstanceCallInstr* instance_call)
       : array_type_(array_type) {
-    ASSERT(length != NULL);
-    ASSERT(index != NULL);
-    inputs_[0] = length;
-    inputs_[1] = index;
+    SetInputAt(0, length);
+    SetInputAt(1, index);
     deopt_id_ = instance_call->deopt_id();
   }
 

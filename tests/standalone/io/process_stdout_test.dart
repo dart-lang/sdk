@@ -21,7 +21,7 @@ void test(Future<Process> future, int expectedExitCode) {
       Expect.equals(expectedExitCode, exitCode);
     });
 
-    List<int> data = "ABCDEFGHI\n".charCodes;
+    List<int> data = "ABCDEFGHI\n".codeUnits;
     final int dataSize = data.length;
 
     int received = 0;
@@ -64,5 +64,5 @@ main() {
     scriptFile = new File("../tests/standalone/io/process_std_io_script.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(Process.start(new Options().executable, [scriptFile.name, "0"]), 0);
+  test(Process.start(new Options().executable, [scriptFile.path, "0"]), 0);
 }

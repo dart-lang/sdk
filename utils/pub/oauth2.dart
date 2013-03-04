@@ -10,7 +10,7 @@ import 'dart:uri';
 
 // TODO(nweiz): Make this a "package:" URL, or something nicer than this.
 import '../../pkg/oauth2/lib/oauth2.dart';
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 
 import 'http.dart';
 import 'io.dart';

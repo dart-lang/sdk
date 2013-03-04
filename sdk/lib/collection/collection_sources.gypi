@@ -5,7 +5,8 @@
 # This file contains all sources for the dart:collection library.
 {
   'sources': [
-    'arrays.dart',
+    'collection.dart',
+    # The above file needs to be first as it lists the parts below.
     'collections.dart',
     'hash_map.dart',
     'hash_set.dart',

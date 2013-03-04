@@ -20,16 +20,19 @@ class Stopwatch {
    * Creates a [Stopwatch] in stopped state with a zero elapsed count.
    *
    * The following example shows how to start a [Stopwatch]
-   * right after allocation.
+   * immediately after allocation.
    *
    *     Stopwatch stopwatch = new Stopwatch()..start();
    */
   Stopwatch() : _start = null, _stop = null {}
 
   /**
-   * Starts the [Stopwatch]. The [elapsed] count is increasing monotonically.
-   * If the [Stopwatch] has been stopped, then calling start again restarts it
-   * without resetting the [elapsed] count.
+   * Starts the [Stopwatch].
+   *
+   * The [elapsed] count is increasing monotonically. If the [Stopwatch] has
+   * been stopped, then calling start again restarts it without resetting the
+   * [elapsed] count.
+   *
    * If the [Stopwatch] is currently running, then calling start does nothing.
    */
   void start() {
@@ -46,9 +49,11 @@ class Stopwatch {
   }
 
   /**
-   * Stops the [Stopwatch]. The [elapsed] count stops increasing.
-   * If the [Stopwatch] is currently not running, then calling stop does
-   * nothing.
+   * Stops the [Stopwatch].
+   *
+   * The [elapsedTicks] count stops increasing after this call. If the
+   * [Stopwatch] is currently not running, then calling this method has no
+   * effect.
    */
   void stop() {
     if (!isRunning) return;
@@ -56,8 +61,9 @@ class Stopwatch {
   }
 
   /**
-   * Resets the [elapsed] count to zero. This method does not stop or start
-   * the [Stopwatch].
+   * Resets the [elapsed] count to zero.
+   *
+   * This method does not stop or start the [Stopwatch].
    */
   void reset() {
     if (_start == null) return;
@@ -74,9 +80,12 @@ class Stopwatch {
   /**
    * Returns the elapsed number of clock ticks since calling [start] while the
    * [Stopwatch] is running.
+   *
    * Returns the elapsed number of clock ticks between calling [start] and
    * calling [stop].
+   *
    * Returns 0 if the [Stopwatch] has never been started.
+   *
    * The elapsed number of clock ticks increases by [frequency] every second.
    */
   int get elapsedTicks {
@@ -84,6 +93,13 @@ class Stopwatch {
       return 0;
     }
     return (_stop == null) ? (_now() - _start) : (_stop - _start);
+  }
+
+  /**
+   * Returns the [elapsedTicks] counter converted to a [Duration].
+   */
+  Duration get elapsed {
+    return new Duration(microseconds: elapsedMicroseconds);
   }
 
   /**

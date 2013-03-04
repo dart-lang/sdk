@@ -149,13 +149,13 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   return Symbols::FromCharCode(value);
 }
 
-DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {
+DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
 
   int32_t value = StringValueAt(receiver, index);
   ASSERT(value >= 0);
-  ASSERT(value <= 0x10FFFF);
+  ASSERT(value <= 0xFFFF);
   return Smi::New(value);
 }
 

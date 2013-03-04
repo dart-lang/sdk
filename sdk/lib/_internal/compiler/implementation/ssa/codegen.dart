@@ -1625,7 +1625,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
-      assert(selector.typeKind != TypedSelectorKind.UNKNOWN);
+      assert(selector.mask != null);
       world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;
@@ -2365,8 +2365,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, type);
       push(new js.Binary('&&', nullTest, pop()));
       attachLocationToLast(node);
-    } else if (input.instructionType.canBePrimitive()
-               || input.instructionType.canBeNull()) {
+    } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
       checkObject(input, '===');
       js.Expression objectTest = pop();
       checkType(input, type);

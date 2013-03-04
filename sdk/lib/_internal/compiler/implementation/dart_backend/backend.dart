@@ -217,6 +217,8 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
 
+  void addBackendRtiDependencies(World world) {}
+
   void enqueueHelpers(ResolutionEnqueuer world) {
     // Right now resolver doesn't always resolve interfaces needed
     // for literals, so force them. TODO(antonm): fix in the resolver.

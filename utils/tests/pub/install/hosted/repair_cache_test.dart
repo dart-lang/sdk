@@ -4,7 +4,7 @@
 
 library pub_tests;
 
-import '../../../../../pkg/path/lib/path.dart' as path;
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../../../pub/io.dart';
 import '../../test_pub.dart';

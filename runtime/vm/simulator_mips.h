@@ -16,16 +16,27 @@
 #error Do not include simulator_mips.h directly; use simulator.h.
 #endif
 
+#include "vm/constants_mips.h"
+
 namespace dart {
 
 class Simulator {
  public:
+  static const uword kSimulatorStackUnderflowSize = 64;
+
   Simulator();
   ~Simulator();
 
   // The currently executing Simulator instance, which is associated to the
   // current isolate
   static Simulator* Current();
+
+  // Accessors for register state.
+  void set_register(Register reg, int32_t value);
+  int32_t get_register(Register reg) const;
+
+  // Accessor to the internal simulator stack top.
+  uword StackTop() const;
 
   // Call on program start.
   static void InitOnce();
@@ -39,6 +50,9 @@ class Simulator {
                int32_t parameter2,
                int32_t parameter3,
                int32_t parameter4);
+
+ private:
+  char* stack_;
 };
 
 }  // namespace dart

@@ -15,85 +15,90 @@ DartHost::DartHost(Context *context)
       sound_handler_(context->sound_handler),
       timer_(context->timer),
       vm_glue_(context->vm_glue),
+      has_context_(false),
+      started_(false),
       active_(false) {
-  LOGI("Creating DartHost");
 }
 
 DartHost::~DartHost() {
-  LOGI("Freeing DartHost");
 }
 
-int32_t DartHost::OnActivate() {
-  return Activate();
+int32_t DartHost::OnStart() {
+  int result = vm_glue_->StartMainIsolate();
+  if (result != 0) {
+    LOGE("startMainIsolate returned %d", result);
+    return -1;
+  }
+  started_ = true;
+  return 0;
 }
 
 int32_t DartHost::Activate() {
-  if (!active_) {
-    LOGI("Activating DartHost");
+  if (!has_context_) {
     if (graphics_handler_->Start() != 0) {
       return -1;
     }
     if (sound_handler_->Start() != 0) {
+      graphics_handler_->Stop();
       return -1;
     }
     if (input_handler_->Start() != 0) {
+      sound_handler_->Stop();
+      graphics_handler_->Stop();
       return -1;
     }
+    int32_t rtn = vm_glue_->CallSetup(true);
     timer_->Reset();
-    LOGI("Starting main isolate");
-    int result = vm_glue_->StartMainIsolate();
-    if (result != 0) {
-      LOGE("startMainIsolate returned %d", result);
-      return -1;
-    }
-    active_ = true;
-    return vm_glue_->CallSetup();
+    has_context_ = true;
+    return rtn;
   }
   return 0;
 }
 
-void DartHost::OnDeactivate() {
-  Deactivate();
-}
-
 void DartHost::Deactivate() {
-  if (active_) {
-    active_ = false;
-    vm_glue_->FinishMainIsolate();
-    LOGI("Deactivating DartHost");
+  Pause();
+  if (has_context_) {
+    vm_glue_->CallShutdown();
     input_handler_->Stop();
     sound_handler_->Stop();
     graphics_handler_->Stop();
+    has_context_ = false;
   }
 }
 
 int32_t DartHost::OnStep() {
-  timer_->Update();
-  if (vm_glue_->CallUpdate() != 0 ||
-      graphics_handler_->Update() != 0) {
-    return -1;
+  if (active_) {
+    timer_->Update();
+    if (vm_glue_->CallUpdate() != 0 ||
+        graphics_handler_->Update() != 0) {
+      return -1;
+    }
   }
   return 0;
 }
 
-void DartHost::OnStart() {
-  LOGI("Starting DartHost");
+int32_t DartHost::Resume() {
+  if (!active_) {
+    if (Activate() == 0) {
+      sound_handler_->Resume();
+      active_ = true;
+    }
+  }
+  return 0;
 }
 
-void DartHost::OnResume() {
-  LOGI("Resuming DartHost");
+void DartHost::Pause() {
+  if (active_) {
+    active_ = false;  // This stops update() calls.
+    sound_handler_->Suspend();
+  }
 }
 
-void DartHost::OnPause() {
-  LOGI("Pausing DartHost");
-}
-
-void DartHost::OnStop() {
-  LOGI("Stopping DartHost");
-}
-
-void DartHost::OnDestroy() {
-  LOGI("Destroying DartHost");
+void DartHost::FreeAllResources() {
+  if (started_) {
+    vm_glue_->FinishMainIsolate();
+    started_ = false;
+  }
 }
 
 void DartHost::OnSaveState(void** data, size_t* size) {
@@ -106,21 +111,5 @@ void DartHost::OnConfigurationChanged() {
 
 void DartHost::OnLowMemory() {
   LOGI("DartHost low on memory");
-}
-
-void DartHost::OnCreateWindow() {
-  LOGI("DartHost creating window");
-}
-
-void DartHost::OnDestroyWindow() {
-  LOGI("DartHost destroying window");
-}
-
-void DartHost::OnGainedFocus() {
-  LOGI("DartHost gained focus");
-}
-
-void DartHost::OnLostFocus() {
-  LOGI("DartHost lost focus");
 }
 

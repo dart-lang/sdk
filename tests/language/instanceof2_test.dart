@@ -54,7 +54,7 @@ class InstanceofTest {
     Expect.equals(false, null is I);
 
     {
-      var a = new List.fixedLength(5);
+      var a = new List(5);
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object>);
       Expect.equals(true, a is List<int>);
@@ -62,7 +62,7 @@ class InstanceofTest {
       Expect.equals(true, a is List<String>);
     }
     {
-      var a = new List<Object>.fixedLength(5);
+      var a = new List<Object>(5);
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object>);
       Expect.equals(false, a is List<int>);
@@ -70,7 +70,7 @@ class InstanceofTest {
       Expect.equals(false, a is List<String>);
     }
     {
-      var a = new List<int>.fixedLength(5);
+      var a = new List<int>(5);
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object>);
       Expect.equals(true, a is List<int>);
@@ -78,7 +78,7 @@ class InstanceofTest {
       Expect.equals(false, a is List<String>);
     }
     {
-      var a = new List<num>.fixedLength(5);
+      var a = new List<num>(5);
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object>);
       Expect.equals(false, a is List<int>);
@@ -86,7 +86,7 @@ class InstanceofTest {
       Expect.equals(false, a is List<String>);
     }
     {
-      var a = new List<String>.fixedLength(5);
+      var a = new List<String>(5);
       Expect.equals(true, a is List);
       Expect.equals(true, a is List<Object>);
       Expect.equals(false, a is List<int>);

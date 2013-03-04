@@ -95,7 +95,8 @@ void main() {
       testRetainAll(base.toList(), delta);
       testRetainAll(base.toList(), deltaSet);
       testRemoveMatching(base.toList(), deltaSet.contains);
-      testRetainMatching(base.toList(), (e) => !deltaSet.contains(e));
+      testRetainMatching(base.toList(),
+                         (e) => !deltaSet.contains(e));
 
       testRemoveAll(base.toSet(), delta);
       testRemoveAll(base.toSet(), deltaSet);

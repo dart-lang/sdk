@@ -283,7 +283,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     })
     .catchError((error) {
       _handshakeComplete.completeError(error);
-      close();
+      _close();
     });
   }
 
@@ -341,6 +341,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void close() {
+    shutdown(SocketDirection.BOTH);
+  }
+
+  void _close() {
     _closedWrite = true;
     _closedRead = true;
     if (_socket != null) {
@@ -360,24 +364,25 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void shutdown(SocketDirection direction) {
-    if (direction == SocketDirection.BOTH) {
-      close();
-    } else if (direction == SocketDirection.SEND) {
+    if (direction == SocketDirection.SEND ||
+        direction == SocketDirection.BOTH) {
       _closedWrite = true;
       _writeEncryptedData();
       if (_filterWriteEmpty) {
         _socket.shutdown(SocketDirection.SEND);
         _socketClosedWrite = true;
         if (_closedRead) {
-          close();
+          _close();
         }
       }
-    } else if (direction == SocketDirection.RECEIVE) {
+    }
+    if (direction == SocketDirection.RECEIVE ||
+        direction == SocketDirection.BOTH) {
       _closedRead = true;
       _socketClosedRead = true;
       _socket.shutdown(SocketDirection.RECEIVE);
       if (_socketClosedWrite) {
-        close();
+        _close();
       }
     }
   }
@@ -386,9 +391,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void set writeEventsEnabled(bool value) {
     if (value &&
+        _controller.hasSubscribers &&
         _secureFilter != null &&
         _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
-      new Timer(0, (_) => _controller.add(RawSocketEvent.WRITE));
+      Timer.run(() => _controller.add(RawSocketEvent.WRITE));
     } else {
       _writeEventsEnabled = value;
     }
@@ -398,11 +404,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void set readEventsEnabled(bool value) {
     _readEventsEnabled = value;
-    if (_socketClosedRead) {
-      if (value) {
-        // We have no underlying socket to set off read events.
-        new Timer(0, (_) => _readHandler());
-      }
+    if (value &&
+        ((_secureFilter != null &&
+          _secureFilter.buffers[READ_PLAINTEXT].length > 0) ||
+         _socketClosedRead)) {
+      // We might not have no underlying socket to set off read events.
+      Timer.run(_readHandler);
     }
   }
 
@@ -431,7 +438,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
     // Set up a read event if the filter still has data.
     if (!_filterReadEmpty) {
-      new Timer(0, (_) => _readHandler());
+      Timer.run(_readHandler);
     }
 
     if (_socketClosedRead) {  // An onClose event is pending.
@@ -445,7 +452,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       if (_filterReadEmpty) {
         // This can't be an else clause: the value of _filterReadEmpty changes.
         // This must be asynchronous, because we are in a read call.
-        new Timer(0, (_) => _closeHandler());
+        Timer.run(_closeHandler);
       }
     }
 
@@ -489,6 +496,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _secureHandshake();
       } catch (e) { _reportError(e, "RawSecureSocket error"); }
     } else if (_status == CONNECTED &&
+               _controller.hasSubscribers &&
                _writeEventsEnabled &&
                _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
       // Reset the one-shot handler.
@@ -530,7 +538,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           }
           if (_socketClosedRead) {
             // Keep firing read events until we are paused or buffer is empty.
-            new Timer(0, (_) => _readHandler());
+            Timer.run(_readHandler);
           }
         }
       } else if (_socketClosedRead) {
@@ -541,7 +549,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _doneHandler() {
     if (_filterReadEmpty) {
-      close();
+      _close();
     }
   }
 
@@ -566,7 +574,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     } else {
       _controller.signalError(e);
     }
-    close();
+    _close();
   }
 
   void _closeHandler() {
@@ -577,7 +585,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _closedRead = true;
         _controller.add(RawSocketEvent.READ_CLOSED);
         if (_socketClosedWrite) {
-          close();
+          _close();
         }
       }
     } else if (_status == HANDSHAKE) {
@@ -600,7 +608,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       // If we complete the future synchronously, user code will run here,
       // and modify the state of the RawSecureSocket.  For example, it
       // could close the socket, and set _filter to null.
-      new Timer(0, (_) => _handshakeComplete.complete(this));
+      Timer.run(() => _handshakeComplete.complete(this));
     }
   }
 

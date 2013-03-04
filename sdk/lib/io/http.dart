@@ -61,7 +61,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
   // TODO(ajohnsen): Document with example, once the stream API is final.
   // TODO(ajohnsen): Add HttpServer.secure.
   /**
-   * Start listening for HTTP requests on the specified [host] and
+   * Starts listening for HTTP requests on the specified [address] and
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
    * specify the listen backlog for the underlying OS listen
@@ -73,13 +73,13 @@ abstract class HttpServer implements Stream<HttpRequest> {
       => _HttpServer.bind(address, port, backlog);
 
   /**
-   * Start listening for HTTPS requests on the specified [host] and
+   * Starts listening for HTTPS requests on the specified [address] and
    * [port]. If a [port] of 0 is specified the server will choose an
    * ephemeral port. The optional argument [backlog] can be used to
    * specify the listen backlog for the underlying OS listen
    * setup.
    *
-   * The certificate with Distinguished Name [certificate_name] is looked
+   * The certificate with Distinguished Name [certificateName] is looked
    * up in the certificate database, and is used as the server certificate.
    * if [requestClientCertificate] is true, the server will request clients
    * to authenticate with a client certificate.
@@ -97,34 +97,34 @@ abstract class HttpServer implements Stream<HttpRequest> {
                                 requestClientCertificate);
 
   /**
-   * Attach the HTTP server to an existing [:ServerSocket:]. When the
+   * Attaches the HTTP server to an existing [ServerSocket]. When the
    * [HttpServer] is closed, the [HttpServer] will just detach itself,
-   * close current connections but not close [serverSocket].
+   * closing current connections but not closing [serverSocket].
    */
   factory HttpServer.listenOn(ServerSocket serverSocket)
       => new _HttpServer.listenOn(serverSocket);
 
   /**
-   * Stop server listening. This will make the [Stream] close with a done
-   * event.
+   * Permanently stops this [HttpServer] from listening for new connections.
+   * This closes this [Stream] of [HttpRequest]s with a done event.
    */
   void close();
 
   /**
    * Returns the port that the server is listening on. This can be
-   * used to get the actual port used when a value of 0 for [port] is
-   * specified in the [listen] call.
+   * used to get the actual port used when a value of 0 for [:port:] is
+   * specified in the [bind] or [bindSecure] call.
    */
   int get port;
 
   /**
-   * Set the timeout, in seconds, for sessions of this HTTP server. Default
-   * is 20 minutes.
+   * Sets the timeout, in seconds, for sessions of this [HttpServer].
+   * The default timeout is 20 minutes.
    */
   set sessionTimeout(int timeout);
 
   /**
-   * Returns a [:HttpConnectionsInfo:] object with an overview of the
+   * Returns an [HttpConnectionsInfo] object summarizing the number of
    * current connections handled by the server.
    */
   HttpConnectionsInfo connectionsInfo();
@@ -132,7 +132,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
 
 
 /**
- * Overview information of the [:HttpServer:] socket connections.
+ * Summary statistics about an [HttpServer]s current socket connections.
  */
 class HttpConnectionsInfo {
   /**
@@ -162,60 +162,64 @@ class HttpConnectionsInfo {
 
 /**
  * Access to the HTTP headers for requests and responses. In some
- * situations the headers will be imutable and the mutating methods
+ * situations the headers will be immutable and the mutating methods
  * will then throw exceptions.
  *
- * For all operation on HTTP headers the header name is
+ * For all operations on HTTP headers the header name is
  * case-insensitive.
  */
 abstract class HttpHeaders {
-  static const ACCEPT = "Accept";
-  static const ACCEPT_CHARSET = "Accept-Charset";
-  static const ACCEPT_ENCODING = "Accept-Encoding";
-  static const ACCEPT_LANGUAGE = "Accept-Language";
-  static const ACCEPT_RANGES = "Accept-Ranges";
-  static const AGE = "Age";
-  static const ALLOW = "Allow";
-  static const AUTHORIZATION = "Authorization";
-  static const CACHE_CONTROL = "Cache-Control";
-  static const CONNECTION = "Connection";
-  static const CONTENT_ENCODING = "Content-Encoding";
-  static const CONTENT_LANGUAGE = "Content-Language";
-  static const CONTENT_LENGTH = "Content-Length";
-  static const CONTENT_LOCATION = "Content-Location";
-  static const CONTENT_MD5 = "Content-MD5";
-  static const CONTENT_RANGE = "Content-Range";
-  static const CONTENT_TYPE = "Content-Type";
-  static const DATE = "Date";
-  static const ETAG = "ETag";
-  static const EXPECT = "Expect";
-  static const EXPIRES = "Expires";
-  static const FROM = "From";
-  static const HOST = "Host";
-  static const IF_MATCH = "If-Match";
-  static const IF_MODIFIED_SINCE = "If-Modified-Since";
-  static const IF_NONE_MATCH = "If-None-Match";
-  static const IF_RANGE = "If-Range";
-  static const IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
-  static const LAST_MODIFIED = "Last-Modified";
-  static const LOCATION = "Location";
-  static const MAX_FORWARDS = "Max-Forwards";
-  static const PRAGMA = "Pragma";
-  static const PROXY_AUTHENTICATE = "Proxy-Authenticate";
-  static const PROXY_AUTHORIZATION = "Proxy-Authorization";
-  static const RANGE = "Range";
-  static const REFERER = "Referer";
-  static const RETRY_AFTER = "Retry-After";
-  static const SERVER = "Server";
-  static const TE = "TE";
-  static const TRAILER = "Trailer";
-  static const TRANSFER_ENCODING = "Transfer-Encoding";
-  static const UPGRADE = "Upgrade";
-  static const USER_AGENT = "User-Agent";
-  static const VARY = "Vary";
-  static const VIA = "Via";
-  static const WARNING = "Warning";
-  static const WWW_AUTHENTICATE = "WWW-Authenticate";
+  static const ACCEPT = "accept";
+  static const ACCEPT_CHARSET = "accept-charset";
+  static const ACCEPT_ENCODING = "accept-encoding";
+  static const ACCEPT_LANGUAGE = "accept-language";
+  static const ACCEPT_RANGES = "accept-ranges";
+  static const AGE = "age";
+  static const ALLOW = "allow";
+  static const AUTHORIZATION = "authorization";
+  static const CACHE_CONTROL = "cache-control";
+  static const CONNECTION = "connection";
+  static const CONTENT_ENCODING = "content-encoding";
+  static const CONTENT_LANGUAGE = "content-language";
+  static const CONTENT_LENGTH = "content-length";
+  static const CONTENT_LOCATION = "content-location";
+  static const CONTENT_MD5 = "content-md5";
+  static const CONTENT_RANGE = "content-range";
+  static const CONTENT_TYPE = "content-type";
+  static const DATE = "date";
+  static const ETAG = "etag";
+  static const EXPECT = "expect";
+  static const EXPIRES = "expires";
+  static const FROM = "from";
+  static const HOST = "host";
+  static const IF_MATCH = "if-match";
+  static const IF_MODIFIED_SINCE = "if-modified-since";
+  static const IF_NONE_MATCH = "if-none-match";
+  static const IF_RANGE = "if-range";
+  static const IF_UNMODIFIED_SINCE = "if-unmodified-since";
+  static const LAST_MODIFIED = "last-modified";
+  static const LOCATION = "location";
+  static const MAX_FORWARDS = "max-forwards";
+  static const PRAGMA = "pragma";
+  static const PROXY_AUTHENTICATE = "proxy-authenticate";
+  static const PROXY_AUTHORIZATION = "proxy-authorization";
+  static const RANGE = "range";
+  static const REFERER = "referer";
+  static const RETRY_AFTER = "retry-after";
+  static const SERVER = "server";
+  static const TE = "te";
+  static const TRAILER = "trailer";
+  static const TRANSFER_ENCODING = "transfer-encoding";
+  static const UPGRADE = "upgrade";
+  static const USER_AGENT = "user-agent";
+  static const VARY = "vary";
+  static const VIA = "via";
+  static const WARNING = "warning";
+  static const WWW_AUTHENTICATE = "www-authenticate";
+
+  // Cookie headers from RFC 6265.
+  static const COOKIE = "cookie";
+  static const SET_COOKIE = "set-cookie";
 
   static const GENERAL_HEADERS = const [CACHE_CONTROL,
                                         CONNECTION,
@@ -271,13 +275,13 @@ abstract class HttpHeaders {
 
   /**
    * Returns the list of values for the header named [name]. If there
-   * is no headers with the provided name [:null:] will be returned.
+   * is no header with the provided name, [:null:] will be returned.
    */
   List<String> operator[](String name);
 
   /**
-   * Convenience method for the value for a single values header. If
-   * there is no header with the provided name [:null:] will be
+   * Convenience method for the value for a single valued header. If
+   * there is no header with the provided name, [:null:] will be
    * returned. If the header has more than one value an exception is
    * thrown.
    */
@@ -286,7 +290,7 @@ abstract class HttpHeaders {
   /**
    * Adds a header value. The header named [name] will have the value
    * [value] added to its list of values. Some headers are single
-   * values and for these adding a value will replace the previous
+   * valued, and for these adding a value will replace the previous
    * value. If the value is of type DateTime a HTTP date format will be
    * applied. If the value is a [:List:] each element of the list will
    * be added separately. For all other types the default [:toString:]
@@ -308,7 +312,7 @@ abstract class HttpHeaders {
   void remove(String name, Object value);
 
   /**
-   * Remove all values for the specified header name. Some headers
+   * Removes all values for the specified header name. Some headers
    * have system supplied values and for these the system supplied
    * values will still be added to the collection of values for the
    * header.
@@ -316,46 +320,46 @@ abstract class HttpHeaders {
   void removeAll(String name);
 
   /**
-   * Enumerate the headers applying the function [f] to each
-   * header. The header name passed in [name] will be all lower
+   * Enumerates the headers, applying the function [f] to each
+   * header. The header name passed in [:name:] will be all lower
    * case.
    */
   void forEach(void f(String name, List<String> values));
 
   /**
-   * Disable folding for the header named [name] when sending the HTTP
+   * Disables folding for the header named [name] when sending the HTTP
    * header. By default, multiple header values are folded into a
    * single header line by separating the values with commas. The
-   * Set-Cookie header has folding disabled by default.
+   * 'set-cookie' header has folding disabled by default.
    */
   void noFolding(String name);
 
   /**
    * Gets and sets the date. The value of this property will
-   * reflect the "DateTime" header.
+   * reflect the 'date' header.
    */
   DateTime date;
 
   /**
    * Gets and sets the expiry date. The value of this property will
-   * reflect the "Expires" header.
+   * reflect the 'expires' header.
    */
   DateTime expires;
 
   /**
-   * Gets and sets the 'if-modified-since' date. The value of this property will
+   * Gets and sets the "if-modified-since" date. The value of this property will
    * reflect the "if-modified-since" header.
    */
   DateTime ifModifiedSince;
 
   /**
-   * Gets and sets the host part of the "Host" header for the
+   * Gets and sets the host part of the 'host' header for the
    * connection.
    */
   String host;
 
   /**
-   * Gets and sets the port part of the "Host" header for the
+   * Gets and sets the port part of the 'host' header for the
    * connection.
    */
   int port;
@@ -367,6 +371,16 @@ abstract class HttpHeaders {
    * effect.
    */
   ContentType contentType;
+
+  /**
+   * Gets and sets the content length header value.
+   */
+  int contentLength;
+
+  /**
+   * Gets and sets the persistent connection header value.
+   */
+  bool persistentConnection;
 }
 
 
@@ -378,7 +392,7 @@ abstract class HttpHeaders {
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
  *
- * To build an [:Accepts:] header with the value
+ * To build an [:accepts:] header with the value
  *
  *     text/plain; q=0.3, text/html
  *
@@ -436,23 +450,23 @@ abstract class HeaderValue {
 
 abstract class HttpSession implements Map {
   /**
-   * Get the id for the current session.
+   * Gets the id for the current session.
    */
   String get id;
 
   /**
-   * Destroy the session. This will terminate the session and any further
+   * Destroys the session. This will terminate the session and any further
    * connections with this id will be given a new id and session.
    */
   void destroy();
 
   /**
-   * Set a callback that will be called when the session is timed out.
+   * Sets a callback that will be called when the session is timed out.
    */
   void set onTimeout(void callback());
 
   /**
-   * Is true if the session have not been sent to the client yet.
+   * Is true if the session has not been sent to the client yet.
    */
   bool get isNew;
 }
@@ -510,8 +524,8 @@ abstract class ContentType implements HeaderValue {
 /**
  * Representation of a cookie. For cookies received by the server as
  * Cookie header values only [:name:] and [:value:] fields will be
- * set. When building a cookie for the Set-Cookie header in the server
- * and when receiving cookies in the client as Set-Cookie headers all
+ * set. When building a cookie for the 'set-cookie' header in the server
+ * and when receiving cookies in the client as 'set-cookie' headers all
  * fields can be used.
  */
 abstract class Cookie {
@@ -521,7 +535,7 @@ abstract class Cookie {
   factory Cookie([String name, String value]) => new _Cookie(name, value);
 
   /**
-   * Creates a new cookie by parsing a header value from a Set-Cookie
+   * Creates a new cookie by parsing a header value from a 'set-cookie'
    * header.
    */
   factory Cookie.fromSetCookieValue(String value) {
@@ -572,7 +586,7 @@ abstract class Cookie {
   /**
    * Returns the formatted string representation of the cookie. The
    * string representation can be used for for setting the Cookie or
-   * Set-Cookie headers
+   * 'set-cookie' headers
    */
   String toString();
 }
@@ -629,10 +643,10 @@ abstract class HttpRequest implements Stream<List<int>> {
   X509Certificate get certificate;
 
   /**
-   * Get the session for the given request. If the session is
+   * Gets the session for the given request. If the session is
    * being initialized by this call, [:isNew:] will be true for the returned
    * session.
-   * See [:HttpServer.sessionTimeout:] on how to change default timeout.
+   * See [HttpServer.sessionTimeout] on how to change default timeout.
    */
   HttpSession get session;
 
@@ -643,13 +657,13 @@ abstract class HttpRequest implements Stream<List<int>> {
   String get protocolVersion;
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * Gets information about the client connection. Returns [null] if the socket
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 
   /**
-   * Get the [HttpResponse] object, used for sending back the response to the
+   * Gets the [HttpResponse] object, used for sending back the response to the
    * client.
    */
   HttpResponse get response;
@@ -695,12 +709,12 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
   HttpHeaders get headers;
 
   /**
-   * Cookies to set in the client (in the Set-Cookie header).
+   * Cookies to set in the client (in the 'set-cookie' header).
    */
   List<Cookie> get cookies;
 
   /**
-   * Detach the underlying socket from the HTTP server. When the
+   * Detaches the underlying socket from the HTTP server. When the
    * socket is detached the HTTP server will no longer perform any
    * operations on it.
    *
@@ -710,8 +724,8 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
   Future<Socket> detachSocket();
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * Gets information about the client connection. Returns [null] if the socket
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -734,10 +748,10 @@ abstract class HttpClient {
 
   /**
    * Opens a HTTP connection. The returned [HttpClientRequest] is used to
-   * fill in the content of the request before sending it. The "Host" header for
+   * fill in the content of the request before sending it. The 'host' header for
    * the request will be set to the value [host]:[port]. This can be overridden
    * through the [HttpClientRequest] interface before the request is sent.
-   * NOTE if [host] is an IP address this will still be set in the "Host"
+   * NOTE if [host] is an IP address this will still be set in the 'host'
    * header.
    */
   Future<HttpClientRequest> open(String method,
@@ -747,10 +761,10 @@ abstract class HttpClient {
 
   /**
    * Opens a HTTP connection. The returned [HttpClientRequest] is used to
-   * fill in the content of the request before sending it. The "Host" header for
+   * fill in the content of the request before sending it. The 'hosth header for
    * the request will be set to the value [host]:[port]. This can be overridden
    * through the [HttpClientRequest] interface before the request is sent.
-   * NOTE if [host] is an IP address this will still be set in the "Host"
+   * NOTE if [host] is an IP address this will still be set in the 'host'
    * header.
    */
   Future<HttpClientRequest> openUrl(String method, Uri url);
@@ -801,23 +815,6 @@ abstract class HttpClient {
    * Add credentials to be used for authorizing HTTP requests.
    */
   void addCredentials(Uri url, String realm, HttpClientCredentials credentials);
-
-  /**
-   * If [sendClientCertificate] is set to true, authenticate with a client
-   * certificate when connecting with an HTTPS server that requests one.
-   * Select the certificate from the certificate database that matches
-   * the authorities listed by the HTTPS server as valid.
-   * If [clientCertificate] is set, send the certificate with that nickname
-   * instead.
-   */
-  set sendClientCertificate(bool send);
-
-  /**
-   * If [clientCertificate] is non-null and [sendClientCertificate] is true,
-   * use [clientCertificate] to select the certificate to send from the
-   * certificate database, looking it up by its nickname.
-   */
-  set clientCertificate(String nickname);
 
   /**
    * Sets the function used to resolve the proxy server to be used for
@@ -882,7 +879,7 @@ abstract class HttpClientRequest
   HttpHeaders get headers;
 
   /**
-   * Cookies to present to the server (in the Cookie header).
+   * Cookies to present to the server (in the 'cookie' header).
    */
   List<Cookie> get cookies;
 
@@ -894,7 +891,7 @@ abstract class HttpClientRequest
 
   /**
    * A [HttpClientResponse] future that will complete once the response is
-   * available. If an error occours before the response is available, this
+   * available. If an error occurs before the response is available, this
    * future will complete with an error.
    */
   Future<HttpClientResponse> get response;
@@ -934,7 +931,7 @@ abstract class HttpClientRequest
 
   /**
    * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -944,7 +941,6 @@ abstract class HttpClientRequest
  * HTTP response for a client connection. The [HttpClientResponse] is a
  * [Stream] of the body content of the response. Listen to the body to handle
  * the data and be notified once the entire body is received.
-
  */
 abstract class HttpClientResponse implements Stream<List<int>> {
   /**
@@ -958,8 +954,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   String get reasonPhrase;
 
   /**
-   * Returns the content length of the request body. If the size of
-   * the request body is not known in advance this -1.
+   * Returns the content length of the request body. Returns -1 if the size of
+   * the request body is not known in advance.
    */
   int get contentLength;
 
@@ -970,34 +966,34 @@ abstract class HttpClientResponse implements Stream<List<int>> {
 
   /**
    * Returns whether the status code is one of the normal redirect
-   * codes [:HttpStatus.MOVED_PERMANENTLY:], [:HttpStatus.FOUND:],
-   * [:HttpStatus.MOVED_TEMPORARILY:], [:HttpStatus.SEE_OTHER:] and
-   * [:HttpStatus.TEMPORARY_REDIRECT:].
+   * codes [HttpStatus.MOVED_PERMANENTLY], [HttpStatus.FOUND],
+   * [HttpStatus.MOVED_TEMPORARILY], [HttpStatus.SEE_OTHER] and
+   * [HttpStatus.TEMPORARY_REDIRECT].
    */
   bool get isRedirect;
 
   /**
    * Returns the series of redirects this connection has been through. The
-   * list will be empty if no redirects was followed. [redirects] will be
+   * list will be empty if no redirects were followed. [redirects] will be
    * updated both in the case of an automatic and a manual redirect.
    */
   List<RedirectInfo> get redirects;
 
   /**
-   * Redirect this connection to a new URL. The default value for
+   * Redirects this connection to a new URL. The default value for
    * [method] is the method for the current request. The default value
-   * for [url] is the value of the [:HttpHeaders.LOCATION:] header of
+   * for [url] is the value of the [HttpHeaders.LOCATION] header of
    * the current response. All body data must have been read from the
    * current response before calling [redirect].
    *
    * All headers added to the request will be added to the redirection
-   * request(s). However, any body send with the request will not be
-   * part of the redirection request(s).
+   * request. However, any body sent with the request will not be
+   * part of the redirection request.
    *
    * If [followLoops] is set to [true], redirect will follow the redirect,
-   * even if was already visited. Default value is [false].
+   * even if the URL was already visited. The default value is [false].
    *
-   * [redirect] will ignore [maxRedirects] and always perform the redirect.
+   * [redirect] will ignore [maxRedirects] and will always perform the redirect.
    */
   Future<HttpClientResponse> redirect([String method,
                                        Uri url,
@@ -1020,7 +1016,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   Future<Socket> detachSocket();
 
   /**
-   * Cookies set by the server (from the Set-Cookie header).
+   * Cookies set by the server (from the 'set-cookie' header).
    */
   List<Cookie> get cookies;
 
@@ -1031,8 +1027,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   X509Certificate get certificate;
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
-   * isn't available.
+   * Gets information about the client connection. Returns [null] if the socket
+   * is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -1042,7 +1038,7 @@ abstract class HttpClientCredentials { }
 
 
 /**
- * Represent credentials for basic authentication.
+ * Represents credentials for basic authentication.
  */
 abstract class HttpClientBasicCredentials extends HttpClientCredentials {
   factory HttpClientBasicCredentials(String username, String password) =>
@@ -1051,7 +1047,7 @@ abstract class HttpClientBasicCredentials extends HttpClientCredentials {
 
 
 /**
- * Represent credentials for digest authentication.
+ * Represents credentials for digest authentication.
  */
 abstract class HttpClientDigestCredentials extends HttpClientCredentials {
   factory HttpClientDigestCredentials(String username, String password) =>
@@ -1060,7 +1056,8 @@ abstract class HttpClientDigestCredentials extends HttpClientCredentials {
 
 
 /**
- * Connection information.
+ * Information about an [HttpRequest], [HttpResponse], [HttpClientRequest], or
+ * [HttpClientResponse] connection.
  */
 abstract class HttpConnectionInfo {
   String get remoteHost;

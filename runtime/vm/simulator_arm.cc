@@ -135,14 +135,14 @@ void SimulatorDebugger::Stop(Instr* instr, const char* message) {
 }
 
 
-static Register LookupCoreRegisterByName(const char* name) {
+static Register LookupCpuRegisterByName(const char* name) {
   static const char* kNames[] = {
       "r0",  "r1",  "r2",  "r3",
       "r4",  "r5",  "r6",  "r7",
       "r8",  "r9",  "r10", "r11",
       "r12", "r13", "r14", "r15",
       "pc",  "lr",  "sp",  "ip",
-      "fp",  "sl"
+      "fp",  "pp",  "ctx"
   };
   static const Register kRegisters[] = {
       R0,  R1,  R2,  R3,
@@ -150,7 +150,7 @@ static Register LookupCoreRegisterByName(const char* name) {
       R8,  R9,  R10, R11,
       R12, R13, R14, R15,
       PC,  LR,  SP,  IP,
-      FP,  R10
+      FP,  R10, R9
   };
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
@@ -183,7 +183,7 @@ static DRegister LookupDRegisterByName(const char* name) {
 
 
 bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
-  Register reg = LookupCoreRegisterByName(desc);
+  Register reg = LookupCpuRegisterByName(desc);
   if (reg != kNoRegister) {
     if (reg == PC) {
       *value = sim_->get_pc();
@@ -195,6 +195,9 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
   if ((desc[0] == '*')) {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
       *value = *(reinterpret_cast<uint32_t*>(addr));
       return true;
     }
@@ -216,6 +219,9 @@ bool SimulatorDebugger::GetFValue(char* desc, float* value) {
   if ((desc[0] == '*')) {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
       *value = *(reinterpret_cast<float*>(addr));
       return true;
     }
@@ -233,6 +239,9 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
   if ((desc[0] == '*')) {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
       *value = *(reinterpret_cast<double*>(addr));
       return true;
     }
@@ -671,11 +680,11 @@ class Redirection {
     return reinterpret_cast<uword>(&svc_instruction_);
   }
 
-  void* external_function() const { return external_function_; }
+  uword external_function() const { return external_function_; }
 
   uint32_t argument_count() const { return argument_count_; }
 
-  static Redirection* Get(void* external_function, uint32_t argument_count) {
+  static Redirection* Get(uword external_function, uint32_t argument_count) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->external_function_ == external_function) return current;
@@ -693,7 +702,7 @@ class Redirection {
  private:
   static const int32_t kRedirectSvcInstruction =
     ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
-  Redirection(void* external_function, uint32_t argument_count)
+  Redirection(uword external_function, uint32_t argument_count)
       : external_function_(external_function),
         argument_count_(argument_count),
         svc_instruction_(kRedirectSvcInstruction),
@@ -701,7 +710,7 @@ class Redirection {
     list_ = this;
   }
 
-  void* external_function_;
+  uword external_function_;
   const uint32_t argument_count_;
   uint32_t svc_instruction_;
   Redirection* next_;
@@ -712,7 +721,7 @@ class Redirection {
 Redirection* Redirection::list_ = NULL;
 
 
-uword Simulator::RedirectExternalReference(void* function,
+uword Simulator::RedirectExternalReference(uword function,
                                            uint32_t argument_count) {
   Redirection* redirection = Redirection::Get(function, argument_count);
   return redirection->address_of_svc_instruction();
@@ -956,10 +965,10 @@ uword Simulator::CompareExchange(uword* address,
 
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
-uintptr_t Simulator::StackTop() const {
+uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
-  return reinterpret_cast<uintptr_t>(stack_) +
+  return reinterpret_cast<uword>(stack_) +
       (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
 }
 
@@ -1316,8 +1325,7 @@ void Simulator::SupervisorCall(Instr* instr) {
 
         int32_t saved_lr = get_register(LR);
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
-        intptr_t external =
-            reinterpret_cast<intptr_t>(redirection->external_function());
+        uword external = redirection->external_function();
         SimulatorRuntimeCall target =
             reinterpret_cast<SimulatorRuntimeCall>(external);
         if (FLAG_trace_sim) {
@@ -1391,21 +1399,28 @@ void Simulator::DecodeType01(Instr* instr) {
     if (instr->IsMiscellaneous()) {
       switch (instr->Bits(4, 3)) {
         case 1: {
-          ASSERT(instr->Bits(21, 2) == 0x3);
-          // Format(instr, "clz'cond 'rd, 'rm");
-          Register rm = instr->RmField();
-          Register rd = instr->RdField();
-          int32_t rm_val = get_register(rm);
-          int32_t rd_val = 0;
-          if (rm_val != 0) {
-            while (rm_val > 0) {
-              rd_val++;
-              rm_val <<= 1;
+          if (instr->Bits(21, 2) == 0x3) {
+            // Format(instr, "clz'cond 'rd, 'rm");
+            Register rm = instr->RmField();
+            Register rd = instr->RdField();
+            int32_t rm_val = get_register(rm);
+            int32_t rd_val = 0;
+            if (rm_val != 0) {
+              while (rm_val > 0) {
+                rd_val++;
+                rm_val <<= 1;
+              }
+            } else {
+              rd_val = 32;
             }
+            set_register(rd, rd_val);
           } else {
-            rd_val = 32;
+            ASSERT(instr->Bits(21, 2) == 0x1);
+            // Format(instr, "bx'cond 'rm");
+            Register rm = instr->RmField();
+            int32_t rm_val = get_register(rm);
+            set_pc(rm_val);
           }
-          set_register(rd, rd_val);
           break;
         }
         case 3: {
@@ -1420,7 +1435,7 @@ void Simulator::DecodeType01(Instr* instr) {
         }
         case 7: {
           if (instr->Bits(21, 2) == 0x1) {
-            // Format(instr, "bkpt #'imm12_4");
+            // Format(instr, "bkpt'cond #'imm12_4");
             SimulatorDebugger dbg(this);
             set_pc(get_pc() + Instr::kInstrSize);
             char buffer[32];
@@ -2144,6 +2159,57 @@ void Simulator::DecodeType6(Instr* instr) {
         }
       }
     }
+  } else if (instr->IsVFPMultipleLoadStore()) {
+    Register rn = instr->RnField();
+    int32_t addr = get_register(rn);
+    int32_t imm_val = instr->Bits(0, 8);
+    if (instr->Bit(23) == 0) {
+      addr -= (imm_val << 2);
+    }
+    if (instr->HasW()) {
+      if (instr->Bit(23) == 1) {
+        set_register(rn, addr + (imm_val << 2));
+      } else {
+        set_register(rn, addr);  // already subtracted from addr
+      }
+    }
+    if (IsIllegalAddress(addr)) {
+      HandleIllegalAccess(addr, instr);
+    } else {
+      if (instr->Bit(8) == 0) {
+        int32_t regs_cnt = imm_val;
+        int32_t start = instr->Bit(22) | (instr->Bits(12, 4) << 1);
+        for (int i = start; i < start + regs_cnt; i++) {
+          SRegister sd = static_cast<SRegister>(i);
+          if (instr->Bit(20) == 1) {
+            // Format(instr, "vldms'cond'pu 'rn'w, 'slist");
+            set_sregister(sd, bit_cast<float, int32_t>(ReadW(addr, instr)));
+          } else {
+            // Format(instr, "vstms'cond'pu 'rn'w, 'slist");
+            WriteW(addr, bit_cast<int32_t, float>(get_sregister(sd)), instr);
+          }
+          addr += 4;
+        }
+      } else {
+        int32_t regs_cnt = imm_val >> 1;
+        int32_t start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
+        for (int i = start; i < start + regs_cnt; i++) {
+          DRegister dd = static_cast<DRegister>(i);
+          if (instr->Bit(20) == 1) {
+            // Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
+            int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
+                                                    ReadW(addr + 4, instr));
+            set_dregister(dd, bit_cast<double, int64_t>(dd_val));
+          } else {
+            // Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
+            int64_t dd_val = bit_cast<int64_t, double>(get_dregister(dd));
+            WriteW(addr, Utils::Low32Bits(dd_val), instr);
+            WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+          }
+          addr += 8;
+        }
+      }
+    }
   } else {
     UNIMPLEMENTED();
   }
@@ -2673,7 +2739,7 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r11_val = get_register(R11);
 
   // Setup the callee-saved registers with a known value. To be able to check
-  // that they are preserved properly across JS execution.
+  // that they are preserved properly across dart execution.
   int32_t callee_saved_value = icount_;
   set_register(R4, callee_saved_value);
   set_register(R5, callee_saved_value);

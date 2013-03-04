@@ -649,6 +649,12 @@ void main() {
         second</code> after</p>
         ''');
 
+    validate('simple double backticks', '''
+        before ``source`` after
+        ''', '''
+        <p>before <code>source</code> after</p>
+        ''');
+
     validate('double backticks', '''
         before ``can `contain` backticks`` after
         ''', '''
@@ -798,6 +804,29 @@ void main() {
         <p>links <a href="http://foo.com"><em>are</em></a> awesome</p>
         ''');
   });
+
+  group('Resolver', () {
+    var nyanResolver = (text) => new Text('~=[,,_${text}_,,]:3');
+    validate('simple resolver', '''
+        resolve [this] thing
+        ''', '''
+        <p>resolve ~=[,,_this_,,]:3 thing</p>
+        ''', linkResolver: nyanResolver);
+  });
+
+  group('Custom inline syntax', () {
+    List<InlineSyntax> nyanSyntax =
+      [new TextSyntax('nyan', sub: '~=[,,_,,]:3')];
+    validate('simple inline syntax', '''
+        nyan
+        ''', '''
+        <p>~=[,,_,,]:3</p>
+        ''', inlineSyntaxes: nyanSyntax);
+
+    // TODO(amouravski): need more tests here for custom syntaxes, as some
+    // things are not quite working properly. The regexps are sometime a little
+    // too greedy, I think.
+  });
 }
 
 /**
@@ -829,12 +858,13 @@ String cleanUpLiteral(String text) {
 }
 
 validate(String description, String markdown, String html,
-         {bool verbose: false}) {
+         {bool verbose: false, inlineSyntaxes, linkResolver}) {
   test(description, () {
     markdown = cleanUpLiteral(markdown);
     html = cleanUpLiteral(html);
 
-    var result = markdownToHtml(markdown);
+    var result = markdownToHtml(markdown, inlineSyntaxes: inlineSyntaxes,
+        linkResolver: linkResolver);
     var passed = compareOutput(html, result);
 
     if (!passed) {

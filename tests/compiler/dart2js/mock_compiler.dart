@@ -56,24 +56,25 @@ const String DEFAULT_HELPERLIB = r'''
   class Dynamic_ {}
   class LinkedHashMap {}
   S() {}
+  unwrapException(e) {}
   assertHelper(a){}
   createRuntimeType(a) {}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
   throwAbstractClassInstantiationError(className) {}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
-  class JSArray {
+  class JSArray implements List {
     var length;
     operator[](index) {}
     operator[]=(index, value) {}
     var add;
   }
-  class JSString {
+  class JSString implements String {
     var length;
     operator[](index) {}
     toString() {}
   }
-  class JSNumber {
+  class JSNumber implements num {
     // All these methods return a number to please type inferencing.
     operator-() => (this is JSInt) ? 42 : 42.0;
     operator +(other) => (this is JSInt) ? 42 : 42.0;
@@ -94,15 +95,15 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <=(other) => true;
     operator ==(other) => true;
   }
-  class JSInt extends JSNumber {
+  class JSInt extends JSNumber implements int {
   }
-  class JSDouble extends JSNumber {
+  class JSDouble extends JSNumber implements double {
   }
   class JSNull {
   }
-  class JSBool {
+  class JSBool implements bool {
   }
-  class JSFunction {
+  class JSFunction implements Function {
   }
   class ObjectInterceptor {
   }
@@ -117,7 +118,7 @@ const String DEFAULT_CORELIB = r'''
     static parse(s) {}
   }
   class bool {}
-  class String {}
+  class String implements Pattern {}
   class Object {
     operator ==(other) {}
     String toString() {}
@@ -130,6 +131,7 @@ const String DEFAULT_CORELIB = r'''
     DateTime(year);
     DateTime.utc(year);
   }
+  abstract class Pattern {}
   bool identical(Object a, Object b) {}''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
@@ -161,12 +163,16 @@ class MockCompiler extends Compiler {
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
     jsHelperLibrary = createLibrary("helper", helperSource);
-    importHelperLibrary(coreLibrary);
-    libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
-
-    assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
     isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
+
+    // Set up the library imports.
+    importHelperLibrary(coreLibrary);
+    libraryLoader.importLibrary(jsHelperLibrary, coreLibrary, null);
+    libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
+    libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
+
+    assertMethod = jsHelperLibrary.find(buildSourceString('assert'));
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();

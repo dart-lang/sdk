@@ -232,7 +232,7 @@ runPixelLayoutTest(int testNum) {
       process.close();
       var labelMarker = 'CONSOLE MESSAGE: #TEST ';
       var contentMarker = 'Content-Length: ';
-      var eol = '\n'.charCodeAt(0);
+      var eol = '\n'.codeUnitAt(0);
       var pos = -1;
       var label = null;
       var done = false;

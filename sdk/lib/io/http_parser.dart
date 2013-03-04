@@ -108,12 +108,18 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
     controller = new StreamController<List<int>>(
         onSubscriptionStateChange: onSubscriptionStateChange,
         onPauseStateChange: onPauseStateChange);
-    pause();
-    if (oldResumeCompleter != null) oldResumeCompleter.complete();
-    subscription.resume();
-    subscription.onData(controller.add);
-    subscription.onDone(controller.close);
-    subscription.onError(controller.signalError);
+    if (subscription == null) {
+      // Socket was already closed.
+      if (carryOverData != null) controller.add(carryOverData);
+      controller.close();
+    } else {
+      pause();
+      if (oldResumeCompleter != null) oldResumeCompleter.complete();
+      subscription.resume();
+      subscription.onData(controller.add);
+      subscription.onDone(controller.close);
+      subscription.onError(controller.signalError);
+    }
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
@@ -209,7 +215,7 @@ class _HttpParser
   }
 
 
-  StreamSubscription<_HttpIncoming> listen(void onData(List<int> event),
+  StreamSubscription<_HttpIncoming> listen(void onData(_HttpIncoming event),
                                            {void onError(AsyncError error),
                                             void onDone(),
                                             bool unsubscribeOnError}) {
@@ -840,9 +846,9 @@ class _HttpParser
   }
 
   int _toLowerCase(int byte) {
-    final int aCode = "A".charCodeAt(0);
-    final int zCode = "Z".charCodeAt(0);
-    final int delta = "a".charCodeAt(0) - aCode;
+    final int aCode = "A".codeUnitAt(0);
+    final int zCode = "Z".codeUnitAt(0);
+    final int delta = "a".codeUnitAt(0) - aCode;
     return (aCode <= byte && byte <= zCode) ? byte + delta : byte;
   }
 
@@ -868,7 +874,7 @@ class _HttpParser
     assert(_incoming == null);
     assert(_bodyController == null);
     _bodyController = new StreamController<List<int>>(
-        onSubscriptionStateChange: _updateParsePauseState,
+        onSubscriptionStateChange: _bodySubscriptionStateChange,
         onPauseStateChange: _updateParsePauseState);
     _incoming = new _HttpIncoming(
         _headers, transferLength, _bodyController.stream);
@@ -894,6 +900,14 @@ class _HttpParser
 
   void _pauseParsing() {
     _paused = true;
+  }
+
+  void _bodySubscriptionStateChange() {
+    if (_incoming != null && !_bodyController.hasSubscribers) {
+      _closeIncoming();
+    } else {
+      _updateParsePauseState();
+    }
   }
 
   void _updateParsePauseState() {

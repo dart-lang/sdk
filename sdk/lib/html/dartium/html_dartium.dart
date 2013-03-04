@@ -1,3 +1,4 @@
+/// The Dart HTML library.
 library dart.dom.html;
 
 import 'dart:async';
@@ -2103,6 +2104,10 @@ class Console extends NativeFieldWrapperClass1 {
   @DocsEditable
   void profileEnd(String title) native "Console_profileEnd_Callback";
 
+  @DomName('Console.table')
+  @DocsEditable
+  void table(Object arg) native "Console_table_Callback";
+
   @DomName('Console.time')
   @DocsEditable
   void time(String title) native "Console_time_Callback";
@@ -2241,8 +2246,14 @@ class Counter extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Crypto')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Crypto extends NativeFieldWrapperClass1 {
   Crypto.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
@@ -7528,7 +7539,7 @@ class Document extends Node
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>.fixedLength(len);
+      final copyOfMatches = new List<Element>(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -7536,7 +7547,7 @@ class Document extends Node
     } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>.fixedLength(len);
+      final copyOfMatches = new List<Element>(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -7832,7 +7843,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomMimeType> toList() => new List<DomMimeType>.from(this);
+  List<DomMimeType> toList({ bool growable: true }) =>
+      new List<DomMimeType>.from(this, growable: growable);
+
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -8100,7 +8113,9 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomPlugin> toList() => new List<DomPlugin>.from(this);
+  List<DomPlugin> toList({ bool growable: true }) =>
+      new List<DomPlugin>.from(this, growable: growable);
+
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -8486,7 +8501,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
-  List<String> toList() => new List<String>.from(this);
+  List<String> toList({ bool growable: true }) =>
+      new List<String>.from(this, growable: growable);
+
   Set<String> toSet() => new Set<String>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -8707,8 +8724,14 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList() {
-    final output = new List<Element>.fixedLength(_childElements.length);
+  List<Element> toList({ bool growable: true }) {
+    List<Element> output;
+    if (growable) {
+      output = <Element>[];
+      output.length = _childElements.length;
+    } else {
+      output = new List<Element>(_childElements.length);
+    }
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
     }
@@ -9004,7 +9027,8 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  List<Element> toList() => new List<Element>.from(this);
+  List<Element> toList({ bool growable: true }) =>
+      new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
 
   Iterable<Element> take(int n) {
@@ -9738,6 +9762,10 @@ abstract class Element extends Node implements ElementTraversal {
   void insertAdjacentText(String where, String text);
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
+
+  @DomName('Element.attributes')
+  @DocsEditable
+  _NamedNodeMap get $dom_attributes native "Element_attributes_Getter";
 
   @DomName('Element.childElementCount')
   @DocsEditable
@@ -11098,7 +11126,7 @@ class File extends Blob {
 
   @DomName('File.lastModifiedDate')
   @DocsEditable
-  Date get lastModifiedDate native "File_lastModifiedDate_Getter";
+  DateTime get lastModifiedDate native "File_lastModifiedDate_Getter";
 
   @DomName('File.name')
   @DocsEditable
@@ -11313,7 +11341,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
-  List<File> toList() => new List<File>.from(this);
+  List<File> toList({ bool growable: true }) =>
+      new List<File>.from(this, growable: growable);
+
   Set<File> toSet() => new Set<File>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -11924,7 +11954,9 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList() => new List<num>.from(this);
+  List<num> toList({ bool growable: true }) =>
+      new List<num>.from(this, growable: growable);
+
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -12159,7 +12191,9 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList() => new List<num>.from(this);
+  List<num> toList({ bool growable: true }) =>
+      new List<num>.from(this, growable: growable);
+
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -12590,7 +12624,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable
-  void $dom_clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
+  void $dom_clearWatch(int watchID) native "Geolocation_clearWatch_Callback";
 
   @DomName('Geolocation.getCurrentPosition')
   @DocsEditable
@@ -12848,7 +12882,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -13057,7 +13093,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -13226,17 +13264,6 @@ class HtmlDocument extends Document {
   @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
-  }
-
-  /**
-   * Registers a custom Element subclass as an available HTML tag.
-   *
-   * Not yet implemented.
-   */
-  @Experimental
-  void register(String tagName, Type elementClass) {
-    // TODO: tagName validation
-    throw new Exception('Not yet implemented');
   }
 
   @DomName('Document.caretRangeFromPoint')
@@ -14261,7 +14288,6 @@ class InputElement extends _Element_Merged implements
     TelephoneInputElement,
     EmailInputElement,
     PasswordInputElement,
-    DateTimeInputElement,
     DateInputElement,
     MonthInputElement,
     WeekInputElement,
@@ -14607,11 +14633,11 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
+  DateTime get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  void set valueAsDate(Date value) native "HTMLInputElement_valueAsDate_Setter";
+  void set valueAsDate(DateTime value) native "HTMLInputElement_valueAsDate_Setter";
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable
@@ -15019,32 +15045,6 @@ abstract class RangeInputElementBase implements InputElementBase {
 }
 
 /**
- * A date and time (year, month, day, hour, minute, second, fraction of a
- * second) with the time zone set to UTC.
- *
- * Use [supported] to check if this is supported on the current platform.
- */
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental
-abstract class DateTimeInputElement implements RangeInputElementBase {
-  factory DateTimeInputElement() => new InputElement(type: 'datetime');
-
-  @DomName('HTMLInputElement.valueAsDate')
-  DateTime valueAsDate;
-
-  @DomName('HTMLInputElement.readOnly')
-  bool readOnly;
-
-  @DomName('HTMLInputElement.required')
-  bool required;
-
-  /// Returns true if this input type is supported on the current platform.
-  static bool get supported {
-    return (new InputElement(type: 'datetime')).type == 'datetime';
-  }
-}
-
-/**
  * A date (year, month, day) with no time zone.
  *
  * Use [supported] to check if this is supported on the current platform.
@@ -15415,7 +15415,9 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -15650,7 +15652,9 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -15885,7 +15889,9 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -17930,7 +17936,7 @@ class Metadata extends NativeFieldWrapperClass1 {
 
   @DomName('Metadata.modificationTime')
   @DocsEditable
-  Date get modificationTime native "Metadata_modificationTime_Getter";
+  DateTime get modificationTime native "Metadata_modificationTime_Getter";
 
   @DomName('Metadata.size')
   @DocsEditable
@@ -18586,7 +18592,13 @@ class _ChildNodeListLazy implements List {
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      iterable = new List.from(iterable);
+      if (iterable._this != _this) {
+        // Optimized route for copying between nodes.
+        for (var i = 0, len = iterable.length; i < len; ++i) {
+          _this.$dom_appendChild(iterable[0]);
+        }
+      }
+      return;
     }
     for (Node node in iterable) {
       _this.$dom_appendChild(node);
@@ -18673,7 +18685,8 @@ class _ChildNodeListLazy implements List {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -18802,10 +18815,6 @@ class Node extends EventTarget {
   }
 
   Node.internal() : super.internal();
-
-  @DomName('Node.attributes')
-  @DocsEditable
-  _NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
 
   @DomName('Node.childNodes')
   @DocsEditable
@@ -19059,7 +19068,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -19830,9 +19841,17 @@ class OverflowEvent extends Event {
 class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
 
+  @DomName('PagePopupController.closePopup')
+  @DocsEditable
+  void closePopup() native "PagePopupController_closePopup_Callback";
+
   @DomName('PagePopupController.formatMonth')
   @DocsEditable
   String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
+
+  @DomName('PagePopupController.formatShortMonth')
+  @DocsEditable
+  String formatShortMonth(int year, int zeroBaseMonth) native "PagePopupController_formatShortMonth_Callback";
 
   @DomName('PagePopupController.histogramEnumeration')
   @DocsEditable
@@ -19841,6 +19860,10 @@ class PagePopupController extends NativeFieldWrapperClass1 {
   @DomName('PagePopupController.localizeNumberString')
   @DocsEditable
   String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
+
+  @DomName('PagePopupController.setValue')
+  @DocsEditable
+  void setValue(String value) native "PagePopupController_setValue_Callback";
 
   @DomName('PagePopupController.setValueAndClosePopup')
   @DocsEditable
@@ -21011,7 +21034,7 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 
   @DomName('RTCStatsElement.timestamp')
   @DocsEditable
-  Date get timestamp native "RTCStatsElement_timestamp_Getter";
+  DateTime get timestamp native "RTCStatsElement_timestamp_Getter";
 
   @DomName('RTCStatsElement.names')
   @DocsEditable
@@ -21732,7 +21755,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
+  List<SourceBuffer> toList({ bool growable: true }) =>
+      new List<SourceBuffer>.from(this, growable: growable);
+
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22050,7 +22075,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
+  List<SpeechGrammar> toList({ bool growable: true }) =>
+      new List<SpeechGrammar>.from(this, growable: growable);
+
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22964,16 +22991,34 @@ class TableColElement extends _Element_Merged {
   void set span(int value) native "HTMLTableColElement_span_Setter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('HTMLTableElement')
 class TableElement extends _Element_Merged {
+
+  @DomName('HTMLTableElement.tBodies')
+  List<TableSectionElement> get tBodies =>
+  new _WrappedList<TableSectionElement>($dom_tBodies);
+
+  @DomName('HTMLTableElement.rows')
+  List<TableRowElement> get rows =>
+      new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableCaptionElement createCaption() => $dom_createCaption();
+  TableSectionElement createTBody() => $dom_createTBody();
+  TableSectionElement createTFoot() => $dom_createTFoot();
+  TableSectionElement createTHead() => $dom_createTHead();
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+
   TableElement.internal() : super.internal();
 
   @DomName('HTMLTableElement.HTMLTableElement')
@@ -22998,11 +23043,11 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.rows')
   @DocsEditable
-  HtmlCollection get rows native "HTMLTableElement_rows_Getter";
+  HtmlCollection get $dom_rows native "HTMLTableElement_rows_Getter";
 
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable
-  HtmlCollection get tBodies native "HTMLTableElement_tBodies_Getter";
+  HtmlCollection get $dom_tBodies native "HTMLTableElement_tBodies_Getter";
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable
@@ -23022,19 +23067,19 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable
-  Element createCaption() native "HTMLTableElement_createCaption_Callback";
+  Element $dom_createCaption() native "HTMLTableElement_createCaption_Callback";
 
   @DomName('HTMLTableElement.createTBody')
   @DocsEditable
-  Element createTBody() native "HTMLTableElement_createTBody_Callback";
+  Element $dom_createTBody() native "HTMLTableElement_createTBody_Callback";
 
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable
-  Element createTFoot() native "HTMLTableElement_createTFoot_Callback";
+  Element $dom_createTFoot() native "HTMLTableElement_createTFoot_Callback";
 
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable
-  Element createTHead() native "HTMLTableElement_createTHead_Callback";
+  Element $dom_createTHead() native "HTMLTableElement_createTHead_Callback";
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable
@@ -23054,19 +23099,27 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native "HTMLTableElement_insertRow_Callback";
-
+  Element $dom_insertRow(int index) native "HTMLTableElement_insertRow_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('HTMLTableRowElement')
 class TableRowElement extends _Element_Merged {
+
+  @DomName('HTMLTableRowElement.cells')
+  List<TableCellElement> get cells =>
+      new _WrappedList<TableCellElement>($dom_cells);
+
+  TableCellElement addCell() {
+    return insertCell(-1);
+  }
+
+  TableCellElement insertCell(int index) => $dom_insertCell(index);
+
   TableRowElement.internal() : super.internal();
 
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
@@ -23075,7 +23128,7 @@ class TableRowElement extends _Element_Merged {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable
-  HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
+  HtmlCollection get $dom_cells native "HTMLTableRowElement_cells_Getter";
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable
@@ -23091,24 +23144,32 @@ class TableRowElement extends _Element_Merged {
 
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable
-  Element insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
-
+  Element $dom_insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('HTMLTableSectionElement')
 class TableSectionElement extends _Element_Merged {
+
+  @DomName('HTMLTableSectionElement.rows')
+  List<TableRowElement> get rows =>
+    new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
   TableSectionElement.internal() : super.internal();
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable
-  HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
+  HtmlCollection get $dom_rows native "HTMLTableSectionElement_rows_Getter";
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable
@@ -23116,8 +23177,7 @@ class TableSectionElement extends _Element_Merged {
 
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
-
+  Element $dom_insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23684,7 +23744,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
+  List<TextTrackCue> toList({ bool growable: true }) =>
+      new List<TextTrackCue>.from(this, growable: growable);
+
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -23893,7 +23955,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrack> toList() => new List<TextTrack>.from(this);
+  List<TextTrack> toList({ bool growable: true }) =>
+      new List<TextTrack>.from(this, growable: growable);
+
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -24309,7 +24373,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Touch> toList() => new List<Touch>.from(this);
+  List<Touch> toList({ bool growable: true }) =>
+      new List<Touch>.from(this, growable: growable);
+
   Set<Touch> toSet() => new Set<Touch>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -24800,7 +24866,9 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -25035,7 +25103,9 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -25270,7 +25340,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -25503,7 +25575,9 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27892,7 +27966,7 @@ class Window extends EventTarget implements WindowBase {
    * frame unwinds, causing the future to complete after all processing has
    * completed for the current event, but before any subsequent events.
    */
-  void setImmediate(TimeoutHandler callback) { 
+  void setImmediate(TimeoutHandler callback) {
     _addMicrotaskCallback(callback);
   }
   /**
@@ -27900,8 +27974,11 @@ class Window extends EventTarget implements WindowBase {
    * registered under [name].
    */
   SendPortSync lookupPort(String name) {
-    var port =
-        json.parse(document.documentElement.attributes['dart-port:$name']);
+    var portStr = document.documentElement.attributes['dart-port:$name'];
+    if (portStr == null) {
+      return null;
+    }
+    var port = json.parse(portStr);
     return _deserialize(port);
   }
 
@@ -27923,7 +28000,7 @@ class Window extends EventTarget implements WindowBase {
    * If you need to later cancel this animation, use [requestAnimationFrame]
    * instead.
    *
-   * Note: The code that runs when the future completes should call 
+   * Note: The code that runs when the future completes should call
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
@@ -29185,7 +29262,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ClientRect> toList() => new List<ClientRect>.from(this);
+  List<ClientRect> toList({ bool growable: true }) =>
+      new List<ClientRect>.from(this, growable: growable);
+
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -29386,7 +29465,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssRule> toList() => new List<CssRule>.from(this);
+  List<CssRule> toList({ bool growable: true }) =>
+      new List<CssRule>.from(this, growable: growable);
+
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -29587,7 +29668,9 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssValue> toList() => new List<CssValue>.from(this);
+  List<CssValue> toList({ bool growable: true }) =>
+      new List<CssValue>.from(this, growable: growable);
+
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -29931,7 +30014,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Entry> toList() => new List<Entry>.from(this);
+  List<Entry> toList({ bool growable: true }) =>
+      new List<Entry>.from(this, growable: growable);
+
   Set<Entry> toSet() => new Set<Entry>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -30132,7 +30217,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
-  List<EntrySync> toList() => new List<EntrySync>.from(this);
+  List<EntrySync> toList({ bool growable: true }) =>
+      new List<EntrySync>.from(this, growable: growable);
+
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -30333,7 +30420,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Gamepad> toList() => new List<Gamepad>.from(this);
+  List<Gamepad> toList({ bool growable: true }) =>
+      new List<Gamepad>.from(this, growable: growable);
+
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -30625,7 +30714,9 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -30850,7 +30941,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
+  List<SpeechInputResult> toList({ bool growable: true }) =>
+      new List<SpeechInputResult>.from(this, growable: growable);
+
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -31051,7 +31144,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
+  List<SpeechRecognitionResult> toList({ bool growable: true }) =>
+      new List<SpeechRecognitionResult>.from(this, growable: growable);
+
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -31252,7 +31347,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
-  List<StyleSheet> toList() => new List<StyleSheet>.from(this);
+  List<StyleSheet> toList({ bool growable: true }) =>
+      new List<StyleSheet>.from(this, growable: growable);
+
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -31884,7 +31981,8 @@ abstract class CssClassSet implements Set<String> {
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList() => readClasses().toList();
+  List<String> toList({ bool growable: true }) =>
+      readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   String min([int compare(String a, String b)]) =>
       readClasses().min(compare);
@@ -32147,7 +32245,7 @@ class KeyboardEventController {
   EventTarget _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+  final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   StreamSubscription _keyUpSubscription, _keyDownSubscription,
       _keyPressSubscription;
@@ -32282,8 +32380,8 @@ class KeyboardEventController {
       if (prevEvent._shadowCharCode == event.charCode) {
         return prevEvent.keyCode;
       }
-      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".charCodes[0]
-          && event.charCode <= "Z".charCodes[0] && event.charCode +
+      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".codeUnits[0]
+          && event.charCode <= "Z".codeUnits[0] && event.charCode +
           _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
         return prevEvent.keyCode;
       }
@@ -33341,6 +33439,147 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A list which just wraps another list, for either intercepting list calls or
+ * retyping the list (for example, from List<A> to List<B> where B extends A).
+ */
+class _WrappedList<E> implements List<E> {
+  final List _list;
+
+  _WrappedList(this._list);
+
+  // Iterable APIs
+
+  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+
+  Iterable map(f(E element)) => _list.map(f);
+
+  Iterable<E> where(bool f(E element)) => _list.where(f);
+
+  Iterable expand(Iterable f(E element)) => _list.expand(f);
+
+  bool contains(E element) => _list.contains(element);
+
+  void forEach(void f(E element)) { _list.forEach(f); }
+
+  dynamic reduce(initialValue, combine(previousValue, E element)) =>
+      _list.reduce(initialValue, combine);
+
+  bool every(bool f(E element)) => _list.every(f);
+
+  String join([String separator]) => _list.join(separator);
+
+  bool any(bool f(E element)) => _list.any(f);
+
+  List<E> toList({ bool growable: true }) =>
+      new List.from(_list, growable: growable);
+
+  Set<E> toSet() => _list.toSet();
+
+  int get length => _list.length;
+
+  E min([int compare(E a, E b)]) => _list.min(compare);
+
+  E max([int compare(E a, E b)]) => _list.max(compare);
+
+  bool get isEmpty => _list.isEmpty;
+
+  Iterable<E> take(int n) => _list.take(n);
+
+  Iterable<E> takeWhile(bool test(E value)) => _list.takeWhile(test);
+
+  Iterable<E> skip(int n) => _list.skip(n);
+
+  Iterable<E> skipWhile(bool test(E value)) => _list.skipWhile(test);
+
+  E get first => _list.first;
+
+  E get last => _list.last;
+
+  E get single => _list.single;
+
+  E firstMatching(bool test(E value), { E orElse() }) =>
+      _list.firstMatching(test, orElse: orElse);
+
+  E lastMatching(bool test(E value), {E orElse()}) =>
+      _list.lastMatching(test, orElse: orElse);
+
+  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+
+  E elementAt(int index) => _list.elementAt(index);
+
+  // Collection APIs
+
+  void add(E element) { _list.add(element); }
+
+  void addAll(Iterable<E> elements) { _list.addAll(elements); }
+
+  void remove(Object element) { _list.remove(element); }
+
+  void removeAll(Iterable elements) { _list.removeAll(elements); }
+
+  void retainAll(Iterable elements) { _list.retainAll(elements); }
+
+  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+
+  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+
+  void clear() { _list.clear(); }
+
+  // List APIs
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void addLast(E value) { _list.addLast(value); }
+
+  Iterable<E> get reversed => _list.reversed;
+
+  void sort([int compare(E a, E b)]) { _list.sort(compare); }
+
+  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
+
+  E removeAt(int index) => _list.removeAt(index);
+
+  E removeLast() => _list.removeLast();
+
+  List<E> getRange(int start, int length) => _list.getRange(start, length);
+
+  void setRange(int start, int length, List<E> from, [int startFrom]) {
+    _list.setRange(start, length, from, startFrom);
+  }
+
+  void removeRange(int start, int length) { _list.removeRange(start, length); }
+
+  void insertRange(int start, int length, [E fill]) {
+    _list.insertRange(start, length, fill);
+  }
+}
+
+/**
+ * Iterator wrapper for _WrappedList.
+ */
+class _WrappedIterator<E> implements Iterator<E> {
+  Iterator _iterator;
+
+  _WrappedIterator(this._iterator);
+
+  bool moveNext() {
+    return _iterator.moveNext();
+  }
+
+  E get current => _iterator.current;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34127,7 +34366,7 @@ abstract class _Serializer extends _MessageTraverser {
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List.fixedLength(len);
+    var result = new List(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }
@@ -34299,10 +34538,15 @@ class TestRunner {
 
 
 class _Utils {
+  static double dateTimeToDouble(DateTime dateTime) =>
+      dateTime.millisecondsSinceEpoch.toDouble();
+  static DateTime doubleToDateTime(double dateTime) =>
+      new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
-    List result = new List.fixedLength(length);
+    List result = new List(length);
     result.setRange(0, length, list);
     return result;
   }

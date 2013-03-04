@@ -73,11 +73,9 @@ stringReplaceJS(receiver, replacer, to) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
   // behavior.
-  to = JS('String', r"#.replace('$', '$$$$')", to);
+  to = JS('String', r'#.replace("$", "$$$$")', to);
   return JS('String', r'#.replace(#, #)', receiver, replacer, to);
 }
-
-final RegExp quoteRegExp = const JSSyntaxRegExp(r'[-[\]{}()*+?.,\\^$|#\s]');
 
 stringReplaceAllUnchecked(receiver, from, to) {
   checkString(to);
@@ -96,15 +94,14 @@ stringReplaceAllUnchecked(receiver, from, to) {
         return result.toString();
       }
     } else {
-      var quoter = regExpMakeNative(quoteRegExp, global: true);
+      var quoter = JS('', "new RegExp(#, 'g')", r'[-[\]{}()*+?.,\\^$|#\s]');
       var quoted = JS('String', r'#.replace(#, "\\$&")', from, quoter);
-      RegExp replaceRegExp = new JSSyntaxRegExp(quoted);
-      var replacer = regExpMakeNative(replaceRegExp, global: true);
+      var replacer = JS('', "new RegExp(#, 'g')", quoted);
       return stringReplaceJS(receiver, replacer, to);
     }
   } else if (from is JSSyntaxRegExp) {
-    var re = regExpMakeNative(from, global: true);
-    return stringReplaceJS(receiver, re, to);
+    var re = new JSSyntaxRegExp._globalVersionOf(from);
+    return stringReplaceJS(receiver, re._nativeRegExp, to);
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
@@ -145,10 +142,10 @@ stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
   while (i < length) {
     buffer.add(onMatch(new StringMatch(i, receiver, "")));
     // Special case to avoid splitting a surrogate pair.
-    int code = receiver.charCodeAt(i);
+    int code = receiver.codeUnitAt(i);
     if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
       // Leading surrogate;
-      code = receiver.charCodeAt(i + 1);
+      code = receiver.codeUnitAt(i + 1);
       if ((code & ~0x3FF) == 0xDC00) {
         // Matching trailing surrogate.
         buffer.add(onNonMatch(receiver.substring(i, i + 2)));

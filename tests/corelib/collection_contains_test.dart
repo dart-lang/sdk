@@ -12,7 +12,7 @@ test(list, notInList) {
     }
     Expect.isFalse(list.contains(notInList), "!$list.contains($notInList)");
   }
-  List fixedList = new List.fixedLength(list.length);
+  List fixedList = new List(list.length);
   List growList = new List();
   for (int i = 0; i < list.length; i++) {
     fixedList[i] = list[i];

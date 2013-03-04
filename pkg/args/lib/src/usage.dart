@@ -73,7 +73,7 @@ class Usage {
       if (option.help != null) write(2, option.help);
 
       if (option.allowedHelp != null) {
-        var allowedNames = option.allowedHelp.keys.toList();
+        var allowedNames = option.allowedHelp.keys.toList(growable: false);
         allowedNames.sort();
         newline();
         for (var name in allowedNames) {

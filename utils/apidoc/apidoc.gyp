@@ -38,6 +38,9 @@
             '../../sdk/bin/dart2js',
             '../../sdk/bin/dart2js.bat',
           ],
+          'inputs': [
+            '<!@(["python", "../../tools/list_files.py", "\\.(css|png|dart)$", "."])',
+          ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',
             '<(PRODUCT_DIR)/api_docs/client-static.js',
@@ -52,7 +55,7 @@
             '--exclude-lib=dartdoc',
             '--exclude-lib=http',
             '--exclude-lib=oauth2',
-            '--exclude-lib=path',
+            '--exclude-lib=pathos',
             '--exclude-lib=webdriver',
             '--exclude-lib=yaml',
             '--include-lib=matcher',

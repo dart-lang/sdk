@@ -7,6 +7,7 @@
 
 #include "vm/assembler.h"
 
+#include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -23,6 +24,7 @@ enum {
   W   = 1 << 21,  // writeback base register (or leave unchanged)
   A   = 1 << 21,  // accumulate in multiply instruction (or not)
   B   = 1 << 22,  // unsigned byte (or word)
+  D   = 1 << 22,  // high/lo bit of start of s/d register range
   N   = 1 << 22,  // long (or short)
   U   = 1 << 23,  // positive (or negative) offset/index
   P   = 1 << 24,  // offset/pre-indexed addressing (or post-indexed addressing)
@@ -64,6 +66,7 @@ enum {
 
 
 uint32_t Address::encoding3() const {
+  ASSERT(kind_ == Immediate);
   const uint32_t offset_mask = (1 << 12) - 1;
   uint32_t offset = encoding_ & offset_mask;
   ASSERT(offset < 256);
@@ -72,6 +75,7 @@ uint32_t Address::encoding3() const {
 
 
 uint32_t Address::vencoding() const {
+  ASSERT(kind_ == Immediate);
   const uint32_t offset_mask = (1 << 12) - 1;
   uint32_t offset = encoding_ & offset_mask;
   ASSERT(offset < (1 << 10));  // In the range 0 to +1020.
@@ -140,7 +144,7 @@ void Assembler::EmitMemOp(Condition cond,
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B26 |
+                     B26 | (ad.kind() == Address::Immediate ? 0 : B25) |
                      (load ? L : 0) |
                      (byte ? B : 0) |
                      (static_cast<int32_t>(rd) << kRdShift) |
@@ -702,6 +706,83 @@ void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
   Emit(encoding);
 }
 
+void Assembler::EmitMultiVSMemOp(Condition cond,
+                                BlockAddressMode am,
+                                bool load,
+                                Register base,
+                                SRegister start,
+                                uint32_t count) {
+  ASSERT(base != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  ASSERT(start != kNoSRegister);
+  ASSERT(static_cast<int32_t>(start) + count <= kNumberOfSRegisters);
+
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B11 | B9 |
+                     am |
+                     (load ? L : 0) |
+                     (static_cast<int32_t>(base) << kRnShift) |
+                     ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
+                     ((static_cast<int32_t>(start) >> 1) << 12) |
+                     count;
+  Emit(encoding);
+}
+
+
+void Assembler::EmitMultiVDMemOp(Condition cond,
+                                BlockAddressMode am,
+                                bool load,
+                                Register base,
+                                DRegister start,
+                                int32_t count) {
+  ASSERT(base != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  ASSERT(start != kNoDRegister);
+  ASSERT(static_cast<int32_t>(start) + count <= kNumberOfDRegisters);
+
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B11 | B9 | B8 |
+                     am |
+                     (load ? L : 0) |
+                     (static_cast<int32_t>(base) << kRnShift) |
+                     ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
+                     ((static_cast<int32_t>(start) & 0xf) << 12) |
+                     (count << 1);
+  Emit(encoding);
+}
+
+
+void Assembler::vldms(BlockAddressMode am, Register base,
+                      SRegister first, SRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVSMemOp(cond, am, true, base, first, last - first + 1);
+}
+
+
+void Assembler::vstms(BlockAddressMode am, Register base,
+                      SRegister first, SRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVSMemOp(cond, am, false, base, first, last - first + 1);
+}
+
+
+void Assembler::vldmd(BlockAddressMode am, Register base,
+                      DRegister first, DRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVDMemOp(cond, am, true, base, first, last - first + 1);
+}
+
+
+void Assembler::vstmd(BlockAddressMode am, Register base,
+                      DRegister first, DRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVDMemOp(cond, am, false, base, first, last - first + 1);
+}
+
 
 void Assembler::EmitVFPsss(Condition cond, int32_t opcode,
                            SRegister sd, SRegister sn, SRegister sm) {
@@ -990,15 +1071,17 @@ void Assembler::vmstat(Condition cond) {  // VMRS APSR_nzcv, FPSCR
 }
 
 
-void Assembler::svc(uint32_t imm24) {
+void Assembler::svc(uint32_t imm24, Condition cond) {
+  ASSERT(cond != kNoCondition);
   ASSERT(imm24 < (1 << 24));
-  int32_t encoding = (AL << kConditionShift) | B27 | B26 | B25 | B24 | imm24;
+  int32_t encoding = (cond << kConditionShift) | B27 | B26 | B25 | B24 | imm24;
   Emit(encoding);
 }
 
 
-void Assembler::bkpt(uint16_t imm16) {
-  int32_t encoding = (AL << kConditionShift) | B24 | B21 |
+void Assembler::bkpt(uint16_t imm16, Condition cond) {
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = (cond << kConditionShift) | B24 | B21 |
                      ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
   Emit(encoding);
 }
@@ -1011,6 +1094,16 @@ void Assembler::b(Label* label, Condition cond) {
 
 void Assembler::bl(Label* label, Condition cond) {
   EmitBranch(cond, label, true);
+}
+
+
+void Assembler::bx(Register rm, Condition cond) {
+  ASSERT(rm != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B24 | B21 | (0xfff << 8) | B4 |
+                     (static_cast<int32_t>(rm) << kRmShift);
+  Emit(encoding);
 }
 
 
@@ -1033,9 +1126,23 @@ void Assembler::MarkExceptionHandler(Label* label) {
 }
 
 
+void Assembler::Drop(intptr_t stack_elements) {
+  ASSERT(stack_elements >= 0);
+  if (stack_elements > 0) {
+    AddImmediate(SP, SP, stack_elements * kWordSize);
+  }
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
-  // TODO(regis): If the object is never relocated (null, true, false, ...),
-  // load as immediate.
+  if (object.IsNull() ||
+      object.IsSmi() ||
+      (object.raw() == Bool::True().raw()) ||
+      (object.raw() == Bool::False().raw())) {
+    // This object is never relocated; do not use object pool.
+    LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
+    return;
+  }
   const int32_t offset =
       Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
   if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
@@ -1043,7 +1150,7 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   } else {
     int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
     uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    AddConstant(rd, PP, offset12_hi);
+    AddImmediate(rd, PP, offset12_hi);
     ldr(rd, Address(rd, offset12_lo));
   }
 }
@@ -1163,9 +1270,9 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 }
 
 
-void Assembler::Branch(const ExternalLabel* label) {
-  LoadImmediate(IP, label->address());  // Target address is never patched.
-  mov(PC, ShifterOperand(IP));
+void Assembler::Branch(const ExternalLabel* label, Condition cond) {
+  LoadImmediate(IP, label->address(), cond);  // Address is never patched.
+  mov(PC, ShifterOperand(IP), cond);
 }
 
 
@@ -1187,7 +1294,7 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   } else {
     int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
     uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    // Inline a simplified version of AddConstant(LR, CP, offset12_hi).
+    // Inline a simplified version of AddImmediate(LR, CP, offset12_hi).
     ShifterOperand shifter_op;
     if (ShifterOperand::CanHold(offset12_hi, &shifter_op)) {
       add(LR, PP, shifter_op);
@@ -1412,12 +1519,12 @@ void Assembler::StoreDToOffset(DRegister reg,
 }
 
 
-void Assembler::AddConstant(Register rd, int32_t value, Condition cond) {
-  AddConstant(rd, rd, value, cond);
+void Assembler::AddImmediate(Register rd, int32_t value, Condition cond) {
+  AddImmediate(rd, rd, value, cond);
 }
 
 
-void Assembler::AddConstant(Register rd, Register rn, int32_t value,
+void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
                             Condition cond) {
   if (value == 0) {
     if (rd != rn) {
@@ -1453,7 +1560,7 @@ void Assembler::AddConstant(Register rd, Register rn, int32_t value,
 }
 
 
-void Assembler::AddConstantSetFlags(Register rd, Register rn, int32_t value,
+void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
                                     Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
@@ -1480,7 +1587,7 @@ void Assembler::AddConstantSetFlags(Register rd, Register rn, int32_t value,
 }
 
 
-void Assembler::AddConstantWithCarry(Register rd, Register rn, int32_t value,
+void Assembler::AddImmediateWithCarry(Register rd, Register rn, int32_t value,
                                      Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
@@ -1504,6 +1611,102 @@ void Assembler::AddConstantWithCarry(Register rd, Register rn, int32_t value,
       adc(rd, rn, ShifterOperand(IP), cond);
     }
   }
+}
+
+
+void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
+  ShifterOperand shifter_op;
+  if (ShifterOperand::CanHold(value, &shifter_op)) {
+    cmp(rn, shifter_op, cond);
+  } else {
+    ASSERT(rn != IP);
+    LoadImmediate(IP, cond);
+    cmp(rn, ShifterOperand(IP), cond);
+  }
+}
+
+
+static int NumRegsBelowFP(RegList regs) {
+  int count = 0;
+  for (int i = 0; i < FP; i++) {
+    if ((regs & (1 << i)) != 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+
+void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
+  if (prologue_offset_ == -1) {
+    prologue_offset_ = CodeSize();
+  }
+  PushList(regs);
+  if ((regs & (1 << FP)) != 0) {
+    // Set FP to the saved previous FP.
+    add(FP, SP, ShifterOperand(4 * NumRegsBelowFP(regs)));
+  }
+  AddImmediate(SP, -frame_size);
+}
+
+
+void Assembler::LeaveFrame(RegList regs) {
+  ASSERT((regs & (1 << PC)) == 0);  // Must not pop PC.
+  if ((regs & (1 << FP)) != 0) {
+    // Use FP to set SP.
+    sub(SP, FP, ShifterOperand(4 * NumRegsBelowFP(regs)));
+  }
+  PopList(regs);
+}
+
+
+void Assembler::Ret() {
+  bx(LR);
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  AddImmediate(SP, -frame_space);
+  if (OS::ActivationFrameAlignment() > 0) {
+    bic(SP, SP, ShifterOperand(OS::ActivationFrameAlignment() - 1));
+  }
+}
+
+
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  // Preserve volatile CPU registers.
+  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
+
+  // Preserve all volatile FPU registers.
+  // TODO(regis): Use vstmd instruction once supported.
+  // vstmd(DB_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+
+void Assembler::LeaveCallRuntimeFrame() {
+  // SP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  const intptr_t kPushedRegistersSize =
+      kDartVolatileCpuRegCount * kWordSize;
+  // TODO(regis): + kDartVolatileFpuRegCount * 2 * kWordSize;
+  AddImmediate(SP, FP, -kPushedRegistersSize);
+
+  // Restore all volatile FPU registers.
+  // TODO(regis): Use vldmd instruction once supported.
+  // vldmd(IA_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+
+  // Restore volatile CPU registers.
+  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
+}
+
+
+void Assembler::CallRuntime(const RuntimeEntry& entry) {
+  entry.Call(this);
 }
 
 

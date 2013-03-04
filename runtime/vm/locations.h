@@ -366,15 +366,15 @@ class RegisterSet : public ValueObject {
     }
   }
 
-  bool ContainsRegister(Register reg) {
+  bool ContainsRegister(Register reg) const {
     return (cpu_registers_ & (1 << reg)) != 0;
   }
 
-  bool ContainsFpuRegister(FpuRegister fpu_reg) {
+  bool ContainsFpuRegister(FpuRegister fpu_reg) const {
     return (fpu_registers_ & (1 << fpu_reg)) != 0;
   }
 
-  intptr_t fpu_regs_count() {
+  intptr_t fpu_regs_count() const {
     intptr_t count = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; reg_idx++) {
       if (ContainsFpuRegister(static_cast<FpuRegister>(reg_idx))) {
@@ -383,6 +383,9 @@ class RegisterSet : public ValueObject {
     }
     return count;
   }
+
+  intptr_t cpu_registers() const { return cpu_registers_; }
+  intptr_t fpu_registers() const { return fpu_registers_; }
 
  private:
   intptr_t cpu_registers_;

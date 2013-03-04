@@ -797,7 +797,7 @@ class KeywordStateTest extends JUnitTestCase {
   void test_KeywordState() {
     List<Keyword> keywords = Keyword.values;
     int keywordCount = keywords.length;
-    List<String> textToTest = new List<String>.fixedLength(keywordCount * 3);
+    List<String> textToTest = new List<String>(keywordCount * 3);
     for (int i = 0; i < keywordCount; i++) {
       String syntax3 = keywords[i].syntax;
       textToTest[i] = syntax3;

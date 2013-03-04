@@ -47,7 +47,9 @@ class JsonUnsupportedObjectError implements Error {
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-parse(String json, [reviver(var key, var value)]) {
+external parse(String json, [reviver(var key, var value)]);
+
+_parse(String json, reviver(var key, var value)) {
   BuildJsonListener listener;
   if (reviver == null) {
     listener = new BuildJsonListener();
@@ -322,7 +324,7 @@ class JsonParser {
     int position = 0;
     int length = source.length;
     while (position < length) {
-      int char = source.charCodeAt(position);
+      int char = source.codeUnitAt(position);
       switch (char) {
         case SPACE:
         case CARRIAGE_RETURN:
@@ -423,11 +425,11 @@ class JsonParser {
    * [:source[position]:] must be "t".
    */
   int parseTrue(int position) {
-    assert(source.charCodeAt(position) == CHAR_t);
+    assert(source.codeUnitAt(position) == CHAR_t);
     if (source.length < position + 4) fail(position, "Unexpected identifier");
-    if (source.charCodeAt(position + 1) != CHAR_r ||
-        source.charCodeAt(position + 2) != CHAR_u ||
-        source.charCodeAt(position + 3) != CHAR_e) {
+    if (source.codeUnitAt(position + 1) != CHAR_r ||
+        source.codeUnitAt(position + 2) != CHAR_u ||
+        source.codeUnitAt(position + 3) != CHAR_e) {
       fail(position);
     }
     listener.handleBool(true);
@@ -440,12 +442,12 @@ class JsonParser {
    * [:source[position]:] must be "f".
    */
   int parseFalse(int position) {
-    assert(source.charCodeAt(position) == CHAR_f);
+    assert(source.codeUnitAt(position) == CHAR_f);
     if (source.length < position + 5) fail(position, "Unexpected identifier");
-    if (source.charCodeAt(position + 1) != CHAR_a ||
-        source.charCodeAt(position + 2) != CHAR_l ||
-        source.charCodeAt(position + 3) != CHAR_s ||
-        source.charCodeAt(position + 4) != CHAR_e) {
+    if (source.codeUnitAt(position + 1) != CHAR_a ||
+        source.codeUnitAt(position + 2) != CHAR_l ||
+        source.codeUnitAt(position + 3) != CHAR_s ||
+        source.codeUnitAt(position + 4) != CHAR_e) {
       fail(position);
     }
     listener.handleBool(false);
@@ -457,11 +459,11 @@ class JsonParser {
    * [:source[position]:] must be "n".
    */
   int parseNull(int position) {
-    assert(source.charCodeAt(position) == CHAR_n);
+    assert(source.codeUnitAt(position) == CHAR_n);
     if (source.length < position + 4) fail(position, "Unexpected identifier");
-    if (source.charCodeAt(position + 1) != CHAR_u ||
-        source.charCodeAt(position + 2) != CHAR_l ||
-        source.charCodeAt(position + 3) != CHAR_l) {
+    if (source.codeUnitAt(position + 1) != CHAR_u ||
+        source.codeUnitAt(position + 2) != CHAR_l ||
+        source.codeUnitAt(position + 3) != CHAR_l) {
       fail(position);
     }
     listener.handleNull();
@@ -477,7 +479,7 @@ class JsonParser {
       if (position == source.length) {
         fail(start - 1, "Unterminated string");
       }
-      char = source.charCodeAt(position);
+      char = source.codeUnitAt(position);
       if (char == QUOTE) {
         listener.handleString(source.substring(start, position));
         return position + 1;
@@ -494,7 +496,7 @@ class JsonParser {
       if (position == source.length) {
         fail(start - 1, "Unterminated string");
       }
-      char = source.charCodeAt(position);
+      char = source.codeUnitAt(position);
       switch (char) {
         case CHAR_b: char = BACKSPACE; break;
         case CHAR_f: char = FORM_FEED; break;
@@ -513,7 +515,7 @@ class JsonParser {
             if (position == source.length) {
               fail(start - 1, "Unterminated string");
             }
-            char = source.charCodeAt(position);
+            char = source.codeUnitAt(position);
             char -= 0x30;
             if (char < 0) fail(hexStart, "Invalid unicode escape");
             if (char < 10) {
@@ -536,7 +538,7 @@ class JsonParser {
         chars.add(char);
         position++;
         if (position == source.length) fail(start - 1, "Unterminated string");
-        char = source.charCodeAt(position);
+        char = source.codeUnitAt(position);
         if (char == QUOTE) {
           String result = new String.fromCharCodes(chars);
           if (start < firstEscape) {
@@ -553,6 +555,14 @@ class JsonParser {
     }
   }
 
+  int _handleLiteral(start, position, isDouble) {
+    String literal = source.substring(start, position);
+    // This correctly creates -0 for doubles.
+    num value = (isDouble ? double.parse(literal) : int.parse(literal));
+    listener.handleNumber(value);
+    return position;
+  }
+
   int parseNumber(int char, int position) {
     // Format:
     //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
@@ -562,64 +572,57 @@ class JsonParser {
     if (char == MINUS) {
       position++;
       if (position == length) fail(position, "Missing expected digit");
-      char = source.charCodeAt(position);
+      char = source.codeUnitAt(position);
     }
     if (char < CHAR_0 || char > CHAR_9) {
       fail(position, "Missing expected digit");
     }
-    int handleLiteral(position) {
-      String literal = source.substring(start, position);
-      // This correctly creates -0 for doubles.
-      num value = (isDouble ? double.parse(literal) : int.parse(literal));
-      listener.handleNumber(value);
-      return position;
-    }
     if (char == CHAR_0) {
       position++;
-      if (position == length) return handleLiteral(position);
-      char = source.charCodeAt(position);
+      if (position == length) return _handleLiteral(start, position, false);
+      char = source.codeUnitAt(position);
       if (CHAR_0 <= char && char <= CHAR_9) {
         fail(position);
       }
     } else {
       do {
         position++;
-        if (position == length) return handleLiteral(position);
-        char = source.charCodeAt(position);
+        if (position == length) return _handleLiteral(start, position, false);
+        char = source.codeUnitAt(position);
       } while (CHAR_0 <= char && char <= CHAR_9);
     }
     if (char == DECIMALPOINT) {
       isDouble = true;
       position++;
       if (position == length) fail(position, "Missing expected digit");
-      char = source.charCodeAt(position);
+      char = source.codeUnitAt(position);
       if (char < CHAR_0 || char > CHAR_9) fail(position);
       do {
         position++;
-        if (position == length) return handleLiteral(position);
-        char = source.charCodeAt(position);
+        if (position == length) return _handleLiteral(start, position, true);
+        char = source.codeUnitAt(position);
       } while (CHAR_0 <= char && char <= CHAR_9);
     }
     if (char == CHAR_e || char == CHAR_E) {
       isDouble = true;
       position++;
       if (position == length) fail(position, "Missing expected digit");
-      char = source.charCodeAt(position);
+      char = source.codeUnitAt(position);
       if (char == PLUS || char == MINUS) {
         position++;
         if (position == length) fail(position, "Missing expected digit");
-        char = source.charCodeAt(position);
+        char = source.codeUnitAt(position);
       }
       if (char < CHAR_0 || char > CHAR_9) {
         fail(position, "Missing expected digit");
       }
       do {
         position++;
-        if (position == length) return handleLiteral(position);
-        char = source.charCodeAt(position);
+        if (position == length) return _handleLiteral(start, position, true);
+        char = source.codeUnitAt(position);
       } while (CHAR_0 <= char && char <= CHAR_9);
     }
-    return handleLiteral(position);
+    return _handleLiteral(start, position, isDouble);
   }
 
   void fail(int position, [String message]) {
@@ -668,7 +671,7 @@ class _JsonStringifier {
     bool needsEscape = false;
     final charCodes = new List<int>();
     for (int i = 0; i < length; i++) {
-      int charCode = s.charCodeAt(i);
+      int charCode = s.codeUnitAt(i);
       if (charCode < 32) {
         needsEscape = true;
         charCodes.add(JsonParser.BACKSLASH);

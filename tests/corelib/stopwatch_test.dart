@@ -11,7 +11,7 @@ class StopwatchTest {
     Expect.isFalse(sw.isRunning);
     sw.start();
     Expect.isTrue(sw.isRunning);
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 1000000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > 0) {
         break;

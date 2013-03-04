@@ -69,7 +69,7 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.expand(this, f);
   }
 
-  void addAll(Collection<E> collection) {
+  void addAll(Iterable<E> collection) {
     for (E e in collection) {
       this.add(e);
     }
@@ -155,7 +155,31 @@ class JSArray<E> implements List<E> {
   }
 
   void insertRange(int start, int length, [E initialValue]) {
-    return listInsertRange(this, start, length, initialValue);
+    checkGrowable(this, 'insertRange');
+    if (length == 0) {
+      return;
+    }
+    if (length is !int) throw new ArgumentError(length);
+    if (length < 0) throw new ArgumentError(length);
+    if (start is !int) throw new ArgumentError(start);
+
+    var receiver = this;
+    var receiverLength = receiver.length;
+    if (start < 0 || start > receiverLength) {
+      throw new RangeError.value(start);
+    }
+    receiver.length = receiverLength + length;
+    Arrays.copy(receiver,
+                start,
+                receiver,
+                start + length,
+                receiverLength - start);
+    if (initialValue != null) {
+      for (int i = start; i < start + length; i++) {
+        receiver[i] = initialValue;
+      }
+    }
+    receiver.length = receiverLength + length;
   }
 
   E get first {
@@ -205,21 +229,7 @@ class JSArray<E> implements List<E> {
 
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     checkMutable(this, 'set range');
-    if (length == 0) return;
-    checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-    checkNull(from); // TODO(ahe): This is not specified but co19 tests it.
-    checkNull(startFrom); // TODO(ahe): This is not specified but co19 tests it.
-    if (start is !int) throw new ArgumentError(start);
-    if (length is !int) throw new ArgumentError(length);
-    if (startFrom is !int) throw new ArgumentError(startFrom);
-    if (length < 0) throw new ArgumentError(length);
-    if (start < 0) throw new RangeError.value(start);
-    if (start + length > this.length) {
-      throw new RangeError.value(start + length);
-    }
-
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
   bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);
@@ -234,13 +244,11 @@ class JSArray<E> implements List<E> {
   }
 
   int indexOf(E element, [int start = 0]) {
-    if (start is !int) throw new ArgumentError(start);
-    return Arrays.indexOf(this, element, start, length);
+    return IterableMixinWorkaround.indexOfList(this, element, start);
   }
 
   int lastIndexOf(E element, [int start]) {
-    if (start == null) start = this.length - 1;
-    return Arrays.lastIndexOf(this, element, start);
+    return IterableMixinWorkaround.lastIndexOfList(this, element, start);
   }
 
   bool contains(E other) {
@@ -254,7 +262,8 @@ class JSArray<E> implements List<E> {
 
   String toString() => Collections.collectionToString(this);
 
-  List<E> toList() => new List<E>.from(this);
+  List<E> toList({ bool growable: true }) =>
+      new List<E>.from(this, growable: growable);
 
   Set<E> toSet() => new Set<E>.from(this);
 
@@ -287,5 +296,9 @@ class JSArray<E> implements List<E> {
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);
+  }
+
+  Map<int, E> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }

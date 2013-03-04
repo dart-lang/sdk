@@ -1,3 +1,4 @@
+/// The Dart HTML library.
 library dart.dom.html;
 
 import 'dart:async';
@@ -21,7 +22,6 @@ import 'dart:_foreign_helper' show JS;
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:html library.
 
-/// The Dart HTML library.
 
 // Not actually used, but imported since dart:html can generate these objects.
 
@@ -1478,7 +1478,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
-  void set lineDashOffset(num value) => JS('void',
+  void set lineDashOffset(num value) => JS('void', 
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
 }
@@ -1622,7 +1622,7 @@ class Console {
 
   static Console safeConsole = new Console();
 
-  bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
+  bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
   @DomName('Console.memory')
   MemoryInfo get memory => _isConsoleDefined ?
@@ -1711,6 +1711,10 @@ class Console {
   @DomName('Console.clear')
   @DocsEditable
   void clear(Object arg) native;
+
+  @DomName('Console.table')
+  @DocsEditable
+  void table(Object arg) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1810,7 +1814,13 @@ class Counter native "*Counter" {
 
 @DocsEditable
 @DomName('Crypto')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Crypto native "*Crypto" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.crypto && window.crypto.getRandomValues)');
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
@@ -2377,11 +2387,14 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   }
 
   void setProperty(String propertyName, String value, [String priority]) {
-    JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
-    // Bug #2772, IE9 requires a poke to actually apply the value.
-    if (JS('bool', '!!#.setAttribute', this)) {
-      JS('void', '#.setAttribute(#, #)', this, propertyName, value);
-    }
+    // try/catch for IE9 which throws on unsupported values.
+    try {
+      JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
+      // Bug #2772, IE9 requires a poke to actually apply the value.
+      if (JS('bool', '!!#.setAttribute', this)) {
+        JS('void', '#.setAttribute(#, #)', this, propertyName, value);
+      }
+    } catch (e) {}
   }
 
   /**
@@ -6322,13 +6335,13 @@ class Document extends Node  native "*Document"
   @DocsEditable
   String cookie;
 
-  WindowBase get window => _convertNativeToDart_Window(this._window);
+  WindowBase get window => _convertNativeToDart_Window(this._get_window);
   @JSName('defaultView')
   @DomName('Document.window')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _window;
+  final dynamic _get_window;
 
   @DomName('Document.documentElement')
   @DocsEditable
@@ -6842,7 +6855,7 @@ class Document extends Node  native "*Document"
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>.fixedLength(len);
+      final copyOfMatches = new List<Element>(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -6850,7 +6863,7 @@ class Document extends Node  native "*Document"
     } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByTagName(selectors);
       int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>.fixedLength(len);
+      final copyOfMatches = new List<Element>(len);
       for (int i = 0; i < len; ++i) {
         copyOfMatches[i] = mutableMatches[i];
       }
@@ -7140,7 +7153,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomMimeType> toList() => new List<DomMimeType>.from(this);
+  List<DomMimeType> toList({ bool growable: true }) =>
+      new List<DomMimeType>.from(this, growable: growable);
+
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -7394,7 +7409,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomPlugin> toList() => new List<DomPlugin>.from(this);
+  List<DomPlugin> toList({ bool growable: true }) =>
+      new List<DomPlugin>.from(this, growable: growable);
+
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -7755,7 +7772,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
-  List<String> toList() => new List<String>.from(this);
+  List<String> toList({ bool growable: true }) =>
+      new List<String>.from(this, growable: growable);
+
   Set<String> toSet() => new Set<String>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -7955,8 +7974,14 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList() {
-    final output = new List<Element>.fixedLength(_childElements.length);
+  List<Element> toList({ bool growable: true }) {
+    List<Element> output;
+    if (growable) {
+      output = <Element>[];
+      output.length = _childElements.length;
+    } else {
+      output = new List<Element>(_childElements.length);
+    }
     for (int i = 0, len = _childElements.length; i < len; i++) {
       output[i] = _childElements[i];
     }
@@ -8252,7 +8277,8 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  List<Element> toList() => new List<Element>.from(this);
+  List<Element> toList({ bool growable: true }) =>
+      new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
 
   Iterable<Element> take(int n) {
@@ -9155,6 +9181,11 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
+  @JSName('attributes')
+  @DomName('Element.attributes')
+  @DocsEditable
+  final _NamedNodeMap $dom_attributes;
+
   @JSName('childElementCount')
   @DomName('Element.childElementCount')
   @DocsEditable
@@ -10055,13 +10086,13 @@ class Event native "*Event" {
   @DocsEditable
   final DataTransfer clipboardData;
 
-  EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
+  EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);
   @JSName('currentTarget')
   @DomName('Event.currentTarget')
   @DocsEditable
   @Creates('Null')
   @Returns('EventTarget|=Object')
-  final dynamic _currentTarget;
+  final dynamic _get_currentTarget;
 
   @DomName('Event.defaultPrevented')
   @DocsEditable
@@ -10075,13 +10106,13 @@ class Event native "*Event" {
   @DocsEditable
   bool returnValue;
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._target);
+  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @DomName('Event.target')
   @DocsEditable
   @Creates('Node')
   @Returns('EventTarget|=Object')
-  final dynamic _target;
+  final dynamic _get_target;
 
   @DomName('Event.timeStamp')
   @DocsEditable
@@ -10388,9 +10419,11 @@ class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 @DomName('File')
 class File extends Blob native "*File" {
 
+  DateTime get lastModifiedDate => _convertNativeToDart_DateTime(this._get_lastModifiedDate);
+  @JSName('lastModifiedDate')
   @DomName('File.lastModifiedDate')
   @DocsEditable
-  final Date lastModifiedDate;
+  final dynamic _get_lastModifiedDate;
 
   @DomName('File.name')
   @DocsEditable
@@ -10586,7 +10619,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
-  List<File> toList() => new List<File>.from(this);
+  List<File> toList({ bool growable: true }) =>
+      new List<File>.from(this, growable: growable);
+
   Set<File> toSet() => new Set<File>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -11096,7 +11131,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   @DomName('Float32Array.fromBuffer')
   @DocsEditable
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -11143,7 +11178,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList() => new List<num>.from(this);
+  List<num> toList({ bool growable: true }) =>
+      new List<num>.from(this, growable: growable);
+
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -11312,7 +11349,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   @DomName('Float64Array.fromBuffer')
   @DocsEditable
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
@@ -11359,7 +11396,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList() => new List<num>.from(this);
+  List<num> toList({ bool growable: true }) =>
+      new List<num>.from(this, growable: growable);
+
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -11516,11 +11555,11 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 @DomName('FocusEvent')
 class FocusEvent extends UIEvent native "*FocusEvent" {
 
-  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable
-  final dynamic _relatedTarget;
+  final dynamic _get_relatedTarget;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11736,7 +11775,7 @@ class Geolocation native "*Geolocation" {
   @JSName('clearWatch')
   @DomName('Geolocation.clearWatch')
   @DocsEditable
-  void $dom_clearWatch(int watchId) native;
+  void $dom_clearWatch(int watchID) native;
 
   @JSName('getCurrentPosition')
   @DomName('Geolocation.getCurrentPosition')
@@ -11904,13 +11943,13 @@ class History implements HistoryBase native "*History" {
   @DocsEditable
   final int length;
 
-  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
+  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @DomName('History.state')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _state;
+  final dynamic _get_state;
 
   @DomName('History.back')
   @DocsEditable
@@ -11994,7 +12033,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -12201,7 +12242,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -12368,17 +12411,6 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
-  }
-
-  /**
-   * Registers a custom Element subclass as an available HTML tag.
-   *
-   * Not yet implemented.
-   */
-  @Experimental
-  void register(String tagName, Type elementClass) {
-    // TODO: tagName validation
-    throw new Exception('Not yet implemented');
   }
 
   @DomName('Document.caretRangeFromPoint')
@@ -13141,13 +13173,13 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
-  WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
+  WindowBase get contentWindow => _convertNativeToDart_Window(this._get_contentWindow);
   @JSName('contentWindow')
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _contentWindow;
+  final dynamic _get_contentWindow;
 
   @DomName('HTMLIFrameElement.height')
   @DocsEditable
@@ -13284,7 +13316,6 @@ class InputElement extends Element implements
     TelephoneInputElement,
     EmailInputElement,
     PasswordInputElement,
-    DateTimeInputElement,
     DateInputElement,
     MonthInputElement,
     WeekInputElement,
@@ -13487,9 +13518,18 @@ class InputElement extends Element implements
   @DocsEditable
   String value;
 
+  DateTime get valueAsDate => _convertNativeToDart_DateTime(this._get_valueAsDate);
+  @JSName('valueAsDate')
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
-  Date valueAsDate;
+  final dynamic _get_valueAsDate;
+
+  void set valueAsDate(DateTime value) {
+    this._set_valueAsDate = _convertDartToNative_DateTime(value);
+  }
+  void set _set_valueAsDate(/*dynamic*/ value) {
+    JS("void", "#.valueAsDate = #", this, value);
+  }
 
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable
@@ -13832,32 +13872,6 @@ abstract class RangeInputElementBase implements InputElementBase {
 }
 
 /**
- * A date and time (year, month, day, hour, minute, second, fraction of a
- * second) with the time zone set to UTC.
- *
- * Use [supported] to check if this is supported on the current platform.
- */
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental
-abstract class DateTimeInputElement implements RangeInputElementBase {
-  factory DateTimeInputElement() => new InputElement(type: 'datetime');
-
-  @DomName('HTMLInputElement.valueAsDate')
-  DateTime valueAsDate;
-
-  @DomName('HTMLInputElement.readOnly')
-  bool readOnly;
-
-  @DomName('HTMLInputElement.required')
-  bool required;
-
-  /// Returns true if this input type is supported on the current platform.
-  static bool get supported {
-    return (new InputElement(type: 'datetime')).type == 'datetime';
-  }
-}
-
-/**
  * A date (year, month, day) with no time zone.
  *
  * Use [supported] to check if this is supported on the current platform.
@@ -14173,7 +14187,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Int16Array.fromBuffer')
   @DocsEditable
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -14220,7 +14234,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -14389,7 +14405,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Int32Array.fromBuffer')
   @DocsEditable
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -14436,7 +14452,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -14605,7 +14623,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   @DomName('Int8Array.fromBuffer')
   @DocsEditable
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -14652,7 +14670,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -16263,13 +16283,13 @@ class MessageEvent extends Event native "*MessageEvent" {
     return event;
   }
 
-  dynamic get data => convertNativeToDart_SerializedScriptValue(this._data);
+  dynamic get data => convertNativeToDart_SerializedScriptValue(this._get_data);
   @JSName('data')
   @DomName('MessageEvent.data')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _data;
+  final dynamic _get_data;
 
   @DomName('MessageEvent.lastEventId')
   @DocsEditable
@@ -16284,13 +16304,13 @@ class MessageEvent extends Event native "*MessageEvent" {
   @Creates('=List')
   final List ports;
 
-  WindowBase get source => _convertNativeToDart_Window(this._source);
+  WindowBase get source => _convertNativeToDart_Window(this._get_source);
   @JSName('source')
   @DomName('MessageEvent.source')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _source;
+  final dynamic _get_source;
 
   @JSName('initMessageEvent')
   @DomName('MessageEvent.initMessageEvent')
@@ -16388,9 +16408,11 @@ class MetaElement extends Element native "*HTMLMetaElement" {
 @DomName('Metadata')
 class Metadata native "*Metadata" {
 
+  DateTime get modificationTime => _convertNativeToDart_DateTime(this._get_modificationTime);
+  @JSName('modificationTime')
   @DomName('Metadata.modificationTime')
   @DocsEditable
-  final Date modificationTime;
+  final dynamic _get_modificationTime;
 
   @DomName('Metadata.size')
   @DocsEditable
@@ -16525,13 +16547,13 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   @DocsEditable
   final bool metaKey;
 
-  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable
   @Creates('Node')
   @Returns('EventTarget|=Object')
-  final dynamic _relatedTarget;
+  final dynamic _get_relatedTarget;
 
   @DomName('MouseEvent.screenX')
   @DocsEditable
@@ -17074,7 +17096,13 @@ class _ChildNodeListLazy implements List {
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      iterable = new List.from(iterable);
+      if (iterable._this != _this) {
+        // Optimized route for copying between nodes.
+        for (var i = 0, len = iterable.length; i < len; ++i) {
+          _this.$dom_appendChild(iterable[0]);
+        }
+      }
+      return;
     }
     for (Node node in iterable) {
       _this.$dom_appendChild(node);
@@ -17161,7 +17189,8 @@ class _ChildNodeListLazy implements List {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -17289,11 +17318,6 @@ class Node extends EventTarget native "*Node" {
     return this;
   }
 
-
-  @JSName('attributes')
-  @DomName('Node.attributes')
-  @DocsEditable
-  final _NamedNodeMap $dom_attributes;
 
   @JSName('childNodes')
   @DomName('Node.childNodes')
@@ -17550,7 +17574,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -18196,9 +18222,17 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 @DomName('PagePopupController')
 class PagePopupController native "*PagePopupController" {
 
+  @DomName('PagePopupController.closePopup')
+  @DocsEditable
+  void closePopup() native;
+
   @DomName('PagePopupController.formatMonth')
   @DocsEditable
   String formatMonth(int year, int zeroBaseMonth) native;
+
+  @DomName('PagePopupController.formatShortMonth')
+  @DocsEditable
+  String formatShortMonth(int year, int zeroBaseMonth) native;
 
   @DomName('PagePopupController.histogramEnumeration')
   @DocsEditable
@@ -18207,6 +18241,10 @@ class PagePopupController native "*PagePopupController" {
   @DomName('PagePopupController.localizeNumberString')
   @DocsEditable
   String localizeNumberString(String numberString) native;
+
+  @DomName('PagePopupController.setValue')
+  @DocsEditable
+  void setValue(String value) native;
 
   @DomName('PagePopupController.setValueAndClosePopup')
   @DocsEditable
@@ -18421,13 +18459,13 @@ class PerformanceTiming native "*PerformanceTiming" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class PopStateEvent extends Event native "*PopStateEvent" {
 
-  dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
+  dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @DomName('PopStateEvent.state')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _state;
+  final dynamic _get_state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19012,17 +19050,17 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   }
 
   /**
-   * Checks if Real Time Communication (RTC) APIs are supported and enabled on
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
    * the current platform.
    */
   static bool get supported {
     // Currently in Firefox some of the RTC elements are defined but throw an
-    // error unless the user has specifically enabled them in their
+    // error unless the user has specifically enabled them in their 
     // about:config. So we have to construct an element to actually test if RTC
     // is supported at at the given time.
     try {
       var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
-      return c is RtcPeerConnection;
+      return c is RtcPeerConnection; 
     } catch (_) {}
     return false;
   }
@@ -19309,9 +19347,11 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 @DomName('RTCStatsElement')
 class RtcStatsElement native "*RTCStatsElement" {
 
+  DateTime get timestamp => _convertNativeToDart_DateTime(this._get_timestamp);
+  @JSName('timestamp')
   @DomName('RTCStatsElement.timestamp')
   @DocsEditable
-  final Date timestamp;
+  final dynamic _get_timestamp;
 
   @DomName('RTCStatsElement.names')
   @DocsEditable
@@ -19888,7 +19928,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
+  List<SourceBuffer> toList({ bool growable: true }) =>
+      new List<SourceBuffer>.from(this, growable: growable);
+
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -20168,7 +20210,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
+  List<SpeechGrammar> toList({ bool growable: true }) =>
+      new List<SpeechGrammar>.from(this, growable: growable);
+
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -20951,13 +20995,45 @@ class TableColElement extends Element native "*HTMLTableColElement" {
   @DocsEditable
   int span;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('HTMLTableElement')
 class TableElement extends Element native "*HTMLTableElement" {
+
+  @DomName('HTMLTableElement.tBodies')
+  List<TableSectionElement> get tBodies =>
+  new _WrappedList<TableSectionElement>($dom_tBodies);
+
+  @DomName('HTMLTableElement.rows')
+  List<TableRowElement> get rows =>
+      new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableCaptionElement createCaption() => $dom_createCaption();
+  TableSectionElement createTBody() => $dom_createTBody();
+  TableSectionElement createTFoot() => $dom_createTFoot();
+  TableSectionElement createTHead() => $dom_createTHead();
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+  TableSectionElement $dom_createTBody() {
+    if (JS('bool', '!!#.createTBody', this)) {
+      return this._createTBody();
+    }
+    var tbody = new Element.tag('tbody');
+    this.children.add(tbody);
+    return tbody;
+  }
+
+  @JSName('createTBody')
+  TableSectionElement _createTBody() native;
+
 
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable
@@ -20971,13 +21047,15 @@ class TableElement extends Element native "*HTMLTableElement" {
   @DocsEditable
   TableCaptionElement caption;
 
+  @JSName('rows')
   @DomName('HTMLTableElement.rows')
   @DocsEditable
-  final HtmlCollection rows;
+  final HtmlCollection $dom_rows;
 
+  @JSName('tBodies')
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable
-  final HtmlCollection tBodies;
+  final HtmlCollection $dom_tBodies;
 
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable
@@ -20987,17 +21065,20 @@ class TableElement extends Element native "*HTMLTableElement" {
   @DocsEditable
   TableSectionElement tHead;
 
+  @JSName('createCaption')
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable
-  Element createCaption() native;
+  Element $dom_createCaption() native;
 
+  @JSName('createTFoot')
   @DomName('HTMLTableElement.createTFoot')
   @DocsEditable
-  Element createTFoot() native;
+  Element $dom_createTFoot() native;
 
+  @JSName('createTHead')
   @DomName('HTMLTableElement.createTHead')
   @DocsEditable
-  Element createTHead() native;
+  Element $dom_createTHead() native;
 
   @DomName('HTMLTableElement.deleteCaption')
   @DocsEditable
@@ -21015,24 +21096,12 @@ class TableElement extends Element native "*HTMLTableElement" {
   @DocsEditable
   void deleteTHead() native;
 
+  @JSName('insertRow')
   @DomName('HTMLTableElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native;
-
-
-  Element createTBody() {
-    if (JS('bool', '!!#.createTBody', this)) {
-      return this._createTBody();
-    }
-    var tbody = new Element.tag('tbody');
-    this.children.add(tbody);
-    return tbody;
-  }
-
-  @JSName('createTBody')
-  Element _createTBody() native;
+  Element $dom_insertRow(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21041,13 +21110,25 @@ class TableElement extends Element native "*HTMLTableElement" {
 @DomName('HTMLTableRowElement')
 class TableRowElement extends Element native "*HTMLTableRowElement" {
 
+  @DomName('HTMLTableRowElement.cells')
+  List<TableCellElement> get cells =>
+      new _WrappedList<TableCellElement>($dom_cells);
+
+  TableCellElement addCell() {
+    return insertCell(-1);
+  }
+
+  TableCellElement insertCell(int index) => $dom_insertCell(index);
+
+
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
+  @JSName('cells')
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable
-  final HtmlCollection cells;
+  final HtmlCollection $dom_cells;
 
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable
@@ -21061,11 +21142,12 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
   @DocsEditable
   void deleteCell(int index) native;
 
+  @JSName('insertCell')
   @DomName('HTMLTableRowElement.insertCell')
   @DocsEditable
-  Element insertCell(int index) native;
+  Element $dom_insertCell(int index) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21075,16 +21157,29 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
   @DomName('HTMLTableSectionElement.rows')
+  List<TableRowElement> get rows =>
+    new _WrappedList<TableRowElement>($dom_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableRowElement insertRow(int index) => $dom_insertRow(index);
+
+
+  @JSName('rows')
+  @DomName('HTMLTableSectionElement.rows')
   @DocsEditable
-  final HtmlCollection rows;
+  final HtmlCollection $dom_rows;
 
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable
   void deleteRow(int index) native;
 
+  @JSName('insertRow')
   @DomName('HTMLTableSectionElement.insertRow')
   @DocsEditable
-  Element insertRow(int index) native;
+  Element $dom_insertRow(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21495,7 +21590,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
+  List<TextTrackCue> toList({ bool growable: true }) =>
+      new List<TextTrackCue>.from(this, growable: growable);
+
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -21700,7 +21797,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrack> toList() => new List<TextTrack>.from(this);
+  List<TextTrack> toList({ bool growable: true }) =>
+      new List<TextTrack>.from(this, growable: growable);
+
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -21940,13 +22039,13 @@ class Touch native "*Touch" {
   @DocsEditable
   final int screenY;
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._target);
+  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @DomName('Touch.target')
   @DocsEditable
   @Creates('Element|Document')
   @Returns('Element|Document')
-  final dynamic _target;
+  final dynamic _get_target;
 
   @JSName('webkitForce')
   @DomName('Touch.webkitForce')
@@ -22112,7 +22211,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Touch> toList() => new List<Touch>.from(this);
+  List<Touch> toList({ bool growable: true }) =>
+      new List<Touch>.from(this, growable: growable);
+
   Set<Touch> toSet() => new Set<Touch>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22459,13 +22560,13 @@ class UIEvent extends Event native "*UIEvent" {
   @DocsEditable
   final int pageY;
 
-  WindowBase get view => _convertNativeToDart_Window(this._view);
+  WindowBase get view => _convertNativeToDart_Window(this._get_view);
   @JSName('view')
   @DomName('UIEvent.view')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _view;
+  final dynamic _get_view;
 
   @DomName('UIEvent.which')
   @DocsEditable
@@ -22511,7 +22612,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   @DomName('Uint16Array.fromBuffer')
   @DocsEditable
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -22558,7 +22659,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22727,7 +22830,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   @DomName('Uint32Array.fromBuffer')
   @DocsEditable
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -22774,7 +22877,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -22943,7 +23048,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Uint8Array.fromBuffer')
   @DocsEditable
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -22990,7 +23095,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -23159,7 +23266,7 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   @DomName('Uint8ClampedArray.fromBuffer')
   @DocsEditable
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
@@ -23203,7 +23310,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList() => new List<int>.from(this);
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -24573,6 +24682,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable
+  @Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')
+  @Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
@@ -25516,8 +25627,11 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    * registered under [name].
    */
   SendPortSync lookupPort(String name) {
-    var port =
-        json.parse(document.documentElement.attributes['dart-port:$name']);
+    var portStr = document.documentElement.attributes['dart-port:$name'];
+    if (portStr == null) {
+      return null;
+    }
+    var port = json.parse(portStr);
     return _deserialize(port);
   }
 
@@ -25844,13 +25958,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final bool offscreenBuffering;
 
-  WindowBase get opener => _convertNativeToDart_Window(this._opener);
+  WindowBase get opener => _convertNativeToDart_Window(this._get_opener);
   @JSName('opener')
   @DomName('DOMWindow.opener')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _opener;
+  final dynamic _get_opener;
 
   @DomName('DOMWindow.outerHeight')
   @DocsEditable
@@ -25872,13 +25986,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final int pageYOffset;
 
-  WindowBase get parent => _convertNativeToDart_Window(this._parent);
+  WindowBase get parent => _convertNativeToDart_Window(this._get_parent);
   @JSName('parent')
   @DomName('DOMWindow.parent')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _parent;
+  final dynamic _get_parent;
 
   @DomName('DOMWindow.performance')
   @DocsEditable
@@ -25923,13 +26037,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final BarInfo scrollbars;
 
-  WindowBase get self => _convertNativeToDart_Window(this._self);
+  WindowBase get self => _convertNativeToDart_Window(this._get_self);
   @JSName('self')
   @DomName('DOMWindow.self')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _self;
+  final dynamic _get_self;
 
   @DomName('DOMWindow.sessionStorage')
   @DocsEditable
@@ -25951,13 +26065,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   final BarInfo toolbar;
 
-  WindowBase get top => _convertNativeToDart_Window(this._top);
+  WindowBase get top => _convertNativeToDart_Window(this._get_top);
   @JSName('top')
   @DomName('DOMWindow.top')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _top;
+  final dynamic _get_top;
 
   @JSName('webkitNotifications')
   @DomName('DOMWindow.webkitNotifications')
@@ -25975,13 +26089,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Experimental
   final StorageInfo storageInfo;
 
-  WindowBase get window => _convertNativeToDart_Window(this._window);
+  WindowBase get window => _convertNativeToDart_Window(this._get_window);
   @JSName('window')
   @DomName('DOMWindow.window')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  final dynamic _window;
+  final dynamic _get_window;
 
   @JSName('addEventListener')
   @DomName('DOMWindow.addEventListener')
@@ -26070,26 +26184,23 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DomName('DOMWindow.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
-    if (?message && !?messagePorts) {
+    if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, targetOrigin);
+      _postMessage_1(message_1, targetOrigin, messagePorts);
       return;
     }
-    if (?message) {
-      var message_2 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_2(message_2, targetOrigin, messagePorts);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    var message_2 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_2, targetOrigin);
+    return;
   }
   @JSName('postMessage')
   @DomName('DOMWindow.postMessage')
   @DocsEditable
-  void _postMessage_1(message, targetOrigin) native;
+  void _postMessage_1(message, targetOrigin, List messagePorts) native;
   @JSName('postMessage')
   @DomName('DOMWindow.postMessage')
   @DocsEditable
-  void _postMessage_2(message, targetOrigin, List messagePorts) native;
+  void _postMessage_2(message, targetOrigin) native;
 
   @DomName('DOMWindow.print')
   @DocsEditable
@@ -26925,7 +27036,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ClientRect> toList() => new List<ClientRect>.from(this);
+  List<ClientRect> toList({ bool growable: true }) =>
+      new List<ClientRect>.from(this, growable: growable);
+
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27122,7 +27235,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssRule> toList() => new List<CssRule>.from(this);
+  List<CssRule> toList({ bool growable: true }) =>
+      new List<CssRule>.from(this, growable: growable);
+
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27319,7 +27434,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssValue> toList() => new List<CssValue>.from(this);
+  List<CssValue> toList({ bool growable: true }) =>
+      new List<CssValue>.from(this, growable: growable);
+
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27516,7 +27633,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Entry> toList() => new List<Entry>.from(this);
+  List<Entry> toList({ bool growable: true }) =>
+      new List<Entry>.from(this, growable: growable);
+
   Set<Entry> toSet() => new Set<Entry>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27713,7 +27832,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
-  List<EntrySync> toList() => new List<EntrySync>.from(this);
+  List<EntrySync> toList({ bool growable: true }) =>
+      new List<EntrySync>.from(this, growable: growable);
+
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -27910,7 +28031,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Gamepad> toList() => new List<Gamepad>.from(this);
+  List<Gamepad> toList({ bool growable: true }) =>
+      new List<Gamepad>.from(this, growable: growable);
+
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28170,7 +28293,9 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList() => new List<Node>.from(this);
+  List<Node> toList({ bool growable: true }) =>
+      new List<Node>.from(this, growable: growable);
+
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28391,7 +28516,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
+  List<SpeechInputResult> toList({ bool growable: true }) =>
+      new List<SpeechInputResult>.from(this, growable: growable);
+
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28588,7 +28715,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
+  List<SpeechRecognitionResult> toList({ bool growable: true }) =>
+      new List<SpeechRecognitionResult>.from(this, growable: growable);
+
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -28785,7 +28914,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
-  List<StyleSheet> toList() => new List<StyleSheet>.from(this);
+  List<StyleSheet> toList({ bool growable: true }) =>
+      new List<StyleSheet>.from(this, growable: growable);
+
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
@@ -29415,7 +29546,8 @@ abstract class CssClassSet implements Set<String> {
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList() => readClasses().toList();
+  List<String> toList({ bool growable: true }) =>
+      readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   String min([int compare(String a, String b)]) =>
       readClasses().min(compare);
@@ -29714,7 +29846,7 @@ class KeyboardEventController {
   EventTarget _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
+  final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   StreamSubscription _keyUpSubscription, _keyDownSubscription,
       _keyPressSubscription;
@@ -29849,8 +29981,8 @@ class KeyboardEventController {
       if (prevEvent._shadowCharCode == event.charCode) {
         return prevEvent.keyCode;
       }
-      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".charCodes[0]
-          && event.charCode <= "Z".charCodes[0] && event.charCode +
+      if ((event.shiftKey || _capsLockOn) && event.charCode >= "A".codeUnits[0]
+          && event.charCode <= "Z".codeUnits[0] && event.charCode +
           _ROMAN_ALPHABET_OFFSET == prevEvent._shadowCharCode) {
         return prevEvent.keyCode;
       }
@@ -30093,9 +30225,9 @@ class KeyboardEventController {
 
 
 /**
- * Defines the keycode values for keys that are returned by
+ * Defines the keycode values for keys that are returned by 
  * KeyboardEvent.keyCode.
- *
+ * 
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -30103,7 +30235,7 @@ class KeyboardEventController {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -30298,12 +30430,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
-
+ 
     // Safari sends zero key code for non-latin characters.
     if (_Device.isWebKit && keyCode == 0) {
       return true;
     }
-
+ 
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
@@ -31410,7 +31542,7 @@ abstract class _Serializer extends _MessageTraverser {
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List.fixedLength(len);
+    var result = new List(len);
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }
@@ -31490,6 +31622,147 @@ abstract class _Deserializer {
   }
 }
 
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A list which just wraps another list, for either intercepting list calls or
+ * retyping the list (for example, from List<A> to List<B> where B extends A).
+ */
+class _WrappedList<E> implements List<E> {
+  final List _list;
+
+  _WrappedList(this._list);
+
+  // Iterable APIs
+
+  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+
+  Iterable map(f(E element)) => _list.map(f);
+
+  Iterable<E> where(bool f(E element)) => _list.where(f);
+
+  Iterable expand(Iterable f(E element)) => _list.expand(f);
+
+  bool contains(E element) => _list.contains(element);
+
+  void forEach(void f(E element)) { _list.forEach(f); }
+
+  dynamic reduce(initialValue, combine(previousValue, E element)) =>
+      _list.reduce(initialValue, combine);
+
+  bool every(bool f(E element)) => _list.every(f);
+
+  String join([String separator]) => _list.join(separator);
+
+  bool any(bool f(E element)) => _list.any(f);
+
+  List<E> toList({ bool growable: true }) =>
+      new List.from(_list, growable: growable);
+
+  Set<E> toSet() => _list.toSet();
+
+  int get length => _list.length;
+
+  E min([int compare(E a, E b)]) => _list.min(compare);
+
+  E max([int compare(E a, E b)]) => _list.max(compare);
+
+  bool get isEmpty => _list.isEmpty;
+
+  Iterable<E> take(int n) => _list.take(n);
+
+  Iterable<E> takeWhile(bool test(E value)) => _list.takeWhile(test);
+
+  Iterable<E> skip(int n) => _list.skip(n);
+
+  Iterable<E> skipWhile(bool test(E value)) => _list.skipWhile(test);
+
+  E get first => _list.first;
+
+  E get last => _list.last;
+
+  E get single => _list.single;
+
+  E firstMatching(bool test(E value), { E orElse() }) =>
+      _list.firstMatching(test, orElse: orElse);
+
+  E lastMatching(bool test(E value), {E orElse()}) =>
+      _list.lastMatching(test, orElse: orElse);
+
+  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+
+  E elementAt(int index) => _list.elementAt(index);
+
+  // Collection APIs
+
+  void add(E element) { _list.add(element); }
+
+  void addAll(Iterable<E> elements) { _list.addAll(elements); }
+
+  void remove(Object element) { _list.remove(element); }
+
+  void removeAll(Iterable elements) { _list.removeAll(elements); }
+
+  void retainAll(Iterable elements) { _list.retainAll(elements); }
+
+  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+
+  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+
+  void clear() { _list.clear(); }
+
+  // List APIs
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void addLast(E value) { _list.addLast(value); }
+
+  Iterable<E> get reversed => _list.reversed;
+
+  void sort([int compare(E a, E b)]) { _list.sort(compare); }
+
+  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
+
+  E removeAt(int index) => _list.removeAt(index);
+
+  E removeLast() => _list.removeLast();
+
+  List<E> getRange(int start, int length) => _list.getRange(start, length);
+
+  void setRange(int start, int length, List<E> from, [int startFrom]) {
+    _list.setRange(start, length, from, startFrom);
+  }
+
+  void removeRange(int start, int length) { _list.removeRange(start, length); }
+
+  void insertRange(int start, int length, [E fill]) {
+    _list.insertRange(start, length, fill);
+  }
+}
+
+/**
+ * Iterator wrapper for _WrappedList.
+ */
+class _WrappedIterator<E> implements Iterator<E> {
+  Iterator _iterator;
+
+  _WrappedIterator(this._iterator);
+
+  bool moveNext() {
+    return _iterator.moveNext();
+  }
+
+  E get current => _iterator.current;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -31552,6 +31825,15 @@ class _DocumentFragmentFactoryProvider {
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
+
+DateTime _convertNativeToDart_DateTime(date) {
+  var millisSinceEpoch = JS('int', '#.getTime()', date);
+  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
+}
+
+_convertDartToNative_DateTime(DateTime date) {
+  return JS('', 'new Date(#)', date.millisecondsSinceEpoch);
+}
 
 WindowBase _convertNativeToDart_Window(win) {
   return _DOMWindowCrossFrame._createSafe(win);
@@ -32091,7 +32373,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final int _length;  // Cache array length for faster access.
   int _position;
   T _current;
-
+  
   FixedSizeListIterator(List<T> array)
       : _array = array,
         _position = -1,

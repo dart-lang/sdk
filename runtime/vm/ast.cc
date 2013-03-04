@@ -429,7 +429,7 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
     return NULL;
   }
   const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(getter_func, Object::empty_array()));
+      DartEntry::InvokeFunction(getter_func, Object::empty_array()));
   if (result.IsError() || result.IsNull()) {
     // TODO(turnidge): We could get better error messages by returning
     // the Error object directly to the parser.  This will involve

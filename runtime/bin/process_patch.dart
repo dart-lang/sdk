@@ -53,7 +53,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       throw new ArgumentError("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
-    _arguments = new List<String>.fixedLength(len);
+    _arguments = new List<String>(len);
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is !String) {
@@ -107,14 +107,14 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
       // Replace any number of '\' followed by '"' with
       // twice as many '\' followed by '\"'.
-      var backslash = '\\'.charCodeAt(0);
+      var backslash = '\\'.codeUnitAt(0);
       var sb = new StringBuffer();
       var nextPos = 0;
       var quotePos = argument.indexOf('"', nextPos);
       while (quotePos != -1) {
         var numBackslash = 0;
         var pos = quotePos - 1;
-        while (pos >= 0 && argument.charCodeAt(pos) == backslash) {
+        while (pos >= 0 && argument.codeUnitAt(pos) == backslash) {
           numBackslash++;
           pos--;
         }
@@ -134,7 +134,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       sb = new StringBuffer('"');
       sb.add(result);
       nextPos = argument.length - 1;
-      while (argument.charCodeAt(nextPos) == backslash) {
+      while (argument.codeUnitAt(nextPos) == backslash) {
         sb.add('\\');
         nextPos--;
       }
@@ -156,7 +156,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     var completer = new Completer();
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
-    new Timer(0, (_) {
+    Timer.run(() {
       var status = new _ProcessStartStatus();
       bool success = _startNative(_path,
                                   _arguments,
@@ -181,7 +181,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       // callback when a process terminates.
       int exitDataRead = 0;
       final int EXIT_DATA_SIZE = 8;
-      List<int> exitDataBuffer = new List<int>.fixedLength(EXIT_DATA_SIZE);
+      List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
       _exitHandler.listen((data) {
 
         int exitCode(List<int> ints) {

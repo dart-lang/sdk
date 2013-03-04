@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  var a = new List.fixedLength(4);
+  var a = new List(4);
   Expect.equals(4, a.length);
   a[0] = 42;
   a[1] = 43;

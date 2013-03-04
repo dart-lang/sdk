@@ -258,9 +258,11 @@ class IDLFile(IDLNode):
     modules = self._convert_all(ast, 'Module', IDLModule)
     self.implementsStatements = self._convert_all(ast, 'ImplStmt',
       IDLImplementsStatement)
+    self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
     for module in modules:
       self.interfaces.extend(module.interfaces)
       self.implementsStatements.extend(module.implementsStatements)
+      self.typeDefs.extend(module.typeDefs)
 
 
 class IDLModule(IDLNode):

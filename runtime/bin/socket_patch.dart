@@ -123,17 +123,17 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   }
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET {
-    eventHandlers = new List.fixedLength(EVENT_COUNT + 1);
+    eventHandlers = new List(EVENT_COUNT + 1);
     _EventHandler._start();
   }
 
   _NativeSocket.listen() : typeFlags = TYPE_LISTENING_SOCKET {
-    eventHandlers = new List.fixedLength(EVENT_COUNT + 1);
+    eventHandlers = new List(EVENT_COUNT + 1);
     _EventHandler._start();
   }
 
   _NativeSocket.pipe() : typeFlags = TYPE_PIPE {
-    eventHandlers = new List.fixedLength(EVENT_COUNT + 1);
+    eventHandlers = new List(EVENT_COUNT + 1);
     _EventHandler._start();
   }
 
@@ -152,6 +152,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (len != null && len <= 0) {
       throw new ArgumentError("Illegal length $len");
     }
+    if (isClosed) return null;
     var result = nativeRead(len == null ? -1 : len);
     if (result is OSError) {
       reportError(result, "Read failed");
@@ -395,7 +396,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   nativeRead(int len) native "Socket_Read";
   nativeWrite(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
-  bool nativeCreateConnect(String host, int port) native "Socket_CreateConnect";
+  nativeCreateConnect(String host, int port) native "Socket_CreateConnect";
   nativeCreateBindListen(String address, int port, int backlog)
       native "ServerSocket_CreateBindListen";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
@@ -658,17 +659,23 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
   _SocketStreamConsumer(this.socket);
 
   Future<Socket> consume(Stream<List<int>> stream) {
-    subscription = stream.listen(
-        (data) {
-          assert(!paused);
-          assert(buffer == null);
-          buffer = data;
-          offset = 0;
-          write();
-        },
-        onDone: () {
-          socket._consumerDone();
-        });
+    if (socket._raw != null) {
+      subscription = stream.listen(
+          (data) {
+            assert(!paused);
+            assert(buffer == null);
+            buffer = data;
+            offset = 0;
+            write();
+          },
+          onError: (error) {
+            socket._consumerDone(error);
+          },
+          onDone: () {
+            socket._consumerDone();
+          },
+          unsubscribeOnError: true);
+    }
     return socket._doneFuture;
   }
 
@@ -697,6 +704,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
         }
       }
     } catch (e) {
+      stop();
       socket._consumerDone(e);
     }
   }
@@ -778,8 +786,8 @@ class _Socket extends Stream<List<int>> implements Socket {
   void destroy() {
     // Destroy can always be called to get rid of a socket.
     if (_raw == null) return;
-    _closeRawSocket();
     _consumer.stop();
+    _closeRawSocket();
     _controllerClosed = true;
     _controller.close();
   }
@@ -895,11 +903,11 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void _consumerDone([error]) {
+    _done(error);
     if (_raw != null) {
       _raw.shutdown(SocketDirection.SEND);
       _disableWriteEvent();
     }
-    _done(error);
   }
 }
 

@@ -38,7 +38,7 @@ class TypeTest {
       return 0;
     }
     try {
-      var a = new List<int>.fixedLength(1) as List<int>;
+      var a = new List<int>(1) as List<int>;
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
       Expect.equals(1, a[0]);

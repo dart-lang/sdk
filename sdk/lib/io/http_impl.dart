@@ -4,8 +4,7 @@
 
 part of dart.io;
 
-class _HttpIncoming
-    extends Stream<List<int>> implements StreamSink<List<int>> {
+class _HttpIncoming extends Stream<List<int>> {
   final int _transferLength;
   final Completer _dataCompleter = new Completer();
   Stream<List<int>> _stream;
@@ -54,7 +53,7 @@ class _HttpIncoming
   }
 }
 
-class _HttpInboundMessage extends Stream<List<int>> {
+abstract class _HttpInboundMessage extends Stream<List<int>> {
   final _HttpIncoming _incoming;
   List<Cookie> _cookies;
 
@@ -65,7 +64,7 @@ class _HttpInboundMessage extends Stream<List<int>> {
     return _cookies = headers._parseCookies();
   }
 
-  HttpHeaders get headers => _incoming.headers;
+  _HttpHeaders get headers => _incoming.headers;
   String get protocolVersion => headers.protocolVersion;
   int get contentLength => headers.contentLength;
   bool get persistentConnection => headers.persistentConnection;
@@ -82,7 +81,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
   final _HttpConnection _httpConnection;
 
-  HttpSession _session;
+  _HttpSession _session;
 
   _HttpRequest(_HttpResponse this.response,
                _HttpIncoming _incoming,
@@ -167,10 +166,15 @@ class _HttpClientResponse
   int get statusCode => _incoming.statusCode;
   String get reasonPhrase => _incoming.reasonPhrase;
 
+  X509Certificate get certificate {
+    var socket = _httpRequest._httpClientConnection._socket;
+    return socket.peerCertificate;
+  }
+
   List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
     _cookies = new List<Cookie>();
-    List<String> values = headers["set-cookie"];
+    List<String> values = headers[HttpHeaders.SET_COOKIE];
     if (values != null) {
       values.forEach((value) {
         _cookies.add(new Cookie.fromSetCookieValue(value));
@@ -314,14 +318,21 @@ class _HttpClientResponse
 }
 
 
-class _HttpOutboundMessage<T> extends IOSink {
+abstract class _HttpOutboundMessage<T> implements IOSink {
   // Used to mark when the body should be written. This is used for HEAD
   // requests and in error handling.
   bool _ignoreBody = false;
+  bool _headersWritten = false;
+  bool _chunked = false;
+
+  final IOSink _ioSink;
+  final _HttpOutgoing _outgoing;
+
+  final _HttpHeaders headers;
 
   _HttpOutboundMessage(String protocolVersion, _HttpOutgoing outgoing)
-      : super(outgoing),
-        _outgoing = outgoing,
+      : _outgoing = outgoing,
+        _ioSink = new IOSink(outgoing),
         headers = new _HttpHeaders(protocolVersion);
 
   int get contentLength => headers.contentLength;
@@ -330,7 +341,7 @@ class _HttpOutboundMessage<T> extends IOSink {
   }
 
   bool get persistentConnection => headers.persistentConnection;
-  bool set persistentConnection(bool p) {
+  void set persistentConnection(bool p) {
     headers.persistentConnection = p;
   }
 
@@ -341,17 +352,31 @@ class _HttpOutboundMessage<T> extends IOSink {
       // Transform when chunked.
       stream = stream.transform(new _ChunkedTransformer());
     }
-    return super.consume(stream).then((_) => this);
+    return _ioSink.consume(stream).then((_) => this);
   }
 
   void add(List<int> data) {
     _writeHeaders();
-    if (_ignoreBody) return;
+    if (_ignoreBody || data.length == 0) return;
     if (_chunked) {
-      _ChunkedTransformer._addChunk(data, super.add);
+      _ChunkedTransformer._addChunk(data, _ioSink.add);
     } else {
-      super.add(data);
+      _ioSink.add(data);
     }
+  }
+
+  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
+    add(_encodeString(string, encoding));
+  }
+
+  Future<T> addStream(Stream<List<int>> stream) {
+    _writeHeaders();
+    if (_ignoreBody) return new Future.immediate(this);
+    if (_chunked) {
+      // Transform when chunked.
+      stream = stream.transform(new _ChunkedTransformer(writeEnd: false));
+    }
+    return _ioSink.addStream(stream).then((_) => this);
   }
 
   void close() {
@@ -363,11 +388,13 @@ class _HttpOutboundMessage<T> extends IOSink {
     _writeHeaders();
     if (!_ignoreBody) {
       if (_chunked) {
-        _ChunkedTransformer._addChunk([], super.add);
+        _ChunkedTransformer._addChunk([], _ioSink.add);
       }
     }
-    super.close();
+    _ioSink.close();
   }
+
+  Future<T> get done => _ioSink.done.then((_) => this);
 
   void _writeHeaders() {
     if (_headersWritten) return;
@@ -377,22 +404,16 @@ class _HttpOutboundMessage<T> extends IOSink {
     _writeHeader();
     _ignoreBody = _tmpIgnoreBody;
     if (_ignoreBody) {
-      super.close();
+      _ioSink.close();
       return;
     }
     _chunked = headers.chunkedTransferEncoding;
-    if (!_chunked) {
+    if (headers.contentLength >= 0) {
       _outgoing.setTransferLength(headers.contentLength);
     }
   }
 
   void _writeHeader();  // TODO(ajohnsen): Better name.
-
-  final _HttpHeaders headers;
-
-  final _HttpOutgoing _outgoing;
-  bool _headersWritten = false;
-  bool _chunked = false;
 }
 
 
@@ -466,7 +487,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     // Add all the cookies set to the headers.
     if (_cookies != null) {
       _cookies.forEach((cookie) {
-        headers.add("set-cookie", cookie);
+        headers.add(HttpHeaders.SET_COOKIE, cookie);
       });
     }
 
@@ -657,7 +678,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
         sb.add("=");
         sb.add(cookies[i].value);
       }
-      headers.add("cookie", sb.toString());
+      headers.add(HttpHeaders.COOKIE, sb.toString());
     }
 
     headers._finalize();
@@ -670,21 +691,19 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
 
 
 // Transformer that transforms data to HTTP Chunked Encoding.
-class _ChunkedTransformer implements StreamTransformer<List<int>, List<int>> {
-  final StreamController<List<int>> _controller
-      = new StreamController<List<int>>();
+class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
+  final bool writeEnd;
+  _ChunkedTransformer({this.writeEnd: true});
 
-  Stream<List<int>> bind(Stream<List<int>> stream) {
-    var subscription = stream.listen(
-        (data) {
-          if (data.length == 0) return;  // Avoid close on 0-bytes payload.
-          _addChunk(data, _controller.add);
-       },
-       onDone: () {
-          _addChunk([], _controller.add);
-          _controller.close();
-       });
-    return _controller.stream;
+  void handleData(List<int> data, StreamSink<List<int>> sink) {
+    _addChunk(data, sink.add);
+  }
+
+  void handleDone(StreamSink<List<int>> sink) {
+    if (writeEnd) {
+      _addChunk([], sink.add);
+    }
+    sink.close();
   }
 
   static void _addChunk(List<int> data, void add(List<int> data)) {
@@ -738,16 +757,11 @@ class _DoneTransformer implements StreamTransformer<List<int>, List<int>> {
 // Transformer that validates the data written.
 class _DataValidatorTransformer
     implements StreamTransformer<List<int>, List<int>> {
-  final StreamController<List<int>> _controller
-      = new StreamController<List<int>>();
+  final StreamController<List<int>> _controller =
+      new StreamController<List<int>>();
   int _bytesWritten = 0;
-  Completer _completer = new Completer();
 
   int expectedTransferLength;
-
-  _DataValidatorTransformer();
-
-  Future get validatorFuture => _completer.future;
 
   Stream<List<int>> bind(Stream<List<int>> stream) {
     var subscription;
@@ -756,45 +770,31 @@ class _DataValidatorTransformer
           if (expectedTransferLength != null) {
             _bytesWritten += data.length;
             if (_bytesWritten > expectedTransferLength) {
-              _controller.close();
               subscription.cancel();
-              if (_completer != null) {
-                _completer.completeError(new HttpException(
-                    "Content size exceeds specified contentLength. "
-                    "$_bytesWritten bytes written while expected "
-                    "$expectedTransferLength."));
-                _completer = null;
-              }
+              _controller.signalError(new HttpException(
+                  "Content size exceeds specified contentLength. "
+                  "$_bytesWritten bytes written while expected "
+                  "$expectedTransferLength."));
+              _controller.close();
               return;
             }
           }
           _controller.add(data);
         },
         onError: (error) {
+          _controller.signalError(error);
           _controller.close();
-          if (_completer != null) {
-            _completer.completeError(error);
-            _completer = null;
-          }
         },
         onDone: () {
-          _controller.close();
           if (expectedTransferLength != null) {
             if (_bytesWritten < expectedTransferLength) {
-              if (_completer != null) {
-                _completer.completeError(new HttpException(
-                    "Content size below specified contentLength. "
-                    " $_bytesWritten bytes written while expected "
-                    "$expectedTransferLength."));
-                _completer = null;
-                return;
-              }
+              _controller.signalError(new HttpException(
+                  "Content size below specified contentLength. "
+                  " $_bytesWritten bytes written while expected "
+                  "$expectedTransferLength."));
             }
           }
-          if (_completer != null) {
-            _completer.complete(this);
-            _completer = null;
-          }
+          _controller.close();
         },
         unsubscribeOnError: true);
     return _controller.stream;
@@ -803,31 +803,25 @@ class _DataValidatorTransformer
 
 // Extends StreamConsumer as this is an internal type, only used to pipe to.
 class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
-  final Completer _dataCompleter = new Completer();
-  final Completer _streamCompleter = new Completer();
   final _DataValidatorTransformer _validator = new _DataValidatorTransformer();
+  Function _onStream;
+  final Completer _consumeCompleter = new Completer();
 
-  // Future that completes when all data is written.
-  Future get dataDone => _dataCompleter.future;
-
-  // Future that completes with the Stream, once the _HttpClientConnection is
-  // bound to one.
-  Future<Stream<List<int>>> get stream => _streamCompleter.future;
+  Future onStream(Future callback(Stream<List<int>> stream)) {
+    _onStream = callback;
+    return _consumeCompleter.future;
+  }
 
   void setTransferLength(int transferLength) {
     _validator.expectedTransferLength = transferLength;
   }
 
   Future consume(Stream<List<int>> stream) {
-    stream = stream.transform(_validator);
-    _streamCompleter.complete(stream);
-    _validator.validatorFuture.catchError((e) {
-      _dataCompleter.completeError(e);
-    });
-    return _validator.validatorFuture.then((v) {
-      _dataCompleter.complete();
-      return v;
-    });
+    _onStream(stream.transform(_validator))
+        .then((_) => _consumeCompleter.complete(),
+              onError: _consumeCompleter.completeError);
+    // Use .then to ensure a Future branch.
+    return _consumeCompleter.future.then((_) => this);
   }
 }
 
@@ -840,7 +834,7 @@ class _HttpClientConnection {
   final _HttpClient _httpClient;
 
   Completer<_HttpIncoming> _nextResponseCompleter;
-  Future _writeDoneFuture;
+  Future _streamFuture;
 
   _HttpClientConnection(String this.key,
                         Socket this._socket,
@@ -858,11 +852,14 @@ class _HttpClientConnection {
           _subscription.pause();
           // We assume the response is not here, until we have send the request.
           assert(_nextResponseCompleter != null);
-          _nextResponseCompleter.complete(incoming);
+          var completer = _nextResponseCompleter;
+          _nextResponseCompleter = null;
+          completer.complete(incoming);
         },
         onError: (error) {
           if (_nextResponseCompleter != null) {
             _nextResponseCompleter.completeError(error);
+            _nextResponseCompleter = null;
           }
         },
         onDone: () {
@@ -870,37 +867,66 @@ class _HttpClientConnection {
         });
   }
 
-  Future<_HttpIncoming> sendRequest(_HttpOutgoing outgoing) {
-    return outgoing.stream
-      .then((stream) {
-        // Close socket if output data is invalid.
-        outgoing.dataDone.catchError((e) {
-          close();
-        });
+  _HttpClientRequest send(Uri uri, int port, String method, bool isDirect) {
+    // Start with pausing the parser.
+    _subscription.pause();
+    var outgoing = new _HttpOutgoing();
+    // Create new request object, wrapping the outgoing connection.
+    var request = new _HttpClientRequest(outgoing,
+                                         uri,
+                                         method,
+                                         !isDirect,
+                                         _httpClient,
+                                         this);
+    request.headers.host = uri.domain;
+    request.headers.port = port;
+    if (uri.userInfo != null && !uri.userInfo.isEmpty) {
+      // If the URL contains user information use that for basic
+      // authorization
+      String auth =
+          CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
+      request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+    } else {
+      // Look for credentials.
+      _Credentials cr = _httpClient._findCredentials(uri);
+      if (cr != null) {
+        cr.authorize(request);
+      }
+    }
+    // Start sending the request (lazy, delayed until the user provides
+    // data).
+    _httpParser.responseToMethod = method;
+    _streamFuture = outgoing.onStream((stream) {
         // Sending request, set up response completer.
         _nextResponseCompleter = new Completer();
-        _writeDoneFuture = _socket.addStream(stream);
+
+        var requestFuture = _socket.addStream(stream)
+            .catchError((e) {
+              destroy();
+              throw e;
+            });
+
         // Listen for response.
-        return _nextResponseCompleter.future
-            .whenComplete(() {
-               _nextResponseCompleter = null;
-             })
+        _nextResponseCompleter.future
             .then((incoming) {
               incoming.dataDone.then((_) {
-                if (!incoming.headers.persistentConnection) {
-                  close();
+                if (incoming.headers.persistentConnection &&
+                    request.persistentConnection) {
+                  // Be sure we have written the full request.
+                  requestFuture
+                      .then((_) {
+                        // Return connection, now we are done.
+                        _httpClient._returnConnection(this);
+                        _subscription.resume();
+                      },
+                      onError: (_) {
+                        // Already handled.
+                      });
                 } else {
-                  // Wait for the socket to be done with writing, before we
-                  // continue.
-                  _writeDoneFuture.then((_) {
-                    _subscription.resume();
-                    // Return connection, now we are done.
-                    _httpClient._returnConnection(this);
-                  });
+                  destroy();
                 }
               });
-              // TODO(ajohnsen): Can there be an error on dataDone?
-              return incoming;
+              request._onIncoming(incoming);
             })
             // If we see a state error, we failed to get the 'first' element.
             // Transform the error to a HttpParserException, for consistency.
@@ -911,32 +937,32 @@ class _HttpClientConnection {
             .catchError((error) {
               // We are done with the socket.
               destroy();
-              throw error;
+              request._onError(error);
             });
-        });
+        // Resume the parser now we have a handler.
+        _subscription.resume();
+        return requestFuture;
+    });
+    return request;
   }
 
   Future<Socket> detachSocket() {
-    return _writeDoneFuture.then((_) =>
-        new _DetachedSocket(_socket, _httpParser.detachIncoming()));
+    return _streamFuture
+        .then((_) => new _DetachedSocket(_socket, _httpParser.detachIncoming()),
+              onError: (_) {});
   }
 
   void destroy() {
-    _socket.destroy();
     _httpClient._connectionClosed(this);
+    _socket.destroy();
   }
 
   void close() {
-    var future = _writeDoneFuture;
-    if (future == null) future = new Future.immediate(null);
     _httpClient._connectionClosed(this);
-    future.then((_) {
-      _socket.close();
-      // TODO(ajohnsen): Add timeout.
-      // Delay destroy until socket is actually done writing.
-      _socket.done.then((_) => _socket.destroy(),
-                        onError: (_) => _socket.destroy());
-    });
+    _streamFuture
+          // TODO(ajohnsen): Add timeout.
+        .then((_) => _socket.destroy(),
+              onError: (_) {});
   }
 
   HttpConnectionInfo get connectionInfo => _HttpConnectionInfo.create(_socket);
@@ -1055,55 +1081,19 @@ class _HttpClient implements HttpClient {
         return new Future.immediateError(error, stackTrace);
       }
     }
-    return _getConnection(uri.domain, port, proxyConf, isSecure).then((info) {
-          // Create new internal outgoing connection.
-          var outgoing = new _HttpOutgoing();
-          // Create new request object, wrapping the outgoing connection.
-          var request = new _HttpClientRequest(outgoing,
-                                               uri,
-                                               method.toUpperCase(),
-                                               !info.proxy.isDirect,
-                                               this,
-                                               info.connection);
-          request.headers.host = uri.domain;
-          request.headers.port = port;
-          if (uri.userInfo != null && !uri.userInfo.isEmpty) {
-            // If the URL contains user information use that for basic
-            // authorization
-            String auth =
-                CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
-            request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
-          } else {
-            // Look for credentials.
-            _Credentials cr = _findCredentials(uri);
-            if (cr != null) {
-              cr.authorize(request);
-            }
-          }
-          // Start sending the request (lazy, delayed until the user provides
-          // data).
-          info.connection._httpParser.responseToMethod = method;
-          info.connection.sendRequest(outgoing)
-              .then((incoming) {
-                // The full request have been sent and a response is received
-                // containing status-code, headers and etc.
-                request._onIncoming(incoming);
-              })
-              .catchError((error) {
-                // An error occoured before the http-header was parsed. This
-                // could be either a socket-error or parser-error.
-                request._onError(error);
-              });
-          // Return the request to the user. Immediate socket errors are not
-          // handled, thus forwarded to the user.
-          return request;
+    return _getConnection(uri.domain, port, proxyConf, isSecure)
+        .then((info) {
+          return info.connection.send(uri,
+                                      port,
+                                      method.toUpperCase(),
+                                      info.proxy.isDirect);
         });
   }
 
   Future<HttpClientRequest> _openUrlFromRequest(String method,
                                                 Uri uri,
                                                 _HttpClientRequest previous) {
-    return openUrl(method, uri).then((request) {
+    return openUrl(method, uri).then((_HttpClientRequest request) {
           // Only follow redirects if initial request did.
           request.followRedirects = previous.followRedirects;
           // Allow same number of redirects.
@@ -1220,7 +1210,7 @@ class _HttpConnection {
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
 
-  Future _writeDoneFuture;
+  Future _streamFuture;
 
   _HttpConnection(Socket this._socket, _HttpServer this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
@@ -1233,37 +1223,37 @@ class _HttpConnection {
           _subscription.pause();
           _state = _ACTIVE;
           var outgoing = new _HttpOutgoing();
-          _writeDoneFuture = outgoing.stream.then(_socket.addStream);
-          var response = new _HttpResponse(
-              incoming.headers.protocolVersion,
-              outgoing);
+          var response = new _HttpResponse(incoming.headers.protocolVersion,
+                                           outgoing);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
+          outgoing.onStream((stream) {
+            return _streamFuture = _socket.addStream(stream)
+                .then((_) {
+                  if (_state == _DETACHED) return;
+                  if (response.persistentConnection &&
+                      request.persistentConnection &&
+                      incoming.fullBodyRead) {
+                    _state = _IDLE;
+                    // Resume the subscription for incoming requests as the
+                    // request is now processed.
+                    _subscription.resume();
+                  } else {
+                    // Close socket, keep-alive not used or body sent before
+                    // received data was handled.
+                    destroy();
+                  }
+                })
+                .catchError((e) {
+                  destroy();
+                  throw e;
+                });
+          });
           response._ignoreBody = request.method == "HEAD";
           response._httpRequest = request;
-          outgoing.dataDone.then((_) {
-            if (_state == _DETACHED) return;
-            if (response.headers.persistentConnection &&
-                incoming.fullBodyRead) {
-              // Wait for the socket to be done with writing, before we
-              // continue.
-              _writeDoneFuture.then((_) {
-                _state = _IDLE;
-                // Resume the subscription for incoming requests as the
-                // request is now processed.
-                _subscription.resume();
-              });
-            } else {
-              // Close socket, keep-alive not used or body sent before received
-              // data was handled.
-              close();
-            }
-          }).catchError((e) {
-            close();
-          });
           _httpServer._handleRequest(request);
         },
         onDone: () {
-          close();
+          destroy();
         },
         onError: (error) {
           _httpServer._handleError(error);
@@ -1278,21 +1268,6 @@ class _HttpConnection {
     _httpServer._connectionClosed(this);
   }
 
-  void close() {
-    if (_state == _CLOSING || _state == _DETACHED) return;
-    _state = _CLOSING;
-    var future = _writeDoneFuture;
-    if (future == null) future = new Future.immediate(null);
-    _httpServer._connectionClosed(this);
-    future.then((_) {
-      _socket.close();
-      // TODO(ajohnsen): Add timeout.
-      // Delay destroy until socket is actually done writing.
-      _socket.done.then((_) => _socket.destroy(),
-                        onError: (_) => _socket.destroy());
-    });
-  }
-
   Future<Socket> detachSocket() {
     _state = _DETACHED;
     // Remove connection from server.
@@ -1300,7 +1275,7 @@ class _HttpConnection {
 
     _HttpDetachedIncoming detachedIncoming = _httpParser.detachIncoming();
 
-    return _writeDoneFuture.then((_) {
+    return _streamFuture.then((_) {
       return new _DetachedSocket(_socket, detachedIncoming);
     });
   }
@@ -1517,7 +1492,7 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
 }
 
 
-class _DetachedSocket implements Socket {
+class _DetachedSocket extends Stream<List<int>> implements Socket {
   final Stream<List<int>> _incoming;
   final Socket _socket;
 
@@ -1547,7 +1522,11 @@ class _DetachedSocket implements Socket {
 
   void destroy() => _socket.destroy();
   void add(List<int> data) => _socket.add(data);
-  Future<Socket> close() => _socket.close();
+  void close() => _socket.close();
+  Future<Socket> get done => _socket.done;
+  int get port => _socket.port;
+  String get remoteHost => _socket.remoteHost;
+  int get remotePort => _socket.remotePort;
 }
 
 

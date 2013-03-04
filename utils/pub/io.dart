@@ -11,7 +11,7 @@ import 'dart:isolate';
 import 'dart:json';
 import 'dart:uri';
 
-import '../../pkg/path/lib/path.dart' as path;
+import '../../pkg/pathos/lib/path.dart' as path;
 import '../../pkg/http/lib/http.dart' show ByteStream;
 import 'error_group.dart';
 import 'exit_codes.dart' as exit_codes;
@@ -161,7 +161,7 @@ Future<List<String>> listDir(String dir,
     lister.listen(
         (entity) {
           if (entity is File) {
-            var file = entity.name;
+            var file = entity.path;
             if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
               return;
             }
@@ -188,7 +188,7 @@ Future<List<String>> listDir(String dir,
           log.fine("Listed directory $dir:\n${contents.join('\n')}");
           completer.complete(contents);
         },
-        onError: (error) => completer.completeError(error, stackTrace));
+        onError: (error) => completer.completeError(error));
 
     return completer.future.then((contents) {
       return Future.wait(children).then((childContents) {
@@ -383,7 +383,7 @@ final Stream<String> stdinLines = streamToLines(
 /// should just be a fragment like, "Are you sure you want to proceed".
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
-  stdoutSink.add("$message (y/n)? ".charCodes);
+  stdoutSink.add("$message (y/n)? ".codeUnits);
   return streamFirst(stdinLines)
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
@@ -591,21 +591,19 @@ Future _doProcess(Function fn, String executable, List<String> args,
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
 Future timeout(Future input, int milliseconds, String description) {
-  bool completed = false;
   var completer = new Completer();
-  var timer = new Timer(new Duration(milliseconds: milliseconds), (_) {
-    completed = true;
+  var timer = new Timer(new Duration(milliseconds: milliseconds), () {
     completer.completeError(new TimeoutException(
         'Timed out while $description.'));
   });
   input.then((value) {
-    if (completed) return;
+    if (completer.isCompleted) return;
     timer.cancel();
     completer.complete(value);
   }).catchError((e) {
-    if (completed) return;
+    if (completer.isCompleted) return;
     timer.cancel();
-    completer.completeError(e.error, e.stackTrace);
+    completer.completeError(e);
   });
   return completer.future;
 }
@@ -716,8 +714,8 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
 /// Returns a [ByteStream] that will emit the contents of the archive.
 ByteStream createTarGz(List contents, {baseDir}) {
   var buffer = new StringBuffer();
-  buffer.add('Creating .tag.gz stream containing:\n');
-  contents.forEach((file) => buffer.add('$file\n'));
+  buffer.write('Creating .tag.gz stream containing:\n');
+  contents.forEach((file) => buffer.write('$file\n'));
   log.fine(buffer.toString());
 
   var controller = new StreamController<List<int>>();

@@ -24,7 +24,7 @@ main() {
   nonAsciiTxtFile.writeAsStringSync('æøå');
   var options = new ProcessOptions();
   options.workingDirectory = nonAsciiDir.path;
-  var script = nonAsciiFile.name;
+  var script = nonAsciiFile.path;
   Process.run(executable, [script], options).then((result) {
     Expect.equals(0, result.exitCode);
     tempDir.deleteSync(recursive: true);

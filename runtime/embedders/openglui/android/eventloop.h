@@ -17,8 +17,6 @@ class EventLoop {
              InputHandler* input_handler);
 
   protected:
-    void Activate();
-    void Deactivate();
     void ProcessActivityEvent(int32_t command);
     int32_t ProcessInputEvent(AInputEvent* event);
     bool OnTouchEvent(AInputEvent* event);
@@ -28,8 +26,8 @@ class EventLoop {
     static int32_t InputCallback(android_app* application, AInputEvent* event);
 
   private:
-    bool enabled_;
-    bool quit_;
+    bool enabled_, quit_;
+    bool isResumed_, hasSurface_, hasFocus_;
     android_app* application_;
     LifeCycleHandler* lifecycle_handler_;
     InputHandler* input_handler_;

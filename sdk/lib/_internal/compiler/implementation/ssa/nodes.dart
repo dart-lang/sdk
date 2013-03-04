@@ -168,7 +168,11 @@ class HGraph {
     if (constant.isFunction()) return HType.UNKNOWN;
     if (constant.isSentinel()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
-    return new HBoundedType.exact(objectConstant.type);
+    // TODO(kasperl): This seems a bit fishy, but we do not have the
+    // compiler at hand so we cannot use the usual HType factory
+    // methods. At some point this should go away.
+    TypeMask mask = new TypeMask.nonNullExact(objectConstant.type);
+    return new HBoundedType(mask);
   }
 
   HConstant addConstant(Constant constant) {
@@ -881,8 +885,9 @@ abstract class HInstruction implements Spannable {
   bool isTypeUnknown() => instructionType.isUnknown();
   bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
   bool isPrimitive() => instructionType.isPrimitive();
-  bool canBePrimitive() => instructionType.canBePrimitive();
   bool canBeNull() => instructionType.canBeNull();
+  bool canBePrimitive(Compiler compiler) =>
+      instructionType.canBePrimitive(compiler);
 
   /**
    * Type of the unstruction.
@@ -1213,6 +1218,12 @@ class HTypeGuard extends HCheck {
   bool isJsStatement() => isEnabled;
   bool canThrow() => isEnabled;
 
+  // A [HTypeGuard] cannot be moved anywhere in the graph, otherwise
+  // instructions that have side effects could end up before the guard
+  // in the otpimized version, and after the guard in a bailout
+  // version.
+  bool isPure() => false;
+
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
   bool typeEquals(other) => other is HTypeGuard;
@@ -1305,11 +1316,26 @@ abstract class HInvokeDynamic extends HInvoke {
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
 
+  /**
+   * Returns whether this call is on an intercepted method.
+   */
   bool get isInterceptorCall {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
     return inputs.length - 2 == selector.argumentCount;
+  }
+
+  /**
+   * Returns whether this call is on an interceptor object.
+   */
+  bool get isCallOnInterceptor {
+    // When the optimizers know this call does not need an
+    // interceptor, they udpate the receiver of the call to be the
+    // actual receiver.
+    // TODO(ngeoffray): This is very fragile and we should inspect the
+    // receiver instead.
+    return isInterceptorCall && inputs[0] != inputs[1];
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;

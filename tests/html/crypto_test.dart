@@ -4,33 +4,45 @@
 
 library crypto_test;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
-  test('exists', () {
-    var crypto = window.crypto;
-    expect(crypto is Crypto, isTrue);
+  group('supported', () {
+    test('supported', () {
+      expect(Crypto.supported, true);
+    });
   });
 
-  test('successful call', () {
-    var crypto = window.crypto;
-    var data = new Uint8Array(100);
-    expect(data.every((e) => e == 0), isTrue);
-    crypto.getRandomValues(data);
-    // In theory this is flaky. However, in practice you will get 100 zeroes
-    // in a row from a cryptographically secure random number generator so
-    // rarely that we don't have to worry about it.
-    expect(data.any((e) => e != 0), isTrue);
-  });
+  group('functional', () {
+    if (Crypto.supported) {
+      // This will actually pass on FF since it has a Crypto API, but it is
+      // incompatible.
+      test('exists', () {
+        var crypto = window.crypto;
+        expect(crypto is Crypto, isTrue);
+      });
 
-  test('type mismatch', () {
-    var crypto = window.crypto;
-    var data = new Float32Array(100);
-    expect(() {
-      crypto.getRandomValues(data);
-    }, throws, reason: 'Only typed array views with integer types allowed');
+      test('successful call', () {
+        var crypto = window.crypto;
+        var data = new Uint8Array(100);
+        expect(data.every((e) => e == 0), isTrue);
+        crypto.getRandomValues(data);
+        // In theory this is flaky. However, in practice you will get 100 zeroes
+        // in a row from a cryptographically secure random number generator so
+        // rarely that we don't have to worry about it.
+        expect(data.any((e) => e != 0), isTrue);
+      });
+
+      test('type mismatch', () {
+        var crypto = window.crypto;
+        var data = new Float32Array(100);
+        expect(() {
+          crypto.getRandomValues(data);
+        }, throws, reason: 'Only typed array views with integer types allowed');
+      });
+    }
   });
 }

@@ -8,6 +8,7 @@
 namespace dart {
 
 enum Register {
+  kFirstFreeCpuRegister = 0,
   RAX = 0,
   RCX = 1,
   RDX = 2,
@@ -24,6 +25,7 @@ enum Register {
   R13 = 13,
   R14 = 14,
   R15 = 15,
+  kLastFreeCpuRegister = 15,
   kNumberOfCpuRegisters = 16,
   kNoRegister = -1  // Signals an illegal register.
 };
@@ -83,8 +85,9 @@ enum RexBits {
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
 const Register CTX = R15;  // Caches current context in generated code.
-const Register SPREG = RSP;
-const Register FPREG = RBP;
+const Register PP = kNoRegister;  // No object pool pointer.
+const Register SPREG = RSP;  // Stack pointer register.
+const Register FPREG = RBP;  // Frame pointer register.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

@@ -198,8 +198,10 @@ int VMGlue::StartMainIsolate() {
   return 0;
 }
 
-int VMGlue::CallSetup() {
-  if (!initialized_script_) {
+int VMGlue::CallSetup(bool force) {
+  // TODO(gram): See if we actually need this flag guard here, or if
+  // we can eliminate it along with the need for the force parameter.
+  if (!initialized_script_ || force) {
     initialized_script_ = true;
     LOGI("Invoking setup(NULL, %d,%d)", surface_->width(), surface_->height());
     Dart_EnterIsolate(isolate_);
@@ -233,13 +235,23 @@ int VMGlue::CallSetup() {
 
 int VMGlue::CallUpdate() {
   if (initialized_script_) {
-    LOGI("Invoking update");
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
     int rtn = Invoke("update", 0, 0);
     Dart_ExitScope();
     Dart_ExitIsolate();
-    LOGI("Done update");
+    return rtn;
+  }
+  return -1;
+}
+
+int VMGlue::CallShutdown() {
+  if (initialized_script_) {
+    Dart_EnterIsolate(isolate_);
+    Dart_EnterScope();
+    int rtn = Invoke("shutdown", 0, 0);
+    Dart_ExitScope();
+    Dart_ExitIsolate();
     return rtn;
   }
   return -1;
@@ -289,10 +301,7 @@ int VMGlue::Invoke(const char* function,
                    int argc,
                    Dart_Handle* args,
                    bool failIfNotDefined) {
-  LOGI("in invoke(%s)", function);
-
   // Lookup the library of the root script.
-  LOGI("looking up the root library");
   Dart_Handle library = Dart_RootLibrary();
   if (Dart_IsNull(library)) {
      LOGE("Unable to find root library\n");
@@ -301,7 +310,6 @@ int VMGlue::Invoke(const char* function,
 
   Dart_Handle nameHandle = Dart_NewStringFromCString(function);
 
-  LOGI("invoking %s", function);
   Dart_Handle result = Dart_Invoke(library, nameHandle, argc, args);
 
   if (Dart_IsError(result)) {
@@ -314,14 +322,12 @@ int VMGlue::Invoke(const char* function,
 
   // TODO(vsm): I don't think we need this.
   // Keep handling messages until the last active receive port is closed.
-  LOGI("Entering Dart message loop");
   result = Dart_RunLoop();
   if (Dart_IsError(result)) {
     LOGE("Dart_RunLoop: %s\n", Dart_GetError(result));
     return -1;
   }
 
-  LOGI("out invoke");
   return 0;
 }
 

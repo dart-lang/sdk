@@ -20,14 +20,7 @@ var actual; // actual test results (from buildStatusString in config.onDone)
 var _testconfig; // test configuration to capture onDone
 
 _defer(void fn()) {
-  // Exploit isolate ports as a platform-independent mechanism to queue a
-  // message at the end of the event loop. Stolen from unittest.dart.
-  final port = new ReceivePort();
-  port.receive((msg, reply) {
-    fn();
-    port.close();
-  });
-  port.toSendPort().send(null, null);
+  return (new Future.immediate(null)).then((_) => guardAsync(fn));
 }
 
 String buildStatusString(int passed, int failed, int errors,
@@ -115,9 +108,14 @@ runTest() {
         () =>_defer(expectAsync0((){ ++_testconfig.count;})));
     } else if (testName == 'excess callback test') {
       test(testName, () {
-        var _callback = expectAsync0(() => ++_testconfig.count);
-        _defer(_callback);
-        _defer(_callback);
+        var _callback0 = expectAsync0(() => ++_testconfig.count);
+        var _callback1 = expectAsync0(() => ++_testconfig.count);
+        var _callback2 = expectAsync0(() {
+          _callback1();
+          _callback1();
+          _callback0();
+        });
+        _defer(_callback2);
       });
     } else if (testName == 'completion test') {
       test(testName, () {
@@ -136,15 +134,13 @@ runTest() {
         _defer(() => guardAsync(() { throw "error!"; }));
       });
     } else if (testName == 'late exception test') {
+      var f;
       test('testOne', () {
-        var f = expectAsync0(() {});
-        _defer(protectAsync0(() {
-          _defer(protectAsync0(() => expect(false, isTrue)));
-          expect(false, isTrue);
-        }));
+        f = expectAsync0(() {});
+        _defer(f);
       });
       test('testTwo', () {
-        _defer(expectAsync0(() {}));
+        _defer(expectAsync0(() { f(); }));
       });
     } else if (testName == 'middle exception test') {
       test('testOne', () { expect(true, isTrue); });
@@ -234,6 +230,107 @@ runTest() {
       // The next test is just to make sure we make steady progress 
       // through the tests.
       test('post groups', () {});
+    } else if (testName == 'test returning future') {
+      test("successful", () {
+        return _defer(() {
+          expect(true, true);
+        });
+      });
+      // We repeat the fail and error tests, because during development
+      // I had a situation where either worked fine on their own, and
+      // error/fail worked, but fail/error would time out.
+      test("error1", () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          excesscallback();
+          excesscallback();
+          excesscallback();
+          callback();
+        });
+      });
+      test("fail1", () {
+        return _defer(() {
+          expect(true, false);
+        });
+      });
+      test("error2", () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          excesscallback();
+          excesscallback();
+          callback();
+        });
+      });
+      test("fail2", () {
+        return _defer(() {
+          fail('failure');
+        });
+      });
+      test('foo5', () {
+      });
+    } else if (testName == 'test returning future using Timer') {
+      test("successful", () {
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              expect(true, true);
+            });
+          });
+        });
+      });
+      test("fail1", () {
+        var callback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              expect(true, false);
+              callback();
+            });
+          });
+        });
+      });
+      test('error1', () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              excesscallback();
+              excesscallback();
+              callback();
+            });
+          });
+        });
+      });
+      test("fail2", () {
+        var callback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              fail('failure');
+              callback();
+            });
+          });
+        });
+      });
+      test('error2', () {
+        var callback = expectAsync0((){});
+        var excesscallback = expectAsync0((){});
+        return _defer(() {
+          Timer.run(() {
+            guardAsync(() {
+              excesscallback();
+              excesscallback();
+              excesscallback();
+              callback();
+            });
+          });
+        });
+      });
+      test('foo6', () {
+      });
     }
   });
 }
@@ -267,7 +364,9 @@ main() {
     'async exception test',
     'late exception test',
     'middle exception test',
-    'async setup/teardown test'
+    'async setup/teardown test',
+    'test returning future',
+    'test returning future using Timer'
   ];
 
   expected = [
@@ -282,13 +381,13 @@ main() {
     buildStatusString(1, 0, 0, 'a ${tests[6]}', count: 0,
         setup: 'setup', teardown: 'teardown'),
     buildStatusString(1, 0, 0, tests[7], count: 1),
-    buildStatusString(0, 0, 1, tests[8], count: 1,
-        message: 'Callback called more times than expected (2 > 1).'),
+    buildStatusString(0, 1, 0, tests[8], count: 1,
+        message: 'Callback called more times than expected (1).'),
     buildStatusString(1, 0, 0, tests[9], count: 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
     buildStatusString(1, 0, 1, 'testOne',
-        message: 'Callback called after already being marked as done '
-                 '(1).:testTwo:'),
+        message: 'Callback called (2) after test case testOne has already '
+                 'been marked as pass.:testTwo:'),
     buildStatusString(2, 1, 0,
         'testOne::testTwo:Expected: false but: was <true>.:testThree'),
     buildStatusString(2, 0, 3, 
@@ -299,7 +398,21 @@ main() {
         'foo3: Test setup failed: Failed to complete setUp:'
         'bad setup/bad teardown foo4:bad setup/bad teardown '
         'foo4: Test teardown failed: Failed to complete tearDown:'
-        'post groups')
+        'post groups'),
+    buildStatusString(2, 4, 0,
+        'successful::'
+        'error1:Callback called more times than expected (1).:'
+        'fail1:Expected: <false> but: was <true>.:'
+        'error2:Callback called more times than expected (1).:'
+        'fail2:failure:'
+        'foo5'),
+    buildStatusString(2, 4, 0,
+        'successful::'
+        'fail1:Expected: <false> but: was <true>.:'
+        'error1:Callback called more times than expected (1).:'
+        'fail2:failure:'
+        'error2:Callback called more times than expected (1).:'
+        'foo6'),
   ];
 
   actual = [];

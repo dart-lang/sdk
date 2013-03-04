@@ -182,6 +182,13 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = Uint64Array::InstanceSize(byte_array_length);
         break;
       }
+      case kFloat32x4ArrayCid: {
+        const RawFloat32x4Array* raw_byte_array =
+            reinterpret_cast<const RawFloat32x4Array*>(this);
+        intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
+        instance_size = Float32x4Array::InstanceSize(byte_array_length);
+        break;
+      }
       case kFloat32ArrayCid: {
         const RawFloat32Array* raw_byte_array =
             reinterpret_cast<const RawFloat32Array*>(this);
@@ -761,6 +768,22 @@ intptr_t RawGrowableObjectArray::VisitGrowableObjectArrayPointers(
 }
 
 
+intptr_t RawFloat32x4::VisitFloat32x4Pointers(
+    RawFloat32x4* raw_obj,
+    ObjectPointerVisitor* visitor) {
+    ASSERT(raw_obj->IsHeapObject());
+    return Float32x4::InstanceSize();
+}
+
+
+intptr_t RawUint32x4::VisitUint32x4Pointers(
+    RawUint32x4* raw_obj,
+    ObjectPointerVisitor* visitor) {
+    ASSERT(raw_obj->IsHeapObject());
+    return Uint32x4::InstanceSize();
+}
+
+
 intptr_t RawByteArray::VisitByteArrayPointers(RawByteArray* raw_obj,
                                               ObjectPointerVisitor* visitor) {
   // ByteArray is an abstract class.
@@ -858,6 +881,15 @@ intptr_t RawUint64Array::VisitUint64ArrayPointers(
   return Uint64Array::InstanceSize(length);
 }
 
+
+intptr_t RawFloat32x4Array::VisitFloat32x4ArrayPointers(
+    RawFloat32x4Array *raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  intptr_t length = Smi::Value(raw_obj->ptr()->length_);
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Float32x4Array::InstanceSize(length);
+}
 
 intptr_t RawFloat32Array::VisitFloat32ArrayPointers(
     RawFloat32Array *raw_obj, ObjectPointerVisitor* visitor) {
@@ -957,6 +989,16 @@ intptr_t RawExternalUint64Array::VisitExternalUint64ArrayPointers(
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ExternalUint64Array::InstanceSize();
+}
+
+
+intptr_t
+    RawExternalFloat32x4Array::VisitExternalFloat32x4ArrayPointers(
+    RawExternalFloat32x4Array* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ExternalFloat32x4Array::InstanceSize();
 }
 
 

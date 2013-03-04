@@ -26,7 +26,7 @@ class _HMAC implements HMAC {
 
     // Zero-pad the key until its size is equal to the block size of the hash.
     if (_key.length < blockSize) {
-      var newKey = new List.fixedLength(blockSize);
+      var newKey = new List(blockSize);
       newKey.setRange(0, _key.length, _key);
       for (var i = _key.length; i < blockSize; i++) {
         newKey[i] = 0;
@@ -35,7 +35,7 @@ class _HMAC implements HMAC {
     }
 
     // Compute inner padding.
-    var padding = new List.fixedLength(blockSize);
+    var padding = new List(blockSize);
     for (var i = 0; i < blockSize; i++) {
       padding[i] = 0x36 ^ _key[i];
     }

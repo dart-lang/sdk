@@ -325,8 +325,7 @@ class Throws extends BaseMatcher {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
       item.then((value) {
-        done(() => expect(false, isTrue, reason:
-            "Expected future to fail, but succeeded with '$value'."));
+        done(() => fail("Expected future to fail, but succeeded with '$value'."));
       }, onError: (e) {
         done(() {
           if (_matcher == null) return;
@@ -481,18 +480,6 @@ const Matcher throwsArgumentError =
 class _ArgumentError extends TypeMatcher {
   const _ArgumentError() : super("ArgumentError");
   bool matches(item, MatchState matchState) => item is ArgumentError;
-}
-
-/** A matcher for IllegalJSRegExpExceptions. */
-const isIllegalJSRegExpException = const _IllegalJSRegExpException();
-
-/** A matcher for functions that throw IllegalJSRegExpException. */
-const Matcher throwsIllegalJSRegExpException =
-    const Throws(isIllegalJSRegExpException);
-
-class _IllegalJSRegExpException extends TypeMatcher {
-  const _IllegalJSRegExpException() : super("IllegalJSRegExpException");
-  bool matches(item, MatchState matchState) => item is IllegalJSRegExpException;
 }
 
 /** A matcher for RangeErrors. */

@@ -60,7 +60,7 @@ namespace dart {
   V(_Double, _mulFromInteger, Double_mulFromInteger, 815838159)                \
   V(_Double, .fromInteger, Double_fromInteger, 842078193)                      \
   V(_Double, toInt, Double_toInt, 362666636)                                   \
-  V(_ObjectArray, ., ObjectArray_Allocate, 577949617)                          \
+  V(_ObjectArray, ., ObjectArray_Allocate, 97987288)                           \
   V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
   V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
   V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \
@@ -78,7 +78,8 @@ namespace dart {
   V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 711547329)                    \
   V(_StringBase, get:length, String_getLength, 320803993)                      \
-  V(_StringBase, charCodeAt, String_charCodeAt, 984449525)                     \
+  V(_StringBase, codeUnitAt, String_codeUnitAt, 984449525)                     \
+  V(_OneByteString, get:hashCode, OneByteString_getHashCode, 682660413)        \
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \

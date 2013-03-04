@@ -26,7 +26,7 @@ Future<HttpServer> startServer() {
     server.listen((request) {
       bool chunked = request.queryParameters["chunked"] == "true";
       int length = int.parse(request.queryParameters["length"]);
-      var buffer = new List.fixedLength(length, fill: 0);
+      var buffer = new List<int>.filled(length, 0);
       if (!chunked) request.response.contentLength = length;
       request.response.add(buffer);
       request.response.close();

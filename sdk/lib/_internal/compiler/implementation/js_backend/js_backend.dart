@@ -21,6 +21,7 @@ import '../source_file.dart';
 import '../source_map_builder.dart';
 import '../ssa/ssa.dart' hide js; // TODO(ahe): VM bug, see above.
 import '../tree/tree.dart';
+import '../types/types.dart';
 import '../universe/universe.dart' hide js; // TODO(ahe): VM bug, see above.
 import '../util/characters.dart';
 import '../util/util.dart';
@@ -29,8 +30,7 @@ part 'backend.dart';
 part 'constant_emitter.dart';
 part 'constant_system_javascript.dart';
 part 'emitter.dart';
-// TODO(8522): Restore --disallow-unsafe-eval.
-// part 'emitter_no_eval.dart';
+part 'emitter_no_eval.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';

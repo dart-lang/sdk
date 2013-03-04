@@ -120,12 +120,7 @@ class _Composer extends _Visitor {
 
     match = new RegExp("^0o([0-7]+)\$").firstMatch(content);
     if (match != null) {
-      // TODO(nweiz): clean this up when Dart can parse an octal string
-      var n = 0;
-      for (var c in match.group(1).charCodes) {
-        n *= 8;
-        n += c - 48;
-      }
+      int n = int.parse(match.group(1), radix: 8);
       return new _ScalarNode(_Tag.yaml("int"), value: n);
     }
 
@@ -153,15 +148,13 @@ class _Composer extends _Visitor {
 
     match = new RegExp("^([+-]?)\.(inf|Inf|INF)\$").firstMatch(content);
     if (match != null) {
-      var infinityStr = match.group(1) == "-" ? "-Infinity" : "Infinity";
-      return new _ScalarNode(_Tag.yaml("float"),
-          value: double.parse(infinityStr));
+      var value = match.group(1) == "-" ? -double.INFINITY : double.INFINITY;
+      return new _ScalarNode(_Tag.yaml("float"), value: value);
     }
 
     match = new RegExp("^\.(nan|NaN|NAN)\$").firstMatch(content);
     if (match != null) {
-      return new _ScalarNode(_Tag.yaml("float"),
-          value: double.parse("NaN"));
+      return new _ScalarNode(_Tag.yaml("float"), value: double.NAN);
     }
 
     return null;

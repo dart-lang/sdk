@@ -101,7 +101,7 @@ class SocketClose {
           onError: (error) => errorHandler(socket));
 
       void writeHello() {
-        socket.add("Hello".charCodes);
+        socket.add("Hello".codeUnits);
       }
 
       _iterations++;
@@ -224,7 +224,7 @@ class SocketCloseServer {
     }
 
     void writeHello() {
-      connection.add("Hello".charCodes);
+      connection.add("Hello".codeUnits);
     }
 
     void dataHandler(bytes) {

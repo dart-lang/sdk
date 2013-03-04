@@ -6,6 +6,8 @@
 
 {
   'sources': [
+    'core_patch.dart',
+    # The above file needs to be first as it imports required libraries.
     'bool_patch.dart',
     'date.cc',
     'date_patch.dart',
@@ -41,6 +43,8 @@
     'regexp_jsc.cc',
     'regexp_jsc.h',
     'regexp_patch.dart',
+    'stacktrace.cc',
+    'stacktrace_patch.dart',
     'stopwatch_patch.dart',
     'stopwatch.cc',
     'string.cc',

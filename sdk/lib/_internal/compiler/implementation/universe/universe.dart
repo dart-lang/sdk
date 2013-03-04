@@ -8,6 +8,7 @@ import '../closure.dart';
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../types/types.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../js/js.dart' as js;
@@ -88,6 +89,41 @@ class Universe {
   bool hasFieldSetter(Element member, Compiler compiler) {
     return fieldSetters.contains(member);
   }
+
+  /**
+   * Compute type arguments of classes that use one of their type variables in
+   * is-checks and add the is-checks that they imply.
+   *
+   * This function must be called after all is-checks have been registered.
+   *
+   * TODO(karlklose): move these computations into a function producing an
+   * immutable datastructure.
+   */
+  void addImplicitChecks(Iterable<ClassElement> classesUsingChecks) {
+    // If there are no classes that use their variables in checks, there is
+    // nothing to do.
+    if (classesUsingChecks.isEmpty) return;
+    // Find all instantiated types that are a subtype of a class that uses
+    // one of its type arguments in an is-check and add the arguments to the
+    // set of is-checks.
+    // TODO(karlklose): replace this with code that uses a subtype lookup
+    // datastructure in the world.
+    for (DartType type in instantiatedTypes) {
+      if (type.kind != TypeKind.INTERFACE) continue;
+      InterfaceType classType = type;
+      for (ClassElement cls in classesUsingChecks) {
+        // We need the type as instance of its superclass anyway, so we just
+        // try to compute the substitution; if the result is [:null:], the
+        // classes are not related.
+        InterfaceType instance = classType.asInstanceOf(cls);
+        if (instance == null) continue;
+        Link<DartType> typeArguments = instance.typeArguments;
+        for (DartType argument in typeArguments) {
+          isChecks.add(argument);
+        }
+      }
+    }
+  }
 }
 
 class SelectorKind {
@@ -103,30 +139,6 @@ class SelectorKind {
   String toString() => name;
 }
 
-class TypedSelectorKind {
-  final String name;
-  const TypedSelectorKind(this.name);
-
-  /// Unknown type: used for untyped selector.
-  static const TypedSelectorKind UNKNOWN = const TypedSelectorKind('unknown');
-
-  // Exact type: the selector knows the exact type of the receiver.
-  // For example [:new Map():].
-  static const TypedSelectorKind EXACT = const TypedSelectorKind('exact');
-
-  // Subclass type: the receiver type is in a subclass hierarchy.
-  // For example [:this:].
-  static const TypedSelectorKind SUBCLASS = const TypedSelectorKind('subclass');
-
-  // Interface type: any type that implements the receiver type.
-  // For example [(foo as Foo).bar()], or any type annotation in
-  // checked mode.
-  static const TypedSelectorKind INTERFACE =
-      const TypedSelectorKind('interface');
-
-  String toString() => name;
-}
-
 class Selector {
   final SelectorKind kind;
   final SourceString name;
@@ -136,7 +148,6 @@ class Selector {
   final int argumentCount;
   final List<SourceString> namedArguments;
   final List<SourceString> orderedNamedArguments;
-  TypedSelectorKind get typeKind => TypedSelectorKind.UNKNOWN;
 
   Selector(
       this.kind,
@@ -233,8 +244,9 @@ class Selector {
   int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
-  DartType get receiverType => null;
 
+  bool get hasExactMask => false;
+  TypeMask get mask => null;
   Selector get asUntyped => this;
 
   /**
@@ -268,7 +280,11 @@ class Selector {
     if (element.isForeign(compiler)) return true;
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
-    if (element.isField()) return isGetter() || isSetter() || isCall();
+    if (element.isField()) {
+      return isSetter()
+          ? !element.modifiers.isFinalOrConst()
+          : isGetter() || isCall();
+    }
     if (isGetter()) return true;
     if (isSetter()) return false;
 
@@ -386,14 +402,12 @@ class Selector {
 
   bool operator ==(other) {
     if (other is !Selector) return false;
-    return identical(receiverType, other.receiverType)
-        && equalsUntyped(other);
+    return mask == other.mask && equalsUntyped(other);
   }
 
   bool equalsUntyped(Selector other) {
     return name == other.name
            && kind == other.kind
-           && typeKind == other.typeKind
            && identical(library, other.library)
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
@@ -427,22 +441,17 @@ class Selector {
     String named = '';
     String type = '';
     if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
-    if (receiverType != null) type = ', type=$typeKind $receiverType';
+    if (mask != null) type = ', mask=$mask';
     return 'Selector($kind, ${name.slowToString()}, '
            'arity=$argumentCount$named$type)';
   }
 }
 
 class TypedSelector extends Selector {
-  /**
-   * The type of the receiver.
-   */
-  final DartType receiverType;
-  final TypedSelectorKind typeKind;
-
   final Selector asUntyped;
+  final TypeMask mask;
 
-  TypedSelector(DartType this.receiverType, this.typeKind, Selector selector)
+  TypedSelector(this.mask, Selector selector)
       : asUntyped = selector.asUntyped,
         super(selector.kind,
               selector.name,
@@ -450,43 +459,27 @@ class TypedSelector extends Selector {
               selector.argumentCount,
               selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
-    assert(!identical(receiverType.kind, TypeKind.MALFORMED_TYPE));
-    assert(asUntyped.receiverType == null);
-    assert(typeKind != TypedSelectorKind.UNKNOWN);
+    assert(!identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
+    assert(asUntyped.mask == null);
   }
 
-  TypedSelector.subclass(DartType receiverType, Selector selector)
-      : this(receiverType, TypedSelectorKind.SUBCLASS, selector);
+  TypedSelector.exact(DartType base, Selector selector)
+      : this(new TypeMask.exact(base), selector);
 
-  TypedSelector.exact(DartType receiverType, Selector selector)
-      : this(receiverType, TypedSelectorKind.EXACT, selector);
+  TypedSelector.subclass(DartType base, Selector selector)
+      : this(new TypeMask.subclass(base), selector);
 
-  TypedSelector.subtype(DartType receiverType, Selector selector)
-      : this(receiverType, TypedSelectorKind.INTERFACE, selector);
+  TypedSelector.subtype(DartType base, Selector selector)
+      : this(new TypeMask.subtype(base), selector);
+
+  bool get hasExactMask => mask.isExact;
 
   /**
    * Check if [element] will be the one used at runtime when being
    * invoked on an instance of [cls].
    */
   bool hasElementIn(ClassElement cls, Element element) {
-    // Use the selector for the lookup instead of [:element.name:]
-    // because the selector has the right privacy information.
-    Element resolved = cls.lookupSelector(this);
-    if (resolved == element) return true;
-    if (resolved == null) return false;
-    if (resolved.isAbstractField()) {
-      AbstractFieldElement field = resolved;
-      if (element == field.getter || element == field.setter) {
-        return true;
-      } else {
-        // We have not found a match, but another class higher in the
-        // hierarchy may define the getter or the setter.
-        ClassElement otherCls = field.getEnclosingClass().superclass;
-        if (otherCls == null) return false;
-        return hasElementIn(otherCls, element);
-      }
-    }
-    return false;
+    return cls.lookupSelector(this) == element;
   }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
@@ -505,26 +498,28 @@ class TypedSelector extends Selector {
       return appliesUntyped(element, compiler);
     }
 
-    Element self = receiverType.element;
+    // TODO(kasperl): Can't we just avoid creating typed selectors
+    // based of function types?
+    Element self = mask.base.element;
     if (self.isTypedef()) {
       // A typedef is a function type that doesn't have any
       // user-defined members.
       return false;
     }
 
-    if (typeKind == TypedSelectorKind.EXACT) {
+    if (mask.isExact) {
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
-    } else if (typeKind == TypedSelectorKind.SUBCLASS) {
+    } else if (mask.isSubclass) {
       return (hasElementIn(self, element)
               || other.isSubclassOf(self)
               || compiler.world.hasAnySubclassThatMixes(self, other))
           && appliesUntyped(element, compiler);
     } else {
-      assert(typeKind == TypedSelectorKind.INTERFACE);
+      assert(mask.isSubtype);
       if (other.implementsInterface(self)
           || other.isSubclassOf(self)
           || compiler.world.hasAnySubclassThatMixes(self, other)
-          || compiler.world.hasAnySubclassThatImplements(other, receiverType)) {
+          || compiler.world.hasAnySubclassThatImplements(other, mask.base)) {
         return appliesUntyped(element, compiler);
       }
 
@@ -534,10 +529,9 @@ class TypedSelector extends Selector {
       if (cls.isSubclassOf(other)) {
         // Resolve an invocation of [element.name] on [self]. If it
         // is found, this selector is a candidate.
-        return hasElementIn(self, element) && appliesUntyped(element, compiler);
+        return hasElementIn(cls, element) && appliesUntyped(element, compiler);
       }
     }
-
     return false;
   }
 }

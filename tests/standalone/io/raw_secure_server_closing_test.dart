@@ -99,7 +99,7 @@ testPauseServerSocket() {
         connection.shutdown(SocketDirection.SEND);
       });
     }
-    new Timer(500, (_) {
+    new Timer(const Duration(milliseconds: 500), () {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {

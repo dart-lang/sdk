@@ -98,11 +98,18 @@ abstract class Backend {
           [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
       : this.constantSystem = constantSystem;
 
+  void initializeHelperClasses() {}
+
   void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
     lib.forEachExport((Element e) {
       if (e.isFunction()) world.addToWorkList(e);
     });
   }
+
+  // TODO(karlklose): get rid of this and add a factory constructor to [List]
+  // that creates an instance of JSArray to make the dependency visible in from
+  // the source code.
+  void addBackendRtiDependencies(World world);
 
   void enqueueHelpers(ResolutionEnqueuer world);
   void codegen(CodegenWorkItem work);
@@ -368,6 +375,7 @@ abstract class Compiler implements DiagnosticListener {
       closureNamer = jsBackend.namer;
       backend = jsBackend;
     } else {
+      closureNamer = new closureMapping.ClosureNamer();
       backend = new dart_backend.DartBackend(this, strips);
     }
 
@@ -566,6 +574,7 @@ abstract class Compiler implements DiagnosticListener {
     }
 
     types = new Types(this, dynamicClass);
+    backend.initializeHelperClasses();
   }
 
   void scanBuiltinLibraries() {

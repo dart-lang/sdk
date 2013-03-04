@@ -197,19 +197,14 @@ void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
     }
     // If the call has uses, create a phi of the returns.
     if (call->HasUses()) {
-      // Environment count: length before call - argument count (+ return)
-      intptr_t env_count = call->env()->Length() - call->ArgumentCount();
       // Add a phi of the return values.
-      join->InsertPhi(env_count, env_count + 1);
-      PhiInstr* phi = join->phis()->Last();
+      PhiInstr* phi = new PhiInstr(join, num_exits);
       phi->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
-        Value* value = ValueAt(i);
-        phi->SetInputAt(i, value);
-        value->set_instruction(phi);
-        value->set_use_index(i);
+        phi->SetInputAt(i, ValueAt(i));
       }
+      join->InsertPhi(phi);
       // Replace uses of the call with the phi.
       call->ReplaceUsesWith(phi);
     } else {
@@ -1686,7 +1681,10 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     node->ElementAt(i)->Visit(&for_value);
     Append(for_value);
     // No store barrier needed for constants.
-    const bool emit_store_barrier = !for_value.value()->BindsToConstant();
+    const StoreBarrierType emit_store_barrier =
+        for_value.value()->BindsToConstant()
+            ? kNoStoreBarrier
+            : kEmitStoreBarrier;
     StoreIndexedInstr* store = new StoreIndexedInstr(
         array, index, for_value.value(),
         emit_store_barrier, class_id, deopt_id);
@@ -1978,22 +1976,40 @@ void EffectGraphVisitor::BuildConstructorCall(
 }
 
 
-static bool IsRecognizedConstructor(const Function& function,
-                                    const String& expected) {
-  const Class& clazz = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(clazz.library());
+// List of recognized factories in core lib (factories with known result-cid):
+// (factory-name-symbol, result-cid, fingerprint).
+#define RECOGNIZED_FACTORY_LIST(V)                                             \
+  V(ObjectArrayDot, kArrayCid, 97987288)                                       \
+  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
+  V(GrowableObjectArrayDot, kGrowableObjectArrayCid, 1896741574)               \
 
-  const String& expected_class_name =
-      String::Handle(lib.PrivateName(expected));
-  if (!String::Handle(clazz.Name()).Equals(expected_class_name)) {
-    return false;
+
+// Class that recognizes factories and returns corresponding result cid.
+class FactoryRecognizer : public AllStatic {
+ public:
+  // Return kDynamicCid if factory is not recognized.
+  static intptr_t ResultCid(const Function& factory) {
+    ASSERT(factory.IsFactory());
+    const Class& function_class = Class::Handle(factory.Owner());
+    const Library& lib = Library::Handle(function_class.library());
+    if (lib.raw() != Library::CoreLibrary()) {
+      // Only core library factories recognized.
+      return kDynamicCid;
+    }
+    const String& factory_name = String::Handle(factory.name());
+#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
+    if (String::EqualsIgnoringPrivateKey(                                      \
+        factory_name, Symbols::test_factory_symbol())) {                       \
+      ASSERT(factory.CheckSourceFingerprint(fp));                              \
+      return cid;                                                              \
+    }                                                                          \
+
+RECOGNIZED_FACTORY_LIST(RECOGNIZE_FACTORY);
+#undef RECOGNIZE_FACTORY
+
+    return kDynamicCid;
   }
-
-  const String& function_name = String::Handle(function.name());
-  const String& expected_function_name = String::Handle(
-      String::Concat(expected_class_name, Symbols::Dot()));
-  return function_name.Equals(expected_function_name);
-}
+};
 
 
 static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
@@ -2008,20 +2024,13 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     if ((function_class.Name() == Symbols::List().raw()) &&
         (function.name() == Symbols::ListFactory().raw())) {
-      return kGrowableObjectArrayCid;
-    } else if ((function_class.Name() == Symbols::List().raw()) &&
-               (function.name() == Symbols::ListFixedLengthFactory().raw())) {
-      return kArrayCid;
-    } else {
-      if (IsRecognizedConstructor(function, Symbols::ObjectArray()) &&
-          (node->arguments()->length() == 1)) {
-        return kArrayCid;
-      } else if (IsRecognizedConstructor(function,
-                                         Symbols::GrowableObjectArray()) &&
-                 (node->arguments()->length() == 0)) {
+      // Special recognition of 'new List()' vs 'new List(n)'.
+      if (node->arguments()->length() == 0) {
         return kGrowableObjectArrayCid;
       }
+      return kArrayCid;
     }
+    return FactoryRecognizer::ResultCid(function);
   }
   return kDynamicCid;   // Result cid not known.
 }
@@ -2569,7 +2578,6 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        type,
                                        dst_name);
   }
-  const bool kEmitStoreBarrier = true;
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       node->field(), for_instance.value(), store_value, kEmitStoreBarrier);
   ReturnDefinition(store);

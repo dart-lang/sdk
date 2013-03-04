@@ -215,6 +215,9 @@ class MessageKind {
   static const ILLEGAL_SUPER_SEND = const MessageKind(
       "#{name} cannot be called on super");
 
+  static const NO_SUCH_SUPER_MEMBER = const MessageKind(
+      "Cannot resolve #{memberName} in a superclass of #{className}");
+
   static const ADDITIONAL_TYPE_ARGUMENT = const MessageKind(
       "additional type argument");
 
@@ -337,6 +340,9 @@ class MessageKind {
 
   static const CANNOT_RESOLVE_SETTER = const MessageKind(
       'cannot resolve setter.');
+
+  static const CANNOT_RESOLVE_INDEX = const MessageKind(
+      'cannot resolve [] member.');
 
   static const VOID_NOT_ALLOWED = const MessageKind(
       'type void is only allowed in a return type.');

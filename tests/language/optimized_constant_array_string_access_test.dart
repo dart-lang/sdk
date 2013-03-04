@@ -4,10 +4,10 @@
 
 // Test optimized constant string and constant array access.
 
-int testConstantStringAndIndexCharCodeAt() {
+int testConstantStringAndIndexCodeUnitAt() {
   int test(b) {
-    if (b) return "hest".charCodeAt(400);
-    return "hest".charCodeAt(2);
+    if (b) return "hest".codeUnitAt(400);
+    return "hest".codeUnitAt(2);
   }
 
   Expect.throws(() => test(true));
@@ -43,7 +43,7 @@ int testNonSmiIndex() {
 
 
 main() {
-  testConstantStringAndIndexCharCodeAt();
+  testConstantStringAndIndexCodeUnitAt();
   testConstantArrayAndIndexAt();
   testNonSmiIndex();
 }

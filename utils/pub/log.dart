@@ -117,22 +117,22 @@ void process(String executable, List<String> arguments) {
 void processResult(String executable, PubProcessResult result) {
   // Log it all as one message so that it shows up as a single unit in the logs.
   var buffer = new StringBuffer();
-  buffer.add("Finished $executable. Exit code ${result.exitCode}.");
+  buffer.write("Finished $executable. Exit code ${result.exitCode}.");
 
   dumpOutput(String name, List<String> output) {
     if (output.length == 0) {
-      buffer.add("Nothing output on $name.");
+      buffer.write("Nothing output on $name.");
     } else {
-      buffer.add("$name:");
+      buffer.write("$name:");
       var numLines = 0;
       for (var line in output) {
         if (++numLines > 1000) {
-          buffer.add('[${output.length - 1000}] more lines of output '
-                     'truncated...]');
+          buffer.write('[${output.length - 1000}] more lines of output '
+              'truncated...]');
           break;
         }
 
-        buffer.add(line);
+        buffer.write(line);
       }
     }
   }
@@ -153,11 +153,11 @@ void recordTranscript() {
 void dumpTranscript() {
   if (_transcript == null) return;
 
-  stderrSink.add('---- Log transcript ----\n'.charCodes);
+  stderrSink.add('---- Log transcript ----\n'.codeUnits);
   for (var entry in _transcript) {
     _logToStderrWithLabel(entry);
   }
-  stderrSink.add('---- End log transcript ----\n'.charCodes);
+  stderrSink.add('---- End log transcript ----\n'.codeUnits);
 }
 
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
@@ -213,15 +213,15 @@ void _logToStream(StreamSink<List<int>> sink, Entry entry, {bool showLabel}) {
   for (var line in entry.lines) {
     if (showLabel) {
       if (firstLine) {
-        sink.add(entry.level.name.charCodes);
-        sink.add(': '.charCodes);
+        sink.add(entry.level.name.codeUnits);
+        sink.add(': '.codeUnits);
       } else {
-        sink.add('    | '.charCodes);
+        sink.add('    | '.codeUnits);
       }
     }
 
-    sink.add(line.charCodes);
-    sink.add('\n'.charCodes);
+    sink.add(line.codeUnits);
+    sink.add('\n'.codeUnits);
 
     firstLine = false;
   }

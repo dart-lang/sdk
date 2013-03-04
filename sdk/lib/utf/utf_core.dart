@@ -9,9 +9,9 @@ part of dart.utf;
  * Provide a list of Unicode codepoints for a given string.
  */
 List<int> stringToCodepoints(String str) {
-  // Note: str.charCodes gives us 16-bit code units on all Dart implementations.
+  // Note: str.codeUnits gives us 16-bit code units on all Dart implementations.
   // So we need to convert.
-  return _utf16CodeUnitsToCodepoints(str.charCodes);
+  return _utf16CodeUnitsToCodepoints(str.codeUnits);
 }
 
 /**
@@ -64,7 +64,7 @@ List<int> _codepointsToUtf16CodeUnits(
     }
   }
 
-  List<int> codeUnitsBuffer = new List<int>.fixedLength(encodedLength);
+  List<int> codeUnitsBuffer = new List<int>(encodedLength);
   int j = 0;
   for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
@@ -96,7 +96,7 @@ List<int> _utf16CodeUnitsToCodepoints(
       (new _ListRange(utf16CodeUnits, offset, length)).iterator;
   Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
       .fromListRangeIterator(source, replacementCodepoint);
-  List<int> codepoints = new List<int>.fixedLength(source.remaining);
+  List<int> codepoints = new List<int>(source.remaining);
   int i = 0;
   while (decoder.moveNext()) {
     codepoints[i++] = decoder.current;
@@ -104,7 +104,7 @@ List<int> _utf16CodeUnitsToCodepoints(
   if (i == codepoints.length) {
     return codepoints;
   } else {
-    List<int> codepointTrunc = new List<int>.fixedLength(i);
+    List<int> codepointTrunc = new List<int>(i);
     codepointTrunc.setRange(0, i, codepoints);
     return codepointTrunc;
   }

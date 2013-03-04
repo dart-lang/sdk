@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -68,6 +68,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
 
 void testBody(int totalConnections, bool useHeader) {
   HttpServer.bind("127.0.0.1", 0, totalConnections).then((server) {
+    int serverCount = 0;
     server.listen(
         (HttpRequest request) {
           Expect.equals("2", request.headers.value('content-length'));
@@ -91,7 +92,10 @@ void testBody(int totalConnections, bool useHeader) {
                       Expect.fail("Unexpected successful response completion");
                     })
                     .catchError((e) {
-                      Expect.isTrue(e.error is HttpException);
+                      Expect.isTrue(e.error is HttpException, "[$e]");
+                      if (++serverCount == totalConnections) {
+                        server.close();
+                      }
                     });
                 response.close();
                 Expect.throws(() => response.addString("x"),
@@ -100,7 +104,7 @@ void testBody(int totalConnections, bool useHeader) {
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
 
-    int count = 0;
+    int clientCount = 0;
     HttpClient client = new HttpClient();
     for (int i = 0; i < totalConnections; i++) {
       client.get("127.0.0.1", server.port, "/")
@@ -123,9 +127,8 @@ void testBody(int totalConnections, bool useHeader) {
             response.listen(
                 (d) {},
                 onDone: () {
-                  if (++count == totalConnections) {
+                  if (++clientCount == totalConnections) {
                     client.close();
-                    server.close();
                   }
                 });
           });
@@ -199,35 +202,31 @@ void testBodyChunked(int totalConnections, bool useHeader) {
   });
 }
 
-void testHttp10() {
-  HttpServer.bind("127.0.0.1", 0, 5).then((server) {
+void testSetContentLength() {
+  HttpServer.bind().then((server) {
     server.listen(
         (HttpRequest request) {
-          Expect.isNull(request.headers.value('content-length'));
-          Expect.equals(-1, request.contentLength);
           var response = request.response;
-          response.contentLength = 0;
-          Expect.equals("1.0", request.protocolVersion);
-          response.done
-              .then((_) => Expect.fail("Unexpected response completion"))
-              .catchError((e) => Expect.isTrue(e.error is HttpException));
-          response.addString("x");
+          Expect.isNull(response.headers.value('content-length'));
+          Expect.equals(-1, response.contentLength);
+          response.headers.set("content-length", 3);
+          Expect.equals("3", response.headers.value('content-length'));
+          Expect.equals(3, response.contentLength);
+          response.addString("xxx");
           response.close();
-          Expect.throws(() => response.addString("x"),
-                        (e) => e is StateError);
-        },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        });
 
-    Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.addString("GET / HTTP/1.0\r\n\r\n");
-      socket.close();
-      socket.listen(
-          (d) { },
-          onDone: () {
-            socket.destroy();
-            server.close();
-          });
-    });
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+        .then((request) => request.close())
+        .then((response) {
+          response.listen(
+              (_) { },
+              onDone: () {
+                client.close();
+                server.close();
+              });
+        });
   });
 }
 
@@ -238,5 +237,5 @@ void main() {
   testBody(5, true);
   testBodyChunked(5, false);
   testBodyChunked(5, true);
-  testHttp10();
+  testSetContentLength();
 }

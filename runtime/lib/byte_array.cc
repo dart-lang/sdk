@@ -251,6 +251,16 @@ DEFINE_NATIVE_ENTRY(ByteArray_setUint64, 3) {
 }
 
 
+DEFINE_NATIVE_ENTRY(ByteArray_getFloat32x4, 2) {
+  UNALIGNED_GETTER(ByteArray, Float32x4, simd_value_t);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteArray_setFloat32x4, 3) {
+  UNALIGNED_SETTER(ByteArray, Float32x4, value, simd_value_t);
+}
+
+
 DEFINE_NATIVE_ENTRY(ByteArray_getFloat32, 2) {
   UNALIGNED_GETTER(ByteArray, Double, float);
 }
@@ -596,6 +606,38 @@ DEFINE_NATIVE_ENTRY(Uint64Array_setIndexed, 3) {
   SETTER_UINT64(Uint64Array);
 }
 
+// Float32x4Array
+
+DEFINE_NATIVE_ENTRY(Float32x4Array_new, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Float32x4Array::kMaxElements);
+  return Float32x4Array::New(len);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4List_newTransferable, 1) {
+  const int kAlignment = 16;
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
+  intptr_t len = length.Value();
+  LengthCheck(len, Float32x4Array::kMaxElements);
+  simd_value_t* bytes = OS::AllocateAlignedArray<simd_value_t>(len, kAlignment);
+  const ExternalFloat32x4Array& obj =
+      ExternalFloat32x4Array::Handle(ExternalFloat32x4Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4Array_getIndexed, 2) {
+  GETTER(Float32x4Array, Float32x4, simd_value_t);
+}
+
+
+DEFINE_NATIVE_ENTRY(Float32x4Array_setIndexed, 3) {
+  SETTER(Float32x4Array, Float32x4, value, simd_value_t);
+}
+
 
 // Float32Array
 
@@ -768,6 +810,18 @@ DEFINE_NATIVE_ENTRY(ExternalUint64Array_getIndexed, 2) {
 
 DEFINE_NATIVE_ENTRY(ExternalUint64Array_setIndexed, 3) {
   SETTER_UINT64(ExternalUint64Array);
+}
+
+
+// ExternalFloat32x4Array
+
+DEFINE_NATIVE_ENTRY(ExternalFloat32x4Array_getIndexed, 2) {
+  GETTER(ExternalFloat32x4Array, Float32x4, simd_value_t);
+}
+
+
+DEFINE_NATIVE_ENTRY(ExternalFloat32x4Array_setIndexed, 3) {
+  SETTER(ExternalFloat32x4Array, Float32x4, value, simd_value_t);
 }
 
 

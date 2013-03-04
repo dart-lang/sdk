@@ -276,15 +276,14 @@ class WebDriverBase {
           results  = sbuf.toString().trim();
           // For some reason we get a bunch of NULs on the end
           // of the text and the json.parse blows up on these, so
-          // strip them. We have to do this the hard way as
-          // replaceAll('\0', '') does not work.
+          // strip them.
           // These NULs can be seen in the TCP packet, so it is not
           // an issue with character encoding; it seems to be a bug
           // in WebDriver stack.
           for (var i = results.length; --i >= 0;) {
-            var code = results.charCodeAt(i);
+            var code = results.codeUnitAt(i);
             if (code != 0) {
-              results = results.substring(0, i+1);
+              results = results.substring(0, i + 1);
               break;
             }
           }

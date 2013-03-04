@@ -57,7 +57,7 @@ class EarlyCloseTest {
 
     List<int> d;
     if (data is List<int>) d = data;
-    if (data is String) d = data.charCodes;
+    if (data is String) d = data.codeUnits;
     if (d == null) Expect.fail("Invalid data");
     sendData(d, server.port);
 
@@ -116,7 +116,7 @@ testEarlyClose2() {
     var count = 0;
     makeRequest() {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-        var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n".charCodes;
+        var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n".codeUnits;
         socket.add(data);
         socket.close();
         socket.done.then((_) {

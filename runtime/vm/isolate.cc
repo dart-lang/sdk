@@ -191,8 +191,8 @@ bool IsolateMessageHandler::UnhandledExceptionCallbackHandler(
   const Array& callback_args = Array::Handle(Array::New(1));
   callback_args.SetAt(0, exception);
   const Object& result =
-      Object::Handle(DartEntry::InvokeStatic(Function::Cast(function),
-                                             callback_args));
+      Object::Handle(DartEntry::InvokeFunction(Function::Cast(function),
+                                               callback_args));
   if (result.IsError()) {
     const Error& err = Error::Cast(result);
     OS::PrintErr("failed calling unhandled exception callback: %s\n",
@@ -388,6 +388,13 @@ uword Isolate::GetSpecifiedStackSize() {
 
 
 void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
+#ifdef USING_SIMULATOR
+  // Ignore passed-in native stack top and use Simulator stack top.
+  Simulator* sim = Simulator::Current();  // May allocate a simulator.
+  ASSERT(simulator() == sim);  // This isolate's simulator is the current one.
+  stack_top_value = sim->StackTop();
+  // The overflow area is accounted for by the simulator.
+#endif
   SetStackLimit(stack_top_value - GetSpecifiedStackSize());
 }
 
@@ -625,6 +632,63 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
   if (api_state() != NULL) {
     api_state()->VisitWeakHandles(visitor, visit_prologue_weak_handles);
   }
+}
+
+
+char* Isolate::GetStatus(const char* request) {
+  char* p = const_cast<char*>(request);
+  const char* service_type = "/isolate/";
+  ASSERT(strncmp(p, service_type, strlen(service_type)) == 0);
+  p += strlen(service_type);
+
+  // Extract isolate handle.
+  int64_t addr;
+  OS::StringToInt64(p, &addr);
+  Isolate* isolate = reinterpret_cast<Isolate*>(addr);
+  Heap* heap = isolate->heap();
+
+  char buffer[256];
+  int64_t port = isolate->main_port();
+  int64_t start_time = (isolate->start_time() / 1000L);
+#if defined(TARGET_ARCH_X64)
+  const char* format = "{\n"
+      "  \"name\": \"%s\",\n"
+      "  \"port\": %ld,\n"
+      "  \"starttime\": %ld,\n"
+      "  \"stacklimit\": %ld,\n"
+      "  \"newspace\": {\n"
+      "    \"used\": %ld,\n"
+      "    \"capacity\": %ld\n"
+      "  },\n"
+      "  \"oldspace\": {\n"
+      "    \"used\": %ld,\n"
+      "    \"capacity\": %ld\n"
+      "  }\n"
+      "}";
+#else
+  const char* format = "{\n"
+      "  \"name\": \"%s\",\n"
+      "  \"port\": %lld,\n"
+      "  \"starttime\": %lld,\n"
+      "  \"stacklimit\": %d,\n"
+      "  \"newspace\": {\n"
+      "    \"used\": %d,\n"
+      "    \"capacity\": %d\n"
+      "  },\n"
+      "  \"oldspace\": {\n"
+      "    \"used\": %d,\n"
+      "    \"capacity\": %d\n"
+      "  }\n"
+      "}";
+#endif
+  int n = OS::SNPrint(buffer, 256, format, isolate->name(), port, start_time,
+                      isolate->saved_stack_limit(),
+                      heap->Used(Heap::kNew) / KB,
+                      heap->Capacity(Heap::kNew) / KB,
+                      heap->Used(Heap::kOld) / KB,
+                      heap->Capacity(Heap::kOld) / KB);
+  ASSERT(n < 256);
+  return strdup(buffer);
 }
 
 }  // namespace dart

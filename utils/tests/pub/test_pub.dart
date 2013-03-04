@@ -18,7 +18,7 @@ import 'dart:utf';
 
 import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
-import '../../../pkg/path/lib/path.dart' as path;
+import '../../../pkg/pathos/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/yaml/lib/yaml.dart';
 import '../../lib/file_system.dart' as fs;
@@ -430,7 +430,7 @@ String _packageName(String sourceName, description) {
   case "git":
     var url = description is String ? description : description['url'];
     // TODO(rnystrom): Using path.basename on a URL is hacky. If we add URL
-    // support to pkg/path, should use an explicit builder for that.
+    // support to pkg/pathos, should use an explicit builder for that.
     return path.basename(url.replaceFirst(new RegExp(r"(\.git)?/?$"), ""));
   case "hosted":
     if (description is String) return description;
@@ -559,6 +559,16 @@ void scheduleRename(String from, String to) {
   });
 }
 
+
+/// Schedules creating a symlink at path [symlink] that points to [target],
+/// both of which are assumed to be relative to [sandboxDir].
+void scheduleSymlink(String target, String symlink) {
+  _schedule((sandboxDir) {
+    return createSymlink(path.join(sandboxDir, target),
+        path.join(sandboxDir, symlink));
+  });
+}
+
 /// Schedules a call to the Pub command-line utility. Runs Pub with [args] and
 /// validates that its results match [output], [error], and [exitCode].
 void schedulePub({List args, Pattern output, Pattern error,
@@ -582,7 +592,7 @@ void schedulePub({List args, Pattern output, Pattern error,
           failures.addAll(result.stderr.map((line) => '| $line'));
         }
 
-        throw new ExpectException(failures.join('\n'));
+        throw new TestFailure(failures.join('\n'));
       }
 
       return null;
@@ -859,7 +869,7 @@ abstract class Descriptor {
       var entry = path.join(dir, name);
       return defer(() {
         if (!entryExists(entry)) {
-          throw new ExpectException('Entry $entry not found.');
+          throw new TestFailure('Entry $entry not found.');
         }
         return validate(entry);
       });
@@ -876,7 +886,7 @@ abstract class Descriptor {
     return listDir(dir).then((files) {
       var matches = files.where((file) => endsWithPattern(file, name)).toList();
       if (matches.isEmpty) {
-        throw new ExpectException('No files in $dir match pattern $name.');
+        throw new TestFailure('No files in $dir match pattern $name.');
       }
       if (matches.length == 1) return validate(matches[0]);
 
@@ -891,12 +901,12 @@ abstract class Descriptor {
         }
 
         var error = new StringBuffer();
-        error.add("No files named $name in $dir were valid:\n");
+        error.write("No files named $name in $dir were valid:\n");
         for (var failure in failures) {
-          error.add("  $failure\n");
+          error.write("  $failure\n");
         }
         completer.completeError(
-            new ExpectException(error.toString()), stackTrace);
+            new TestFailure(error.toString()), stackTrace);
       }
 
       for (var match in matches) {
@@ -943,7 +953,7 @@ class FileDescriptor extends Descriptor {
       var text = readTextFile(file);
       if (text == textContents) return null;
 
-      throw new ExpectException(
+      throw new TestFailure(
           'File $file should contain:\n\n$textContents\n\n'
           'but contained:\n\n$text');
     });
@@ -1173,7 +1183,7 @@ class NothingDescriptor extends Descriptor {
   Future validate(String dir) {
     return defer(() {
       if (entryExists(path.join(dir, name))) {
-        throw new ExpectException('File $name in $dir should not exist.');
+        throw new TestFailure('File $name in $dir should not exist.');
       }
     });
   }
@@ -1305,10 +1315,9 @@ class ScheduledProcess {
       _process = p;
 
       byteStreamToLines(stream) {
-        var handledErrors = wrapStream(stream.handleError((e) {
+        return streamToLines(new ByteStream(stream.handleError((e) {
           registerException(e.error, e.stackTrace);
-        }));
-        return streamToLines(new ByteStream(handledErrors).toStringStream());
+        })).toStringStream());
       }
 
       var stdoutTee = tee(byteStreamToLines(p.stdout));
@@ -1350,7 +1359,7 @@ class ScheduledProcess {
 
           return _printStreams();
         }).then((_) {
-          registerException(new ExpectException("Process $name ended "
+          registerException(new TestFailure("Process $name ended "
               "earlier than scheduled with exit code $exitCode"));
         });
       }).catchError((e) => registerException(e.error, e.stackTrace));
@@ -1430,7 +1439,7 @@ class ScheduledProcess {
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
     _schedule((_) => _processFuture.then(
-        (p) => p.stdin.add('$line\n'.charCodes)));
+        (p) => p.stdin.add('$line\n'.codeUnits)));
   }
 
   /// Kills the process, and waits until it's dead.

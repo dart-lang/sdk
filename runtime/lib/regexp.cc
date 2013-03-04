@@ -54,12 +54,12 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
     return regexp.num_bracket_expressions();
   }
   const String& pattern = String::Handle(regexp.pattern());
-  const String& errmsg =
-      String::Handle(String::New("Regular expression is not initialized yet"));
-  const Array& args = Array::Handle(Array::New(2));
-  args.SetAt(0, pattern);
-  args.SetAt(1, errmsg);
-  Exceptions::ThrowByType(Exceptions::kIllegalJSRegExp, args);
+  const String& errmsg = String::Handle(
+      String::New("Regular expression is not initialized yet. "));
+  const String& message = String::Handle(String::Concat(errmsg, pattern));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
   return Object::null();
 }
 

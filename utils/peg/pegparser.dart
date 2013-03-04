@@ -62,14 +62,14 @@ _Rule CHAR([characters]) {
 
   // Find the range of character codes and construct an array of flags for codes
   // within the range.
-  List<int> codes = characters.charCodes;
+  List<int> codes = characters.codeUnits;
   codes.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   int lo = codes[0];
   int hi = codes[codes.length - 1];
   if (lo == hi)
     return CHARCODE(lo);
   int len = hi - lo + 1;
-  var flags = new List<bool>.fixedLength(len);
+  var flags = new List<bool>(len);
   for (int i = 0; i < len; ++i)
     flags[i] = false;
   for (int code in codes)
@@ -452,7 +452,7 @@ class _CharCodeRule extends _Rule {
   _match(_ParserState state, int pos) {
     if (pos == state._end)
       return null;
-    int code = state._text.charCodeAt(pos);
+    int code = state._text.codeUnitAt(pos);
     if (_predicate(code))
       return [pos + 1, null];
     return null;
@@ -511,7 +511,7 @@ class _StringRule extends _Rule implements _Expectable {
     if (pos + _len > state._end)
       return null;
     for (int i = 0; i < _len; i++) {
-      if (state._text.charCodeAt(pos + i) != _string.charCodeAt(i))
+      if (state._text.codeUnitAt(pos + i) != _string.codeUnitAt(i))
         return null;
     }
     return [pos + _len, null];

@@ -16,7 +16,7 @@ main() {
       for (int i = 0; i < M; ++i) {
         // This memory should be freed when the listener below is
         // collected.
-        List l = new List.fixedLength(N);
+        List l = new List(N);
 
         // Record the iteration number.
         l[N - 1] = i;
@@ -53,7 +53,7 @@ main() {
 }
 
 void triggerMajorGC() {
-  List list = new List.fixedLength(1000000);
+  List list = new List(1000000);
   Element div = new DivElement();
   div.onClick.listen((e) => print(list[0]));
 }

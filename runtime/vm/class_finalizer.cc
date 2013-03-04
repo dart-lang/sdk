@@ -771,11 +771,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Self referencing types may get finalized indirectly.
   if (!parameterized_type.IsFinalized()) {
     // Mark the type as finalized.
-    if (parameterized_type.IsInstantiated()) {
-      parameterized_type.set_is_finalized_instantiated();
-    } else {
-      parameterized_type.set_is_finalized_uninstantiated();
-    }
+    parameterized_type.SetIsFinalized();
   }
 
   // Upper bounds of the finalized type arguments are only verified in checked
@@ -1121,6 +1117,31 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
                 class_name.ToCString());
   }
 
+  // Copy the type parameters of the mixin class to the mixin
+  // application class.
+  const int num_type_parameters = mixin_cls.NumTypeParameters();
+  if (num_type_parameters > 0) {
+    ASSERT(cls.NumTypeParameters() == 0);
+    const TypeArguments& type_params =
+        TypeArguments::Handle(mixin_cls.type_parameters());
+    const TypeArguments& cloned_type_params =
+        TypeArguments::Handle(TypeArguments::New(num_type_parameters));
+    ASSERT(!type_params.IsNull());
+    TypeParameter& param = TypeParameter::Handle();
+    TypeParameter& cloned_param = TypeParameter::Handle();
+    String& param_name = String::Handle();
+    AbstractType& param_bound = AbstractType::Handle();
+    for (int i = 0; i < num_type_parameters; i++) {
+      param ^= type_params.TypeAt(i);
+      param_name = param.name();
+      param_bound = param.bound();
+      cloned_param = TypeParameter::New(
+          cls, i, param_name, param_bound, param.token_pos());
+      cloned_type_params.SetTypeAt(i, cloned_param);
+    }
+    cls.set_type_parameters(cloned_type_params);
+  }
+
   const GrowableObjectArray& cloned_funcs =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   Array& functions = Array::Handle();
@@ -1194,6 +1215,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (!super_class.IsNull()) {
     FinalizeClass(super_class);
   }
+  if (cls.mixin() != Type::null()) {
+    // Copy instance methods and fields from the mixin class.
+    // This has to happen before the check whether the methods of
+    // the class conflict with inherited methods.
+    ApplyMixin(cls);
+  }
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls);
   // Finalize super type.
@@ -1226,12 +1253,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     const Type& sig_type = Type::Handle(cls.SignatureType());
     FinalizeType(cls, sig_type, kCanonicalizeWellFormed);
     return;
-  }
-  if (cls.mixin() != Type::null()) {
-    // Copy instance methods and fields from the mixin class.
-    // This has to happen before the check whether the methods of
-    // the class conflict with inherited methods.
-    ApplyMixin(cls);
   }
   // Finalize interface types (but not necessarily interface classes).
   Array& interface_types = Array::Handle(cls.interfaces());
@@ -1607,7 +1628,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
   }
   ASSERT(type.HasResolvedTypeClass());
   if (!type.IsFinalized()) {
-    type.set_is_finalized_instantiated();
+    type.SetIsFinalized();
     // Do not canonicalize malformed types, since they may not be resolved.
   } else {
     // The only case where the malformed type was already finalized is when its

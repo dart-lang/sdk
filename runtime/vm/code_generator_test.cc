@@ -4,7 +4,9 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 #include "vm/ast.h"
 #include "vm/assembler.h"
@@ -21,14 +23,6 @@
 namespace dart {
 
 static const intptr_t kPos = Scanner::kDummyTokenIndex;
-
-
-// Helper to allocate and return a LocalVariable.
-static LocalVariable* NewTestLocalVariable(const char* name) {
-  const String& variable_name = String::ZoneHandle(Symbols::New(name));
-  const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
-  return new LocalVariable(kPos, variable_name, variable_type);
-}
 
 
 CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {
@@ -51,6 +45,17 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
       new ReturnNode(kPos, new StaticCallNode(kPos, function, no_arguments)));
 }
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
+
+
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+
+
+// Helper to allocate and return a LocalVariable.
+static LocalVariable* NewTestLocalVariable(const char* name) {
+  const String& variable_name = String::ZoneHandle(Symbols::New(name));
+  const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
+  return new LocalVariable(kPos, variable_name, variable_type);
+}
 
 
 CODEGEN_TEST_GENERATE(ReturnParameterCodegen, test) {
@@ -545,7 +550,7 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
 CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, Object::empty_array()));
+      DartEntry::InvokeFunction(function, Object::empty_array()));
   EXPECT(!result.IsError());
   const GrowableObjectArray& libs =  GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->libraries());
@@ -560,6 +565,8 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   EXPECT_EQ(cls.raw(), result.clazz());
 }
 
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32 || defined(TARGET_ARCH_X64)
+#endif  // defined(TARGET_ARCH_IA32) || ..._ARCH_X64) || ..._ARCH_ARM)

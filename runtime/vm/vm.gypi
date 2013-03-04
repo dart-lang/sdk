@@ -19,6 +19,7 @@
     'isolate_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.cc',
     'isolate_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_patch_gen.cc',
     'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
+    'json_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_patch_gen.cc',
     'scalarlist_cc_file': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_gen.cc',
     'scalarlist_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_patch_gen.cc',
     'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
@@ -101,6 +102,7 @@
         'generate_isolate_cc_file',
         'generate_isolate_patch_cc_file',
         'generate_json_cc_file',
+        'generate_json_patch_cc_file',
         'generate_mirrors_cc_file',
         'generate_mirrors_patch_cc_file',
         'generate_scalarlist_cc_file',
@@ -131,6 +133,7 @@
         '<(isolate_cc_file)',
         '<(isolate_patch_cc_file)',
         '<(json_cc_file)',
+        '<(json_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
         '<(scalarlist_cc_file)',
@@ -844,6 +847,44 @@
             '<(json_dart)',
           ],
           'message': 'Generating ''<(json_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_json_patch_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the shared json library sources.
+        '../lib/json_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_json_patch_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(json_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(json_patch_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::json_patch_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(json_patch_cc_file)'' file.'
         },
       ]
     },

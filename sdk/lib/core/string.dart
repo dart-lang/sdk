@@ -28,12 +28,6 @@ abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes);
 
   /**
-   * *Deprecated*. Use [String.fromCharCode] instead.
-   */
-  @deprecated
-  factory String.character(int charCode) => new String.fromCharCode(charCode);
-
-  /**
    * Allocates a new String for the specified [charCode].
    *
    * The new string contains a single code unit if the [charCode] can be
@@ -44,7 +38,7 @@ abstract class String implements Comparable<String>, Pattern {
    * one half of a surrogate pair.
    */
   factory String.fromCharCode(int charCode) {
-    List<int> charCodes = new List<int>.fixedLength(1, fill: charCode);
+    List<int> charCodes = new List<int>.filled(1, charCode);
     return new String.fromCharCodes(charCodes);
   }
 
@@ -54,30 +48,24 @@ abstract class String implements Comparable<String>, Pattern {
    * The returned string represents exactly one UTF-16 code unit which may be
    * half of a surrogate pair. For example the Unicode character for a
    * musical G-clef ("𝄞") with rune value 0x1D11E consists of a UTF-16 surrogate
-   * pair: `"\uDBFF\uDFFD"`. Using the index-operator on this string yields
+   * pair: `0xD834` and `0xDD1E`. Using the index-operator on this string yields
    * a String with half of a surrogate pair:
    *
-   *     var clef = "\uDBFF\uDFFD";
+   *     var clef = "\u{1D11E}";
    *     clef.length;  // => 2
    *     clef.runes.first == 0x1D11E;  // => true
    *     clef.runes.length;  // => 1
+   *     clef.codeUnitAt(0);  // => 0xD834
+   *     clef.codeUnitAt(1);  // => 0xDD1E
    *     // The following strings are halves of a UTF-16 surrogate pair and
    *     // thus invalid UTF-16 strings:
-   *     clef[0];  // => "\uDBFF"
-   *     clef[1];  // => "\uDFFD"
+   *     clef[0];  // => a string of length 1 with code-unit value 0xD834.
+   *     clef[1];  // => a string of length 1 with code-unit value 0xDD1E.
    *
    * This method is equivalent to
    * `new String.fromCharCode(this.codeUnitAt(index))`.
    */
   String operator [](int index);
-
-  /**
-   * Gets the scalar character code at the given [index].
-   *
-   * *This method is deprecated. Please use [codeUnitAt] instead.*
-   */
-  @deprecated
-  int charCodeAt(int index);
 
   /**
    * Returns the 16-bit UTF-16 code unit at the given [index].
@@ -219,28 +207,15 @@ abstract class String implements Comparable<String>, Pattern {
    * are hence equivalent:
    *
    *     string.split("")
-   *     string.codeUnits.map((unit) => new String.character(unit))
+   *     string.codeUnits.map((unit) => new String.fromCharCode(unit))
    *
    * Unless it guaranteed that the string is in the basic multilingual plane
    * (meaning that each code unit represents a rune) it is often better to
    * map the runes instead:
    *
-   *     string.runes.map((rune) => new String.character(rune))
+   *     string.runes.map((rune) => new String.fromCharCode(rune))
    */
   List<String> split(Pattern pattern);
-
-  /**
-   * Returns a list of the individual code-units converted to strings.
-   *
-   * *Deprecated*
-   * If you want to split on code-unit boundaries, use [split]. If you
-   * want to split on rune boundaries, use [runes] and map the result.
-   *
-   *     Iterable<String> characters =
-   *         string.runes.map((c) => new String.fromCharCode(c));
-   */
-  @deprecated
-  List<String> splitChars();
 
   /**
    * Splits the string on the [pattern], then converts each part and each match.
@@ -260,18 +235,9 @@ abstract class String implements Comparable<String>, Pattern {
                        String onNonMatch(String nonMatch)});
 
   /**
-   * Returns a list of UTF-16 code units of this string.
-   *
-   * *This getter is deprecated. Use [codeUnits] instead.*
+   * Returns an unmodifiable list of the UTF-16 code units of this string.
    */
-  List<int> get charCodes;
-
-  /**
-   * Returns an iterable of the UTF-16 code units of this string.
-   */
-  // TODO(floitsch): should it return a list?
-  // TODO(floitsch): make it a bidirectional iterator.
-  Iterable<int> get codeUnits;
+  List<int> get codeUnits;
 
   /**
    * Returns an iterable of Unicode code-points of this string.
@@ -311,9 +277,9 @@ class Runes extends Iterable<int> {
       throw new StateError("No elements.");
     }
     int length = string.length;
-    int code = string.charCodeAt(length - 1);
+    int code = string.codeUnitAt(length - 1);
     if (_isTrailSurrogate(code) && string.length > 1) {
-      int previousCode = string.charCodeAt(length - 2);
+      int previousCode = string.codeUnitAt(length - 2);
       if (_isLeadSurrogate(previousCode)) {
         return _combineSurrogatePair(previousCode, code);
       }
@@ -335,7 +301,7 @@ int _combineSurrogatePair(int start, int end) {
 }
 
 /** [Iterator] for reading Unicode code points out of a Dart string. */
-class RuneIterator implements BiDirectionalIterator<int> {
+class RuneIterator implements BidirectionalIterator<int> {
   /** String being iterated. */
   final String string;
   /** Position before the current code point. */
@@ -376,8 +342,8 @@ class RuneIterator implements BiDirectionalIterator<int> {
   /** Throw an error if the index is in the middle of a surrogate pair. */
   void _checkSplitSurrogate(int index) {
     if (index > 0 && index < string.length &&
-        _isLeadSurrogate(string.charCodeAt(index - 1)) &&
-        _isTrailSurrogate(string.charCodeAt(index))) {
+        _isLeadSurrogate(string.codeUnitAt(index - 1)) &&
+        _isTrailSurrogate(string.codeUnitAt(index))) {
       throw new ArgumentError("Index inside surrogate pair: $index");
     }
   }
@@ -455,10 +421,10 @@ class RuneIterator implements BiDirectionalIterator<int> {
       _currentCodePoint = null;
       return false;
     }
-    int codeUnit = string.charCodeAt(_position);
+    int codeUnit = string.codeUnitAt(_position);
     int nextPosition = _position + 1;
     if (_isLeadSurrogate(codeUnit) && nextPosition < string.length) {
-      int nextCodeUnit = string.charCodeAt(nextPosition);
+      int nextCodeUnit = string.codeUnitAt(nextPosition);
       if (_isTrailSurrogate(nextCodeUnit)) {
         _nextPosition = nextPosition + 1;
         _currentCodePoint = _combineSurrogatePair(codeUnit, nextCodeUnit);
@@ -477,9 +443,9 @@ class RuneIterator implements BiDirectionalIterator<int> {
       return false;
     }
     int position = _position - 1;
-    int codeUnit = string.charCodeAt(position);
+    int codeUnit = string.codeUnitAt(position);
     if (_isTrailSurrogate(codeUnit) && position > 0) {
-      int prevCodeUnit = string.charCodeAt(position - 1);
+      int prevCodeUnit = string.codeUnitAt(position - 1);
       if (_isLeadSurrogate(prevCodeUnit)) {
         _position = position - 1;
         _currentCodePoint = _combineSurrogatePair(prevCodeUnit, codeUnit);
@@ -490,17 +456,4 @@ class RuneIterator implements BiDirectionalIterator<int> {
     _currentCodePoint = codeUnit;
     return true;
   }
-}
-
-/**
- * An [Iterable] of the UTF-16 code units of a [String] in index order.
- */
-class CodeUnits extends ListIterable<int> {
-  /** The string that this is the code units of. */
-  String string;
-
-  CodeUnits(this.string);
-
-  int get length => string.length;
-  int elementAt(int i) => string.codeUnitAt(i);
 }

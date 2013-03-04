@@ -22,7 +22,7 @@ class _LinkedHashTable<K> extends _HashTable<K> {
   int get _entrySize => 3;
 
   List _createTable(int capacity) {
-    List result = new List.fixedLength(capacity * _entrySize);
+    List result = new List(capacity * _entrySize);
     result[_HEAD_OFFSET] = _HEAD_MARKER;
     result[_HEAD_OFFSET + _NEXT_INDEX] = _HEAD_OFFSET;
     result[_HEAD_OFFSET + _PREV_INDEX] = _HEAD_OFFSET;

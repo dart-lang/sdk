@@ -164,9 +164,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
     if (FLAG_print_flow_graph ||
         (optimized && FLAG_print_flow_graph_optimized)) {
-      OS::Print("Before Optimizations\n");
-      FlowGraphPrinter printer(*flow_graph);
-      printer.PrintBlocks();
+      FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
     }
 
     if (optimized) {
@@ -183,6 +181,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // TODO(srdjan): Moved before inlining until environment use list can
       // be used to detect when shift-left is outside the scope of bit-and.
       optimizer.TryOptimizeLeftShiftWithBitAndPattern();
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       // Inlining (mutates the flow graph)
       if (FLAG_use_inlining) {
@@ -217,6 +216,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
+      // Propagate types and eliminate even more type tests.
+      if (FLAG_propagate_types) {
+        FlowGraphTypePropagator propagator(flow_graph);
+        propagator.Propagate();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      }
+
       // Unbox doubles. Performed after constant propagation to minimize
       // interference from phis merging double values and tagged
       // values comming from dead paths.
@@ -236,7 +242,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       if (FLAG_loop_invariant_code_motion &&
           (parsed_function.function().deoptimization_counter() <
            (FLAG_deoptimization_counter_threshold - 1))) {
-        LICM::Optimize(flow_graph);
+        LICM licm(flow_graph);
+        licm.Optimize();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
@@ -257,9 +264,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       allocator.AllocateRegisters();
 
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
-        OS::Print("After Optimizations:\n");
-        FlowGraphPrinter printer(*flow_graph);
-        printer.PrintBlocks();
+        FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
       }
     }
 
@@ -513,7 +518,9 @@ static RawError* CompileFunctionHelper(const Function& function,
       DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized && optimized) {
       // TODO(fschneider): Print unoptimized code along with the optimized code.
+      OS::Print("*** BEGIN CODE\n");
       DisassembleCode(function, true);
+      OS::Print("*** END CODE\n");
     }
 
     isolate->set_long_jump_base(base);
@@ -550,6 +557,9 @@ RawError* Compiler::CompileParsedFunction(
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
     CompileParsedFunctionHelper(parsed_function, false);
+    if (FLAG_disassemble) {
+      DisassembleCode(parsed_function.function(), false);
+    }
     isolate->set_long_jump_base(base);
     return Error::null();
   } else {
@@ -640,7 +650,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     CompileParsedFunctionHelper(*parsed_function, false);
 
     const Object& result = Object::Handle(
-        DartEntry::InvokeStatic(func, Object::empty_array()));
+        DartEntry::InvokeFunction(func, Object::empty_array()));
     isolate->set_long_jump_base(base);
     return result.raw();
   } else {

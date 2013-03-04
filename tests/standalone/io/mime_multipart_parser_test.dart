@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
-part '../../../sdk/lib/io/io_stream_consumer.dart';
+part '../../../sdk/lib/io/io_sink.dart';
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
@@ -47,7 +47,7 @@ void testParse(String message,
       if (expectedParts[partCount] != null) {
         List<int> expectedPart;
         if (expectedParts[partCount] is String) {
-          expectedPart = expectedParts[partCount].charCodes;
+          expectedPart = expectedParts[partCount].codeUnits;
         } else {
           expectedPart = expectedParts[partCount];
         }
@@ -83,7 +83,7 @@ void testParse(String message,
 
   // Test parsing the data three times delivering the data in
   // different chunks.
-  List<int> data = message.charCodes;
+  List<int> data = message.codeUnits;
   testWrite(data);
   testWrite(data, 10);
   testWrite(data, 2);

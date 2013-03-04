@@ -31,6 +31,21 @@ eqNullB(a) {}
 class JSInvocationMirror {}  // Should be in helper.
 """;
 
+const INTERCEPTORS_LIB = """
+library interceptors;
+class JSArray {
+  get length => null;
+  removeLast() => null;
+  add(x) { }
+}
+class JSString {
+  get length => null;
+  split(x) => null;
+  concat(x) => null;
+  toString() => null;
+}
+""";
+
 const String RECURSIVE_MAIN = """
 library fisk;
 import 'recurse/fisk.dart';
@@ -56,6 +71,8 @@ main() {
         source = '';
       } else if (uri.path.endsWith('isolate_helper.dart')) {
         source = 'class _WorkerStub {}';
+      } else if (uri.path.endsWith('interceptors.dart')) {
+        source = INTERCEPTORS_LIB;
       } else {
         source = "library lib${uri.path.replaceAll('/', '.')};";
       }

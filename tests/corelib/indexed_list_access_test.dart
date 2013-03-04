@@ -6,7 +6,7 @@
 // is not int.
 
 main() {
-  checkList(new List.fixedLength(10));
+  checkList(new List(10));
   var growable = new List();
   growable.add(1);
   growable.add(1);

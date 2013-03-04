@@ -107,7 +107,9 @@ class Command {
       // TODO(efortuna): Remove this when fixed (Issue 1306).
       executable = executable.replaceAll('/', '\\');
     }
-    commandLine = "$executable ${arguments.join(' ')}";
+    var quotedArguments = [];
+    arguments.forEach((argument) => quotedArguments.add('"$argument"'));
+    commandLine = "$executable ${quotedArguments.join(' ')}";
   }
 
   String toString() => commandLine;
@@ -303,10 +305,6 @@ class TestCase {
         newArguments.addAll(c.arguments);
         final newCommand = new Command(newExecutablePath, newArguments);
         newCommands.add(newCommand);
-        // If there are extra spaces inside the prefix or suffix, this fails.
-        String expected =
-            '$prefix ${c.executable} $suffix ${c.arguments.join(' ')}';
-        Expect.stringEquals(expected.trim(), newCommand.commandLine);
       }
       commands = newCommands;
     }
@@ -1600,18 +1598,13 @@ class ProcessQueue {
         int i = 1;
         if (test is BrowserTestCase) {
           // Additional command for rerunning the steps locally after the fact.
-          print('$i. ${TestUtils.dartTestExecutable.toNativePath()} '
-                '${TestUtils.dartDir().toNativePath()}/tools/testing/dart/'
-                'http_server.dart -m ${test.configuration["mode"]} '
-                '-a ${test.configuration["arch"]} '
-                '-p ${http_server.TestingServerRunner.serverList[0].port} '
-                '-c ${http_server.TestingServerRunner.serverList[1].port} '
-                '--package-root='
-                '${http_server.TestingServerRunner.packageRootDir}');
+          var command =
+            test.configuration["_servers_"].httpServerCommandline();
+          print('$i. $command');
           i++;
         }
         for (Command command in test.commands) {
-          print('$i. ${command.commandLine}');
+          print('$i. $command');
           i++;
         }
       }

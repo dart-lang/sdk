@@ -101,6 +101,9 @@ class CompactVMConfiguration extends VMConfiguration {
     buffer.write(': ');
     buffer.write(color);
 
+    // Ensure the line fits under MAX_LINE. [buffer] includes the color escape
+    // sequences too. Because these sequences are not visible characters, we
+    // make sure they are not counted towards the limit.
     int nonVisible = _nonVisiblePrefix + color.length  +
         (failed != 0 ? (_RED.length + _NONE.length) : 0);
     int len = buffer.length - nonVisible;

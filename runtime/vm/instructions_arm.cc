@@ -60,14 +60,15 @@ int CallPattern::DecodePoolIndex() {
 uword CallPattern::TargetAddress() const {
   const Object& target_address = Object::Handle(object_pool_.At(pool_index_));
   ASSERT(target_address.IsSmi());
-  return Smi::Cast(target_address).Value() << kSmiTagShift;
+  // The address is stored in the object array as a RawSmi.
+  return reinterpret_cast<uword>(target_address.raw());
 }
 
 
 void CallPattern::SetTargetAddress(uword target_address) const {
   ASSERT(Utils::IsAligned(target_address, 4));
   // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(Smi::New(target_address >> kSmiTagShift));
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target_address));
   object_pool_.SetAt(pool_index_, smi);
 }
 

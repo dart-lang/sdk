@@ -38,7 +38,7 @@ part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
 part 'http_utils.dart';
-part 'io_stream_consumer.dart';
+part 'io_sink.dart';
 part 'mime_multipart_parser.dart';
 part 'path.dart';
 part 'path_impl.dart';

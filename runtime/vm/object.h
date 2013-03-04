@@ -2113,21 +2113,10 @@ class Library : public Object {
   static RawLibrary* GetLibrary(intptr_t index);
   static bool IsKeyUsed(intptr_t key);
 
-  static void InitASyncLibrary(Isolate* isolate);
   static void InitCoreLibrary(Isolate* isolate);
-  static void InitCollectionLibrary(Isolate* isolate);
-  static void InitCollectionDevLibrary(Isolate* isolate);
-  static void InitCryptoLibrary(Isolate* isolate);
-  static void InitIsolateLibrary(Isolate* isolate);
-  static void InitJsonLibrary(Isolate* isolate);
-  static void InitMathLibrary(Isolate* isolate);
-  static void InitMirrorsLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
-  static void InitScalarlistLibrary(Isolate* isolate);
-  static void InitUriLibrary(Isolate* isolate);
-  static void InitUtfLibrary(Isolate* isolate);
 
-  static RawLibrary* ASyncLibrary();
+  static RawLibrary* AsyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
@@ -2165,6 +2154,8 @@ class Library : public Object {
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
+
+  friend class Object;
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;
@@ -2236,6 +2227,9 @@ class Instructions : public Object {
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
   RawCode* code() const { return raw_ptr()->code_; }
   RawArray* object_pool() const { return raw_ptr()->object_pool_; }
+  static intptr_t object_pool_offset() {
+    return OFFSET_OF(RawInstructions, object_pool_);
+  }
 
   uword EntryPoint() const {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
@@ -3512,8 +3506,7 @@ class Type : public AbstractType {
     (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
     (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
-  void set_is_finalized_instantiated() const;
-  void set_is_finalized_uninstantiated() const;
+  void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
@@ -4770,6 +4763,72 @@ class GrowableObjectArray : public Instance {
 };
 
 
+class Float32x4 : public Instance {
+ public:
+  static RawFloat32x4* New(float value0, float value1, float value2,
+                                float value3, Heap::Space space = Heap::kNew);
+  static RawFloat32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+
+  float x() const;
+  float y() const;
+  float z() const;
+  float w() const;
+
+  void set_x(float x) const;
+  void set_y(float y) const;
+  void set_z(float z) const;
+  void set_w(float w) const;
+
+  simd_value_t value() const;
+  void set_value(simd_value_t value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFloat32x4));
+  }
+
+  static intptr_t value_offset() {
+    return OFFSET_OF(RawFloat32x4, value_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4, Instance);
+  friend class Class;
+};
+
+
+class Uint32x4 : public Instance {
+ public:
+  static RawUint32x4* New(uint32_t value0, uint32_t value1, uint32_t value2,
+                             uint32_t value3, Heap::Space space = Heap::kNew);
+  static RawUint32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+
+  uint32_t x() const;
+  uint32_t y() const;
+  uint32_t z() const;
+  uint32_t w() const;
+
+  void set_x(uint32_t x) const;
+  void set_y(uint32_t y) const;
+  void set_z(uint32_t z) const;
+  void set_w(uint32_t w) const;
+
+  simd_value_t value() const;
+  void set_value(simd_value_t value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUint32x4));
+  }
+
+  static intptr_t value_offset() {
+    return OFFSET_OF(RawUint32x4, value_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint32x4, Instance);
+  friend class Class;
+};
+
+
 class ByteArray : public Instance {
  public:
   intptr_t Length() const {
@@ -5305,6 +5364,61 @@ class Uint64Array : public ByteArray {
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint64Array, ByteArray);
+  friend class ByteArray;
+  friend class Class;
+};
+
+
+class Float32x4Array : public ByteArray {
+ public:
+  intptr_t ByteLength() const {
+    return Length() * kBytesPerElement;
+  }
+
+  simd_value_t At(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* load_ptr = &raw_ptr()->data_[index];
+    return simd_value_safe_load(load_ptr);
+  }
+
+  void SetAt(intptr_t index, simd_value_t value) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* store_ptr = &raw_ptr()->data_[index];
+    simd_value_safe_store(store_ptr, value);
+  }
+
+  static const intptr_t kBytesPerElement = 16;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawFloat32x4Array, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawFloat32x4Array) ==
+           OFFSET_OF(RawFloat32x4Array, data_));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawFloat32x4Array) + (len * kBytesPerElement));
+  }
+
+  static RawFloat32x4Array* New(intptr_t len,
+                                     Heap::Space space = Heap::kNew);
+  static RawFloat32x4Array* New(const simd_value_t* data,
+                                     intptr_t len,
+                                     Heap::Space space = Heap::kNew);
+
+ private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
+    return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5909,6 +6023,68 @@ class ExternalUint64Array : public ByteArray {
 };
 
 
+class ExternalFloat32x4Array : public ByteArray {
+ public:
+  intptr_t ByteLength() const {
+    return Length() * kBytesPerElement;
+  }
+
+  simd_value_t At(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* load_ptr = &raw_ptr()->data_[index];
+    return simd_value_safe_load(load_ptr);
+  }
+
+  void SetAt(intptr_t index, simd_value_t value) const {
+    ASSERT((index >= 0) && (index < Length()));
+    simd_value_t* store_ptr = &raw_ptr()->data_[index];
+    simd_value_safe_store(store_ptr, value);
+  }
+
+
+  simd_value_t* GetData() const {
+    return raw_ptr()->data_;
+  }
+
+  void* GetPeer() const {
+    return raw_ptr()->peer_;
+  }
+
+  static const intptr_t kBytesPerElement = 16;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Float32x4Array::kMaxElements;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalFloat32x4Array));
+  }
+
+  static RawExternalFloat32x4Array* New(simd_value_t* data,
+                                             intptr_t len,
+                                             Heap::Space space = Heap::kNew);
+
+ private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
+    return data + byte_offset;
+  }
+
+  void SetData(simd_value_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32x4Array, ByteArray);
+  friend class ByteArray;
+  friend class Class;
+};
+
+
 class ExternalFloat32Array : public ByteArray {
  public:
   intptr_t ByteLength() const {
@@ -6112,28 +6288,44 @@ class Closure : public AllStatic {
 // Internal stacktrace object used in exceptions for printing stack traces.
 class Stacktrace : public Instance {
  public:
+  static const int kPreallocatedStackdepth = 10;
+
   intptr_t Length() const;
+
   RawFunction* FunctionAtFrame(intptr_t frame_index) const;
+  void SetFunctionAtFrame(intptr_t frame_index, const Function& func) const;
+
   RawCode* CodeAtFrame(intptr_t frame_index) const;
+  void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
+
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
-  void Append(const GrowableObjectArray& func_list,
-              const GrowableObjectArray& code_list,
-              const GrowableObjectArray& pc_offset_list) const;
+  void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
+  void SetCatchStacktrace(const Array& func_array,
+                          const Array& code_array,
+                          const Array& pc_offset_array) const;
+
+  void Append(const Array& func_list,
+              const Array& code_list,
+              const Array& pc_offset_list) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
   }
-  static RawStacktrace* New(const GrowableObjectArray& func_list,
-                            const GrowableObjectArray& code_list,
-                            const GrowableObjectArray& pc_offset_list,
+  static RawStacktrace* New(const Array& func_array,
+                            const Array& code_array,
+                            const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
-  const char* ToCStringInternal(bool verbose) const;
+  RawString* FullStacktrace() const;
+  const char* ToCStringInternal(intptr_t frame_index) const;
 
  private:
   void set_function_array(const Array& function_array) const;
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
+  void set_catch_func_array(const Array& function_array) const;
+  void set_catch_code_array(const Array& code_array) const;
+  void set_catch_pc_offset_array(const Array& pc_offset_array) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;

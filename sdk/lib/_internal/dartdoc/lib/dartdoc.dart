@@ -110,7 +110,7 @@ Future copyDirectory(Path from, Path to) {
   fromDir.list(recursive: false).listen(
       (FileSystemEntity entity) {
         if (entity is File) {
-          final name = new Path(entity.name).filename;
+          final name = new Path(entity.path).filename;
           // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
           if (name.startsWith('.')) return;
 
@@ -293,15 +293,18 @@ class Dartdoc {
   static const List<String> COMPILER_OPTIONS =
       const <String>['--preserve-comments', '--categories=Client,Server'];
 
-  Dartdoc() {
-    // Patch in support for [:...:]-style code to the markdown parser.
-    // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
-    md.InlineParser.syntaxes.insertRange(0, 1,
-        new md.CodeSyntax(r'\[\:((?:.|\n)*?)\:\]'));
+  /// Resolves Dart links to the correct Node.
+  md.Resolver dartdocResolver;
 
-    md.setImplicitLinkResolver((name) => resolveNameReference(name,
-            currentLibrary: _currentLibrary, currentType: _currentType,
-            currentMember: _currentMember));
+  // Add support for [:...:]-style code to the markdown parser.
+  List<md.InlineSyntax> dartdocSyntaxes =
+    [new md.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
+
+
+  Dartdoc() {
+    dartdocResolver = (String name) => resolveNameReference(name,
+        currentLibrary: _currentLibrary, currentType: _currentType,
+        currentMember: _currentMember);
   }
 
   /**
@@ -420,7 +423,8 @@ class Dartdoc {
         version, revision);
 
     for (final lib in _sortedLibraries) {
-      var libraryElement = new LibraryElement(lib.qualifiedName, lib, lookupMdnComment)
+      var libraryElement = new LibraryElement(
+          lib, lookupMdnComment: lookupMdnComment)
           ..stripDuplicateUris(null, null);
       packageManifest.libraries.add(new Reference.fromElement(libraryElement));
       startFile("$revision/${libraryElement.id}.json");
@@ -467,7 +471,7 @@ class Dartdoc {
   }
 
   void write(String s) {
-    _file.add(s);
+    _file.write(s);
   }
 
   void writeln(String s) {
@@ -821,7 +825,7 @@ class Dartdoc {
     // Look for a comment for the entire library.
     final comment = getLibraryComment(library);
     if (comment != null) {
-      writeln('<div class="doc">${comment.html}</div>');
+      writeln('<div class="doc">${markdownFromComment(comment)}</div>');
     }
 
     // Document the top-level members.
@@ -1517,17 +1521,25 @@ class Dartdoc {
     write(')');
   }
 
+  String markdownFromComment(DocComment comment) {
+    return md.markdownToHtml(comment.text,
+        inlineSyntaxes: dartdocSyntaxes,
+        linkResolver: dartdocResolver);
+  }
+
   void docComment(ContainerMirror host, DocComment comment) {
     if (comment != null) {
+      var html = markdownFromComment(comment);
+
       if (comment.inheritedFrom != null) {
         writeln('<div class="inherited">');
-        writeln(comment.html);
+        writeln(html);
         write('<div class="docs-inherited-from">docs inherited from ');
         annotateType(host, comment.inheritedFrom);
         write('</div>');
         writeln('</div>');
       } else {
-        writeln(comment.html);
+        writeln(html);
       }
     }
   }
@@ -1985,8 +1997,6 @@ class DocComment {
   DocComment(this.text, [this.inheritedFrom = null]) {
     assert(text != null && !text.trim().isEmpty);
   }
-
-  String get html => md.markdownToHtml(text);
 
   String toString() => text;
 }

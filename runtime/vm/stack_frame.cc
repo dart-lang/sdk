@@ -20,7 +20,8 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-  uword saved_pc = *(reinterpret_cast<uword*>(fp() - kWordSize));
+  uword saved_pc =
+      *(reinterpret_cast<uword*>(fp() + EntrypointMarkerOffsetFromFp()));
   return (saved_pc == 0);
 }
 
@@ -138,7 +139,8 @@ RawCode* StackFrame::GetCodeObject() const {
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
   NoGCScope no_gc;
-  uword saved_pc = *(reinterpret_cast<uword*>(fp() - kWordSize));
+  uword saved_pc =
+      *(reinterpret_cast<uword*>(fp() + EntrypointMarkerOffsetFromFp()));
   if (saved_pc != 0) {
     uword entry_point =
         (saved_pc - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint);

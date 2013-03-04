@@ -30,7 +30,7 @@ void testGetEmptyRequest() {
 
 void testGetDataRequest() {
   HttpServer.bind().then((server) {
-    var data = "lalala".charCodes;
+    var data = "lalala".codeUnits;
     server.listen((request) {
       request.response.add(data);
       request.pipe(request.response);

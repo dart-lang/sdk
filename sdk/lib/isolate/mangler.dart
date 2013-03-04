@@ -44,7 +44,7 @@ class _IsolateEncoder {
       for (int i = 0; i < data.length; i++) {
         var mangled = encode(data[i]);
         if (mangled != data[i] && !hasBeenDuplicated) {
-          result = new List.fixedLength(data.length);
+          result = new List(data.length);
           for (int j = 0; j < i; j++) {
             result[j] = data[j];
           }

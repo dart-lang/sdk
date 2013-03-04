@@ -61,7 +61,7 @@ Future testClient(server) {
   Completer success = new Completer();
   List<String> chunks = <String>[];
   SecureSocket.connect(HOST_NAME, server.port).then((socket) {
-    socket.add("Hello server.".charCodes);
+    socket.add("Hello server.".codeUnits);
     socket.close();
     socket.listen(
       (List<int> data) {

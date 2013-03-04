@@ -72,10 +72,10 @@ class FutureGroup<T> {
 /// Pads [source] to [length] by adding spaces at the end.
 String padRight(String source, int length) {
   final result = new StringBuffer();
-  result.add(source);
+  result.write(source);
 
   while (result.length < length) {
-    result.add(' ');
+    result.write(' ');
   }
 
   return result.toString();
@@ -122,11 +122,11 @@ String replace(String source, Pattern matcher, String fn(Match)) {
   var buffer = new StringBuffer();
   var start = 0;
   for (var match in matcher.allMatches(source)) {
-    buffer.add(source.substring(start, match.start));
+    buffer.write(source.substring(start, match.start));
     start = match.end;
-    buffer.add(fn(match));
+    buffer.write(fn(match));
   }
-  buffer.add(source.substring(start));
+  buffer.write(source.substring(start));
   return buffer.toString();
 }
 
@@ -141,7 +141,7 @@ bool endsWithPattern(String str, Pattern matcher) {
 /// Returns the hex-encoded sha1 hash of [source].
 String sha1(String source) {
   var sha = new SHA1();
-  sha.add(source.charCodes);
+  sha.add(source.codeUnits);
   return CryptoUtils.bytesToHex(sha.close());
 }
 
@@ -158,8 +158,7 @@ Future defer(callback()) {
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(new Duration(milliseconds: milliseconds),
-      (_) => completer.complete());
+  new Timer(new Duration(milliseconds: milliseconds), completer.complete);
   return completer.future;
 }
 
@@ -237,38 +236,25 @@ final RegExp _lineRegexp = new RegExp(r"\r\n|\r|\n");
 /// newline is ignored.
 Stream<String> streamToLines(Stream<String> stream) {
   var buffer = new StringBuffer();
-  return wrapStream(stream.transform(new StreamTransformer(
+  return stream.transform(new StreamTransformer(
       handleData: (chunk, sink) {
         var lines = chunk.split(_lineRegexp);
         var leftover = lines.removeLast();
         for (var line in lines) {
           if (!buffer.isEmpty) {
-            buffer.add(line);
+            buffer.write(line);
             line = buffer.toString();
-            buffer.clear();
+            buffer = new StringBuffer();
           }
 
           sink.add(line);
         }
-        buffer.add(leftover);
+        buffer.write(leftover);
       },
       handleDone: (sink) {
         if (!buffer.isEmpty) sink.add(buffer.toString());
         sink.close();
-      })));
-}
-
-// TODO(nweiz): remove this when issue 8310 is fixed.
-/// Returns a [Stream] identical to [stream], but piped through a new
-/// [StreamController]. This exists to work around issue 8310.
-Stream wrapStream(Stream stream) {
-  var controller = stream.isBroadcast
-      ? new StreamController.broadcast()
-      : new StreamController();
-  stream.listen(controller.add,
-      onError: (e) => controller.signalError(e),
-      onDone: controller.close);
-  return controller.stream;
+      }));
 }
 
 /// Like [Iterable.where], but allows [test] to return [Future]s and uses the

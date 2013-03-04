@@ -45,7 +45,7 @@ String classifySource(String text) {
     var token = tokenizer.tokenize();
     var inString = false;
     while (token.kind != EOF_TOKEN) {
-      html.add(text.substring(whitespaceOffset, token.charOffset));
+      html.write(text.substring(whitespaceOffset, token.charOffset));
       whitespaceOffset = token.charOffset + token.slowCharCount;
 
       // Track whether or not we're in a string.
@@ -62,9 +62,9 @@ String classifySource(String text) {
         // Add a secondary class to tokens appearing within a string so that
         // we can highlight tokens in an interpolation specially.
         var stringClass = inString ? Classification.STRING_INTERPOLATION : '';
-        html.add('<span class="$kind $stringClass">$escapedText</span>');
+        html.write('<span class="$kind $stringClass">$escapedText</span>');
       } else {
-        html.add(escapedText);
+        html.write(escapedText);
       }
 
       // Track whether or not we're in a string.

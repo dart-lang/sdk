@@ -101,10 +101,11 @@ void ARMDecoder::PrintCondition(Instr* instr) {
 
 
 // These register names are defined in a way to match the native disassembler
-// formatting. See for example the command "objdump -d <binary file>".
+// formatting, except for register aliases ctx (r9) and pp (r10).
+// See for example the command "objdump -d <binary file>".
 static const char* reg_names[kNumberOfCpuRegisters] = {
   "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
-  "r8", "r9", "sl", "fp", "ip", "sp", "lr", "pc",
+  "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
 };
 
 
@@ -296,6 +297,19 @@ int ARMDecoder::FormatSRegister(Instr* instr, const char* format) {
       PrintSRegister(reg);
       return 2;
     }
+  } else if (format[1] == 'l') {
+    ASSERT(STRING_STARTS_WITH(format, "slist"));
+    int reg_count = instr->Bits(0, 8);
+    int start = instr->Bit(22) | (instr->Bits(12, 4) << 1);
+    Print("{");
+    for (int i = start; i < start + reg_count; i++) {
+      PrintSRegister(i);
+      if (i != start + reg_count - 1) {
+        Print(", ");
+      }
+    }
+    Print("}");
+    return 5;
   }
   UNREACHABLE();
   return -1;
@@ -316,6 +330,19 @@ int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
     int reg = instr->DmField();
     PrintDRegister(reg);
     return 2;
+  } else if (format[1] == 'l') {
+    ASSERT(STRING_STARTS_WITH(format, "dlist"));
+    int reg_count = instr->Bits(0, 8) >> 1;
+    int start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
+    Print("{");
+    for (int i = start; i < start + reg_count; i++) {
+      PrintDRegister(i);
+      if (i != start + reg_count - 1) {
+        Print(", ");
+      }
+    }
+    Print("}");
+    return 5;
   }
   UNREACHABLE();
   return -1;
@@ -555,6 +582,8 @@ void ARMDecoder::DecodeType01(Instr* instr) {
         case 1: {
           if (instr->Bits(21, 2) == 0x3) {
             Format(instr, "clz'cond 'rd, 'rm");
+          } else if (instr->Bits(21, 2) == 0x1) {
+            Format(instr, "bx'cond 'rm");
           } else {
             Unknown(instr);
           }
@@ -571,7 +600,7 @@ void ARMDecoder::DecodeType01(Instr* instr) {
         }
         case 7: {
           if (instr->Bits(21, 2) == 0x1) {
-            Format(instr, "bkpt #'imm12_4");
+            Format(instr, "bkpt'cond #'imm12_4");
           } else {
              // Format(instr, "smc'cond");
             Unknown(instr);  // Not used.
@@ -916,6 +945,20 @@ void ARMDecoder::DecodeType6(Instr* instr) {
         } else {
           Format(instr, "vstrd'cond 'dd, ['rn, #-'off10]");
         }
+      }
+    }
+  } else if (instr->IsVFPMultipleLoadStore()) {
+    if (instr->HasL()) {  // vldm
+      if (instr->Bit(8)) {  // vldmd
+        Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
+      } else {  // vldms
+        Format(instr, "vldms'cond'pu 'rn'w, 'slist");
+      }
+    } else {  // vstm
+      if (instr->Bit(8)) {  // vstmd
+        Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
+      } else {  // vstms
+        Format(instr, "vstms'cond'pu 'rn'w, 'slist");
       }
     }
   } else {

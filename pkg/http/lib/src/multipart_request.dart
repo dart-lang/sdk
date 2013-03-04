@@ -98,7 +98,7 @@ class MultipartRequest extends BaseRequest {
 
     void writeAscii(String string) {
       assert(isPlainAscii(string));
-      controller.add(string.charCodes);
+      controller.add(string.codeUnits);
     }
 
     writeUtf8(String string) => controller.add(encodeUtf8(string));
@@ -165,7 +165,7 @@ class MultipartRequest extends BaseRequest {
   /// [length].
   String _boundaryString(int length) {
     var prefix = "dart-http-boundary-";
-    var list = new List<int>.fixedLength(length - prefix.length);
+    var list = new List<int>(length - prefix.length);
     for (var i = 0; i < list.length; i++) {
       list[i] = _BOUNDARY_CHARACTERS[
           _random.nextInt(_BOUNDARY_CHARACTERS.length)];
