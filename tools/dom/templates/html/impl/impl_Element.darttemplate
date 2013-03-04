@@ -15,7 +15,7 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList({ bool growable: false }) {
+  List<Element> toList({ bool growable: true }) {
     List<Element> output;
     if (growable) {
       output = <Element>[];
@@ -318,7 +318,7 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  List<Element> toList({ bool growable: false }) =>
+  List<Element> toList({ bool growable: true }) =>
       new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
 

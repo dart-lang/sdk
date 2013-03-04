@@ -409,7 +409,7 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
     return _table[(_head + index) & (_table.length - 1)];
   }
 
-  List<E> toList({ bool growable: false }) {
+  List<E> toList({ bool growable: true }) {
     List<E> list;
     if (growable) {
       list = new List<E>()..length = length;

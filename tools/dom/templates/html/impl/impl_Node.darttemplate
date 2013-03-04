@@ -163,7 +163,7 @@ $endif
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList({ bool growable: false }) =>
+  List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
   Set<Node> toSet() => new Set<Node>.from(this);
 

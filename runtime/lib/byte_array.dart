@@ -407,7 +407,7 @@ abstract class _ByteArrayBase {
                               length * this.bytesPerElement());
   }
 
-  List<int> toList({ bool growable: false }) {
+  List<int> toList({ bool growable: true }) {
     return new List<int>.from(this, growable: growable);
   }
 

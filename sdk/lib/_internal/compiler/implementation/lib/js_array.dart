@@ -262,7 +262,7 @@ class JSArray<E> implements List<E> {
 
   String toString() => Collections.collectionToString(this);
 
-  List<E> toList({ bool growable: false }) =>
+  List<E> toList({ bool growable: true }) =>
       new List<E>.from(this, growable: growable);
 
   Set<E> toSet() => new Set<E>.from(this);
@@ -279,9 +279,9 @@ class JSArray<E> implements List<E> {
   int get length => JS('int', r'#.length', this);
 
   void set length(int newLength) {
-    checkGrowable(this, 'set length');
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);
+    checkGrowable(this, 'set length');
     JS('void', r'#.length = #', this, newLength);
   }
 

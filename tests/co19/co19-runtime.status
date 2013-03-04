@@ -248,30 +248,6 @@ LibTest/math/parseDouble_A01_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
 
-LibTest/core/List/addLast_A01_t03: Fail  # List constructors, co19 issue 384
-LibTest/core/List/add_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/clear_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/getRange_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/insertRange_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/insertRange_A04_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/insertRange_A05_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/insertRange_A06_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/length_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/length_A02_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/length_A03_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/length_A05_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/removeLast_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/removeLast_A01_t02: Fail  # List constructors, co19 issue 384
-LibTest/core/List/removeRange_A01_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/removeRange_A03_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/removeRange_A04_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/removeRange_A05_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/setRange_A01_t02: Fail  # List constructors, co19 issue 384
-LibTest/core/List/setRange_A02_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/setRange_A02_t02: Fail  # List constructors, co19 issue 384
-LibTest/core/List/setRange_A03_t01: Fail  # List constructors, co19 issue 384
-LibTest/core/List/setRange_A03_t02: Fail  # List constructors, co19 issue 384
-
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
 

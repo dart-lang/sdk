@@ -309,7 +309,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Map> toList({ bool growable: false }) =>
+  List<Map> toList({ bool growable: true }) =>
       new List<Map>.from(this, growable: growable);
 
   Set<Map> toSet() => new Set<Map>.from(this);

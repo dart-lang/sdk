@@ -3093,7 +3093,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   bool any(bool f(Length element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Length> toList({ bool growable: false }) =>
+  List<Length> toList({ bool growable: true }) =>
       new List<Length>.from(this, growable: growable);
 
   Set<Length> toSet() => new Set<Length>.from(this);
@@ -3719,7 +3719,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   bool any(bool f(Number element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Number> toList({ bool growable: false }) =>
+  List<Number> toList({ bool growable: true }) =>
       new List<Number>.from(this, growable: growable);
 
   Set<Number> toSet() => new Set<Number>.from(this);
@@ -4621,7 +4621,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   bool any(bool f(PathSeg element)) => IterableMixinWorkaround.any(this, f);
 
-  List<PathSeg> toList({ bool growable: false }) =>
+  List<PathSeg> toList({ bool growable: true }) =>
       new List<PathSeg>.from(this, growable: growable);
 
   Set<PathSeg> toSet() => new Set<PathSeg>.from(this);
@@ -5507,7 +5507,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
-  List<String> toList({ bool growable: false }) =>
+  List<String> toList({ bool growable: true }) =>
       new List<String>.from(this, growable: growable);
 
   Set<String> toSet() => new Set<String>.from(this);
@@ -6671,7 +6671,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   bool any(bool f(Transform element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Transform> toList({ bool growable: false }) =>
+  List<Transform> toList({ bool growable: true }) =>
       new List<Transform>.from(this, growable: growable);
 
   Set<Transform> toSet() => new Set<Transform>.from(this);
@@ -7190,7 +7190,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   bool any(bool f(ElementInstance element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ElementInstance> toList({ bool growable: false }) =>
+  List<ElementInstance> toList({ bool growable: true }) =>
       new List<ElementInstance>.from(this, growable: growable);
 
   Set<ElementInstance> toSet() => new Set<ElementInstance>.from(this);

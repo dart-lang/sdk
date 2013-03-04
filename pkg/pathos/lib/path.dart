@@ -407,7 +407,7 @@ class Builder {
     var parsed = _parse(path);
     // Filter out empty parts that exist due to multiple separators in a row.
     parsed.parts = parsed.parts.where((part) => !part.isEmpty)
-                               .toList(growable: true);
+                               .toList();
     if (parsed.root != null) parsed.parts.insertRange(0, 1, parsed.root);
     return parsed.parts;
   }
@@ -730,6 +730,5 @@ class _ParsedPath {
   }
 
   _ParsedPath clone() => new _ParsedPath(
-      style, root, new List.from(parts, growable: true),
-                   new List.from(separators, growable: true));
+      style, root, new List.from(parts), new List.from(separators));
 }

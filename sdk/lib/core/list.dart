@@ -67,7 +67,7 @@ abstract class List<E> implements Collection<E> {
    * The returned list is growable if [growable] is true, otherwise it's
    * a fixed length list.
    */
-  factory List.from(Iterable other, { bool growable: false }) {
+  factory List.from(Iterable other, { bool growable: true }) {
     List<E> list = new List<E>();
     for (E e in other) {
       list.add(e);
@@ -91,7 +91,7 @@ abstract class List<E> implements Collection<E> {
    * The created length's length is fixed unless [growable] is true.
    */
   factory List.generate(int length, E generator(int index),
-                       { bool growable: false }) {
+                       { bool growable: true }) {
     List<E> result;
     if (growable) {
       result = <E>[]..length = length;

@@ -6605,7 +6605,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getInt8')
   @DocsEditable
-  Object getInt8({int byteOffset}) native "DataView_getInt8_Callback";
+  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
   int getUint16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6639,7 +6639,7 @@ class DataView extends ArrayBufferView {
 
   @DomName('DataView.getUint8')
   @DocsEditable
-  Object getUint8({int byteOffset}) native "DataView_getUint8_Callback";
+  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
   void setFloat32(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -7843,7 +7843,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomMimeType> toList({ bool growable: false }) =>
+  List<DomMimeType> toList({ bool growable: true }) =>
       new List<DomMimeType>.from(this, growable: growable);
 
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
@@ -8113,7 +8113,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
-  List<DomPlugin> toList({ bool growable: false }) =>
+  List<DomPlugin> toList({ bool growable: true }) =>
       new List<DomPlugin>.from(this, growable: growable);
 
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
@@ -8501,7 +8501,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
-  List<String> toList({ bool growable: false }) =>
+  List<String> toList({ bool growable: true }) =>
       new List<String>.from(this, growable: growable);
 
   Set<String> toSet() => new Set<String>.from(this);
@@ -8724,7 +8724,7 @@ class _ChildrenElementList implements List {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList({ bool growable: false }) {
+  List<Element> toList({ bool growable: true }) {
     List<Element> output;
     if (growable) {
       output = <Element>[];
@@ -9027,7 +9027,7 @@ class _FrozenElementList implements List {
     return false;
   }
 
-  List<Element> toList({ bool growable: false }) =>
+  List<Element> toList({ bool growable: true }) =>
       new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
 
@@ -11341,7 +11341,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
-  List<File> toList({ bool growable: false }) =>
+  List<File> toList({ bool growable: true }) =>
       new List<File>.from(this, growable: growable);
 
   Set<File> toSet() => new Set<File>.from(this);
@@ -11954,7 +11954,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList({ bool growable: false }) =>
+  List<num> toList({ bool growable: true }) =>
       new List<num>.from(this, growable: growable);
 
   Set<num> toSet() => new Set<num>.from(this);
@@ -12191,7 +12191,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
-  List<num> toList({ bool growable: false }) =>
+  List<num> toList({ bool growable: true }) =>
       new List<num>.from(this, growable: growable);
 
   Set<num> toSet() => new Set<num>.from(this);
@@ -12882,7 +12882,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList({ bool growable: false }) =>
+  List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
 
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -13093,7 +13093,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList({ bool growable: false }) =>
+  List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
 
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -15415,7 +15415,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -15652,7 +15652,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -15889,7 +15889,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -18685,7 +18685,7 @@ class _ChildNodeListLazy implements List {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList({ bool growable: false }) =>
+  List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
   Set<Node> toSet() => new Set<Node>.from(this);
 
@@ -19068,7 +19068,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList({ bool growable: false }) =>
+  List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
 
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -21755,7 +21755,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SourceBuffer> toList({ bool growable: false }) =>
+  List<SourceBuffer> toList({ bool growable: true }) =>
       new List<SourceBuffer>.from(this, growable: growable);
 
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
@@ -22075,7 +22075,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechGrammar> toList({ bool growable: false }) =>
+  List<SpeechGrammar> toList({ bool growable: true }) =>
       new List<SpeechGrammar>.from(this, growable: growable);
 
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
@@ -23744,7 +23744,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrackCue> toList({ bool growable: false }) =>
+  List<TextTrackCue> toList({ bool growable: true }) =>
       new List<TextTrackCue>.from(this, growable: growable);
 
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
@@ -23955,7 +23955,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
-  List<TextTrack> toList({ bool growable: false }) =>
+  List<TextTrack> toList({ bool growable: true }) =>
       new List<TextTrack>.from(this, growable: growable);
 
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
@@ -24373,7 +24373,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Touch> toList({ bool growable: false }) =>
+  List<Touch> toList({ bool growable: true }) =>
       new List<Touch>.from(this, growable: growable);
 
   Set<Touch> toSet() => new Set<Touch>.from(this);
@@ -24866,7 +24866,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -25103,7 +25103,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -25340,7 +25340,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -25575,7 +25575,7 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
-  List<int> toList({ bool growable: false }) =>
+  List<int> toList({ bool growable: true }) =>
       new List<int>.from(this, growable: growable);
 
   Set<int> toSet() => new Set<int>.from(this);
@@ -29262,7 +29262,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ClientRect> toList({ bool growable: false }) =>
+  List<ClientRect> toList({ bool growable: true }) =>
       new List<ClientRect>.from(this, growable: growable);
 
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
@@ -29465,7 +29465,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssRule> toList({ bool growable: false }) =>
+  List<CssRule> toList({ bool growable: true }) =>
       new List<CssRule>.from(this, growable: growable);
 
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
@@ -29668,7 +29668,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssValue> toList({ bool growable: false }) =>
+  List<CssValue> toList({ bool growable: true }) =>
       new List<CssValue>.from(this, growable: growable);
 
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
@@ -30014,7 +30014,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Entry> toList({ bool growable: false }) =>
+  List<Entry> toList({ bool growable: true }) =>
       new List<Entry>.from(this, growable: growable);
 
   Set<Entry> toSet() => new Set<Entry>.from(this);
@@ -30217,7 +30217,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
-  List<EntrySync> toList({ bool growable: false }) =>
+  List<EntrySync> toList({ bool growable: true }) =>
       new List<EntrySync>.from(this, growable: growable);
 
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
@@ -30420,7 +30420,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Gamepad> toList({ bool growable: false }) =>
+  List<Gamepad> toList({ bool growable: true }) =>
       new List<Gamepad>.from(this, growable: growable);
 
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
@@ -30714,7 +30714,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
-  List<Node> toList({ bool growable: false }) =>
+  List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
 
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -30941,7 +30941,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechInputResult> toList({ bool growable: false }) =>
+  List<SpeechInputResult> toList({ bool growable: true }) =>
       new List<SpeechInputResult>.from(this, growable: growable);
 
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
@@ -31144,7 +31144,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
-  List<SpeechRecognitionResult> toList({ bool growable: false }) =>
+  List<SpeechRecognitionResult> toList({ bool growable: true }) =>
       new List<SpeechRecognitionResult>.from(this, growable: growable);
 
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
@@ -31347,7 +31347,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
-  List<StyleSheet> toList({ bool growable: false }) =>
+  List<StyleSheet> toList({ bool growable: true }) =>
       new List<StyleSheet>.from(this, growable: growable);
 
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
@@ -31981,7 +31981,7 @@ abstract class CssClassSet implements Set<String> {
   String get first => readClasses().first;
   String get last => readClasses().last;
   String get single => readClasses().single;
-  List<String> toList({ bool growable: false }) =>
+  List<String> toList({ bool growable: true }) =>
       readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   String min([int compare(String a, String b)]) =>
@@ -33476,7 +33476,7 @@ class _WrappedList<E> implements List<E> {
 
   bool any(bool f(E element)) => _list.any(f);
 
-  List<E> toList({ bool growable: false }) =>
+  List<E> toList({ bool growable: true }) =>
       new List.from(_list, growable: growable);
 
   Set<E> toSet() => _list.toSet();
@@ -34538,6 +34538,11 @@ class TestRunner {
 
 
 class _Utils {
+  static double dateTimeToDouble(DateTime dateTime) =>
+      dateTime.millisecondsSinceEpoch.toDouble();
+  static DateTime doubleToDateTime(double dateTime) =>
+      new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;

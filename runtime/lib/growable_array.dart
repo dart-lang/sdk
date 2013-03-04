@@ -316,7 +316,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return new ListIterator<T>(this);
   }
 
-  List<T> toList({ bool growable: false }) {
+  List<T> toList({ bool growable: true }) {
     return new List<T>.from(this, growable: growable);
   }
 

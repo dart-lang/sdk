@@ -20,10 +20,10 @@ doNothing(x) => x;
 // TODO(alanknight): Remove once issue 5342 is resolved.
 Iterable append(Iterable a, Iterable b) {
   if (a == null) {
-    return (b == null) ? [] : new List.from(b, growable: true);
+    return (b == null) ? [] : new List.from(b);
   }
-  if (b == null) return new List.from(a, growable: true);
-  var result = new List.from(a, growable: true);
+  if (b == null) return new List.from(a);
+  var result = new List.from(a);
   result.addAll(b);
   return result;
 }
@@ -132,7 +132,7 @@ values(x) {
 
 mapValues(x, f) {
   if (x is Set) return x.map(f).toSet();
-  if (x is Iterable) return x.map(f).toList(growable: true);
+  if (x is Iterable) return x.map(f).toList();
   if (x is Map) return new ListLikeIterable(x).map(f);
   throw new ArgumentError("Invalid argument");
 }

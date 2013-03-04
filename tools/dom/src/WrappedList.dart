@@ -36,7 +36,7 @@ class _WrappedList<E> implements List<E> {
 
   bool any(bool f(E element)) => _list.any(f);
 
-  List<E> toList({ bool growable: false }) =>
+  List<E> toList({ bool growable: true }) =>
       new List.from(_list, growable: growable);
 
   Set<E> toSet() => _list.toSet();

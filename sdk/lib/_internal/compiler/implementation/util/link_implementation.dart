@@ -81,7 +81,7 @@ class LinkEntry<T> extends Link<T> {
 
   bool get isEmpty => false;
 
-  List<T> toList({ bool growable: false }) {
+  List<T> toList({ bool growable: true }) {
     return new List<T>.from(this, growable: growable);
   }
 

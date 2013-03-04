@@ -95,7 +95,7 @@ class Parser {
     });
 
     // Add in the leftover arguments we didn't parse to the innermost command.
-    var rest = args.toList(growable: true);
+    var rest = args.toList();
     args.clear();
     return new ArgResults(results, commandName, commandResults, rest);
   }
