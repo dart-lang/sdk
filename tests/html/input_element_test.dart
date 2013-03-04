@@ -126,11 +126,10 @@ main() {
     test('time', () {
       check(new TimeInputElement(), 'time', TimeInputElement.supported);
       if (TimeInputElement.supported) {
-        // Bug 8836 Re-enable once Dartium supports DateTime properties.
-        // var element = new TimeInputElement();
-        // var now = new DateTime.now();
-        // element.valueAsDate = now;
-        // expect(element.valueAsDate is DateTime, isTrue);
+        var element = new TimeInputElement();
+        var now = new DateTime.now();
+        element.valueAsDate = now;
+        expect(element.valueAsDate is DateTime, isTrue);
 
         // Bug 8813, setting it is just going to the epoch.
         //expect(element.valueAsDate, now);
