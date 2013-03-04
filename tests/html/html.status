@@ -28,7 +28,6 @@ audiocontext_test: Pass, Timeout, Crash  # Issue 8021.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-transferables_test: Pass, Fail # Issue 8026
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
@@ -45,7 +44,6 @@ audiobuffersourcenode_test: Pass, Fail
 [$runtime == ie10 ]
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
-canvasrenderingcontext2d_test: Fail # issue 8678
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
@@ -286,7 +284,6 @@ audiocontext_test: Fail      # FF only has Audio element
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 dromaeo_smoke_test: Pass, Fail # Issue: 8257
 inner_frame_test: Skip
-transferables_test: Fail   # Issue 3392.
 webgl_1_test: Pass, Fail   # Issue 8219
 
 # FireFox Feature support statuses-
@@ -333,9 +330,6 @@ xhr_test/supported_HttpRequestProgressEvent: Fail
 # a browser environment.
 [ $runtime == vm ]
 *: Skip
-
-[ $compiler == dart2js ]
-transferables_test: Skip # until isInstance works in dart2js
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
