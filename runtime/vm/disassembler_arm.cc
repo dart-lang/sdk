@@ -296,6 +296,19 @@ int ARMDecoder::FormatSRegister(Instr* instr, const char* format) {
       PrintSRegister(reg);
       return 2;
     }
+  } else if (format[1] == 'l') {
+    ASSERT(STRING_STARTS_WITH(format, "slist"));
+    int reg_count = instr->Bits(0, 8);
+    int start = instr->Bit(22) | (instr->Bits(12, 4) << 1);
+    Print("{");
+    for (int i = start; i < start + reg_count; i++) {
+      PrintSRegister(i);
+      if (i != start + reg_count - 1) {
+        Print(", ");
+      }
+    }
+    Print("}");
+    return 5;
   }
   UNREACHABLE();
   return -1;
@@ -316,6 +329,19 @@ int ARMDecoder::FormatDRegister(Instr* instr, const char* format) {
     int reg = instr->DmField();
     PrintDRegister(reg);
     return 2;
+  } else if (format[1] == 'l') {
+    ASSERT(STRING_STARTS_WITH(format, "dlist"));
+    int reg_count = instr->Bits(0, 8) >> 1;
+    int start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
+    Print("{");
+    for (int i = start; i < start + reg_count; i++) {
+      PrintDRegister(i);
+      if (i != start + reg_count - 1) {
+        Print(", ");
+      }
+    }
+    Print("}");
+    return 5;
   }
   UNREACHABLE();
   return -1;
@@ -918,6 +944,20 @@ void ARMDecoder::DecodeType6(Instr* instr) {
         } else {
           Format(instr, "vstrd'cond 'dd, ['rn, #-'off10]");
         }
+      }
+    }
+  } else if (instr->IsVFPMultipleLoadStore()) {
+    if (instr->HasL()) {  // vldm
+      if (instr->Bit(8)) {  // vldmd
+        Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
+      } else {  // vldms
+        Format(instr, "vldms'cond'pu 'rn'w, 'slist");
+      }
+    } else {  // vstm
+      if (instr->Bit(8)) {  // vstmd
+        Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
+      } else {  // vstms
+        Format(instr, "vstms'cond'pu 'rn'w, 'slist");
       }
     }
   } else {

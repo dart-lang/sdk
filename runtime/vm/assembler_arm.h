@@ -435,6 +435,16 @@ class Assembler : public ValueObject {
   void vldrd(DRegister dd, Address ad, Condition cond = AL);
   void vstrd(DRegister dd, Address ad, Condition cond = AL);
 
+  void vldms(BlockAddressMode am, Register base,
+             SRegister first, SRegister last, Condition cond = AL);
+  void vstms(BlockAddressMode am, Register base,
+             SRegister first, SRegister last, Condition cond = AL);
+
+  void vldmd(BlockAddressMode am, Register base,
+             DRegister first, DRegister last, Condition cond = AL);
+  void vstmd(BlockAddressMode am, Register base,
+             DRegister first, DRegister last, Condition cond = AL);
+
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
   void vsubs(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
@@ -644,6 +654,20 @@ class Assembler : public ValueObject {
                  Register rn,
                  Register rm,
                  Register rs);
+
+  void EmitMultiVSMemOp(Condition cond,
+                        BlockAddressMode am,
+                        bool load,
+                        Register base,
+                        SRegister start,
+                        uint32_t count);
+
+  void EmitMultiVDMemOp(Condition cond,
+                        BlockAddressMode am,
+                        bool load,
+                        Register base,
+                        DRegister start,
+                        int32_t count);
 
   void EmitVFPsss(Condition cond,
                   int32_t opcode,

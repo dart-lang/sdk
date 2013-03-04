@@ -23,6 +23,7 @@ enum {
   W   = 1 << 21,  // writeback base register (or leave unchanged)
   A   = 1 << 21,  // accumulate in multiply instruction (or not)
   B   = 1 << 22,  // unsigned byte (or word)
+  D   = 1 << 22,  // high/lo bit of start of s/d register range
   N   = 1 << 22,  // long (or short)
   U   = 1 << 23,  // positive (or negative) offset/index
   P   = 1 << 24,  // offset/pre-indexed addressing (or post-indexed addressing)
@@ -702,6 +703,83 @@ void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
                      ((static_cast<int32_t>(dd) & 0xf)*B12) |
                      B11 | B9 | B8 | ad.vencoding();
   Emit(encoding);
+}
+
+void Assembler::EmitMultiVSMemOp(Condition cond,
+                                BlockAddressMode am,
+                                bool load,
+                                Register base,
+                                SRegister start,
+                                uint32_t count) {
+  ASSERT(base != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  ASSERT(start != kNoSRegister);
+  ASSERT(static_cast<int32_t>(start) + count <= kNumberOfSRegisters);
+
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B11 | B9 |
+                     am |
+                     (load ? L : 0) |
+                     (static_cast<int32_t>(base) << kRnShift) |
+                     ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
+                     ((static_cast<int32_t>(start) >> 1) << 12) |
+                     count;
+  Emit(encoding);
+}
+
+
+void Assembler::EmitMultiVDMemOp(Condition cond,
+                                BlockAddressMode am,
+                                bool load,
+                                Register base,
+                                DRegister start,
+                                int32_t count) {
+  ASSERT(base != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  ASSERT(start != kNoDRegister);
+  ASSERT(static_cast<int32_t>(start) + count <= kNumberOfDRegisters);
+
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B11 | B9 | B8 |
+                     am |
+                     (load ? L : 0) |
+                     (static_cast<int32_t>(base) << kRnShift) |
+                     ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
+                     ((static_cast<int32_t>(start) & 0xf) << 12) |
+                     (count << 1);
+  Emit(encoding);
+}
+
+
+void Assembler::vldms(BlockAddressMode am, Register base,
+                      SRegister first, SRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVSMemOp(cond, am, true, base, first, last - first + 1);
+}
+
+
+void Assembler::vstms(BlockAddressMode am, Register base,
+                      SRegister first, SRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVSMemOp(cond, am, false, base, first, last - first + 1);
+}
+
+
+void Assembler::vldmd(BlockAddressMode am, Register base,
+                      DRegister first, DRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVDMemOp(cond, am, true, base, first, last - first + 1);
+}
+
+
+void Assembler::vstmd(BlockAddressMode am, Register base,
+                      DRegister first, DRegister last, Condition cond) {
+  ASSERT((am == IA) || (am == IA_W) || (am == DB_W));
+  ASSERT(last > first);
+  EmitMultiVDMemOp(cond, am, false, base, first, last - first + 1);
 }
 
 

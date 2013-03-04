@@ -1040,6 +1040,327 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLSLNegPreIndex, test) {
 }
 
 
+// Make sure we can store and reload the D registers using vstmd and vldmd
+ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
+  __ LoadDImmediate(D0, 0.0, R0);
+  __ LoadDImmediate(D1, 1.0, R0);
+  __ LoadDImmediate(D2, 2.0, R0);
+  __ LoadDImmediate(D3, 3.0, R0);
+  __ LoadDImmediate(D4, 4.0, R0);
+  __ vstmd(DB_W, SP, D0, D4);  // Push D0 - D4 onto the stack, dec SP
+  __ LoadDImmediate(D0, 0.0, R0);
+  __ LoadDImmediate(D1, 0.0, R0);
+  __ LoadDImmediate(D2, 0.0, R0);
+  __ LoadDImmediate(D3, 0.0, R0);
+  __ LoadDImmediate(D4, 0.0, R0);
+  __ vldmd(IA_W, SP, D0, D4);  // Pop stack into D0 - D4, inc SP
+
+  // Load success value into R0
+  __ mov(R0, ShifterOperand(42));
+
+  // Check that 4.0 is back in D4
+  __ LoadDImmediate(D5, 4.0, R1);
+  __ vcmpd(D4, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 3.0 is back in D3
+  __ LoadDImmediate(D5, 3.0, R1);
+  __ vcmpd(D3, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+
+  // Check that 2.0 is back in D2
+  __ LoadDImmediate(D5, 2.0, R1);
+  __ vcmpd(D2, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 1.0 is back in D1
+  __ LoadDImmediate(D5, 1.0, R1);
+  __ vcmpd(D1, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(VstmdVldmd, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+// Make sure we can store and reload the S registers using vstms and vldms
+ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
+  __ LoadSImmediate(S0, 0.0);
+  __ LoadSImmediate(S1, 1.0);
+  __ LoadSImmediate(S2, 2.0);
+  __ LoadSImmediate(S3, 3.0);
+  __ LoadSImmediate(S4, 4.0);
+  __ vstms(DB_W, SP, S0, S4);  // Push S0 - S4 onto the stack, dec SP
+  __ LoadSImmediate(S0, 0.0);
+  __ LoadSImmediate(S1, 0.0);
+  __ LoadSImmediate(S2, 0.0);
+  __ LoadSImmediate(S3, 0.0);
+  __ LoadSImmediate(S4, 0.0);
+  __ vldms(IA_W, SP, S0, S4);  // Pop stack into S0 - S4, inc SP
+
+  // Load success value into R0
+  __ mov(R0, ShifterOperand(42));
+
+  // Check that 4.0 is back in S4
+  __ LoadSImmediate(S5, 4.0);
+  __ vcmps(S4, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 3.0 is back in S3
+  __ LoadSImmediate(S5, 3.0);
+  __ vcmps(S3, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 2.0 is back in S2
+  __ LoadSImmediate(S5, 2.0);
+  __ vcmps(S2, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 1.0 is back in S1
+  __ LoadSImmediate(S5, 1.0);
+  __ vcmps(S1, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(VstmsVldms, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+// Make sure we can start somewhere other than D0
+ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
+  __ LoadDImmediate(D1, 1.0, R0);
+  __ LoadDImmediate(D2, 2.0, R0);
+  __ LoadDImmediate(D3, 3.0, R0);
+  __ LoadDImmediate(D4, 4.0, R0);
+  __ vstmd(DB_W, SP, D1, D4);  // Push D1 - D4 onto the stack, dec SP
+  __ LoadDImmediate(D1, 0.0, R0);
+  __ LoadDImmediate(D2, 0.0, R0);
+  __ LoadDImmediate(D3, 0.0, R0);
+  __ LoadDImmediate(D4, 0.0, R0);
+  __ vldmd(IA_W, SP, D1, D4);  // Pop stack into D1 - D4, inc SP
+
+  // Load success value into R0
+  __ mov(R0, ShifterOperand(42));
+
+  // Check that 4.0 is back in D4
+  __ LoadDImmediate(D5, 4.0, R1);
+  __ vcmpd(D4, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 3.0 is back in D3
+  __ LoadDImmediate(D5, 3.0, R1);
+  __ vcmpd(D3, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+
+  // Check that 2.0 is back in D2
+  __ LoadDImmediate(D5, 2.0, R1);
+  __ vcmpd(D2, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 1.0 is back in D1
+  __ LoadDImmediate(D5, 1.0, R1);
+  __ vcmpd(D1, D5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(VstmdVldmd1, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+// Make sure we can start somewhere other than S0
+ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
+  __ LoadSImmediate(S1, 1.0);
+  __ LoadSImmediate(S2, 2.0);
+  __ LoadSImmediate(S3, 3.0);
+  __ LoadSImmediate(S4, 4.0);
+  __ vstms(DB_W, SP, S1, S4);  // Push S0 - S4 onto the stack, dec SP
+  __ LoadSImmediate(S1, 0.0);
+  __ LoadSImmediate(S2, 0.0);
+  __ LoadSImmediate(S3, 0.0);
+  __ LoadSImmediate(S4, 0.0);
+  __ vldms(IA_W, SP, S1, S4);  // Pop stack into S0 - S4, inc SP
+
+  // Load success value into R0
+  __ mov(R0, ShifterOperand(42));
+
+  // Check that 4.0 is back in S4
+  __ LoadSImmediate(S5, 4.0);
+  __ vcmps(S4, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 3.0 is back in S3
+  __ LoadSImmediate(S5, 3.0);
+  __ vcmps(S3, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 2.0 is back in S2
+  __ LoadSImmediate(S5, 2.0);
+  __ vcmps(S2, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 1.0 is back in S1
+  __ LoadSImmediate(S5, 1.0);
+  __ vcmps(S1, S5);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+// Make sure we can store the D registers using vstmd and
+// load them into a different set using vldmd
+ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
+  __ LoadDImmediate(D0, 0.0, R0);
+  __ LoadDImmediate(D1, 1.0, R0);
+  __ LoadDImmediate(D2, 2.0, R0);
+  __ LoadDImmediate(D3, 3.0, R0);
+  __ LoadDImmediate(D4, 4.0, R0);
+  __ LoadDImmediate(D5, 5.0, R0);
+  __ vstmd(DB_W, SP, D0, D4);  // Push D0 - D4 onto the stack, dec SP
+  __ vldmd(IA_W, SP, D5, D9);  // Pop stack into D5 - D9, inc SP
+
+  // Load success value into R0
+  __ mov(R0, ShifterOperand(42));
+
+  // Check that 4.0 is in D9
+  __ LoadDImmediate(D10, 4.0, R1);
+  __ vcmpd(D9, D10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 3.0 is in D8
+  __ LoadDImmediate(D10, 3.0, R1);
+  __ vcmpd(D8, D10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+
+  // Check that 2.0 is in D7
+  __ LoadDImmediate(D10, 2.0, R1);
+  __ vcmpd(D7, D10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 1.0 is in D6
+  __ LoadDImmediate(D10, 1.0, R1);
+  __ vcmpd(D6, D10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  // Check that 0.0 is in D5
+  __ LoadDImmediate(D10, 0.0, R1);
+  __ vcmpd(D5, D10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
+
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(VstmdVldmd_off, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+// Make sure we can start somewhere other than S0
+ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
+  __ LoadSImmediate(S0, 0.0);
+  __ LoadSImmediate(S1, 1.0);
+  __ LoadSImmediate(S2, 2.0);
+  __ LoadSImmediate(S3, 3.0);
+  __ LoadSImmediate(S4, 4.0);
+  __ LoadSImmediate(S5, 5.0);
+  __ vstms(DB_W, SP, S0, S4);  // Push S0 - S4 onto the stack, dec SP
+  __ vldms(IA_W, SP, S5, S9);  // Pop stack into S5 - S9, inc SP
+
+  // Load success value into R0
+  __ mov(R0, ShifterOperand(42));
+
+  // Check that 4.0 is in S9
+  __ LoadSImmediate(S10, 4.0);
+  __ vcmps(S9, S10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 3.0 is in S8
+  __ LoadSImmediate(S10, 3.0);
+  __ vcmps(S8, S10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 2.0 is in S7
+  __ LoadSImmediate(S10, 2.0);
+  __ vcmps(S7, S10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 1.0 is back in S6
+  __ LoadSImmediate(S10, 1.0);
+  __ vcmps(S6, S10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  // Check that 0.0 is back in S5
+  __ LoadSImmediate(S10, 0.0);
+  __ vcmps(S5, S10);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
+
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

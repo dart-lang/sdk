@@ -195,6 +195,9 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
   if ((desc[0] == '*')) {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
       *value = *(reinterpret_cast<uint32_t*>(addr));
       return true;
     }
@@ -216,6 +219,9 @@ bool SimulatorDebugger::GetFValue(char* desc, float* value) {
   if ((desc[0] == '*')) {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
       *value = *(reinterpret_cast<float*>(addr));
       return true;
     }
@@ -233,6 +239,9 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
   if ((desc[0] == '*')) {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
       *value = *(reinterpret_cast<double*>(addr));
       return true;
     }
@@ -2148,6 +2157,57 @@ void Simulator::DecodeType6(Instr* instr) {
           int64_t dd_val = bit_cast<int64_t, double>(get_dregister(dd));
           WriteW(addr, Utils::Low32Bits(dd_val), instr);
           WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+        }
+      }
+    }
+  } else if (instr->IsVFPMultipleLoadStore()) {
+    Register rn = instr->RnField();
+    int32_t addr = get_register(rn);
+    int32_t imm_val = instr->Bits(0, 8);
+    if (instr->Bit(23) == 0) {
+      addr -= (imm_val << 2);
+    }
+    if (instr->HasW()) {
+      if (instr->Bit(23) == 1) {
+        set_register(rn, addr + (imm_val << 2));
+      } else {
+        set_register(rn, addr);  // already subtracted from addr
+      }
+    }
+    if (IsIllegalAddress(addr)) {
+      HandleIllegalAccess(addr, instr);
+    } else {
+      if (instr->Bit(8) == 0) {
+        int32_t regs_cnt = imm_val;
+        int32_t start = instr->Bit(22) | (instr->Bits(12, 4) << 1);
+        for (int i = start; i < start + regs_cnt; i++) {
+          SRegister sd = static_cast<SRegister>(i);
+          if (instr->Bit(20) == 1) {
+            // Format(instr, "vldms'cond'pu 'rn'w, 'slist");
+            set_sregister(sd, bit_cast<float, int32_t>(ReadW(addr, instr)));
+          } else {
+            // Format(instr, "vstms'cond'pu 'rn'w, 'slist");
+            WriteW(addr, bit_cast<int32_t, float>(get_sregister(sd)), instr);
+          }
+          addr += 4;
+        }
+      } else {
+        int32_t regs_cnt = imm_val >> 1;
+        int32_t start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
+        for (int i = start; i < start + regs_cnt; i++) {
+          DRegister dd = static_cast<DRegister>(i);
+          if (instr->Bit(20) == 1) {
+            // Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
+            int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
+                                                    ReadW(addr + 4, instr));
+            set_dregister(dd, bit_cast<double, int64_t>(dd_val));
+          } else {
+            // Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
+            int64_t dd_val = bit_cast<int64_t, double>(get_dregister(dd));
+            WriteW(addr, Utils::Low32Bits(dd_val), instr);
+            WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+          }
+          addr += 8;
         }
       }
     }

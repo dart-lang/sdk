@@ -486,6 +486,14 @@ class Instr {
     return ((Bits(20, 5) & 0x12) == 0x10) && (Bits(9, 3) == 5);
   }
 
+  // Test for VFP multiple load and store instructions of type 6.
+  inline bool IsVFPMultipleLoadStore() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 6);
+    int32_t puw = (PUField() << 1) | Bit(21);  // don't care about D bit
+    return (Bits(9, 3) == 5) && ((puw == 2) || (puw == 3) || (puw == 5));
+  }
+
   // Special accessors that test for existence of a value.
   inline bool HasS()    const { return SField() == 1; }
   inline bool HasB()    const { return BField() == 1; }
