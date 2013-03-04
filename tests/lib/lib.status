@@ -41,6 +41,9 @@ async/slow_consumer2_test: Fail # Issue 7726
 [ $compiler == none && $runtime == drt ]
 async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
 
+[ $runtime == d8 ]
+async/stream_state_nonzero_timer_test: Fail # d8 doesn't handle nonzero timers.
+
 [ $arch == arm ]
 *: Skip
 
