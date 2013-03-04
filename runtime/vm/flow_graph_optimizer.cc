@@ -3381,7 +3381,7 @@ class LoadOptimizer : public ValueObject {
   void EmitPhis() {
     for (intptr_t i = 0; i < phis_.length(); i++) {
       PhiInstr* phi = phis_[i];
-      if ((phi->input_use_list() != NULL) && !EliminateRedundantPhi(phi)) {
+      if (phi->HasUses() && !EliminateRedundantPhi(phi)) {
         phi->mark_alive();
         phi->block()->InsertPhi(phi);
       } else {
