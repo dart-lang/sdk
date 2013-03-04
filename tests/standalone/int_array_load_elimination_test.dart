@@ -7,7 +7,7 @@
 // TODO: remove once bug 2264 fixed.
 library int_array_load_elimination;
 
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 void testUint16() {
   Uint16List intArray = new Uint16List(1);

@@ -78,6 +78,7 @@ ObjectStore::ObjectStore()
     native_wrappers_library_(Library::null()),
     root_library_(Library::null()),
     scalarlist_library_(Library::null()),
+    typeddata_library_(Library::null()),
     uri_library_(Library::null()),
     utf_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),

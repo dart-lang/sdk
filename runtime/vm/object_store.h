@@ -471,6 +471,13 @@ class ObjectStore {
     scalarlist_library_ = value.raw();
   }
 
+  RawLibrary* typeddata_library() const {
+    return typeddata_library_;
+  }
+  void set_typeddata_library(const Library& value) {
+    typeddata_library_ = value.raw();
+  }
+
   RawLibrary* uri_library() const {
     return uri_library_;
   }
@@ -648,6 +655,7 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* scalarlist_library_;
+  RawLibrary* typeddata_library_;
   RawLibrary* uri_library_;
   RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;

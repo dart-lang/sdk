@@ -2127,6 +2127,7 @@ class Library : public Object {
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* ScalarlistLibrary();
+  static RawLibrary* TypedDataLibrary();
   static RawLibrary* UriLibrary();
   static RawLibrary* UtfLibrary();
 

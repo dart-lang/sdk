@@ -22,6 +22,8 @@
     'json_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_patch_gen.cc',
     'scalarlist_cc_file': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_gen.cc',
     'scalarlist_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/scalarlist_patch_gen.cc',
+    'typeddata_cc_file': '<(SHARED_INTERMEDIATE_DIR)/typeddata_gen.cc',
+    'typeddata_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/typeddata_patch_gen.cc',
     'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
     'utf_cc_file': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.cc',
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
@@ -107,6 +109,8 @@
         'generate_mirrors_patch_cc_file',
         'generate_scalarlist_cc_file',
         'generate_scalarlist_patch_cc_file',
+        'generate_typeddata_cc_file',
+        'generate_typeddata_patch_cc_file',
         'generate_uri_cc_file',
         'generate_utf_cc_file',
       ],
@@ -117,6 +121,7 @@
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/scalarlist_sources.gypi',
+        '../lib/typeddata_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -138,6 +143,8 @@
         '<(mirrors_patch_cc_file)',
         '<(scalarlist_cc_file)',
         '<(scalarlist_patch_cc_file)',
+        '<(typeddata_cc_file)',
+        '<(typeddata_patch_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
       ],
@@ -155,6 +162,7 @@
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/scalarlist_sources.gypi',
+        '../lib/typeddata_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocorelib.cc',
@@ -980,6 +988,101 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(scalarlist_patch_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_typeddata_cc_file',
+      'type': 'none',
+      'variables': {
+        'typeddata_dart': '<(SHARED_INTERMEDIATE_DIR)/typeddata_gen.dart',
+      },
+      'includes': [
+        # Load the shared library sources.
+        '../../sdk/lib/typeddata/typeddata_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_typeddata_dart',
+          'inputs': [
+            '../tools/concat_library.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(typeddata_dart)',
+          ],
+          'action': [
+            'python',
+            '<@(_inputs)',
+            '--output', '<(typeddata_dart)',
+          ],
+          'message': 'Generating ''<(typeddata_dart)'' file.',
+        },
+        {
+          'action_name': 'generate_typeddata_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<(typeddata_dart)',
+          ],
+          'outputs': [
+            '<(typeddata_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(typeddata_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::typeddata_source_',
+            '<(typeddata_dart)',
+          ],
+          'message': 'Generating ''<(typeddata_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_typeddata_patch_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/typeddata_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_typeddata_patch_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(typeddata_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(typeddata_patch_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::typeddata_patch_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(typeddata_patch_cc_file)'' file.'
         },
       ]
     },

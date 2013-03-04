@@ -1054,6 +1054,7 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Math, math, true);
   INIT_LIBRARY(Mirrors, mirrors, true);
   INIT_LIBRARY(Scalarlist, scalarlist, true);
+  INIT_LIBRARY(TypedData, typeddata, true);
   INIT_LIBRARY(Utf, utf, false);
   INIT_LIBRARY(Uri, uri, false);
 
@@ -6495,6 +6496,11 @@ RawLibrary* Library::NativeWrappersLibrary() {
 
 RawLibrary* Library::ScalarlistLibrary() {
   return Isolate::Current()->object_store()->scalarlist_library();
+}
+
+
+RawLibrary* Library::TypedDataLibrary() {
+  return Isolate::Current()->object_store()->typeddata_library();
 }
 
 

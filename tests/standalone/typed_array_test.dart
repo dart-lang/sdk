@@ -7,7 +7,7 @@
 // Library tag to be able to run in html test framework.
 library TypedArray;
 import 'dart:isolate';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 void main() {
   int8_receiver();

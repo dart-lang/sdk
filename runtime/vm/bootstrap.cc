@@ -98,6 +98,13 @@ RawScript* Bootstrap::LoadScalarlistScript(bool patch) {
 }
 
 
+RawScript* Bootstrap::LoadTypedDataScript(bool patch) {
+  const char* url = patch ? "dart:typeddata_patch" : "dart:typeddata";
+  const char* source = patch ? typeddata_patch_ : typeddata_source_;
+  return LoadScript(url, source, patch);
+}
+
+
 RawScript* Bootstrap::LoadUriScript(bool patch) {
   const char* url = patch ? "dart:uri-patch" : "dart:uri";
   const char* source = patch ? uri_source_ : uri_source_;

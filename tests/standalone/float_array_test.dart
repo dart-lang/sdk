@@ -7,7 +7,7 @@
 // Library tag to be able to run in html test framework.
 library FloatArrayTest;
 
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 void testCreateFloat32Array() {
   Float32List floatArray;
