@@ -17,6 +17,7 @@ async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/772
 async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/stream_state_nonzero_timer_test: Fail # Timer interface not supported; dartbug.com/7728.
 
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass
@@ -40,9 +41,6 @@ async/slow_consumer2_test: Fail # Issue 7726
 
 [ $compiler == none && $runtime == drt ]
 async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
-
-[ $runtime == d8 ]
-async/stream_state_nonzero_timer_test: Fail # d8 doesn't handle nonzero timers.
 
 [ $arch == arm ]
 *: Skip
