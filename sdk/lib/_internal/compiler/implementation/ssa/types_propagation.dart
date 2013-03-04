@@ -136,7 +136,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
     DartType functionType = compiler.functionClass.computeType(compiler);
     for (Element each in compiler.world.allFunctions.filter(refined)) {
       HType inferred = (refined.isGetter() && each.isFunction())
-          ? new HType.nonNullExactClass(functionType, compiler)
+          ? new HType.nonNullExact(functionType, compiler)
           : new HType.inferredForElement(each, compiler);
       type = type.union(inferred, compiler);
       if (type.isUnknown()) break;

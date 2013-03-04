@@ -48,18 +48,28 @@ abstract class HType {
     return new HBoundedType(mask);
   }
 
-  factory HType.nonNullExactClass(DartType type, Compiler compiler) {
+  factory HType.exact(DartType type, Compiler compiler) {
+    TypeMask mask = new TypeMask.exact(type);
+    return new HType.fromMask(mask, compiler);
+  }
+
+  factory HType.subclass(DartType type, Compiler compiler) {
+    TypeMask mask = new TypeMask.subclass(type);
+    return new HType.fromMask(mask, compiler);
+  }
+
+  factory HType.subtype(DartType type, Compiler compiler) {
+    TypeMask mask = new TypeMask.subtype(type);
+    return new HType.fromMask(mask, compiler);
+  }
+
+  factory HType.nonNullExact(DartType type, Compiler compiler) {
     TypeMask mask = new TypeMask.nonNullExact(type);
     return new HType.fromMask(mask, compiler);
   }
 
   factory HType.nonNullSubclass(DartType type, Compiler compiler) {
     TypeMask mask = new TypeMask.nonNullSubclass(type);
-    return new HType.fromMask(mask, compiler);
-  }
-
-  factory HType.subtype(DartType type, Compiler compiler) {
-    TypeMask mask = new TypeMask.subtype(type);
     return new HType.fromMask(mask, compiler);
   }
 
@@ -82,7 +92,7 @@ abstract class HType {
       return new HType.nonNullSubtype(
           compiler.mapLiteralClass.computeType(compiler), compiler);
     } else {
-      return new HType.nonNullExactClass(
+      return new HType.nonNullExact(
           cls.computeType(compiler), compiler);
     }
   }
@@ -115,7 +125,7 @@ abstract class HType {
   // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
   factory HType.fromNativeType(type, Compiler compiler) {
     if (type == native.SpecialType.JsObject) {
-      return new HType.nonNullExactClass(
+      return new HType.nonNullExact(
           compiler.objectClass.computeType(compiler), compiler);
     } else if (type == native.SpecialType.JsArray) {
       return HType.READABLE_ARRAY;
@@ -711,8 +721,8 @@ class HStringOrNullType extends HPrimitiveOrNullType {
       if (other.canBeNull()) {
         return other;
       } else {
-        HBoundedType boundedType = other;
-        return new HBoundedType(boundedType.mask.nullable());
+        TypeMask otherMask = other.computeMask(compiler);
+        return new HType.fromMask(otherMask.nullable(), compiler);
       }
     }
     if (other.isNull()) return HType.STRING_OR_NULL;
@@ -965,7 +975,7 @@ class HBoundedType extends HType {
       TypeMask intersection = mask.intersection(otherMask, compiler.types);
       if (intersection != null) {
         if (intersection == mask) return this;
-        return new HBoundedType(intersection);
+        return new HType.fromMask(intersection, compiler);
       }
     }
     if (other.isUnknown()) return this;
@@ -980,7 +990,7 @@ class HBoundedType extends HType {
       if (canBeNull()) {
         return this;
       } else {
-        return new HBoundedType(mask.nullable());
+        return new HType.fromMask(mask.nullable(), compiler);
       }
     }
 
@@ -989,7 +999,7 @@ class HBoundedType extends HType {
       TypeMask union = mask.union(otherMask, compiler.types);
       if (union == null) return HType.UNKNOWN;
       if (union == mask) return this;
-      return new HBoundedType(union);
+      return new HType.fromMask(union, compiler);
     }
     if (other.isConflicting()) return this;
     return HType.UNKNOWN;

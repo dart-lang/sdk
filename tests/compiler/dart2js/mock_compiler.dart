@@ -118,7 +118,7 @@ const String DEFAULT_CORELIB = r'''
     static parse(s) {}
   }
   class bool {}
-  class String {}
+  class String implements Pattern {}
   class Object {
     operator ==(other) {}
     String toString() {}
@@ -131,6 +131,7 @@ const String DEFAULT_CORELIB = r'''
     DateTime(year);
     DateTime.utc(year);
   }
+  abstract class Pattern {}
   bool identical(Object a, Object b) {}''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''

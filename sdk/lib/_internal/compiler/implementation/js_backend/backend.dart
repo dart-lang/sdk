@@ -871,7 +871,7 @@ class JavaScriptBackend extends Backend {
     // make sure all [noSuchMethod] methods know they might take a
     // [JsInvocationMirror] as parameter.
     HTypeList types = new HTypeList(1);
-    types[0] = new HType.nonNullExactClass(
+    types[0] = new HType.nonNullExact(
         compiler.jsInvocationMirrorClass.computeType(compiler),
         compiler);
     argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());

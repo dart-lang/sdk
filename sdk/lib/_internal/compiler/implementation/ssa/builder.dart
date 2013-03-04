@@ -1428,7 +1428,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeSuperMembers: true);
 
     InterfaceType type = classElement.computeType(compiler);
-    HType ssaType = new HType.nonNullExactClass(type, compiler);
+    HType ssaType = new HType.nonNullExact(type, compiler);
     HForeignNew newObject = new HForeignNew(classElement,
                                             ssaType,
                                             constructorArguments);
@@ -2226,7 +2226,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    HType type = new HType.nonNullExactClass(
+    HType type = new HType.nonNullExact(
         compiler.functionClass.computeType(compiler),
         compiler);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
@@ -3270,7 +3270,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HType.nonNullExactClass(cls.thisType, compiler);
+        return new HType.nonNullExact(cls.thisType, compiler);
       } else {
         return HType.UNKNOWN;
       }

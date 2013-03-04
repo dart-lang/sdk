@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "mock_compiler.dart";
+import "parser_helper.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
 
@@ -24,6 +25,8 @@ const INTEGER_OR_NULL = HType.INTEGER_OR_NULL;
 const DOUBLE_OR_NULL = HType.DOUBLE_OR_NULL;
 const STRING_OR_NULL = HType.STRING_OR_NULL;
 const NULL = HType.NULL;
+
+var patternClass;
 HType nonPrimitive1;
 HType nonPrimitive2;
 HType potentialArray;
@@ -2025,8 +2028,8 @@ void testIntersection(MockCompiler compiler) {
 }
 
 void testRegressions(MockCompiler compiler) {
-  HType nonNullPotentialString = new HBoundedType(
-      new TypeMask.nonNullSubtype(compiler.stringClass.computeType(compiler)));
+  HType nonNullPotentialString = new HType.nonNullSubtype(
+      patternClass.computeType(compiler), compiler);
   Expect.equals(
       potentialString, STRING_OR_NULL.union(nonNullPotentialString, compiler));
 }
@@ -2040,17 +2043,20 @@ void main() {
   });
   compiler.world.populate();
 
+  // Grab hold of a supertype for String so we can produce potential
+  // string types.
+  patternClass = compiler.coreLibrary.find(buildSourceString('Pattern'));
+
   nonPrimitive1 = new HType.nonNullSubtype(
       compiler.mapClass.computeType(compiler), compiler);
   nonPrimitive2 = new HType.nonNullSubtype(
       compiler.functionClass.computeType(compiler), compiler);
-  potentialArray = new HBoundedType(
-      new TypeMask.subtype(compiler.listClass.computeType(compiler)));
-  potentialString = new HBoundedType(
-      new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
-  jsArrayOrNull = new HType.fromMask(
-      new TypeMask.exact(compiler.backend.jsArrayClass.computeType(compiler)),
-      compiler);
+  potentialArray = new HType.subtype(
+      compiler.listClass.computeType(compiler), compiler);
+  potentialString = new HType.subtype(
+      patternClass.computeType(compiler), compiler);
+  jsArrayOrNull = new HType.exact(
+      compiler.backend.jsArrayClass.computeType(compiler), compiler);
 
   testUnion(compiler);
   testIntersection(compiler);
