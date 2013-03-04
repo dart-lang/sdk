@@ -14,8 +14,9 @@ io/test_runner_test: fail
 
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
+io/raw_socket_tests: Pass, Fail # Issue 8901
+io/raw_secure_server_socket_test: Pass, Crash # Issue 8798
 io/raw_secure_server_socket_intense_test: Pass, Crash, Fail, Timeout # Issue 8798
-io/raw_socket_tests: Pass, Fail # Issue 8675
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
