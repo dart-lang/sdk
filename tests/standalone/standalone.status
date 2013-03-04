@@ -14,8 +14,8 @@ io/test_runner_test: fail
 
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
-# Issue 8798
-io/raw_secure_server_socket_intense_test: Pass, Crash, Fail, Timeout
+io/raw_secure_server_socket_intense_test: Pass, Crash, Fail, Timeout # Issue 8798
+io/raw_socket_tests: Pass, Fail # Issue 8675
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
@@ -87,9 +87,6 @@ io/http_parser_test: Skip  # dartc cannot parse dart:io unit tests.
 io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
 
 io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
-
-[ $compiler == frog ]
-*: Skip
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
