@@ -44,11 +44,8 @@ abstract class HType {
       return isNullable
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
-    } else if (mask.isSubtype) {
-      if (Elements.isNumberOrStringSupertype(element, compiler)) {
-        return new HBoundedPotentialPrimitiveNumberOrString(mask);
-      }
     }
+
     if (!mask.isExact && (element == compiler.objectClass ||
                           element == compiler.dynamicClass)) {
       return new HBoundedPotentialPrimitiveType(mask, true);
@@ -912,8 +909,15 @@ class HBoundedType extends HType {
   bool canBeNull() => mask.isNullable;
 
   bool canBePrimitive(Compiler compiler) {
-    return canBePrimitiveArray(compiler)
+    return canBePrimitiveNumber(compiler)
+        || canBePrimitiveArray(compiler)
         || canBePrimitiveString(compiler);
+  }
+
+  bool canBePrimitiveNumber(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    DartType jsNumberType = backend.jsNumberClass.computeType(compiler);
+    return mask.contains(jsNumberType, compiler);
   }
 
   bool canBePrimitiveArray(Compiler compiler) {
@@ -1031,49 +1035,5 @@ class HBoundedPotentialPrimitiveType extends HBoundedType {
     } else {
       return super.intersection(other, compiler);
     }
-  }
-}
-
-class HBoundedPotentialPrimitiveNumberOrString
-    extends HBoundedPotentialPrimitiveType {
-  const HBoundedPotentialPrimitiveNumberOrString(TypeMask mask)
-      : super(mask, false);
-
-  bool canBePrimitiveNumber(Compiler compiler) => true;
-  bool canBePrimitiveString(Compiler compiler) => true;
-
-  HType union(HType other, Compiler compiler) {
-    if (other.isNumber()) return this;
-    if (other.isNumberOrNull()) {
-      if (canBeNull()) return this;
-      return new HBoundedPotentialPrimitiveNumberOrString(mask.nullable());
-    }
-
-    if (other.isString()) return this;
-    if (other.isStringOrNull()) {
-      if (canBeNull()) return this;
-      return new HBoundedPotentialPrimitiveNumberOrString(mask.nullable());
-    }
-
-    if (other.isNull()) {
-      if (canBeNull()) return this;
-      return new HBoundedPotentialPrimitiveNumberOrString(mask.nullable());
-    }
-
-    return super.union(other, compiler);
-  }
-
-  HType intersection(HType other, Compiler compiler) {
-    if (other.isNumber()) return other;
-    if (other.isNumberOrNull()) {
-      if (!canBeNull()) return HType.NUMBER;
-      return other;
-    }
-    if (other.isString()) return other;
-    if (other.isStringOrNull()) {
-      if (!canBeNull()) return HType.STRING;
-      return other;
-    }
-    return super.intersection(other, compiler);
   }
 }
