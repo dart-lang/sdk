@@ -66,6 +66,7 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('utils/tests/css'),
     new Path('utils/tests/peg'),
     new Path('utils/tests/pub'),
+    new Path('sdk/lib/_internal/dartdoc'),
 ];
 
 main() {

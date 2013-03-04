@@ -47,7 +47,7 @@ def PubSteps(build_info):
     print 'Building package-root: %s' % (' '.join(args))
     bot.RunProcess(args)
 
-  bot.RunTest('pub', build_info, ['pub', 'pkg'])
+  bot.RunTest('pub', build_info, ['pub', 'pkg', 'dartdoc'])
 
 
 if __name__ == '__main__':
