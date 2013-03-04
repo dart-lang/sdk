@@ -18,7 +18,7 @@ abstract class HType {
       // TODO(ngeoffray): Can we do better here?
       DartType base = compiler.objectClass.computeType(compiler);
       mask = new TypeMask.internal(base, mask.flags);
-      return new HBoundedPotentialPrimitiveType(mask, true);
+      return new HBoundedType(mask);
     }
 
     bool isNullable = mask.isNullable;
@@ -44,11 +44,6 @@ abstract class HType {
       return isNullable
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
-    }
-
-    if (!mask.isExact && (element == compiler.objectClass ||
-                          element == compiler.dynamicClass)) {
-      return new HBoundedPotentialPrimitiveType(mask, true);
     }
     return new HBoundedType(mask);
   }
@@ -228,7 +223,7 @@ abstract class HType {
 
   // TODO(kasperl): Try to get rid of these.
   DartType computeType(Compiler compiler);
-  bool isTop() => false;
+  bool isTop(Compiler compiler) => false;
 
   /**
    * The intersection of two types is the intersection of its values. For
@@ -368,7 +363,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
     if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN;
     if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
-    if (other.isTop()) {
+    if (other.isTop(compiler)) {
       return other.canBeNull() ? this : HType.BOOLEAN;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -442,7 +437,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isTop()) {
+    if (other.isTop(compiler)) {
       return other.canBeNull() ? this : HType.NUMBER;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -520,7 +515,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.NULL;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.isTop()) {
+    if (other.isTop(compiler)) {
       return other.canBeNull() ? this : HType.INTEGER;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -601,7 +596,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.isTop()) {
+    if (other.isTop(compiler)) {
       return other.canBeNull() ? this : HType.DOUBLE;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -734,7 +729,7 @@ class HStringOrNullType extends HPrimitiveOrNullType {
     if (other.canBePrimitiveString(compiler)) {
       return other.canBeNull() ? HType.STRING_OR_NULL : HType.STRING;
     }
-    if (other.isTop()) {
+    if (other.isTop(compiler)) {
       return other.canBeNull() ? this : HType.STRING;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -905,6 +900,7 @@ class HBoundedType extends HType {
   const HBoundedType(this.mask);
 
   bool isExact() => mask.isExact;
+  bool isTop(Compiler compiler) => mask.containsAll(compiler);
 
   bool canBeNull() => mask.isNullable;
 
@@ -944,6 +940,7 @@ class HBoundedType extends HType {
   HType intersection(HType other, Compiler compiler) {
     if (this == other) return this;
     if (other.isConflicting()) return HType.CONFLICTING;
+    if (isTop(compiler)) return other;
     if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
 
     if (canBePrimitiveArray(compiler)) {
@@ -978,6 +975,7 @@ class HBoundedType extends HType {
 
   HType union(HType other, Compiler compiler) {
     if (this == other) return this;
+    if (isTop(compiler)) return this;
     if (other.isNull()) {
       if (canBeNull()) {
         return this;
@@ -999,41 +997,5 @@ class HBoundedType extends HType {
 
   String toString() {
     return 'BoundedType(mask=$mask)';
-  }
-}
-
-class HBoundedPotentialPrimitiveType extends HBoundedType {
-  final bool _isObject;
-  const HBoundedPotentialPrimitiveType(TypeMask mask, this._isObject)
-      : super(mask);
-
-  String toString() {
-    return 'BoundedPotentialPrimitiveType(mask=$mask)';
-  }
-
-  bool canBePrimitive(Compiler compiler) => true;
-  bool isTop() => _isObject;
-
-  HType union(HType other, Compiler compiler) {
-    if (isTop()) {
-      // The union of the top type and another type is the top type.
-      if (!canBeNull() && other.canBeNull()) {
-        return new HBoundedPotentialPrimitiveType(mask, true);
-      } else {
-        return this;
-      }
-    } else {
-      return super.union(other, compiler);
-    }
-  }
-
-  HType intersection(HType other, Compiler compiler) {
-    if (isTop()) {
-      // The intersection of the top type and any other type is the other type.
-      // TODO(ngeoffray): Also update the canBeNull information.
-      return other;
-    } else {
-      return super.intersection(other, compiler);
-    }
   }
 }

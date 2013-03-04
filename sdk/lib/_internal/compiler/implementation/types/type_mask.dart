@@ -76,6 +76,18 @@ class TypeMask {
     }
   }
 
+  // TODO(kasperl): Try to get rid of this method. It shouldn't really
+  // be necessary.
+  bool containsAll(Compiler compiler) {
+    // TODO(kasperl): Do this error handling earlier.
+    if (base.kind != TypeKind.INTERFACE) return false;
+    // TODO(kasperl): Should we take nullability into account here?
+    if (isExact) return false;
+    ClassElement baseElement = base.element;
+    return identical(baseElement, compiler.objectClass)
+        || identical(baseElement, compiler.dynamicClass);
+  }
+
   // TODO(kasperl): This implementation is a bit sketchy, but it
   // behaves the same as the old implementation on HType. The plan is
   // to extend this and add proper testing of it.
