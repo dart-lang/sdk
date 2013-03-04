@@ -43,15 +43,30 @@ audiocontext_test: Pass, Fail
 audiobuffersourcenode_test: Pass, Fail
 
 [$runtime == ie10 ]
-# TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
+canvasrenderingcontext2d_test: Fail # issue 8678
+dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
+element_test/click: Fail                # IE does not support firing this event.
+history_test/history: Pass, Fail # issue 8183
+inner_frame_test: Skip
+isolates_test: Skip
+measurement_test: Fail, Pass
+messageevent_test: Fail
+microtask_test: Fail, Pass # Appears to be flaky
+native_gc_test: Fail, Pass # BUG(7774): Untriaged.
+serialized_script_value_test: Fail
+storage_test: Fail, Pass
+websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
+window_open_test: Skip
+xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
+
+# IE10 Feature support statuses-
+# All changes should be accompanied by platform support annotation changes.
 crypto_test/supported: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
-dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
-element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_keygen: Fail
@@ -61,48 +76,58 @@ element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 indexeddb_5_test/supportsDatabaseNames: Fail
-inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
-isolates_test: Skip
-measurement_test: Fail, Pass
-media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
-messageevent_test: Fail
-microtask_test: Fail, Pass # Appears to be flaky
+media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
-native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
 rtc_test/supported: Fail
-serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
-storage_test: Fail, Pass
 svgelement_test/supported_altGlyph: Fail
 svgelement_test/supported_animate: Fail
-svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_animateMotion: Fail
+svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
 touchevent_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
-websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
-window_open_test: Skip
-xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xsltprocessor_test/supported: Fail
-history_test/history: Pass, Fail # issue 8183
 
 [ $runtime == ie9 ]
-crypto_test/supported: Fail
-document_test/supports_cssCanvasContext: Fail
+audiobuffersourcenode_test: Fail
+audiocontext_test: Fail
+blob_constructor_test: Fail
+dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
+element_test/matches: Fail # IE9 does not support matches
+form_element_test: Fail # Issue 4793.
+inner_frame_test: Skip # Issue 5727 (timeout)
+isolates_test: Skip         # BUG(4016)
+localstorage_test: Fail
+messageevent_test: Fail
+microtask_test: Pass, Fail # http://dartbug.com/8300
+postmessage_structured_test: Skip   # BUG(5685): times out.
+serialized_script_value_test: Fail
+url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
+window_open_test: Skip      # BUG(4016)
+xhr_cross_origin_test: Fail # Issue 6016.
+
+# IE9 Feature support statuses-
+# All changes should be accompanied by platform support annotation changes.
+cache_test/supported: Fail
+crypto_test/supported: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
+document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_details: Fail
@@ -112,29 +137,8 @@ element_types_test/supported_output: Fail
 element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
-form_data_test/supported: Fail
-form_element_test: Fail # Issue 4793.
-inner_frame_test: Skip # Issue 5727 (timeout)
-transition_event_test/supported: Fail
-typed_arrays_1_test/supported: Fail
-localstorage_test: Fail
-webgl_1_test/supported: Fail
-websql_test/supported: Fail
-
-microtask_test: Pass, Fail # http://dartbug.com/8300
-
-#
-# Investigate and triage the following into bug reports.
-#
-audiobuffersourcenode_test: Fail
-audiocontext_test: Fail
-blob_constructor_test: Fail
-cache_test/supported: Fail
-css_test/supported_CssMatrix: Fail
-css_test/supported_DomPoint: Fail
-dom_constructors_test: Fail
-element_test/matches: Fail # IE9 does not support matches
 fileapi_test/supported: Fail
+form_data_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
@@ -150,22 +154,19 @@ input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail
-media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
-messageevent_test: Fail
+media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
-postmessage_structured_test: Skip   # BUG(5685): times out.
 rtc_test/supported: Fail
-serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail
 svgelement_test/supported_altGlyph: Fail
 svgelement_test/supported_animate: Fail
-svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_animateMotion: Fail
+svgelement_test/supported_animateTransform: Fail
 svgelement_test/supported_feBlend: Fail
 svgelement_test/supported_feColorMatrix: Fail
 svgelement_test/supported_feComponentTransfer: Fail
@@ -192,95 +193,107 @@ svgelement_test/supported_filter: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
 touchevent_test/supported: Fail
-url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
+transition_event_test/supported: Fail
+typed_arrays_1_test/supported: Fail
+webgl_1_test/supported: Fail
 websocket_test/supported: Fail
-window_open_test: Skip      # BUG(4016)
-isolates_test: Skip         # BUG(4016)
+websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_onLoadEnd: Fail
 xhr_test/supported_onProgress: Fail
-xhr_cross_origin_test: Fail # Issue 6016.
 xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
+audiocontext_test: Crash, Fail # Issue: 7414
+datalistelement_test: Fail # Issue: 7414
+element_test/elements: Crash, Fail # Issue: 7414
+element_types_test/supported_track: Pass, Fail
+input_element_test/supported_month: Fail, Crash
+input_element_test/supported_time: Fail, Crash
+input_element_test/supported_week: Fail, Crash
+webgl_1_test: Pass, Fail # Issue 8219
+wheelevent_test: Fail # Issue: 7414
+
+# Safari Feature support statuses-
+# All changes should be accompanied by platform support annotation changes.
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
-element_types_test/supported_track: Pass, Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_5_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
-input_element_test/supported_month: Fail, Crash
-input_element_test/supported_time: Fail, Crash
-input_element_test/supported_week: Fail, Crash
-media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
-notifications_test/supported: Fail # Issue: 7414
+media_stream_test/supported_media: Fail
+notifications_test/supported: Fail
 performance_api_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
-webgl_1_test: Pass, Fail # Issue 8219
-
-audiocontext_test: Crash, Fail # Issue: 7414
-datalistelement_test: Fail # Issue: 7414
-element_test/elements: Crash, Fail # Issue: 7414
-wheelevent_test: Fail # Issue: 7414
 
 [ $runtime == opera ]
-crypto_test/supported: Fail
-document_test/supports_cssCanvasContext: Fail
-document_test/document: Fail # Issue: 7413
-form_data_test: Fail # Issue: 7413
-keyboard_event_test: Fail # Issue: 7413
-element_test/eventListening: Fail # Issue: 7413
-element_test/children: Fail # Issue: 7413
 audiobuffersourcenode_test: Fail
-canvas_test: Pass,Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
-canvas_using_html_test: Fail
 canvas_test: Fail
-css_test/supported_CssMatrix: Fail
-css_test/supported_DomPoint: Fail
+canvas_test: Pass,Fail
+canvas_using_html_test: Fail
 cssstyledeclaration_test: Fail
+document_test/document: Fail # Issue: 7413
 element_add_test: Fail
 element_constructor_1_test: Fail
+element_test/children: Fail # Issue: 7413
 element_test/constructors: Fail
 element_test/elements: Fail
 element_test/eventListening: Crash
+element_test/eventListening: Fail # Issue: 7413
 element_test/queryAll: Fail
 element_webkit_test: Fail
+fileapi_test: Skip # Timeout.
+form_data_test: Fail # Issue: 7413
 htmlelement_test: Fail
+inner_frame_test: Skip # Timeout.
+isolates_test: Skip # Timeout.
+js_interop_3_test: Skip # Timeout.
+js_interop_4_test: Skip # Timeout.
+keyboard_event_test: Fail # Issue: 7413
+serialized_script_value_test: Fail
+typed_arrays_arraybuffer_test: Fail
+url_test: Fail
+
+# Opera Feature support statuses-
+# All changes should be accompanied by platform support annotation changes.
+crypto_test/supported: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
+document_test/supports_cssCanvasContext: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_5_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail
-serialized_script_value_test: Fail
 speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail
 svg_test/supported_langSpace: Fail
-typed_arrays_arraybuffer_test: Fail
-url_test: Fail
-fileapi_test: Skip # Timeout.
-inner_frame_test: Skip # Timeout.
-js_interop_3_test: Skip # Timeout.
-js_interop_4_test: Skip # Timeout.
-isolates_test: Skip # Timeout.
 websql_test/supported: Fail
 
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
+dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+dromaeo_smoke_test: Pass, Fail # Issue: 8257
+inner_frame_test: Skip
+transferables_test: Fail   # Issue 3392.
+webgl_1_test: Pass, Fail   # Issue 8219
+
+# FireFox Feature support statuses-
+# All changes should be accompanied by platform support annotation changes.
 crypto_test/supported: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
-dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -291,15 +304,13 @@ element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
 indexeddb_5_test/supportsDatabaseNames: Fail
-# setup code fails. prepare. (DOM callback has errors) Caught [object Event]
-inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
-input_element_test/supported_time: Fail
-input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
+input_element_test/supported_time: Fail
+input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail
@@ -309,11 +320,8 @@ speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail
 svg_test/supported_langSpace: Fail
 touchevent_test/supported: Fail
-transferables_test: Fail   # Issue 3392.
-webgl_1_test: Pass, Fail   # Issue 8219
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
-dromaeo_smoke_test: Pass, Fail # Issue: 8257
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
