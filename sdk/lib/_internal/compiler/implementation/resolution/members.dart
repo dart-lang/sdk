@@ -3032,7 +3032,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         DartType supertype = resolveSupertype(element, superMixin.superclass);
         Link<Node> link = superMixin.mixins.nodes;
         while (!link.isEmpty) {
-          supertype = applyMixin(supertype, visit(link.head));
+          supertype = applyMixin(supertype, resolveType(link.head));
           link = link.tail;
         }
         element.supertype = supertype;
@@ -3077,10 +3077,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     DartType supertype = resolveSupertype(element, node.superclass);
     Link<Node> link = node.mixins.nodes;
     while (!link.tail.isEmpty) {
-      supertype = applyMixin(supertype, visit(link.head));
+      supertype = applyMixin(supertype, resolveType(link.head));
       link = link.tail;
     }
-    doApplyMixinTo(element, supertype, visit(link.head));
+    doApplyMixinTo(element, supertype, resolveType(link.head));
     return element.computeType(compiler);
   }
 
@@ -3152,9 +3152,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return mixin;
   }
 
-  // TODO(johnniwinther): Remove when default class is no longer supported.
-  DartType visitTypeAnnotation(TypeAnnotation node) {
-    return visit(node.typeName);
+  DartType resolveType(TypeAnnotation node) {
+    return typeResolver.resolveTypeAnnotation(node, scope, element);
   }
 
   // TODO(johnniwinther): Remove when default class is no longer supported.

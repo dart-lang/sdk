@@ -38,6 +38,9 @@ stacktrace_test: Skip # Stack trace interface is not implemented yet.
 [ $compiler == dart2js && $checked ]
 mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
+mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
+mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
+
 prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
 type_variable_scope_test/none: Fail
@@ -203,11 +206,6 @@ super_implicit_closure_test: Fail # internal error: super property read not impl
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
 on_catch_malformed_type_test: Fail # Malformed types cause compile-time errors.
-
-
-# Failing tests for mixin type parameters.
-mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
 
 
 # External tests.
