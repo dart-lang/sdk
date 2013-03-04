@@ -42,17 +42,15 @@ class SecurityConfiguration {
                                        String closeReason) {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
-        webSocket.listen((event) {
-          if (event is MessageEvent) {
-            webSocket.send(event.data);
-          } else if (event is CloseEvent) {
-            Expect.equals(closeStatus == null
-                          ? WebSocketStatus.NO_STATUS_RECEIVED
-                          : closeStatus, event.code);
-            Expect.equals(closeReason == null ? "" : closeReason, event.reason);
-          }
+        webSocket.listen(
+            webSocket.send,
+            onDone: () {
+              Expect.equals(closeStatus == null
+                            ? WebSocketStatus.NO_STATUS_RECEIVED
+                            : closeStatus, webSocket.closeCode);
+              Expect.equals(closeReason == null ? "" : closeReason, webSocket.closeReason);
+            });
         });
-      });
 
       int closeCount = 0;
       String messageText = "Hello, world!";
@@ -60,27 +58,27 @@ class SecurityConfiguration {
         int messageCount = 0;
         createClient(server.port).then((webSocket) {
           webSocket.send(messageText);
-          webSocket.listen((event) {
-            if (event is MessageEvent) {
-              messageCount++;
-              if (messageCount < 1 ) {
-                Expect.equals(messageText, event.data);
-                webSocket.send(event.data);
-              } else {
-                webSocket.close(closeStatus, closeReason);
-              }
-            } else if (event is CloseEvent) {
-              Expect.equals(closeStatus == null
-                            ? WebSocketStatus.NO_STATUS_RECEIVED
-                            : closeStatus, event.code);
-              Expect.equals("", event.reason);
-              closeCount++;
-              if (closeCount == totalConnections) {
-                server.close();
-              }
-            }
+          webSocket.listen(
+              (message) {
+                messageCount++;
+                if (messageCount < 1 ) {
+                  Expect.equals(messageText, message);
+                  webSocket.send(message);
+                } else {
+                  webSocket.close(closeStatus, closeReason);
+                }
+              },
+              onDone: () {
+                Expect.equals(closeStatus == null
+                              ? WebSocketStatus.NO_STATUS_RECEIVED
+                              : closeStatus, webSocket.closeCode);
+                Expect.equals("", webSocket.closeReason);
+                closeCount++;
+                if (closeCount == totalConnections) {
+                  server.close();
+                }
+              });
           });
-        });
       }
     });
   }
@@ -93,45 +91,42 @@ class SecurityConfiguration {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         String messageText = "Hello, world!";
         int messageCount = 0;
-        webSocket.listen((event) {
-          if (event is MessageEvent) {
-            messageCount++;
-            if (messageCount < 10) {
-              Expect.equals(messageText, event.data);
-              webSocket.send(event.data);
-            } else {
-              webSocket.close(closeStatus, closeReason);
-            }
-          } else if (event is CloseEvent) {
-            Expect.equals(closeStatus == null
-                          ? WebSocketStatus.NO_STATUS_RECEIVED
-                          : closeStatus, event.code);
-            Expect.equals("", event.reason);
-            closeCount++;
-            if (closeCount == totalConnections) {
-              server.close();
-            }
-          }
-        });
+        webSocket.listen(
+            (message) {
+              messageCount++;
+              if (messageCount < 10) {
+                Expect.equals(messageText, message);
+                webSocket.send(message);
+              } else {
+                webSocket.close(closeStatus, closeReason);
+              }
+            },
+            onDone: () {
+              Expect.equals(closeStatus == null
+                            ? WebSocketStatus.NO_STATUS_RECEIVED
+                            : closeStatus, webSocket.closeCode);
+              Expect.equals("", webSocket.closeReason);
+              closeCount++;
+              if (closeCount == totalConnections) {
+                server.close();
+              }
+            });
         webSocket.send(messageText);
       });
 
       for (int i = 0; i < totalConnections; i++) {
         createClient(server.port).then((webSocket) {
-            webSocket.listen((event) {
-              if (event is MessageEvent) {
-                webSocket.send(event.data);
-              } else if (event is CloseEvent) {
-                Expect.equals(closeStatus == null
-                              ? WebSocketStatus.NO_STATUS_RECEIVED
-                              : closeStatus, event.code);
-                Expect.equals(
-                    closeReason == null ? "" : closeReason, event.reason);
-              }
+            webSocket.listen(
+                webSocket.send,
+                onDone: () {
+                  Expect.equals(closeStatus == null
+                                ? WebSocketStatus.NO_STATUS_RECEIVED
+                                : closeStatus, event.code);
+                  Expect.equals(
+                      closeReason == null ? "" : closeReason, event.reason);
+                });
             });
-          });
       }
-
     });
   }
 
@@ -140,26 +135,22 @@ class SecurityConfiguration {
     createServer().then((server) {
       Uint8List originalMessage = new Uint8List(messageLength);
       server.transform(new WebSocketTransformer()).listen((webSocket) {
-        webSocket.listen((event) {
-          if (event is MessageEvent) {
-            Expect.listEquals(originalMessage, event.data);
-            webSocket.send(event.data);
-          } else if (event is CloseEvent) {
-          }
-        });
+        webSocket.listen(
+            (message) {
+              Expect.listEquals(originalMessage, message);
+              webSocket.send(message);
+            });
       });
 
       createClient(server.port).then((webSocket) {
-          webSocket.listen((event) {
-            if (event is MessageEvent) {
-              Expect.listEquals(originalMessage, event.data);
+        webSocket.listen(
+            (message) {
+              Expect.listEquals(originalMessage, message);
               webSocket.close();
-            } else if (event is CloseEvent) {
-              server.close();
-            }
-          });
-          webSocket.send(originalMessage);
-        });
+            },
+            onDone: server.close);
+        webSocket.send(originalMessage);
+      });
     });
   }
 
@@ -168,19 +159,11 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         server.close();
-        webSocket.listen((event) {
-          if (event is CloseEvent) {
-            webSocket.close();
-          }
-        });
+        webSocket.listen((_) { }, onDone: webSocket.close);
       });
 
       createClient(server.port).then((webSocket) {
-          webSocket.listen((event) {
-            if (event is CloseEvent) {
-              webSocket.close();
-            }
-          });
+          webSocket.listen((_) { }, onDone: webSocket.close);
           webSocket.close();
         });
     });
@@ -191,20 +174,12 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         server.close();
-        webSocket.listen((event) {
-          if (event is CloseEvent) {
-            webSocket.close();
-          }
-        });
+        webSocket.listen((_) { }, onDone: webSocket.close);
         webSocket.close();
       });
 
       createClient(server.port).then((webSocket) {
-          webSocket.listen((event) {
-            if (event is CloseEvent) {
-              webSocket.close();
-            }
-          });
+          webSocket.listen((_) { }, onDone: webSocket.close);
         });
     });
   }
@@ -246,32 +221,32 @@ class SecurityConfiguration {
     });
   }
 
-  void testW3CInterface(int totalConnections,
-                        int closeStatus,
-                        String closeReason) {
+  void testConnections(int totalConnections,
+                       int closeStatus,
+                       String closeReason) {
     createServer().then((server) {
       int closeCount = 0;
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         String messageText = "Hello, world!";
         int messageCount = 0;
-        webSocket.listen((event) {
-          if (event is MessageEvent) {
-            messageCount++;
-            if (messageCount < 10) {
-              Expect.equals(messageText, event.data);
-              webSocket.send(event.data);
-            } else {
-              webSocket.close(closeStatus, closeReason);
-            }
-          } else if (event is CloseEvent) {
-            Expect.equals(closeStatus, event.code);
-            Expect.equals("", event.reason);
-            closeCount++;
-            if (closeCount == totalConnections) {
-              server.close();
-            }
-          }
-        });
+        webSocket.listen(
+            (message) {
+              messageCount++;
+              if (messageCount < 10) {
+                Expect.equals(messageText, message);
+                webSocket.send(message);
+              } else {
+                webSocket.close(closeStatus, closeReason);
+              }
+            },
+            onDone: () {
+              Expect.equals(closeStatus, webSocket.closeCode);
+              Expect.equals("", webSocket.closeReason);
+              closeCount++;
+              if (closeCount == totalConnections) {
+                server.close();
+              }
+            });
         webSocket.send(messageText);
       });
 
@@ -286,24 +261,24 @@ class SecurityConfiguration {
           Expect.isFalse(oncloseCalled);
           onopenCalled = true;
           Expect.equals(WebSocket.OPEN, webSocket.readyState);
-          webSocket.listen((event) {
-            if (event is MessageEvent) {
-              onmessageCalled++;
-              Expect.isTrue(onopenCalled);
-              Expect.isFalse(oncloseCalled);
-              Expect.equals(WebSocket.OPEN, webSocket.readyState);
-              webSocket.send(event.data);
-            } else if (event is CloseEvent) {
-              Expect.isTrue(onopenCalled);
-              Expect.equals(10, onmessageCalled);
-              Expect.isFalse(oncloseCalled);
-              oncloseCalled = true;
-              Expect.isTrue(event.wasClean);
-              Expect.equals(3002, event.code);
-              Expect.equals("Got tired", event.reason);
-              Expect.equals(WebSocket.CLOSED, webSocket.readyState);
-            }
-          });
+          webSocket.listen(
+              (message) {
+                onmessageCalled++;
+                Expect.isTrue(onopenCalled);
+                Expect.isFalse(oncloseCalled);
+                Expect.equals(WebSocket.OPEN, webSocket.readyState);
+                webSocket.send(message);
+              },
+              onDone: () {
+                Expect.isTrue(onopenCalled);
+                Expect.equals(10, onmessageCalled);
+                Expect.isFalse(oncloseCalled);
+                oncloseCalled = true;
+                Expect.isTrue(event.wasClean);
+                Expect.equals(3002, event.code);
+                Expect.equals("Got tired", event.reason);
+                Expect.equals(WebSocket.CLOSED, webSocket.readyState);
+              });
         });
       }
 
@@ -329,7 +304,7 @@ class SecurityConfiguration {
     testDoubleCloseServer();
     testNoUpgrade();
     testUsePOST();
-    testW3CInterface(10, 3002, "Got tired");
+    testConnections(10, 3002, "Got tired");
   }
 }
 

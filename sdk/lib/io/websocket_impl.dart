@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -425,8 +425,8 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 }
 
 
-class _WebSocketImpl extends Stream<Event> implements WebSocket {
-  final StreamController<Event> _controller = new StreamController<Event>();
+class _WebSocketImpl extends Stream implements WebSocket {
+  final StreamController _controller = new StreamController();
 
   final _WebSocketProtocolProcessor _processor =
       new _WebSocketProtocolProcessor();
@@ -434,6 +434,8 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
   final Socket _socket;
   int _readyState = WebSocket.CONNECTING;
   bool _writeClosed = false;
+  int _closeCode;
+  String _closeReason;
 
   static final HttpClient _httpClient = new HttpClient();
 
@@ -529,9 +531,9 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
     };
     _processor.onMessageEnd = () {
       if (type == _WebSocketMessageType.TEXT) {
-        _controller.add(new _WebSocketMessageEvent(data.toString()));
+        _controller.add(data.toString());
       } else {
-        _controller.add(new _WebSocketMessageEvent(data));
+        _controller.add(data);
       }
     };
     _processor.onClosed = (code, reason) {
@@ -547,7 +549,8 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         _readyState = WebSocket.CLOSED;
       }
       if (_readyState == WebSocket.CLOSED) return;
-      _controller.add(new _WebSocketCloseEvent(clean, code, reason));
+      _closeCode = code;
+      _closeReason = reason;
       _controller.close();
     };
 
@@ -560,6 +563,7 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         .catchError((error) {
           if (_readyState == WebSocket.CLOSED) return;
           _readyState = WebSocket.CLOSED;
+          _closeCode = ABNORMAL_CLOSURE;
           _controller.signalError(error);
           _controller.close();
           _socket.destroy();
@@ -569,10 +573,10 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
         });
   }
 
-  StreamSubscription<Event> listen(void onData(Event event),
-                                   {void onError(AsyncError error),
-                                    void onDone(),
-                                    bool unsubscribeOnError}) {
+  StreamSubscription listen(void onData(message),
+                            {void onError(AsyncError error),
+                             void onDone(),
+                             bool unsubscribeOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
@@ -580,10 +584,11 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
   }
 
   int get readyState => _readyState;
-  int get bufferedAmount => 0;
 
   String get extensions => null;
   String get protocol => null;
+  int get closeCode => _closeCode;
+  String get closeReason => _closeReason;
 
   void close([int code, String reason]) {
     if (_readyState < WebSocket.CLOSING) _readyState = WebSocket.CLOSING;
@@ -684,22 +689,4 @@ class _WebSocketImpl extends Stream<Event> implements WebSocket {
       _socket.add(data);
     }
   }
-}
-
-
-class _WebSocketMessageEvent implements MessageEvent {
-  _WebSocketMessageEvent(this._data);
-  get data => _data;
-  var _data;
-}
-
-
-class _WebSocketCloseEvent implements CloseEvent {
-  _WebSocketCloseEvent(this._wasClean, this._code, this._reason);
-  bool get wasClean => _wasClean;
-  int get code => _code;
-  String get reason => _reason;
-  bool _wasClean;
-  int _code;
-  String _reason;
 }
