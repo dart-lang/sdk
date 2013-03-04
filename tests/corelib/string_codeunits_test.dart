@@ -25,36 +25,8 @@ main() {
     // .map
     Expect.listEquals(expectedUnits.map((x) => x.toRadixString(16)).toList(),
                       units.map((x) => x.toRadixString(16)).toList());
-
-    if (s == "") {
-      Expect.throws(() => units.first, (e) => e is StateError);
-      Expect.throws(() => units.last, (e) => e is StateError);
-      Expect.throws(() => units[0], (e) => e is RangeError);
-      Expect.throws(() => units[0] = 499, (e) => e is UnsupportedError);
-      Expect.listEquals([], units.getRange(0, 0));
-      Expect.equals(-1, units.indexOf(42));
-      Expect.equals(-1, units.lastIndexOf(499));
-    } else {
-      Expect.equals(s.codeUnitAt(0), units.first);
-      Expect.equals(s.codeUnitAt(s.length - 1), units.last);
-      Expect.equals(s.codeUnitAt(0), units[0]);
-      Expect.throws(() { units[0] = 499; }, (e) => e is UnsupportedError);
-      List<int> sub = units.getRange(1, units.length - 1);
-      Expect.listEquals(s.substring(1, s.length).codeUnits, sub);
-      Expect.equals(-1, units.indexOf(-1));
-      Expect.equals(0, units.indexOf(units[0]));
-      Expect.equals(-1, units.lastIndexOf(-1));
-      Expect.equals(units.length - 1, units.lastIndexOf(units[units.length - 1]));
-    }
-
-    Iterable reversed = units.reversed;
-    int i = units.length - 1;
-    for (int codeUnit in reversed) {
-      Expect.equals(units[i--], codeUnit);
-    }
   }
 
-  test("");
   test("abc");
   test("\x00\u0000\u{000000}");
   test("\u{ffff}\u{10000}\u{10ffff}");

@@ -24,35 +24,10 @@ abstract class ListBase<E> extends ListIterable<E> implements List<E> {
   E elementAt(int index) {
     return this[index];
   }
-
   Map<int, E> asMap() {
     return new ListMapView(this);
   }
 
-  List<E> getRange(int start, int length) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
-    }
-    List<E> result = new List<E>(length);
-    for (int i = 0; i < length; i++) {
-      result[i] = this[start + i];
-    }
-    return result;
-  }
-
-  int indexOf(E element, [int start = 0]) {
-    return Arrays.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(E element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return Arrays.lastIndexOf(this, element, start);
-  }
-
-  Iterable<E> get reversed => new ReversedListIterable(this);
 }
 
 /**
@@ -111,11 +86,6 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
   }
 
   void removeMatching(bool test(E element)) {
-    throw new UnsupportedError(
-        "Cannot remove from a fixed-length list");
-  }
-
-  void retainMatching(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -196,11 +166,6 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
         "Cannot remove from an unmodifiable list");
   }
 
-  void retainMatching(bool test(E element)) {
-    throw new UnsupportedError(
-        "Cannot remove from an unmodifiable list");
-  }
-
   void sort([Comparator<E> compare]) {
     throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
@@ -234,6 +199,20 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
   void insertRange(int start, int length, [E initialValue]) {
     throw new UnsupportedError(
         "Cannot insert range in an unmodifiable list");
+  }
+
+  List<E> getRange(int start, int length) {
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
+    }
+    if (length < 0 || start + length > this.length) {
+      throw new RangeError.range(length, 0, this.length - start);
+    }
+    List<E> result = new List<E>(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = this[start + i];
+    }
+    return result;
   }
 }
 

@@ -42,8 +42,6 @@ string_base_vm_test: Fail, OK # VM specific test.
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
 [ $compiler == dart2js && $checked ]
-string_codeunits_test: Fail # Issue 8904
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
