@@ -251,10 +251,10 @@ class Dart2JsCompilation implements Compilation {
       : cwd = getCurrentDirectory(),
         provider = new SourceFileProvider() {
     var handler = new FormattingDiagnosticHandler(provider);
-    var libraryUri = cwd.resolve(libraryRoot.toString());
+    var libraryUri = cwd.resolve('${libraryRoot}/');
     var packageUri;
     if (packageRoot != null) {
-      packageUri = cwd.resolve(packageRoot.toString());
+      packageUri = cwd.resolve('${packageRoot}/');
     } else {
       packageUri = libraryUri;
     }
@@ -271,10 +271,10 @@ class Dart2JsCompilation implements Compilation {
                      [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(),
         provider = new SourceFileProvider() {
-    var libraryUri = cwd.resolve(libraryRoot.toString());
+    var libraryUri = cwd.resolve('${libraryRoot}/');
     var packageUri;
     if (packageRoot != null) {
-      packageUri = cwd.resolve(packageRoot.toString());
+      packageUri = cwd.resolve('${packageRoot}/');
     } else {
       packageUri = libraryUri;
     }
