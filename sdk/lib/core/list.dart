@@ -134,7 +134,10 @@ abstract class List<E> implements Collection<E> {
    * Adds [value] at the end of the list, extending the length by
    * one. Throws an [UnsupportedError] if the list is not
    * extendable.
+   *
+   * *Deprecated*: Use [add] instead.
    */
+  @deprecated
   void addLast(E value);
 
   /**
