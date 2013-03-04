@@ -347,13 +347,42 @@ class IterableMixinWorkaround {
     return new SkipWhileIterable(iterable, test);
   }
 
-  static Iterable reversedList(List l) {
-    return new ReversedListIterable(l);
+  static Iterable reversedList(List list) {
+    return new ReversedListIterable(list);
   }
 
-  static void sortList(List l, int compare(a, b)) {
+  static void sortList(List list, int compare(a, b)) {
     if (compare == null) compare = Comparable.compare;
-    Sort.sort(l, compare);
+    Sort.sort(list, compare);
+  }
+
+  static int indexOfList(List list, var element, int start) {
+    return Arrays.indexOf(list, element, start, list.length);
+  }
+
+  static int lastIndexOfList(List list, var element, int start) {
+    if (start == null) start = list.length - 1;
+    return Arrays.lastIndexOf(list, element, start);
+  }
+
+  static void setRangeList(List list, int start, int length,
+                           List from, int startFrom) {
+    if (length == 0) return;
+
+    // TODO(floitsch): decide what to do with these checks. Currently copied
+    // since that was the old behavior of dart2js, and some co19 tests rely on
+    // it.
+    if (start is! int) throw new ArgumentError(start);
+    if (length is! int) throw new ArgumentError(length);
+    if (from is! List) throw new ArgumentError(from);
+    if (startFrom is! int) throw new ArgumentError(startFrom);
+    if (length < 0) throw new ArgumentError(length);
+    if (start < 0) throw new RangeError.value(start);
+    if (start + length > list.length) {
+      throw new RangeError.value(start + length);
+    }
+
+    Arrays.copy(from, startFrom, list, start, length);
   }
 }
 
