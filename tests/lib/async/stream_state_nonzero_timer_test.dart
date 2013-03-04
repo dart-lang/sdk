@@ -80,4 +80,24 @@ mainTest(bool broadcast) {
      ..expectSubscription(false, false);
     t..subscribe()..add(42);
   });
+
+  test("$p-pause-during-callback", () {
+    var t = new StreamProtocolTest(broadcast);
+    t..expectSubscription(true, false)
+     ..expectData(42, () {
+       t.pause();
+     })
+     ..expectPause(true, () {
+       t.resume();
+     })
+     ..expectPause(false, () {
+       t.pause();
+       t.resume();
+       t.close();
+     })
+     ..expectDone()
+     ..expectSubscription(false, false);
+    t..subscribe()
+     ..add(42);
+  });
 }
