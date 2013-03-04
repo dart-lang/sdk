@@ -324,7 +324,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         && selector.isCall()) {
       DartType type = interceptor.instructionType.computeType(compiler);
       ClassElement cls = type.element;
-      node.element = cls.lookupSelector(selector);
+      Element target = cls.lookupSelector(selector);
+      if (target != null && selector.applies(target, compiler)) {
+        node.element = target;
+      }
     }
     return node;
   }
