@@ -3165,7 +3165,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       member = closureClass.methodElement;
       member = member.getOutermostEnclosingMemberOrTopLevel();
     }
-    if (member.isConstructor() || member.isGenerativeConstructorBody()) {
+    if (member.isConstructor()
+        || member.isGenerativeConstructorBody()
+        || member.isField()) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {

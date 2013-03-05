@@ -464,7 +464,7 @@ class ClosureTranslator extends Visitor {
     }
     if (outermostElement.isMember() &&
         compiler.world.needsRti(outermostElement.getEnclosingClass())) {
-      if (outermostElement.isConstructor()) {
+      if (outermostElement.isConstructor() || outermostElement.isField()) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember()) {
         if (hasTypeVariable(type)) useLocal(closureData.thisElement);
