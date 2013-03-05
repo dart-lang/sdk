@@ -279,7 +279,7 @@ class Dart2JsCompilation implements Compilation {
       packageUri = libraryUri;
     }
     opts = new List<String>.from(opts);
-    opts.add('--analyze-only');
+    opts.add('--analyze-signatures-only');
     opts.add('--analyze-all');
     _compiler = new Compiler(provider.readStringFromUri,
                                  null,

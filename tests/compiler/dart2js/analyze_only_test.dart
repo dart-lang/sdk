@@ -108,6 +108,17 @@ main() {
     });
 
   runCompiler(
+    """main() {
+         Foo foo; // Unresolved and analyzed.
+       }""",
+    ['--analyze-only', '--analyze-signatures-only'],
+    (String code, List errors, List warnings) {
+      Expect.isNull(code);
+      Expect.isTrue(errors.isEmpty);
+      Expect.isTrue(warnings.isEmpty);
+    });
+
+  runCompiler(
     "Foo foo; // Unresolved and analyzed.",
     ['--analyze-only', '--analyze-all'],
     (String code, List errors, List warnings) {
@@ -125,5 +136,24 @@ main() {
       Expect.isTrue(errors.isEmpty);
       Expect.equals(1, warnings.length);
       Expect.equals('Warning: cannot resolve type Foo', warnings[0].toString());
+    });
+
+  runCompiler(
+    "",
+    ['--analyze-only', '--analyze-all'],
+    (String code, List errors, List warnings) {
+      Expect.isNull(code);
+      Expect.isTrue(errors.isEmpty);
+      Expect.isTrue(warnings.isEmpty);
+    });
+
+  // --analyze-signatures-only implies --analyze-only
+  runCompiler(
+    "",
+    ['--analyze-signatures-only', '--analyze-all'],
+    (String code, List errors, List warnings) {
+      Expect.isNull(code);
+      Expect.isTrue(errors.isEmpty);
+      Expect.isTrue(warnings.isEmpty);
     });
 }

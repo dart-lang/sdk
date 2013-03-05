@@ -216,6 +216,11 @@ abstract class Compiler implements DiagnosticListener {
   final int maxConcreteTypeSize;
   final bool analyzeAll;
   final bool analyzeOnly;
+  /**
+   * If true, skip analysis of method bodies and field initializers. Implies
+   * [analyzeOnly].
+   */
+  final bool analyzeSignaturesOnly;
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
   final bool checkDeprecationInSdk;
@@ -353,7 +358,8 @@ abstract class Compiler implements DiagnosticListener {
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
             this.analyzeAll: false,
-            this.analyzeOnly: false,
+            bool analyzeOnly: false,
+            bool analyzeSignaturesOnly: false,
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
             this.preserveComments: false,
@@ -361,8 +367,11 @@ abstract class Compiler implements DiagnosticListener {
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch(),
+        this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
+        this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.outputProvider =
             (outputProvider == null) ? NullSink.outputProvider : outputProvider
+
   {
     progress.start();
     world = new World(this);

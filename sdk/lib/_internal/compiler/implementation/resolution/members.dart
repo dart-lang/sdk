@@ -363,7 +363,9 @@ class ResolverTask extends CompilerTask {
   }
 
   void visitBody(ResolverVisitor visitor, Statement body) {
-    visitor.visit(body);
+    if (!compiler.analyzeSignaturesOnly) {
+      visitor.visit(body);
+    }
   }
 
   void resolveConstructorImplementation(FunctionElement constructor,
@@ -434,6 +436,8 @@ class ResolverTask extends CompilerTask {
             MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
+    // TODO(johnniwinther): Avoid analyzing initializers if
+    // [Compiler.analyzeSignaturesOnly] is set.
     initializerDo(tree, visitor.visit);
 
     if (Elements.isStaticOrTopLevelField(element)) {

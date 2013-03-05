@@ -199,6 +199,7 @@ void compile(List<String> argv) {
     new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
+    new OptionHandler('--analyze-signatures-only', passThrough),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
     new OptionHandler('--reject-deprecated-language-features', passThrough),
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
@@ -402,6 +403,10 @@ Supported options:
 
   --analyze-only
     Analyze but do not generate code.
+
+  --analyze-signatures-only
+    Skip analysis of method bodies and field initializers. This option implies
+    --analyze-only.
 
   --minify
     Generate minified output.
