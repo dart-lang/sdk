@@ -17861,7 +17861,7 @@ class Notification extends EventTarget native "*Notification" {
 
   @DomName('Notification.requestPermission')
   @DocsEditable
-  static void requestPermission(NotificationPermissionCallback callback) native;
+  static void requestPermission([NotificationPermissionCallback callback]) native;
 
   @DomName('Notification.show')
   @DocsEditable
