@@ -344,7 +344,12 @@ void doTest(String test, bool disableInlining, Map<String, HType> fields) {
       disableInlining,
       (backend, field) {
         HType inferredType = backend.optimisticFieldType(field);
-        Expect.equals(type, inferredType);
+        if (type == HType.UNKNOWN) {
+          Expect.isTrue(inferredType == HType.UNKNOWN ||
+                        inferredType.isTop(backend.compiler));
+        } else {
+          Expect.equals(type, inferredType);
+        }
     });
   });
 }

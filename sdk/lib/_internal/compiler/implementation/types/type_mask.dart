@@ -92,8 +92,9 @@ class TypeMask {
       return unionSubtype(other, compiler);
     } else if (isSubtypeOf(base, other.base, compiler)) {
       return other.unionSubtype(this, compiler);
+    } else {
+      return unionDisjoint(other, compiler);
     }
-    return null;
   }
 
   TypeMask unionSame(TypeMask other, Compiler compiler) {
@@ -143,6 +144,55 @@ class TypeMask {
     return (flags != combined)
         ? new TypeMask.internal(base, combined)
         : this;
+  }
+
+  TypeMask unionDisjoint(TypeMask other, Compiler compiler) {
+    assert(base != other.base);
+    assert(!isSubtypeOf(base, other.base, compiler));
+    assert(!isSubtypeOf(other.base, base, compiler));
+    // If either type mask is a subtype type mask, we cannot use a
+    // subclass type mask to represent their union.
+    bool useSubclass = !isSubtype && !other.isSubtype;
+    // Compute the common supertypes of the two types.
+    ClassElement thisElement = base.element;
+    ClassElement otherElement = other.base.element;
+    Iterable<ClassElement> candidates =
+        compiler.world.commonSupertypesOf(thisElement, otherElement);
+    if (candidates.isEmpty) return null;
+    // Compute the best candidate and its kind.
+    ClassElement bestElement;
+    int bestKind;
+    int bestSize;
+    for (ClassElement candidate in candidates) {
+      Set<ClassElement> subclasses = useSubclass
+          ? compiler.world.subclasses[candidate]
+          : null;
+      int size;
+      int kind;
+      if (subclasses != null &&
+          subclasses.contains(thisElement) &&
+          subclasses.contains(otherElement)) {
+        // If both [this] and [other] are subclasses of the supertype,
+        // then we prefer to construct a subclass type mask because it
+        // will always be at least as small as the corresponding
+        // subtype type mask.
+        kind = SUBCLASS;
+        size = subclasses.length;
+        assert(size <= compiler.world.subtypes[candidate].length);
+      } else {
+        kind = SUBTYPE;
+        size = compiler.world.subtypes[candidate].length;
+      }
+      // Update the best candidate if the new one is better.
+      if (bestElement == null || size < bestSize) {
+        bestElement = candidate;
+        bestSize = size;
+        bestKind = kind;
+      }
+    }
+    return new TypeMask(bestElement.computeType(compiler),
+                        bestKind,
+                        isNullable || other.isNullable);
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
@@ -225,19 +275,16 @@ class TypeMask {
     return "[$buffer]";
   }
 
-  // TODO(kasperl): Move this to the world.
   static bool isSubclassOf(DartType x, DartType y, Compiler compiler) {
     // TODO(kasperl): Do this error handling earlier.
     if (x.kind != TypeKind.INTERFACE) return false;
     if (y.kind != TypeKind.INTERFACE) return false;
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
-    // TODO(kasperl): Fix the discrepancy between subclass/subtype
-    // that occurs because of "unseen" classes.
-    return isSubtypeOf(x, y, compiler) && xElement.isSubclassOf(yElement);
+    Set<ClassElement> subclasses = compiler.world.subclasses[yElement];
+    return (subclasses != null) ? subclasses.contains(xElement) : false;
   }
 
-  // TODO(kasperl): Move this to the world.
   static bool isSubtypeOf(DartType x, DartType y, Compiler compiler) {
     // TODO(kasperl): Do this error handling earlier.
     if (x.kind != TypeKind.INTERFACE) return false;
