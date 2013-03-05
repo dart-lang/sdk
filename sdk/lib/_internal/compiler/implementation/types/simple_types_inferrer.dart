@@ -747,7 +747,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       });
     }
     if (analyzedElement.isField()) {
-      returnType = visit(node);
+      returnType = visit(node.asSendSet().arguments.head);
     } else if (analyzedElement.isGenerativeConstructor()) {
       FunctionElement function = analyzedElement;
       FunctionSignature signature = function.computeSignature(compiler);
@@ -898,49 +898,102 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       return compiler.dynamicClass;
     }
 
-    Operator op = node.assignmentOperator;
-    if (node.isSuperCall) {
-      // [: super.foo = 42 :] or [: super.foo++ :] or [: super.foo += 1 :].
-      node.visitChildren(this);
-      return compiler.dynamicClass;
-    } else if (node.isIndex) {
-      if (const SourceString("=") == op.source) {
+    Selector getterSelector =
+        elements.getGetterSelectorInComplexSendSet(node);
+    Selector operatorSelector = 
+        elements.getOperatorSelectorInComplexSendSet(node);
+    Selector setterSelector = elements.getSelector(node);
+
+    String op = node.assignmentOperator.source.stringValue;
+    bool isIncrementOrDecrement = op == '++' || op == '--';
+
+    Element receiverType = element != null
+        ? compiler.dynamicClass
+        : visit(node.receiver);
+      
+    Element rhsType = isIncrementOrDecrement
+        ? compiler.intClass
+        : node.isIndex
+            ? visit(node.arguments.tail.head)
+            : visit(node.arguments.head);
+
+    if (node.isIndex) {
+      Element index = visit(node.arguments.head);
+      if (op == '=') {
         // [: foo[0] = 42 :]
-        visit(node.receiver);
-        Element returnType;
-        for (Node argument in node.arguments) {
-          returnType = argument.accept(this);
-        }
-        return returnType;
+        handleDynamicSend(
+            setterSelector,
+            receiverType,
+            new ArgumentsTypes([index, rhsType], null));
+        return rhsType;
       } else {
         // [: foo[0] += 42 :] or [: foo[0]++ :].
-        node.visitChildren(this);
-        return compiler.dynamicClass;
-      }
-    } else if (const SourceString("=") == op.source) {
-      // [: foo = 42 :] or [: foo.bar = 42 :].
-      if (element == null) {
-        visit(node.receiver);
-      }
-      Link<Node> link = node.arguments;
-      assert(!link.isEmpty && link.tail.isEmpty);
-      Element type = link.head.accept(this);
+        Element getterType = handleDynamicSend(
+            getterSelector,
+            receiverType,
+            new ArgumentsTypes([index], null));
+        Element returnType = handleDynamicSend(
+            operatorSelector,
+            getterType,
+            new ArgumentsTypes([rhsType], null));
+        handleDynamicSend(
+            setterSelector,
+            receiverType,
+            new ArgumentsTypes([index, returnType], null));
 
-      if (!Elements.isUnresolved(element)) {
-        if (element.isField() && element.modifiers.isFinal()) {
-          inferrer.recordFinalFieldType(outermostElement, element, type);
-        } else if (element.isVariable()) {
-          locals.update(element, type);
+        if (node.isPostfix) {
+          return getterType;
+        } else {
+          return returnType;
         }
       }
-      return type;
+    } else if (op == '=') {
+      // [: foo = 42 :] or [: foo.bar = 42 :].
+      if (Elements.isUnresolved(element) || element.isSetter()) {
+        handleDynamicSend(
+            setterSelector, receiverType, new ArgumentsTypes([rhsType], null));
+      } else if (element.isField()) {
+        if (element.modifiers.isFinal()) {
+          inferrer.recordFinalFieldType(outermostElement, element, rhsType);
+        }
+      } else if (Elements.isLocal(element)) {
+        locals.update(element, rhsType);
+      }
+      return rhsType;
     } else {
       // [: foo++ :] or [: foo += 1 :].
-      assert(const SourceString("++") == op.source ||
-             const SourceString("--") == op.source ||
-             node.assignmentOperator.source.stringValue.endsWith("="));
-      node.visitChildren(this);
-      return compiler.dynamicClass;
+      Element getterType;
+      Element newType;
+      ArgumentsTypes operatorArguments = new ArgumentsTypes([rhsType], null);
+      if (Elements.isUnresolved(element) || element.isSetter()) {
+        getterType = handleDynamicSend(
+            getterSelector, receiverType, null);
+        newType = handleDynamicSend(
+            operatorSelector, getterType, operatorArguments);
+        handleDynamicSend(
+            setterSelector, receiverType, new ArgumentsTypes([newType], null));
+      } else if (element.isField()) {
+        assert(!element.modifiers.isFinal());
+        getterType = compiler.dynamicClass; // The type of the field.
+        newType = handleDynamicSend(
+            operatorSelector, getterType, operatorArguments);
+      } else if (Elements.isLocal(element)) {
+        getterType = locals.use(element);
+        newType = handleDynamicSend(
+            operatorSelector, getterType, operatorArguments);
+        locals.update(element, newType);
+      } else {
+        // Bogus SendSet, for example [: myMethod += 42 :].
+        getterType = compiler.dynamicClass;
+        newType = handleDynamicSend(
+            operatorSelector, getterType, operatorArguments);
+      }
+
+      if (node.isPostfix) {
+        return getterType;
+      } else {
+        return newType;
+      }
     }
   }
 
@@ -1102,8 +1155,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
         receiverType = node.receiver.accept(this);
       }
       Selector selector = elements.getSelector(node);
-      inferrer.registerGetterOnSelector(outermostElement, selector);
-      return inferrer.returnTypeOfSelector(selector);
+      return handleDynamicSend(selector, receiverType, null);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       inferrer.registerGetFunction(outermostElement, element);
       return compiler.functionClass;
@@ -1131,6 +1183,20 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     return compiler.dynamicClass;
   }
 
+  handleDynamicSend(Selector selector,
+                    Element receiver,
+                    ArgumentsTypes arguments) {
+    if (selector.isGetter()) {
+      assert(arguments == null);
+      inferrer.registerGetterOnSelector(outermostElement, selector);
+    } else if (selector.isSetter()) {
+      // TODO(ngeoffray): Register called setter.
+    } else {
+      inferrer.registerCalledSelector(outermostElement, selector, arguments);
+    }
+    return inferrer.returnTypeOfSelector(selector);
+  }
+
   visitDynamicSend(Send node) {
     ClassElement receiverType;
     if (node.receiver == null) {
@@ -1140,8 +1206,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    inferrer.registerCalledSelector(outermostElement, selector, arguments);
-    return inferrer.returnTypeOfSelector(selector);
+    return handleDynamicSend(selector, receiverType, arguments);
   }
 
   visitReturn(Return node) {
