@@ -448,6 +448,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   List<Map> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Map>[]);
 
+  Map<int, Map> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')

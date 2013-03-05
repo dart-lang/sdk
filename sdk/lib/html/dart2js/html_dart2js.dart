@@ -7292,6 +7292,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   List<DomMimeType> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <DomMimeType>[]);
 
+  Map<int, DomMimeType> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<DomMimeType> mixins.
 
   @DomName('DOMMimeTypeArray.item')
@@ -7547,6 +7550,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   List<DomPlugin> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <DomPlugin>[]);
+
+  Map<int, DomPlugin> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<DomPlugin> mixins.
 
@@ -7911,6 +7917,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
   List<String> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <String>[]);
 
+  Map<int, String> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<String> mixins.
 
   @DomName('DOMStringList.contains')
@@ -8219,6 +8228,10 @@ class _ChildrenElementList implements List {
   Element max([int compare(Element a, Element b)]) {
     return IterableMixinWorkaround.max(this, compare);
   }
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
+  }
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -8419,6 +8432,10 @@ class _FrozenElementList implements List {
 
   Element max([int compare(Element a, Element b)]) {
     return IterableMixinWorkaround.max(this, compare);
+  }
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 
@@ -10758,6 +10775,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   List<File> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <File>[]);
 
+  Map<int, File> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<File> mixins.
 
   @DomName('FileList.item')
@@ -11317,6 +11337,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   List<num> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <num>[]);
 
+  Map<int, num> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<num> mixins.
 
   @JSName('set')
@@ -11534,6 +11557,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   List<num> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <num>[]);
+
+  Map<int, num> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<num> mixins.
 
@@ -12172,6 +12198,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   List<Node> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Node>[]);
 
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
@@ -12380,6 +12409,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   List<Node> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Node> mixins.
 
@@ -14373,6 +14405,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
 
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -14591,6 +14626,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
 
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -14808,6 +14846,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -17273,6 +17314,8 @@ class _ChildNodeListLazy implements List {
   }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
+
+  Map<int, Node> asMap() => IterableMixinWorkaround.asMapList(this);
 }
 
 @DomName('Node')
@@ -17712,6 +17755,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   List<Node> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Node> mixins.
 
@@ -20067,6 +20113,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   List<SourceBuffer> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
 
+  Map<int, SourceBuffer> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<SourceBuffer> mixins.
 
   @JSName('addEventListener')
@@ -20348,6 +20397,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
+
+  Map<int, SpeechGrammar> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<SpeechGrammar> mixins.
 
@@ -21729,6 +21781,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   List<TextTrackCue> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
 
+  Map<int, TextTrackCue> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<TextTrackCue> mixins.
 
   @DomName('TextTrackCueList.getCueById')
@@ -21935,6 +21990,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   List<TextTrack> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <TextTrack>[]);
+
+  Map<int, TextTrack> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<TextTrack> mixins.
 
@@ -22349,6 +22407,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   List<Touch> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Touch>[]);
+
+  Map<int, Touch> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Touch> mixins.
 
@@ -22798,6 +22859,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
 
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -23015,6 +23079,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -23234,6 +23301,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
 
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -23448,6 +23518,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   List<int> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <int>[]);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -27175,6 +27248,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   List<ClientRect> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <ClientRect>[]);
 
+  Map<int, ClientRect> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<ClientRect> mixins.
 
   @DomName('ClientRectList.item')
@@ -27373,6 +27449,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   List<CssRule> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <CssRule>[]);
+
+  Map<int, CssRule> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<CssRule> mixins.
 
@@ -27573,6 +27652,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   List<CssValue> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <CssValue>[]);
 
+  Map<int, CssValue> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<CssValue> mixins.
 
   @DomName('CSSValueList.item')
@@ -27771,6 +27853,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   List<Entry> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Entry>[]);
+
+  Map<int, Entry> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Entry> mixins.
 
@@ -27971,6 +28056,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   List<EntrySync> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <EntrySync>[]);
 
+  Map<int, EntrySync> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
@@ -28169,6 +28257,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   List<Gamepad> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Gamepad>[]);
+
+  Map<int, Gamepad> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Gamepad> mixins.
 
@@ -28432,6 +28523,9 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
   List<Node> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Node>[]);
 
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<Node> mixins.
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -28655,6 +28749,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
 
+  Map<int, SpeechInputResult> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<SpeechInputResult> mixins.
 
   @DomName('SpeechInputResultList.item')
@@ -28854,6 +28951,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
 
+  Map<int, SpeechRecognitionResult> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<SpeechRecognitionResult> mixins.
 
   @DomName('SpeechRecognitionResultList.item')
@@ -29052,6 +29152,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   List<StyleSheet> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
+
+  Map<int, StyleSheet> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<StyleSheet> mixins.
 
@@ -31747,6 +31850,8 @@ class _WrappedList<E> implements List<E> {
   void insertRange(int start, int length, [E fill]) {
     _list.insertRange(start, length, fill);
   }
+
+  Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
 }
 
 /**

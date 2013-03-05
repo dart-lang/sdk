@@ -3493,6 +3493,9 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   List<Length> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Length>[]);
 
+  Map<int, Length> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
@@ -4195,6 +4198,9 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   List<Number> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Number>[]);
+
+  Map<int, Number> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Number> mixins.
 
@@ -5375,6 +5381,9 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   List<PathSeg> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <PathSeg>[]);
 
+  Map<int, PathSeg> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
@@ -6358,6 +6367,9 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   List<String> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <String>[]);
+
+  Map<int, String> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<String> mixins.
 
@@ -7612,6 +7624,9 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   List<Transform> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Transform>[]);
 
+  Map<int, Transform> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
@@ -8186,6 +8201,9 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   List<ElementInstance> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
+
+  Map<int, ElementInstance> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<ElementInstance> mixins.
 

@@ -426,6 +426,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   List<Map> getRange(int start, int rangeLength) =>
       Lists.getRange(this, start, rangeLength, <Map>[]);
 
+  Map<int, Map> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')
