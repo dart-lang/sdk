@@ -225,9 +225,9 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Enqueues [e] in the work queue if it is valuable.
    */
   void enqueueAgain(Element e) {
-    Element returnType = returnTypeOf[e];
+    Element type = e.isField() ? typeOf[e] : returnTypeOf[e];
     // If we have found a type for [e], no need to re-analyze it.
-    if (returnType != compiler.dynamicClass) return;
+    if (type != compiler.dynamicClass) return;
     if (analyzeCount[e] > MAX_ANALYSIS_COUNT_PER_ELEMENT) return;
     workSet.add(e);
   }
@@ -339,7 +339,7 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Returns whether the new type is worth recompiling the callers of
    * [analyzedElement].
    */
-  bool recordReturnType(analyzedElement, returnType) {
+  bool recordReturnType(Element analyzedElement, returnType) {
     return internalRecordType(analyzedElement, returnType, returnTypeOf);
   }
 
@@ -555,7 +555,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       types.forEach((_, type) {
         fieldType = computeLUB(fieldType, type);
       });
-      returnTypeOf[field] = fieldType;
+      typeOf[field] = fieldType;
     });
   }
 
@@ -1019,6 +1019,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
       inferrer.registerCalledElement(outermostElement, element, arguments);
       return inferrer.returnTypeOfElement(element);
     } else {
+      analyzeArguments(node.arguments);
       // Closure call on a getter. We don't have function types yet,
       // so we just return [:Dynamic:].
       return compiler.dynamicClass;
