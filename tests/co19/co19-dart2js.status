@@ -145,8 +145,6 @@ LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
@@ -159,9 +157,45 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially impleme
 
 Language/09_Generics/09_Generics_A04_t03: Fail # dart2js does not treat 2.0 as a double; dartbug.com/1533
 
-[ $compiler == dart2js ]
-LibTest/math/exp_A01_t01: Fail, OK # co19 issue 44
+[ $compiler == dart2js && $runtime == ie9 ]
+Language/11_Expressions/03_Numbers_A01_t06: Fail # Issue: 8920
+Language/11_Expressions/03_Numbers_A01_t09: Fail # Issue: 8920
+Language/11_Expressions/06_Lists_A07_t02: Fail # Issue: 8920
+Language/11_Expressions/07_Maps_A06_t02: Fail # Issue: 8920
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # Issue: 8920
+LibTest/core/Date/Date_A01_t03: Fail # Issue: 8920
+LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue: 8920
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Issue: 8920
+LibTest/core/Date/year_A01_t01: Fail # Issue: 8920
+LibTest/core/double/round_A01_t01: Fail # Issue: 8920
+LibTest/core/double/toRadixString_A01_t01: Fail # Issue: 8920
+LibTest/core/double/toStringAsExponential_A01_t04: Fail # Issue: 8920
+LibTest/core/double/toStringAsPrecision_A01_t04: Fail # Issue: 8920
+LibTest/core/Expect/identical_A01_t01: Fail # Issue: 8920
+LibTest/core/int/compareTo_A01_t01: Fail # Issue: 8920
+LibTest/core/int/operator_left_shift_A01_t01: Fail # Issue: 8920
+LibTest/core/int/operator_remainder_A01_t03: Fail # Issue: 8920
+LibTest/core/int/operator_truncating_division_A01_t02: Fail # Issue: 8920
+LibTest/core/int/remainder_A01_t01: Fail # Issue: 8920
+LibTest/core/int/remainder_A01_t03: Fail # Issue: 8920
+LibTest/core/int/toRadixString_A01_t01: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue: 8920
+LibTest/core/String/contains_A01_t02: Fail # Issue: 8920
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail # Issue: 8920
 
+
+# These tests are passing with 'runtime == ie9' but are either skipped or fail
+# on other configurations
+[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera) ]
+LibTest/math/exp_A01_t01: Fail, OK # co19 issue 44
+LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
+
+[ $compiler == dart2js ]
 LibTest/math/parseDouble_A02_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
