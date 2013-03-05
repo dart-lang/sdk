@@ -1206,7 +1206,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     const TypeArguments& instantiator_type_args =
         TypeArguments::Cast(constant_type_args->value());
     const AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args));
+        dst_type().InstantiateFrom(instantiator_type_args, NULL));
     set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
     ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
     // It is ok to insert instructions before the current during

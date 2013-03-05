@@ -115,28 +115,13 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 }
 
 
-static const char* RawOneByteStringToCString(RawOneByteString* str) {
-  const char* start = reinterpret_cast<char*>(str) - kHeapObjectTag +
-      OneByteString::data_offset();
-  const int len = Smi::Value(*reinterpret_cast<RawSmi**>(
-      reinterpret_cast<uword>(str) - kHeapObjectTag + String::length_offset()));
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-  memmove(chars, start, len);
-  chars[len] = '\0';
-  return chars;
-}
-
-
 RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
                                               intptr_t tags,
                                               Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
-  // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace this code by an UNREACHABLE().
-
-  // Allocate parameterized type object.
+  // Allocate unresolved class object.
   UnresolvedClass& unresolved_class = UnresolvedClass::ZoneHandle(
       reader->isolate(), NEW_OBJECT(UnresolvedClass));
   reader->AddBackRef(object_id, &unresolved_class, kIsDeserialized);
@@ -164,19 +149,6 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-
-  // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace this code by an UNREACHABLE().
-  if (FLAG_error_on_malformed_type) {
-    // Print the name of the unresolved class, as well as the token location
-    // from where it is referred to, making sure not to allocate any handles.
-    // Unfortunately, we cannot print the script name.
-    OS::Print("Snapshotting unresolved class '%s' at token pos %"Pd"\n",
-              RawOneByteStringToCString(
-                  reinterpret_cast<RawOneByteString*>(ptr()->ident_)),
-              ptr()->token_pos_);
-    UNREACHABLE();
-  }
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -245,13 +217,25 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 }
 
 
+static const char* RawOneByteStringToCString(RawOneByteString* str) {
+  const char* start = reinterpret_cast<char*>(str) - kHeapObjectTag +
+      OneByteString::data_offset();
+  const int len = Smi::Value(*reinterpret_cast<RawSmi**>(
+      reinterpret_cast<uword>(str) - kHeapObjectTag + String::length_offset()));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  memmove(chars, start, len);
+  chars[len] = '\0';
+  return chars;
+}
+
+
 void RawType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT().
+  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
   if (FLAG_error_on_malformed_type &&
       (ptr()->type_state_ != RawType::kFinalizedInstantiated) &&
       (ptr()->type_state_ != RawType::kFinalizedUninstantiated)) {
@@ -336,7 +320,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Only finalized type parameters should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT().
+  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
   if (FLAG_error_on_malformed_type &&
       (ptr()->type_state_ != RawTypeParameter::kFinalizedUninstantiated)) {
     // Print the name of the unfinalized type parameter, the name of the class
@@ -366,6 +350,54 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->index_);
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
+RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
+                                      intptr_t object_id,
+                                      intptr_t tags,
+                                      Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Allocate bounded type object.
+  BoundedType& bounded_type = BoundedType::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(BoundedType));
+  reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
+
+  // Set the object tags.
+  bounded_type.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (bounded_type.raw()->to() -
+                       bounded_type.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    bounded_type.StorePointer((bounded_type.raw()->from() + i),
+                              reader->ReadObjectRef());
+  }
+
+  bounded_type.set_is_being_checked(false);
+
+  return bounded_type.raw();
+}
+
+
+void RawBoundedType::WriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kBoundedTypeCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

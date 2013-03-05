@@ -54,6 +54,7 @@ type_variable_bounds2_test/00: Fail
 type_variable_bounds2_test/03: Fail
 type_variable_bounds2_test/05: Fail
 type_variable_bounds2_test/06: Pass # For the wrong reasons.
+type_variable_bounds3_test/00: Fail
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 closure_type_test: Fail # does not detect type error in checked mode.

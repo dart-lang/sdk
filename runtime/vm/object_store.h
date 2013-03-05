@@ -63,6 +63,11 @@ class ObjectStore {
     type_parameter_class_ = value.raw();
   }
 
+  RawClass* bounded_type_class() const { return bounded_type_class_; }
+  void set_bounded_type_class(const Class& value) {
+    bounded_type_class_ = value.raw();
+  }
+
   RawType* number_type() const { return number_type_; }
   void set_number_type(const Type& value) {
     number_type_ = value.raw();
@@ -588,6 +593,7 @@ class ObjectStore {
   RawType* function_type_;
   RawClass* type_class_;
   RawClass* type_parameter_class_;
+  RawClass* bounded_type_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;

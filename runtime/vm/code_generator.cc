@@ -181,7 +181,6 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
-  AbstractTypeArguments& bounds_instantiator = AbstractTypeArguments::Handle();
   if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
     ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
            StubCode::kNoInstantiator);
@@ -190,36 +189,29 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
     const AbstractTypeArguments& instantiator =
         AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
     ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
+    Error& malformed_error = Error::Handle();
     if (instantiator.IsNull()) {
-      type_arguments =
-          InstantiatedTypeArguments::New(type_arguments, instantiator);
+      type_arguments = type_arguments.InstantiateFrom(instantiator,
+                                                      &malformed_error);
     } else if (instantiator.IsTypeArguments()) {
       // Code inlined in the caller should have optimized the case where the
       // instantiator is a TypeArguments and can be used as type argument
       // vector.
       ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
              (instantiator.Length() != type_arguments.Length()));
-      type_arguments =
-          InstantiatedTypeArguments::New(type_arguments, instantiator);
+      type_arguments = type_arguments.InstantiateFrom(instantiator,
+                                                      &malformed_error);
     } else {
       // If possible, use the instantiator as the type argument vector.
       if (type_arguments.IsUninstantiatedIdentity() &&
           (instantiator.Length() == type_arguments.Length())) {
         type_arguments = instantiator.raw();
       } else {
-        type_arguments =
-            InstantiatedTypeArguments::New(type_arguments, instantiator);
+        type_arguments = type_arguments.InstantiateFrom(instantiator,
+                                                        &malformed_error);
       }
     }
-    bounds_instantiator = instantiator.raw();
-  }
-  if (!type_arguments.IsNull()) {
-    ASSERT(type_arguments.IsInstantiated());
-    Error& malformed_error = Error::Handle();
-    if (!type_arguments.IsWithinBoundsOf(cls,
-                                         bounds_instantiator,
-                                         &malformed_error)) {
-      ASSERT(!malformed_error.IsNull());
+    if (!malformed_error.IsNull()) {
       // Throw a dynamic type error.
       const intptr_t location = GetCallerLocation();
       String& malformed_error_message =  String::Handle(
@@ -230,6 +222,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
       UNREACHABLE();
     }
   }
+  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   instance.SetTypeArguments(type_arguments);
 }
 
@@ -373,8 +366,9 @@ static void PrintTypeCheck(
                  caller_frame->pc());
   } else {
     // Instantiate type before printing.
-    const AbstractType& instantiated_type =
-        AbstractType::Handle(type.InstantiateFrom(instantiator_type_arguments));
+    Error& malformed_error = Error::Handle();
+    const AbstractType& instantiated_type = AbstractType::Handle(
+        type.InstantiateFrom(instantiator_type_arguments, &malformed_error));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#"Px").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
@@ -382,6 +376,9 @@ static void PrintTypeCheck(
                  String::Handle(instantiated_type.Name()).ToCString(),
                  String::Handle(type.Name()).ToCString(),
                  caller_frame->pc());
+    if (!malformed_error.IsNull()) {
+      OS::Print("  malformed error: %s\n", malformed_error.ToErrorCString());
+    }
   }
   const Function& function = Function::Handle(
       caller_frame->LookupDartFunction());
@@ -413,7 +410,10 @@ static bool OptimizeTypeArguments(const Instance& instance) {
       uninstantiated =
           instantiated_type_arguments.uninstantiated_type_arguments();
       instantiator = instantiated_type_arguments.instantiator_type_arguments();
-      type_arguments = uninstantiated.InstantiateFrom(instantiator);
+      Error& malformed_error = Error::Handle();
+      type_arguments = uninstantiated.InstantiateFrom(instantiator,
+                                                      &malformed_error);
+      ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
     } while (type_arguments.IsInstantiatedTypeArguments());
     AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
     new_type_arguments = type_arguments.Canonicalize();
@@ -516,7 +516,10 @@ static void UpdateTypeTestCache(
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(type.raw());
     if (!test_type.IsInstantiated()) {
-      test_type = type.InstantiateFrom(instantiator_type_arguments);
+      Error& malformed_error = Error::Handle();
+      test_type = type.InstantiateFrom(instantiator_type_arguments,
+                                       &malformed_error);
+      ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
     }
     OS::PrintErr("  Updated test cache %p ix: %"Pd" with (%"Pd", %p, %p, %s)\n"
         "    [%p %s %"Pd", %p %s]\n"
@@ -631,7 +634,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
-          dst_type.InstantiateFrom(instantiator_type_arguments));
+          dst_type.InstantiateFrom(instantiator_type_arguments, NULL));
+      // Note that instantiated_dst_type may be malformed.
       dst_type_name = instantiated_dst_type.UserVisibleName();
     } else {
       dst_type_name = dst_type.UserVisibleName();

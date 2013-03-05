@@ -522,6 +522,11 @@ RawTypeParameter* SnapshotReader::NewTypeParameter() {
 }
 
 
+RawBoundedType* SnapshotReader::NewBoundedType() {
+  ALLOC_NEW_OBJECT(BoundedType, object_store()->bounded_type_class());
+}
+
+
 RawPatchClass* SnapshotReader::NewPatchClass() {
   ALLOC_NEW_OBJECT(PatchClass, Object::patch_class_class());
 }

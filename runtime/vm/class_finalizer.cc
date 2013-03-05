@@ -65,7 +65,7 @@ static void RemoveOptimizedCode(
 }
 
 
-void AddSuperType(const Type& type,
+void AddSuperType(const AbstractType& type,
                   GrowableArray<intptr_t>* finalized_super_classes) {
   ASSERT(type.HasResolvedTypeClass());
   if (type.IsObjectType()) {
@@ -81,7 +81,7 @@ void AddSuperType(const Type& type,
     }
   }
   finalized_super_classes->Add(cid);
-  const Type& super_type = Type::Handle(cls.super_type());
+  const AbstractType& super_type = AbstractType::Handle(cls.super_type());
   AddSuperType(super_type, finalized_super_classes);
 }
 
@@ -92,11 +92,11 @@ static void CollectFinalizedSuperClasses(
     const GrowableObjectArray& pending_classes,
     GrowableArray<intptr_t>* finalized_super_classes) {
   Class& cls = Class::Handle();
-  Type& super_type = Type::Handle();
+  AbstractType& super_type = Type::Handle();
   for (intptr_t i = 0; i < pending_classes.Length(); i++) {
     cls ^= pending_classes.At(i);
     ASSERT(!cls.is_finalized());
-    super_type ^= cls.super_type();
+    super_type = cls.super_type();
     if (!super_type.IsNull()) {
       if (!super_type.IsMalformed() &&
           super_type.HasResolvedTypeClass() &&
@@ -434,10 +434,14 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     if (!target_type.IsInstantiated()) {
       const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
           type.arguments());
-      target_type ^= target_type.InstantiateFrom(type_args);
-      // TODO(regis): Check bounds in checked mode.
-      target_type ^= FinalizeType(cls, target_type, kCanonicalize);
-      if (target_type.IsMalformed()) {
+      Error& malformed_error = Error::Handle();
+      target_type ^= target_type.InstantiateFrom(type_args, &malformed_error);
+      if (malformed_error.IsNull()) {
+        target_type ^= FinalizeType(cls, target_type, kCanonicalize);
+      } else {
+        FinalizeMalformedType(malformed_error,
+                              cls, target_type, kFinalize,
+                              "cannot resolve redirecting factory");
         target_target = Function::null();
       }
     }
@@ -504,6 +508,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
 
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
+  // The type parameter bounds are not finalized here.
   const TypeArguments& type_parameters =
       TypeArguments::Handle(cls.type_parameters());
   if (!type_parameters.IsNull()) {
@@ -537,12 +542,13 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
 void ClassFinalizer::FinalizeTypeArguments(
     const Class& cls,
     const AbstractTypeArguments& arguments,
-    FinalizationKind finalization) {
+    FinalizationKind finalization,
+    Error* bound_error) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_finalized()) {
     FinalizeTypeParameters(cls);
   }
-  Type& super_type = Type::Handle(cls.super_type());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     const Class& super_class = Class::Handle(super_type.type_class());
     AbstractTypeArguments& super_type_args = AbstractTypeArguments::Handle();
@@ -576,7 +582,16 @@ void ClassFinalizer::FinalizeTypeArguments(
       if (!super_type_args.IsNull()) {
         super_type_arg = super_type_args.TypeAt(super_offset + i);
         if (!super_type_arg.IsInstantiated()) {
-          super_type_arg = super_type_arg.InstantiateFrom(arguments);
+          Error& malformed_error = Error::Handle();
+          super_type_arg = super_type_arg.InstantiateFrom(arguments,
+                                                          &malformed_error);
+          if (!malformed_error.IsNull()) {
+            if (!super_type_arg.IsInstantiated()) {
+              // CheckTypeArgumentBounds will insert a BoundedType.
+            } else if (bound_error->IsNull()) {
+              *bound_error = malformed_error.raw();
+            }
+          }
         }
         if (finalization >= kCanonicalize) {
           super_type_arg = super_type_arg.Canonicalize();
@@ -584,7 +599,85 @@ void ClassFinalizer::FinalizeTypeArguments(
       }
       arguments.SetTypeAt(super_offset + i, super_type_arg);
     }
-    FinalizeTypeArguments(super_class, arguments, finalization);
+    FinalizeTypeArguments(super_class, arguments, finalization, bound_error);
+  }
+}
+
+
+// Check the type argument vector 'arguments' against the corresponding bounds
+// of the type parameters of class 'cls' and, recursively, of its superclasses.
+// Replace a type argument that cannot be checked at compile time by a
+// BoundedType, thereby postponing the bound check to run time.
+// Return a bound error if a type argument is not within bound at compile time.
+void ClassFinalizer::CheckTypeArgumentBounds(
+    const Class& cls,
+    const AbstractTypeArguments& arguments,
+    Error* bound_error) {
+  if (!cls.is_finalized()) {
+    ResolveAndFinalizeUpperBounds(cls);
+  }
+  // Note that when finalizing a type, we need to verify the bounds in both
+  // production mode and checked mode, because the finalized type may be written
+  // to a snapshot. It would be wrong to ignore bounds when generating the
+  // snapshot in production mode and then use the unchecked type in checked mode
+  // after reading it from the snapshot.
+  // However, we do not immediately report a bound error, which would be wrong
+  // in production mode, but simply postpone the bound checking to runtime.
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
+  AbstractType& type_arg = AbstractType::Handle();
+  AbstractType& cls_type_param = AbstractType::Handle();
+  AbstractType& bound = AbstractType::Handle();
+  const TypeArguments& cls_type_params =
+      TypeArguments::Handle(cls.type_parameters());
+  ASSERT((cls_type_params.IsNull() && (num_type_params == 0)) ||
+         (cls_type_params.Length() == num_type_params));
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_arg = arguments.TypeAt(offset + i);
+    if (type_arg.IsDynamicType()) {
+      continue;
+    }
+    cls_type_param = cls_type_params.TypeAt(i);
+    const TypeParameter& type_param = TypeParameter::Cast(cls_type_param);
+    ASSERT(type_param.IsFinalized());
+    bound = type_param.bound();
+    if (!bound.IsObjectType() && !bound.IsDynamicType()) {
+      Error& malformed_error = Error::Handle();
+      // Note that the bound may be malformed, in which case the bound check
+      // will return an error and the bound check will be postponed to run time.
+      // Note also that the bound may still be unfinalized.
+      if (!bound.IsFinalized()) {
+        ASSERT(bound.IsBeingFinalized());
+        // The bound refers to type parameters, creating a cycle; postpone
+        // bound check to run time, when the bound will be finalized.
+        // TODO(regis): Do we need to instantiate an uninstantiated bound here?
+        type_arg = BoundedType::New(type_arg, bound, type_param);
+        arguments.SetTypeAt(offset + i, type_arg);
+        continue;
+      }
+      if (!bound.IsInstantiated()) {
+        bound = bound.InstantiateFrom(arguments, &malformed_error);
+      }
+      // TODO(regis): We could simplify this code if we could differentiate
+      // between a failed bound check and a bound check that is undecidable at
+      // compile time.
+      if (malformed_error.IsNull()) {
+        type_param.CheckBound(type_arg, bound, &malformed_error);
+      }
+      if (!malformed_error.IsNull()) {
+        if (!type_arg.IsInstantiated() || !bound.IsInstantiated()) {
+          type_arg = BoundedType::New(type_arg, bound, type_param);
+          arguments.SetTypeAt(offset + i, type_arg);
+        } else if (bound_error->IsNull()) {
+          *bound_error = malformed_error.raw();
+        }
+      }
+    }
+  }
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  if (!super_type.IsNull()) {
+    const Class& super_class = Class::Handle(super_type.type_class());
+    CheckTypeArgumentBounds(super_class, arguments, bound_error);
   }
 }
 
@@ -627,8 +720,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                             parameterized_class.NumTypeParameters();
     type_parameter.set_index(type_parameter.index() + offset);
     type_parameter.set_is_finalized();
-    // TODO(regis): We are not able to finalize the bound here without getting
-    // into cycles. Revisit.
     // We do not canonicalize type parameters.
     return type_parameter.raw();
   }
@@ -718,6 +809,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // super types of type_class, which may be initialized from the parsed
   // type arguments, followed by the parsed type arguments.
   TypeArguments& full_arguments = TypeArguments::Handle();
+  Error& bound_error = Error::Handle();
   if (num_type_arguments > 0) {
     // If no type arguments were parsed and if the super types do not prepend
     // type arguments to the vector, we can leave the vector as null.
@@ -749,9 +841,13 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
             Function::Handle(type_class.signature_function());
         ASSERT(!signature_fun.is_static());
         const Class& sig_fun_owner = Class::Handle(signature_fun.Owner());
-        FinalizeTypeArguments(sig_fun_owner, full_arguments, finalization);
+        FinalizeTypeArguments(
+            sig_fun_owner, full_arguments, finalization, &bound_error);
+        CheckTypeArgumentBounds(sig_fun_owner, full_arguments, &bound_error);
       } else {
-        FinalizeTypeArguments(type_class, full_arguments, finalization);
+        FinalizeTypeArguments(
+            type_class, full_arguments, finalization, &bound_error);
+        CheckTypeArgumentBounds(type_class, full_arguments, &bound_error);
       }
       if (full_arguments.IsRaw(num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which
@@ -774,33 +870,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     parameterized_type.SetIsFinalized();
   }
 
-  // Upper bounds of the finalized type arguments are only verified in checked
-  // mode, since bound errors are never reported by the vm in production mode.
-  if (FLAG_enable_type_checks &&
-      !full_arguments.IsNull() &&
-      full_arguments.IsInstantiated()) {
-    ResolveAndFinalizeUpperBounds(type_class);
-    Error& malformed_error = Error::Handle();
-    // Pass the full type argument vector as the bounds instantiator.
-    if (!full_arguments.IsWithinBoundsOf(type_class,
-                                         full_arguments,
-                                         &malformed_error)) {
-      ASSERT(!malformed_error.IsNull());
-      // The type argument vector of the type is not within bounds. The type
-      // is malformed. Prepend malformed_error to new malformed type error in
-      // order to report both locations.
-      // Note that malformed bounds never result in a compile time error, even
-      // in checked mode. Therefore, overwrite finalization with kFinalize
-      // when finalizing the malformed type.
-      FinalizeMalformedType(
-          malformed_error,
-          cls, parameterized_type, kFinalize,
-          "type arguments of type '%s' are not within bounds",
-          String::Handle(parameterized_type.UserVisibleName()).ToCString());
-      return parameterized_type.raw();
-    }
-  }
-
   // If the type class is a signature class, we are currently finalizing a
   // signature type, i.e. finalizing the result type and parameter types of the
   // signature function of this signature type.
@@ -810,6 +879,27 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // The class may be created while parsing a function body, after all
     // pending classes have already been finalized.
     FinalizeClass(type_class);
+  }
+
+  // If a bound error occurred, return a BoundedType with a malformed bound.
+  // The malformed bound will be ignored in production mode.
+  if (!bound_error.IsNull()) {
+    FinalizationKind bound_finalization = kTryResolve;  // No compile error.
+    if (FLAG_enable_type_checks || FLAG_error_on_malformed_type) {
+      bound_finalization = finalization;
+    }
+    const String& parameterized_type_name = String::Handle(
+        parameterized_type.UserVisibleName());
+    const Type& malformed_bound = Type::Handle(
+        NewFinalizedMalformedType(bound_error,
+                                  cls,
+                                  parameterized_type.token_pos(),
+                                  bound_finalization,
+                                  "type '%s' has an out of bound type argument",
+                                  parameterized_type_name.ToCString()));
+    return BoundedType::New(parameterized_type,
+                            malformed_bound,
+                            TypeParameter::Handle());
   }
 
   if (finalization >= kCanonicalize) {
@@ -1108,7 +1198,8 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
 
   // Check that the super class of the mixin class is extending
   // class Object.
-  const Type& mixin_super_type = Type::Handle(mixin_cls.super_type());
+  const AbstractType& mixin_super_type =
+      AbstractType::Handle(mixin_cls.super_type());
   if (!mixin_super_type.IsObjectType()) {
     const Script& script = Script::Handle(cls.script());
     const String& class_name = String::Handle(mixin_cls.Name());
@@ -1224,9 +1315,15 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls);
   // Finalize super type.
-  Type& super_type = Type::Handle(cls.super_type());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    super_type ^= FinalizeType(cls, super_type, kCanonicalizeWellFormed);
+    // In case of a bound error in the super type in production mode, the
+    // finalized super type will be a BoundedType with a malformed bound.
+    // It should not be a problem if the class is written to a snapshot and
+    // later executed in checked mode. Note that the finalized type argument
+    // vector of any type of the base class will contain a BoundedType for the
+    // out of bound type argument.
+    super_type = FinalizeType(cls, super_type, kCanonicalizeWellFormed);
     cls.set_super_type(super_type);
   }
   if (cls.IsSignatureClass()) {
@@ -1243,6 +1340,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     // Signature classes extend Object. No need to add this class to the direct
     // subclasses of Object.
     ASSERT(super_type.IsNull() || super_type.IsObjectType());
+
+    // The type parameters of signature classes may have bounds.
+    ResolveAndFinalizeUpperBounds(cls);
 
     // Resolve and finalize the result and parameter types of the signature
     // function of this signature class.
@@ -1265,6 +1365,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Mark as finalized before resolving type parameter upper bounds and member
   // types in order to break cycles.
   cls.Finalize();
+  // Finalize bounds even if running in production mode, so that a snapshot
+  // contains them.
   ResolveAndFinalizeUpperBounds(cls);
   ResolveAndFinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
@@ -1373,7 +1475,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // If the class/interface has no explicit super class/interfaces
   // and is not a mixin application, we are done.
-  Type& super_type = Type::Handle(cls.super_type());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
   Type& mixin_type = Type::Handle(cls.mixin());
   Array& super_interfaces = Array::Handle(cls.interfaces());
   if ((super_type.IsNull() || super_type.IsObjectType()) &&
@@ -1553,7 +1655,7 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   } else {
     OS::Print(" (null library):\n");
   }
-  const Type& super_type = Type::Handle(cls.super_type());
+  const AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (super_type.IsNull()) {
     OS::Print("  Super: NULL");
   } else {
@@ -1612,21 +1714,15 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
       ReportError(error);
     }
   }
+  // In checked mode, always mark the type as malformed.
+  // In production mode, mark the type as malformed only if its type class is
+  // not resolved.
+  // In both mode, make the type raw, since it may not be possible to
+  // properly finalize its type arguments.
   if (FLAG_enable_type_checks || !type.HasResolvedTypeClass()) {
-    // In check mode, always mark the type as malformed.
-    // In production mode, mark the type as malformed only if its type class is
-    // not resolved.
     type.set_malformed_error(error);
-    if (!type.HasResolvedTypeClass()) {
-      // We do not want an unresolved class to end up in a snapshot.
-      type.set_type_class(Object::Handle(Object::null_class()));
-    }
-  } else {
-     // In production mode, do not mark the type with a resolved type class as
-     // malformed, but make it raw.
-    type.set_arguments(AbstractTypeArguments::Handle());
   }
-  ASSERT(type.HasResolvedTypeClass());
+  type.set_arguments(AbstractTypeArguments::Handle());
   if (!type.IsFinalized()) {
     type.SetIsFinalized();
     // Do not canonicalize malformed types, since they may not be resolved.
@@ -1655,6 +1751,7 @@ RawType* ClassFinalizer::NewFinalizedMalformedType(
   ReportMalformedType(prev_error, cls, type, finalization, format, args);
   va_end(args);
   ASSERT(type.IsMalformed());
+  ASSERT(type.IsFinalized());
   return type.raw();
 }
 

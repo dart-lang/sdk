@@ -1062,13 +1062,17 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       // instantiated).
       result = new ConstantInstr(negate_result ? Bool::True() : Bool::False());
     } else {
-      if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
+      Error& malformed_error = Error::Handle();
+      if (literal_value.IsInstanceOf(type,
+                                     TypeArguments::Handle(),
+                                     &malformed_error)) {
         result = new ConstantInstr(negate_result ?
                                    Bool::False() : Bool::True());
       } else {
         result = new ConstantInstr(negate_result ?
                                    Bool::True() : Bool::False());
       }
+      ASSERT(malformed_error.IsNull());
     }
     ReturnDefinition(result);
     return;
@@ -1927,18 +1931,13 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
       requires_type_arguments &&
       !node->type_arguments().IsNull() &&
       !node->type_arguments().IsInstantiated() &&
-      !node->type_arguments().IsWithinBoundsOf(cls,
-                                               node->type_arguments(),
-                                               NULL)) {
+      node->type_arguments().IsBounded()) {
     Value* type_arguments = NULL;
     Value* instantiator = NULL;
     BuildConstructorTypeArguments(node, &type_arguments, &instantiator, NULL);
 
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
-    // Although the type arguments may be uninstantiated at compile time, they
-    // may represent the identity vector and may be replaced by the instantiated
-    // type arguments of the instantiator at run time.
     allocate_comp = new AllocateObjectWithBoundsCheckInstr(node,
                                                            type_arguments,
                                                            instantiator);

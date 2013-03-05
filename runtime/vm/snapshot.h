@@ -34,6 +34,7 @@ class RawAbstractTypeArguments;
 class RawApiError;
 class RawArray;
 class RawBigint;
+class RawBoundedType;
 class RawClass;
 class RawContext;
 class RawDouble;
@@ -255,6 +256,7 @@ class SnapshotReader : public BaseReader {
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
   RawTypeParameter* NewTypeParameter();
+  RawBoundedType* NewBoundedType();
   RawPatchClass* NewPatchClass();
   RawClosureData* NewClosureData();
   RawRedirectionData* NewRedirectionData();
@@ -328,6 +330,7 @@ class SnapshotReader : public BaseReader {
 
   friend class ApiError;
   friend class Array;
+  friend class BoundedType;
   friend class Class;
   friend class Context;
   friend class ContextScope;

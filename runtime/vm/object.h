@@ -652,8 +652,10 @@ class Class : public Object {
   }
 
   // The super type of this class, Object type if not explicitly specified.
-  RawType* super_type() const { return raw_ptr()->super_type_; }
-  void set_super_type(const Type& value) const;
+  // Note that the super type may be bounded, as in this example:
+  // class C<T> extends S<T> { }; class S<T extends num> { };
+  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
+  void set_super_type(const AbstractType& value) const;
   static intptr_t super_type_offset() {
     return OFFSET_OF(RawClass, super_type_);
   }
@@ -951,8 +953,10 @@ class AbstractTypeArguments : public Object {
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
   // type of the instantiator type argument vector.
+  // If malformed_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* malformed_error) const;
 
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
@@ -982,12 +986,6 @@ class AbstractTypeArguments : public Object {
     return IsDynamicTypes(true, len);
   }
 
-  // Check that this type argument vector is within the declared bounds of the
-  // given class. If not, set malformed_error (if not yet set).
-  bool IsWithinBoundsOf(const Class& cls,
-                        const AbstractTypeArguments& bounds_instantiator,
-                        Error* malformed_error) const;
-
   // Check the subtype relationship, considering only a prefix of length 'len'.
   bool IsSubtypeOf(const AbstractTypeArguments& other,
                    intptr_t len,
@@ -1012,6 +1010,7 @@ class AbstractTypeArguments : public Object {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
+  virtual bool IsBounded() const;
 
   virtual intptr_t Hash() const;
 
@@ -1054,11 +1053,13 @@ class TypeArguments : public AbstractTypeArguments {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
+  virtual bool IsBounded() const;
   // Canonicalize only if instantiated, otherwise returns 'this'.
   virtual RawAbstractTypeArguments* Canonicalize() const;
 
   virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* malformed_error) const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -1109,6 +1110,7 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
   virtual bool IsResolved() const { return true; }
   virtual bool IsInstantiated() const { return true; }
   virtual bool IsUninstantiatedIdentity() const  { return false; }
+  virtual bool IsBounded() const { return false; }  // Bounds were checked.
 
   RawAbstractTypeArguments* uninstantiated_type_arguments() const {
     return raw_ptr()->uninstantiated_type_arguments_;
@@ -3400,8 +3402,10 @@ class AbstractType : public Instance {
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
+  // If malformed_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* malformed_error) const;
 
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize() const;
@@ -3527,7 +3531,8 @@ class Type : public AbstractType {
   virtual bool IsInstantiated() const;
   virtual bool Equals(const Instance& other) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* malformed_error) const;
   virtual RawAbstractType* Canonicalize() const;
 
   virtual intptr_t Hash() const;
@@ -3603,7 +3608,7 @@ class Type : public AbstractType {
 // Upon finalization, the TypeParameter index is changed to reflect its position
 // as type argument (rather than type parameter) of the parameterized class.
 // If the type parameter is declared without an extends clause, its bound is set
-// to the DynamicType.
+// to the ObjectType.
 class TypeParameter : public AbstractType {
  public:
   virtual bool IsFinalized() const {
@@ -3623,11 +3628,15 @@ class TypeParameter : public AbstractType {
   void set_index(intptr_t value) const;
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
+  void CheckBound(const AbstractType& bounded_type,
+                  const AbstractType& upper_bound,
+                  Error* malformed_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const Instance& other) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments) const;
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* malformed_error) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   virtual intptr_t Hash() const;
@@ -3650,6 +3659,79 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
+  friend class Class;
+};
+
+
+// A BoundedType represents a type instantiated at compile time from a type
+// parameter specifying a bound that either cannot be checked at compile time
+// because the type or the bound are still uninstantiated or can be checked and
+// would trigger a bound error in checked mode. The bound must be checked at
+// runtime once the type and its bound are instantiated and when the execution
+// mode is known to be checked mode.
+class BoundedType : public AbstractType {
+ public:
+  virtual bool IsFinalized() const {
+    return AbstractType::Handle(type()).IsFinalized();
+  }
+  virtual bool IsBeingFinalized() const {
+    return AbstractType::Handle(type()).IsBeingFinalized();
+  }
+  virtual bool IsMalformed() const;
+  virtual RawError* malformed_error() const;
+  virtual bool IsResolved() const { return true; }
+  virtual bool HasResolvedTypeClass() const {
+    return AbstractType::Handle(type()).HasResolvedTypeClass();
+  }
+  virtual RawClass* type_class() const {
+    return AbstractType::Handle(type()).type_class();
+  }
+  virtual RawUnresolvedClass* unresolved_class() const {
+    return AbstractType::Handle(type()).unresolved_class();
+  }
+  virtual RawAbstractTypeArguments* arguments() const {
+    return AbstractType::Handle(type()).arguments();
+  }
+  RawAbstractType* type() const { return raw_ptr()->type_; }
+  RawAbstractType* bound() const { return raw_ptr()->bound_; }
+  RawTypeParameter* type_parameter() const {
+    return raw_ptr()->type_parameter_;
+  }
+  virtual intptr_t token_pos() const {
+    return AbstractType::Handle(type()).token_pos();
+  }
+  virtual bool IsInstantiated() const {
+    return AbstractType::Handle(type()).IsInstantiated();
+  }
+  virtual bool Equals(const Instance& other) const;
+  virtual RawAbstractType* InstantiateFrom(
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* malformed_error) const;
+  virtual RawAbstractType* Canonicalize() const { return raw(); }
+
+  virtual intptr_t Hash() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawBoundedType));
+  }
+
+  static RawBoundedType* New(const AbstractType& type,
+                             const AbstractType& bound,
+                             const TypeParameter& type_parameter);
+
+ private:
+  void set_type(const AbstractType& value) const;
+  void set_bound(const AbstractType& value) const;
+  void set_type_parameter(const TypeParameter& value) const;
+
+  bool is_being_checked() const {
+    return raw_ptr()->is_being_checked_;
+  }
+  void set_is_being_checked(bool value) const;
+
+  static RawBoundedType* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(BoundedType, AbstractType);
   friend class Class;
 };
 

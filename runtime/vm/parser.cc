@@ -3462,7 +3462,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   const Class& anon_mixin_app_class =
       Class::Handle(mixin_application_type.type_class());
   mixin_application.set_super_type(
-      Type::Handle(anon_mixin_app_class.super_type()));
+      AbstractType::Handle(anon_mixin_app_class.super_type()));
   mixin_application.set_mixin(Type::Handle(anon_mixin_app_class.mixin()));
   const Array& interfaces = Array::Handle(anon_mixin_app_class.interfaces());
   mixin_application.set_interfaces(interfaces);
@@ -3471,7 +3471,8 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   if (CurrentToken() == Token::kIMPLEMENTS) {
     Array& interfaces = Array::Handle();
     const intptr_t interfaces_pos = TokenPos();
-    const Type& super_type = Type::Handle(mixin_application.super_type());
+    Type& super_type = Type::Handle();
+    super_type ^= mixin_application.super_type();
     interfaces = ParseInterfaceList(super_type);
     AddInterfaces(interfaces_pos, mixin_application, interfaces);
   }
@@ -9332,12 +9333,16 @@ AstNode* Parser::ParseNewOperator() {
       if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
-        redirect_type ^= redirect_type.InstantiateFrom(type_arguments);
+        Error& malformed_error = Error::Handle();
+        redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
+                                                       &malformed_error);
+        if (!malformed_error.IsNull()) {
+          redirect_type.set_malformed_error(malformed_error);
+        }
       }
       if (redirect_type.IsMalformed()) {
         if (is_const) {
-          const Error& error = Error::Handle(redirect_type.malformed_error());
-          ErrorMsg(error);
+          ErrorMsg(Error::Handle(redirect_type.malformed_error()));
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }

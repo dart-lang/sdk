@@ -94,9 +94,6 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
-[ $compiler == none && $checked ]
-default_factory2_test/01: Fail # Issue 7075.
-
 [ $compiler == dartc ]
 class_literal_test/none : Fail # Issue 7630.
 import_private_test/01: Fail # Issue 8365.

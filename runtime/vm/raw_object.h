@@ -51,6 +51,7 @@ namespace dart {
     V(AbstractType)                                                            \
       V(Type)                                                                  \
       V(TypeParameter)                                                         \
+      V(BoundedType)                                                           \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -437,7 +438,7 @@ class RawClass : public RawObject {
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawType* super_type_;
+  RawAbstractType* super_type_;
   RawType* mixin_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
@@ -1116,6 +1117,23 @@ class RawTypeParameter : public RawAbstractType {
   intptr_t index_;
   intptr_t token_pos_;
   int8_t type_state_;
+};
+
+
+class RawBoundedType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(BoundedType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_);
+  }
+  RawAbstractType* type_;
+  RawAbstractType* bound_;
+  RawTypeParameter* type_parameter_;  // For more detailed error reporting.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
+  }
+  bool is_being_checked_;
 };
 
 
