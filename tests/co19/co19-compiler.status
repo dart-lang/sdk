@@ -493,5 +493,5 @@ LibTest/core/String/charCodeAt_A03_t01: Fail # Deprecated string members removed
 LibTest/core/String/charCodes_A01_t01: Fail # Deprecated string members removed (issue 382).
 LibTest/core/String/splitChars_A01_t01: Fail # Deprecated string members removed (issue 382).
 
-[ $runtime == drt && ($compiler == none || $compiler == frog) ]
+[ $runtime == drt && $compiler == none ]
 *: Skip
