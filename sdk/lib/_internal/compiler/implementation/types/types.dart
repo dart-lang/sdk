@@ -25,6 +25,7 @@ part 'type_mask.dart';
  */
 abstract class TypesInferrer {
   analyzeMain(Element element);
+  getConcreteReturnTypeOfElement(Element element);
   getConcreteTypeOfElement(Element element);
   getConcreteTypeOfNode(Element owner, Node node);
 }
@@ -79,8 +80,8 @@ class TypesTask extends CompilerTask {
   ConcreteType getGuaranteedTypeOfElement(Element element) {
     return measure(() {
       if (typesInferrer != null) {
-        ConcreteType guaranteedType = typesInferrer
-            .getConcreteTypeOfElement(element);
+        ConcreteType guaranteedType =
+            typesInferrer .getConcreteTypeOfElement(element);
         if (guaranteedType != null) return guaranteedType;
       }
       if (!element.isParameter()) return null;
@@ -98,6 +99,17 @@ class TypesTask extends CompilerTask {
                                             new ClassBaseType(types.head));
         }
         types = types.tail;
+      }
+      return null;
+    });
+  }
+
+  ConcreteType getGuaranteedReturnTypeOfElement(Element element) {
+    return measure(() {
+      if (typesInferrer != null) {
+        ConcreteType guaranteedType =
+            typesInferrer.getConcreteReturnTypeOfElement(element);
+        if (guaranteedType != null) return guaranteedType;
       }
       return null;
     });

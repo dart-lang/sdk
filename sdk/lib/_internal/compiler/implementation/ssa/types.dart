@@ -108,14 +108,20 @@ abstract class HType {
     return ssaType;
   }
 
-  factory HType.inferredForElement(Element element, Compiler compiler) {
+  factory HType.inferredReturnTypeForElement(
+      Element element, Compiler compiler) {
+    return new HType.fromInferredType(
+        compiler.typesTask.getGuaranteedReturnTypeOfElement(element),
+        compiler);
+  }
+
+  factory HType.inferredTypeForElement(Element element, Compiler compiler) {
     return new HType.fromInferredType(
         compiler.typesTask.getGuaranteedTypeOfElement(element),
         compiler);
   }
 
-  factory HType.inferredForNode(
-      Element owner, Node node, Compiler compiler) {
+  factory HType.inferredForNode(Element owner, Node node, Compiler compiler) {
     return new HType.fromInferredType(
         compiler.typesTask.getGuaranteedTypeOfNode(owner, node),
         compiler);

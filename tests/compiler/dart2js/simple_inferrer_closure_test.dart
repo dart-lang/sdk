@@ -44,7 +44,7 @@ returnInt3() {
   var a = 42;
   if (a == 53) {
     var f = () {
-      a = 32;
+      return a;
     };
   }
   return a;
@@ -60,6 +60,12 @@ returnDyn3() {
   return a;
 }
 
+returnInt4() {
+  var a = 42;
+  g() { return a; }
+  return g();
+}
+
 main() {
   returnInt1();
   returnDyn1();
@@ -67,6 +73,7 @@ main() {
   returnDyn2();
   returnInt3();
   returnDyn3();
+  returnInt4();
 }
 """;
 
@@ -83,12 +90,14 @@ void main() {
   }
 
   checkReturn('returnInt1', compiler.intClass);
-  checkReturn('returnInt2', compiler.intClass);
+  // TODO(ngeoffray): We don't use types of mutated captured
+  // variables anymore, because they could lead to optimistic results
+  // needing to be re-analyzed.
+  checkReturn('returnInt2', compiler.dynamicClass);
   checkReturn('returnInt3', compiler.intClass);
+  checkReturn('returnInt4', compiler.intClass);
 
   checkReturn('returnDyn1', compiler.dynamicClass);
   checkReturn('returnDyn2', compiler.dynamicClass);
   checkReturn('returnDyn3', compiler.dynamicClass);
-
-  print(typesInferrer.returnTypeOf);
 }

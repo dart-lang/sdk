@@ -193,9 +193,11 @@ class ClosureClassMap {
 
   bool isClosure() => closureElement != null;
 
-  bool captures(Element element) => freeVariableMapping.containsKey(element);
+  bool isVariableCaptured(Element element) {
+    freeVariableMapping.containsKey(element);
+  }
 
-  bool mutates(Element element) {
+  bool isVariableBoxed(Element element) {
     Element copy = freeVariableMapping[element];
     return copy != null && !copy.isMember();
   }
@@ -203,6 +205,21 @@ class ClosureClassMap {
   void forEachCapturedVariable(void f(Element element)) {
     freeVariableMapping.forEach((variable, _) {
       if (variable is BoxElement) return;
+      f(variable);
+    });
+  }
+
+  void forEachBoxedVariable(void f(Element element)) {
+    freeVariableMapping.forEach((variable, copy) {
+      if (!isVariableBoxed(variable)) return;
+      f(variable);
+    });
+  }
+
+  void forEachNonBoxedCapturedVariable(void f(Element element)) {
+    freeVariableMapping.forEach((variable, copy) {
+      if (variable is BoxElement) return;
+      if (isVariableBoxed(variable)) return;
       f(variable);
     });
   }

@@ -237,31 +237,6 @@ class LocalsHandler {
     updateLocal(boxElement, newBox);
   }
 
-  HType cachedTypeOfThis;
-
-  HType getTypeOfThis() {
-    HType result = cachedTypeOfThis;
-    if (result == null) {
-      Element element = closureData.thisElement;
-      ClassElement cls = element.enclosingElement.getEnclosingClass();
-      Compiler compiler = builder.compiler;
-      // Use the raw type because we don't have the type context for the
-      // type parameters.
-      DartType type = cls.rawType;
-      if (compiler.world.isUsedAsMixin(cls)) {
-        // If the enclosing class is used as a mixin, [:this:] can be
-        // of the class that mixins the enclosing class. These two
-        // classes do not have a subclass relationship, so, for
-        // simplicity, we mark the type as an interface type.
-        result = new HType.nonNullSubtype(type, compiler);
-      } else {
-        result = new HType.nonNullSubclass(type, compiler);
-      }
-      cachedTypeOfThis = result;
-    }
-    return result;
-  }
-
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -291,7 +266,7 @@ class LocalsHandler {
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
         parameter.instructionType =
-            new HType.inferredForElement(parameterElement, compiler);
+            new HType.inferredTypeForElement(parameterElement, compiler);
       });
     }
 
@@ -315,7 +290,7 @@ class LocalsHandler {
       // not have any thisElement if the closure was created inside a static
       // context.
       HThis thisInstruction = new HThis(
-          closureData.thisElement, getTypeOfThis());
+          closureData.thisElement, builder.getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
@@ -415,6 +390,7 @@ class LocalsHandler {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
       HInstruction fieldGet = new HFieldGet(redirect, receiver);
+      fieldGet.instructionType = builder.getTypeOfCapturedVariable(element);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -427,6 +403,7 @@ class LocalsHandler {
       assert(redirect.enclosingElement.isVariable());
       HInstruction box = readLocal(redirect.enclosingElement);
       HInstruction lookup = new HFieldGet(redirect, box);
+      lookup.instructionType = builder.getTypeOfCapturedVariable(element);
       builder.add(lookup);
       return lookup;
     } else {
@@ -441,7 +418,7 @@ class LocalsHandler {
   HInstruction readThis() {
     HInstruction res = readLocal(closureData.thisElement);
     if (res.instructionType == null) {
-      res.instructionType = getTypeOfThis();
+      res.instructionType = builder.getTypeOfThis();
     }
     return res;
   }
@@ -884,6 +861,39 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   bool isLazilyInitialized(VariableElement element) {
     Constant initialValue = compileVariable(element);
     return initialValue == null;
+  }
+
+  HType cachedTypeOfThis;
+
+  HType getTypeOfThis() {
+    HType result = cachedTypeOfThis;
+    if (result == null) {
+      Element element = localsHandler.closureData.thisElement;
+      ClassElement cls = element.enclosingElement.getEnclosingClass();
+      // Use the raw type because we don't have the type context for the
+      // type parameters.
+      DartType type = cls.rawType;
+      if (compiler.world.isUsedAsMixin(cls)) {
+        // If the enclosing class is used as a mixin, [:this:] can be
+        // of the class that mixins the enclosing class. These two
+        // classes do not have a subclass relationship, so, for
+        // simplicity, we mark the type as an interface type.
+        result = new HType.nonNullSubtype(type, compiler);
+      } else {
+        result = new HType.nonNullSubclass(type, compiler);
+      }
+      cachedTypeOfThis = result;
+    }
+    return result;
+  }
+
+  Map<Element, HType> cachedTypesOfCapturedVariables =
+      new Map<Element, HType>();
+
+  HType getTypeOfCapturedVariable(Element element) {
+    return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
+      return new HType.inferredTypeForElement(element, compiler);
+    });
   }
 
   /**
@@ -2805,7 +2815,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // because of the way inlining currently works that is hard to do
     // with re-evaluating the receiver.
     if (isThisSend(node)) {
-      HType receiverType = localsHandler.getTypeOfThis();
+      HType receiverType = getTypeOfThis();
       selector = receiverType.refine(selector, compiler);
     }
 
@@ -3371,7 +3381,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       HInvokeStatic instruction = new HInvokeStatic(inputs, HType.UNKNOWN);
-      HType returnType = new HType.inferredForElement(element, compiler);
+      HType returnType =
+          new HType.inferredReturnTypeForElement(element, compiler);
       if (returnType.isUnknown()) {
         // TODO(ngeoffray): Only do this if knowing the return type is
         // useful.

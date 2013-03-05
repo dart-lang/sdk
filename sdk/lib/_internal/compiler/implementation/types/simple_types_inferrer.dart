@@ -4,7 +4,7 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureClassMap;
+import '../closure.dart' show ClosureClassMap, ClosureScope;
 import '../native_handler.dart' as native;
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
@@ -97,6 +97,11 @@ class SimpleTypesInferrer extends TypesInferrer {
       new Map<Element, Element>();
 
   /**
+   * Maps an element to its type.
+   */
+  final Map<Element, Element> typeOf = new Map<Element, Element>();
+
+  /**
    * Maps an element to the number of times this type inferrer
    * analyzed it.
    */
@@ -180,8 +185,12 @@ class SimpleTypesInferrer extends TypesInferrer {
   /**
    * Query method after the analysis to know the type of [element].
    */
-  getConcreteTypeOfElement(element) {
+  getConcreteReturnTypeOfElement(element) {
     return getTypeIfValuable(returnTypeOf[element]);
+  }
+
+  getConcreteTypeOfElement(element) {
+    return getTypeIfValuable(typeOf[element]);
   }
 
   getTypeIfValuable(returnType) {
@@ -311,7 +320,7 @@ class SimpleTypesInferrer extends TypesInferrer {
         if (element.parseNode(compiler).asSendSet() != null) {
           // If [element] is final and has an initializer, we record
           // the inferred type.
-          return recordReturnType(element, returnType);
+          return recordType(element, returnType);
         }
       }
       // We don't record anything for non-final fields.
@@ -321,18 +330,26 @@ class SimpleTypesInferrer extends TypesInferrer {
     }
   }
 
+  bool recordType(analyzedElement, type) {
+    return internalRecordType(analyzedElement, type, typeOf);
+  }
+
   /**
    * Records [returnType] as the return type of [analyzedElement].
    * Returns whether the new type is worth recompiling the callers of
    * [analyzedElement].
    */
   bool recordReturnType(analyzedElement, returnType) {
-    assert(returnType != null);
-    Element existing = returnTypeOf[analyzedElement];
+    return internalRecordType(analyzedElement, returnType, returnTypeOf);
+  }
+
+  bool internalRecordType(analyzedElement, type, Map<Element, Element> types) {
+    assert(type != null);
+    Element existing = types[analyzedElement];
     Element newType = existing == compiler.dynamicClass
-        ? returnType // Previous analysis did not find any type.
-        : computeLUB(existing, returnType);
-    returnTypeOf[analyzedElement] = newType;
+        ? type // Previous analysis did not find any type.
+        : computeLUB(existing, type);
+    types[analyzedElement] = newType;
     // If the return type is useful, say it has changed.
     return existing != newType
         && newType != compiler.dynamicClass
@@ -355,6 +372,20 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   /**
+   * Returns the type of [element]. Returns [:Dynamic:] if
+   * [element] has not been analyzed yet.
+   */
+  ClassElement typeOfElement(Element element) {
+    element = element.implementation;
+    Element type = typeOf[element];
+    if (type == null || type == giveUpType) {
+      return compiler.dynamicClass;
+    }
+    assert(type != null);
+    return type;
+  }
+
+  /**
    * Returns the union of the return types of all elements that match
    * the called [selector].
    */
@@ -363,8 +394,14 @@ class SimpleTypesInferrer extends TypesInferrer {
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
       Element cls;
-      if (element.isFunction() && selector.isGetter()) {
-        cls = compiler.functionClass;
+      if (selector.isGetter()) {
+        if (element.isFunction()) {
+          cls = compiler.functionClass;
+        } else if (element.isField()) {
+          cls = typeOf[element];
+        } else if (element.isGetter()) {
+          cls = returnTypeOf[element];
+        }
       } else {
         cls = returnTypeOf[element];
       }
@@ -572,38 +609,43 @@ class ArgumentsTypes {
 class LocalsHandler {
   final SimpleTypesInferrer inferrer;
   final Map<Element, Element> locals;
-  final Set<Element> captured;
+  final Set<Element> capturedAndBoxed;
   final bool inTryBlock;
 
   LocalsHandler(this.inferrer)
       : locals = new Map<Element, Element>(),
-        captured = new Set<Element>(),
+        capturedAndBoxed = new Set<Element>(),
         inTryBlock = false;
   LocalsHandler.from(LocalsHandler other, {bool inTryBlock: false})
       : locals = new Map<Element, Element>.from(other.locals),
-        captured = new Set<Element>.from(other.captured),
+        capturedAndBoxed = new Set<Element>.from(other.capturedAndBoxed),
         inTryBlock = other.inTryBlock || inTryBlock,
         inferrer = other.inferrer;
 
   Element use(Element local) {
+    if (capturedAndBoxed.contains(local)) {
+      return inferrer.typeOfElement(local);
+    }
     return locals[local];
   }
 
   void update(Element local, Element type) {
     assert(type != null);
-    if (captured.contains(local) || inTryBlock) {
-      // If a local is captured or is set in a try block, we compute the
-      // LUB of its assignments. We don't know if an assignment in a try block
-      // will be executed, so all assigments in a try block are
-      // potential types after we have left the try block.
+    if (capturedAndBoxed.contains(local) || inTryBlock) {
+      // If a local is captured and boxed, or is set in a try block,
+      // we compute the LUB of its assignments.
+      //
+      // We don't know if an assignment in a try block
+      // will be executed, so all assigments in that block are
+      // potential types after we have left it.
       type = inferrer.computeLUB(locals[local], type);
       if (type == inferrer.giveUpType) type = inferrer.compiler.dynamicClass;
     }
     locals[local] = type;
   }
 
-  void setCaptured(Element local) {
-    captured.add(local);
+  void setCapturedAndBoxed(Element local) {
+    capturedAndBoxed.add(local);
   }
 
   /**
@@ -617,11 +659,14 @@ class LocalsHandler {
     locals.forEach((local, oldType) {
       Element otherType = other.locals[local];
       if (otherType == null) {
-        // If [local] is not in the other map, we know it is not a
-        // local we want to keep. For example, in an if/else, we don't
-        // want to keep variables declared in the if or in the else
-        // branch at the merge point.
-        toRemove.add(local);
+        if (!capturedAndBoxed.contains(local)) {
+          // If [local] is not in the other map and is not captured
+          // and boxed, we know it is not a
+          // local we want to keep. For example, in an if/else, we don't
+          // want to keep variables declared in the if or in the else
+          // branch at the merge point.
+          toRemove.add(local);
+        }
         return;
       }
       var type = inferrer.computeLUB(oldType, otherType);
@@ -635,10 +680,15 @@ class LocalsHandler {
       locals.remove(element);
     });
 
-    // Update the locals that are captured.
-    other.captured.forEach((Element element) {
-      if (locals.containsKey(element)) {
-        captured.add(element);
+    // Update the locals that are captured and boxed. We
+    // unconditionally add them to [this] because we register the type
+    // of boxed variables after analyzing all closures.
+    other.capturedAndBoxed.forEach((Element element) {
+      capturedAndBoxed.add(element);
+      // If [element] is not in our [locals], we need to update it.
+      // Otherwise, we have already computed the LUB of it.
+      if (locals[element] == null) {
+        locals[element] = other.locals[element];
       }
     });
     return changed;
@@ -677,7 +727,25 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   }
 
   Element run() {
-    var node = analyzedElement.implementation.parseNode(compiler);
+    var node = analyzedElement.parseNode(compiler);
+    if (analyzedElement.isField() && node.asSendSet() == null) {
+      // Eagerly bailout, because computing the closure data only
+      // works for functions and field assignments.
+      return compiler.dynamicClass;
+    }
+    // Update the locals that are boxed in [locals]. These locals will
+    // be handled specially, in that we are computing their LUB at
+    // each update, and reading them yields the type that was found in a
+    // previous analysis ouf [outermostElement].
+    ClosureClassMap closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            analyzedElement, node, elements);
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData != null) {
+      scopeData.capturedVariableMapping.forEach((Element variable, _) {
+        locals.setCapturedAndBoxed(variable);
+      });
+    }
     if (analyzedElement.isField()) {
       returnType = visit(node);
     } else if (analyzedElement.isGenerativeConstructor()) {
@@ -716,6 +784,17 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
         returnType = compiler.nullClass;
       }
     }
+
+    if (analyzedElement == outermostElement) {
+      bool changed = false;
+      locals.capturedAndBoxed.forEach((Element local) {
+        if (inferrer.recordType(local, locals.locals[local])) {
+          changed = true;
+        }
+      });
+      // TODO(ngeoffray): Re-analyze method if [changed]?
+    }
+
     return returnType;
   }
 
@@ -737,28 +816,33 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    // Fetch the closure data of [node] and mark all locals that are
-    // captured by [node] to be captured in the locals handler.
-    compiler.closureToClassMapper.computeClosureToClassMapping(
-        outermostElement, outermostElement.parseNode(compiler), elements);
-    ClosureClassMap nestedClosureData =
-        compiler.closureToClassMapper.getMappingForNestedFunction(node);
-
-    nestedClosureData.forEachCapturedVariable((variable) {
-      locals.setCaptured(variable);
-    });
+    Element element = elements[node];
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
     LocalsHandler closureLocals = new LocalsHandler.from(locals);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor(
-        elements[node], compiler, inferrer, closureLocals);
+        element, compiler, inferrer, closureLocals);
     visitor.run();
-    // Do not register the runtime type, because the analysis may be
-    // invalidated due to updates on locals.
-    // TODO(ngeoffray): Track return types of closures.
-    // The closure may have updated the type of locals.
-    locals.merge(closureLocals);
+    inferrer.recordReturnType(element, visitor.returnType);
+    locals.merge(visitor.locals);
+
+    // Record the types of captured non-boxed variables. Types of
+    // these variables may already be there, because of an analysis of
+    // a previous closure. Note that analyzing the same closure multiple
+    // times closure will refine the type of those variables, therefore
+    // [:inferrer.typeOf[variable]:] is not necessarilly null, nor the
+    // same as [newType].
+    ClosureClassMap nestedClosureData =
+        compiler.closureToClassMapper.getMappingForNestedFunction(node);
+    nestedClosureData.forEachNonBoxedCapturedVariable((Element variable) {
+      // The type may be null for instance contexts (this and type
+      // parameters), as well as captured argument checks.
+      if (locals.locals[variable] == null) return;
+      inferrer.recordType(variable, locals.locals[variable]);
+      assert(inferrer.typeOf[variable] != inferrer.giveUpType);
+    });
+
     return compiler.functionClass;
   }
 
@@ -766,7 +850,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     locals.update(elements[node], compiler.functionClass);
     return visit(node.function);
   }
-
 
   visitLiteralString(LiteralString node) {
     return compiler.stringClass;
@@ -877,7 +960,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     Selector selector = elements.getSelector(node);
     if (node.isPropertyAccess) {
       inferrer.registerGetterOnElement(outermostElement, element);
-      return inferrer.returnTypeOfElement(element);
+      return inferrer.typeOfElement(element);
     } else if (element.isFunction()) {
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
       inferrer.registerCalledElement(outermostElement, element, arguments);
@@ -1010,7 +1093,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     Element element = elements[node];
     if (Elements.isStaticOrTopLevelField(element)) {
       inferrer.registerGetterOnElement(outermostElement, element);
-      return inferrer.returnTypeOfElement(element);
+      return inferrer.typeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
       ClassElement receiverType;
       if (node.receiver == null) {
@@ -1037,6 +1120,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
 
   visitClosureSend(Send node) {
     node.visitChildren(this);
+    Element element = elements[node];
+    if (element != null && element.isFunction()) {
+      assert(Elements.isLocal(element));
+      // This only works for function statements. We need a
+      // more sophisticated type system with function types to support
+      // more.
+      return inferrer.returnTypeOfElement(element);
+    }
     return compiler.dynamicClass;
   }
 
@@ -1045,7 +1136,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     if (node.receiver == null) {
       receiverType = outermostElement.getEnclosingClass();
     } else {
-      receiverType = node.receiver.accept(this);
+      receiverType = visit(node.receiver);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);

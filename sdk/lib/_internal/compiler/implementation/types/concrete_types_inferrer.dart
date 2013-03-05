@@ -739,6 +739,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return inferredParameterTypes[element];
   }
 
+  /**
+   * Get the inferred concrete return type of [element].
+   */
+  ConcreteType getConcreteReturnTypeOfElement(Element element) {
+    return null;
+  }
+
   // --- analysis ---
 
   /**
