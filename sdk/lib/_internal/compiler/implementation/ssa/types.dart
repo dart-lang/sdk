@@ -978,7 +978,7 @@ class HBoundedType extends HType {
 
     TypeMask otherMask = other.computeMask(compiler);
     if (otherMask != null) {
-      TypeMask intersection = mask.intersection(otherMask, compiler.types);
+      TypeMask intersection = mask.intersection(otherMask, compiler);
       if (intersection != null) {
         if (intersection == mask) return this;
         return new HType.fromMask(intersection, compiler);
@@ -1002,7 +1002,7 @@ class HBoundedType extends HType {
 
     TypeMask otherMask = other.computeMask(compiler);
     if (otherMask != null) {
-      TypeMask union = mask.union(otherMask, compiler.types);
+      TypeMask union = mask.union(otherMask, compiler);
       if (union == null) return HType.UNKNOWN;
       if (union == mask) return this;
       return new HType.fromMask(union, compiler);
