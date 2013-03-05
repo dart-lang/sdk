@@ -120,7 +120,7 @@ class TestCase {
           // Calling error() will result in the tearDown being done.
           // One could debate whether tearDown should be done after
           // a failed setUp. There is no right answer, but doing it
-          // seems to be the more conservative approach, because 
+          // seems to be the more conservative approach, because
           // unittest will not stop at a test failure.
           error("$description: Test setup failed: ${e.error}");
         });
@@ -162,10 +162,7 @@ class TestCase {
                 [String messageText = '',
                  String stack = '']) {
     if (runningTime == null) {
-      // TODO(gram): currently the duration measurement code is blocked
-      // by issue 4437. When that is fixed replace the line below with:
-      //    runningTime = new DateTime.now().difference(startTime);
-      runningTime = new Duration(milliseconds: 0);
+      runningTime = new DateTime.now().difference(startTime);
     }
     _setResult(testResult, messageText, stack);
     if (!_doneTeardown) {
