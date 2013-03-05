@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:utf";
 import "dart:math";
 import "dart:async";
+import "dart:collection";
+import "dart:scalarlist";
 
 part "../../../sdk/lib/io/http.dart";
+part "../../../sdk/lib/io/buffer_list.dart";
 part "../../../sdk/lib/io/io_sink.dart";
+part "../../../sdk/lib/io/string_transformer.dart";
 part "../../../sdk/lib/io/websocket.dart";
 part "../../../sdk/lib/io/websocket_impl.dart";
 
@@ -14,30 +19,29 @@ class WebSocketFrame {
   WebSocketFrame(int opcode, List<int> data);
 }
 
-// Class that when hooked up to the web socket protocol processor will
+// Class that when hooked up to the web socket protocol transformer will
 // collect the message and expect it to be equal to the
 // expectedMessage field when fully received.
 class WebSocketMessageCollector {
-  WebSocketMessageCollector(_WebSocketProtocolProcessor this.processor,
+  List<int> expectedMessage;
+
+  int messageCount = 0;
+  int closeCount = 0;
+
+  var data;
+
+  WebSocketMessageCollector(_WebSocketProtocolTransformer transformer,
                             [List<int> this.expectedMessage = null]) {
-    processor.onMessageStart = onMessageStart;
-    processor.onMessageData = onMessageData;
-    processor.onMessageEnd = onMessageEnd;
-    processor.onClosed = onClosed;
+    transformer.listen(onMessageData, onDone: onClosed, onError: onError);
   }
 
-  void onMessageStart(int type) {
-    data = new List<int>();
-  }
-
-  void onMessageData(List<int> buffer, int index, int count) {
-    data.addAll(buffer.getRange(index, count));
-  }
-
-  void onMessageEnd() {
+  void onMessageData(buffer) {
+    if (buffer is String) {
+      buffer = _encodeString(buffer);
+    }
+    Expect.listEquals(expectedMessage, buffer);
     messageCount++;
-    Expect.listEquals(expectedMessage, data);
-    data = null;
+    data = buffer;
   }
 
   void onClosed(int status, String reason) {
@@ -48,12 +52,6 @@ class WebSocketMessageCollector {
     Expect.fail("Unexpected error $e");
   }
 
-  _WebSocketProtocolProcessor processor;
-  List<int> expectedMessage;
-
-  List<int> data;
-  int messageCount = 0;
-  int closeCount = 0;
 }
 
 
@@ -97,48 +95,56 @@ List<int> createFrame(bool fin,
 
 // Test processing messages which are sent in a single frame.
 void testFullMessages() {
-  // Use the same web socket protocol processor for all frames.
-  _WebSocketProtocolProcessor processor = new _WebSocketProtocolProcessor();
-  WebSocketMessageCollector mc = new WebSocketMessageCollector(processor);
-
-  int messageCount = 0;
-
   void testMessage(int opcode, List<int> message) {
-    mc.expectedMessage = message;
+    int messageCount = 0;
+    // Use the same web socket protocol transformer for all frames.
+    var transformer = new _WebSocketProtocolTransformer();
+    var controller = new StreamController();
+    WebSocketMessageCollector mc = new WebSocketMessageCollector(
+        controller.stream.transform(transformer),
+        message);
+
     List<int> frame = createFrame(
         true, opcode, null, message, 0, message.length);
 
-    // Update the processor with one big chunk.
+    // Update the transformer with one big chunk.
     messageCount++;
-    processor.update(frame, 0, frame.length);
-    Expect.isNull(mc.data);
-    Expect.equals(0, processor._state);
+    controller.add(frame);
+    Expect.isNotNull(mc.data);
+    Expect.equals(0, transformer._state);
+
+    mc.data = null;
 
     // Only run this part on small messages.
     if (message.length < 1000) {
-      // Update the processor one byte at the time.
+      // Update the transformer one byte at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i++) {
-        processor.update(frame, i, 1);
+        controller.add(frame.getRange(i, 1));
       }
-      Expect.equals(0, processor._state);
-      Expect.isNull(mc.data);
+      Expect.equals(0, transformer._state);
+      Expect.isNotNull(mc.data);
+      mc.data = null;
 
-      // Update the processor two bytes at the time.
+      // Update the transformer two bytes at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i += 2) {
-        processor.update(frame, i, i + 1 < frame.length ? 2 : 1);
+        controller.add(frame.getRange(i, i + 1 < frame.length ? 2 : 1));
       }
-      Expect.equals(0, processor._state);
-      Expect.isNull(mc.data);
+      Expect.equals(0, transformer._state);
+      Expect.isNotNull(mc.data);
     }
+    Expect.equals(messageCount, mc.messageCount);
+    Expect.equals(0, mc.closeCount);
+    print("Messages test, messages $messageCount");
   }
 
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
       List<int> message = new List<int>(messageLength);
-      for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
+      for (int i = 0; i < messageLength; i++) message[i] = i & 0x7F;
       testMessage(FRAME_OPCODE_TEXT, message);
+      for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessage(FRAME_OPCODE_BINARY, message);
     }
   }
@@ -148,17 +154,16 @@ void testFullMessages() {
   runTest(120, 130, 1);
   runTest(0, 1000, 100);
   runTest(65534, 65537, 1);
-  print("Messages test, messages $messageCount");
-  Expect.equals(messageCount, mc.messageCount);
-  Expect.equals(0, mc.closeCount);
 }
 
 
 // Test processing of frames which are split into fragments.
 void testFragmentedMessages() {
-  // Use the same web socket protocol processor for all frames.
-  _WebSocketProtocolProcessor processor = new _WebSocketProtocolProcessor();
-  WebSocketMessageCollector mc = new WebSocketMessageCollector(processor);
+  // Use the same web socket protocol transformer for all frames.
+  var transformer = new _WebSocketProtocolTransformer();
+  var controller = new StreamController();
+  WebSocketMessageCollector mc = new WebSocketMessageCollector(
+      controller.stream.transform(transformer));
 
   int messageCount = 0;
   int frameCount = 0;
@@ -180,7 +185,7 @@ void testFragmentedMessages() {
                                     payloadSize);
       frameCount++;
       messageIndex += payloadSize;
-      processor.update(frame, 0, frame.length);
+      controller.add(frame);
       remaining -= payloadSize;
       firstFrame = false;
     }
@@ -203,8 +208,9 @@ void testFragmentedMessages() {
   void runTest(int from, int to, int step) {
     for (int messageLength = from; messageLength < to; messageLength += step) {
       List<int> message = new List<int>(messageLength);
-      for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
+      for (int i = 0; i < messageLength; i++) message[i] = i & 0x7F;
       testMessageFragmentation(FRAME_OPCODE_TEXT, message);
+      for (int i = 0; i < messageLength; i++) message[i] = i & 0xFF;
       testMessageFragmentation(FRAME_OPCODE_BINARY, message);
     }
   }

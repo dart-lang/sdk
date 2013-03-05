@@ -33,18 +33,15 @@ class _WebSocketOpcode {
 }
 
 /**
- * The web socket protocol processor handles the protocol byte stream
- * which is supplied through the [:update:] and [:closed:]
- * methods. As the protocol is processed the following callbacks are
- * called:
+ * The web socket protocol transformer handles the protocol byte stream
+ * which is supplied through the [:handleData:]. As the protocol is processed,
+ * it'll output frame data as either a List<int> or String.
  *
- *   [:onMessageStart:]
- *   [:onMessageData:]
- *   [:onMessageEnd:]
- *   [:onClosed:]
- *
+ * Important infomation about usage: Be sure you use unsubscribeOnError, so the
+ * socket will be closed when the processer encounter an error. Not using it
+ * will lead to undefined behaviour.
  */
-class _WebSocketProtocolProcessor {
+class _WebSocketProtocolTransformer extends StreamEventTransformer {
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -53,7 +50,7 @@ class _WebSocketProtocolProcessor {
   static const int CLOSED = 5;
   static const int FAILURE = 6;
 
-  _WebSocketProtocolProcessor() {
+  _WebSocketProtocolTransformer() {
     _prepareForNextFrame();
     _currentMessageType = _WebSocketMessageType.NONE;
   }
@@ -61,9 +58,10 @@ class _WebSocketProtocolProcessor {
   /**
    * Process data received from the underlying communication channel.
    */
-  void update(List<int> buffer, int offset, int count) {
-    int index = offset;
-    int lastIndex = offset + count;
+  void handleData(List<int> buffer, StreamSink sink) {
+    int count = buffer.length;
+    int index = 0;
+    int lastIndex = count;
     try {
       if (_state == CLOSED) {
         throw new WebSocketException("Data on closed connection");
@@ -89,9 +87,7 @@ class _WebSocketProtocolProcessor {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.TEXT;
-              if (onMessageStart != null) {
-                onMessageStart(_WebSocketMessageType.TEXT);
-              }
+              _buffer = new StringBuffer();
               break;
 
             case _WebSocketOpcode.BINARY:
@@ -99,9 +95,7 @@ class _WebSocketProtocolProcessor {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.BINARY;
-              if (onMessageStart != null) {
-                onMessageStart(_WebSocketMessageType.BINARY);
-              }
+              _buffer = new _BufferList();
               break;
 
             case _WebSocketOpcode.CLOSE:
@@ -124,7 +118,7 @@ class _WebSocketProtocolProcessor {
               throw new WebSocketException("Protocol error");
             }
             if (_len < 126) {
-              _lengthDone();
+              _lengthDone(sink);
             } else if (_len == 126) {
               _len = 0;
               _remainingLenBytes = 2;
@@ -140,7 +134,7 @@ class _WebSocketProtocolProcessor {
             _len = _len << 8 | byte;
             _remainingLenBytes--;
             if (_remainingLenBytes == 0) {
-              _lengthDone();
+              _lengthDone(sink);
             }
             break;
 
@@ -148,7 +142,7 @@ class _WebSocketProtocolProcessor {
             _maskingKey = _maskingKey << 8 | byte;
             _remainingMaskingKeyBytes--;
             if (_remainingMaskingKeyBytes == 0) {
-              _maskDone();
+              _maskDone(sink);
             }
             break;
 
@@ -184,7 +178,7 @@ class _WebSocketProtocolProcessor {
               }
 
               if (_remainingPayloadBytes == 0) {
-                _controlFrameEnd();
+                _controlFrameEnd(sink);
               }
             } else {
               switch (_currentMessageType) {
@@ -192,13 +186,18 @@ class _WebSocketProtocolProcessor {
                   throw new WebSocketException("Protocol error");
 
                 case _WebSocketMessageType.TEXT:
-                case _WebSocketMessageType.BINARY:
-                  if (onMessageData != null) {
-                    onMessageData(buffer, index, payload);
-                  }
+                  _buffer.add(_decodeString(buffer.getRange(index, payload)));
                   index += payload;
                   if (_remainingPayloadBytes == 0) {
-                    _messageFrameEnd();
+                    _messageFrameEnd(sink);
+                  }
+                  break;
+
+                case _WebSocketMessageType.BINARY:
+                  _buffer.add(buffer.getRange(index, payload));
+                  index += payload;
+                  if (_remainingPayloadBytes == 0) {
+                    _messageFrameEnd(sink);
                   }
                   break;
 
@@ -216,99 +215,99 @@ class _WebSocketProtocolProcessor {
         index++;
       }
     } catch (e) {
-      if (onClosed != null) onClosed(WebSocketStatus.PROTOCOL_ERROR,
-                                      "Protocol error");
       _state = FAILURE;
+      sink.signalError(e);
     }
   }
 
-  /**
-   * Indicate that the underlying communication channel has been closed.
-   */
-  void closed() {
-    if (_state == START || _state == CLOSED || _state == FAILURE) return;
-    if (onClosed != null) onClosed(WebSocketStatus.ABNORMAL_CLOSURE,
-                                    "Connection closed unexpectedly");
-    _state = CLOSED;
-  }
-
-  void _lengthDone() {
+  void _lengthDone(StreamSink sink) {
     if (_masked) {
       _state = MASK;
       _remainingMaskingKeyBytes = 4;
     } else {
       _remainingPayloadBytes = _len;
-      _startPayload();
+      _startPayload(sink);
     }
   }
 
-  void _maskDone() {
+  void _maskDone(StreamSink sink) {
     _remainingPayloadBytes = _len;
-    _startPayload();
+    _startPayload(sink);
   }
 
-  void _startPayload() {
+  void _startPayload(StreamSink sink) {
     // If there is no actual payload perform perform callbacks without
     // going through the PAYLOAD state.
     if (_remainingPayloadBytes == 0) {
       if (_isControlFrame()) {
         switch (_opcode) {
           case _WebSocketOpcode.CLOSE:
-            if (onClosed != null) onClosed(1005, "");
             _state = CLOSED;
+            sink.close();
             break;
           case _WebSocketOpcode.PING:
-            if (onPing != null) onPing(null);
+            // TODO(ajohnsen): Handle ping.
             break;
           case _WebSocketOpcode.PONG:
-            if (onPong != null) onPong(null);
+            // TODO(ajohnsen): Handle pong.
             break;
         }
         _prepareForNextFrame();
       } else {
-        _messageFrameEnd();
+        _messageFrameEnd(sink);
       }
     } else {
       _state = PAYLOAD;
     }
   }
 
-  void _messageFrameEnd() {
+  void _messageFrameEnd(StreamSink sink) {
     if (_fin) {
-      if (onMessageEnd != null) onMessageEnd();
+      switch (_currentMessageType) {
+        case _WebSocketMessageType.TEXT:
+          sink.add(_buffer.toString());
+          break;
+        case _WebSocketMessageType.BINARY:
+          if (_buffer.length == 0) {
+            sink.add(const []);
+          } else {
+            sink.add(_buffer.readBytes(_buffer.length));
+          }
+          break;
+      }
+      _buffer = null;
       _currentMessageType = _WebSocketMessageType.NONE;
     }
     _prepareForNextFrame();
   }
 
-  void _controlFrameEnd() {
+  void _controlFrameEnd(StreamSink sink) {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
-        int status = WebSocketStatus.NO_STATUS_RECEIVED;
-        String reason = "";
+        closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
         if (_controlPayload.length > 0) {
           if (_controlPayload.length == 1) {
             throw new WebSocketException("Protocol error");
           }
-          status = _controlPayload[0] << 8 | _controlPayload[1];
-          if (status == WebSocketStatus.NO_STATUS_RECEIVED) {
+          closeCode = _controlPayload[0] << 8 | _controlPayload[1];
+          if (closeCode == WebSocketStatus.NO_STATUS_RECEIVED) {
             throw new WebSocketException("Protocol error");
           }
           if (_controlPayload.length > 2) {
-            reason = _decodeString(
+            closeReason = _decodeString(
                 _controlPayload.getRange(2, _controlPayload.length - 2));
           }
         }
-        if (onClosed != null) onClosed(status, reason);
         _state = CLOSED;
+        sink.close();
         break;
 
       case _WebSocketOpcode.PING:
-        if (onPing != null) onPing(_controlPayload);
+        // TODO(ajohnsen): Handle ping.
         break;
 
       case _WebSocketOpcode.PONG:
-        if (onPong != null) onPong(_controlPayload);
+        // TODO(ajohnsen): Handle pong.
         break;
     }
     _prepareForNextFrame();
@@ -347,13 +346,10 @@ class _WebSocketProtocolProcessor {
 
   int _currentMessageType;
   List<int> _controlPayload;
+  var _buffer;  // Either StringBuffer or _BufferList.
 
-  Function onMessageStart;
-  Function onMessageData;
-  Function onMessageEnd;
-  Function onPing;
-  Function onPong;
-  Function onClosed;
+  int closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
+  String closeReason = "";
 }
 
 
@@ -429,9 +425,6 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 
 class _WebSocketImpl extends Stream implements WebSocket {
   final StreamController _controller = new StreamController();
-
-  final _WebSocketProtocolProcessor _processor =
-      new _WebSocketProtocolProcessor();
 
   final Socket _socket;
   int _readyState = WebSocket.CONNECTING;
@@ -514,61 +507,45 @@ class _WebSocketImpl extends Stream implements WebSocket {
   _WebSocketImpl._fromSocket(Socket this._socket) {
     _readyState = WebSocket.OPEN;
 
-    int type;
-    var data;
-    _processor.onMessageStart = (int t) {
-      type = t;
-      if (type == _WebSocketMessageType.TEXT) {
-        data = new StringBuffer();
-      } else {
-        data = [];
-      }
-    };
-    _processor.onMessageData = (buffer, offset, count) {
-      if (type == _WebSocketMessageType.TEXT) {
-        data.add(_decodeString(buffer.getRange(offset, count)));
-      } else {
-        data.addAll(buffer.getRange(offset, count));
-      }
-    };
-    _processor.onMessageEnd = () {
-      if (type == _WebSocketMessageType.TEXT) {
-        _controller.add(data.toString());
-      } else {
-        _controller.add(data);
-      }
-    };
-    _processor.onClosed = (code, reason) {
-      bool clean = true;
-      if (_readyState == WebSocket.OPEN) {
-        _readyState = WebSocket.CLOSING;
-        if (code != WebSocketStatus.NO_STATUS_RECEIVED) {
-          _close(code);
-        } else {
-          _close();
-          clean = false;
-        }
-        _readyState = WebSocket.CLOSED;
-      }
-      if (_readyState == WebSocket.CLOSED) return;
-      _closeCode = code;
-      _closeReason = reason;
-      _controller.close();
-    };
-
-    _socket.listen(
-        (data) => _processor.update(data, 0, data.length),
-        onDone: () => _processor.closed(),
-        onError: (error) => _controller.signalError(error));
+    bool closed = false;
+    var transformer = new _WebSocketProtocolTransformer();
+    _socket.transform(transformer).listen(
+        (data) {
+          _controller.add(data);
+        },
+        onError: (error) {
+          if (closed) return;
+          closed = true;
+          _controller.signalError(error);
+          _controller.close();
+        },
+        onDone: () {
+          if (closed) return;
+          closed = true;
+          if (_readyState == WebSocket.OPEN) {
+            _readyState = WebSocket.CLOSING;
+            if (transformer.closeCode != WebSocketStatus.NO_STATUS_RECEIVED) {
+              _close(transformer.closeCode);
+            } else {
+              _close();
+            }
+            _readyState = WebSocket.CLOSED;
+          }
+          _closeCode = transformer.closeCode;
+          _closeReason = transformer.closeReason;
+          _controller.close();
+          if (_writeClosed) _socket.destroy();
+        },
+        unsubscribeOnError: true);
 
     _socket.done
         .catchError((error) {
-          if (_readyState == WebSocket.CLOSED) return;
+          if (closed) return;
+          closed = true;
           _readyState = WebSocket.CLOSED;
-          _closeCode = ABNORMAL_CLOSURE;
+          _closeCode = WebSocketStatus.ABNORMAL_CLOSURE;
           _controller.signalError(error);
           _controller.close();
-          _socket.destroy();
         })
         .whenComplete(() {
           _writeClosed = true;
@@ -648,12 +625,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
     } else {
       opcode = _WebSocketOpcode.TEXT;
     }
-    try {
-      _sendFrame(opcode, data);
-    } catch (_) {
-      // The socket can be closed before _socket.done have a chance
-      // to complete.
-    }
+    _sendFrame(opcode, data);
   }
 
   void _sendFrame(int opcode, [List<int> data]) {
@@ -686,9 +658,15 @@ class _WebSocketImpl extends Stream implements WebSocket {
       header[index++] = dataLength >> (((lengthBytes - 1) - i) * 8) & 0xFF;
     }
     assert(index == headerSize);
-    _socket.add(header);
-    if (data != null) {
-      _socket.add(data);
+    try {
+      _socket.add(header);
+      if (data != null) {
+        _socket.add(data);
+      }
+    } catch (_) {
+      // The socket can be closed before _socket.done have a chance
+      // to complete.
+      _writeClosed = true;
     }
   }
 }

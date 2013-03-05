@@ -121,9 +121,10 @@ class SecurityConfiguration {
                 onDone: () {
                   Expect.equals(closeStatus == null
                                 ? WebSocketStatus.NO_STATUS_RECEIVED
-                                : closeStatus, event.code);
-                  Expect.equals(
-                      closeReason == null ? "" : closeReason, event.reason);
+                                : closeStatus, webSocket.closeCode);
+                  Expect.equals(closeReason == null
+                                ? ""
+                                : closeReason, webSocket.closeReason);
                 });
             });
       }
@@ -274,9 +275,8 @@ class SecurityConfiguration {
                 Expect.equals(10, onmessageCalled);
                 Expect.isFalse(oncloseCalled);
                 oncloseCalled = true;
-                Expect.isTrue(event.wasClean);
-                Expect.equals(3002, event.code);
-                Expect.equals("Got tired", event.reason);
+                Expect.equals(3002, webSocket.closeCode);
+                Expect.equals("Got tired", webSocket.closeReason);
                 Expect.equals(WebSocket.CLOSED, webSocket.readyState);
               });
         });

@@ -445,6 +445,10 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     var future = _httpRequest._httpConnection.detachSocket();
     // Close connection so the socket is 'free'.
     close();
+    done.catchError((_) {
+      // Catch any error on done, as they automatically will be propegated to
+      // the websocket.
+    });
     return future;
   }
 
