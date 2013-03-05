@@ -63,7 +63,7 @@ String writeTextFile(String file, String contents, {dontLogContents: false}) {
 
 /// Deletes [file].
 void deleteFile(String file) {
-  new File(file).delete();
+  new File(file).deleteSync();
 }
 
 /// Creates [file] and writes [contents] to it.
