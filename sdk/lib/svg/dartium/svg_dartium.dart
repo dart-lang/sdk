@@ -857,7 +857,7 @@ class Color extends CssValue {
 
   @DomName('SVGColor.rgbColor')
   @DocsEditable
-  RgbColor get rgbColor native "SVGColor_rgbColor_Getter";
+  CssRgbColor get rgbColor native "SVGColor_rgbColor_Getter";
 
   @DomName('SVGColor.setColor')
   @DocsEditable

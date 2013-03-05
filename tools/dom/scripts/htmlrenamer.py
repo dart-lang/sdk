@@ -25,6 +25,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
     'PositionCallback': '_PositionCallback',
     'PositionErrorCallback': '_PositionErrorCallback',
+    'Rect': 'CssRect',
+    'RGBColor': 'CssRgbColor',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.

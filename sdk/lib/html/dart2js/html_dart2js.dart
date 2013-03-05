@@ -2228,11 +2228,11 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
   @JSName('getRGBColorValue')
   @DomName('CSSPrimitiveValue.getRGBColorValue')
   @DocsEditable
-  RgbColor getRgbColorValue() native;
+  CssRgbColor getRgbColorValue() native;
 
   @DomName('CSSPrimitiveValue.getRectValue')
   @DocsEditable
-  Rect getRectValue() native;
+  CssRect getRectValue() native;
 
   @DomName('CSSPrimitiveValue.getStringValue')
   @DocsEditable
@@ -2245,6 +2245,52 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
   @DomName('CSSPrimitiveValue.setStringValue')
   @DocsEditable
   void setStringValue(int stringType, String stringValue) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Rect')
+class CssRect native "*Rect" {
+
+  @DomName('Rect.bottom')
+  @DocsEditable
+  final CssPrimitiveValue bottom;
+
+  @DomName('Rect.left')
+  @DocsEditable
+  final CssPrimitiveValue left;
+
+  @DomName('Rect.right')
+  @DocsEditable
+  final CssPrimitiveValue right;
+
+  @DomName('Rect.top')
+  @DocsEditable
+  final CssPrimitiveValue top;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RGBColor')
+class CssRgbColor native "*RGBColor" {
+
+  @DomName('RGBColor.blue')
+  @DocsEditable
+  final CssPrimitiveValue blue;
+
+  @DomName('RGBColor.green')
+  @DocsEditable
+  final CssPrimitiveValue green;
+
+  @DomName('RGBColor.red')
+  @DocsEditable
+  final CssPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18889,56 +18935,10 @@ class RangeException native "*RangeException" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable
-@DomName('Rect')
-class Rect native "*Rect" {
-
-  @DomName('Rect.bottom')
-  @DocsEditable
-  final CssPrimitiveValue bottom;
-
-  @DomName('Rect.left')
-  @DocsEditable
-  final CssPrimitiveValue left;
-
-  @DomName('Rect.right')
-  @DocsEditable
-  final CssPrimitiveValue right;
-
-  @DomName('Rect.top')
-  @DocsEditable
-  final CssPrimitiveValue top;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
 typedef void RequestAnimationFrameCallback(num highResTime);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RGBColor')
-class RgbColor native "*RGBColor" {
-
-  @DomName('RGBColor.blue')
-  @DocsEditable
-  final CssPrimitiveValue blue;
-
-  @DomName('RGBColor.green')
-  @DocsEditable
-  final CssPrimitiveValue green;
-
-  @DomName('RGBColor.red')
-  @DocsEditable
-  final CssPrimitiveValue red;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

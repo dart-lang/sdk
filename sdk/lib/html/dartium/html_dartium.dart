@@ -2796,11 +2796,11 @@ class CssPrimitiveValue extends CssValue {
 
   @DomName('CSSPrimitiveValue.getRGBColorValue')
   @DocsEditable
-  RgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
+  CssRgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
   @DomName('CSSPrimitiveValue.getRectValue')
   @DocsEditable
-  Rect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
+  CssRect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
 
   @DomName('CSSPrimitiveValue.getStringValue')
   @DocsEditable
@@ -2813,6 +2813,60 @@ class CssPrimitiveValue extends CssValue {
   @DomName('CSSPrimitiveValue.setStringValue')
   @DocsEditable
   void setStringValue(int stringType, String stringValue) native "CSSPrimitiveValue_setStringValue_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Rect')
+class CssRect extends NativeFieldWrapperClass1 {
+  CssRect.internal();
+
+  @DomName('Rect.bottom')
+  @DocsEditable
+  CssPrimitiveValue get bottom native "Rect_bottom_Getter";
+
+  @DomName('Rect.left')
+  @DocsEditable
+  CssPrimitiveValue get left native "Rect_left_Getter";
+
+  @DomName('Rect.right')
+  @DocsEditable
+  CssPrimitiveValue get right native "Rect_right_Getter";
+
+  @DomName('Rect.top')
+  @DocsEditable
+  CssPrimitiveValue get top native "Rect_top_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('RGBColor')
+class CssRgbColor extends NativeFieldWrapperClass1 {
+  CssRgbColor.internal();
+
+  @DomName('RGBColor.blue')
+  @DocsEditable
+  CssPrimitiveValue get blue native "RGBColor_blue_Getter";
+
+  @DomName('RGBColor.green')
+  @DocsEditable
+  CssPrimitiveValue get green native "RGBColor_green_Getter";
+
+  @DomName('RGBColor.red')
+  @DocsEditable
+  CssPrimitiveValue get red native "RGBColor_red_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20597,61 +20651,7 @@ class RangeException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('Rect')
-class Rect extends NativeFieldWrapperClass1 {
-  Rect.internal();
-
-  @DomName('Rect.bottom')
-  @DocsEditable
-  CssPrimitiveValue get bottom native "Rect_bottom_Getter";
-
-  @DomName('Rect.left')
-  @DocsEditable
-  CssPrimitiveValue get left native "Rect_left_Getter";
-
-  @DomName('Rect.right')
-  @DocsEditable
-  CssPrimitiveValue get right native "Rect_right_Getter";
-
-  @DomName('Rect.top')
-  @DocsEditable
-  CssPrimitiveValue get top native "Rect_top_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 typedef void RequestAnimationFrameCallback(num highResTime);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('RGBColor')
-class RgbColor extends NativeFieldWrapperClass1 {
-  RgbColor.internal();
-
-  @DomName('RGBColor.blue')
-  @DocsEditable
-  CssPrimitiveValue get blue native "RGBColor_blue_Getter";
-
-  @DomName('RGBColor.green')
-  @DocsEditable
-  CssPrimitiveValue get green native "RGBColor_green_Getter";
-
-  @DomName('RGBColor.red')
-  @DocsEditable
-  CssPrimitiveValue get red native "RGBColor_red_Getter";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
