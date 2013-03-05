@@ -476,9 +476,13 @@ function(cls, desc) {
                Elements.sortedByPosition(emitter.checkedClasses)) {
         if (!requiresNativeIsCheck(element)) continue;
         if (element.isObject(compiler)) continue;
+        // Add function for the is-test.
         String name = backend.namer.operatorIs(element);
         addProperty(name,
             js.fun([], js.return_(js['false'])));
+        // Add a function for the (trivial) substitution.
+        addProperty(backend.namer.substitutionName(element),
+                    js.fun([], js.return_(js['null'])));
       }
     }
     emitIsChecks();

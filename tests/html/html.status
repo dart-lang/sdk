@@ -327,12 +327,6 @@ request_animation_frame_test: Skip # Async test hangs.
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 
-[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || $runtime == drt)]
-element_test/queryAll: Fail # dartbug.com/8496: missing substitution on native classes
-node_test/_NodeList: Fail # dartbug.com/8496: missing substitution on native classes
-node_test/nodes: Fail # dartbug.com/8496: missing substitution on native classes
-typed_arrays_1_test/arrays: Fail # dartbug.com/8496: missing substitution on native classes
-typed_arrays_1_test/supported: Fail # dartbug.com/8496: missing substitution on native classes
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
 indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
