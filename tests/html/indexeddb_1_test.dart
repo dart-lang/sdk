@@ -4,7 +4,6 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
-import 'utils.dart';
 
 const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
@@ -95,19 +94,19 @@ testReadWriteTyped(key, value, matcher,
 };
 
 tests_dynamic() {
-  futureTest('test1', testReadWrite(123, 'Hoot!', equals('Hoot!')));
-  futureTest('test2', testReadWrite(123, 12345, equals(12345)));
-  futureTest('test3', testReadWrite(123, [1, 2, 3], equals([1, 2, 3])));
-  futureTest('test4', testReadWrite(123, [2, 3, 4], equals([2, 3, 4])));
-  futureTest('test4', testReadWrite(123, false, equals(false)));
+  test('test1', testReadWrite(123, 'Hoot!', equals('Hoot!')));
+  test('test2', testReadWrite(123, 12345, equals(12345)));
+  test('test3', testReadWrite(123, [1, 2, 3], equals([1, 2, 3])));
+  test('test4', testReadWrite(123, [2, 3, 4], equals([2, 3, 4])));
+  test('test4', testReadWrite(123, false, equals(false)));
 }
 
 tests_typed() {
-  futureTest('test1', testReadWriteTyped(123, 'Hoot!', equals('Hoot!')));
-  futureTest('test2', testReadWriteTyped(123, 12345, equals(12345)));
-  futureTest('test3', testReadWriteTyped(123, [1, 2, 3], equals([1, 2, 3])));
-  futureTest('test4', testReadWriteTyped(123, [2, 3, 4], equals([2, 3, 4])));
-  futureTest('test4', testReadWriteTyped(123, false, equals(false)));
+  test('test1', testReadWriteTyped(123, 'Hoot!', equals('Hoot!')));
+  test('test2', testReadWriteTyped(123, 12345, equals(12345)));
+  test('test3', testReadWriteTyped(123, [1, 2, 3], equals([1, 2, 3])));
+  test('test4', testReadWriteTyped(123, [2, 3, 4], equals([2, 3, 4])));
+  test('test4', testReadWriteTyped(123, false, equals(false)));
 }
 
 main() {
@@ -134,7 +133,7 @@ main() {
 
     // Don't bother with these tests if it's unsupported.
     if (idb.IdbFactory.supported) {
-      futureTest('upgrade', testUpgrade);
+      test('upgrade', testUpgrade);
       tests_dynamic();
       tests_typed();
     }

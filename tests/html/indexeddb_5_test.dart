@@ -4,7 +4,6 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
-import 'utils.dart';
 
 main() {
   useHtmlIndividualConfiguration();
@@ -25,7 +24,7 @@ main() {
     var indexName = 'name_index';
     var db;
 
-    futureTest('init', () {
+    test('init', () {
       return html.window.indexedDB.deleteDatabase(dbName).then((_) {
         return html.window.indexedDB.open(dbName, version: 1,
           onUpgradeNeeded: (e) {
@@ -41,7 +40,7 @@ main() {
     });
 
     if (html.window.indexedDB.supportsDatabaseNames) {
-      futureTest('getDatabaseNames', () {
+      test('getDatabaseNames', () {
         return html.window.indexedDB.getDatabaseNames().then((names) {
           expect(names.contains(dbName), isTrue);
         });
@@ -49,7 +48,7 @@ main() {
     }
 
     var value = {'name_index': 'one', 'value': 'add_value'};
-    futureTest('add/delete', () {
+    test('add/delete', () {
       var transaction = db.transaction([storeName], 'readwrite');
       var key;
       return transaction.objectStore(storeName).add(value).then((addedKey) {
@@ -75,7 +74,7 @@ main() {
       });
     });
 
-    futureTest('clear/count', () {
+    test('clear/count', () {
       var transaction = db.transaction([storeName], 'readwrite');
       transaction.objectStore(storeName).add(value);
 
@@ -98,7 +97,7 @@ main() {
       });
     });
 
-    futureTest('index', () {
+    test('index', () {
       var transaction = db.transaction([storeName], 'readwrite');
       transaction.objectStore(storeName).add(value);
       transaction.objectStore(storeName).add(value);
@@ -143,7 +142,7 @@ main() {
     var deleteValue = {'name_index': 'two', 'value': 'delete_value'};
     var updateValue = {'name_index': 'three', 'value': 'update_value'};
     var updatedValue = {'name_index': 'three', 'value': 'updated_value'};
-    futureTest('cursor', () {
+    test('cursor', () {
       var transaction = db.transaction([storeName], 'readwrite');
       transaction.objectStore(storeName).add(value);
       transaction.objectStore(storeName).add(deleteValue);

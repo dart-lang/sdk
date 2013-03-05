@@ -64,7 +64,7 @@ main() {
   var cyclic_list = [1, 2, 3];
   cyclic_list[1] = cyclic_list;
 
-  go(name, data) => futureTest(name,
+  go(name, data) => test(name,
     () => testReadWrite(123, data, verifyGraph));
 
   test('test_verifyGraph', () {

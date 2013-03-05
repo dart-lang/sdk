@@ -4,7 +4,6 @@ import 'dart:html';
 import 'dart:web_sql';
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
-import 'utils.dart';
 
 void fail(message) {
   guardAsync(() {
@@ -108,7 +107,7 @@ main() {
       }, expectation);
 
     });
-    futureTest('Web Database', () {
+    test('Web Database', () {
       // Skip if not supported.
       if (!SqlDatabase.supported) {
         return new Future.immediate(null);

@@ -4,7 +4,6 @@ import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db';
-import 'utils.dart';
 
 // Read with cursor.
 
@@ -100,14 +99,14 @@ main() {
   // Support is tested in indexeddb_1_test
   if (IdbFactory.supported) {
     var db;
-    futureTest('prepare', () {
+    test('prepare', () {
       return setupDb().then((result) { db = result; });
     });
-    futureTest('readAll1', () {
+    test('readAll1', () {
       return readAllViaCursor(db);
     });
 
-    futureTest('readAll2', () {
+    test('readAll2', () {
       return readAllReversedViaCursor(db);
     });
   }

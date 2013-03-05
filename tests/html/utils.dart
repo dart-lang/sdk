@@ -69,9 +69,3 @@ verifyGraph(expected, actual) {
 
   walk('', expected, actual);
 }
-
-void futureTest(spec, Future body()) {
-  test(spec, () {
-    expect(body(), completes);
-  });
-}
