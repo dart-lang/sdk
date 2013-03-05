@@ -602,22 +602,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (field == null) return node;
 
     Modifiers modifiers = field.modifiers;
-    bool isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
+    bool isAssignable = !(modifiers.isFinal() || modifiers.isConst());
     if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
       // If no setter is ever used for this field it is only initialized in the
       // initializer list.
-      isFinalOrConst = true;
+      isAssignable = false;
+    }
+    if (field.isNative()) {
+      // Some native fields are views of data that may be changed by operations.
+      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
+      // TODO(sra): Refine the effect classification so that native effects are
+      // distinct from ordinary Dart effects.
+      isAssignable = true;
     }
     HFieldGet result = new HFieldGet(
-        field, node.inputs[0], isAssignable: !isFinalOrConst);
-
-    // Some native fields are views of data that may be changed by operations.
-    // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
-    // TODO(sra): Refine the effect classification so that native effects are
-    // distinct from ordinary Dart effects.
-    if (field.isNative()) {
-      result.setDependsOnSomething();
-    }
+        field, node.inputs[0], isAssignable: isAssignable);
 
     if (field.getEnclosingClass().isNative()) {
       result.instructionType =
