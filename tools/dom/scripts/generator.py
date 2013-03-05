@@ -692,6 +692,11 @@ _rtc_annotations = [ # Note: Firefox nightly builds also support this.
   "@Experimental",
 ]
 
+_shadow_dom_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME, '26')",
+  "@Experimental",
+]
+
 _speech_recognition_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
   "@Experimental",
@@ -724,6 +729,7 @@ _webkit_experimental_annotations = [
 dart_annotations = monitored.Dict('generator.dart_annotations', {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'CSSHostRule': _shadow_dom_annotations,
   'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
   'DatabaseSync': _web_sql_annotations,
@@ -760,10 +766,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   ],
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,
-  'HTMLContentElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
-  ],
+  'HTMLContentElement': _shadow_dom_annotations,
   'HTMLDataListElement': _all_but_ie9_annotations,
   'HTMLDetailsElement': _webkit_experimental_annotations,
   'HTMLEmbedElement': [
@@ -780,10 +783,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   ],
   'HTMLOutputElement': _no_ie_annotations,
   'HTMLProgressElement': _all_but_ie9_annotations,
-  'HTMLShadowElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
-  ],
+  'HTMLShadowElement': _shadow_dom_annotations,
   'HTMLTrackElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE, '10')",
@@ -808,10 +808,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   'RTCIceCandidate': _rtc_annotations,
   'RTCPeerConnection': _rtc_annotations,
   'RTCSessionDescription': _rtc_annotations,
-  'ShadowRoot': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
-  ],
+  'ShadowRoot': _shadow_dom_annotations,
   'SpeechRecognition': _speech_recognition_annotations,
   'SpeechRecognitionAlternative': _speech_recognition_annotations,
   'SpeechRecognitionError': _speech_recognition_annotations,

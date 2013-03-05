@@ -1724,7 +1724,7 @@ class Console {
 
 @DocsEditable
 @DomName('HTMLContentElement')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ContentElement extends Element native "*HTMLContentElement" {
 
@@ -1859,6 +1859,8 @@ class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 
 @DocsEditable
 @DomName('CSSHostRule')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
+@Experimental
 class CssHostRule extends CssRule native "*CSSHostRule" {
 
   @DomName('CSSHostRule.cssRules')
@@ -19771,7 +19773,7 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 
 @DocsEditable
 @DomName('HTMLShadowElement')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ShadowElement extends Element native "*HTMLShadowElement" {
 
@@ -19794,7 +19796,7 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 
 
 @DomName('ShadowRoot')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 

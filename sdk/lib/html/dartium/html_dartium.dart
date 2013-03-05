@@ -2138,7 +2138,7 @@ class Console extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLContentElement')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
@@ -2307,6 +2307,8 @@ class CssFontFaceRule extends CssRule {
 
 @DocsEditable
 @DomName('CSSHostRule')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
+@Experimental
 class CssHostRule extends CssRule {
   CssHostRule.internal() : super.internal();
 
@@ -21572,7 +21574,7 @@ class SelectElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLShadowElement')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
@@ -21601,7 +21603,7 @@ class ShadowElement extends _Element_Merged {
 
 
 @DomName('ShadowRoot')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
