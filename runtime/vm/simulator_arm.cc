@@ -1996,7 +1996,46 @@ void Simulator::DecodeType2(Instr* instr) {
 }
 
 
+void Simulator::DoDivision(Instr* instr) {
+  ASSERT(CPUFeatures::integer_division_supported());
+  Register rd = instr->RdField();
+  Register rn = instr->RnField();
+  Register rm = instr->RmField();
+
+  // TODO(zra): Does the hardware trap on divide-by-zero?
+  //     Revisit when we test on ARM hardware.
+  if (get_register(rm) == 0) {
+    set_register(rd, 0);
+    return;
+  }
+
+  if (instr->Bit(21) == 1) {
+    // unsigned division.
+    uint32_t rn_val = static_cast<uint32_t>(get_register(rn));
+    uint32_t rm_val = static_cast<uint32_t>(get_register(rm));
+    uint32_t result = rn_val / rm_val;
+    set_register(rd, static_cast<int32_t>(result));
+  } else {
+    // signed division.
+    int32_t rn_val = get_register(rn);
+    int32_t rm_val = get_register(rm);
+    int32_t result;
+    if ((rn_val == static_cast<int32_t>(0x80000000)) &&
+        (rm_val == static_cast<int32_t>(0xffffffff))) {
+      result = 0x80000000;
+    } else {
+      result = rn_val / rm_val;
+    }
+    set_register(rd, result);
+  }
+}
+
+
 void Simulator::DecodeType3(Instr* instr) {
+  if (instr->IsDivision()) {
+    DoDivision(instr);
+    return;
+  }
   Register rd = instr->RdField();
   Register rn = instr->RnField();
   int32_t rn_val = get_register(rn);

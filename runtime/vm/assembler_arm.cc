@@ -459,6 +459,13 @@ void Assembler::mul(Register rd, Register rn,
 }
 
 
+// Like mul, but sets condition flags.
+void Assembler::muls(Register rd, Register rn,
+                     Register rm, Condition cond) {
+  EmitMulOp(cond, B20, R0, rd, rn, rm);
+}
+
+
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
@@ -477,6 +484,33 @@ void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
+}
+
+
+void Assembler::EmitDivOp(Condition cond, int32_t opcode,
+                          Register rd, Register rn, Register rm) {
+  ASSERT(CPUFeatures::integer_division_supported());
+  ASSERT(rd != kNoRegister);
+  ASSERT(rn != kNoRegister);
+  ASSERT(rm != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = opcode |
+    (static_cast<int32_t>(cond) << kConditionShift) |
+    (static_cast<int32_t>(rn) << kRnShift) |
+    (static_cast<int32_t>(rd) << kRdShift) |
+    B26 | B25 | B24 | B20 | B4 |
+    (static_cast<int32_t>(rm) << kRmShift);
+  Emit(encoding);
+}
+
+
+void Assembler::sdiv(Register rd, Register rn, Register rm, Condition cond) {
+  EmitDivOp(cond, 0, rd, rn, rm);
+}
+
+
+void Assembler::udiv(Register rd, Register rn, Register rm, Condition cond) {
+  EmitDivOp(cond, B21 , rd, rn, rm);
 }
 
 

@@ -155,6 +155,9 @@ class Simulator {
   // Read and write memory.
   void UnalignedAccess(const char* msg, uword addr, Instr* instr);
 
+  // Perform a division.
+  void DoDivision(Instr* instr);
+
   inline uint8_t ReadBU(uword addr);
   inline int8_t ReadB(uword addr);
   inline void WriteB(uword addr, uint8_t value);

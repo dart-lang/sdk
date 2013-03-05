@@ -852,6 +852,14 @@ void ARMDecoder::DecodeType2(Instr* instr) {
 
 
 void ARMDecoder::DecodeType3(Instr* instr) {
+  if (instr->IsDivision()) {
+    if (instr->Bit(21)) {
+      Format(instr, "udiv'cond 'rd, 'rn, 'rm");
+    } else {
+      Format(instr, "sdiv'cond 'rd, 'rn, 'rm");
+    }
+    return;
+  }
   switch (instr->PUField()) {
     case 0: {
       if (instr->HasW()) {

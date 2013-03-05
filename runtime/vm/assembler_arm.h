@@ -390,12 +390,17 @@ class Assembler : public ValueObject {
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
+  void muls(Register rd, Register rn, Register rm, Condition cond = AL);
   void mla(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
   void mls(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
   void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
+
+  // Division instructions.
+  void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);
+  void udiv(Register rd, Register rn, Register rm, Condition cond = AL);
 
   // Load/store instructions.
   void ldr(Register rd, Address ad, Condition cond = AL);
@@ -705,6 +710,12 @@ class Assembler : public ValueObject {
                  Register rn,
                  Register rm,
                  Register rs);
+
+  void EmitDivOp(Condition cond,
+                 int32_t opcode,
+                 Register rd,
+                 Register rn,
+                 Register rm);
 
   void EmitMultiVSMemOp(Condition cond,
                         BlockAddressMode am,

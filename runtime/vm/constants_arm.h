@@ -492,6 +492,13 @@ class Instr {
     return static_cast<DRegister>(Bits(kRmShift, kRmBits) + (Bit(5) << 4));
   }
 
+  inline bool IsDivision() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 3);
+    return ((Bit(4) == 1) && (Bits(5, 3) == 0) &&
+            (Bit(20) == 1) && (Bits(22, 3) == 4));
+  }
+
   // Test for VFP data processing or single transfer instructions of type 7.
   inline bool IsVFPDataProcessingOrSingleTransfer() const {
     ASSERT(ConditionField() != kSpecialCondition);
