@@ -823,7 +823,7 @@ class Dartdoc {
     // Look for a comment for the entire library.
     final comment = getLibraryComment(library);
     if (comment != null) {
-      writeln('<div class="doc">${markdownFromComment(comment)}</div>');
+      writeln('<div class="doc">${comment.html}</div>');
     }
 
     // Document the top-level members.
@@ -1519,15 +1519,9 @@ class Dartdoc {
     write(')');
   }
 
-  String markdownFromComment(DocComment comment) {
-    return md.markdownToHtml(comment.text,
-        inlineSyntaxes: dartdocSyntaxes,
-        linkResolver: dartdocResolver);
-  }
-
   void docComment(ContainerMirror host, DocComment comment) {
     if (comment != null) {
-      var html = markdownFromComment(comment);
+      var html = comment.html;
 
       if (comment.inheritedFrom != null) {
         writeln('<div class="inherited">');
@@ -1596,7 +1590,8 @@ class Dartdoc {
       }
     }
     if (comment == null) return null;
-    return new DocComment(comment, inheritedFrom);
+    return new DocComment(comment, inheritedFrom, dartdocSyntaxes,
+        dartdocResolver);
   }
 
   /**
@@ -1986,17 +1981,26 @@ List<String> computeUntrimmedCommentAsList(DeclarationMirror mirror) {
 
 class DocComment {
   final String text;
+  md.Resolver dartdocResolver;
+  List<md.InlineSyntax> dartdocSyntaxes;
 
   /**
    * Non-null if the comment is inherited from another declaration.
    */
   final ClassMirror inheritedFrom;
 
-  DocComment(this.text, [this.inheritedFrom = null]) {
+  DocComment(this.text, [this.inheritedFrom = null, this.dartdocSyntaxes,
+      this.dartdocResolver]) {
     assert(text != null && !text.trim().isEmpty);
   }
 
   String toString() => text;
+
+  String get html {
+    return md.markdownToHtml(text,
+        inlineSyntaxes: dartdocSyntaxes,
+        linkResolver: dartdocResolver);
+  }
 }
 
 class MdnComment implements DocComment {
