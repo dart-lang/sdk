@@ -186,6 +186,43 @@ class SecurityConfiguration {
   }
 
 
+  void testImmediateCloseServer() {
+    createServer().then((server) {
+      server.listen((request) {
+        WebSocketTransformer.upgrade(request)
+            .then((webSocket) {
+              webSocket.close();
+              webSocket.listen((_) { Expect.fail(); }, onDone: server.close);
+            });
+      });
+
+      createClient(server.port).then((webSocket) {
+          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+        });
+    });
+  }
+
+
+  void testImmediateCloseClient() {
+    createServer().then((server) {
+      server.listen((request) {
+        WebSocketTransformer.upgrade(request)
+            .then((webSocket) {
+              webSocket.listen((_) { Expect.fail(); }, onDone: () {
+                server.close();
+                webSocket.close();
+              });
+            });
+      });
+
+      createClient(server.port).then((webSocket) {
+          webSocket.close();
+          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+        });
+    });
+  }
+
+
   void testNoUpgrade() {
     createServer().then((server) {
       // Create a server which always responds with NOT_FOUND.
@@ -349,6 +386,8 @@ class SecurityConfiguration {
     testMessageLength(65536);
     testDoubleCloseClient();
     testDoubleCloseServer();
+    testImmediateCloseServer();
+    testImmediateCloseClient();
     testNoUpgrade();
     testUsePOST();
     testConnections(10, 3002, "Got tired");
