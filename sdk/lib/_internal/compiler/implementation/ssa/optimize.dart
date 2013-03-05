@@ -183,8 +183,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = inputs[0];
     HType type = input.instructionType;
     if (type.isBoolean()) return input;
-    // All values !== true are boolified to false.
-    if (!type.isBooleanOrNull() && !type.isUnknown()) {
+    // All values that cannot be 'true' are boolified to false.
+    DartType booleanType = backend.jsBoolClass.computeType(compiler);
+    TypeMask mask = type.computeMask(compiler);
+    // TODO(kasperl): Get rid of the null check here once all HTypes
+    // have a proper mask.
+    if (mask != null && !mask.contains(booleanType, compiler)) {
       return graph.addConstantBool(false, constantSystem);
     }
     return node;
