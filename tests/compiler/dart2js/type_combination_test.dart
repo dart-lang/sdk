@@ -579,42 +579,62 @@ void testUnion(MockCompiler compiler) {
                 nonPrimitive2.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 nonPrimitive2.union(UNKNOWN, compiler));
-  Expect.isTrue(nonPrimitive2.union(BOOLEAN, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(NUMBER, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(INTEGER, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(DOUBLE, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(DOUBLE, compiler));
   Expect.equals(UNKNOWN,
                 nonPrimitive2.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.isTrue(nonPrimitive2.union(STRING, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(READABLE_ARRAY, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(MUTABLE_ARRAY, compiler).isTop(compiler));
-  Expect.isTrue(
-      nonPrimitive2.union(EXTENDABLE_ARRAY, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(STRING, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(EXTENDABLE_ARRAY, compiler));
   Expect.equals(UNKNOWN,
                 nonPrimitive2.union(nonPrimitive1, compiler));
   Expect.equals(nonPrimitive2,
                 nonPrimitive2.union(nonPrimitive2, compiler));
-  Expect.isTrue(nonPrimitive2.union(potentialArray, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(potentialString, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(BOOLEAN_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(NUMBER_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(INTEGER_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(DOUBLE_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(nonPrimitive2.union(STRING_OR_NULL, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(potentialArray, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(potentialString, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(STRING_OR_NULL, compiler));
   Expect.isTrue(nonPrimitive2.union(NULL, compiler) is HBoundedType);
-  Expect.isTrue(nonPrimitive2.union(FIXED_ARRAY, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                nonPrimitive2.union(FIXED_ARRAY, compiler));
 
   Expect.equals(potentialArray,
                 potentialArray.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 potentialArray.union(UNKNOWN, compiler));
-  Expect.isTrue(potentialArray.union(BOOLEAN, compiler).isTop(compiler));
-  Expect.isTrue(potentialArray.union(NUMBER, compiler).isTop(compiler));
-  Expect.isTrue(potentialArray.union(INTEGER, compiler).isTop(compiler));
-  Expect.isTrue(potentialArray.union(DOUBLE, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(DOUBLE, compiler));
   Expect.equals(UNKNOWN,
                 potentialArray.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.isTrue(potentialArray.union(STRING, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(STRING, compiler));
   Expect.equals(potentialArray,
                 potentialArray.union(READABLE_ARRAY, compiler));
   Expect.equals(potentialArray,
@@ -623,18 +643,22 @@ void testUnion(MockCompiler compiler) {
                 potentialArray.union(EXTENDABLE_ARRAY, compiler));
   Expect.equals(UNKNOWN,
                 potentialArray.union(nonPrimitive1, compiler));
-  Expect.isTrue(potentialArray.union(nonPrimitive2, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(nonPrimitive2, compiler));
   Expect.equals(potentialArray,
                 potentialArray.union(potentialArray, compiler));
-  Expect.isTrue(
-      potentialArray.union(potentialString, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialArray.union(BOOLEAN_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(potentialArray.union(NUMBER_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialArray.union(INTEGER_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(potentialArray.union(DOUBLE_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(potentialArray.union(STRING_OR_NULL, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(potentialString, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(DOUBLE_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialArray.union(STRING_OR_NULL, compiler));
   Expect.equals(potentialArray,
                 potentialArray.union(NULL, compiler));
   Expect.equals(potentialArray,
@@ -644,40 +668,46 @@ void testUnion(MockCompiler compiler) {
                 potentialString.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 potentialString.union(UNKNOWN, compiler));
-  Expect.isTrue(potentialString.union(BOOLEAN, compiler).isTop(compiler));
-  Expect.isTrue(potentialString.union(NUMBER, compiler).isTop(compiler));
-  Expect.isTrue(potentialString.union(INTEGER, compiler).isTop(compiler));
-  Expect.isTrue(potentialString.union(DOUBLE, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(BOOLEAN, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(NUMBER, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(INTEGER, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(DOUBLE, compiler));
   Expect.equals(UNKNOWN,
                 potentialString.union(INDEXABLE_PRIMITIVE, compiler));
   Expect.equals(potentialString,
                 potentialString.union(STRING, compiler));
-  Expect.isTrue(
-      potentialString.union(READABLE_ARRAY, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialString.union(MUTABLE_ARRAY, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialString.union(EXTENDABLE_ARRAY, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(READABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(MUTABLE_ARRAY, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(EXTENDABLE_ARRAY, compiler));
   Expect.equals(UNKNOWN,
                 potentialString.union(nonPrimitive1, compiler));
-  Expect.isTrue(potentialString.union(nonPrimitive2, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialString.union(potentialArray, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(nonPrimitive2, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(potentialArray, compiler));
   Expect.equals(potentialString,
                 potentialString.union(potentialString, compiler));
-  Expect.isTrue(
-      potentialString.union(BOOLEAN_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialString.union(NUMBER_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialString.union(INTEGER_OR_NULL, compiler).isTop(compiler));
-  Expect.isTrue(
-      potentialString.union(DOUBLE_OR_NULL, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(BOOLEAN_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(NUMBER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(INTEGER_OR_NULL, compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(DOUBLE_OR_NULL, compiler));
   Expect.equals(potentialString,
                 potentialString.union(STRING_OR_NULL, compiler));
   Expect.equals(potentialString,
                 potentialString.union(NULL, compiler));
-  Expect.isTrue(potentialString.union(FIXED_ARRAY, compiler).isTop(compiler));
+  Expect.equals(UNKNOWN,
+                potentialString.union(FIXED_ARRAY, compiler));
 
   Expect.equals(BOOLEAN_OR_NULL,
                 BOOLEAN_OR_NULL.union(CONFLICTING, compiler));

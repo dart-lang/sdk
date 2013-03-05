@@ -6,25 +6,16 @@ part of dart2js;
 
 class World {
   final Compiler compiler;
+  final Map<ClassElement, Set<ClassElement>> subtypes;
   final Map<ClassElement, Set<MixinApplicationElement>> mixinUses;
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final Set<ClassElement> classesNeedingRti;
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
   final FullFunctionSet allFunctions;
 
-  // We keep track of subtype and subclass relationships in four
-  // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassElement, Set<ClassElement>> subclasses =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> superclasses =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> subtypes =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> supertypes =
-      new Map<ClassElement, Set<ClassElement>>();
-
   World(Compiler compiler)
-      : mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
+      : subtypes = new Map<ClassElement, Set<ClassElement>>(),
+        mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
         typesImplementedBySubclasses =
             new Map<ClassElement, Set<ClassElement>>(),
         classesNeedingRti = new Set<ClassElement>(),
@@ -40,28 +31,18 @@ class World {
       }
 
       for (DartType type in cls.allSupertypes) {
-        Set<Element> supertypesOfClass =
-            supertypes.putIfAbsent(cls, () => new Set<ClassElement>());
-        Set<Element> subtypesOfSupertype =
-            subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
-        supertypesOfClass.add(type.element);
-        subtypesOfSupertype.add(cls);
+        Set<Element> subtypesOfCls =
+          subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
+        subtypesOfCls.add(cls);
       }
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
       DartType type = cls.supertype;
       while (type != null) {
-        Set<Element> superclassesOfClass =
-            superclasses.putIfAbsent(cls, () => new Set<ClassElement>());
-        Set<Element> subclassesOfSuperclass =
-            subclasses.putIfAbsent(type.element, () => new Set<ClassElement>());
-        superclassesOfClass.add(type.element);
-        subclassesOfSuperclass.add(cls);
-
         Set<Element> typesImplementedBySubclassesOfCls =
-            typesImplementedBySubclasses.putIfAbsent(
-                type.element, () => new Set<ClassElement>());
+          typesImplementedBySubclasses.putIfAbsent(
+              type.element, () => new Set<ClassElement>());
         for (DartType current in cls.allSupertypes) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
@@ -130,22 +111,6 @@ class World {
         potentiallyAddForRti(variable.enclosingElement);
       }
     });
-  }
-
-  Iterable<ClassElement> commonSupertypesOf(ClassElement x, ClassElement y) {
-    Set<ClassElement> xSet = supertypes[x];
-    if (xSet == null) return const <ClassElement>[];
-    Set<ClassElement> ySet = supertypes[y];
-    if (ySet == null) return const <ClassElement>[];
-    Set<ClassElement> smallSet, largeSet;
-    if (xSet.length <= ySet.length) {
-      smallSet = xSet;
-      largeSet = ySet;
-    } else {
-      smallSet = ySet;
-      largeSet = xSet;
-    }
-    return smallSet.where((ClassElement each) => largeSet.contains(each));
   }
 
   void registerMixinUse(MixinApplicationElement mixinApplication,
