@@ -157,7 +157,7 @@ class LineTransformer extends StreamEventTransformer<String, String> {
   const int _LF = 10;
   const int _CR = 13;
 
-  final StringBuffer _buffer = new StringBuffer();
+  StringBuffer _buffer = new StringBuffer();
   String _carry;
 
   void _handle(String data, StreamSink<String> sink, bool isClosing) {
@@ -184,9 +184,9 @@ class LineTransformer extends StreamEventTransformer<String, String> {
         }
       }
       if (skip > 0) {
-        _buffer.add(data.substring(startPos, pos));
+        _buffer.write(data.substring(startPos, pos));
         sink.add(_buffer.toString());
-        _buffer.clear();
+        _buffer = new StringBuffer();
         startPos = pos = pos + skip;
       } else {
         pos++;
@@ -194,11 +194,11 @@ class LineTransformer extends StreamEventTransformer<String, String> {
     }
     if (pos != startPos) {
       // Add remaining
-      _buffer.add(data.substring(startPos, pos));
+      _buffer.write(data.substring(startPos, pos));
     }
     if (isClosing && !_buffer.isEmpty) {
       sink.add(_buffer.toString());
-      _buffer.clear();
+      _buffer = new StringBuffer();
     }
   }
 

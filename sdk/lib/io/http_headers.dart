@@ -395,22 +395,22 @@ class _HttpHeaders implements HttpHeaders {
   String toString() {
     StringBuffer sb = new StringBuffer();
     _headers.forEach((String name, List<String> values) {
-      sb.add(name);
-      sb.add(": ");
+      sb.write(name);
+      sb.write(": ");
       bool fold = _foldHeader(name);
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
-            sb.add(", ");
+            sb.write(", ");
           } else {
-            sb.add("\n");
-            sb.add(name);
-            sb.add(": ");
+            sb.write("\n");
+            sb.write(name);
+            sb.write(": ");
           }
         }
-        sb.add(values[i]);
+        sb.write(values[i]);
       }
-      sb.add("\n");
+      sb.write("\n");
     });
     return sb.toString();
   }
@@ -507,13 +507,13 @@ class _HeaderValue implements HeaderValue {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add(value);
+    sb.write(value);
     if (parameters != null && parameters.length > 0) {
       _parameters.forEach((String name, String value) {
-        sb.add("; ");
-        sb.add(name);
-        sb.add("=");
-        sb.add(value);
+        sb.write("; ");
+        sb.write(name);
+        sb.write("=");
+        sb.write(value);
       });
     }
     return sb.toString();
@@ -580,7 +580,7 @@ class _HeaderValue implements HeaderValue {
               index++;
               break;
             }
-            sb.add(s[index]);
+            sb.write(s[index]);
             index++;
           }
           return sb.toString();
@@ -757,27 +757,27 @@ class _Cookie implements Cookie {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add(name);
-    sb.add("=");
-    sb.add(value);
+    sb.write(name);
+    sb.write("=");
+    sb.write(value);
     if (expires != null) {
-      sb.add("; Expires=");
-      sb.add(_HttpUtils.formatDate(expires));
+      sb.write("; Expires=");
+      sb.write(_HttpUtils.formatDate(expires));
     }
     if (maxAge != null) {
-      sb.add("; Max-Age=");
-      sb.add(maxAge);
+      sb.write("; Max-Age=");
+      sb.write(maxAge);
     }
     if (domain != null) {
-      sb.add("; Domain=");
-      sb.add(domain);
+      sb.write("; Domain=");
+      sb.write(domain);
     }
     if (path != null) {
-      sb.add("; Path=");
-      sb.add(path);
+      sb.write("; Path=");
+      sb.write(path);
     }
-    if (secure) sb.add("; Secure");
-    if (httpOnly) sb.add("; HttpOnly");
+    if (secure) sb.write("; Secure");
+    if (httpOnly) sb.write("; HttpOnly");
     return sb.toString();
   }
 

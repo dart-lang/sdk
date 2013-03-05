@@ -677,10 +677,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     if (!cookies.isEmpty) {
       StringBuffer sb = new StringBuffer();
       for (int i = 0; i < cookies.length; i++) {
-        if (i > 0) sb.add("; ");
-        sb.add(cookies[i].name);
-        sb.add("=");
-        sb.add(cookies[i].value);
+        if (i > 0) sb.write("; ");
+        sb.write(cookies[i].name);
+        sb.write("=");
+        sb.write(cookies[i].value);
       }
       headers.add(HttpHeaders.COOKIE, sb.toString());
     }

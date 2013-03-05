@@ -84,7 +84,7 @@ class _Timer implements Timer {
         }
         entry = entry.nextEntry();
       }
-      _timers.addLast(this);
+      _timers.add(this);
     }
   }
 
@@ -132,7 +132,7 @@ class _Timer implements Timer {
         _Timer timer = entry.element;
         if (timer._wakeupTime <= currentTime) {
           entry.remove();
-          pending_timers.addLast(timer);
+          pending_timers.add(timer);
           entry = _timers.firstEntry();
         } else {
           break;

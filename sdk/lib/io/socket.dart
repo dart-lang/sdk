@@ -216,14 +216,14 @@ class SocketIOException implements Exception {
                            OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add("SocketIOException");
+    sb.write("SocketIOException");
     if (!message.isEmpty) {
-      sb.add(": $message");
+      sb.write(": $message");
       if (osError != null) {
-        sb.add(" ($osError)");
+        sb.write(" ($osError)");
       }
     } else if (osError != null) {
-      sb.add(": $osError");
+      sb.write(": $osError");
     }
     return sb.toString();
   }

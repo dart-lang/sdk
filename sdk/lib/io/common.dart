@@ -28,17 +28,17 @@ class OSError {
   /** Converts an OSError object to a string representation. */
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add("OS Error");
+    sb.write("OS Error");
     if (!message.isEmpty) {
-      sb.add(": ");
-      sb.add(message);
+      sb.write(": ");
+      sb.write(message);
       if (errorCode != noErrorCode) {
-        sb.add(", errno = ");
-        sb.add(errorCode.toString());
+        sb.write(", errno = ");
+        sb.write(errorCode.toString());
       }
     } else if (errorCode != noErrorCode) {
-      sb.add(": errno = ");
-      sb.add(errorCode.toString());
+      sb.write(": errno = ");
+      sb.write(errorCode.toString());
     }
     return sb.toString();
   }

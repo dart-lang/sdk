@@ -163,7 +163,7 @@ class _MimeMultipartParser {
             _state = _HEADER_ENDING;
             } else {
               // Start of new header field.
-              _headerField.addCharCode(_toLowerCase(byte));
+              _headerField.writeCharCode(_toLowerCase(byte));
               _state = _HEADER_FIELD;
             }
             break;
@@ -175,7 +175,7 @@ class _MimeMultipartParser {
               if (!_isTokenChar(byte)) {
                 throw new MimeParserException("Invalid header field name");
               }
-              _headerField.addCharCode(_toLowerCase(byte));
+              _headerField.writeCharCode(_toLowerCase(byte));
             }
             break;
 
@@ -184,7 +184,7 @@ class _MimeMultipartParser {
               _state = _HEADER_VALUE_FOLDING_OR_ENDING;
             } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
               // Start of new header value.
-              _headerValue.addCharCode(byte);
+              _headerValue.writeCharCode(byte);
               _state = _HEADER_VALUE;
             }
             break;
@@ -193,7 +193,7 @@ class _MimeMultipartParser {
             if (byte == _CharCode.CR) {
               _state = _HEADER_VALUE_FOLDING_OR_ENDING;
             } else {
-              _headerValue.addCharCode(byte);
+              _headerValue.writeCharCode(byte);
             }
             break;
 
@@ -211,13 +211,13 @@ class _MimeMultipartParser {
               if (headerReceived != null) {
                 headerReceived(headerField, headerValue);
               }
-              _headerField.clear();
-              _headerValue.clear();
+              _headerField = new StringBuffer();
+              _headerValue = new StringBuffer();
               if (byte == _CharCode.CR) {
                 _state = _HEADER_ENDING;
               } else {
                 // Start of new header field.
-                _headerField.addCharCode(_toLowerCase(byte));
+                _headerField.writeCharCode(_toLowerCase(byte));
                 _state = _HEADER_FIELD;
               }
             }
