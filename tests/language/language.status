@@ -74,6 +74,7 @@ gc_test: Skip  # Issue 1487, flaky.
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
+super_operator_index5_test: Crash # Issue 8919
 
 [ $compiler == none && $unchecked ]
 
