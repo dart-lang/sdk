@@ -326,8 +326,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (node is !HOneShotInterceptor
         && interceptor.isConstant()
         && selector.isCall()) {
-      DartType type = interceptor.instructionType.computeType(compiler);
-      ClassElement cls = type.element;
+      assert(interceptor.constant.isInterceptor());
+      ClassElement cls = interceptor.constant.dispatchedType.element;
       Element target = cls.lookupSelector(selector);
       if (target != null && selector.applies(target, compiler)) {
         node.element = target;
@@ -722,8 +722,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return graph.thisInstruction;
     }
 
-    Constant constant = new ConstructedConstant(
-        constantInterceptor.computeType(compiler), <Constant>[]);
+    Constant constant = new InterceptorConstant(
+        constantInterceptor.computeType(compiler));
     return graph.addConstant(constant);
   }
 

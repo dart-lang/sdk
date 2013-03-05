@@ -1835,11 +1835,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
     DartType type = node.constant.computeType(compiler);
-    if (node.constant is ConstructedConstant) {
+    if (node.constant is ConstructedConstant ||
+        node.constant is InterceptorConstant) {
       ConstantHandler handler = compiler.constantHandler;
       handler.registerCompileTimeConstant(node.constant);
     }
-    world.registerInstantiatedClass(type.element);
+    if (node.constant is! InterceptorConstant) {
+      world.registerInstantiatedClass(type.element);
+    }
   }
 
   visitNot(HNot node) {

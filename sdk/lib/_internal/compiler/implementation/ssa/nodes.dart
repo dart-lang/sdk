@@ -167,10 +167,12 @@ class HGraph {
     if (constant.isList()) return HType.READABLE_ARRAY;
     if (constant.isFunction()) return HType.UNKNOWN;
     if (constant.isSentinel()) return HType.UNKNOWN;
-    ObjectConstant objectConstant = constant;
+    // TODO(sra): What is the type of the prototype of an interceptor?
+    if (constant.isInterceptor()) return HType.UNKNOWN;
     // TODO(kasperl): This seems a bit fishy, but we do not have the
     // compiler at hand so we cannot use the usual HType factory
     // methods. At some point this should go away.
+    ObjectConstant objectConstant = constant;
     TypeMask mask = new TypeMask.nonNullExact(objectConstant.type);
     return new HBoundedType(mask);
   }

@@ -1527,14 +1527,12 @@ class CodeEmitterTask extends CompilerTask {
         }
     );
 
+    // Add interceptors referenced by constants.
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     for (Constant constant in constants) {
-      if (constant is ConstructedConstant) {
-        Element element = constant.computeType(compiler).element;
-        if (backend.isInterceptorClass(element)) {
-          needed.add(element);
-        }
+      if (constant is InterceptorConstant) {
+        needed.add(constant.dispatchedType.element);
       }
     }
 

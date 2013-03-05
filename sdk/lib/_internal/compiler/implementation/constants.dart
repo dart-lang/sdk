@@ -17,6 +17,7 @@ abstract class ConstantVisitor<R> {
   R visitMap(MapConstant constant);
   R visitConstructed(ConstructedConstant constant);
   R visitType(TypeConstant constant);
+  R visitInterceptor(InterceptorConstant constant);
 }
 
 abstract class Constant {
@@ -40,6 +41,7 @@ abstract class Constant {
   bool isObject() => false;
   bool isType() => false;
   bool isSentinel() => false;
+  bool isInterceptor() => false;
 
   bool isNaN() => false;
   bool isMinusZero() => false;
@@ -430,6 +432,29 @@ class MapConstant extends ObjectConstant {
   int get length => keys.length;
 
   accept(ConstantVisitor visitor) => visitor.visitMap(this);
+}
+
+class InterceptorConstant extends Constant {
+  /// The type for which this interceptor holds the methods.  The constant
+  /// is a dispatch table for this type.
+  final DartType dispatchedType;
+
+  InterceptorConstant(this.dispatchedType);
+
+  bool isInterceptor() => true;
+
+  bool operator ==(other) {
+    return other is InterceptorConstant
+        && dispatchedType == other.dispatchedType;
+  }
+
+  int get hashCode => dispatchedType.hashCode * 43;
+
+  List<Constant> getDependencies() => const <Constant>[];
+
+  accept(ConstantVisitor visitor) => visitor.visitInterceptor(this);
+
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 }
 
 class ConstructedConstant extends ObjectConstant {
