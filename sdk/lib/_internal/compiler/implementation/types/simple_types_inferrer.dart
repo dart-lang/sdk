@@ -271,7 +271,10 @@ class SimpleTypesInferrer extends TypesInferrer {
     compiler.enqueuer.resolution.seenClasses.forEach((ClassElement cls) {
       int constructorCount = 0;
       cls.forEachMember((_, member) {
-        if (member.isGenerativeConstructor()) constructorCount++;
+        if (member.isGenerativeConstructor()
+            && compiler.enqueuer.resolution.isProcessed(member)) {
+          constructorCount++;
+        }
       });
       classInfoForFinalFields[cls.implementation] =
           new ClassInfoForFinalFields(constructorCount);
@@ -755,7 +758,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
         // We don't track argument types yet, so just set the fields
         // and parameters as dynamic.
         if (element.kind == ElementKind.FIELD_PARAMETER
-            && element.modifiers.isFinal()) {
+            && element.fieldElement.modifiers.isFinal()) {
           inferrer.recordFinalFieldType(
               analyzedElement, element.fieldElement, compiler.dynamicClass);
         } else {
