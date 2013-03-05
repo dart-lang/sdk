@@ -339,6 +339,16 @@ abstract class Enqueuer {
     selectors.add(selector);
   }
 
+  void registerSelectorUse(Selector selector) {
+    if (selector.isGetter()) {
+      registerInvokedGetter(selector.name, selector);
+    } else if (selector.isSetter()) {
+      registerInvokedSetter(selector.name, selector);
+    } else {
+      registerInvocation(selector.name, selector);
+    }
+  }
+
   void registerDynamicGetter(SourceString methodName, Selector selector) {
     registerInvokedGetter(methodName, selector);
   }

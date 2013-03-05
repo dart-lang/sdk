@@ -3046,17 +3046,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  generateSuperNoSuchMethodSend(Send node) {
-    Selector selector = elements.getSelector(node);
+  generateSuperNoSuchMethodSend(Send node,
+                                Selector selector,
+                                List<HInstruction> arguments) {
     SourceString name = selector.name;
 
     ClassElement cls = currentElement.getEnclosingClass();
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
     if (element.enclosingElement.declaration != compiler.objectClass) {
       // Register the call as dynamic if [:noSuchMethod:] on the super class
-      // is _not_ the default implementation from [:Object:].
-      compiler.enqueuer.codegen.registerDynamicInvocation(name, selector);
-    }
+      // is _not_ the default implementation from [:Object:], in case
+      // the [:noSuchMethod:] implementation does an [:invokeOn:] on
+      // the invocation mirror.
+      compiler.enqueuer.codegen.registerSelectorUse(selector);
+    }   
     HStatic target = new HStatic(element);
     add(target);
     HInstruction self = localsHandler.readThis();
@@ -3068,11 +3071,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         constantSystem.createString(new DartString.literal(internalName), node);
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
-
-    var arguments = new List<HInstruction>();
-    if (node.argumentsNode != null) {
-      addGenericSendArgumentsToList(node.arguments, arguments);
-    }
     var argumentsInstruction = new HLiteralList(arguments);
     add(argumentsInstruction);
 
@@ -3117,17 +3115,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (Elements.isUnresolved(element)) {
-      return generateSuperNoSuchMethodSend(node);
+      List<HInstruction> arguments = <HInstruction>[];
+      if (!node.isPropertyAccess) {
+        addGenericSendArgumentsToList(node.arguments, arguments);
+      }
+      return generateSuperNoSuchMethodSend(node, selector, arguments);
     }
-    // TODO(5346): Try to avoid the need for calling [declaration] before
-    // creating an [HStatic].
-    HInstruction target = new HStatic(element.declaration);
-    HInstruction context = localsHandler.readThis();
-    add(target);
-    var inputs = <HInstruction>[target, context];
-    if (backend.isInterceptedMethod(element)) {
-      inputs.add(context);
-    }
+    List<HInstruction> inputs = buildSuperAccessorInputs(element);
     if (node.isPropertyAccess) {
       push(new HInvokeSuper(inputs));
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
@@ -3142,7 +3136,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         push(new HInvokeSuper(inputs));
       }
     } else {
-      target = new HInvokeSuper(inputs);
+      HInstruction target = new HInvokeSuper(inputs);
       add(target);
       inputs = <HInstruction>[target];
       addDynamicSendArgumentsToList(node, inputs);
@@ -3579,6 +3573,38 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
   }
 
+  void handleComplexOperatorSend(SendSet node,
+                                 HInstruction receiver,
+                                 Link<Node> arguments) {
+    HInstruction rhs;
+    if (node.isPrefix || node.isPostfix) {
+      rhs = graph.addConstantInt(1, constantSystem);
+    } else {
+      visit(arguments.head);
+      assert(arguments.tail.isEmpty);
+      rhs = pop();
+    }
+    visitBinary(receiver, node.assignmentOperator, rhs,
+                elements.getOperatorSelectorInComplexSendSet(node), node);
+  }
+
+  List<HInstruction> buildSuperAccessorInputs(Element element) {
+    List<HInstruction> inputs = <HInstruction>[];
+    if (Elements.isUnresolved(element)) return inputs;
+    // TODO(5346): Try to avoid the need for calling [declaration] before
+    // creating an [HStatic].
+    HInstruction target = new HStatic(element.declaration);
+    add(target);
+    inputs.add(target);
+    HInstruction context = localsHandler.readThis();
+    inputs.add(context);
+    if (backend.isInterceptedMethod(element)) {
+      inputs.add(context);
+    }
+    return inputs;
+  }
+
+
   visitSendSet(SendSet node) {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
@@ -3589,19 +3615,54 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
+      HInstruction result;
+      List<HInstruction> setterInputs = buildSuperAccessorInputs(element);
+      if (identical(node.assignmentOperator.source.stringValue, '=')) {
+        addDynamicSendArgumentsToList(node, setterInputs);
+        result = setterInputs.last;
+      } else {
+        Element getter = elements[node.selector];
+        List<HInstruction> getterInputs = buildSuperAccessorInputs(getter);
+        Link<Node> arguments = node.arguments;
+        if (node.isIndex) {
+          // If node is of the from [:super.foo[0] += 2:], the send has
+          // two arguments: the index and the left hand side. We get
+          // the index and add it as input of the getter and the
+          // setter.
+          visit(arguments.head);
+          arguments = arguments.tail;
+          HInstruction index = pop();
+          getterInputs.add(index);
+          setterInputs.add(index);
+        }
+        HInstruction getterInstruction;
+        if (Elements.isUnresolved(getter)) {
+          generateSuperNoSuchMethodSend(
+              node,
+              elements.getGetterSelectorInComplexSendSet(node),
+              getterInputs);
+          getterInstruction = pop();
+        } else {
+          getterInstruction = new HInvokeSuper(getterInputs);
+          add(getterInstruction);
+        }
+        handleComplexOperatorSend(node, getterInstruction, arguments);
+        setterInputs.add(pop());
+
+        if (node.isPostfix) {
+          result = getterInstruction;
+        } else {
+          result = setterInputs.last;
+        }
+      }
       if (Elements.isUnresolved(element)) {
-        return generateSuperNoSuchMethodSend(node);
+        generateSuperNoSuchMethodSend(
+            node, elements.getSelector(node), setterInputs);
+        pop();
+      } else {
+        add(new HInvokeSuper(setterInputs, isSetter: true));
       }
-      HInstruction target = new HStatic(element);
-      HInstruction context = localsHandler.readThis();
-      add(target);
-      var inputs = <HInstruction>[target, context];
-      addDynamicSendArgumentsToList(node, inputs);
-      if (!identical(node.assignmentOperator.source.stringValue, '=')) {
-        compiler.unimplemented('complex super assignment',
-                               node: node.assignmentOperator);
-      }
-      push(new HInvokeSuper(inputs, isSetter: true));
+      stack.add(result);
     } else if (node.isIndex) {
       if (const SourceString("=") == op.source) {
         // TODO(kasperl): We temporarily disable inlining because the
@@ -3613,36 +3674,32 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         visit(node.receiver);
         HInstruction receiver = pop();
-        visit(node.argumentsNode);
-        HInstruction value;
+        Link<Node> arguments = node.arguments;
         HInstruction index;
-        // Compound assignments are considered as being prefix.
-        bool isCompoundAssignment = op.source.stringValue.endsWith('=');
-        bool isPrefix = !node.isPostfix;
-        if (isCompoundAssignment) {
-          value = pop();
+        if (node.isIndex) {
+          visit(arguments.head);
+          arguments = arguments.tail;
           index = pop();
-        } else {
-          index = pop();
-          value = graph.addConstantInt(1, constantSystem);
         }
 
-        HInvokeDynamicMethod left = buildInvokeDynamic(
+        HInvokeDynamicMethod getterInstruction = buildInvokeDynamic(
             node,
             elements.getGetterSelectorInComplexSendSet(node),
             receiver,
             <HInstruction>[index]);
-        add(left);
-        visitBinary(left, op, value,
-                    elements.getOperatorSelectorInComplexSendSet(node), node);
-        value = pop();
+        add(getterInstruction);
+
+        handleComplexOperatorSend(node, getterInstruction, arguments);
+        HInstruction value = pop();
+
         HInvokeDynamicMethod assign = buildInvokeDynamic(
             node, elements.getSelector(node), receiver, [index, value]);
         add(assign);
-        if (isPrefix) {
-          stack.add(value);
+
+        if (node.isPostfix) {
+          stack.add(getterInstruction);
         } else {
-          stack.add(left);
+          stack.add(value);
         }
       }
     } else if (const SourceString("=") == op.source) {
@@ -3657,8 +3714,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       assert(const SourceString("++") == op.source ||
              const SourceString("--") == op.source ||
              node.assignmentOperator.source.stringValue.endsWith("="));
-      bool isCompoundAssignment = !node.arguments.isEmpty;
-      bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
 
       // [receiver] is only used if the node is an instance send.
       HInstruction receiver = null;
@@ -3669,28 +3724,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         generateGetter(node, elements[node.selector]);
       }
-      HInstruction left = pop();
-      HInstruction right;
-      if (isCompoundAssignment) {
-        visit(node.argumentsNode);
-        right = pop();
-      } else {
-        right = graph.addConstantInt(1, constantSystem);
-      }
-      visitBinary(left, op, right,
-                  elements.getOperatorSelectorInComplexSendSet(node), node);
-      HInstruction operation = pop();
-      assert(operation != null);
+      HInstruction getterInstruction = pop();
+      handleComplexOperatorSend(node, getterInstruction, node.arguments);
+      HInstruction value = pop();
+      assert(value != null);
       if (Elements.isInstanceSend(node, elements)) {
         assert(receiver != null);
-        generateInstanceSetterWithCompiledReceiver(node, receiver, operation);
+        generateInstanceSetterWithCompiledReceiver(node, receiver, value);
       } else {
         assert(receiver == null);
-        generateSetter(node, element, operation);
+        generateSetter(node, element, value);
       }
-      if (!isPrefix) {
+      if (node.isPostfix) {
         pop();
-        stack.add(left);
+        stack.add(getterInstruction);
       }
     }
   }

@@ -2005,7 +2005,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
-      target = currentClass.lookupSuperMember(name);
+      target = currentClass.lookupSuperSelector(selector);
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
@@ -2292,14 +2292,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
         compiler.backend.registerThrowNoSuchMethod();
-      } else if (isComplex && target.name == const SourceString('[]=')) {
-        getter = target.getEnclosingClass().lookupMember(
-            const SourceString('[]'));
-        if (getter == null) {
-          getter = warnAndCreateErroneousElement(
-              node, setter.name, MessageKind.CANNOT_RESOLVE_INDEX);
-          compiler.backend.registerThrowNoSuchMethod();
-        }
       }
     }
 
@@ -2320,6 +2312,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       registerSend(getterSelector, getter);
       mapping.setGetterSelectorInComplexSendSet(node, getterSelector);
+      if (node.isSuperCall) {
+        getter = currentClass.lookupSuperSelector(getterSelector);
+        if (getter == null) {
+          target = warnAndCreateErroneousElement(
+              node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
+              {'className': currentClass, 'memberName': selector.name});
+          compiler.backend.registerSuperNoSuchMethod();
+        }
+      }
       useElement(node.selector, getter);
 
       // Make sure we include the + and - operators if we are using

@@ -43,7 +43,6 @@ Language/07_Classes/6_Constructors_A01_t03: Fail # TODO(ahe): Please triage this
 Language/07_Classes/6_Constructors_A01_t04: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(ahe): Please triage this failure.
@@ -332,7 +331,6 @@ Language/11_Expressions/22_Equality_A01_t20: Fail, OK # co19 issue 241
 Language/11_Expressions/32_Type_Cast_A01_t04: Fail, OK # co19 issue 241
 
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
-Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
@@ -627,7 +625,6 @@ Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessible
 
 Language/11_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
-Language/11_Expressions/27_Unary_Expressions_A01_t10: Fail # cannot deal with super in complex assignments
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 [ $compiler == dart2js && $jscl ]

@@ -64,7 +64,10 @@ mixin_type_parameters_super_test: Fail
 mixin_type_parameters_super_extends_test: Fail
 mixin_lib_extends_field_test: Fail
 
-type_variable_field_initializer_closure_test: Crash # issue 8847 
+type_variable_field_initializer_closure_test: Crash # issue 8847
+
+super_getter_setter_test: Fail # Issue 8917
+super_operator_index7_test: Fail # Issue 8918
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.

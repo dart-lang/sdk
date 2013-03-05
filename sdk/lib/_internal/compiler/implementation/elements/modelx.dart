@@ -1522,10 +1522,18 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * origin and the patch class are returned.
    */
   Element lookupSelector(Selector selector) {
+    return internalLookupSelector(selector, false);
+  }
+
+  Element lookupSuperSelector(Selector selector) {
+    return internalLookupSelector(selector, true);
+  }
+  
+  Element internalLookupSelector(Selector selector, bool isSuperLookup) {
     SourceString name = selector.name;
     bool isPrivate = name.isPrivate();
     LibraryElement library = selector.library;
-    for (ClassElement current = this;
+    for (ClassElement current = isSuperLookup ? superclass : this;
          current != null;
          current = current.superclass) {
       Element member = current.lookupLocalMember(name);

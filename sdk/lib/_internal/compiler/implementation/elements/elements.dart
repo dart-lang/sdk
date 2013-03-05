@@ -760,6 +760,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   Element lookupMember(SourceString memberName);
   Element lookupSelector(Selector selector);
+  Element lookupSuperSelector(Selector selector);
 
   Element lookupLocalMember(SourceString memberName);
   Element lookupBackendMember(SourceString memberName);
