@@ -53,8 +53,8 @@ void reshape(int width, int height) {
 }
 
 void keyboard(unsigned char key, int x, int y) {
-  input_handler_ptr->OnKeyEvent(kKeyDown, time(0), 0, key, 0, 0);
-  input_handler_ptr->OnKeyEvent(kKeyUp, time(0), 0, key, 0, 0);
+  input_handler_ptr->OnKeyEvent(kKeyDown, time(0), key, false, false, false, 0);
+  input_handler_ptr->OnKeyEvent(kKeyUp, time(0), key, false, false, false, 0);
   if (key == 27) {
     lifecycle_handler_ptr->Pause();
     lifecycle_handler_ptr->Deactivate();
@@ -75,6 +75,18 @@ void keyboard(unsigned char key, int x, int y) {
     LOGI("Simulating focus loss");
     lifecycle_handler_ptr->Pause();
   }
+}
+
+void mouse(int button, int state, int x, int y) {
+  if (state == GLUT_UP) {
+    input_handler_ptr->OnMotionEvent(kMotionUp, time(0), x, y);
+  } else if (state == GLUT_DOWN) {
+    input_handler_ptr->OnMotionEvent(kMotionDown, time(0), x, y);
+  }
+}
+
+void motion(int x, int y) {
+  input_handler_ptr->OnMotionEvent(kMotionMove, time(0), x, y);
 }
 
 DART_EXPORT void emulator_main(int argc, char** argv, const char* script) {
@@ -102,6 +114,8 @@ DART_EXPORT void emulator_main(int argc, char** argv, const char* script) {
   glutReshapeFunc(reshape);
   glutDisplayFunc(display);
   glutKeyboardFunc(keyboard);
+  glutMouseFunc(mouse);
+  glutMotionFunc(motion);
   lifecycle_handler_ptr->OnStart();
   lifecycle_handler_ptr->Activate();
   lifecycle_handler_ptr->Resume();

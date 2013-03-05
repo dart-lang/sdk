@@ -276,19 +276,21 @@ int VMGlue::OnMotionEvent(const char* pFunction, int64_t pWhen,
   return -1;
 }
 
-int VMGlue::OnKeyEvent(const char* function, int64_t when, int32_t flags,
-       int32_t key_code, int32_t meta_state, int32_t repeat) {
+int VMGlue::OnKeyEvent(const char* function, int64_t when, int32_t key_code,
+                       bool isAltKeyDown, bool isCtrlKeyDown,
+                       bool isShiftKeyDown, int32_t repeat) {
   if (initialized_script_) {
     LOGI("Invoking %s", function);
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
-    Dart_Handle args[5];
+    Dart_Handle args[6];
     args[0] = CheckError(Dart_NewInteger(when));
-    args[1] = CheckError(Dart_NewInteger(flags));
-    args[2] = CheckError(Dart_NewInteger(key_code));
-    args[3] = CheckError(Dart_NewInteger(meta_state));
-    args[4] = CheckError(Dart_NewInteger(repeat));
-    int rtn = Invoke(function, 5, args, false);
+    args[1] = CheckError(Dart_NewInteger(key_code));
+    args[2] = CheckError(Dart_NewBoolean(isAltKeyDown));
+    args[3] = CheckError(Dart_NewBoolean(isCtrlKeyDown));
+    args[4] = CheckError(Dart_NewBoolean(isShiftKeyDown));
+    args[5] = CheckError(Dart_NewInteger(repeat));
+    int rtn = Invoke(function, 6, args, false);
     Dart_ExitScope();
     Dart_ExitIsolate();
     LOGI("Done %s", function);

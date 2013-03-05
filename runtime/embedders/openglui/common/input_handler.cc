@@ -14,55 +14,59 @@ int InputHandler::OnMotionEvent(MotionEvent event,
                                 float x,
                                 float y) {
   const char *function = NULL;
+  // For now we just keep this simple. There are
+  // no click events or mouseover events.
   switch (event) {
     case kMotionDown:
-      function = "onMotionDown";
+      function = "onMouseDown_";
       break;
     case kMotionUp:
-      function = "onMotionUp";
+      function = "onMouseUp_";
       break;
     case kMotionMove:
-      function = "onMotionMove";
+      function = "onMouseMove_";
       break;
     case kMotionCancel:
-      function = "onMotionCancel";
       break;
     case kMotionOutside:
-      function = "onMotionOutside";
       break;
     case kMotionPointerDown:
-      function = "onMotionPointerDown";
       break;
     case kMotionPointerUp:
-      function = "onMotionPointerUp";
       break;
     default:
       return -1;
   }
-  return vm_glue_->OnMotionEvent(function, when, x, y);
+  if (function == NULL) {
+    return 0;
+  } else {
+    return vm_glue_->OnMotionEvent(function, when, x, y);
+  }
 }
 
 int InputHandler::OnKeyEvent(KeyEvent event,
                              int64_t when,
-                             int32_t flags,
                              int32_t key_code,
-                             int32_t meta_state,
+                             bool isAltKeyDown,
+                             bool isCtrlKeyDown,
+                             bool isShiftKeyDown,
                              int32_t repeat) {
   const char *function = NULL;
   switch (event) {
     case kKeyDown:
-      function = "onKeyDown";
+      function = "onKeyDown_";
       break;
     case kKeyUp:
-      function = "onKeyUp";
+      function = "onKeyUp_";
       break;
     case kKeyMultiple:
-      function = "onKeyMultiple";
+      return -1;  // TODO(gram): handle this.
       break;
     default:
       return -1;
   }
-  return vm_glue_->OnKeyEvent(function, when, flags, key_code,
-                              meta_state, repeat);
+  return vm_glue_->OnKeyEvent(function, when, key_code,
+                              isAltKeyDown, isCtrlKeyDown, isShiftKeyDown,
+                              repeat);
 }
 

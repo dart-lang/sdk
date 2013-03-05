@@ -3,8 +3,224 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library android_extension;
+import 'dart:async';
 
-class CanvasElement {
+// A VERY simplified DOM.
+
+class BodyElement {
+  List _nodes;
+  get nodes => _nodes;
+  BodyElement() : _nodes = new List();
+}
+
+// The OpenGLUI "equivalent" of HtmlDocument.
+class Document {
+  BodyElement _body;
+  get body => _body;
+  Document._internal() : _body = new BodyElement();
+}
+
+Document document = new Document._internal();
+
+// Event handling. This is very kludgy for now, especially the
+// bare-bones Stream stuff!
+
+class Event {
+  final String type;
+  Event(String type) : this.type = type;
+}
+
+class KeyEvent extends Event {
+  final bool altKey;
+  final bool ctrlKey;
+  final bool shiftKey;
+  final int keyCode;
+
+  KeyEvent(String type, int keycode, bool alt, bool ctrl, bool shift) 
+    : super(type),
+      keyCode = keycode,
+      altKey = alt,
+      ctrlKey = ctrl,
+      shiftKey = shift {
+  }
+}
+
+class MouseEvent extends Event {
+  final int screenX, screenY;
+  final int clientX, clientY;
+
+  MouseEvent(String type, int x, int y)
+    : super(type),
+      screenX = x,
+      screenY = y,
+      clientX = x,
+      clientY = y {
+  }
+}
+
+typedef void EventListener(Event event);
+
+Map<String,List<Function>> _listeners = new Map();
+
+class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+  int _pauseCount = 0;
+  Object _target;
+  final String _eventType;
+  var _onData;
+
+  _EventStreamSubscription(this._target, this._eventType, this._onData) {
+    _tryResume();
+  }
+
+  void cancel() {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+
+    _unlisten();
+    // Clear out the target to indicate this is complete.
+    _target = null;
+    _onData = null;
+  }
+
+  bool get _canceled => _target == null;
+
+  void onData(void handleData(T event)) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    // Remove current event listener.
+    _unlisten();
+
+    _onData = handleData
+    _tryResume();
+  }
+
+  /// Has no effect.
+  void onError(void handleError(AsyncError error)) {}
+
+  /// Has no effect.
+  void onDone(void handleDone()) {}
+
+  void pause([Future resumeSignal]) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    ++_pauseCount;
+    _unlisten();
+
+    if (resumeSignal != null) {
+      resumeSignal.whenComplete(resume);
+    }
+  }
+
+  bool get _paused => _pauseCount > 0;
+
+  void resume() {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    if (!_paused) {
+      throw new StateError("Subscription is not paused.");
+    }
+    --_pauseCount;
+    _tryResume();
+  }
+
+  void _tryResume() {
+    if (_onData != null && !_paused) {
+      if (!_listeners.containsKey(_eventType)) {
+        _listeners[_eventType] = new List();
+      }
+      var event_listeners = _listeners[_eventType];
+      for (var i = 0; i < event_listeners.length; i++) {
+        if (event_listeners[i] == null) {
+          event_listeners[i] = _onData;
+          return;
+        }
+      }
+      event_listeners.add(_onData);
+    }
+  }
+
+  void _unlisten() {
+    if (_onData != null) {
+      if (!_listeners.containsKey(_eventType)) {
+        var event_listeners = _listeners[_eventType];
+        for (var i = 0; i < event_listeners.length; i++) {
+          if (event_listeners[i] == _onData) {
+            event_listeners[i] = null;
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+class _EventStream<T extends Event> extends Stream<T> {
+  final Object _target;
+  final String _eventType;
+
+  _EventStream(this._target, this._eventType);
+
+  // DOM events are inherently multi-subscribers.
+  Stream<T> asBroadcastStream() => this;
+  bool get isBroadcast => true;
+
+  StreamSubscription<T> listen(void onData(T event),
+      { void onError(AsyncError error),
+      void onDone(),
+      bool unsubscribeOnError}) {
+
+    return new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData);
+  }
+}
+
+class Node {
+  Stream<KeyEvent> get onKeyDown => new _EventStream(this, 'keydown');
+  Stream<KeyEvent> get onKeyUp => new _EventStream(this, 'keyup');
+  Stream<MouseEvent> get onMouseDown => new _EventStream(this, 'mousedown');
+  Stream<MouseEvent> get onMouseMove => new _EventStream(this, 'mousemove');
+  Stream<MouseEvent> get onMouseUp => new _EventStream(this, 'mouseup');
+}
+
+// TODO(gram): If we support more than one on-screen canvas, we will
+// need to filter dispatched events by the target Node.
+_dispatchEvent(String event_type, Event e) {
+  if (!_listeners.containsKey(event_type)) return;
+  var event_listeners = _listeners[event_type];
+  for (var i = 0; i < event_listeners.length; i++) {
+    if (event_listeners[i] != null) {
+      event_listeners[i](e);
+    }
+  }
+}
+
+_dispatchKeyEvent(String type, int keyCode, bool alt, bool ctrl, bool shift) =>
+    _dispatchEvent(type, new KeyEvent(type, keyCode, alt, ctrl, shift));
+
+_dispatchMouseEvent(String type, double x, double y) =>
+    _dispatchEvent(type, new MouseEvent(type, x.toInt(), y.toInt()));
+
+// These next few are called by vmglue.cc.
+onKeyDown_(int when, int keyCode, bool alt, bool ctrl, bool shift, int repeat)
+    =>  _dispatchKeyEvent('keydown', keyCode, alt, ctrl, shift);
+
+onKeyUp_(int when, int keyCode, bool alt, bool ctrl, bool shift, int repeat) =>
+    _dispatchKeyEvent('keyup', keyCode, alt, ctrl, shift);
+
+onMouseDown_(int when, double x, double y) =>
+    _dispatchMouseEvent('mousedown', x, y);
+
+onMouseMove_(int when, double x, double y) =>
+    _dispatchMouseEvent('mousemove', x, y);
+
+onMouseUp_(int when, double x, double y) =>
+    _dispatchMouseEvent('mouseup', x, y);
+
+class CanvasElement extends Node {
   int _height;
   int _width;
 
@@ -19,7 +235,8 @@ class CanvasElement {
   // code.
   get src => "context2d://${_context2d.handle}";
 
-  CanvasElement({int width, int height}) {
+  CanvasElement({int width, int height})
+    : super() {
     _width = (width == null) ? getDeviceScreenWidth() : width;
     _height = (height == null) ? getDeviceScreenHeight() : height;
   }

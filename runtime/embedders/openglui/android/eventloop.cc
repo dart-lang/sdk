@@ -335,10 +335,15 @@ bool EventLoop::OnKeyEvent(AInputEvent* event) {
   /* Get the time this event occurred, in the
    * java.lang.System.nanoTime() time base. */
   int64_t when = AKeyEvent_getEventTime(event);
+  bool isAltKeyDown = (meta_state & AMETA_ALT_ON) != 0;
+  bool isShiftKeyDown = (meta_state & AMETA_SHIFT_ON) != 0;
+  bool isCtrlKeyDown = key_code < 32;
 
   LOGI("Got key event %d %d", type, key_code);
-  if (input_handler_->OnKeyEvent(key_event, when, flags, key_code,
-                             meta_state, repeat) != 0) {
+
+  if (input_handler_->OnKeyEvent(key_event, when, key_code,
+                                 isAltKeyDown, isCtrlKeyDown, isShiftKeyDown,
+                                 repeat) != 0) {
     return false;
   }
   return true;
