@@ -11,8 +11,7 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-void testCancelResubscribeServerSocket() {
-  const int socketCount = 10;
+void testCancelResubscribeServerSocket(int socketCount, int backlog) {
   var acceptCount = 0;
   var doneCount = 0;
   var closeCount = 0;
@@ -20,7 +19,7 @@ void testCancelResubscribeServerSocket() {
 
   ReceivePort port = new ReceivePort();
 
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind("127.0.0.1", 0, backlog).then((server) {
     Expect.isTrue(server.port > 0);
 
     void checkDone() {
@@ -30,43 +29,75 @@ void testCancelResubscribeServerSocket() {
       }
     }
 
-    // Subscribe the server socket. Then cancel subscription and
-    // subscribe again.
     var subscription;
     subscription = server.listen((client) {
+      client.writeEventsEnabled = false;
+      client.listen((event) {
+        switch(event) {
+          case RawSocketEvent.READ:
+            client.read();
+            break;
+          case RawSocketEvent.READ_CLOSED:
+            client.shutdown(SocketDirection.SEND);
+            break;
+          case RawSocketEvent.WRITE:
+            Expect.fail("No write event expected");
+            break;
+        }
+      });
+
       if (++acceptCount == socketCount / 2) {
+        // Cancel subscription and then attempt to resubscribe.
         subscription.cancel();
         Timer.run(() {
           subscription = server.listen((_) {
-            // Close on cancel, so no more events.
+            // Server socket is closed on cancel, so no more events.
             Expect.fail("Event after closed through cancel");
           });
         });
       }
-      // Close the client socket.
-      client.close();
     });
 
     // Connect a number of sockets.
     for (int i = 0; i < socketCount; i++) {
       RawSocket.connect("127.0.0.1", server.port).then((socket) {
-        socket.writeEventsEnabled = false;
         var subscription;
         subscription = socket.listen((event) {
-          Expect.equals(RawSocketEvent.READ_CLOSED, event);
-          socket.close();
-          closeCount++;
+          switch(event) {
+            case RawSocketEvent.READ:
+              Expect.fail("No read event expected");
+              break;
+            case RawSocketEvent.READ_CLOSED:
+              closeCount++;
+              checkDone();
+              break;
+            case RawSocketEvent.WRITE:
+              // We don't care if this write succeeds, so we don't check
+              // the return value (number of bytes written).
+              socket.write([1,2,3]);
+              socket.shutdown(SocketDirection.SEND);
+              break;
+          }
+        },
+        onDone: () {
+          doneCount++;
           checkDone();
         },
-        onDone: () { doneCount++; checkDone(); },
-        onError: (e) { errorCount++; checkDone(); });
+        onError: (e) {
+          // "Connection reset by peer" errors are handled here.
+          errorCount++;
+          checkDone();
+        });
       }).catchError((e) {
-        errorCount++; checkDone();
+        // "Connection actively refused by host" errors are handled here.
+        errorCount++;
+        checkDone();
       });
     }
   });
 }
 
 void main() {
-  testCancelResubscribeServerSocket();
+  testCancelResubscribeServerSocket(10, 20);
+  testCancelResubscribeServerSocket(20, 5);
 }

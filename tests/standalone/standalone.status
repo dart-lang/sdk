@@ -11,10 +11,10 @@ io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
 io/status_file_parser_test: fail
 io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
-io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_socket_test: Pass, Fail # Issue 8901
+io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
