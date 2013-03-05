@@ -356,12 +356,11 @@ abstract class _TypedListBase {
   }
 
   int indexOf(element, [int start = 0]) {
-    return Arrays.indexOf(this, element, start, this.length);
+    return IterableMixinWorkaround.indexOfList(this, element, start);
   }
 
   int lastIndexOf(element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return Arrays.lastIndexOf(this, element, start);
+    return IterableMixinWorkaround.lastIndexOfList(this, element, start);
   }
 
   void clear() {
@@ -521,7 +520,7 @@ class _Int8Array extends _TypedList implements Int8List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -597,7 +596,7 @@ class _Uint8Array extends _TypedList implements Uint8List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
   // Methods implementing Object interface.
@@ -668,7 +667,7 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
   // Methods implementing Object interface.
@@ -741,7 +740,7 @@ class _Int16Array extends _TypedList implements Int16List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -819,7 +818,7 @@ class _Uint16Array extends _TypedList implements Uint16List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -897,7 +896,7 @@ class _Int32Array extends _TypedList implements Int32List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -975,7 +974,7 @@ class _Uint32Array extends _TypedList implements Uint32List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1053,7 +1052,7 @@ class _Int64Array extends _TypedList implements Int64List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1131,7 +1130,7 @@ class _Uint64Array extends _TypedList implements Uint64List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1209,7 +1208,7 @@ class _Float32Array extends _TypedList implements Float32List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1287,7 +1286,7 @@ class _Float64Array extends _TypedList implements Float64List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1355,7 +1354,7 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1424,7 +1423,7 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1493,7 +1492,7 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1562,7 +1561,7 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1631,7 +1630,7 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1700,7 +1699,7 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1769,7 +1768,7 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1838,7 +1837,7 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1907,7 +1906,7 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -1976,7 +1975,7 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2045,7 +2044,7 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
       Arrays.copy(from, startFrom, this, start, length);
     }
     */
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2170,7 +2169,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2234,7 +2233,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2299,7 +2298,7 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2363,7 +2362,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2427,7 +2426,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2491,7 +2490,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2555,7 +2554,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2619,7 +2618,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2683,7 +2682,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2747,7 +2746,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
   }
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
@@ -2811,7 +2810,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
   }
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    Arrays.copy(from, startFrom, this, start, length);
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
 
 
