@@ -6,7 +6,7 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
-
+#include "vm/simulator.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
 
@@ -14,6 +14,53 @@ namespace dart {
 
 // TODO(regis): Enable this flag after PrintStopMessage stub is implemented.
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
+
+
+bool CPUFeatures::integer_division_supported_ = false;
+#if defined(DEBUG)
+bool CPUFeatures::initialized_ = false;
+#endif
+
+
+bool CPUFeatures::integer_division_supported() {
+  DEBUG_ASSERT(initialized_);
+  return integer_division_supported_;
+}
+
+
+#if defined(USING_SIMULATOR)
+void CPUFeatures::set_integer_division_supported(bool supported) {
+  integer_division_supported_ = supported;
+}
+#endif
+
+
+#define __ assembler.
+
+void CPUFeatures::InitOnce() {
+#if defined(USING_SIMULATOR)
+  integer_division_supported_ = true;
+#else
+  Assembler assembler;
+  __ mrc(R0, 15, 0, 0, 2, 0);
+  __ Lsr(R0, R0, 24);
+  __ and_(R0, R0, ShifterOperand(0xf));
+  __ Ret();
+
+  const Code& code =
+      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef int32_t (*DetectCPUFeatures)();
+  int32_t features =
+      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
+  integer_division_supported_ = features != 0;
+#endif  // defined(USING_SIMULATOR)
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+#undef __
 
 
 // Instruction encoding bits.
@@ -1113,6 +1160,29 @@ void Assembler::blx(Register rm, Condition cond) {
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B24 | B21 | (0xfff << 8) | B5 | B4 |
                      (static_cast<int32_t>(rm) << kRmShift);
+  Emit(encoding);
+}
+
+
+void Assembler::mrc(Register rd, int32_t coproc, int32_t opc1,
+                    int32_t crn, int32_t crm, int32_t opc2, Condition cond) {
+  ASSERT(rd != kNoRegister);
+  ASSERT(cond != kNoCondition);
+
+  // This is all the simulator and disassembler know about.
+  ASSERT(coproc == 15);
+  ASSERT(opc1 == 0);
+  ASSERT(crn == 0);
+  ASSERT(crm == 2);
+  ASSERT(opc2 == 0);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B25 | B20 | B4 |
+                     ((opc1 & 0x7) << kOpc1Shift) |
+                     ((crn & 0xf) << kCRnShift) |
+                     ((coproc & 0xf) << kCoprocShift) |
+                     ((opc2 & 0x7) << kOpc2Shift) |
+                     ((crm & 0xf) << kCRmShift) |
+                     (static_cast<int32_t>(rd) << kRdShift);
   Emit(encoding);
 }
 

@@ -1192,6 +1192,8 @@ void ARMDecoder::DecodeType7(Instr* instr) {
         Unknown(instr);
       }
     }
+  } else if (instr->IsMrcIdIsar0()) {
+    Format(instr, "mrc'cond p15, 0, 'rd, c0, c2, 0");
   } else {
     Unknown(instr);
   }

@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_arm.h"
+#include "vm/simulator.h"
 
 namespace dart {
 
@@ -64,11 +65,20 @@ class Label : public ValueObject {
 
 class CPUFeatures : public AllStatic {
  public:
-  static void InitOnce() { }
+  static void InitOnce();
   static bool double_truncate_round_supported() {
     UNIMPLEMENTED();
     return false;
   }
+  static bool integer_division_supported();
+#if defined(USING_SIMULATOR)
+  static void set_integer_division_supported(bool supported);
+#endif
+ private:
+  static bool integer_division_supported_;
+#if defined(DEBUG)
+  static bool initialized_;
+#endif
 };
 
 
@@ -490,6 +500,10 @@ class Assembler : public ValueObject {
   void bl(Label* label, Condition cond = AL);
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
+
+  // Move to ARM core register from Coprocessor.
+  void mrc(Register rd, int32_t coproc, int32_t opc1,
+           int32_t crn, int32_t crm, int32_t opc2, Condition cond = AL);
 
   // Macros.
   // Branch to an entry address. Call sequence is never patched.

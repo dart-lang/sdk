@@ -293,6 +293,18 @@ enum InstructionFields {
   kMulRnShift = 12,
   kMulRnBits = 4,
 
+  // MRC instruction offset field encoding.
+  kCRmShift = 0,
+  kCRmBits = 4,
+  kOpc2Shift = 5,
+  kOpc2Bits = 3,
+  kCoprocShift = 8,
+  kCoprocBits = 4,
+  kCRnShift = 16,
+  kCRnBits = 4,
+  kOpc1Shift = 21,
+  kOpc1Bits = 3,
+
   kBranchOffsetMask = 0x00ffffff
 };
 
@@ -502,6 +514,15 @@ class Instr {
     ASSERT(ConditionField() != kSpecialCondition);
     ASSERT(TypeField() == 6);
     return ((Bits(20, 5) & 0x12) == 0x10) && (Bits(9, 3) == 5);
+  }
+
+  // Only handle mrc of the id_isar0 register.
+  inline bool IsMrcIdIsar0() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 7);
+    return (Bits(21, 3) == 0) && (Bits(16, 4) == 0) &&
+           (Bits(8, 4) == 0xf) && (Bits(5, 3) == 0) &&
+           (Bits(0, 4) == 2);
   }
 
   // Test for VFP multiple load and store instructions of type 6.
