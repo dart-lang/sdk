@@ -1290,7 +1290,7 @@ class BatchRunnerProcess {
       // If there is an error starting a batch process, chances are that
       // it will always fail. So rather than re-trying a 1000+ times, we
       // exit.
-      exit(1);
+      io.exit(1);
       return true;
     });
   }
@@ -1465,7 +1465,7 @@ class ProcessQueue {
         print("  Command: $cmd ${arg.join(' ')}");
         print("  Error: $e");
         // TODO(ahe): How to report this as a test failure?
-        exit(1);
+        io.exit(1);
         return true;
       });
     }
@@ -1536,7 +1536,7 @@ class ProcessQueue {
           print("  Command: java -jar $file");
           print("  Error: $e");
           // TODO(ahe): How to report this as a test failure?
-          exit(1);
+          io.exit(1);
           return true;
         });
       }
