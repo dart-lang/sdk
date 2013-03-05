@@ -17,6 +17,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
+DECLARE_FLAG(bool, inline_alloc);
 
 
 bool CPUFeatures::sse2_supported_ = false;
@@ -2111,6 +2112,58 @@ void Assembler::Bind(Label* label) {
     buffer_.Store<int8_t>(position, offset);
   }
   label->BindTo(bound);
+}
+
+
+void Assembler::TryAllocate(const Class& cls,
+                            Label* failure,
+                            bool near_jump,
+                            Register instance_reg) {
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Heap* heap = Isolate::Current()->heap();
+    const intptr_t instance_size = cls.instance_size();
+    movl(instance_reg, Address::Absolute(heap->TopAddress()));
+    addl(instance_reg, Immediate(instance_size));
+    // instance_reg: potential next object start.
+    cmpl(instance_reg, Address::Absolute(heap->EndAddress()));
+    j(ABOVE_EQUAL, failure, near_jump);
+    // Successfully allocated the object, now update top to point to
+    // next object start and store the class in the class field of object.
+    movl(Address::Absolute(heap->TopAddress()), instance_reg);
+    ASSERT(instance_size >= kHeapObjectTag);
+    subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.id() != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    movl(FieldAddress(instance_reg, Object::tags_offset()), Immediate(tags));
+  } else {
+    jmp(failure);
+  }
+}
+
+
+void Assembler::EnterDartFrame(intptr_t frame_size) {
+  const intptr_t offset = CodeSize();
+  EnterFrame(0);
+  Label dart_entry;
+  call(&dart_entry);
+  Bind(&dart_entry);
+  // Adjust saved PC for any intrinsic code that could have been generated
+  // before a frame is created.
+  if (offset != 0) {
+    addl(Address(ESP, 0), Immediate(-offset));
+  }
+  if (frame_size != 0) {
+    subl(ESP, Immediate(frame_size));
+  }
+}
+
+
+void Assembler::EnterStubFrame() {
+  EnterFrame(0);
+  pushl(Immediate(0));  // Push 0 in the saved PC area for stub frames.
 }
 
 

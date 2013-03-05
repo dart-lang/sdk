@@ -14,7 +14,6 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
-#include "vm/assembler_macros.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -932,11 +931,10 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   // Result in EDI (high) and EBX (low).
   const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               mint_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
+  __ TryAllocate(mint_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 EAX);  // Result register.
   // EBX and EDI are not objects but integer values.
   __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
   __ movl(FieldAddress(EAX, Mint::value_offset() + kWordSize), EDI);
@@ -1244,11 +1242,10 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   }
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1291,11 +1288,10 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ mulsd(XMM0, XMM1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1313,11 +1309,10 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ cvtsi2sd(XMM0, EAX);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1391,11 +1386,10 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ sqrtsd(XMM0, XMM1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 EAX);  // Result register.
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
@@ -1429,11 +1423,10 @@ static void EmitTrigonometric(Assembler* assembler,
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   Label alloc_failed;
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &alloc_failed,
-                               Assembler::kNearJump,
-                               EAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &alloc_failed,
+                 Assembler::kNearJump,
+                 EAX);  // Result register.
   __ fstpl(FieldAddress(EAX, Double::value_offset()));
   __ ret();
 

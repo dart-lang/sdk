@@ -924,7 +924,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
                          0);  // No token position.
   }
   __ Comment("Enter frame");
-  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+  __ EnterDartFrame((StackSize() * kWordSize));
 }
 
 

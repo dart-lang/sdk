@@ -1710,6 +1710,61 @@ void Assembler::CallRuntime(const RuntimeEntry& entry) {
 }
 
 
+void Assembler::EnterDartFrame(intptr_t frame_size) {
+  const intptr_t offset = CodeSize();
+  // Save PC in frame for fast identification of corresponding code.
+  // Note that callee-saved registers can be added to the register list.
+  EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
+
+  if (offset != 0) {
+    // Adjust saved PC for any intrinsic code that could have been generated
+    // before a frame is created. Use PP as temp register.
+    ldr(PP, Address(FP, 2 * kWordSize));
+    AddImmediate(PP, PP, -offset);
+    str(PP, Address(FP, 2 * kWordSize));
+  }
+
+  // Setup pool pointer for this dart function.
+  const intptr_t object_pool_pc_dist =
+     Instructions::HeaderSize() - Instructions::object_pool_offset() +
+     CodeSize() + Instr::kPCReadOffset;
+  ldr(PP, Address(PC, -object_pool_pc_dist));
+
+  // Reserve space for locals.
+  AddImmediate(SP, -frame_size);
+}
+
+
+void Assembler::LeaveDartFrame() {
+  LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
+  // Adjust SP for PC pushed in EnterDartFrame.
+  AddImmediate(SP, kWordSize);
+}
+
+
+void Assembler::EnterStubFrame() {
+  // Push 0 as saved PC for stub frames.
+  mov(IP, ShifterOperand(LR));
+  mov(LR, ShifterOperand(0));
+  EnterFrame((1 << FP) | (1 << IP) | (1 << LR), 0);
+}
+
+
+void Assembler::LeaveStubFrame() {
+  LeaveFrame((1 << FP) | (1 << LR));
+  // Adjust SP for null PC pushed in EnterStubFrame.
+  AddImmediate(SP, kWordSize);
+}
+
+
+void Assembler::TryAllocate(const Class& cls,
+                            Label* failure,
+                            bool near_jump,
+                            Register instance_reg) {
+  UNIMPLEMENTED();
+}
+
+
 void Assembler::Stop(const char* message) {
   if (FLAG_print_stop_message) {
     PushList((1 << R0) | (1 << IP) | (1 << LR));  // Preserve R0, IP, LR.

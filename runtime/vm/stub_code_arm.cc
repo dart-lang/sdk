@@ -6,7 +6,6 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
-#include "vm/assembler_macros.h"
 #include "vm/code_generator.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
@@ -142,7 +141,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   R4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   __ PushList((1 << R0) | (1 << R4));
@@ -150,7 +149,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Get Code object result and restore arguments descriptor array.
   __ PopList((1 << R0) | (1 << R4));
   // Remove the stub frame as we are about to jump to the dart function.
-  AssemblerMacros::LeaveStubFrame(assembler);
+  __ LeaveStubFrame();
 
   __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
   __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
@@ -202,7 +201,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   // Save new context and C++ ABI callee-saved registers.
   const intptr_t kNewContextOffset =
@@ -317,9 +316,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore C++ ABI callee-saved registers.
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
 
-  // Restore the frame pointer.
-  AssemblerMacros::LeaveStubFrame(assembler);
-
+  // Restore the frame pointer and return.
+  __ LeaveStubFrame();
   __ Ret();
 }
 

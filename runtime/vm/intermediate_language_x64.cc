@@ -2319,11 +2319,10 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_reg = locs()->out().reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  AssemblerMacros::TryAllocate(compiler->assembler(),
-                               compiler->double_class(),
-                               slow_path->entry_label(),
-                               Assembler::kFarJump,
-                               out_reg);
+  __ TryAllocate(compiler->double_class(),
+                 slow_path->entry_label(),
+                 Assembler::kFarJump,
+                 out_reg);
   __ Bind(slow_path->exit_label());
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
 }

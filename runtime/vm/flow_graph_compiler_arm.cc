@@ -216,7 +216,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
                          0);  // No token position.
   }
   __ Comment("Enter frame");
-  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+  __ EnterDartFrame((StackSize() * kWordSize));
 }
 
 
@@ -306,7 +306,7 @@ void FlowGraphCompiler::CompileGraph() {
                                             0);  // No registers.
         }
         // The noSuchMethod call may return.
-        AssemblerMacros::LeaveDartFrame(assembler());
+        __ LeaveDartFrame();
         __ Ret();
       } else {
         __ Stop("Wrong number of arguments");

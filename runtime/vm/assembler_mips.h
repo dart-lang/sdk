@@ -151,6 +151,35 @@ class Assembler : public ValueObject {
     UNIMPLEMENTED();
   }
 
+  // Set up a Dart frame on entry with a frame pointer and PC information to
+  // enable easy access to the RawInstruction object of code corresponding
+  // to this frame.
+  void EnterDartFrame(intptr_t frame_size) {
+    UNIMPLEMENTED();
+  }
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  void EnterStubFrame() {
+    UNIMPLEMENTED();
+  }
+
+  // Instruction pattern from entrypoint is used in dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = -1;  // UNIMPLEMENTED.
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   bool near_jump,
+                   Register instance_reg) {
+    UNIMPLEMENTED();
+  }
+
   // Debugging and bringup support.
   void Stop(const char* message) { UNIMPLEMENTED(); }
   void Unimplemented(const char* message);

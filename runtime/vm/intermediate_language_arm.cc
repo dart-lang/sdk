@@ -71,7 +71,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ bkpt(0, NE);
   }
 #endif
-  AssemblerMacros::LeaveDartFrame(compiler->assembler());
+  __ LeaveDartFrame();
   __ Ret();
 
   // Generate 2 NOP instructions so that the debugger can patch the return

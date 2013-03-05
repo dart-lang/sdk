@@ -8,7 +8,6 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
-#include "vm/assembler_macros.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
@@ -1167,11 +1166,10 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   }
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               RAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1213,11 +1211,10 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ mulsd(XMM0, XMM1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               RAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1236,11 +1233,10 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ cvtsi2sd(XMM0, RAX);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               RAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1310,11 +1306,10 @@ static void EmitTrigonometric(Assembler* assembler,
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   Label alloc_failed;
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &alloc_failed,
-                               Assembler::kNearJump,
-                               RAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &alloc_failed,
+                 Assembler::kNearJump,
+                 RAX);  // Result register.
   __ fstpl(FieldAddress(RAX, Double::value_offset()));
   __ ret();
 
@@ -1359,11 +1354,10 @@ bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ sqrtsd(XMM0, XMM1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  AssemblerMacros::TryAllocate(assembler,
-                               double_class,
-                               &fall_through,
-                               Assembler::kNearJump,
-                               RAX);  // Result register.
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 RAX);  // Result register.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);

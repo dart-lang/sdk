@@ -593,6 +593,31 @@ class Assembler : public ValueObject {
 
   void CallRuntime(const RuntimeEntry& entry);
 
+  // Set up a Dart frame on entry with a frame pointer and PC information to
+  // enable easy access to the RawInstruction object of code corresponding
+  // to this frame.
+  void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  void EnterStubFrame();
+  void LeaveStubFrame();
+
+  // Instruction pattern from entrypoint is used in Dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = Instr::kPCReadOffset;
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   bool near_jump,
+                   Register instance_reg);
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 

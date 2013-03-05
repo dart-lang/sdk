@@ -388,7 +388,7 @@ uword Isolate::GetSpecifiedStackSize() {
 
 
 void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
-#ifdef USING_SIMULATOR
+#if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
   Simulator* sim = Simulator::Current();  // May allocate a simulator.
   ASSERT(simulator() == sim);  // This isolate's simulator is the current one.

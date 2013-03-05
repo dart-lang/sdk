@@ -4,7 +4,7 @@
 
 #include "vm/code_generator.h"
 
-#include "vm/assembler_macros.h"
+#include "vm/assembler.h"
 #include "vm/ast.h"
 #include "vm/bigint_operations.h"
 #include "vm/code_patcher.h"

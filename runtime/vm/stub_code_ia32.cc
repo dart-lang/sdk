@@ -6,7 +6,6 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/assembler.h"
-#include "vm/assembler_macros.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
@@ -188,7 +187,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
@@ -211,7 +210,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry);
@@ -262,7 +261,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 //       when trying to resolve the call.
 // Uses EDI.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -392,7 +391,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   if (preserve_eax) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   }
@@ -423,7 +422,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   // Load the receiver into EAX.  The argument count in the arguments
   // descriptor in EDX is a smi.
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
@@ -587,7 +586,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Bind(&slow_case);
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDX);  // Array length as Smi.
   __ pushl(ECX);  // Element type.
@@ -644,7 +643,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve read-only function object argument.
@@ -676,7 +675,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   __ pushl(raw_null);  // Setup space on stack for result from error reporting.
   __ pushl(EDX);  // Arguments descriptor.
@@ -938,7 +937,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   }
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ SmiTag(EDX);
   __ pushl(EDX);
@@ -1162,7 +1161,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   }
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
@@ -1302,7 +1301,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   }
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
@@ -1356,7 +1355,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   __ pushl(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
@@ -1400,7 +1399,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   Register ic_reg = ECX;
   Register func_reg = EDI;
   if (FLAG_trace_optimized_ic_calls) {
-    AssemblerMacros::EnterStubFrame(assembler);
+    __ EnterStubFrame();
     __ pushl(func_reg);     // Preserve
     __ pushl(argdesc_reg);  // Preserve.
     __ pushl(ic_reg);       // Preserve.
@@ -1541,7 +1540,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve IC data object.
   __ pushl(raw_null);  // Setup space on stack for result (target code object).
@@ -1693,7 +1692,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor.
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1715,7 +1714,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EAX);
   __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
   __ popl(EAX);
@@ -1736,7 +1735,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(ECX);
   __ pushl(EDX);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
@@ -2005,7 +2004,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   // ECX: ICData
   __ movl(EAX, Address(ESP, 1 * kWordSize));
   __ movl(EDI, Address(ESP, 2 * kWordSize));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EDI);  // arg 0
   __ pushl(EAX);  // arg 1
   __ PushObject(Symbols::EqualOperator());  // Target's name.
@@ -2024,7 +2023,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushl(EDX);
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDI);

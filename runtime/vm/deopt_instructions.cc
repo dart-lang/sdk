@@ -4,7 +4,7 @@
 
 #include "vm/deopt_instructions.h"
 
-#include "vm/assembler_macros.h"
+#include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
@@ -440,7 +440,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     ASSERT(!code.IsNull());
     intptr_t pc_marker = code.EntryPoint() +
-                         AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
+                         Assembler::kOffsetOfSavedPCfromEntrypoint;
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = pc_marker;
     // Increment the deoptimization counter. This effectively increments each

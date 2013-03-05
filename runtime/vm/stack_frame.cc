@@ -4,7 +4,7 @@
 
 #include "vm/stack_frame.h"
 
-#include "vm/assembler_macros.h"
+#include "vm/assembler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -143,7 +143,7 @@ RawCode* StackFrame::GetCodeObject() const {
       *(reinterpret_cast<uword*>(fp() + EntrypointMarkerOffsetFromFp()));
   if (saved_pc != 0) {
     uword entry_point =
-        (saved_pc - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint);
+        (saved_pc - Assembler::kOffsetOfSavedPCfromEntrypoint);
     RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
     if (instr != Instructions::null()) {
       return instr->ptr()->code_;

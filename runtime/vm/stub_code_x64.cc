@@ -6,7 +6,6 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/assembler.h"
-#include "vm/assembler_macros.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
@@ -187,7 +186,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
@@ -208,7 +207,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry);
@@ -257,7 +256,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 //       called, the stub accesses the receiver from this location directly
 //       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -387,7 +386,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   if (preserve_rax) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }
@@ -419,7 +418,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   // Load the receiver into RAX.  The argument count in the arguments
   // descriptor in R10 is a smi.
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -577,7 +576,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Bind(&slow_case);
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
@@ -633,7 +632,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve read-only function object argument.
@@ -665,7 +664,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   __ pushq(raw_null);  // Setup space on stack for result from call.
   __ pushq(R10);  // Arguments descriptor.
@@ -928,7 +927,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ Bind(&slow_case);
   }
   // Create a stub frame.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(raw_null);  // Setup space on stack for the return value.
   __ SmiTag(R10);
   __ pushq(R10);  // Push number of context variables.
@@ -1147,7 +1146,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movq(RDX, Address(RSP, kInstantiatorTypeArgumentsOffset));
   }
   // Create a stub frame.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
@@ -1289,7 +1288,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     __ movq(RAX, Address(RSP, kReceiverOffset));
   }
   // Create the stub frame.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(raw_null);  // Setup space on stack for the return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
@@ -1341,7 +1340,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ movq(RAX, Address(RBP, R13, TIMES_4, kWordSize));  // Get receiver.
 
   // Create a stub frame.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
@@ -1385,7 +1384,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   Register ic_reg = RBX;
   Register func_reg = RDI;
   if (FLAG_trace_optimized_ic_calls) {
-    AssemblerMacros::EnterStubFrame(assembler);
+    __ EnterStubFrame();
     __ pushq(func_reg);     // Preserve
     __ pushq(argdesc_reg);  // Preserve.
     __ pushq(ic_reg);       // Preserve.
@@ -1522,7 +1521,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // arguments descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve IC data object.
   __ pushq(raw_null);  // Setup space on stack for result (target code object).
@@ -1670,7 +1669,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor.
   __ pushq(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
@@ -1688,7 +1687,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(RAX);
   __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
   __ popq(RAX);
@@ -1704,7 +1703,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 //  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(RBX);
   __ pushq(R10);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
@@ -1970,7 +1969,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   // RCX: ICData
   __ movq(RAX, Address(RSP, 1 * kWordSize));
   __ movq(R13, Address(RSP, 2 * kWordSize));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(R13);  // arg 0
   __ pushq(RAX);  // arg 1
   __ PushObject(Symbols::EqualOperator());  // Target's name.
@@ -1988,7 +1987,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   __ pushq(R10);
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RDI);
