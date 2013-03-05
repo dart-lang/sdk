@@ -30,9 +30,9 @@ class WebSocketMessageCollector {
 
   var data;
 
-  WebSocketMessageCollector(_WebSocketProtocolTransformer transformer,
+  WebSocketMessageCollector(Stream stream,
                             [List<int> this.expectedMessage = null]) {
-    transformer.listen(onMessageData, onDone: onClosed, onError: onError);
+    stream.listen(onMessageData, onDone: onClosed, onError: onError);
   }
 
   void onMessageData(buffer) {
@@ -44,7 +44,7 @@ class WebSocketMessageCollector {
     data = buffer;
   }
 
-  void onClosed(int status, String reason) {
+  void onClosed() {
     closeCount++;
   }
 
