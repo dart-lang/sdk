@@ -80,6 +80,9 @@ class ClosureFieldElement extends ElementX {
 }
 
 class ClosureClassElement extends ClassElementX {
+  DartType rawType;
+  DartType thisType;
+
   ClosureClassElement(SourceString name,
                       Compiler compiler,
                       this.methodElement,
@@ -95,6 +98,7 @@ class ClosureClassElement extends ClassElementX {
     supertype = compiler.closureClass.computeType(compiler);
     interfaces = const Link<DartType>();
     allSupertypes = const Link<DartType>().prepend(supertype);
+    thisType = rawType = new InterfaceType(this);
   }
 
   bool isClosure() => true;

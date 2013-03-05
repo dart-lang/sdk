@@ -63,15 +63,6 @@ class RuntimeTypeInformation {
       }
     }
 
-    // TODO(karlklose): remove this temporary fix: we need to add the classes
-    // used in substitutions to addArguments.
-    allArguments.addAll([compiler.intClass,
-                         compiler.boolClass,
-                         compiler.numClass,
-                         compiler.doubleClass,
-                         compiler.stringClass,
-                         compiler.listClass]);
-
     return cachedRequiredChecks = requiredChecks;
   }
 

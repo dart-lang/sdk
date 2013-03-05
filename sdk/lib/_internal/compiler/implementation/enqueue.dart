@@ -87,17 +87,20 @@ abstract class Enqueuer {
   bool addElementToWorkList(Element element, [TreeElements elements]);
 
   void registerInstantiatedType(InterfaceType type) {
+    ClassElement cls = type.element;
+    cls.ensureResolved(compiler);
     universe.instantiatedTypes.add(type);
-    registerInstantiatedClass(type.element);
-  }
-
-  void registerInstantiatedClass(ClassElement cls) {
     if (universe.instantiatedClasses.contains(cls)) return;
     if (!cls.isAbstract(compiler)) {
       universe.instantiatedClasses.add(cls);
     }
     onRegisterInstantiatedClass(cls);
     compiler.backend.registerInstantiatedClass(cls, this);
+  }
+
+  void registerInstantiatedClass(ClassElement cls) {
+    cls.ensureResolved(compiler);
+    registerInstantiatedType(cls.rawType);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {

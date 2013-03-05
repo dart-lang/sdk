@@ -2591,20 +2591,28 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
-    world.registerInstantiatedClass(compiler.listClass);
     NodeList arguments = node.typeArguments;
+    DartType typeArgument;
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
       } else {
-        resolveTypeRequired(nodes.head);
+        typeArgument = resolveTypeRequired(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
           error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
           resolveTypeRequired(nodes.head);
         }
       }
     }
+    DartType listType;
+    if (typeArgument != null) {
+      listType = new InterfaceType(compiler.listClass,
+                                   new Link<DartType>.fromList([typeArgument]));
+    } else {
+      listType = compiler.listClass.rawType;
+    }
+    world.registerInstantiatedType(listType);
     visit(node.elements);
   }
 
