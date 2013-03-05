@@ -6,7 +6,6 @@ library dart.collection;
 
 import 'dart:_collection-dev';
 
-part 'arrays.dart';
 part 'collections.dart';
 part 'iterator.dart';
 part 'maps.dart';

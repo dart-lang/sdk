@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.collection;
+part of dart._collection.dev;
 
 // TODO(ngeoffray): Rename to Lists.
 class Arrays {
   static void copy(List src, int srcStart,
                    List dst, int dstStart, int count) {
-    if (srcStart == null) srcStart = 0;
-    if (dstStart == null) dstStart = 0;
-
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;
            i >= srcStart; i--, j--) {

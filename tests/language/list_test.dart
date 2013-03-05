@@ -57,6 +57,11 @@ class ListTest {
 
     Expect.throws(() {
       List a = new List(4);
+      a.setRange(1, 1, const [1, 2, 3, 4], null);
+    });
+
+    Expect.throws(() {
+      List a = new List(4);
       a.setRange(10, 1, a, 1);
     }, (e) => e is RangeError);
 
