@@ -21,6 +21,7 @@ import 'dart:async';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart';
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 import '../../../../../pkg/args/lib/args.dart';
 
 /**
@@ -210,7 +211,23 @@ main() {
   }
 
   if (pkgPath == null) {
-    pkgPath = entrypoints[0].directoryPath.append('packages/');
+    // Check if there's a `packages` directory in the entry point directory.
+    var script = path.normalize(path.absolute(entrypoints[0].toNativePath()));
+    var dir = path.join(path.dirname(script), 'packages/');
+    if (new Directory(dir).existsSync()) {
+      // TODO(amouravski): convert all of dartdoc to use pathos.
+      pkgPath = new Path(dir);
+    } else {
+      // If there is not, then check if the entrypoint is somewhere in a `lib`
+      // directory.
+      dir = path.dirname(script);
+      var parts = path.split(dir);
+      var libDir = parts.lastIndexOf('lib');
+      if (libDir > 0) {
+        pkgPath = new Path(path.join(path.joinAll(parts.take(libDir - 1)),
+              'packages'));
+      }
+    }
   }
 
   cleanOutputDirectory(dartdoc.outputDir);
@@ -221,9 +238,17 @@ main() {
   Future filesCopied = copyDirectory(scriptDir.append('../static'),
                                      dartdoc.outputDir);
 
-  Future.wait([compiled, filesCopied]).then((_) {
+  Future.wait([compiled, filesCopied]).then((futureStatus) {
     dartdoc.cleanup();
-    print('Documented ${dartdoc.totalLibraries} libraries, '
-          '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} members.');
+
+    if (dartdoc.totalLibraries + dartdoc.totalTypes +
+      dartdoc.totalMembers == 0) {
+      print('Nothing was documented!');
+      exit(1);
+    } else {
+      print('Documented ${dartdoc.totalLibraries} libraries, '
+            '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} '
+            'members.');
+    }
   });
 }

@@ -119,29 +119,27 @@ Future copyDirectory(Path from, Path to) {
           fromFile.openRead().pipe(toFile.openWrite());
         }
       },
-      onDone: () => completer.complete(true));
+      onDone: () => completer.complete(),
+      onError: (e) => completer.completeError(e.error, e.stackTrace));
   return completer.future;
 }
 
 /**
  * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
-Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
+Future compileScript(int mode, Path outputDir, Path libPath) {
   var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
   var dartPath = libPath.append(
       'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
   var jsPath = outputDir.append('client-$clientScript.js');
 
-  var completer = new Completer<bool>();
   var compilation = new Compilation(
       dartPath, libPath, null, const <String>['--categories=Client,Server']);
-  Future<String> result = compilation.compileToJavaScript();
-  result.then((jsCode) {
+
+  return compilation.compileToJavaScript().then((jsCode) {
     writeString(new File.fromPath(jsPath), jsCode);
-    completer.complete(true);
+    return null;
   });
-  result.catchError((e) => completer.completeError(e.error, e.stackTrace));
-  return completer.future;
 }
 
 /**

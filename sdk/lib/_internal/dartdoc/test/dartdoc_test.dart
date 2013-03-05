@@ -17,7 +17,15 @@ import 'markdown_test.dart';
 // TODO(rnystrom): Better path to unittest.
 import '../../../../../pkg/unittest/lib/unittest.dart';
 
+// Pretty test config with --human
+import '../../../../../utils/tests/pub/command_line_config.dart';
+
 main() {
+  // Use the human-friendly config.
+  if (new Options().arguments.contains('--human')) {
+    configure(new CommandLineConfiguration());
+  }
+
   group('countOccurrences', () {
     test('empty text returns 0', () {
       expect(dd.countOccurrences('', 'needle'), equals(0));
@@ -198,27 +206,34 @@ main() {
 
   group('integration tests', () {
     test('no entrypoints', () {
-      expect(_runDartdoc([], exitCode: 1), completes);
+      expect(_runDartdoc([]), completion(1));
     });
 
-    test('library with no packages', () {
-      expect(_runDartdoc(
-          [new Path('test/test_files/other_place/'
-              'no_package_test_file.dart').toNativePath()]),
-        completes);
+    test('entrypoint in lib', () {
+      expect(_runDartdoc(['test_files/lib/no_package_test_file.dart']),
+        completion(0));
     });
 
-    test('library with packages', () {
-      expect(_runDartdoc(
-          [new Path('test/test_files/'
-              'package_test_file.dart').toNativePath()]),
-        completes);
+    test('entrypoint somewhere with packages locally', () {
+      expect(_runDartdoc(['test_files/package_test_file.dart']),
+        completion(0));
+    });
+
+    test('file does not exist', () {
+      expect(_runDartdoc(['test_files/this_file_does_not_exist.dart']),
+        completion(1));
     });
   });
 }
 
-Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
+/// Runs dartdoc with the arguments provided, and completes to dartdoc's
+/// exitCode.
+Future<int> _runDartdoc(List<String> arguments) {
   var dartBin = new Options().executable;
+
+  // Turn relative arguments to absolute ones.
+  var runArgs = arguments.map((e) => path.join(dd.scriptDir.toNativePath(),
+        e)).toList(growable: true);
 
   var dir = path.absolute(new Options().script);
   while (path.basename(dir) != 'dartdoc') {
@@ -229,11 +244,8 @@ Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
   }
 
   var dartdoc = path.join(path.absolute(dir), 'bin/dartdoc.dart');
-  arguments.insertRange(0, 1, dartdoc);
-  return Process.run(dartBin, arguments)
-      .then((result) {
-        expect(result.exitCode, exitCode);
-      });
+  runArgs.insertRange(0, 1, dartdoc);
+  return Process.run(dartBin, runArgs).then((result) => result.exitCode);
 }
 
 validateDartdocMarkdown(String description, String markdown,
