@@ -148,11 +148,23 @@ class _MultiControllerStream<T> extends _MultiStreamImpl<T> {
   _MultiControllerStream(this._subscriptionHandler, this._pauseHandler);
 
   void _onSubscriptionStateChange() {
-    if (_subscriptionHandler != null) _subscriptionHandler();
+    if (_subscriptionHandler != null) {
+      try {
+        _subscriptionHandler();
+      } catch (e, s) {
+        new AsyncError(e, s).throwDelayed();
+      }
+    }
   }
 
   void _onPauseStateChange() {
-    if (_pauseHandler != null) _pauseHandler();
+    if (_pauseHandler != null) {
+      try {
+        _pauseHandler();
+      } catch (e, s) {
+        new AsyncError(e, s).throwDelayed();
+      }
+    }
   }
 }
 
@@ -163,10 +175,22 @@ class _SingleControllerStream<T> extends _SingleStreamImpl<T> {
   _SingleControllerStream(this._subscriptionHandler, this._pauseHandler);
 
   void _onSubscriptionStateChange() {
-    if (_subscriptionHandler != null) _subscriptionHandler();
+    if (_subscriptionHandler != null) {
+      try {
+        _subscriptionHandler();
+      } catch (e, s) {
+        new AsyncError(e, s).throwDelayed();
+      }
+    }
   }
 
   void _onPauseStateChange() {
-    if (_pauseHandler != null) _pauseHandler();
+    if (_pauseHandler != null) {
+      try {
+        _pauseHandler();
+      } catch (e, s) {
+        new AsyncError(e, s).throwDelayed();
+      }
+    }
   }
 }
