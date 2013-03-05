@@ -59,20 +59,13 @@ class TypeMask {
    * Returns whether or not this type mask contains the given type.
    */
   bool contains(DartType type, Compiler compiler) {
-    // TODO(kasperl): Do this error handling earlier.
-    if (base.kind != TypeKind.INTERFACE) return false;
-    assert(type.kind == TypeKind.INTERFACE);
-    // Compare the interface types.
-    ClassElement baseElement = base.element;
-    ClassElement typeElement = type.element;
     if (isExact) {
-      return identical(baseElement, typeElement);
+      return identical(base.element, type.element);
     } else if (isSubclass) {
-      return typeElement.isSubclassOf(baseElement);
+      return isSubclassOf(type, base, compiler);
     } else {
       assert(isSubtype);
-      Set<ClassElement> subtypes = compiler.world.subtypes[baseElement];
-      return subtypes != null ? subtypes.contains(typeElement) : false;
+      return isSubtypeOf(type, base, compiler);
     }
   }
 
@@ -88,22 +81,22 @@ class TypeMask {
         || identical(baseElement, compiler.dynamicClass);
   }
 
-  // TODO(kasperl): This implementation is a bit sketchy, but it
-  // behaves the same as the old implementation on HType. The plan is
-  // to extend this and add proper testing of it.
-  TypeMask union(TypeMask other, Types types) {
-    // TODO(kasperl): Add subclass handling.
+  TypeMask union(TypeMask other, Compiler compiler) {
     if (base == other.base) {
-      return unionSame(other, types);
-    } else if (types.isSubtype(other.base, base)) {
-      return unionSubtype(other, types);
-    } else if (types.isSubtype(base, other.base)) {
-      return other.unionSubtype(this, types);
+      return unionSame(other, compiler);
+    } else if (isSubclassOf(other.base, base, compiler)) {
+      return unionSubclass(other, compiler);
+    } else if (isSubclassOf(base, other.base, compiler)) {
+      return other.unionSubclass(this, compiler);
+    } else if (isSubtypeOf(other.base, base, compiler)) {
+      return unionSubtype(other, compiler);
+    } else if (isSubtypeOf(base, other.base, compiler)) {
+      return other.unionSubtype(this, compiler);
     }
     return null;
   }
 
-  TypeMask unionSame(TypeMask other, Types types) {
+  TypeMask unionSame(TypeMask other, Compiler compiler) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
@@ -120,8 +113,29 @@ class TypeMask {
     }
   }
 
-  TypeMask unionSubtype(TypeMask other, Types types) {
-    assert(types.isSubtype(other.base, base));
+  TypeMask unionSubclass(TypeMask other, Compiler compiler) {
+    assert(isSubclassOf(other.base, base, compiler));
+    int combined;
+    if (isExact && other.isExact) {
+      // Since the other mask is a subclass of this mask, we need the
+      // resulting union to be a subclass too. If either one of the
+      // masks are nullable the result should be nullable too.
+      combined = (SUBCLASS << 1) | ((flags | other.flags) & 1);
+    } else {
+      // Both masks are at least subclass masks, so we pick the least
+      // constraining kind (the highest) of the two. If either one of
+      // the masks are nullable the result should be nullable too.
+      combined = (flags > other.flags)
+          ? flags | (other.flags & 1)
+          : other.flags | (flags & 1);
+    }
+    return (flags != combined)
+        ? new TypeMask.internal(base, combined)
+        : this;
+  }
+
+  TypeMask unionSubtype(TypeMask other, Compiler compiler) {
+    assert(isSubtypeOf(other.base, base, compiler));
     // Since the other mask is a subtype of this mask, we need the
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
@@ -131,35 +145,68 @@ class TypeMask {
         : this;
   }
 
-  // TODO(kasperl): This implementation is a bit sketchy, but it
-  // behaves the same as the old implementation on HType. The plan is
-  // to extend this and add proper testing of it.
-  TypeMask intersection(TypeMask other, Types types) {
+  TypeMask intersection(TypeMask other, Compiler compiler) {
+    if (base == other.base) {
+      return intersectionSame(other, compiler);
+    } else if (isSubclassOf(other.base, base, compiler)) {
+      return intersectionSubclass(other, compiler);
+    } else if (isSubclassOf(base, other.base, compiler)) {
+      return other.intersectionSubclass(this, compiler);
+    } else if (isSubtypeOf(other.base, base, compiler)) {
+      return intersectionSubtype(other, compiler);
+    } else if (isSubtypeOf(base, other.base, compiler)) {
+      return other.intersectionSubtype(this, compiler);
+    }
+    return null;
+  }
+
+  TypeMask intersectionSame(TypeMask other, Compiler compiler) {
+    assert(base == other.base);
+    // The two masks share the base type, so we must chose the most
+    // constraining kind (the lowest) of the two. Only if both masks
+    // are nullable, will the result be nullable too.
     int combined = (flags < other.flags)
         ? flags & ((other.flags & 1) | ~1)
         : other.flags & ((flags & 1) | ~1);
-    if (base == other.base) {
-      if (flags == combined) {
-        return this;
-      } else if (other.flags == combined) {
-        return other;
-      } else {
-        return new TypeMask.internal(base, combined);
-      }
-    } else if (types.isSubtype(other.base, base)) {
-      if (other.flags == combined) {
-        return other;
-      } else {
-        return new TypeMask.internal(other.base, combined);
-      }
-    } else if (types.isSubtype(base, other.base)) {
-      if (flags == combined) {
-        return this;
-      } else {
-        return new TypeMask.internal(base, combined);
-      }
+    if (flags == combined) {
+      return this;
+    } else if (other.flags == combined) {
+      return other;
+    } else {
+      return new TypeMask.internal(base, combined);
     }
-    return null;
+  }
+
+  TypeMask intersectionSubclass(TypeMask other, Compiler compiler) {
+    assert(isSubclassOf(other.base, base, compiler));
+    // If this mask isn't at least a subclass mask, then the
+    // intersection with the other mask is empty.
+    if (isExact) return null;
+    // Only the other mask puts constraints on the intersection mask,
+    // so base the combined flags on the other mask. Only if both
+    // masks are nullable, will the result be nullable too.
+    int combined = other.flags & ((flags & 1) | ~1);
+    if (other.flags == combined) {
+      return other;
+    } else {
+      return new TypeMask.internal(other.base, combined);
+    }
+  }
+
+  TypeMask intersectionSubtype(TypeMask other, Compiler compiler) {
+    assert(isSubtypeOf(other.base, base, compiler));
+    // If this mask isn't a subtype mask, then the intersection with
+    // the other mask is empty.
+    if (!isSubtype) return null;
+    // Only the other mask puts constraints on the intersection mask,
+    // so base the combined flags on the other mask. Only if both
+    // masks are nullable, will the result be nullable too.
+    int combined = other.flags & ((flags & 1) | ~1);
+    if (other.flags == combined) {
+      return other;
+    } else {
+      return new TypeMask.internal(other.base, combined);
+    }
   }
 
   bool operator ==(var other) {
@@ -176,5 +223,28 @@ class TypeMask {
     if (isSubtype) buffer.write('subtype=');
     buffer.write(base.element.name.slowToString());
     return "[$buffer]";
+  }
+
+  // TODO(kasperl): Move this to the world.
+  static bool isSubclassOf(DartType x, DartType y, Compiler compiler) {
+    // TODO(kasperl): Do this error handling earlier.
+    if (x.kind != TypeKind.INTERFACE) return false;
+    if (y.kind != TypeKind.INTERFACE) return false;
+    ClassElement xElement = x.element;
+    ClassElement yElement = y.element;
+    // TODO(kasperl): Fix the discrepancy between subclass/subtype
+    // that occurs because of "unseen" classes.
+    return isSubtypeOf(x, y, compiler) && yElement.isSubclassOf(xElement);
+  }
+
+  // TODO(kasperl): Move this to the world.
+  static bool isSubtypeOf(DartType x, DartType y, Compiler compiler) {
+    // TODO(kasperl): Do this error handling earlier.
+    if (x.kind != TypeKind.INTERFACE) return false;
+    if (y.kind != TypeKind.INTERFACE) return false;
+    ClassElement xElement = x.element;
+    ClassElement yElement = y.element;
+    Set<ClassElement> subtypes = compiler.world.subtypes[yElement];
+    return (subtypes != null) ? subtypes.contains(xElement) : false;
   }
 }
