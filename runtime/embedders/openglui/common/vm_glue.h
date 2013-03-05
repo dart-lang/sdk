@@ -53,9 +53,9 @@ class VMGlue {
   static Dart_Handle LoadSourceFromFile(const char* url);
   static void ShutdownIsolate(void* callback_data);
 
+  static bool initialized_vm_;
   ISized* surface_;
   Dart_Isolate isolate_;
-  bool initialized_vm_;
   bool initialized_script_;
   char* main_script_;
   static char* extension_script_;

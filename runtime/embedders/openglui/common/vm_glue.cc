@@ -16,6 +16,7 @@
 #include "include/dart_api.h"
 
 char* VMGlue::extension_script_ = NULL;
+bool VMGlue::initialized_vm_ = false;
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -26,7 +27,6 @@ VMGlue::VMGlue(ISized* surface,
                const char* main_script)
     : surface_(surface),
       isolate_(NULL),
-      initialized_vm_(false),
       initialized_script_(false) {
   LOGI("Creating VMGlue");
   if (main_script == NULL) {
