@@ -150,6 +150,9 @@ class TypeMask {
     assert(base != other.base);
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
+    // TODO(kasperl): Do this error handling earlier.
+    if (base.kind != TypeKind.INTERFACE) return null;
+    if (other.base.kind != TypeKind.INTERFACE) return null;
     // If either type mask is a subtype type mask, we cannot use a
     // subclass type mask to represent their union.
     bool useSubclass = !isSubtype && !other.isSubtype;
