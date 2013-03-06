@@ -16,6 +16,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
   var doneCount = 0;
   var closeCount = 0;
   var errorCount = 0;
+  var earlyErrorCount = 0;
 
   ReceivePort port = new ReceivePort();
 
@@ -23,8 +24,8 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
     Expect.isTrue(server.port > 0);
 
     void checkDone() {
-      if (doneCount == socketCount &&
-          closeCount + errorCount == socketCount) {
+      if (doneCount + earlyErrorCount == socketCount &&
+          closeCount + errorCount + earlyErrorCount == socketCount) {
         port.close();
       }
     }
@@ -90,7 +91,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
         });
       }).catchError((e) {
         // "Connection actively refused by host" errors are handled here.
-        errorCount++;
+        earlyErrorCount++;
         checkDone();
       });
     }
