@@ -1061,7 +1061,8 @@ class _ElementFactoryProvider {
     switch (tag) {
       case 'td':
       case 'th':
-        element = _singleNode(_singleNode(table.rows).cells);
+        TableRowElement row = _singleNode(table.rows);
+        element = _singleNode(row.cells);
         break;
       case 'tr':
         element = _singleNode(table.rows);

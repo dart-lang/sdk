@@ -66,22 +66,4 @@ class Lists {
     }
     return accumulator;
   }
-
-  static String join(List<Object> list, [String separator]) {
-    if (list.isEmpty) return "";
-    if (list.length == 1) return "${list[0]}";
-    StringBuffer buffer = new StringBuffer();
-    if (separator == null || separator == "") {
-      for (int i = 0; i < list.length; i++) {
-        buffer.add("${list[i]}");
-      }
-    } else {
-      buffer.add("${list[0]}");
-      for (int i = 1; i < list.length; i++) {
-        buffer.add(separator);
-        buffer.add("${list[i]}");
-      }
-    }
-    return buffer.toString();
-  }
 }

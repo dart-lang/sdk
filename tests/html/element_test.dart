@@ -439,12 +439,6 @@ main() {
       expect(el.children.last, isHRElement);
     });
 
-    test('addLast', () {
-      var el = makeElement();
-      el.children.addLast(new Element.tag('hr'));
-      expect(el.children.last, isHRElement);
-    });
-
     test('iterator', () {
       var els = [];
       var el = makeElementWithChildren();
@@ -594,8 +588,6 @@ main() {
 
     testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
     testUnsupported('add', () => getQueryAll().add(new Element.tag('br')));
-    testUnsupported('addLast', () =>
-        getQueryAll().addLast(new Element.tag('br')));
 
     testUnsupported('addAll', () {
       getQueryAll().addAll([

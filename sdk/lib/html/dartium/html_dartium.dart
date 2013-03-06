@@ -10384,7 +10384,8 @@ class _ElementFactoryProvider {
     switch (tag) {
       case 'td':
       case 'th':
-        element = _singleNode(_singleNode(table.rows).cells);
+        TableRowElement row = _singleNode(table.rows);
+        element = _singleNode(row.cells);
         break;
       case 'tr':
         element = _singleNode(table.rows);
@@ -12695,14 +12696,9 @@ class Geolocation extends NativeFieldWrapperClass1 {
   }
 
   Geoposition _ensurePosition(domPosition) {
-    try {
-      // Firefox may throw on this.
-      if (domPosition is Geoposition) {
-        return domPosition;
-      }
-    } catch(e) {}
-    return new _GeopositionWrapper(domPosition);
+    return domPosition;
   }
+
   Geolocation.internal();
 
   @DomName('Geolocation.clearWatch')
@@ -28080,8 +28076,10 @@ class Window extends EventTarget implements WindowBase {
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
-    var completer = new Completer<int>();
-    requestAnimationFrame(completer.complete);
+    var completer = new Completer<num>();
+    requestAnimationFrame((time) {
+      completer.complete(time);
+    });
     return completer.future;
   }
 
@@ -32021,7 +32019,7 @@ abstract class CssClassSet implements Set<String> {
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
-  Iterable expand(Iterable f(String element)) => readClasses.expand(f);
+  Iterable expand(Iterable f(String element)) => readClasses().expand(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
@@ -33849,7 +33847,7 @@ class _WrappedList<E> implements List<E> {
 
   void set length(int newLength) { _list.length = newLength; }
 
-  void addLast(E value) { _list.addLast(value); }
+  void addLast(E value) { _list.add(value); }
 
   Iterable<E> get reversed => _list.reversed;
 

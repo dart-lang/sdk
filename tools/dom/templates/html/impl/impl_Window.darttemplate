@@ -58,8 +58,10 @@ $endif
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
-    var completer = new Completer<int>();
-    requestAnimationFrame(completer.complete);
+    var completer = new Completer<num>();
+    requestAnimationFrame((time) {
+      completer.complete(time);
+    });
     return completer.future;
   }
 

@@ -75,6 +75,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   Geoposition _ensurePosition(domPosition) {
+$if DART2JS
     try {
       // Firefox may throw on this.
       if (domPosition is Geoposition) {
@@ -82,7 +83,11 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       }
     } catch(e) {}
     return new _GeopositionWrapper(domPosition);
+$else
+    return domPosition;
+$endif
   }
+
 $!MEMBERS}
 
 $if DART2JS

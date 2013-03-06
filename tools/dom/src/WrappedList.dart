@@ -99,7 +99,7 @@ class _WrappedList<E> implements List<E> {
 
   void set length(int newLength) { _list.length = newLength; }
 
-  void addLast(E value) { _list.addLast(value); }
+  void addLast(E value) { _list.add(value); }
 
   Iterable<E> get reversed => _list.reversed;
 
