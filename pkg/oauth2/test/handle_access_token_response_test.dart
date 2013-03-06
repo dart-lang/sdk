@@ -8,8 +8,8 @@ import 'dart:io';
 import 'dart:json' as JSON;
 import 'dart:uri';
 
-import '../../unittest/lib/unittest.dart';
-import '../../http/lib/http.dart' as http;
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/http/lib/http.dart' as http;
 import '../lib/oauth2.dart' as oauth2;
 import '../lib/src/handle_access_token_response.dart';
 import 'utils.dart';

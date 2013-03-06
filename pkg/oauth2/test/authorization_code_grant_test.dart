@@ -9,9 +9,9 @@ import 'dart:io';
 import 'dart:json' as JSON;
 import 'dart:uri';
 
-import '../../unittest/lib/unittest.dart';
-import '../../http/lib/http.dart' as http;
-import '../../http/lib/testing.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/http/lib/http.dart' as http;
+import '../../../pkg/http/lib/testing.dart';
 import '../lib/oauth2.dart' as oauth2;
 import 'utils.dart';
 

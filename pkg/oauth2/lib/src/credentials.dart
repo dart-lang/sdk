@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:json' as JSON;
 import 'dart:uri';
 
-import '../../../http/lib/http.dart' as http;
+import '../../../../pkg/http/lib/http.dart' as http;
 import 'handle_access_token_response.dart';
 import 'utils.dart';
 

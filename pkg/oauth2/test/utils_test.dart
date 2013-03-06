@@ -4,7 +4,7 @@
 
 library utils_test;
 
-import '../../unittest/lib/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 import '../lib/src/utils.dart';
 
 
