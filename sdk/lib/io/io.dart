@@ -26,6 +26,7 @@ import 'dart:scalarlist';
 part 'base64.dart';
 part 'buffer_list.dart';
 part 'common.dart';
+part 'data_transformer.dart';
 part 'directory.dart';
 part 'directory_impl.dart';
 part 'eventhandler.dart';
