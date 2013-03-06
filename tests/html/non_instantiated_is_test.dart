@@ -6,9 +6,15 @@
 // checks of native classes that are not instantiated.
 
 import 'dart:html';
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
 
 var a = [new Object()];
 
 main() {
-  Expect.isFalse(a[0] is Node);
+  useHtmlConfiguration();
+
+  test('is', () {
+    expect(a[0] is Node, isFalse);
+  });
 }
