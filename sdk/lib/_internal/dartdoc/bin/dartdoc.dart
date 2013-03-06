@@ -255,5 +255,6 @@ main() {
   }, onError: (AsyncError asyncError) {
     print('Generation failed: ${asyncError.error}');
     dartdoc.cleanup();
+    exit(1);
   });
 }
