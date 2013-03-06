@@ -185,7 +185,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue: 8920
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue: 8920
 LibTest/core/String/contains_A01_t02: Fail # Issue: 8920
-LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail # Issue: 8920
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
 
 
 # These tests are passing with 'runtime == ie9' but are either skipped or fail
