@@ -11,6 +11,7 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'snapshot_bin_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.bin',
     'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
+    'resources_cc_file': '<(SHARED_INTERMEDIATE_DIR)/resources_gen.cc',
   },
   'targets': [
     {
@@ -330,6 +331,33 @@
       ]
     },
     {
+      'target_name': 'generate_resources_cc_file',
+      'type': 'none',
+      'includes': [
+        'vmstats_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_resources_cc',
+          'inputs': [
+            '../tools/create_resources.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(resources_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_resources.py',
+            '--output', '<(resources_cc_file)',
+            '--root_prefix', 'bin/vmstats/',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(resources_cc_file)'' file.'
+        },
+      ]
+    },
+    {
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',
@@ -338,6 +366,7 @@
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file',
+        'generate_resources_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -345,10 +374,12 @@
       'sources': [
         'main.cc',
         'builtin_nolib.cc',
+        'resources.h',
         'vmstats.h',
         'vmstats_impl.cc',
         'vmstats_impl.h',
         '<(snapshot_cc_file)',
+        '<(resources_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -380,6 +411,7 @@
         'libdart_withcore',
         'libdart_builtin',
         'libdart_io',
+        'generate_resources_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -387,6 +419,7 @@
       'sources': [
         'main.cc',
         'builtin.cc',
+        'resources.h',
         'vmstats.h',
         'vmstats_impl.cc',
         'vmstats_impl.h',
@@ -394,6 +427,7 @@
         '<(builtin_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
+        '<(resources_cc_file)',
         'snapshot_empty.cc',
       ],
       'conditions': [

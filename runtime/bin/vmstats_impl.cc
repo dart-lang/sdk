@@ -9,6 +9,7 @@
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/platform.h"
+#include "bin/resources.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -132,6 +133,59 @@ static const char* ContentType(const char* url) {
 }
 
 
+// Return a malloc'd string from a format string and arguments.
+intptr_t alloc_printf(char** result, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = vsnprintf(NULL, 0, format, args) + 1;
+  *result = reinterpret_cast<char*>(malloc(len));
+  return vsnprintf(*result, len, format, args);
+}
+
+
+void writeResponse(intptr_t socket, const char* content_type,
+                   const char* data, size_t length) {
+  char* header;
+  intptr_t len = alloc_printf(&header,
+      "HTTP/1.1 200 OK\nContent-Type: %s\nContent-Length: %"Pu"\n\n",
+      content_type, length);
+  Socket::Write(socket, header, len);
+  Socket::Write(socket, data, length);
+  Socket::Write(socket, "\n", 1);
+  free(header);
+}
+
+
+void writeErrorResponse(intptr_t socket, intptr_t error_num, const char* error,
+                        const char* description) {
+  if (description != NULL) {
+    // Create body first, so its length is known when creating the header.
+    char* body;
+    intptr_t body_len = alloc_printf(&body,
+        "<html><head><title>%d %s</title></head>\n"
+        "<body>\n<h1>%s</h1>\n%s\n</body></html>\n",
+        error_num, error, error, description);
+    char* header;
+    intptr_t header_len = alloc_printf(&header,
+        "HTTP/1.1 %d %s\n"
+        "Content-Length: %d\n"
+        "Connection: close\n"
+        "Content-Type: text/html\n\n",
+        error_num, error, body_len);
+    Socket::Write(socket, header, header_len);
+    Socket::Write(socket, body, body_len);
+    free(header);
+    free(body);
+  } else {
+    char* response;
+    intptr_t len =
+        alloc_printf(&response, "HTTP/1.1 %d %s\n\n", error_num, error);
+    Socket::Write(socket, response, len);
+    free(response);
+  }
+}
+
+
 void VmStats::WebServer(uword bind_address) {
   while (true) {
     intptr_t socket = ServerSocket::Accept(bind_address);
@@ -167,14 +221,8 @@ void VmStats::WebServer(uword bind_address) {
     // TODO(tball): support POST requests.
     if (strncmp("GET ", buffer, 4) != 0 && strncmp("get ", buffer, 4) != 0) {
       Log::PrintErr("Unsupported HTTP request type");
-      const char* response = "HTTP/1.1 403 Forbidden\n"
-          "Content-Length: 120\n"
-          "Connection: close\n"
-          "Content-Type: text/html\n\n"
-          "<html><head>\n<title>403 Forbidden</title>\n</head>"
-          "<body>\n<h1>Forbidden</h1>\nUnsupported HTTP request type\n</body>"
-          "</html>\n";
-      Socket::Write(socket, response, strlen(response));
+      writeErrorResponse(socket, 403, "Forbidden",
+                         "Unsupported HTTP request type");
       Socket::Close(socket);
       continue;
     }
@@ -186,7 +234,7 @@ void VmStats::WebServer(uword bind_address) {
         buffer[i] = '\0';
       }
     }
-    char* url = &buffer[4];
+    char* url = strdup(&buffer[4]);
 
     Log::Print("vmstats: %s requested\n", url);
     char* content = NULL;
@@ -200,15 +248,7 @@ void VmStats::WebServer(uword bind_address) {
     }
 
     if (content != NULL) {
-      size_t content_len = strlen(content);
-      len = snprintf(buffer, BUFSIZE,
-          "HTTP/1.1 200 OK\nContent-Type: application/json; charset=UTF-8\n"
-          "Content-Length: %"Pu"\n\n",
-          content_len);
-      Socket::Write(socket, buffer, strlen(buffer));
-      Socket::Write(socket, content, content_len);
-      Socket::Write(socket, "\n", 1);
-      Socket::Write(socket, buffer, strlen(buffer));
+      writeResponse(socket, "application/json", content, strlen(content));
       free(content);
     } else {
       // No status content with this URL, return file or resource content.
@@ -223,34 +263,39 @@ void VmStats::WebServer(uword bind_address) {
       }
 
       bool success = false;
+      char* text_buffer = NULL;
+      const char* content_type = ContentType(path.c_str());
       if (File::Exists(path.c_str())) {
         File* f = File::Open(path.c_str(), File::kRead);
         if (f != NULL) {
           intptr_t len = f->Length();
-          char* text_buffer = reinterpret_cast<char*>(malloc(len));
+          text_buffer = reinterpret_cast<char*>(malloc(len));
           if (f->ReadFully(text_buffer, len)) {
-            const char* content_type = ContentType(path.c_str());
-            snprintf(buffer, BUFSIZE,
-                "HTTP/1.1 200 OK\nContent-Type: %s\n"
-                "Content-Length: %"Pu"\n\n",
-                content_type, len);
-            Socket::Write(socket, buffer, strlen(buffer));
-            Socket::Write(socket, text_buffer, len);
-            Socket::Write(socket, "\n", 1);
+            writeResponse(socket, content_type, text_buffer, len);
             success = true;
           }
           free(text_buffer);
           delete f;
         }
       } else {
-        // TODO(tball): look up linked in resource.
+        const char* resource;
+        intptr_t len = Resources::ResourceLookup(path.c_str(), &resource);
+        if (len != Resources::kNoSuchInstance) {
+          ASSERT(len >= 0);
+          writeResponse(socket, content_type, resource, len);
+          success = true;
+        }
       }
       if (!success) {
-        const char* response = "HTTP/1.1 404 Not Found\n\n";
-        Socket::Write(socket, response, strlen(response));
+        char* description;
+        alloc_printf(
+            &description, "URL <a href=\"%s\">%s</a> not found.", url, url);
+        writeErrorResponse(socket, 404, "Not Found", description);
+        free(description);
       }
     }
     Socket::Close(socket);
+    free(url);
   }
 
   Shutdown();
