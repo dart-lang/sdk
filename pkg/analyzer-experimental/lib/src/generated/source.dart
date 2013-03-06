@@ -365,12 +365,12 @@ class SourceRange {
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(_offset);
   String toString() {
-    StringBuffer builder = new StringBuffer();
-    builder.write("[offset=");
-    builder.write(_offset);
-    builder.write(", length=");
-    builder.write(_length);
-    builder.write("]");
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("[offset=");
+    builder.append(_offset);
+    builder.append(", length=");
+    builder.append(_length);
+    builder.append("]");
     return builder.toString();
   }
 }

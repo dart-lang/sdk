@@ -217,6 +217,12 @@ class IllegalArgumentException implements Exception {
   String toString() => "IllegalStateException: $message";
 }
 
+class StringIndexOutOfBoundsException implements Exception {
+  final int index;
+  const StringIndexOutOfBoundsException(this.index);
+  String toString() => "StringIndexOutOfBoundsException: $index";
+}
+
 class IllegalStateException implements Exception {
   final String message;
   const IllegalStateException([this.message = ""]);
@@ -389,4 +395,32 @@ void javaMapPutAll(Map target, Map source) {
 
 bool javaStringEqualsIgnoreCase(String a, String b) {
   return a.toLowerCase() == b.toLowerCase();
+}
+
+class JavaStringBuilder {
+  StringBuffer sb = new StringBuffer();
+  String toString() => sb.toString();
+  void append(x) {
+    sb.write(x);
+  }
+  void appendChar(int c) {
+    sb.writeCharCode(c);
+  }
+  int get length => sb.length;
+  void set length(int newLength) {
+    if (newLength < 0) {
+      throw new StringIndexOutOfBoundsException(newLength);
+    }
+    if (sb.length < newLength) {
+      while (sb.length < newLength) {
+        sb.writeCharCode(0);
+      }
+    } else if (sb.length > newLength) {
+      var s = sb.toString().substring(0, newLength);
+      sb = new StringBuffer(s);
+    }
+  }
+  void clear() {
+    sb = new StringBuffer();
+  }
 }

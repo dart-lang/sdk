@@ -3104,7 +3104,29 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.finallyKeyword);
     JUnitTestCase.assertNotNull(statement.finallyClause);
   }
-  void test_parseTypeAlias_noParameters() {
+  void test_parseTypeAlias_class_implementsC() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A = Object with B implements C;");
+    JUnitTestCase.assertNotNull(typeAlias.keyword);
+    JUnitTestCase.assertNotNull(typeAlias.name);
+    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    JUnitTestCase.assertNotNull(typeAlias.withClause);
+    JUnitTestCase.assertNotNull(typeAlias.implementsClause);
+    JUnitTestCase.assertNotNull(typeAlias.implementsClause.keyword);
+    JUnitTestCase.assertEquals(1, typeAlias.implementsClause.interfaces.length);
+    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+  }
+  void test_parseTypeAlias_class_withB() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A = Object with B;");
+    JUnitTestCase.assertNotNull(typeAlias.keyword);
+    JUnitTestCase.assertNotNull(typeAlias.name);
+    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    JUnitTestCase.assertNotNull(typeAlias.withClause);
+    JUnitTestCase.assertNotNull(typeAlias.withClause.withKeyword);
+    JUnitTestCase.assertEquals(1, typeAlias.withClause.mixinTypes.length);
+    JUnitTestCase.assertNull(typeAlias.implementsClause);
+    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+  }
+  void test_parseTypeAlias_function_noParameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F();");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertNotNull(typeAlias.name);
@@ -3113,7 +3135,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
   }
-  void test_parseTypeAlias_noReturnType() {
+  void test_parseTypeAlias_function_noReturnType() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef F();");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertNotNull(typeAlias.name);
@@ -3122,7 +3144,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
   }
-  void test_parseTypeAlias_parameterizedReturnType() {
+  void test_parseTypeAlias_function_parameterizedReturnType() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A<B> F();");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertNotNull(typeAlias.name);
@@ -3131,7 +3153,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
   }
-  void test_parseTypeAlias_parameters() {
+  void test_parseTypeAlias_function_parameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F(Object value);");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertNotNull(typeAlias.name);
@@ -3140,7 +3162,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
   }
-  void test_parseTypeAlias_typeParameters() {
+  void test_parseTypeAlias_function_typeParameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F<E>();");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertNotNull(typeAlias.name);
@@ -3149,7 +3171,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
     JUnitTestCase.assertNotNull(typeAlias.typeParameters);
   }
-  void test_parseTypeAlias_voidReturnType() {
+  void test_parseTypeAlias_function_voidReturnType() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef void F();");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertNotNull(typeAlias.name);
@@ -5324,29 +5346,37 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseTryStatement_on_catch_finally);
       });
-      _ut.test('test_parseTypeAlias_noParameters', () {
+      _ut.test('test_parseTypeAlias_class_implementsC', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_noParameters);
+        runJUnitTest(__test, __test.test_parseTypeAlias_class_implementsC);
       });
-      _ut.test('test_parseTypeAlias_noReturnType', () {
+      _ut.test('test_parseTypeAlias_class_withB', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_noReturnType);
+        runJUnitTest(__test, __test.test_parseTypeAlias_class_withB);
       });
-      _ut.test('test_parseTypeAlias_parameterizedReturnType', () {
+      _ut.test('test_parseTypeAlias_function_noParameters', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_parameterizedReturnType);
+        runJUnitTest(__test, __test.test_parseTypeAlias_function_noParameters);
       });
-      _ut.test('test_parseTypeAlias_parameters', () {
+      _ut.test('test_parseTypeAlias_function_noReturnType', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_parameters);
+        runJUnitTest(__test, __test.test_parseTypeAlias_function_noReturnType);
       });
-      _ut.test('test_parseTypeAlias_typeParameters', () {
+      _ut.test('test_parseTypeAlias_function_parameterizedReturnType', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_typeParameters);
+        runJUnitTest(__test, __test.test_parseTypeAlias_function_parameterizedReturnType);
       });
-      _ut.test('test_parseTypeAlias_voidReturnType', () {
+      _ut.test('test_parseTypeAlias_function_parameters', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_voidReturnType);
+        runJUnitTest(__test, __test.test_parseTypeAlias_function_parameters);
+      });
+      _ut.test('test_parseTypeAlias_function_typeParameters', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseTypeAlias_function_typeParameters);
+      });
+      _ut.test('test_parseTypeAlias_function_voidReturnType', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseTypeAlias_function_voidReturnType);
       });
       _ut.test('test_parseTypeArgumentList_multiple', () {
         final __test = new SimpleParserTest();
@@ -6002,11 +6032,11 @@ class ASTValidator extends GeneralizingASTVisitor<Object> {
    */
   void assertValid() {
     if (!_errors.isEmpty) {
-      StringBuffer builder = new StringBuffer();
-      builder.write("Invalid AST structure:");
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append("Invalid AST structure:");
       for (String message in _errors) {
-        builder.write("\r\n   ");
-        builder.write(message);
+        builder.append("\r\n   ");
+        builder.append(message);
       }
       JUnitTestCase.fail(builder.toString());
     }
@@ -7068,15 +7098,6 @@ class ErrorParserTest extends ParserTestCase {
   void test_breakOutsideOfLoop_functionExpression_withALoop() {
     ParserTestCase.parse6("parseStatement", "() {for (; x;) {break;}};", []);
   }
-  void test_builtInIdentifierAsTypeDefName() {
-    ParserTestCase.parse5("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef as();", [ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
-  }
-  void test_builtInIdentifierAsTypeName() {
-    ParserTestCase.parse5("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class as {}", [ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
-  }
-  void test_builtInIdentifierAsTypeVariableName() {
-    ParserTestCase.parse6("parseTypeParameter", "as", [ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME]);
-  }
   void test_constAndFinal() {
     ParserTestCase.parse5("parseClassMember", <Object> ["C"], "const final int x;", [ParserErrorCode.CONST_AND_FINAL]);
   }
@@ -7583,18 +7604,6 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_breakOutsideOfLoop_functionExpression_withALoop', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_breakOutsideOfLoop_functionExpression_withALoop);
-      });
-      _ut.test('test_builtInIdentifierAsTypeDefName', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_builtInIdentifierAsTypeDefName);
-      });
-      _ut.test('test_builtInIdentifierAsTypeName', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_builtInIdentifierAsTypeName);
-      });
-      _ut.test('test_builtInIdentifierAsTypeVariableName', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_builtInIdentifierAsTypeVariableName);
       });
       _ut.test('test_constAndFinal', () {
         final __test = new ErrorParserTest();
@@ -8285,7 +8294,6 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseSetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseSetter(arg0, arg1, arg2, arg3)),
   'parseShiftExpression_0': new MethodTrampoline(0, (Parser target) => target.parseShiftExpression()),
   'parseSimpleIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseSimpleIdentifier()),
-  'parseSimpleIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseSimpleIdentifier2(arg0)),
   'parseStatement_0': new MethodTrampoline(0, (Parser target) => target.parseStatement2()),
   'parseStatements_0': new MethodTrampoline(0, (Parser target) => target.parseStatements2()),
   'parseStringInterpolation_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStringInterpolation(arg0)),

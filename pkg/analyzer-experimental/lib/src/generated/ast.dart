@@ -6798,15 +6798,15 @@ class LibraryIdentifier extends Identifier {
   Element get element => null;
   Token get endToken => _components.endToken;
   String get name {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     bool needsPeriod = false;
     for (SimpleIdentifier identifier in _components) {
       if (needsPeriod) {
-        builder.write(".");
+        builder.append(".");
       } else {
         needsPeriod = true;
       }
-      builder.write(identifier.name);
+      builder.append(identifier.name);
     }
     return builder.toString();
   }
@@ -10849,13 +10849,13 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
    */
   static Object NOT_A_CONSTANT = new Object();
   Object visitAdjacentStrings(AdjacentStrings node) {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     for (StringLiteral string in node.strings) {
       Object value = string.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
-      builder.write(value);
+      builder.append(value);
     }
     return builder.toString();
   }
@@ -11054,13 +11054,13 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   Object visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(null);
   Object visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;
   Object visitStringInterpolation(StringInterpolation node) {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     for (InterpolationElement element in node.elements) {
       Object value = element.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
-      builder.write(value);
+      builder.append(value);
     }
     return builder.toString();
   }

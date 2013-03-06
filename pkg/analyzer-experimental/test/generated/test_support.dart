@@ -89,7 +89,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * expected
    */
   void assertErrors2(List<ErrorCode> expectedErrorCodes) {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     Map<ErrorCode, int> expectedCounts = new Map<ErrorCode, int>();
     for (ErrorCode code in expectedErrorCodes) {
       int count = expectedCounts[code];
@@ -122,15 +122,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
       if (actualCount != expectedCount) {
         if (builder.length == 0) {
-          builder.write("Expected ");
+          builder.append("Expected ");
         } else {
-          builder.write("; ");
+          builder.append("; ");
         }
-        builder.write(expectedCount);
-        builder.write(" errors of type ");
-        builder.write(code);
-        builder.write(", found ");
-        builder.write(actualCount);
+        builder.append(expectedCount);
+        builder.append(" errors of type ");
+        builder.append(code);
+        builder.append(", found ");
+        builder.append(actualCount);
       }
     }
     for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
@@ -138,23 +138,23 @@ class GatheringErrorListener implements AnalysisErrorListener {
       List<AnalysisError> actualErrors = entry.getValue();
       int actualCount = actualErrors.length;
       if (builder.length == 0) {
-        builder.write("Expected ");
+        builder.append("Expected ");
       } else {
-        builder.write("; ");
+        builder.append("; ");
       }
-      builder.write("0 errors of type ");
-      builder.write(code);
-      builder.write(", found ");
-      builder.write(actualCount);
-      builder.write(" (");
+      builder.append("0 errors of type ");
+      builder.append(code);
+      builder.append(", found ");
+      builder.append(actualCount);
+      builder.append(" (");
       for (int i = 0; i < actualErrors.length; i++) {
         AnalysisError error = actualErrors[i];
         if (i > 0) {
-          builder.write(", ");
+          builder.append(", ");
         }
-        builder.write(error.offset);
+        builder.append(error.offset);
       }
-      builder.write(")");
+      builder.append(")");
     }
     if (builder.length > 0) {
       JUnitTestCase.fail(builder.toString());

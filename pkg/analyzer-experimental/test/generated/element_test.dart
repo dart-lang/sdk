@@ -1147,7 +1147,7 @@ class ElementFactory {
   }
   static LocalVariableElementImpl localVariableElement(Identifier name) => new LocalVariableElementImpl(name);
   static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(ASTFactory.identifier2(name));
-  static MethodElementImpl methodElement(String methodName, Type2 returnType11, List<Type2> argumentTypes) {
+  static MethodElementImpl methodElement(String methodName, Type2 returnType12, List<Type2> argumentTypes) {
     MethodElementImpl method = new MethodElementImpl.con1(ASTFactory.identifier2(methodName));
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -1159,7 +1159,7 @@ class ElementFactory {
     method.parameters = parameters;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
     methodType.normalParameterTypes = argumentTypes;
-    methodType.returnType = returnType11;
+    methodType.returnType = returnType12;
     method.type = methodType;
     return method;
   }
@@ -1453,8 +1453,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_getReturnType() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));
-    Type2 returnType7 = type.returnType;
-    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType7);
+    Type2 returnType8 = type.returnType;
+    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType8);
   }
   void test_getTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));
@@ -1657,8 +1657,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));
     Type2 expectedType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier2("C")));
     type.returnType = expectedType;
-    Type2 returnType8 = type.returnType;
-    JUnitTestCase.assertEquals(expectedType, returnType8);
+    Type2 returnType9 = type.returnType;
+    JUnitTestCase.assertEquals(expectedType, returnType9);
   }
   void test_setTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));

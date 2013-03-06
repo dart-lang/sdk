@@ -1427,13 +1427,13 @@ class TokenStreamValidator {
    * @param token the first token in the stream of tokens to be validated
    */
   void validate(Token token) {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     validateStream(builder, token);
     if (builder.length > 0) {
       JUnitTestCase.fail(builder.toString());
     }
   }
-  void validateStream(StringBuffer builder, Token token) {
+  void validateStream(JavaStringBuilder builder, Token token) {
     if (token == null) {
       return;
     }
@@ -1445,9 +1445,9 @@ class TokenStreamValidator {
       TokenType type28 = currentToken.type;
       if (identical(type28, TokenType.OPEN_CURLY_BRACKET) || identical(type28, TokenType.OPEN_PAREN) || identical(type28, TokenType.OPEN_SQUARE_BRACKET) || identical(type28, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (currentToken is! BeginToken) {
-          builder.write("\r\nExpected BeginToken, found ");
-          builder.write(currentToken.runtimeType.toString());
-          builder.write(" ");
+          builder.append("\r\nExpected BeginToken, found ");
+          builder.append(currentToken.runtimeType.toString());
+          builder.append(" ");
           writeToken(builder, currentToken);
         }
       }
@@ -1455,9 +1455,9 @@ class TokenStreamValidator {
       int currentLength = currentToken.length;
       int currentEnd = currentStart + currentLength - 1;
       if (currentStart <= previousEnd) {
-        builder.write("\r\nInvalid token sequence: ");
+        builder.append("\r\nInvalid token sequence: ");
         writeToken(builder, previousToken);
-        builder.write(" followed by ");
+        builder.append(" followed by ");
         writeToken(builder, currentToken);
       }
       previousEnd = currentEnd;
@@ -1465,16 +1465,16 @@ class TokenStreamValidator {
       currentToken = currentToken.next;
     }
   }
-  void writeToken(StringBuffer builder, Token token) {
-    builder.write("[");
-    builder.write(token.type);
-    builder.write(", '");
-    builder.write(token.lexeme);
-    builder.write("', ");
-    builder.write(token.offset);
-    builder.write(", ");
-    builder.write(token.length);
-    builder.write("]");
+  void writeToken(JavaStringBuilder builder, Token token) {
+    builder.append("[");
+    builder.append(token.type);
+    builder.append(", '");
+    builder.append(token.lexeme);
+    builder.append("', ");
+    builder.append(token.offset);
+    builder.append(", ");
+    builder.append(token.length);
+    builder.append("]");
   }
 }
 abstract class AbstractScannerTest extends JUnitTestCase {

@@ -1110,9 +1110,9 @@ class XmlTagNode extends XmlNode {
     if (identical(token, _contentEnd)) {
       return content;
     }
-    StringBuffer buffer = new StringBuffer();
+    JavaStringBuilder buffer = new JavaStringBuilder();
     while (token != _contentEnd) {
-      buffer.write(token.lexeme);
+      buffer.append(token.lexeme);
       token = token.next;
     }
     return buffer.toString();

@@ -1416,23 +1416,23 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_methods, visitor);
     safelyVisitChildren(_typeVariables, visitor);
   }
-  void appendTo(StringBuffer builder) {
+  void appendTo(JavaStringBuilder builder) {
     String name11 = name;
     if (name11 == null) {
-      builder.write("{unnamed class}");
+      builder.append("{unnamed class}");
     } else {
-      builder.write(name11);
+      builder.append(name11);
     }
     int variableCount = _typeVariables.length;
     if (variableCount > 0) {
-      builder.write("<");
+      builder.append("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
-          builder.write(", ");
+          builder.append(", ");
         }
         ((_typeVariables[i] as TypeVariableElementImpl)).appendTo(builder);
       }
-      builder.write(">");
+      builder.append(">");
     }
   }
   void collectAllSupertypes(Collection<InterfaceType> list) {
@@ -1641,11 +1641,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     safelyVisitChildren(_types, visitor);
     safelyVisitChildren(_variables, visitor);
   }
-  void appendTo(StringBuffer builder) {
+  void appendTo(JavaStringBuilder builder) {
     if (_source == null) {
-      builder.write("{compilation unit}");
+      builder.append("{compilation unit}");
     } else {
-      builder.write(_source.fullName);
+      builder.append(_source.fullName);
     }
   }
 }
@@ -1676,12 +1676,12 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   void set factory(bool isFactory) {
     setModifier(Modifier.FACTORY, isFactory);
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(enclosingElement.name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(enclosingElement.name);
     String name12 = name;
     if (name12 != null && !name12.isEmpty) {
-      builder.write(".");
-      builder.write(name12);
+      builder.append(".");
+      builder.append(name12);
     }
     super.appendTo(builder);
   }
@@ -1829,7 +1829,7 @@ abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
   String toString() {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     appendTo(builder);
     return builder.toString();
   }
@@ -1839,13 +1839,13 @@ abstract class ElementImpl implements Element {
    * Append a textual representation of this type to the given builder.
    * @param builder the builder to which the text is to be appended
    */
-  void appendTo(StringBuffer builder) {
+  void appendTo(JavaStringBuilder builder) {
     if (_name == null) {
-      builder.write("<unnamed ");
-      builder.write(runtimeType.toString());
-      builder.write(">");
+      builder.append("<unnamed ");
+      builder.append(runtimeType.toString());
+      builder.append(">");
     } else {
-      builder.write(_name);
+      builder.append(_name);
     }
   }
   /**
@@ -1954,11 +1954,11 @@ class ElementLocationImpl implements ElementLocation {
    */
   List<String> get components => _components;
   String get encoding {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     int length2 = _components.length;
     for (int i = 0; i < length2; i++) {
       if (i > 0) {
-        builder.writeCharCode(_SEPARATOR_CHAR);
+        builder.appendChar(_SEPARATOR_CHAR);
       }
       encode(builder, _components[i]);
     }
@@ -1973,22 +1973,22 @@ class ElementLocationImpl implements ElementLocation {
    */
   List<String> decode(String encoding) {
     List<String> components = new List<String>();
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     int index = 0;
     int length3 = encoding.length;
     while (index < length3) {
       int currentChar = encoding.codeUnitAt(index);
       if (currentChar == _SEPARATOR_CHAR) {
         if (index + 1 < length3 && encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
-          builder.writeCharCode(_SEPARATOR_CHAR);
+          builder.appendChar(_SEPARATOR_CHAR);
           index += 2;
         } else {
           components.add(builder.toString());
-          builder.clear();
+          builder.length = 0;
           index++;
         }
       } else {
-        builder.writeCharCode(currentChar);
+        builder.appendChar(currentChar);
         index++;
       }
     }
@@ -2002,14 +2002,14 @@ class ElementLocationImpl implements ElementLocation {
    * @param builder the builder to which the encoded component is to be appended
    * @param component the component to be appended to the builder
    */
-  void encode(StringBuffer builder, String component) {
+  void encode(JavaStringBuilder builder, String component) {
     int length4 = component.length;
     for (int i = 0; i < length4; i++) {
       int currentChar = component.codeUnitAt(i);
       if (currentChar == _SEPARATOR_CHAR) {
-        builder.writeCharCode(_SEPARATOR_CHAR);
+        builder.appendChar(_SEPARATOR_CHAR);
       }
-      builder.writeCharCode(currentChar);
+      builder.appendChar(currentChar);
     }
   }
 }
@@ -2143,19 +2143,19 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     safelyVisitChildren(_localVariables, visitor);
     safelyVisitChildren(_parameters, visitor);
   }
-  void appendTo(StringBuffer builder) {
-    builder.write("(");
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("(");
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.write(", ");
+        builder.append(", ");
       }
       ((_parameters[i] as ParameterElementImpl)).appendTo(builder);
     }
-    builder.write(")");
+    builder.append(")");
     if (_type != null) {
-      builder.write(" -> ");
-      builder.write(_type.returnType);
+      builder.append(" -> ");
+      builder.append(_type.returnType);
     }
   }
 }
@@ -2197,8 +2197,8 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
   void set exportedLibrary(LibraryElement exportedLibrary2) {
     this._exportedLibrary = exportedLibrary2;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write("export ");
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("export ");
     ((_exportedLibrary as LibraryElementImpl)).appendTo(builder);
   }
 }
@@ -2296,10 +2296,10 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
-  void appendTo(StringBuffer builder) {
+  void appendTo(JavaStringBuilder builder) {
     String name13 = name;
     if (name13 != null) {
-      builder.write(name13);
+      builder.append(name13);
     }
     super.appendTo(builder);
   }
@@ -2328,14 +2328,14 @@ class HideCombinatorImpl implements HideCombinator {
     this._hiddenNames = hiddenNames2;
   }
   String toString() {
-    StringBuffer builder = new StringBuffer();
-    builder.write("show ");
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("show ");
     int count = _hiddenNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.write(", ");
+        builder.append(", ");
       }
-      builder.write(_hiddenNames[i]);
+      builder.append(_hiddenNames[i]);
     }
     return builder.toString();
   }
@@ -2394,11 +2394,11 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     super.visitChildren(visitor);
     safelyVisitChildren(_libraries, visitor);
   }
-  void appendTo(StringBuffer builder) {
+  void appendTo(JavaStringBuilder builder) {
     if (_source == null) {
-      builder.write("{HTML file}");
+      builder.append("{HTML file}");
     } else {
-      builder.write(_source.fullName);
+      builder.append(_source.fullName);
     }
   }
 }
@@ -2457,8 +2457,8 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
   }
-  void appendTo(StringBuffer builder) {
-    builder.write("import ");
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("import ");
     ((_importedLibrary as LibraryElementImpl)).appendTo(builder);
   }
 }
@@ -2718,10 +2718,10 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(type);
-    builder.write(" ");
-    builder.write(name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(type);
+    builder.append(" ");
+    builder.append(name);
   }
 }
 /**
@@ -2771,10 +2771,10 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   void set static(bool isStatic) {
     setModifier(Modifier.STATIC, isStatic);
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(enclosingElement.name);
-    builder.write(".");
-    builder.write(name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(enclosingElement.name);
+    builder.append(".");
+    builder.append(name);
     super.appendTo(builder);
   }
 }
@@ -2850,16 +2850,16 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
   bool isSynthetic() => true;
   String toString() {
-    StringBuffer builder = new StringBuffer();
-    builder.write("[");
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("[");
     int count = _conflictingElements.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.write(", ");
+        builder.append(", ");
       }
       ((_conflictingElements[i] as ElementImpl)).appendTo(builder);
     }
-    builder.write("]");
+    builder.append("]");
     return builder.toString();
   }
   void visitChildren(ElementVisitor<Object> visitor) {
@@ -2956,13 +2956,13 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(type);
-    builder.write(" ");
-    builder.write(name);
-    builder.write(" (");
-    builder.write(kind);
-    builder.write(")");
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(type);
+    builder.append(" ");
+    builder.append(name);
+    builder.append(" (");
+    builder.append(kind);
+    builder.append(")");
   }
 }
 /**
@@ -2997,8 +2997,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     }
     this._importedLibraries = importedLibraries2;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write("as ");
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("as ");
     super.appendTo(builder);
   }
 }
@@ -3068,9 +3068,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   void set variable(PropertyInducingElement variable3) {
     this._variable = variable3;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(isGetter() ? "get " : "set ");
-    builder.write(variable.name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(isGetter() ? "get " : "set ");
+    builder.append(variable.name);
     super.appendTo(builder);
   }
 }
@@ -3150,14 +3150,14 @@ class ShowCombinatorImpl implements ShowCombinator {
     this._shownNames = shownNames2;
   }
   String toString() {
-    StringBuffer builder = new StringBuffer();
-    builder.write("show ");
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("show ");
     int count = _shownNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.write(", ");
+        builder.append(", ");
       }
-      builder.write(_shownNames[i]);
+      builder.append(_shownNames[i]);
     }
     return builder.toString();
   }
@@ -3271,32 +3271,32 @@ class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
     safelyVisitChildren(_parameters, visitor);
     safelyVisitChildren(_typeVariables, visitor);
   }
-  void appendTo(StringBuffer builder) {
-    builder.write("typedef ");
-    builder.write(name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("typedef ");
+    builder.append(name);
     int variableCount = _typeVariables.length;
     if (variableCount > 0) {
-      builder.write("<");
+      builder.append("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
-          builder.write(", ");
+          builder.append(", ");
         }
         ((_typeVariables[i] as TypeVariableElementImpl)).appendTo(builder);
       }
-      builder.write(">");
+      builder.append(">");
     }
-    builder.write("(");
+    builder.append("(");
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.write(", ");
+        builder.append(", ");
       }
       ((_parameters[i] as ParameterElementImpl)).appendTo(builder);
     }
-    builder.write(")");
+    builder.append(")");
     if (_type != null) {
-      builder.write(" -> ");
-      builder.write(_type.returnType);
+      builder.append(" -> ");
+      builder.append(_type.returnType);
     }
   }
 }
@@ -3341,11 +3341,11 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
   void set type(TypeVariableType type9) {
     this._type = type9;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(name);
     if (_bound != null) {
-      builder.write(" extends ");
-      builder.write(_bound);
+      builder.append(" extends ");
+      builder.append(_bound);
     }
   }
 }
@@ -3425,10 +3425,10 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
     super.visitChildren(visitor);
     safelyVisitChild(_initializer, visitor);
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(type);
-    builder.write(" ");
-    builder.write(name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(type);
+    builder.append(" ");
+    builder.append(name);
   }
 }
 /**
@@ -3709,13 +3709,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     newType._namedParameterTypes = substitute3(_namedParameterTypes, argumentTypes, parameterTypes);
     return newType;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write("(");
+  void appendTo(JavaStringBuilder builder) {
+    builder.append("(");
     bool needsComma = false;
     if (_normalParameterTypes.length > 0) {
       for (Type2 type in _normalParameterTypes) {
         if (needsComma) {
-          builder.write(", ");
+          builder.append(", ");
         } else {
           needsComma = true;
         }
@@ -3724,43 +3724,43 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     if (_optionalParameterTypes.length > 0) {
       if (needsComma) {
-        builder.write(", ");
+        builder.append(", ");
         needsComma = false;
       }
-      builder.write("[");
+      builder.append("[");
       for (Type2 type in _optionalParameterTypes) {
         if (needsComma) {
-          builder.write(", ");
+          builder.append(", ");
         } else {
           needsComma = true;
         }
         ((type as TypeImpl)).appendTo(builder);
       }
-      builder.write("]");
+      builder.append("]");
       needsComma = true;
     }
     if (_namedParameterTypes.length > 0) {
       if (needsComma) {
-        builder.write(", ");
+        builder.append(", ");
         needsComma = false;
       }
-      builder.write("{");
+      builder.append("{");
       for (MapEntry<String, Type2> entry in getMapEntrySet(_namedParameterTypes)) {
         if (needsComma) {
-          builder.write(", ");
+          builder.append(", ");
         } else {
           needsComma = true;
         }
-        builder.write(entry.getKey());
-        builder.write(": ");
+        builder.append(entry.getKey());
+        builder.append(": ");
         ((entry.getValue() as TypeImpl)).appendTo(builder);
       }
-      builder.write("}");
+      builder.append("}");
       needsComma = true;
     }
-    builder.write(") -> ");
+    builder.append(") -> ");
     if (_returnType == null) {
-      builder.write("null");
+      builder.append("null");
     } else {
       ((_returnType as TypeImpl)).appendTo(builder);
     }
@@ -4065,18 +4065,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     newType.typeArguments = TypeImpl.substitute(_typeArguments, argumentTypes, parameterTypes);
     return newType;
   }
-  void appendTo(StringBuffer builder) {
-    builder.write(name);
+  void appendTo(JavaStringBuilder builder) {
+    builder.append(name);
     int argumentCount = _typeArguments.length;
     if (argumentCount > 0) {
-      builder.write("<");
+      builder.append("<");
       for (int i = 0; i < argumentCount; i++) {
         if (i > 0) {
-          builder.write(", ");
+          builder.append(", ");
         }
         ((_typeArguments[i] as TypeImpl)).appendTo(builder);
       }
-      builder.write(">");
+      builder.append(">");
     }
   }
 }
@@ -4136,7 +4136,7 @@ abstract class TypeImpl implements Type2 {
   bool isSupertypeOf(Type2 type) => type.isSubtypeOf(this);
   bool isVoid() => false;
   String toString() {
-    StringBuffer builder = new StringBuffer();
+    JavaStringBuilder builder = new JavaStringBuilder();
     appendTo(builder);
     return builder.toString();
   }
@@ -4144,11 +4144,11 @@ abstract class TypeImpl implements Type2 {
    * Append a textual representation of this type to the given builder.
    * @param builder the builder to which the text is to be appended
    */
-  void appendTo(StringBuffer builder) {
+  void appendTo(JavaStringBuilder builder) {
     if (_name == null) {
-      builder.write("<unnamed type>");
+      builder.append("<unnamed type>");
     } else {
-      builder.write(_name);
+      builder.append(_name);
     }
   }
 }
