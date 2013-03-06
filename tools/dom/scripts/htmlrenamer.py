@@ -18,27 +18,15 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
-    'EntryCallback': '_EntryCallback',
-    'EntriesCallback': '_EntriesCallback',
-    'ErrorCallback': '_ErrorCallback',
-    'FileCallback': '_FileCallback',
-    'FileSystemCallback': '_FileSystemCallback',
-    'FileWriterCallback': '_FileWriterCallback',
     'HTMLDocument' : 'HtmlDocument',
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'NamedNodeMap': '_NamedNodeMap',
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
-    'NotificationPermissionCallback': '_NotificationPermissionCallback',
     'PositionCallback': '_PositionCallback',
     'PositionErrorCallback': '_PositionErrorCallback',
     'Rect': 'CssRect',
     'RGBColor': 'CssRgbColor',
-    'RTCErrorCallback': '_RtcErrorCallback',
-    'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
-    'StorageInfoErrorCallback': '_StorageInfoErrorCallback',
-    'StorageInfoUsageCallback': '_StorageInfoUsageCallback',
-    'StringCallback': '_StringCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
@@ -92,33 +80,6 @@ _removed_html_interfaces = [
 
 for interface in _removed_html_interfaces:
   html_interface_renames[interface] = '_' + interface
-
-convert_to_future_members = monitored.Set(
-    'htmlrenamer.converted_to_future_members', [
-  'DataTransferItem.getAsString',
-  'DirectoryEntry.getDirectory',
-  'DirectoryEntry.getFile',
-  'DirectoryEntry.removeRecursively',
-  'DirectoryReader.readEntries',
-  'DOMWindow.webkitRequestFileSystem',
-  'DOMWindow.webkitResolveLocalFileSystemURL',
-  'Entry.copyTo',
-  'Entry.getMetadata',
-  'Entry.getParent',
-  'Entry.moveTo',
-  'Entry.remove',
-  'FileEntry.createWriter',
-  'FileEntry.file',
-  'Notification.requestPermission',
-  'NotificationCenter.requestPermission',
-  'RTCPeerConnection.createAnswer',
-  'RTCPeerConnection.createOffer',
-  'RTCPeerConnection.setLocalDescription',
-  'RTCPeerConnection.setRemoteDescription',
-  'StorageInfo.queryUsageAndQuota',
-  'StorageInfo.requestQuota',
-  'WorkerContext.webkitResolveLocalFileSystemURL',
-])
 
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
@@ -276,6 +237,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DOMWindow.webkitNotifications': 'notifications',
     'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
+    'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
+    'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
@@ -293,12 +256,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'WorkerContext.webkitResolveLocalFileSystemURL':
         'resolveLocalFileSystemUrl',
 })
-
-for member in convert_to_future_members:
-  if member in renamed_html_members:
-    renamed_html_members[member] = '_' + renamed_html_members[member]
-  else:
-    renamed_html_members[member] = '_' + member[member.find('.') + 1 :]
 
 # Members and classes from the dom that should be removed completely from
 # dart:html.  These could be expressed in the IDL instead but expressing this

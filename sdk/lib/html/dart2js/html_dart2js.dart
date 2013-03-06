@@ -5895,20 +5895,9 @@ class DataTransferItem native "*DataTransferItem" {
   @DocsEditable
   Blob getAsFile() native;
 
-  @JSName('getAsString')
   @DomName('DataTransferItem.getAsString')
   @DocsEditable
-  void _getAsString([_StringCallback callback]) native;
-
-  @JSName('getAsString')
-  @DomName('DataTransferItem.getAsString')
-  @DocsEditable
-  Future<String> getAsString() {
-    var completer = new Completer<String>();
-    _getAsString(
-        (value) { completer.complete(value); });
-    return completer.future;
-  }
+  void getAsString([StringCallback callback]) native;
 
   @JSName('webkitGetAsEntry')
   @DomName('DataTransferItem.webkitGetAsEntry')
@@ -6160,117 +6149,83 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void _getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getDirectory_1(path, options_1, successCallback, errorCallback);
+      _getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getDirectory_2(path, options_2, successCallback);
+      _getDirectory_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getDirectory_3(path, options_3);
+      _getDirectory_3(path, options_3);
       return;
     }
-    __getDirectory_4(path);
+    _getDirectory_4(path);
     return;
   }
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void _getDirectory_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_2(path, options, _EntryCallback successCallback) native;
+  void _getDirectory_2(path, options, EntryCallback successCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_3(path, options) native;
+  void _getDirectory_3(path, options) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_4(path) native;
-
-  @JSName('getDirectory')
-  @DomName('DirectoryEntry.getDirectory')
-  @DocsEditable
-  Future<Entry> getDirectory(String path, {Map options}) {
-    var completer = new Completer<Entry>();
-    _getDirectory(path, options : options,
-        successCallback : (value) { completer.complete(value); },
-        errorCallback : (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void _getDirectory_4(path) native;
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void _getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getFile_1(path, options_1, successCallback, errorCallback);
+      _getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getFile_2(path, options_2, successCallback);
+      _getFile_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getFile_3(path, options_3);
+      _getFile_3(path, options_3);
       return;
     }
-    __getFile_4(path);
+    _getFile_4(path);
     return;
   }
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void _getFile_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_2(path, options, _EntryCallback successCallback) native;
+  void _getFile_2(path, options, EntryCallback successCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_3(path, options) native;
+  void _getFile_3(path, options) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_4(path) native;
+  void _getFile_4(path) native;
 
-  @JSName('getFile')
-  @DomName('DirectoryEntry.getFile')
-  @DocsEditable
-  Future<Entry> getFile(String path, {Map options}) {
-    var completer = new Completer<Entry>();
-    _getFile(path, options : options,
-        successCallback : (value) { completer.complete(value); },
-        errorCallback : (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('removeRecursively')
   @DomName('DirectoryEntry.removeRecursively')
   @DocsEditable
-  void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('removeRecursively')
-  @DomName('DirectoryEntry.removeRecursively')
-  @DocsEditable
-  Future removeRecursively() {
-    var completer = new Completer();
-    _removeRecursively(
-        () { completer.complete(); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6320,21 +6275,9 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 @DomName('DirectoryReader')
 class DirectoryReader native "*DirectoryReader" {
 
-  @JSName('readEntries')
   @DomName('DirectoryReader.readEntries')
   @DocsEditable
-  void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('readEntries')
-  @DomName('DirectoryReader.readEntries')
-  @DocsEditable
-  Future<List<Entry>> readEntries() {
-    var completer = new Completer<List<Entry>>();
-    _readEntries(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9970,7 +9913,7 @@ class EntityReference extends Node native "*EntityReference" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _EntriesCallback(List<Entry> entries);
+typedef void EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10000,85 +9943,25 @@ class Entry native "*Entry" {
   @DocsEditable
   final String name;
 
-  @JSName('copyTo')
   @DomName('Entry.copyTo')
   @DocsEditable
-  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) native;
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  @JSName('copyTo')
-  @DomName('Entry.copyTo')
-  @DocsEditable
-  Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
-    var completer = new Completer<Entry>();
-    _copyTo(parent, name : name,
-        successCallback : (value) { completer.complete(value); },
-        errorCallback : (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('getMetadata')
   @DomName('Entry.getMetadata')
   @DocsEditable
-  void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) native;
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @JSName('getMetadata')
-  @DomName('Entry.getMetadata')
-  @DocsEditable
-  Future<Metadata> getMetadata() {
-    var completer = new Completer<Metadata>();
-    _getMetadata(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('getParent')
   @DomName('Entry.getParent')
   @DocsEditable
-  void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) native;
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  @JSName('getParent')
-  @DomName('Entry.getParent')
-  @DocsEditable
-  Future<Entry> getParent() {
-    var completer = new Completer<Entry>();
-    _getParent(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('moveTo')
   @DomName('Entry.moveTo')
   @DocsEditable
-  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) native;
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  @JSName('moveTo')
-  @DomName('Entry.moveTo')
-  @DocsEditable
-  Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
-    var completer = new Completer<Entry>();
-    _moveTo(parent, name : name,
-        successCallback : (value) { completer.complete(value); },
-        errorCallback : (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('remove')
   @DomName('Entry.remove')
   @DocsEditable
-  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('remove')
-  @DomName('Entry.remove')
-  @DocsEditable
-  Future remove() {
-    var completer = new Completer();
-    _remove(
-        () { completer.complete(); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @JSName('toURL')
   @DomName('Entry.toURL')
@@ -10092,7 +9975,7 @@ class Entry native "*Entry" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _EntryCallback(Entry entry);
+typedef void EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10154,7 +10037,7 @@ class EntrySync native "*EntrySync" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _ErrorCallback(FileError error);
+typedef void ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10626,7 +10509,7 @@ class File extends Blob native "*File" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _FileCallback(File file);
+typedef void FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10636,37 +10519,13 @@ typedef void _FileCallback(File file);
 @DomName('FileEntry')
 class FileEntry extends Entry native "*FileEntry" {
 
-  @JSName('createWriter')
   @DomName('FileEntry.createWriter')
   @DocsEditable
-  void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) native;
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @JSName('createWriter')
-  @DomName('FileEntry.createWriter')
-  @DocsEditable
-  Future<FileWriter> createWriter() {
-    var completer = new Completer<FileWriter>();
-    _createWriter(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('file')
   @DomName('FileEntry.file')
   @DocsEditable
-  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('file')
-  @DomName('FileEntry.file')
-  @DocsEditable
-  Future<File> file() {
-    var completer = new Completer<File>();
-    _file(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11153,7 +11012,7 @@ class FileSystem native "*DOMFileSystem" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _FileSystemCallback(FileSystem fileSystem);
+typedef void FileSystemCallback(FileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11289,7 +11148,7 @@ class FileWriter extends EventTarget native "*FileWriter" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _FileWriterCallback(FileWriter fileWriter);
+typedef void FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12869,7 +12728,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
     if (method == null) {
       method = 'GET';
     }
-    xhr.open(method, url, async: true);
+    xhr.open(method, url, true);
 
     if (withCredentials != null) {
       xhr.withCredentials = withCredentials;
@@ -13157,7 +13016,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable
-  void open(String method, String url, {bool async, String user, String password}) native;
+  void open(String method, String url, [bool async, String user, String password]) native;
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -13812,7 +13671,7 @@ class InputElement extends Element implements
 
   @DomName('HTMLInputElement.setRangeText')
   @DocsEditable
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) native;
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
   @DomName('HTMLInputElement.setSelectionRange')
   @DocsEditable
@@ -18046,20 +17905,9 @@ class Notification extends EventTarget native "*Notification" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @JSName('requestPermission')
   @DomName('Notification.requestPermission')
   @DocsEditable
-  static void _requestPermission([_NotificationPermissionCallback callback]) native;
-
-  @JSName('requestPermission')
-  @DomName('Notification.requestPermission')
-  @DocsEditable
-  static Future<String> requestPermission() {
-    var completer = new Completer<String>();
-    _requestPermission(
-        (value) { completer.complete(value); });
-    return completer.future;
-  }
+  static void requestPermission([NotificationPermissionCallback callback]) native;
 
   @DomName('Notification.show')
   @DocsEditable
@@ -18114,20 +17962,9 @@ class NotificationCenter native "*NotificationCenter" {
   @DocsEditable
   Notification createNotification(String iconUrl, String title, String body) native;
 
-  @JSName('requestPermission')
   @DomName('NotificationCenter.requestPermission')
   @DocsEditable
-  void _requestPermission(VoidCallback callback) native;
-
-  @JSName('requestPermission')
-  @DomName('NotificationCenter.requestPermission')
-  @DocsEditable
-  Future requestPermission() {
-    var completer = new Completer();
-    _requestPermission(
-        () { completer.complete(); });
-    return completer.future;
-  }
+  void requestPermission(VoidCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18136,7 +17973,7 @@ class NotificationCenter native "*NotificationCenter" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _NotificationPermissionCallback(String permission);
+typedef void NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18880,7 +18717,7 @@ class QuoteElement extends Element native "*HTMLQuoteElement" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _RtcErrorCallback(String errorInformation);
+typedef void RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18888,7 +18725,7 @@ typedef void _RtcErrorCallback(String errorInformation);
 // WARNING: Do not edit - generated code.
 
 
-typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
+typedef void RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19367,34 +19204,23 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable
-  void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
+  void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
-      __createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
+      _createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
     }
-    __createAnswer_2(successCallback, failureCallback);
+    _createAnswer_2(successCallback, failureCallback);
     return;
   }
   @JSName('createAnswer')
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable
-  void __createAnswer_1(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback, mediaConstraints) native;
+  void _createAnswer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createAnswer')
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable
-  void __createAnswer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
-
-  @JSName('createAnswer')
-  @DomName('RTCPeerConnection.createAnswer')
-  @DocsEditable
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer(mediaConstraints,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
   @JSName('createDTMFSender')
   @DomName('RTCPeerConnection.createDTMFSender')
@@ -19421,34 +19247,23 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
-  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
+  void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
-      __createOffer_1(successCallback, failureCallback, mediaConstraints_1);
+      _createOffer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
     }
-    __createOffer_2(successCallback, failureCallback);
+    _createOffer_2(successCallback, failureCallback);
     return;
   }
   @JSName('createOffer')
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
-  void __createOffer_1(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback, mediaConstraints) native;
+  void _createOffer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createOffer')
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
-  void __createOffer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
-
-  @JSName('createOffer')
-  @DomName('RTCPeerConnection.createOffer')
-  @DocsEditable
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer(mediaConstraints,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void _createOffer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
@@ -19475,37 +19290,13 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void removeStream(MediaStream stream) native;
 
-  @JSName('setLocalDescription')
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable
-  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) native;
+  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
-  @JSName('setLocalDescription')
-  @DomName('RTCPeerConnection.setLocalDescription')
-  @DocsEditable
-  Future setLocalDescription(RtcSessionDescription description) {
-    var completer = new Completer();
-    _setLocalDescription(description,
-        () { completer.complete(); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('setRemoteDescription')
   @DomName('RTCPeerConnection.setRemoteDescription')
   @DocsEditable
-  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) native;
-
-  @JSName('setRemoteDescription')
-  @DomName('RTCPeerConnection.setRemoteDescription')
-  @DocsEditable
-  Future setRemoteDescription(RtcSessionDescription description) {
-    var completer = new Completer();
-    _setRemoteDescription(description,
-        () { completer.complete(); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable
@@ -21072,37 +20863,13 @@ class StorageInfo native "*StorageInfo" {
 
   static const int TEMPORARY = 0;
 
-  @JSName('queryUsageAndQuota')
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
-  void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native;
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
-  @JSName('queryUsageAndQuota')
-  @DomName('StorageInfo.queryUsageAndQuota')
-  @DocsEditable
-  Future<int> queryUsageAndQuota(int storageType) {
-    var completer = new Completer<int>();
-    _queryUsageAndQuota(storageType,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('requestQuota')
   @DomName('StorageInfo.requestQuota')
   @DocsEditable
-  void _requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, _StorageInfoErrorCallback errorCallback]) native;
-
-  @JSName('requestQuota')
-  @DomName('StorageInfo.requestQuota')
-  @DocsEditable
-  Future<int> requestQuota(int storageType, int newQuotaInBytes) {
-    var completer = new Completer<int>();
-    _requestQuota(storageType, newQuotaInBytes,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21111,7 +20878,7 @@ class StorageInfo native "*StorageInfo" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StorageInfoErrorCallback(DomException error);
+typedef void StorageInfoErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21127,7 +20894,7 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21135,7 +20902,7 @@ typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuota
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StringCallback(String data);
+typedef void StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26582,40 +26349,14 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('webkitRequestFileSystem')
-  @DomName('DOMWindow.webkitRequestFileSystem')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<FileSystem> requestFileSystem(int type, int size) {
-    var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('webkitResolveLocalFileSystemURL')
-  @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<Entry> resolveLocalFileSystemUrl(String url) {
-    var completer = new Completer<Entry>();
-    _resolveLocalFileSystemUrl(url,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @DomName('DOMWindow.onDOMContentLoaded')
   @DocsEditable
@@ -26976,7 +26717,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
+  void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @DomName('WorkerContext.webkitRequestFileSystemSync')
@@ -26997,20 +26738,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('webkitResolveLocalFileSystemURL')
-  @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<Entry> resolveLocalFileSystemUrl(String url) {
-    var completer = new Completer<Entry>();
-    _resolveLocalFileSystemUrl(url,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @DomName('WorkerContext.onerror')
   @DocsEditable

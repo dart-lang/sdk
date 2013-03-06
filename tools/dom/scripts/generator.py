@@ -61,10 +61,6 @@ _methods_with_named_formals = monitored.Set(
   'DataView.setUint8',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
-  'Entry.copyTo',
-  'Entry.moveTo',
-  'HTMLInputElement.setRangeText',
-  'XMLHttpRequest.open',
   ])
 
 #
@@ -140,12 +136,6 @@ class ParamInfo(object):
         self.name, self.type_id, self.is_optional)
     return '<ParamInfo(%s)>' % content
 
-def GetCallbackInfo(interface):
-  """For the given interface, find operations that take callbacks (for use in
-  auto-transforming callbacks into futures)."""
-  callback_handlers = [operation for operation in interface.operations
-      if operation.id == 'handleEvent']
-  return AnalyzeOperation(interface, callback_handlers)
 
 # Given a list of overloaded arguments, render dart arguments.
 def _BuildArguments(args, interface, constructor=False):
@@ -222,24 +212,7 @@ def AnalyzeOperation(interface, operations):
   info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
   full_name = '%s.%s' % (interface.id, info.declared_name)
   info.requires_named_arguments = full_name in _methods_with_named_formals
-  # The arguments in that the original operation took as callbacks (for
-  # conversion to futures).
-  info.callback_args = []
   return info
-
-def ConvertToFuture(info):
-  """Given an OperationInfo object, convert the operation's signature so that it
-  instead uses futures instead of callbacks."""
-  new_info = copy.deepcopy(info)
-  def IsNotCallbackType(param):
-    return 'Callback' not in param.type_id
-  # Success callback is the first argument (change if this no longer holds).
-  new_info.callback_args = filter(
-      lambda x: not IsNotCallbackType(x), new_info.param_infos)
-  new_info.param_infos = filter(IsNotCallbackType, new_info.param_infos)
-  new_info.type_name = 'Future'
-
-  return new_info
 
 
 def AnalyzeConstructor(interface):
@@ -368,19 +341,15 @@ class OperationInfo(object):
           right_bracket)
     return ', '.join(argtexts)
 
-  def ParametersAsArgumentList(self, parameter_count=None):
+  def ParametersAsArgumentList(self, parameter_count = None):
     """Returns a string of the parameter names suitable for passing the
     parameters as arguments.
     """
-    def param_name(param_info):
-      if self.requires_named_arguments and param_info.is_optional:
-        return '%s : %s' % (param_info.name, param_info.name)
-      else:
-        return param_info.name
-
     if parameter_count is None:
       parameter_count = len(self.param_infos)
-    return ', '.join(map(param_name, self.param_infos[:parameter_count]))
+    return ', '.join(map(
+        lambda param_info: param_info.name,
+        self.param_infos[:parameter_count]))
 
   def IsStatic(self):
     is_static = self.overloads[0].is_static
@@ -1422,7 +1391,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'FileList': TypeData(clazz='Interface', item_type='File',
         dart_type='List<File>'),
-    'Future': TypeData(clazz='Interface', dart_type='Future'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
         suppress_interface=True),
     'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),

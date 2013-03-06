@@ -10,7 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
-from systemhtml import js_support_checks, GetCallbackInfo
+from systemhtml import js_support_checks
 
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
@@ -476,15 +476,12 @@ class DartiumBackend(HtmlDartGenerator):
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
 
     if not needs_dispatcher:
-      if info.callback_args:
-        self._AddFutureifiedOperation(info, html_name)
-      else:
-        # Bind directly to native implementation
-        argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
-        cpp_callback_name = self._GenerateNativeBinding(
-            info.name, argument_count, dart_declaration, 'Callback', is_custom)
-        if not is_custom:
-          self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name)
+      # Bind directly to native implementation
+      argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
+      cpp_callback_name = self._GenerateNativeBinding(
+          info.name, argument_count, dart_declaration, 'Callback', is_custom)
+      if not is_custom:
+        self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name)
     else:
       self._GenerateDispatcher(info.operations, dart_declaration, [info.name for info in info.param_infos])
 

@@ -10,8 +10,7 @@ import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
     IsPureInterface, TypeOrNothing, GetAnnotationsAndComments, \
-    FormatAnnotationsAndComments, ConvertToFuture, GetCallbackInfo
-from htmlrenamer import convert_to_future_members
+    FormatAnnotationsAndComments
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., WindowBase) provides restricted access
@@ -90,9 +89,6 @@ class HtmlDartGenerator(object):
       operations = operationsById[id]
       info = AnalyzeOperation(interface, operations)
       self.AddOperation(info, declare_only)
-      if ('%s.%s' % (interface.id, info.declared_name) in
-          convert_to_future_members):
-        self.AddOperation(ConvertToFuture(info), declare_only)
 
   def AddSecondaryMembers(self, interface):
     # With multiple inheritance, attributes and operations of non-first
@@ -457,50 +453,6 @@ class HtmlDartGenerator(object):
             PARAMS=constructor_info.ParametersDeclaration(self._DartType)),
           GenerateCall,
           IsOptional)
-
-  def _AddFutureifiedOperation(self, info, html_name):
-    """Given a API function that uses callbacks, convert it to using Futures.
-
-    This conversion assumes the success callback is always provided before the
-    error callback (and so far in the DOM API, this is the case)."""
-    callback_info = GetCallbackInfo(
-        self._database.GetInterface(info.callback_args[0].type_id))
-
-    param_list = info.ParametersAsArgumentList()
-    annotations = ''
-    if '_RenamingAnnotation' in dir(self):
-      annotations = (self._RenamingAnnotation(info.declared_name, html_name) +
-          self._Annotations(info.type_name, info.declared_name))
-    self._members_emitter.Emit(
-        '\n'
-        '  $ANNOTATIONS$MODIFIERS$TYPE$FUTURE_GENERIC $NAME($PARAMS) {\n'
-        '    var completer = new Completer$(FUTURE_GENERIC)();\n'
-        '    $ORIGINAL_FUNCTION($PARAMS_LIST\n'
-        '        $NAMED_PARAM($VARIABLE_NAME) { '
-        'completer.complete($VARIABLE_NAME); }'
-        '$ERROR_CALLBACK);\n'
-        '    return completer.future;\n'
-        '  }\n',
-        ANNOTATIONS=annotations,
-        MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=self.SecureOutputType(info.type_name),
-        NAME=html_name[1:],
-        PARAMS=info.ParametersDeclaration(self._NarrowInputType
-            if '_NarrowInputType' in dir(self) else self._DartType),
-        PARAMS_LIST='' if param_list == '' else param_list + ',',
-        NAMED_PARAM=('%s : ' % info.callback_args[0].name
-            if info.requires_named_arguments and
-              info.callback_args[0].is_optional else ''),
-        VARIABLE_NAME= '' if len(callback_info.param_infos) == 0 else 'value',
-        ERROR_CALLBACK=('' if len(info.callback_args) == 1 else
-            (',\n        %s(error) { completer.completeError(error); }' %
-            ('%s : ' % info.callback_args[1].name
-            if info.requires_named_arguments and
-                info.callback_args[1].is_optional else ''))),
-        FUTURE_GENERIC = ('' if len(callback_info.param_infos) == 0 or
-            not callback_info.param_infos[0].type_id else
-            '<%s>' % self._DartType(callback_info.param_infos[0].type_id)),
-        ORIGINAL_FUNCTION = html_name)
 
   def EmitHelpers(self, base_class):
     pass
