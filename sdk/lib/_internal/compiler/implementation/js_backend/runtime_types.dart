@@ -77,29 +77,29 @@ class RuntimeTypeInformation {
    * the type arguments.
    */
   Set<ClassElement> getInstantiatedArguments() {
-    Set<ClassElement> instantiatedArguments = new Set<ClassElement>();
+    ArgumentCollector collector = new ArgumentCollector();
     for (DartType type in instantiatedTypes) {
-      addAllInterfaceTypeArguments(type, instantiatedArguments);
+      collector.collect(type);
       ClassElement cls = type.element;
-      for (DartType type in cls.allSupertypes) {
-        addAllInterfaceTypeArguments(type, instantiatedArguments);
+      for (DartType supertype in cls.allSupertypes) {
+        collector.collect(supertype);
       }
     }
-    for (ClassElement cls in instantiatedArguments.toList()) {
-      for (DartType type in cls.allSupertypes) {
-        addAllInterfaceTypeArguments(type, instantiatedArguments);
+    for (ClassElement cls in collector.classes.toList()) {
+      for (DartType supertype in cls.allSupertypes) {
+        collector.collect(supertype);
       }
     }
-    return instantiatedArguments;
+    return collector.classes;
   }
 
   /// Collects all type arguments used in is-checks.
   Set<ClassElement> getCheckedArguments() {
-    Set<ClassElement> checkedArguments = new Set<ClassElement>();
+    ArgumentCollector collector = new ArgumentCollector();
     for (DartType type in isChecks) {
-      addAllInterfaceTypeArguments(type, checkedArguments);
+      collector.collect(type);
     }
-    return checkedArguments;
+    return collector.classes;
   }
 
   Iterable<DartType> get isChecks {
@@ -108,28 +108,6 @@ class RuntimeTypeInformation {
 
   Iterable<DartType> get instantiatedTypes {
     return compiler.codegenWorld.instantiatedTypes;
-  }
-
-  void addAllInterfaceTypeArguments(DartType type, Set<ClassElement> classes) {
-    if (type is !InterfaceType) return;
-    for (DartType argument in type.typeArguments) {
-      forEachInterfaceType(argument, (InterfaceType t) {
-        ClassElement cls = t.element;
-        if (cls != compiler.dynamicClass) {
-          classes.add(cls);
-        }
-      });
-    }
-  }
-
-  void forEachInterfaceType(DartType type, f(InterfaceType type)) {
-    if (type.kind == TypeKind.INTERFACE) {
-      f(type);
-      InterfaceType interface = type;
-      for (DartType argument in interface.typeArguments) {
-        forEachInterfaceType(argument, f);
-      }
-    }
   }
 
   /// Return the unique name for the element as an unquoted string.
@@ -395,5 +373,45 @@ class TypeCheckMapping implements TypeChecks {
       }
     }
     return '[$sb]';
+  }
+}
+
+class ArgumentCollector extends DartTypeVisitor {
+  final Set<ClassElement> classes = new Set<ClassElement>();
+
+  collect(DartType type) {
+    type.accept(this, false);
+  }
+
+  visit(DartType type) {
+    type.accept(this, true);
+  }
+
+  visitList(Link<DartType> types) {
+    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
+      link.head.accept(this, true);
+    }
+  }
+
+  visitType(DartType type, _) {
+    // Do nothing.
+  }
+
+  visitDynamicType(DynamicType type, _) {
+    // Do not collect [:dynamic:].
+  }
+
+  visitInterfaceType(InterfaceType type, bool isTypeArgument) {
+    if (isTypeArgument) {
+      classes.add(type.element);
+    }
+    visitList(type.typeArguments);
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    visit(type.returnType);
+    visitList(type.parameterTypes);
+    visitList(type.optionalParameterTypes);
+    visitList(type.namedParameterTypes);
   }
 }
