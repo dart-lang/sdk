@@ -7,6 +7,7 @@
     'base64.dart',
     'buffer_list.dart',
     'common.dart',
+    'data_transformer.dart',
     'directory.dart',
     'directory_impl.dart',
     'eventhandler.dart',

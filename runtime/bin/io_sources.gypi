@@ -9,6 +9,7 @@
     'directory_patch.dart',
     'eventhandler_patch.dart',
     'file_patch.dart',
+    'filter_patch.dart',
     'http_patch.dart',
     'platform_patch.dart',
     'process_patch.dart',

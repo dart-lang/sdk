@@ -21,6 +21,11 @@
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
+  V(Filter_CreateZLibDeflate, 3)                                               \
+  V(Filter_CreateZLibInflate, 1)                                               \
+  V(Filter_End, 1)                                                             \
+  V(Filter_Process, 2)                                                         \
+  V(Filter_Processed, 2)                                                       \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
@@ -52,8 +57,8 @@
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_InitializeLibrary, 3)                                         \
-  V(SystemEncodingToString, 1)                                                 \
-  V(StringToSystemEncoding, 1)
+  V(StringToSystemEncoding, 1)                                                 \
+  V(SystemEncodingToString, 1)
 
 
 IO_NATIVE_LIST(DECLARE_FUNCTION);
