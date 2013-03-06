@@ -35,26 +35,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, R0, offset12_hi);
-    __ str(SP, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, SP, R0, Isolate::top_exit_frame_info_offset());
 
   // Save current Context pointer into Isolate structure.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, R0, offset12_hi);
-    __ str(CTX, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, CTX, R0, Isolate::top_context_offset());
 
   // Cache Isolate pointer into CTX while executing runtime code.
   __ mov(CTX, ShifterOperand(R0));
@@ -87,38 +71,14 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, CTX, offset12_hi);
-    __ str(R2, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, R2, CTX, Isolate::top_exit_frame_info_offset());
 
   // Load Context pointer from Isolate structure into R2.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, CTX, offset12_hi);
-    __ ldr(R2, Address(IP, offset12_lo));
-  }
+  __ LoadFromOffset(kLoadWord, R2, CTX, Isolate::top_context_offset());
 
   // Reset Context pointer in Isolate structure.
   __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, CTX, offset12_hi);
-    __ str(R3, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, R3, CTX, Isolate::top_context_offset());
 
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, ShifterOperand(R2));
@@ -128,8 +88,22 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
+
+
+// Input parameters:
+//   R0 : stop message (const char*).
+// Must preserve all registers.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ Unimplemented("PrintStopMessage stub");
+  __ EnterCallRuntimeFrame(0);
+  // Call the runtime leaf function. R0 already contains the parameter.
+  __ CallRuntime(kPrintStopMessageRuntimeEntry);
+  __ LeaveCallRuntimeFrame();
+  __ Ret();
 }
 
 
@@ -222,30 +196,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save the top exit frame info. Use R5 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, R8, offset12_hi);
-    __ ldr(R5, Address(R7, offset12_lo));
-    __ LoadImmediate(R6, 0);
-    __ str(R6, Address(R7, offset12_lo));
-  }
+  __ LoadFromOffset(kLoadWord, R5, R8, Isolate::top_exit_frame_info_offset());
+  __ LoadImmediate(R6, 0);
+  __ StoreToOffset(kStoreWord, R6, R8, Isolate::top_exit_frame_info_offset());
 
   // Save the old Context pointer. Use R4 as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
   // FP - kExitLinkOffsetInEntryFrame.
   // EntryFrame::SavedContext reads the context saved in this frame.
-  {
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, R8, offset12_hi);
-    __ ldr(R4, Address(R7, offset12_lo));
-  }
+  __ LoadFromOffset(kLoadWord, R4, R8, Isolate::top_context_offset());
 
   // The constants kSavedContextOffsetInEntryFrame and
   // kExitLinkOffsetInEntryFrame must be kept in sync with the code below.
@@ -298,20 +258,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info back into the Isolate structure.
   // Uses R5 as a temporary register for this.
   __ PopList((1 << R4) | (1 << R5));
-  {
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, CTX, offset12_hi);
-    __ str(R4, Address(R7, offset12_lo));
-  }
-  {
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, CTX, offset12_hi);
-    __ str(R5, Address(R7, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, R4, CTX, Isolate::top_context_offset());
+  __ StoreToOffset(kStoreWord, R5, CTX, Isolate::top_exit_frame_info_offset());
 
   // Restore C++ ABI callee-saved registers.
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.

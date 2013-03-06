@@ -259,8 +259,12 @@ class Address : public ValueObject {
     encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
-  static bool CanHoldLoadOffset(LoadOperandType type, int offset);
-  static bool CanHoldStoreOffset(StoreOperandType type, int offset);
+  static bool CanHoldLoadOffset(LoadOperandType type,
+                                int32_t offset,
+                                int32_t* offset_mask);
+  static bool CanHoldStoreOffset(StoreOperandType type,
+                                 int32_t offset,
+                                 int32_t* offset_mask);
 
  private:
   uint32_t encoding() const { return encoding_; }
