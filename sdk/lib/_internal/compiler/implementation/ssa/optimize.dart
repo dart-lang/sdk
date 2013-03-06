@@ -541,7 +541,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         return graph.addConstantBool(false, constantSystem);
       }
-    // TODO(karlklose): remove the hasTypeArguments check.
+    // Wee need the [:hasTypeArguments:] check because we don't have
+    // the notion of generics in the backend. For example, [:this:] in
+    // a class [:A<T>:], is currently always considered to have the
+    // raw type.
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
                && !RuntimeTypeInformation.hasTypeArguments(type)) {
@@ -549,7 +552,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (receiverType != null) {
         if (!receiverType.isMalformed &&
             !type.isMalformed &&
-            compiler.types.isSubtype(receiverType, type)) {
+            compiler.types.isSubtype(receiverType.element.rawType, type)) {
           return graph.addConstantBool(true, constantSystem);
         } else if (expressionType.isExact()) {
           return graph.addConstantBool(false, constantSystem);
