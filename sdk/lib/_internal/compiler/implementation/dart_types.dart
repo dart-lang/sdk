@@ -102,6 +102,16 @@ abstract class DartType {
 
   DartType asRaw() => this;
 
+  /**
+   * Is [: true :] if this type is the dynamic type.
+   */
+  bool get isDynamic => false;
+
+  /**
+   * Is [: true :] if this type is the void type.
+   */
+  bool get isVoid => false;
+
   accept(DartTypeVisitor visitor, var argument);
 }
 
@@ -238,6 +248,8 @@ class VoidType extends DartType {
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitVoidType(this, argument);
   }
+
+  bool get isVoid => true;
 
   int get hashCode => 1729;
 
@@ -736,6 +748,8 @@ class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
   SourceString get name => const SourceString('dynamic');
+
+  bool get isDynamic => true;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitDynamicType(this, argument);

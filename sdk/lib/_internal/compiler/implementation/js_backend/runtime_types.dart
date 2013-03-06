@@ -14,8 +14,11 @@ abstract class TypeChecks {
 
 class RuntimeTypeInformation {
   final Compiler compiler;
+  final TypeRepresentation typeRepresentation;
 
-  RuntimeTypeInformation(this.compiler);
+  RuntimeTypeInformation(Compiler compiler)
+      : this.compiler = compiler,
+        typeRepresentation = new TypeRepresentation(compiler);
 
   /// Contains the classes of all arguments that have been used in
   /// instantiations and checks.
@@ -203,17 +206,22 @@ class RuntimeTypeInformation {
    *     a list expression.
    */
   String getSupertypeSubstitution(ClassElement cls, ClassElement check,
-                                  {alwaysGenerateFunction: false}) {
+                                  {bool alwaysGenerateFunction: false}) {
     if (isTrivialSubstitution(cls, check)) return null;
 
     // TODO(karlklose): maybe precompute this value and store it in typeChecks?
+    bool usesTypeVariables = false;
+    String onVariable(TypeVariableType v) {
+      usesTypeVariables = true;
+      return v.toString();
+    };
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
     String substitution = target.typeArguments
-        .map((type) => _getTypeRepresentation(type, (v) => v.toString()))
+        .map((type) => _getTypeRepresentation(type, onVariable))
         .join(', ');
     substitution = '[$substitution]';
-    if (cls.typeVariables.isEmpty && !alwaysGenerateFunction) {
+    if (!usesTypeVariables && !alwaysGenerateFunction) {
       return substitution;
     } else {
       String parameters = cls.typeVariables.toList().join(', ');
@@ -232,34 +240,7 @@ class RuntimeTypeInformation {
 
   // TODO(karlklose): rewrite to use js.Expressions.
   String _getTypeRepresentation(DartType type, String onVariable(variable)) {
-    StringBuffer builder = new StringBuffer();
-    void build(DartType part) {
-      if (part is TypeVariableType) {
-        builder.write(onVariable(part));
-      } else {
-        bool hasArguments = part is InterfaceType && !part.isRaw;
-        Element element = part.element;
-        if (element == compiler.dynamicClass) {
-          builder.write('null');
-        } else {
-          String name = getJsName(element);
-          if (!hasArguments) {
-            builder.write(name);
-          } else {
-            builder.write('[');
-            builder.write(name);
-            InterfaceType interface = part;
-            for (DartType argument in interface.typeArguments) {
-              builder.write(', ');
-              build(argument);
-            }
-            builder.write(']');
-          }
-        }
-      }
-    }
-    build(type);
-    return builder.toString();
+    return typeRepresentation.getTypeRepresentation(type, onVariable);
   }
 
   static bool hasTypeArguments(DartType type) {
@@ -277,6 +258,115 @@ class RuntimeTypeInformation {
          index++, variables = variables.tail) {
       if (variables.head == variable) return index;
     }
+  }
+}
+
+typedef String OnVariableCallback(TypeVariableType type);
+
+class TypeRepresentation extends DartTypeVisitor {
+  final Compiler compiler;
+  OnVariableCallback onVariable;
+  StringBuffer builder;
+
+  TypeRepresentation(Compiler this.compiler);
+
+  String getJsName(Element element) {
+    JavaScriptBackend backend = compiler.backend;
+    Namer namer = backend.namer;
+    return namer.isolateAccess(element);
+  }
+
+  /**
+   * Creates a type representation for [type]. [onVariable] is called to provide
+   * the type representation for type variables.
+   */
+  String getTypeRepresentation(DartType type, OnVariableCallback onVariable) {
+    this.onVariable = onVariable;
+    builder = new StringBuffer();
+    visit(type);
+    String typeRepresentation = builder.toString();
+    builder = null;
+    this.onVariable = null;
+    return typeRepresentation;
+  }
+
+  visit(DartType type) {
+    type.unalias(compiler).accept(this, null);
+  }
+
+  visitTypeVariableType(TypeVariableType type, _) {
+    builder.write(onVariable(type));
+  }
+
+  visitDynamicType(DynamicType type, _) {
+    builder.write('null');
+  }
+
+  visitInterfaceType(InterfaceType type, _) {
+    String name = getJsName(type.element);
+    if (type.isRaw) {
+      builder.write(name);
+    } else {
+      builder.write('[');
+      builder.write(name);
+      builder.write(', ');
+      visitList(type.typeArguments);
+      builder.write(']');
+    }
+  }
+
+  visitList(Link<DartType> types) {
+    bool first = true;
+    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
+      if (!first) {
+        builder.write(', ');
+      }
+      visit(link.head);
+      first = false;
+    }
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    builder.write('{func: true');
+    if (type.returnType.isVoid) {
+      builder.write(', retvoid: true');
+    } else if (!type.returnType.isDynamic) {
+      builder.write(', ret: ');
+      visit(type.returnType);
+    }
+    if (!type.parameterTypes.isEmpty) {
+      builder.write(', args: [');
+      visitList(type.parameterTypes);
+      builder.write(']');
+    }
+    if (!type.optionalParameterTypes.isEmpty) {
+      builder.write(', opt: [');
+      visitList(type.optionalParameterTypes);
+      builder.write(']');
+    }
+    if (!type.namedParameterTypes.isEmpty) {
+      builder.write(', named: {');
+      bool first = true;
+      Link<SourceString> names = type.namedParameters;
+      Link<DartType> types = type.namedParameterTypes;
+      while (!types.isEmpty) {
+        assert(!names.isEmpty);
+        if (!first) {
+          builder.write(', ');
+        }
+        builder.write('${names.head.slowToString()}: ');
+        visit(types.head);
+        first = false;
+        names = names.tail;
+        types = types.tail;
+      }
+      builder.write('}');
+    }
+    builder.write('}');
+  }
+
+  visitType(DartType type, _) {
+    compiler.internalError('Unexpected type: $type');
   }
 }
 

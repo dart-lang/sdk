@@ -5,10 +5,17 @@
 library type_test_helper;
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
+import "parser_helper.dart" show SourceString;
 import "compiler_helper.dart";
 
-InterfaceType instantiate(ClassElement element, List<DartType> arguments) {
-  return new InterfaceType(element, new Link<DartType>.fromList(arguments));
+GenericType instantiate(TypeDeclarationElement element,
+                        List<DartType> arguments) {
+  if (element.isClass()) {
+    return new InterfaceType(element, new Link<DartType>.fromList(arguments));
+  } else {
+    assert(element.isTypedef());
+    return new TypedefType(element, new Link<DartType>.fromList(arguments));
+  }
 }
 
 class TypeEnvironment {
@@ -29,8 +36,10 @@ class TypeEnvironment {
   Element getElement(String name) {
     var element = findElement(compiler, name);
     Expect.isNotNull(element);
-    if (identical(element.kind, ElementKind.CLASS)) {
+    if (element.isClass()) {
       element.ensureResolved(compiler);
+    } else if (element.isTypedef()) {
+      element.computeType(compiler);
     }
     return element;
   }
@@ -44,7 +53,35 @@ class TypeEnvironment {
     return getElementType(name);
   }
 
+  DartType getMemberType(ClassElement element, String name) {
+    Element member = element.localLookup(new SourceString(name));
+    return member.computeType(compiler);
+  }
+
   bool isSubtype(DartType T, DartType S) {
     return compiler.types.isSubtype(T, S);
+  }
+
+  FunctionType functionType(DartType returnType,
+                            List<DartType> parameters,
+                            {List<DartType> optionalParameter,
+                             Map<String,DartType> namedParameters}) {
+    Link<DartType> parameterTypes =
+        new Link<DartType>.fromList(parameters);
+    Link<DartType> optionalParameterTypes = optionalParameter != null
+        ? new Link<DartType>.fromList(optionalParameter)
+        : const Link<DartType>();
+    var namedParameterNames = new LinkBuilder<SourceString>();
+    var namedParameterTypes = new LinkBuilder<DartType>();
+    if (namedParameters != null) {
+      namedParameters.forEach((String name, DartType type) {
+        namedParameterNames.addLast(new SourceString(name));
+        namedParameterTypes.addLast(type);
+      });
+    }
+    FunctionType type = new FunctionType(
+        compiler.functionClass,
+        returnType, parameterTypes, optionalParameterTypes,
+        namedParameterNames.toLink(), namedParameterTypes.toLink());
   }
 }
