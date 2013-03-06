@@ -58,9 +58,11 @@ void testZLibDeflateGZip() {
         return buffer;
       })
       .then((data) {
-        Expect.listEquals([31, 139, 8, 0, 0, 0, 0, 0, 0, 3, 98, 96, 100, 98,
-                           102, 97, 101, 99, 231, 224, 4, 0, 0, 0, 255, 255],
-                          data);
+        Expect.equals(26, data.length);
+        Expect.listEquals([98, 96, 100, 98, 102, 97, 101, 99, 231, 224, 4, 0, 0,
+                           0, 255, 255],
+                          // Skip header, as it can change.
+                          data.getRange(10, 16));
         port.close();
       });
   controller.add(data);
