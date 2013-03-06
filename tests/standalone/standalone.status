@@ -70,11 +70,11 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 package/package1_test: Fail
 package/package_isolate_test: Fail
 package/package_test: Fail
-typed_data_test: Skip # dart:typeddata not supported yet.
-typed_array_test: Skip # dart:typeddata not supported yet.
-float_array_test: Skip # dart:typeddata not supported yet.
-int_array_test: Skip  # dart:typeddata not supported yet.
-int_array_load_elimination_test: Skip  # dart:typeddata not supported yet.
+typed_data_test: Fail # issue 8933, dart:typeddata not supported.
+typed_array_test: Fail # issue 8933, dart:typeddata not supported.
+float_array_test: Fail # issue 8933, dart:typeddata not supported.
+int_array_test: Fail # issue 8933, dart:typeddata not supported.
+int_array_load_elimination_test: Fail # issue 8933, dart:typeddata not supported.
 
 
 # The dart:io library is created at build time from separate files, and
