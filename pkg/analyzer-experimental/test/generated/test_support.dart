@@ -44,17 +44,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_297_impl();
+    _jtd_constructor_298_impl();
   }
-  _jtd_constructor_297_impl() {
+  _jtd_constructor_298_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_298_impl(rawSource2);
+    _jtd_constructor_299_impl(rawSource2);
   }
-  _jtd_constructor_298_impl(String rawSource2) {
+  _jtd_constructor_299_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
@@ -618,6 +618,9 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   String get encoding {
+    throw new UnsupportedOperationException();
+  }
+  int get modificationStamp {
     throw new UnsupportedOperationException();
   }
   bool exists() => true;

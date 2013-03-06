@@ -148,10 +148,10 @@ class LibraryElementImplTest extends EngineTestCase {
         final __test = new LibraryElementImplTest();
         runJUnitTest(__test, __test.test_getImportedLibraries);
       });
-//      _ut.test('test_getPrefixes', () {
-//        final __test = new LibraryElementImplTest();
-//        runJUnitTest(__test, __test.test_getPrefixes);
-//      });
+      _ut.test('test_getPrefixes', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getPrefixes);
+      });
       _ut.test('test_setImports', () {
         final __test = new LibraryElementImplTest();
         runJUnitTest(__test, __test.test_setImports);
@@ -1147,19 +1147,20 @@ class ElementFactory {
   }
   static LocalVariableElementImpl localVariableElement(Identifier name) => new LocalVariableElementImpl(name);
   static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(ASTFactory.identifier2(name));
-  static MethodElementImpl methodElement(String methodName, Type2 returnType12, List<Type2> argumentTypes) {
+  static MethodElementImpl methodElement(String methodName, Type2 returnType13, List<Type2> argumentTypes) {
     MethodElementImpl method = new MethodElementImpl.con1(ASTFactory.identifier2(methodName));
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
       ParameterElementImpl parameter = new ParameterElementImpl(ASTFactory.identifier2("a${i}"));
       parameter.type = argumentTypes[i];
+      parameter.parameterKind = ParameterKind.REQUIRED;
       parameters[i] = parameter;
     }
     method.parameters = parameters;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
     methodType.normalParameterTypes = argumentTypes;
-    methodType.returnType = returnType12;
+    methodType.returnType = returnType13;
     method.type = methodType;
     return method;
   }
@@ -1409,10 +1410,10 @@ class ElementImplTest extends EngineTestCase {
   }
   static dartSuite() {
     _ut.group('ElementImplTest', () {
-//      _ut.test('test_equals', () {
-//        final __test = new ElementImplTest();
-//        runJUnitTest(__test, __test.test_equals);
-//      });
+      _ut.test('test_equals', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_equals);
+      });
       _ut.test('test_isAccessibleIn_private_differentLibrary', () {
         final __test = new ElementImplTest();
         runJUnitTest(__test, __test.test_isAccessibleIn_private_differentLibrary);
@@ -1453,8 +1454,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_getReturnType() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));
-    Type2 returnType8 = type.returnType;
-    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType8);
+    Type2 returnType9 = type.returnType;
+    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType9);
   }
   void test_getTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));
@@ -1657,8 +1658,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));
     Type2 expectedType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier2("C")));
     type.returnType = expectedType;
-    Type2 returnType9 = type.returnType;
-    JUnitTestCase.assertEquals(expectedType, returnType9);
+    Type2 returnType10 = type.returnType;
+    JUnitTestCase.assertEquals(expectedType, returnType10);
   }
   void test_setTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier2("f")));

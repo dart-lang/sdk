@@ -191,7 +191,7 @@ class SdkLibrariesReader {
    * Return the library map read from the given source.
    * @return the library map read from the given source
    */
-  LibraryMap readFrom(File librariesFile, String libraryFileContents) {
+  LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
     AnalysisErrorListener errorListener = new AnalysisErrorListener_5(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, false);
@@ -349,7 +349,7 @@ class DartSdk {
   /**
    * The directory containing the SDK.
    */
-  File _sdkDirectory;
+  JavaFile _sdkDirectory;
   /**
    * The revision number of this SDK, or {@code "0"} if the revision number cannot be discovered.
    */
@@ -357,11 +357,11 @@ class DartSdk {
   /**
    * The file containing the Dartium executable.
    */
-  File _dartiumExecutable;
+  JavaFile _dartiumExecutable;
   /**
    * The file containing the VM executable.
    */
-  File _vmExecutable;
+  JavaFile _vmExecutable;
   /**
    * A mapping from Dart library URI's to the library represented by that URI.
    */
@@ -443,7 +443,7 @@ class DartSdk {
    * @return the default Dart SDK
    */
   static DartSdk get defaultSdk {
-    File sdkDirectory = defaultSdkDirectory;
+    JavaFile sdkDirectory = defaultSdkDirectory;
     if (sdkDirectory == null) {
       return null;
     }
@@ -456,7 +456,7 @@ class DartSdk {
    * named {@code DART_SDK}.
    * @return the default directory for the Dart SDK
    */
-  static File get defaultSdkDirectory {
+  static JavaFile get defaultSdkDirectory {
     String sdkProperty = JavaSystemIO.getProperty(_DEFAULT_DIRECTORY_PROPERTY_NAME);
     if (sdkProperty == null) {
       sdkProperty = JavaSystemIO.getenv(_DART_SDK_ENVIRONMENT_VARIABLE_NAME);
@@ -464,8 +464,8 @@ class DartSdk {
         return null;
       }
     }
-    File sdkDirectory = new File(sdkProperty);
-    if (!sdkDirectory.existsSync()) {
+    JavaFile sdkDirectory = new JavaFile(sdkProperty);
+    if (!sdkDirectory.exists()) {
       return null;
     }
     return sdkDirectory;
@@ -474,8 +474,8 @@ class DartSdk {
    * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
    * @param sdkDirectory the directory containing the SDK
    */
-  DartSdk(File sdkDirectory) {
-    this._sdkDirectory = getAbsoluteFile(sdkDirectory);
+  DartSdk(JavaFile sdkDirectory) {
+    this._sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
   }
@@ -483,11 +483,11 @@ class DartSdk {
    * Return the file containing the Dartium executable, or {@code null} if it does not exist.
    * @return the file containing the Dartium executable
    */
-  File get dartiumExecutable {
+  JavaFile get dartiumExecutable {
     {
       if (_dartiumExecutable == null) {
-        File file = newRelativeFile(_sdkDirectory, dartiumBinaryName);
-        if (file.existsSync()) {
+        JavaFile file = new JavaFile.relative(_sdkDirectory, dartiumBinaryName);
+        if (file.exists()) {
           _dartiumExecutable = file;
         }
       }
@@ -499,23 +499,23 @@ class DartSdk {
    * working directory is Dartium is invoked without changing the default).
    * @return the directory where dartium can be found
    */
-  File get dartiumWorkingDirectory {
+  JavaFile get dartiumWorkingDirectory {
     if (OSUtilities.isWindows() || OSUtilities.isMac()) {
       return _sdkDirectory;
     } else {
-      return newRelativeFile(_sdkDirectory, _CHROMIUM_DIRECTORY_NAME);
+      return new JavaFile.relative(_sdkDirectory, _CHROMIUM_DIRECTORY_NAME);
     }
   }
   /**
    * Return the directory containing the SDK.
    * @return the directory containing the SDK
    */
-  File get directory => _sdkDirectory;
+  JavaFile get directory => _sdkDirectory;
   /**
    * Return the directory containing documentation for the SDK.
    * @return the SDK's documentation directory
    */
-  File get docDirectory => newRelativeFile(_sdkDirectory, _DOCS_DIRECTORY_NAME);
+  JavaFile get docDirectory => new JavaFile.relative(_sdkDirectory, _DOCS_DIRECTORY_NAME);
   /**
    * Return the auxiliary documentation file for the given library, or {@code null} if no such file
    * exists.
@@ -523,14 +523,14 @@ class DartSdk {
    * returned
    * @return the auxiliary documentation file for the library
    */
-  File getDocFileFor(String libraryName) {
-    File dir = docDirectory;
-    if (!dir.existsSync()) {
+  JavaFile getDocFileFor(String libraryName) {
+    JavaFile dir = docDirectory;
+    if (!dir.exists()) {
       return null;
     }
-    File libDir = newRelativeFile(dir, libraryName);
-    File docFile = newRelativeFile(libDir, "${libraryName}${_DOC_FILE_SUFFIX}");
-    if (docFile.existsSync()) {
+    JavaFile libDir = new JavaFile.relative(dir, libraryName);
+    JavaFile docFile = new JavaFile.relative(libDir, "${libraryName}${_DOC_FILE_SUFFIX}");
+    if (docFile.exists()) {
       return docFile;
     }
     return null;
@@ -539,12 +539,12 @@ class DartSdk {
    * Return the directory within the SDK directory that contains the libraries.
    * @return the directory that contains the libraries
    */
-  File get libraryDirectory => newRelativeFile(_sdkDirectory, _LIB_DIRECTORY_NAME);
+  JavaFile get libraryDirectory => new JavaFile.relative(_sdkDirectory, _LIB_DIRECTORY_NAME);
   /**
    * Return the directory within the SDK directory that contains the packages.
    * @return the directory that contains the packages
    */
-  File get packageDirectory => newRelativeFile(directory, _PKG_DIRECTORY_NAME);
+  JavaFile get packageDirectory => new JavaFile.relative(directory, _PKG_DIRECTORY_NAME);
   /**
    * Return an array containing all of the libraries defined in this SDK.
    * @return the libraries defined in this SDK
@@ -559,7 +559,7 @@ class DartSdk {
     {
       if (_sdkVersion == null) {
         _sdkVersion = _DEFAULT_VERSION;
-        File revisionFile = newRelativeFile(_sdkDirectory, _REVISION_FILE_NAME);
+        JavaFile revisionFile = new JavaFile.relative(_sdkDirectory, _REVISION_FILE_NAME);
         try {
           String revision = revisionFile.readAsStringSync();
           if (revision != null) {
@@ -580,11 +580,11 @@ class DartSdk {
    * Return the file containing the VM executable, or {@code null} if it does not exist.
    * @return the file containing the VM executable
    */
-  File get vmExecutable {
+  JavaFile get vmExecutable {
     {
       if (_vmExecutable == null) {
-        File file = newRelativeFile(newRelativeFile(_sdkDirectory, _BIN_DIRECTORY_NAME), binaryName);
-        if (file.existsSync()) {
+        JavaFile file = new JavaFile.relative(new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), binaryName);
+        if (file.exists()) {
           _vmExecutable = file;
         }
       }
@@ -595,7 +595,7 @@ class DartSdk {
    * Return {@code true} if this SDK includes documentation.
    * @return {@code true} if this installation of the SDK has documentation
    */
-  bool hasDocumentation() => docDirectory.existsSync();
+  bool hasDocumentation() => docDirectory.exists();
   /**
    * Return {@code true} if the Dartium binary is available.
    * @return {@code true} if the Dartium binary is available
@@ -607,12 +607,12 @@ class DartSdk {
    * @param dartUri the URI of the library to be returned
    * @return the file representing the specified library
    */
-  File mapDartUri(String dartUri) {
+  JavaFile mapDartUri(String dartUri) {
     SdkLibrary library = _libraryMap.getLibrary(dartUri);
     if (library == null) {
       return null;
     }
-    return newRelativeFile(libraryDirectory, library.path);
+    return new JavaFile.relative(libraryDirectory, library.path);
   }
   /**
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
@@ -649,7 +649,7 @@ class DartSdk {
    */
   void initializeLibraryMap() {
     try {
-      File librariesFile = newRelativeFile(newRelativeFile(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
+      JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
       String contents = librariesFile.readAsStringSync();
       _libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
     } on JavaException catch (exception) {

@@ -332,7 +332,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements the operator
    * <i>==</i>.
    */
-  static final CompileTimeErrorCode CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS = new CompileTimeErrorCode('CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS', 7, "");
+  static final CompileTimeErrorCode CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS = new CompileTimeErrorCode('CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS', 7, "The switch case expression type '%s' cannot override the == operator");
   /**
    * 12.1 Constants: It is a compile-time error if evaluation of a compile-time constant would raise
    * an exception.

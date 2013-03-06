@@ -24,9 +24,9 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_282_impl(contentCache2, resolvers2);
+    _jtd_constructor_283_impl(contentCache2, resolvers2);
   }
-  _jtd_constructor_282_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
+  _jtd_constructor_283_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
     this._contentCache = contentCache2;
     this._resolvers = resolvers2;
   }
@@ -35,10 +35,10 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_283_impl(resolvers);
+    _jtd_constructor_284_impl(resolvers);
   }
-  _jtd_constructor_283_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_282_impl(new ContentCache(), [resolvers]);
+  _jtd_constructor_284_impl(List<UriResolver> resolvers) {
+    _jtd_constructor_283_impl(new ContentCache(), [resolvers]);
   }
   /**
    * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
@@ -97,6 +97,15 @@ class SourceFactory {
    * @return the contents of the given source
    */
   String getContents(Source source) => _contentCache.getContents(source);
+  /**
+   * Return the modification stamp of the given source, or {@code null} if this factory does not
+   * override the contents of the source.
+   * <p>
+   * <b>Note:</b> This method is not intended to be used except by{@link FileBasedSource#getModificationStamp()}.
+   * @param source the source whose modification stamp is to be returned
+   * @return the modification stamp of the given source
+   */
+  int getModificationStamp(Source source) => _contentCache.getModificationStamp(source);
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or{@code null} if either the contained URI is invalid or if it cannot be resolved against the
@@ -184,6 +193,15 @@ abstract class Source {
    * @return a name that can be displayed to the user to denote this source
    */
   String get fullName;
+  /**
+   * Return the modification stamp for this source. A modification stamp is a non-negative integer
+   * with the property that if the contents of the source have not been modified since the last time
+   * the modification stamp was accessed then the same value will be returned, but if the contents
+   * of the source have been modified one or more times (even if the net change is zero) the stamps
+   * will be different.
+   * @return the modification stamp for this source
+   */
+  int get modificationStamp;
   /**
    * Return a short version of the name that can be displayed to the user to denote this source. For
    * example, for a source representing a file this would typically be the name of the file.
@@ -471,6 +489,16 @@ class ContentCache {
    */
   Map<Source, String> _contentMap = new Map<Source, String>();
   /**
+   * A table mapping sources to the modification stamps of those sources. This is used when the
+   * default contents of a source has been overridden.
+   */
+  Map<Source, int> _stampMap = new Map<Source, int>();
+  /**
+   * Initialize a newly created cache to be empty.
+   */
+  ContentCache() : super() {
+  }
+  /**
    * Return the contents of the given source, or {@code null} if this cache does not override the
    * contents of the source.
    * <p>
@@ -479,6 +507,15 @@ class ContentCache {
    * @return the contents of the given source
    */
   String getContents(Source source) => _contentMap[source];
+  /**
+   * Return the modification stamp of the given source, or {@code null} if this cache does not
+   * override the contents of the source.
+   * <p>
+   * <b>Note:</b> This method is not intended to be used except by{@link SourceFactory#getModificationStamp(com.google.dart.engine.source.Source)}.
+   * @param source the source whose modification stamp is to be returned
+   * @return the modification stamp of the given source
+   */
+  int getModificationStamp(Source source) => _stampMap[source];
   /**
    * Set the contents of the given source to the given contents. This has the effect of overriding
    * the default contents of the source. If the contents are {@code null} the override is removed so
@@ -489,8 +526,10 @@ class ContentCache {
   void setContents(Source source, String contents) {
     if (contents == null) {
       _contentMap.remove(source);
+      _stampMap.remove(source);
     } else {
       _contentMap[source] = contents;
+      _stampMap[source] = JavaSystem.currentTimeMillis();
     }
   }
 }

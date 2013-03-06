@@ -425,6 +425,18 @@ abstract class ElementVisitor<R> {
   R visitTypeVariableElement(TypeVariableElement element);
 }
 /**
+ * The interface {@code EmbeddedHtmlScriptElement} defines the behavior of elements representing a
+ * script tag in an HTML file having content that defines a Dart library.
+ */
+abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
+  /**
+   * Return the library element defined by the content of the script tag, or {@code null} if the
+   * content does not define a library.
+   * @return the library element
+   */
+  LibraryElement get scriptLibrary;
+}
+/**
  * The interface {@code ExecutableElement} defines the behavior of elements representing an
  * executable object, including functions, methods, constructors, getters, and setters.
  */
@@ -483,6 +495,19 @@ abstract class ExportElement implements Element {
   LibraryElement get exportedLibrary;
 }
 /**
+ * The interface {@code ExternalHtmlScriptElement} defines the behavior of elements representing a
+ * script tag in an HTML file having a {@code source} attribute that references a Dart library
+ * source file.
+ */
+abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
+  /**
+   * Return the source referenced by this element, or {@code null} if this element does not
+   * reference a Dart library source file.
+   * @return the source for the external Dart library
+   */
+  Source get scriptSource;
+}
+/**
  * The interface {@code FieldElement} defines the behavior of elements representing a field defined
  * within a type.
  */
@@ -515,12 +540,20 @@ abstract class HideCombinator implements NamespaceCombinator {
  */
 abstract class HtmlElement implements Element {
   /**
-   * Return an array containing all of the libraries contained in or referenced from script tags in
-   * the HTML file. This includes libraries that are defined by the content of a script file as well
-   * as libraries that are referenced in the {@core src} attribute of a script tag.
-   * @return the libraries referenced from script tags in the HTML file
+   * Return an array containing all of the script elements contained in the HTML file. This includes
+   * scripts with libraries that are defined by the content of a script tag as well as libraries
+   * that are referenced in the {@core source} attribute of a script tag.
+   * @return the script elements in the HTML file (not {@code null}, contains no {@code null}s)
    */
-  List<LibraryElement> get libraries;
+  List<HtmlScriptElement> get scripts;
+}
+/**
+ * The interface {@code HtmlScriptElement} defines the behavior of elements representing a script
+ * tag in an HTML file.
+ * @see EmbeddedHtmlScriptElement
+ * @see ExternalHtmlScriptElement
+ */
+abstract class HtmlScriptElement implements Element {
 }
 /**
  * The interface {@code ImportElement} defines the behavior of objects representing information
@@ -2353,9 +2386,9 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
    */
   AnalysisContext _context;
   /**
-   * The libraries contained in or referenced from script tags in the HTML file.
+   * The scripts contained in or referenced from script tags in the HTML file.
    */
-  List<LibraryElement> _libraries = LibraryElementImpl.EMPTY_ARRAY;
+  List<HtmlScriptElement> _scripts = new List<HtmlScriptElement>(0);
   /**
    * The source that corresponds to this HTML file.
    */
@@ -2372,16 +2405,15 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   bool operator ==(Object object) => identical(runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
   AnalysisContext get context => _context;
   ElementKind get kind => ElementKind.HTML;
-  List<LibraryElement> get libraries => _libraries;
+  List<HtmlScriptElement> get scripts => _scripts;
   Source get source => _source;
   int get hashCode => _source.hashCode;
   /**
-   * Set the libraries contained in or referenced from script tags in the HTML file to the given
-   * libraries.
-   * @param libraries the libraries contained in or referenced from script tags in the HTML file
+   * Set the scripts contained in the HTML file to the given scripts.
+   * @param scripts the scripts
    */
-  void set libraries(List<LibraryElement> libraries2) {
-    this._libraries = libraries2;
+  void set scripts(List<HtmlScriptElement> scripts2) {
+    this._scripts = scripts2;
   }
   /**
    * Set the source that corresponds to this HTML file to the given source.
@@ -2392,7 +2424,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   }
   void visitChildren(ElementVisitor<Object> visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_libraries, visitor);
+    safelyVisitChildren(_scripts, visitor);
   }
   void appendTo(JavaStringBuilder builder) {
     if (_source == null) {

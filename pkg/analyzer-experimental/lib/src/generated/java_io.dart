@@ -4,8 +4,6 @@ import "dart:io";
 import "dart:uri";
 
 class JavaSystemIO {
-  static final String pathSeparator = Platform.pathSeparator;
-  static final int pathSeparatorChar = Platform.pathSeparator.codeUnitAt(0);
   static String getProperty(String name) {
     if (name == 'os.name') {
       return Platform.operatingSystem;
@@ -21,21 +19,32 @@ class JavaSystemIO {
   static String getenv(String name) => Platform.environment[name];
 }
 
-
-File newRelativeFile(File base, String child) {
-  var childPath = new Path(base.fullPathSync()).join(new Path(child));
-  return new File.fromPath(childPath);
-}
-
-File newFileFromUri(Uri uri) {
-  return new File(uri.path);
-}
-
-File getAbsoluteFile(File file) {
-  var path = file.fullPathSync();
-  return new File(path);
-}
-
-Uri newUriFromFile(File file) {
-  return new Uri.fromComponents(path: file.fullPathSync());
+class JavaFile {
+  static final String separator = Platform.pathSeparator;
+  static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
+  Path _path;
+  JavaFile(String path) {
+    this._path = new Path(path);
+  }
+  JavaFile.relative(JavaFile base, String child) {
+    this._path = base._path.join(new Path(child));
+  }
+  JavaFile.fromUri(Uri uri) : this(uri.path);
+  int get hashCode => _path.hashCode;
+  bool operator ==(other) {
+    return other is JavaFile && _path == other._path;
+  }
+  String getPath() => _path.toNativePath();
+  String getName() => _path.filename;
+  String getParent() => _path.directoryPath.toNativePath();
+  JavaFile getParentFile() => new JavaFile(getParent());
+  String getAbsolutePath() => _path.canonicalize().toNativePath();
+  String getCanonicalPath() => _path.canonicalize().toNativePath();
+  JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
+  JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
+  bool exists() => _newFile().existsSync();
+  Uri toURI() => new Uri.fromComponents(path: _path.toString());
+  String readAsStringSync() => _newFile().readAsStringSync();
+  int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;
+  File _newFile() => new File.fromPath(_path);
 }

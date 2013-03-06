@@ -5371,12 +5371,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitReturnStatement(ReturnStatement node) {
-    Expression expression16 = node.expression;
-    if (expression16 == null) {
+    Expression expression17 = node.expression;
+    if (expression17 == null) {
       _writer.print("return;");
     } else {
       _writer.print("return ");
-      expression16.accept(this);
+      expression17.accept(this);
       _writer.print(";");
     }
     return null;

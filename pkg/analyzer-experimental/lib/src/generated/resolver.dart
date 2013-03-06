@@ -1222,7 +1222,12 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @param expression the expression whose type is to be returned
    * @return the type of the given expression
    */
-  Type2 getType(Expression expression) => expression.staticType;
+  Type2 getType(Expression expression) {
+    if (expression is NullLiteral) {
+      return _resolver.typeProvider.objectType;
+    }
+    return expression.staticType;
+  }
   /**
    * Look up the getter with the given name in the given type. Return the element representing the
    * getter that was found, or {@code null} if there is no getter with the given name.
@@ -1505,9 +1510,9 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @param node the AST node that was resolved
    * @param element the element to which the AST node was resolved
    */
-  void recordResolution(SimpleIdentifier node, Element element46) {
-    if (element46 != null) {
-      node.element = element46;
+  void recordResolution(SimpleIdentifier node, Element element47) {
+    if (element47 != null) {
+      node.element = element47;
     }
   }
   /**
@@ -1577,15 +1582,15 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @return the class that should be used in place of the argument if it is a type variable, or the
    * original argument if it isn't a type variable
    */
-  Element resolveTypeVariable(Element element47) {
-    if (element47 is TypeVariableElement) {
-      Type2 bound4 = ((element47 as TypeVariableElement)).bound;
+  Element resolveTypeVariable(Element element48) {
+    if (element48 is TypeVariableElement) {
+      Type2 bound4 = ((element48 as TypeVariableElement)).bound;
       if (bound4 == null) {
         return _resolver.typeProvider.objectType.element;
       }
       return bound4.element;
     }
-    return element47;
+    return element48;
   }
 }
 class Identifier_3 extends Identifier {
@@ -2435,7 +2440,7 @@ class LibraryResolver {
     for (Source source in library.compilationUnitSources) {
       ErrorReporter errorReporter = new ErrorReporter(_errorListener, source);
       CompilationUnit unit = library.getAST(source);
-      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, _typeProvider);
+      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, library.libraryElement, _typeProvider);
       unit.accept(errorVerifier);
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
       unit.accept(constantVerifier);
@@ -3562,7 +3567,21 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * @param element the element representing the method or function invoked by the given node
    */
   Object recordReturnType(Expression expression, Element element) {
-    if (element is ExecutableElement) {
+    if (element is PropertyAccessorElement) {
+      FunctionType propertyType = ((element as PropertyAccessorElement)).type;
+      if (propertyType != null) {
+        Type2 returnType8 = propertyType.returnType;
+        if (returnType8 is FunctionType) {
+          Type2 innerReturnType = ((returnType8 as FunctionType)).returnType;
+          if (innerReturnType != null) {
+            return recordType(expression, innerReturnType);
+          }
+        }
+        if (returnType8 != null) {
+          return recordType(expression, returnType8);
+        }
+      }
+    } else if (element is ExecutableElement) {
       FunctionType type17 = ((element as ExecutableElement)).type;
       if (type17 != null) {
         return recordType(expression, type17.returnType);
@@ -3595,7 +3614,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * @param returnType the return type of the function, or {@code null} if no type was declared
    * @param parameters the elements representing the parameters to the function
    */
-  void setTypeInformation(FunctionTypeImpl functionType, Type2 returnType10, FormalParameterList parameterList) {
+  void setTypeInformation(FunctionTypeImpl functionType, Type2 returnType11, FormalParameterList parameterList) {
     List<Type2> normalParameterTypes = new List<Type2>();
     List<Type2> optionalParameterTypes = new List<Type2>();
     LinkedHashMap<String, Type2> namedParameterTypes = new LinkedHashMap<String, Type2>();
@@ -3616,7 +3635,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     functionType.normalParameterTypes = new List.from(normalParameterTypes);
     functionType.optionalParameterTypes = new List.from(optionalParameterTypes);
     functionType.namedParameterTypes = namedParameterTypes;
-    functionType.returnType = returnType10;
+    functionType.returnType = returnType11;
   }
 }
 /**
@@ -4282,13 +4301,13 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
     return new List.from(types);
   }
-  void setElement(Identifier typeName, Element element48) {
-    if (element48 != null) {
+  void setElement(Identifier typeName, Element element49) {
+    if (element49 != null) {
       if (typeName is SimpleIdentifier) {
-        ((typeName as SimpleIdentifier)).element = element48;
+        ((typeName as SimpleIdentifier)).element = element49;
       } else if (typeName is PrefixedIdentifier) {
         PrefixedIdentifier identifier = typeName as PrefixedIdentifier;
-        identifier.identifier.element = element48;
+        identifier.identifier.element = element49;
         SimpleIdentifier prefix9 = identifier.prefix;
         Element prefixElement = nameScope.lookup(prefix9, definingLibrary);
         if (prefixElement != null) {
@@ -4304,7 +4323,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @param returnType the return type of the function, or {@code null} if no type was declared
    * @param parameters the elements representing the parameters to the function
    */
-  void setTypeInformation(FunctionTypeImpl functionType, TypeName returnType11, List<ParameterElement> parameters) {
+  void setTypeInformation(FunctionTypeImpl functionType, TypeName returnType12, List<ParameterElement> parameters) {
     List<Type2> normalParameterTypes = new List<Type2>();
     List<Type2> optionalParameterTypes = new List<Type2>();
     LinkedHashMap<String, Type2> namedParameterTypes = new LinkedHashMap<String, Type2>();
@@ -4329,10 +4348,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (!namedParameterTypes.isEmpty) {
       functionType.namedParameterTypes = namedParameterTypes;
     }
-    if (returnType11 == null) {
+    if (returnType12 == null) {
       functionType.returnType = _dynamicType;
     } else {
-      functionType.returnType = returnType11.type;
+      functionType.returnType = returnType12.type;
     }
   }
 }
@@ -5128,6 +5147,10 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    */
   ErrorReporter _errorReporter;
   /**
+   * The current library that is being analyzed.
+   */
+  LibraryElement _currentLibrary;
+  /**
    * The type representing the type 'dynamic'.
    */
   Type2 _dynamicType;
@@ -5140,8 +5163,9 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    * method or function.
    */
   ExecutableElement _currentFunction;
-  ErrorVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
+  ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary, TypeProvider typeProvider) {
     this._errorReporter = errorReporter;
+    this._currentLibrary = currentLibrary;
     this._typeProvider = typeProvider;
     _dynamicType = typeProvider.dynamicType;
   }
@@ -5287,6 +5311,21 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       }
     }
     return super.visitReturnStatement(node);
+  }
+  Object visitSwitchStatement(SwitchStatement node) {
+    Expression expression16 = node.expression;
+    Type2 type = expression16.staticType;
+    if (type != null && type != _typeProvider.intType && type != _typeProvider.stringType) {
+      Element element44 = type.element;
+      if (element44 is ClassElement) {
+        ClassElement classElement = element44 as ClassElement;
+        MethodElement method = classElement.lookUpMethod("==", _currentLibrary);
+        if (method != null && method.enclosingElement.type != _typeProvider.objectType) {
+          _errorReporter.reportError(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, expression16, [element44.name]);
+        }
+      }
+    }
+    return super.visitSwitchStatement(node);
   }
   Object visitTypeParameter(TypeParameter node) {
     checkForBuiltInIdentifierAsName(node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);

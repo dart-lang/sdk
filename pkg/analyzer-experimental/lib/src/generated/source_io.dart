@@ -23,7 +23,7 @@ class FileBasedSource implements Source {
   /**
    * The file represented by this source.
    */
-  File _file;
+  JavaFile _file;
   /**
    * A flag indicating whether this source is in one of the system libraries.
    */
@@ -34,11 +34,11 @@ class FileBasedSource implements Source {
    * @param factory the source factory that created this source
    * @param file the file represented by this source
    */
-  FileBasedSource.con1(SourceFactory factory, File file) {
-    _jtd_constructor_278_impl(factory, file);
+  FileBasedSource.con1(SourceFactory factory, JavaFile file) {
+    _jtd_constructor_279_impl(factory, file);
   }
-  _jtd_constructor_278_impl(SourceFactory factory, File file) {
-    _jtd_constructor_279_impl(factory, file, false);
+  _jtd_constructor_279_impl(SourceFactory factory, JavaFile file) {
+    _jtd_constructor_280_impl(factory, file, false);
   }
   /**
    * Initialize a newly created source object.
@@ -46,29 +46,36 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
-  FileBasedSource.con2(SourceFactory factory2, File file3, bool inSystemLibrary2) {
-    _jtd_constructor_279_impl(factory2, file3, inSystemLibrary2);
+  FileBasedSource.con2(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
+    _jtd_constructor_280_impl(factory2, file3, inSystemLibrary2);
   }
-  _jtd_constructor_279_impl(SourceFactory factory2, File file3, bool inSystemLibrary2) {
+  _jtd_constructor_280_impl(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
     this._factory = factory2;
     this._file = file3;
     this._inSystemLibrary = inSystemLibrary2;
   }
   bool operator ==(Object object) => object != null && identical(this.runtimeType, object.runtimeType) && _file == ((object as FileBasedSource))._file;
-  bool exists() => _file.existsSync();
+  bool exists() => _file.exists();
   void getContents(Source_ContentReceiver receiver) {
     receiver.accept2(_file.readAsStringSync());
   }
-  String get encoding => newUriFromFile(_file).toString();
-  String get fullName => _file.fullPathSync();
-  String get shortName => _file.path;
+  String get encoding => _file.toURI().toString();
+  String get fullName => _file.getAbsolutePath();
+  int get modificationStamp {
+    int stamp = _factory.getModificationStamp(this);
+    if (stamp != null) {
+      return stamp;
+    }
+    return _file.lastModified();
+  }
+  String get shortName => _file.getName();
   int get hashCode => _file.hashCode;
   bool isInSystemLibrary() => _inSystemLibrary;
   Source resolve(String uri) => _factory.resolveUri(this, uri);
   Source resolveRelative(Uri containedUri) {
     try {
-      Uri resolvedUri = newUriFromFile(file).resolveUri(containedUri);
-      return new FileBasedSource.con1(_factory, newFileFromUri(resolvedUri));
+      Uri resolvedUri = file.toURI().resolveUri(containedUri);
+      return new FileBasedSource.con1(_factory, new JavaFile.fromUri(resolvedUri));
     } on JavaException catch (exception) {
     }
     return null;
@@ -77,14 +84,14 @@ class FileBasedSource implements Source {
     if (_file == null) {
       return "<unknown source>";
     }
-    return _file.fullPathSync();
+    return _file.getAbsolutePath();
   }
   /**
    * Return the file represented by this source. This is an internal method that is only intended to
    * be used by {@link UriResolver}.
    * @return the file represented by this source
    */
-  File get file => _file;
+  JavaFile get file => _file;
 }
 /**
  * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
@@ -116,7 +123,7 @@ class DartUriResolver extends UriResolver {
     if (!isDartUri(uri)) {
       return null;
     }
-    File resolvedFile = _sdk.mapDartUri(uri.toString());
+    JavaFile resolvedFile = _sdk.mapDartUri(uri.toString());
     return new FileBasedSource.con2(factory, resolvedFile, true);
   }
 }
@@ -128,7 +135,7 @@ class PackageUriResolver extends UriResolver {
   /**
    * The package directories that {@code package} URI's are assumed to be relative to.
    */
-  List<File> _packagesDirectories;
+  List<JavaFile> _packagesDirectories;
   /**
    * The name of the {@code package} scheme.
    */
@@ -145,7 +152,7 @@ class PackageUriResolver extends UriResolver {
    * @param packagesDirectories the package directories that {@code package} URI's are assumed to be
    * relative to
    */
-  PackageUriResolver(List<File> packagesDirectories) {
+  PackageUriResolver(List<JavaFile> packagesDirectories) {
     if (packagesDirectories.length < 1) {
       throw new IllegalArgumentException("At least one package directory must be provided");
     }
@@ -162,13 +169,13 @@ class PackageUriResolver extends UriResolver {
         return null;
       }
     }
-    for (File packagesDirectory in _packagesDirectories) {
-      File resolvedFile = newRelativeFile(packagesDirectory, path4);
-      if (resolvedFile.existsSync()) {
+    for (JavaFile packagesDirectory in _packagesDirectories) {
+      JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path4);
+      if (resolvedFile.exists()) {
         return new FileBasedSource.con1(factory, resolvedFile);
       }
     }
-    return new FileBasedSource.con1(factory, newRelativeFile(_packagesDirectories[0], path4));
+    return new FileBasedSource.con1(factory, new JavaFile.relative(_packagesDirectories[0], path4));
   }
 }
 /**
@@ -183,10 +190,10 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @return a path that ends with the system file separator
    */
   static String appendFileSeparator(String path) {
-    if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaSystemIO.pathSeparatorChar) {
+    if (path == null || path.length <= 0 || path.codeUnitAt(path.length - 1) == JavaFile.separatorChar) {
       return path;
     }
-    return "${path}${JavaSystemIO.pathSeparator}";
+    return "${path}${JavaFile.separator}";
   }
   /**
    * The container's path (not {@code null}).
@@ -197,20 +204,20 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * fully equivalent to {@link DirectoryBasedSourceContainer#DirectoryBasedSourceContainer(String)}.
    * @param directory the directory (not {@code null})
    */
-  DirectoryBasedSourceContainer.con1(File directory) {
-    _jtd_constructor_276_impl(directory);
+  DirectoryBasedSourceContainer.con1(JavaFile directory) {
+    _jtd_constructor_277_impl(directory);
   }
-  _jtd_constructor_276_impl(File directory) {
-    _jtd_constructor_277_impl(directory.fullPathSync());
+  _jtd_constructor_277_impl(JavaFile directory) {
+    _jtd_constructor_278_impl(directory.getPath());
   }
   /**
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path3) {
-    _jtd_constructor_277_impl(path3);
+    _jtd_constructor_278_impl(path3);
   }
-  _jtd_constructor_277_impl(String path3) {
+  _jtd_constructor_278_impl(String path3) {
     this._path = appendFileSeparator(path3);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
@@ -246,6 +253,6 @@ class FileUriResolver extends UriResolver {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource.con1(factory, newFileFromUri(uri));
+    return new FileBasedSource.con1(factory, new JavaFile.fromUri(uri));
   }
 }

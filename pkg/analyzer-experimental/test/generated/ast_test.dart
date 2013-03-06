@@ -352,11 +352,11 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element49, List<TypeName> arguments) {
-    SimpleIdentifier name20 = identifier2(element49.name);
-    name20.element = element49;
+  static TypeName typeName(ClassElement element50, List<TypeName> arguments) {
+    SimpleIdentifier name20 = identifier2(element50.name);
+    name20.element = element50;
     TypeName typeName = typeName2(name20, arguments);
-    typeName.type = element49.type;
+    typeName.type = element50.type;
     return typeName;
   }
   static TypeName typeName2(Identifier name, List<TypeName> arguments) {
