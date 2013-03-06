@@ -16,6 +16,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
+DartType voidType;
 DartType intType;
 DartType boolType;
 DartType stringType;
@@ -508,9 +509,15 @@ testFunctionSubtyping() {
                          const Link<DartType>(),
                          const Link<SourceString>(), const Link<DartType>()));
   }
+  Expect.isTrue(isSubtype([], intType, [], voidType));
+  Expect.isFalse(isSubtype([], voidType, [], intType));
+  Expect.isTrue(isSubtype([], voidType, [], voidType));
   Expect.isTrue(isSubtype([], intType, [], intType));
   Expect.isTrue(isSubtype([], intType, [], objectType));
   Expect.isFalse(isSubtype([], intType, [], doubleType));
+  Expect.isFalse(isSubtype([], intType, [intType], voidType));
+  Expect.isFalse(isSubtype([], voidType, [intType], intType));
+  Expect.isFalse(isSubtype([], voidType, [intType], voidType));
   Expect.isTrue(isSubtype([intType], intType, [intType], intType));
   Expect.isTrue(isSubtype([objectType], intType, [intType], objectType));
   Expect.isFalse(isSubtype([intType], intType, [doubleType], intType));
@@ -680,6 +687,7 @@ Node parseExpression(String text) =>
 void setup() {
   compiler = new MockCompiler();
   types = compiler.types;
+  voidType = compiler.types.voidType;
   intType = compiler.intClass.computeType(compiler);
   doubleType = compiler.doubleClass.computeType(compiler);
   boolType = compiler.boolClass.computeType(compiler);

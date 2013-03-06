@@ -672,18 +672,18 @@ class FunctionType extends DartType {
   }
 
   int get hashCode {
-    int hash = 17 * element.hashCode + 3 * returnType.hashCode;
+    int hash = 3 * returnType.hashCode;
     for (DartType parameter  in parameterTypes) {
-      hash = 17 * hash + 3 * parameter.hashCode;
+      hash = 17 * hash + 5 * parameter.hashCode;
     }
     for (DartType parameter  in optionalParameterTypes) {
-      hash = 17 * hash + 3 * parameter.hashCode;
+      hash = 19 * hash + 7 * parameter.hashCode;
     }
     for (SourceString name  in namedParameters) {
-      hash = 17 * hash + 3 * name.hashCode;
+      hash = 23 * hash + 11 * name.hashCode;
     }
     for (DartType parameter  in namedParameterTypes) {
-      hash = 17 * hash + 3 * parameter.hashCode;
+      hash = 29 * hash + 13 * parameter.hashCode;
     }
     return hash;
   }
@@ -858,8 +858,11 @@ abstract class DartTypeVisitor<R, A> {
 class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   final DynamicType dynamicType;
+  final VoidType voidType;
 
-  SubtypeVisitor(Compiler this.compiler, DynamicType this.dynamicType);
+  SubtypeVisitor(Compiler this.compiler,
+                 DynamicType this.dynamicType,
+                 VoidType this.voidType);
 
   bool isSubtype(DartType t, DartType s) {
     if (identical(t, s) ||
@@ -929,8 +932,10 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       sps = sps.tail;
     }
     if (!tps.isEmpty || !sps.isEmpty) return false;
-    // TODO(johnniwinther): Handle the void type correctly.
-    if (!isAssignable(tf.returnType, sf.returnType)) return false;
+    if (!identical(sf.returnType, voidType) &&
+        !isAssignable(tf.returnType, sf.returnType)) {
+      return false;
+    }
     if (!sf.namedParameters.isEmpty) {
       // Since named parameters are globally ordered we can determine the
       // subset relation with a linear search for [:sf.NamedParameters:]
@@ -992,7 +997,8 @@ class Types {
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawType = dynamicElement.thisType = dynamicType;
-    SubtypeVisitor subtypeVisitor = new SubtypeVisitor(compiler, dynamicType);
+    SubtypeVisitor subtypeVisitor =
+        new SubtypeVisitor(compiler, dynamicType, voidType);
     return new Types.internal(compiler, voidType, dynamicType, subtypeVisitor);
   }
 
