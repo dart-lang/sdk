@@ -1029,6 +1029,13 @@ class JavaScriptBackend extends Backend {
       e = getNativeCheckedModeHelper(type, typeCast: false);
       if (e != null) world.addToWorkList(e);
     }
+    if (type.element.isNative()) {
+      // We will neeed to add the "$is" and "$as" properties on the
+      // JavaScript object prototype, so we make sure
+      // [:defineProperty:] is compiled.
+      world.addToWorkList(
+          compiler.findHelper(const SourceString('defineProperty')));
+    }
   }
 
   void registerAsCheck(DartType type) {

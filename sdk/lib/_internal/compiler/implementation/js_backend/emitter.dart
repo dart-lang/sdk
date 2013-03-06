@@ -2619,8 +2619,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         for (ClassElement element in nativeClasses) {
           nativeEmitter.generateNativeClass(element);
         }
-        nativeEmitter.assembleCode(nativeBuffer);
       }
+      nativeEmitter.assembleCode(nativeBuffer);
 
       // Might also create boundClosures.
       if (!regularClasses.isEmpty) {
