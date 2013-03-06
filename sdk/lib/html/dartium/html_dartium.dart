@@ -6529,7 +6529,14 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 
   @DomName('DataTransferItem.getAsString')
   @DocsEditable
-  void getAsString([StringCallback callback]) native "DataTransferItem_getAsString_Callback";
+  void _getAsString([_StringCallback callback]) native "DataTransferItem_getAsString_Callback";
+
+  Future<String> getAsString() {
+    var completer = new Completer<String>();
+    _getAsString(
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('DataTransferItem.webkitGetAsEntry')
   @DocsEditable
@@ -6940,15 +6947,39 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
+  void _getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
+
+  Future<Entry> getDirectory(String path, {Map options}) {
+    var completer = new Completer<Entry>();
+    _getDirectory(path, options : options,
+        successCallback : (value) { completer.complete(value); },
+        errorCallback : (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
+  void _getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
+
+  Future<Entry> getFile(String path, {Map options}) {
+    var completer = new Completer<Entry>();
+    _getFile(path, options : options,
+        successCallback : (value) { completer.complete(value); },
+        errorCallback : (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DirectoryEntry.removeRecursively')
   @DocsEditable
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
+  void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
+
+  Future removeRecursively() {
+    var completer = new Completer();
+    _removeRecursively(
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6994,7 +7025,15 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
 
   @DomName('DirectoryReader.readEntries')
   @DocsEditable
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
+  void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
+
+  Future<List<Entry>> readEntries() {
+    var completer = new Completer<List<Entry>>();
+    _readEntries(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10569,7 +10608,7 @@ class EntityReference extends Node {
 // WARNING: Do not edit - generated code.
 
 
-typedef void EntriesCallback(List<Entry> entries);
+typedef void _EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10602,7 +10641,7 @@ class Entry extends NativeFieldWrapperClass1 {
   @DocsEditable
   String get name native "Entry_name_Getter";
 
-  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
+  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?name) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10619,15 +10658,48 @@ class Entry extends NativeFieldWrapperClass1 {
   @DocsEditable
   void _copyTo_2(parent) native "Entry__copyTo_2_Callback";
 
+  Future _copyTo(DirectoryEntry parent, {String name}) {
+    if (?name) {
+      _copyTo_1(parent, name);
+      return;
+    }
+    _copyTo_2(parent);
+    return;
+  }
+
+  @DomName('Entry._copyTo_1')
+  @DocsEditable
+  void _copyTo_1(parent, name) native "Entry__copyTo_1_Callback";
+
+  @DomName('Entry._copyTo_2')
+  @DocsEditable
+  void _copyTo_2(parent) native "Entry__copyTo_2_Callback";
+
   @DomName('Entry.getMetadata')
   @DocsEditable
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
+  void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
+
+  Future<Metadata> getMetadata() {
+    var completer = new Completer<Metadata>();
+    _getMetadata(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('Entry.getParent')
   @DocsEditable
-  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
+  void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
-  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
+  Future<Entry> getParent() {
+    var completer = new Completer<Entry>();
+    _getParent(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
+
+  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?name) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10644,9 +10716,34 @@ class Entry extends NativeFieldWrapperClass1 {
   @DocsEditable
   void _moveTo_2(parent) native "Entry__moveTo_2_Callback";
 
+  Future _moveTo(DirectoryEntry parent, {String name}) {
+    if (?name) {
+      _moveTo_1(parent, name);
+      return;
+    }
+    _moveTo_2(parent);
+    return;
+  }
+
+  @DomName('Entry._moveTo_1')
+  @DocsEditable
+  void _moveTo_1(parent, name) native "Entry__moveTo_1_Callback";
+
+  @DomName('Entry._moveTo_2')
+  @DocsEditable
+  void _moveTo_2(parent) native "Entry__moveTo_2_Callback";
+
   @DomName('Entry.remove')
   @DocsEditable
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native "Entry_remove_Callback";
+  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) native "Entry_remove_Callback";
+
+  Future remove() {
+    var completer = new Completer();
+    _remove(
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('Entry.toURL')
   @DocsEditable
@@ -10660,7 +10757,7 @@ class Entry extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void EntryCallback(Entry entry);
+typedef void _EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10725,7 +10822,7 @@ class EntrySync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void ErrorCallback(FileError error);
+typedef void _ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11221,7 +11318,7 @@ class File extends Blob {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileCallback(File file);
+typedef void _FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11236,11 +11333,27 @@ class FileEntry extends Entry {
 
   @DomName('FileEntry.createWriter')
   @DocsEditable
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
+  void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
+
+  Future<FileWriter> createWriter() {
+    var completer = new Completer<FileWriter>();
+    _createWriter(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('FileEntry.file')
   @DocsEditable
-  void file(FileCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_file_Callback";
+  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) native "FileEntry_file_Callback";
+
+  Future<File> file() {
+    var completer = new Completer<File>();
+    _file(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11779,7 +11892,7 @@ class FileSystem extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileSystemCallback(FileSystem fileSystem);
+typedef void _FileSystemCallback(FileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11921,7 +12034,7 @@ class FileWriter extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileWriterCallback(FileWriter fileWriter);
+typedef void _FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13605,7 +13718,7 @@ class HttpRequest extends EventTarget {
     if (method == null) {
       method = 'GET';
     }
-    xhr.open(method, url, true);
+    xhr.open(method, url, async: true);
 
     if (withCredentials != null) {
       xhr.withCredentials = withCredentials;
@@ -13915,7 +14028,7 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable
-  void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
+  void open(String method, String url, {bool async, String user, String password}) native "XMLHttpRequest_open_Callback";
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -14809,7 +14922,7 @@ class InputElement extends _Element_Merged implements
   @DocsEditable
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
-  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
     if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
       _setRangeText_1(replacement);
       return;
@@ -19429,7 +19542,14 @@ class Notification extends EventTarget {
 
   @DomName('Notification.requestPermission')
   @DocsEditable
-  static void requestPermission([NotificationPermissionCallback callback]) native "Notification_requestPermission_Callback";
+  static void _requestPermission([_NotificationPermissionCallback callback]) native "Notification_requestPermission_Callback";
+
+  static Future<String> requestPermission() {
+    var completer = new Completer<String>();
+    _requestPermission(
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('Notification.show')
   @DocsEditable
@@ -19488,7 +19608,14 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 
   @DomName('NotificationCenter.requestPermission')
   @DocsEditable
-  void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
+  void _requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
+
+  Future requestPermission() {
+    var completer = new Completer();
+    _requestPermission(
+        () { completer.complete(); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19498,7 +19625,7 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void NotificationPermissionCallback(String permission);
+typedef void _NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20420,7 +20547,7 @@ class QuoteElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-typedef void RtcErrorCallback(String errorInformation);
+typedef void _RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20428,7 +20555,7 @@ typedef void RtcErrorCallback(String errorInformation);
 // WARNING: Do not edit - generated code.
 
 
-typedef void RtcSessionDescriptionCallback(RtcSessionDescription sdp);
+typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20944,7 +21071,15 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable
-  void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
+  void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
+
+  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createAnswer(mediaConstraints,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable
@@ -20956,7 +21091,15 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
-  void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
+  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
+
+  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createOffer(mediaConstraints,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
@@ -20984,11 +21127,27 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable
-  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
+  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
+
+  Future setLocalDescription(RtcSessionDescription description) {
+    var completer = new Completer();
+    _setLocalDescription(description,
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.setRemoteDescription')
   @DocsEditable
-  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
+  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
+
+  Future setRemoteDescription(RtcSessionDescription description) {
+    var completer = new Completer();
+    _setRemoteDescription(description,
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable
@@ -22801,11 +22960,27 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
+  void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
+
+  Future<int> queryUsageAndQuota(int storageType) {
+    var completer = new Completer<int>();
+    _queryUsageAndQuota(storageType,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('StorageInfo.requestQuota')
   @DocsEditable
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
+  void _requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, _StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
+
+  Future<int> requestQuota(int storageType, int newQuotaInBytes) {
+    var completer = new Completer<int>();
+    _requestQuota(storageType, newQuotaInBytes,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22815,7 +22990,7 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoErrorCallback(DomException error);
+typedef void _StorageInfoErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22831,7 +23006,7 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22839,7 +23014,7 @@ typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaI
 // WARNING: Do not edit - generated code.
 
 
-typedef void StringCallback(String data);
+typedef void _StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -28554,13 +28729,29 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+  void _requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+
+  Future<FileSystem> requestFileSystem(int type, int size) {
+    var completer = new Completer<FileSystem>();
+    _requestFileSystem(type, size,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+
+  Future<Entry> resolveLocalFileSystemUrl(String url) {
+    var completer = new Completer<Entry>();
+    _resolveLocalFileSystemUrl(url,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DOMWindow.onDOMContentLoaded')
   @DocsEditable
@@ -28918,7 +29109,7 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
+  void requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @DocsEditable
@@ -28936,7 +29127,15 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+
+  Future<Entry> resolveLocalFileSystemUrl(String url) {
+    var completer = new Completer<Entry>();
+    _resolveLocalFileSystemUrl(url,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('WorkerContext.onerror')
   @DocsEditable

@@ -53,7 +53,7 @@ main() {
   group('xhr', () {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
-      xhr.open("GET", "NonExistingFile", true);
+      xhr.open("GET", "NonExistingFile", async: true);
       xhr.onReadyStateChange.listen(expectAsyncUntil1((event) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate404(xhr);
@@ -66,7 +66,7 @@ main() {
       var loadEndCalled = false;
 
       var xhr = new HttpRequest();
-      xhr.open('GET', url, true);
+      xhr.open('GET', url, async: true);
       xhr.onReadyStateChange.listen(expectAsyncUntil1((e) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate200Response(xhr);
