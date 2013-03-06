@@ -1502,4 +1502,8 @@ class JavaScriptBackend extends Backend {
     generatedBailoutCode.remove(element);
     compiler.enqueuer.codegen.addToWorkList(element);
   }
+
+  bool isNullImplementation(ClassElement cls) {
+    return cls == jsNullClass;
+  }
 }

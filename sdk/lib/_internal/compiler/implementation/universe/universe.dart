@@ -507,7 +507,9 @@ class TypedSelector extends Selector {
       return false;
     }
 
-    if (mask.isExact) {
+    if (mask.isNullable && compiler.backend.isNullImplementation(other)) {
+      return appliesUntyped(element, compiler);
+    } else if (mask.isExact) {
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
     } else if (mask.isSubclass) {
       return (hasElementIn(self, element)

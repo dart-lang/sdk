@@ -151,6 +151,10 @@ abstract class Backend {
   void registerSuperNoSuchMethod() {}
   void registerConstantMap() {}
   void registerRuntimeType() {}
+
+  bool isNullImplementation(ClassElement cls) {
+    return cls == compiler.nullClass;
+  }
 }
 
 /**
