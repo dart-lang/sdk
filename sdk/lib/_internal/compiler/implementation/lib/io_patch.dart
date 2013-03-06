@@ -235,3 +235,12 @@ patch class _WindowsCodePageEncoder {
     throw new UnsupportedError("_WindowsCodePageEncoder._encodeString");
   }
 }
+
+patch class _Filter {
+  patch static _Filter newZLibDeflateFilter(bool gzip, int level) {
+    throw new UnsupportedError("newZLibDeflateFilter");
+  }
+  patch static _Filter newZLibInflateFilter() {
+    throw new UnsupportedError("newZLibInflateFilter");
+  }
+}
