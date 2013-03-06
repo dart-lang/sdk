@@ -51,11 +51,6 @@ fi
 # TODO(ahe): Remove this option (http://dartbug.com/6495).
 EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--heap_growth_rate=512'
 
-# Tell the VM to don't bother inlining methods. So far inlining isn't
-# paying off but the VM team is working on fixing that.
-# TODO(ahe): Remove this option (http://dartbug.com/6495).
-EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--no_use_inlining'
-
 case $0 in
   *_developer)
     EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]='--checked'

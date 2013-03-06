@@ -12,4 +12,4 @@ set arguments=%*
 rem set SNAPSHOTNAME="%SCRIPTPATH%dartdoc.snapshot"
 rem if exist %SNAPSHOTNAME% set SNAPSHOT=--use-script-snapshot=%SNAPSHOTNAME%
 
-"%SCRIPTPATH%dart" --no_use_inlining --heap_growth_rate=32 %SNAPSHOT% "%SCRIPTPATH%..\lib\_internal\dartdoc\bin\dartdoc.dart" %arguments%
+"%SCRIPTPATH%dart" --heap_growth_rate=32 %SNAPSHOT% "%SCRIPTPATH%..\lib\_internal\dartdoc\bin\dartdoc.dart" %arguments%
