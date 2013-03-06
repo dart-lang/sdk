@@ -7,10 +7,15 @@ library simple_types_inferrer;
 import '../closure.dart' show ClosureClassMap, ClosureScope;
 import '../native_handler.dart' as native;
 import '../elements/elements.dart';
-import '../dart2jslib.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'types.dart' show TypesInferrer, ConcreteType, ClassBaseType;
+
+// BUG(8802): There's a bug in the analyzer that makes the re-export
+// of Selector from dart2jslib.dart fail. For now, we work around that
+// by importing universe.dart explicitly and disabling the re-export.
+import '../dart2jslib.dart' hide Selector;
+import '../universe/universe.dart' show Selector;
 
 /**
  * A work queue that ensures there are no duplicates, and adds and
@@ -19,11 +24,11 @@ import 'types.dart' show TypesInferrer, ConcreteType, ClassBaseType;
 class WorkSet<E extends Element> {
   final List<E> queue = new List<E>();
   final Set<E> elementsInQueue = new Set<E>();
-  
+
   void add(E element) {
     element = element.implementation;
     if (elementsInQueue.contains(element)) return;
-    queue.addLast(element);
+    queue.add(element);
     elementsInQueue.add(element);
   }
 
@@ -71,7 +76,7 @@ class ClassInfoForFinalFields {
   /**
    * Records that [constructor] has been analyzed. If not at 0,
    * decrement [constructorsToVisitCount].
-   */ 
+   */
   void doneAnalyzingGenerativeConstructor(Element constructor) {
     if (constructorsToVisitCount != 0) constructorsToVisitCount--;
   }

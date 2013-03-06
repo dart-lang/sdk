@@ -49,7 +49,8 @@ class ConstantHandler extends CompilerTask {
       registerGetOfStaticFunction(function.element);
     } else if (constant.isInterceptor()) {
       // An interceptor constant references the class's prototype chain.
-      registerInstantiatedClass(constant.dispatchedType.element);
+      InterceptorConstant interceptor = constant;
+      registerInstantiatedClass(interceptor.dispatchedType.element);
     }
     compiledConstants.add(constant);
   }

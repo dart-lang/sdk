@@ -502,7 +502,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
       if (info.initializer != null) {
         visitExpression(info.initializer);
       }
-      blocks.addLast(info.loopHeader);
+      blocks.add(info.loopHeader);
       if (!info.isDoWhile()) {
         visitExpression(info.condition);
       }
@@ -552,7 +552,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
    */
   void visitStatements(HSubGraphBlockInformation info, {bool newFlow}) {
     SubGraph graph = info.subGraph;
-    if (newFlow) blocks.addLast(graph.start);
+    if (newFlow) blocks.add(graph.start);
     visitSubGraph(graph);
     if (newFlow) blocks.removeLast();
   }

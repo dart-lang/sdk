@@ -2356,22 +2356,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     }
   }
 
-  int _compareSelectors(Selector selector1, Selector selector2) {
-    int comparison = _compareSelectorNames(selector1, selector2);
-    if (comparison != 0) return comparison;
-
-    Set<ClassElement> classes1 = backend.getInterceptedClassesOn(selector1);
-    Set<ClassElement> classes2 = backend.getInterceptedClassesOn(selector2);
-    if (classes1.length != classes2.length) {
-      return classes1.length - classes2.length;
-    }
-    String getInterceptor1 =
-        namer.getInterceptorName(backend.getInterceptorMethod, classes1);
-    String getInterceptor2 =
-        namer.getInterceptorName(backend.getInterceptorMethod, classes2);
-    return Comparable.compare(getInterceptor1, getInterceptor2);
-  }
-
   // Optimize performance critical one shot interceptors.
   jsAst.Statement tryOptimizeOneShotInterceptor(Selector selector,
                                                 Set<ClassElement> classes) {

@@ -546,7 +546,7 @@ class VariableNamer {
       // in this block can match a phi with the same name in the
       // successor block.
       if (temporaryIndex != 0 && regexp.hasMatch(ownName)) {
-        freeTemporaryNames.addLast(ownName);
+        freeTemporaryNames.add(ownName);
       }
       usedNames.remove(ownName);
     }

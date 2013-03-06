@@ -1178,7 +1178,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Node callNode) {
     compiler.withCurrentElement(constructor, () {
       assert(invariant(constructor, constructor.isImplementation));
-      constructors.addLast(constructor);
+      constructors.add(constructor);
 
       List<HInstruction> compiledArguments = new List<HInstruction>();
       bool succeeded =
@@ -1201,7 +1201,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // type parameters. Those values are in the [supertype]
         // declaration of [subclass].
         ClassElement subclass = inlinedFromElement.getEnclosingClass();
-        DartType supertype = subclass.supertype;
+        InterfaceType supertype = subclass.supertype;
         Link<DartType> typeVariables = superclass.typeVariables;
         supertype.typeArguments.forEach((DartType argument) {
           localsHandler.updateLocal(typeVariables.head.element,
@@ -4102,8 +4102,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
-      inputs.addLast(pop());
-      inputs.addLast(pop());
+      inputs.add(pop());
+      inputs.add(pop());
     }
     HLiteralList keyValuePairs = new HLiteralList(inputs);
     add(keyValuePairs);

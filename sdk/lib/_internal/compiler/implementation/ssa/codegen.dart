@@ -2624,7 +2624,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   String pushLabel() {
     String label = 'L${labelId++}';
-    labels.addLast(label);
+    labels.add(label);
     return label;
   }
 

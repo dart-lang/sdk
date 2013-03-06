@@ -390,7 +390,8 @@ class TypeCheckMapping implements TypeChecks {
     StringBuffer sb = new StringBuffer();
     for (ClassElement holder in this) {
       for (ClassElement check in [holder]) {
-        sb.add('${holder.name.slowToString()}.${check.name.slowToString()}, ');
+        sb.write('${holder.name.slowToString()}.'
+                 '${check.name.slowToString()}, ');
       }
     }
     return '[$sb]';
