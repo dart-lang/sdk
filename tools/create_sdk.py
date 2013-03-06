@@ -277,9 +277,12 @@ def Main(argv):
   # Fix up dartdoc.
   # TODO(dgrove): Remove this once issue 6619 is fixed.
   ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc',
-                       'bin', 'dartdoc.dart')],
-                 [("../../../../../pkg/args/lib/args.dart",
-                   "../../../../pkg/args/lib/args.dart")])
+                       'bin', 'dartdoc.dart')], [
+                  ("../../../../../pkg/args/lib/args.dart",
+                   "../../../../pkg/args/lib/args.dart"),
+                  ("../../../../../pkg/pathos/lib/path.dart",
+                   "../../../../pkg/pathos/lib/path.dart"),
+                 ])
 
   # Write the 'version' file
   versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')
