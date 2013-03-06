@@ -4,6 +4,7 @@
 
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 
 import 'dart:io';
 
@@ -38,11 +39,14 @@ main() {
   var dirPath = scriptPath.directoryPath;
   var libPath = dirPath.join(new Path('../../../sdk/'));
   var inputPath = dirPath.join(new Path('mirrors_helper.dart'));
-  var compilation = new Compilation.library([inputPath], libPath, null,
-      <String>['--preserve-comments']);
-  Expect.isNotNull(compilation, "No compilation created");
+  var result = analyze([inputPath], libPath,
+                       options: <String>['--preserve-comments']);
+  result.then((MirrorSystem mirrors) {
+    test(mirrors);
+  });
+}
 
-  var mirrors = compilation.mirrors;
+void test(MirrorSystem mirrors) {
   Expect.isNotNull(mirrors, "No mirror system returned from compilation");
 
   var libraries = mirrors.libraries;

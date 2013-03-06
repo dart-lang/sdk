@@ -35,7 +35,7 @@ void main() {
 
   List<String> excludedLibraries = <String>[];
   List<String> includedLibraries = <String>[];
-  var pkgPath;
+  Path pkgPath;
   String version;
 
   // Parse the command-line arguments.
@@ -63,7 +63,7 @@ void main() {
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--pkg=')) {
-          pkgPath = arg.substring('--pkg='.length);
+          pkgPath = new Path(arg.substring('--pkg='.length));
         } else if (arg.startsWith('--version=')) {
           version = arg.substring('--version='.length);
         } else {
@@ -93,9 +93,8 @@ void main() {
   final mdn = json.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
-  HtmlDiff.initialize(libPath);
   _diff = new HtmlDiff(printWarnings:false);
-  _diff.run();
+  Future htmlDiff = _diff.run(libPath);
 
   // Process libraries.
 
@@ -147,12 +146,18 @@ void main() {
         apidoc.includeApi = true;
         apidoc.includedLibraries = includedLibraries;
 
-        Future.wait([copiedStatic, copiedApiDocStatic]).then((_) {
-          apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
+        Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff]).then((_) {
+          Future<bool> documented =
+              apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
 
-          final compiled = doc.compileScript(mode, outputDir, libPath);
+          documented.then((_) {
+            final compiled = doc.compileScript(mode, outputDir, libPath);
 
-          Future.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+            Future.wait([compiled]).then((_) {
+              apidoc.cleanup();
+            });
+          }, onError: (AsyncError asyncError) {
+            print('Generation failed: ${asyncError.error}');
             apidoc.cleanup();
           });
         });
@@ -328,7 +333,7 @@ class Apidoc extends doc.Dartdoc {
     }
   }
 
-  doc.MdnComment lookupMdnComment(Mirror mirror) { 
+  doc.MdnComment lookupMdnComment(Mirror mirror) {
     if (mirror is TypeMirror) {
       return includeMdnTypeComment(mirror);
     } else if (mirror is MemberMirror) {
@@ -383,7 +388,7 @@ class Apidoc extends doc.Dartdoc {
    * Gets the MDN-scraped docs for [member], or `null` if this type isn't
    * scraped from MDN.
    */
-  MdnComment includeMdnMemberComment(MemberMirror member) {
+  doc.MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
     if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {

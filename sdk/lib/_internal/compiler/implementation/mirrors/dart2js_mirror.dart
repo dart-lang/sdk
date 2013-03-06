@@ -9,7 +9,7 @@ import 'dart:collection' show LinkedHashMap;
 import 'dart:io';
 import 'dart:uri';
 
-import '../../compiler.dart' as diagnostics;
+import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
 import '../apiimpl.dart' show Compiler;
@@ -84,8 +84,6 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
     // TODO(johnniwinther): We need a mirror on malformed types.
     return system.dynamicType;
   }
-  _diagnosticListener.internalError(
-      "Unexpected type $type of kind ${type.kind}");
   system.compiler.internalError("Unexpected type $type of kind ${type.kind}");
 }
 
@@ -193,113 +191,95 @@ String _getOperatorFromOperatorName(String name) {
   return newName;
 }
 
-DiagnosticListener get _diagnosticListener {
-  return const Dart2JsDiagnosticListener();
-}
-
-class Dart2JsDiagnosticListener implements DiagnosticListener {
-  const Dart2JsDiagnosticListener();
-
-  void cancel(String reason, {node, token, instruction, element}) {
-    print(reason);
-  }
-
-  void log(message) {
-    print(message);
-  }
-
-  void internalError(String message,
-                     {Node node, Token token, HInstruction instruction,
-                      Element element}) {
-    cancel('Internal error: $message', node: node, token: token,
-           instruction: instruction, element: element);
-  }
-
-  void internalErrorOnElement(Element element, String message) {
-    internalError(message, element: element);
-  }
-
-  SourceSpan spanFromSpannable(Node node, [Uri uri]) {
-    // TODO(johnniwinther): implement this.
-    throw 'unimplemented';
-  }
-
-  void reportMessage(SourceSpan span, Diagnostic message,
-                     diagnostics.Diagnostic kind) {
-    // TODO(johnniwinther): implement this.
-    throw 'unimplemented';
-  }
-
-  bool onDeprecatedFeature(Spannable span, String feature) {
-    // TODO(johnniwinther): implement this?
-    throw 'unimplemented';
-  }
-}
-
 //------------------------------------------------------------------------------
 // Compilation implementation
 //------------------------------------------------------------------------------
 
-// TODO(johnniwinther): Support client configurable handlers/providers.
-class Dart2JsCompilation implements Compilation {
-  Compiler _compiler;
-  final Uri cwd;
-  final SourceFileProvider provider;
+// TODO(johnniwinther): Support client configurable providers.
 
-  Dart2JsCompilation(Path script, Path libraryRoot,
-                     [Path packageRoot, List<String> opts = const <String>[]])
-      : cwd = getCurrentDirectory(),
-        provider = new SourceFileProvider() {
-    var handler = new FormattingDiagnosticHandler(provider);
-    var libraryUri = cwd.resolve('${libraryRoot}/');
-    var packageUri;
-    if (packageRoot != null) {
-      packageUri = cwd.resolve('${packageRoot}/');
-    } else {
-      packageUri = libraryUri;
-    }
-    _compiler = new Compiler(provider.readStringFromUri,
-                                 null,
-                                 handler.diagnosticHandler,
-                                 libraryUri, packageUri, opts);
-    var scriptUri = cwd.resolve(script.toString());
-    // TODO(johnniwinther): Detect file not found
-    _compiler.run(scriptUri);
+/**
+ * Returns a future that completes to a non-null String when [script]
+ * has been successfully compiled.
+ *
+ * TODO(johnniwinther): The method is deprecated but here to support [Path]
+ * which is used through dartdoc.
+ */
+Future<String> compile(Path script,
+                       Path libraryRoot,
+                       {Path packageRoot,
+                        List<String> options: const <String>[],
+                        api.DiagnosticHandler diagnosticHandler}) {
+  Uri cwd = getCurrentDirectory();
+  SourceFileProvider provider = new SourceFileProvider();
+  if (diagnosticHandler == null) {
+    diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
-
-  Dart2JsCompilation.library(List<Path> libraries, Path libraryRoot,
-                     [Path packageRoot, List<String> opts = const <String>[]])
-      : cwd = getCurrentDirectory(),
-        provider = new SourceFileProvider() {
-    var libraryUri = cwd.resolve('${libraryRoot}/');
-    var packageUri;
-    if (packageRoot != null) {
-      packageUri = cwd.resolve('${packageRoot}/');
-    } else {
-      packageUri = libraryUri;
-    }
-    opts = new List<String>.from(opts);
-    opts.add('--analyze-signatures-only');
-    opts.add('--analyze-all');
-    _compiler = new Compiler(provider.readStringFromUri,
-                                 null,
-                                 silentDiagnosticHandler,
-                                 libraryUri, packageUri, opts);
-    var librariesUri = <Uri>[];
-    for (Path library in libraries) {
-      librariesUri.add(cwd.resolve(library.toString()));
-      // TODO(johnniwinther): Detect file not found
-    }
-    _compiler.librariesToAnalyzeWhenRun = librariesUri;
-    _compiler.run(null);
+  Uri scriptUri = cwd.resolve(script.toString());
+  Uri libraryUri = cwd.resolve('${libraryRoot}/');
+  Uri packageUri = null;
+  if (packageRoot != null) {
+    packageUri = cwd.resolve('${packageRoot}/');
   }
-
-  MirrorSystem get mirrors => new Dart2JsMirrorSystem(_compiler);
-
-  Future<String> compileToJavaScript() =>
-      new Future<String>.immediate(_compiler.assembledCode);
+  return api.compile(scriptUri, libraryUri, packageUri,
+      provider.readStringFromUri, diagnosticHandler, options);
 }
 
+/**
+ * Analyzes set of libraries and provides a mirror system which can be used for
+ * static inspection of the source code.
+ */
+Future<MirrorSystem> analyze(List<Path> libraries,
+                             Path libraryRoot,
+                             {Path packageRoot,
+                              List<String> options: const <String>[],
+                              api.DiagnosticHandler diagnosticHandler}) {
+  Uri cwd = getCurrentDirectory();
+  SourceFileProvider provider = new SourceFileProvider();
+  if (diagnosticHandler == null) {
+    diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  }
+  Uri libraryUri = cwd.resolve('${libraryRoot}/');
+  Uri packageUri = null;
+  if (packageRoot != null) {
+    packageUri = cwd.resolve('${packageRoot}/');
+  }
+  options = new List<String>.from(options);
+  options.add('--analyze-only');
+  options.add('--analyze-signatures-only');
+  options.add('--analyze-all');
+
+  bool compilationFailed = false;
+  void internalDiagnosticHandler(Uri uri, int begin, int end,
+                                 String message, api.Diagnostic kind) {
+    if (kind == api.Diagnostic.ERROR ||
+        kind == api.Diagnostic.CRASH) {
+      compilationFailed = true;
+    }
+    diagnosticHandler(uri, begin, end, message, kind);
+  }
+
+  // TODO(johnniwinther): Extract the following as an [analyze] method in
+  // [:compiler/compiler.dart:].
+  Compiler compiler = new Compiler(provider.readStringFromUri,
+                                   null,
+                                   internalDiagnosticHandler,
+                                   libraryUri, packageUri, options);
+  List<Uri> librariesUri = <Uri>[];
+  for (Path library in libraries) {
+    librariesUri.add(cwd.resolve(library.toString()));
+  }
+  compiler.librariesToAnalyzeWhenRun = librariesUri;
+  bool success = compiler.run(null);
+  if (success && !compilationFailed) {
+    return new Future<MirrorSystem>.immediate(
+        new Dart2JsMirrorSystem(compiler));
+  } else {
+    return new Future<MirrorSystem>.immediateError(
+        'Failed to create mirror system.');
+  }
+}
 
 //------------------------------------------------------------------------------
 // Dart2Js specific extensions of mirror interfaces

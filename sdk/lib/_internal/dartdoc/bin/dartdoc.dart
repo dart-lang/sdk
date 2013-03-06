@@ -232,23 +232,28 @@ main() {
 
   cleanOutputDirectory(dartdoc.outputDir);
 
-  dartdoc.documentLibraries(entrypoints, libPath, pkgPath);
+  print('Analyzing sources');
+  Future documented = dartdoc.documentLibraries(entrypoints, libPath, pkgPath);
 
-  Future compiled = compileScript(dartdoc.mode, dartdoc.outputDir, libPath);
-  Future filesCopied = copyDirectory(scriptDir.append('../static'),
-                                     dartdoc.outputDir);
+  documented.then((_) {
+    Future compiled = compileScript(dartdoc.mode, dartdoc.outputDir, libPath);
+    Future filesCopied = copyDirectory(scriptDir.append('../static'),
+                                       dartdoc.outputDir);
 
-  Future.wait([compiled, filesCopied]).then((futureStatus) {
+    Future.wait([compiled, filesCopied]).then((_) {
+      dartdoc.cleanup();
+      if (dartdoc.totalLibraries + dartdoc.totalTypes +
+          dartdoc.totalMembers == 0) {
+        print('Nothing was documented!');
+        exit(1);
+      } else {
+        print('Documented ${dartdoc.totalLibraries} libraries, '
+              '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} '
+              'members.');
+      }
+    });
+  }, onError: (AsyncError asyncError) {
+    print('Generation failed: ${asyncError.error}');
     dartdoc.cleanup();
-
-    if (dartdoc.totalLibraries + dartdoc.totalTypes +
-      dartdoc.totalMembers == 0) {
-      print('Nothing was documented!');
-      exit(1);
-    } else {
-      print('Documented ${dartdoc.totalLibraries} libraries, '
-            '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} '
-            'members.');
-    }
   });
 }

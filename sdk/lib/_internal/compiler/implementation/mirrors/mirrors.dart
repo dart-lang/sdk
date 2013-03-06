@@ -12,44 +12,6 @@ import 'dart:uri';
 import 'dart2js_mirror.dart';
 
 /**
- * [Compilation] encapsulates the compilation of a program.
- */
-abstract class Compilation {
-  /**
-   * Creates a new compilation which has [script] as its entry point.
-   */
-  factory Compilation(Path script,
-                      Path libraryRoot,
-                      [Path packageRoot,
-                       List<String> opts = const <String>[]]) {
-    return new Dart2JsCompilation(script, libraryRoot, packageRoot, opts);
-  }
-
-  /**
-   * Creates a new compilation which consists of a set of libraries, but which
-   * has no entry point. This compilation cannot generate output but can only
-   * be used for static inspection of the source code.
-   */
-  factory Compilation.library(List<Path> libraries,
-                              Path libraryRoot,
-                              [Path packageRoot,
-                               List<String> opts = const []]) {
-    return new Dart2JsCompilation.library(libraries, libraryRoot,
-                                          packageRoot, opts);
-  }
-
-  /**
-   * Returns the mirror system for this compilation.
-   */
-  final MirrorSystem mirrors;
-
-  /**
-   * Returns a future for the compiled JavaScript code.
-   */
-  Future<String> compileToJavaScript();
-}
-
-/**
  * The main interface for the whole mirror system.
  */
 abstract class MirrorSystem {

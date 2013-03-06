@@ -29,7 +29,6 @@ import 'classify.dart';
 import 'universe_serializer.dart';
 import 'markdown.dart' as md;
 import 'src/json_serializer.dart' as json_serializer;
-import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
 import '../../libraries.dart';
 import 'src/dartdoc/nav.dart';
 
@@ -133,13 +132,16 @@ Future compileScript(int mode, Path outputDir, Path libPath) {
       'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
   var jsPath = outputDir.append('client-$clientScript.js');
 
-  var compilation = new Compilation(
-      dartPath, libPath, null, const <String>['--categories=Client,Server']);
-
-  return compilation.compileToJavaScript().then((jsCode) {
-    writeString(new File.fromPath(jsPath), jsCode);
-    return null;
+  var completer = new Completer<bool>();
+  Future<String> result = dart2js.compile(
+      dartPath, libPath, options: const <String>['--categories=Client,Server']);
+  result.then((jsCode) {
+    if (jsCode != null) {
+      writeString(new File.fromPath(jsPath), jsCode);
+    }
+    completer.complete(jsCode != null);
   });
+  return completer.future;
 }
 
 /**
@@ -369,22 +371,27 @@ class Dartdoc {
     return content;
   }
 
-  void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
-    final compilation = new Compilation(entrypoint, libPath, pkgPath,
-        COMPILER_OPTIONS);
-    _document(compilation);
+  Future documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
+    return documentLibraries(<Path>[entrypoint], libPath, pkgPath);
   }
 
-  void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
-    final compilation = new Compilation.library(libraryList, libPath, pkgPath,
-        COMPILER_OPTIONS);
-    _document(compilation);
+  Future documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
+    Completer completer = new Completer();
+    Future<MirrorSystem> result = dart2js.analyze(libraryList, libPath,
+        packageRoot: pkgPath, options: COMPILER_OPTIONS);
+    result.then((MirrorSystem mirrors) {
+      _document(mirrors);
+      completer.complete(true);
+    }, onError: (AsyncError error) {
+      completer.completeError(error.error);
+    });
+    return completer.future;
   }
 
-  void _document(Compilation compilation) {
+  void _document(MirrorSystem mirrors) {
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors.libraries.values.where(shouldIncludeLibrary));
+        mirrors.libraries.values.where(shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return displayName(x).toUpperCase().compareTo(
           displayName(y).toUpperCase());
@@ -441,7 +448,7 @@ class Dartdoc {
     write(json_serializer.serialize(packageManifest));
     endFile();
   }
-  
+
   MdnComment lookupMdnComment(Mirror mirror) => null;
 
   void startFile(String path) {
