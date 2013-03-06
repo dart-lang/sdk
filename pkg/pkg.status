@@ -52,9 +52,6 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
-# Fails to recognize HashMap as an instance of Map.
-analyzer-experimental/test/generated/ast_test: Fail
-
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 
