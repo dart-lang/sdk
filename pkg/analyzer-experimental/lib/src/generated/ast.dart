@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'error.dart';
+import 'source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
@@ -21,6 +22,11 @@ abstract class ASTNode {
    * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
   ASTNode _parent;
+  /**
+   * A table mapping the names of properties to their values, or {@code null} if this node does not
+   * have any properties associated with it.
+   */
+  Map<String, Object> _propertyMap;
   /**
    * A comparator that can be used to sort AST nodes in lexical order. In other words,{@code compare} will return a negative value if the offset of the first node is less than the
    * offset of the second node, zero (0) if the nodes have the same offset, and a positive value if
@@ -43,7 +49,7 @@ abstract class ASTNode {
       node = node.parent;
     }
     ;
-    return (node as ASTNode);
+    return node as ASTNode;
   }
   /**
    * Return the first token included in this node's source range.
@@ -97,6 +103,17 @@ abstract class ASTNode {
    */
   ASTNode get parent => _parent;
   /**
+   * Return the value of the property with the given name, or {@code null} if this node does not
+   * have a property with the given name.
+   * @return the value of the property with the given name
+   */
+  Object getProperty(String propertyName) {
+    if (_propertyMap == null) {
+      return null;
+    }
+    return _propertyMap[propertyName];
+  }
+  /**
    * Return the node at the root of this node's AST structure. Note that this method's performance
    * is linear with respect to the depth of the node in the AST structure (O(depth)).
    * @return the node at the root of this node's AST structure
@@ -117,6 +134,26 @@ abstract class ASTNode {
    * @return {@code true} if this node is a synthetic node
    */
   bool isSynthetic() => false;
+  /**
+   * Set the value of the property with the given name to the given value. If the value is{@code null}, the property will effectively be removed.
+   * @param propertyName the name of the property whose value is to be set
+   * @param propertyValue the new value of the property
+   */
+  void setProperty(String propertyName, Object propertyValue) {
+    if (propertyValue == null) {
+      if (_propertyMap != null) {
+        _propertyMap.remove(propertyName);
+        if (_propertyMap.isEmpty) {
+          _propertyMap = null;
+        }
+      }
+    } else {
+      if (_propertyMap == null) {
+        _propertyMap = new Map<String, Object>();
+      }
+      _propertyMap[propertyName] = propertyValue;
+    }
+  }
   /**
    * Return a textual description of this node in a form approximating valid source. The returned
    * string will not be valid source primarily in the case where the node itself is not well-formed.
@@ -611,8 +648,8 @@ class ArgumentDefinitionTest extends Expression {
    * Set the identifier representing the argument being tested to the given identifier.
    * @param identifier the identifier representing the argument being tested
    */
-  void set identifier(SimpleIdentifier identifier5) {
-    this._identifier = becomeParentOf(identifier5);
+  void set identifier(SimpleIdentifier identifier7) {
+    this._identifier = becomeParentOf(identifier7);
   }
   /**
    * Set the token representing the question mark to the given token.
@@ -648,6 +685,14 @@ class ArgumentList extends ASTNode {
    * The right parenthesis.
    */
   Token _rightParenthesis;
+  /**
+   * An array containing the elements representing the parameters corresponding to each of the
+   * arguments in this list, or {@code null} if the AST has not been resolved or if the function or
+   * method being invoked could not be determined. The array must be the same length as the number
+   * of arguments, but can contain {@code null} entries if a given argument does not correspond to a
+   * formal parameter.
+   */
+  List<ParameterElement> _correspondingParameters;
   /**
    * Initialize a newly created list of arguments.
    * @param leftParenthesis the left parenthesis
@@ -688,6 +733,19 @@ class ArgumentList extends ASTNode {
    */
   Token get rightParenthesis => _rightParenthesis;
   /**
+   * Set the parameter elements corresponding to each of the arguments in this list to the given
+   * array of parameters. The array of parameters must be the same length as the number of
+   * arguments, but can contain {@code null} entries if a given argument does not correspond to a
+   * formal parameter.
+   * @param parameters the parameter elements corresponding to the arguments
+   */
+  void set correspondingParameters(List<ParameterElement> parameters) {
+    if (parameters.length != _arguments.length) {
+      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
+    }
+    _correspondingParameters = parameters;
+  }
+  /**
    * Set the left parenthesis to the given token.
    * @param parenthesis the left parenthesis
    */
@@ -703,6 +761,27 @@ class ArgumentList extends ASTNode {
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     _arguments.accept(visitor);
+  }
+  /**
+   * If the given expression is a child of this list, and the AST structure has been resolved, and
+   * the function being invoked is known, and the expression corresponds to one of the parameters of
+   * the function being invoked, then return the parameter element representing the parameter to
+   * which the value of the given expression will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * @param expression the expression corresponding to the parameter to be returned
+   * @return the parameter element representing the parameter to which the value of the expression
+   * will be bound
+   */
+  ParameterElement getParameterElementFor(Expression expression) {
+    if (_correspondingParameters == null) {
+      return null;
+    }
+    int index = _arguments.indexOf(expression);
+    if (index < 0) {
+      return null;
+    }
+    return _correspondingParameters[index];
   }
 }
 /**
@@ -1743,10 +1822,6 @@ class ClassDeclaration extends CompilationUnitMember {
    * @return the token representing the 'class' keyword
    */
   Token get classKeyword => _classKeyword;
-  /**
-   * @return the {@link ClassElement} associated with this identifier, or {@code null} if the AST
-   * structure has not been resolved or if this identifier could not be resolved.
-   */
   ClassElement get element => _name != null ? (_name.element as ClassElement) : null;
   Token get endToken => _rightBracket;
   /**
@@ -1973,11 +2048,6 @@ class ClassTypeAlias extends TypeAlias {
    * @return the token for the 'abstract' keyword
    */
   Token get abstractKeyword => _abstractKeyword;
-  /**
-   * Return the {@link ClassElement} associated with this type alias, or {@code null} if the AST
-   * structure has not been resolved.
-   * @return the {@link ClassElement} associated with this type alias
-   */
   ClassElement get element => _name != null ? (_name.element as ClassElement) : null;
   /**
    * Return the token for the '=' separating the name from the definition.
@@ -2283,8 +2353,8 @@ class CommentReference extends ASTNode {
    * Set the identifier being referenced to the given identifier.
    * @param identifier the identifier being referenced
    */
-  void set identifier(Identifier identifier18) {
-    identifier18 = becomeParentOf(identifier18);
+  void set identifier(Identifier identifier23) {
+    identifier23 = becomeParentOf(identifier23);
   }
   /**
    * Set the token representing the 'new' keyword to the given token.
@@ -2409,8 +2479,8 @@ class CompilationUnit extends ASTNode {
       return resolverErrors;
     } else {
       List<AnalysisError> allErrors = new List<AnalysisError>(parserErrors.length + resolverErrors.length);
-      System.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
-      System.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
+      JavaSystem.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
+      JavaSystem.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
       return allErrors;
     }
   }
@@ -2691,11 +2761,13 @@ class ConstructorDeclaration extends ClassMember {
    */
   Token _externalKeyword;
   /**
-   * The token for the 'const' keyword.
+   * The token for the 'const' keyword, or {@code null} if the constructor is not a const
+   * constructor.
    */
   Token _constKeyword;
   /**
-   * The token for the 'factory' keyword.
+   * The token for the 'factory' keyword, or {@code null} if the constructor is not a factory
+   * constructor.
    */
   Token _factoryKeyword;
   /**
@@ -2799,11 +2871,6 @@ class ConstructorDeclaration extends ClassMember {
    * @return the token for the 'const' keyword
    */
   Token get constKeyword => _constKeyword;
-  /**
-   * Return the element associated with this constructor , or {@code null} if the AST structure has
-   * not been resolved or if this constructor could not be resolved.
-   * @return the element associated with this constructor
-   */
   ConstructorElement get element => _element;
   Token get endToken {
     if (_body != null) {
@@ -2948,6 +3015,7 @@ class ConstructorDeclaration extends ClassMember {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_parameters, visitor);
     _initializers.accept(visitor);
+    safelyVisitChild(_redirectedConstructor, visitor);
     safelyVisitChild(_body, visitor);
   }
   Token get firstTokenAfterCommentAndMetadata {
@@ -3320,6 +3388,12 @@ abstract class Declaration extends AnnotatedNode {
    * @param metadata the annotations associated with this declaration
    */
   Declaration({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
+  /**
+   * Return the element associated with this declaration, or {@code null} if either this node
+   * corresponds to a list of declarations or if the AST structure has not been resolved.
+   * @return the element associated with this declaration
+   */
+  Element get element;
 }
 /**
  * Instances of the class {@code DefaultFormalParameter} represent a formal parameter with a default
@@ -3795,6 +3869,15 @@ class EmptyStatement extends Statement {
   }
 }
 /**
+ * Ephemeral identifiers are created as needed to mimic the presence of an empty identifier.
+ */
+class EphemeralIdentifier extends SimpleIdentifier {
+  EphemeralIdentifier.full(ASTNode parent, int location) : super.full(new Token(TokenType.IDENTIFIER, location)) {
+    parent.becomeParentOf(this);
+  }
+  EphemeralIdentifier({ASTNode parent, int location}) : this.full(parent, location);
+}
+/**
  * Instances of the class {@code ExportDirective} represent an export directive.
  * <pre>
  * exportDirective ::={@link Annotation metadata} 'export' {@link StringLiteral libraryUri} {@link Combinator combinator}* ';'
@@ -3845,6 +3928,21 @@ abstract class Expression extends ASTNode {
    * performed on the AST structure.
    */
   Type2 _propagatedType;
+  /**
+   * If this expression is an argument to an invocation, and the AST structure has been resolved,
+   * and the function being invoked is known, and this expression corresponds to one of the
+   * parameters of the function being invoked, then return the parameter element representing the
+   * parameter to which the value of this expression will be bound. Otherwise, return {@code null}.
+   * @return the parameter element representing the parameter to which the value of this expression
+   * will be bound
+   */
+  ParameterElement get parameterElement {
+    ASTNode parent3 = parent;
+    if (parent3 is ArgumentList) {
+      return ((parent3 as ArgumentList)).getParameterElementFor(this);
+    }
+    return null;
+  }
   /**
    * Return the propagated type of this expression, or {@code null} if type propagation has not been
    * performed on the AST structure.
@@ -4141,6 +4239,7 @@ class FieldDeclaration extends ClassMember {
    */
   FieldDeclaration({Comment comment, List<Annotation> metadata, Token keyword, VariableDeclarationList fieldList, Token semicolon}) : this.full(comment, metadata, keyword, fieldList, semicolon);
   accept(ASTVisitor visitor) => visitor.visitFieldDeclaration(this);
+  Element get element => null;
   Token get endToken => _semicolon;
   /**
    * Return the fields being declared.
@@ -4696,11 +4795,11 @@ abstract class FormalParameter extends ASTNode {
    * @return the element representing this parameter
    */
   ParameterElement get element {
-    SimpleIdentifier identifier9 = identifier;
-    if (identifier9 == null) {
+    SimpleIdentifier identifier11 = identifier;
+    if (identifier11 == null) {
       return null;
     }
-    return (identifier9.element as ParameterElement);
+    return identifier11.element as ParameterElement;
   }
   /**
    * Return the name of the parameter being declared.
@@ -4929,12 +5028,7 @@ class FunctionDeclaration extends CompilationUnitMember {
    */
   FunctionDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression}) : this.full(comment, metadata, externalKeyword, returnType, propertyKeyword, name, functionExpression);
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclaration(this);
-  /**
-   * Return the {@link FunctionElement} associated with this function, or {@code null} if the AST
-   * structure has not been resolved.
-   * @return the {@link FunctionElement} associated with this function
-   */
-  FunctionElement get element => _name != null ? (_name.element as FunctionElement) : null;
+  ExecutableElement get element => _name != null ? (_name.element as ExecutableElement) : null;
   Token get endToken => _functionExpression.endToken;
   /**
    * Return the token representing the 'external' keyword, or {@code null} if this is not an
@@ -5289,11 +5383,6 @@ class FunctionTypeAlias extends TypeAlias {
    */
   FunctionTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon}) : this.full(comment, metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
   accept(ASTVisitor visitor) => visitor.visitFunctionTypeAlias(this);
-  /**
-   * Return the {@link TypeAliasElement} associated with this type alias, or {@code null} if the AST
-   * structure has not been resolved.
-   * @return the {@link TypeAliasElement} associated with this type alias
-   */
   TypeAliasElement get element => _name != null ? (_name.element as TypeAliasElement) : null;
   /**
    * Return the name of the function type being declared.
@@ -5487,30 +5576,18 @@ abstract class Identifier extends Expression {
    */
   static bool isPrivateName(String name) => name.startsWith("_");
   /**
-   * The element associated with this identifier, or {@code null} if the AST structure has not been
-   * resolved or if this identifier could not be resolved.
-   */
-  Element _element;
-  /**
    * Return the element associated with this identifier, or {@code null} if the AST structure has
    * not been resolved or if this identifier could not be resolved. One example of the latter case
    * is an identifier that is not defined within the scope in which it appears.
    * @return the element associated with this identifier
    */
-  Element get element => _element;
+  Element get element;
   /**
    * Return the lexical representation of the identifier.
    * @return the lexical representation of the identifier
    */
   String get name;
   bool isAssignable() => true;
-  /**
-   * Set the element associated with this identifier to the given element.
-   * @param element the element associated with this identifier
-   */
-  void set element(Element element11) {
-    this._element = element11;
-  }
 }
 /**
  * Instances of the class {@code IfStatement} represent an if statement.
@@ -5855,7 +5932,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forTarget_full(Expression target3, Token leftBracket4, Expression index2, Token rightBracket4) {
-    _jtd_constructor_56_impl(target3, leftBracket4, index2, rightBracket4);
+    _jtd_constructor_57_impl(target3, leftBracket4, index2, rightBracket4);
   }
   /**
    * Initialize a newly created index expression.
@@ -5865,7 +5942,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forTarget({Expression target3, Token leftBracket4, Expression index2, Token rightBracket4}) : this.forTarget_full(target3, leftBracket4, index2, rightBracket4);
-  _jtd_constructor_56_impl(Expression target3, Token leftBracket4, Expression index2, Token rightBracket4) {
+  _jtd_constructor_57_impl(Expression target3, Token leftBracket4, Expression index2, Token rightBracket4) {
     this._target = becomeParentOf(target3);
     this._leftBracket = leftBracket4;
     this._index = becomeParentOf(index2);
@@ -5879,7 +5956,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forCascade_full(Token period7, Token leftBracket5, Expression index3, Token rightBracket5) {
-    _jtd_constructor_57_impl(period7, leftBracket5, index3, rightBracket5);
+    _jtd_constructor_58_impl(period7, leftBracket5, index3, rightBracket5);
   }
   /**
    * Initialize a newly created index expression.
@@ -5889,7 +5966,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forCascade({Token period7, Token leftBracket5, Expression index3, Token rightBracket5}) : this.forCascade_full(period7, leftBracket5, index3, rightBracket5);
-  _jtd_constructor_57_impl(Token period7, Token leftBracket5, Expression index3, Token rightBracket5) {
+  _jtd_constructor_58_impl(Token period7, Token leftBracket5, Expression index3, Token rightBracket5) {
     this._period = period7;
     this._leftBracket = leftBracket5;
     this._index = becomeParentOf(index3);
@@ -5967,9 +6044,9 @@ class IndexExpression extends Expression {
    * @return {@code true} if this expression is in a context where the operator '[]' will be invoked
    */
   bool inGetterContext() {
-    ASTNode parent3 = parent;
-    if (parent3 is AssignmentExpression) {
-      AssignmentExpression assignment = (parent3 as AssignmentExpression);
+    ASTNode parent4 = parent;
+    if (parent4 is AssignmentExpression) {
+      AssignmentExpression assignment = parent4 as AssignmentExpression;
       if (identical(assignment.leftHandSide, this) && identical(assignment.operator.type, TokenType.EQ)) {
         return false;
       }
@@ -5985,13 +6062,13 @@ class IndexExpression extends Expression {
    * invoked
    */
   bool inSetterContext() {
-    ASTNode parent4 = parent;
-    if (parent4 is PrefixExpression) {
-      return ((parent4 as PrefixExpression)).operator.type.isIncrementOperator();
-    } else if (parent4 is PostfixExpression) {
+    ASTNode parent5 = parent;
+    if (parent5 is PrefixExpression) {
+      return ((parent5 as PrefixExpression)).operator.type.isIncrementOperator();
+    } else if (parent5 is PostfixExpression) {
       return true;
-    } else if (parent4 is AssignmentExpression) {
-      return identical(((parent4 as AssignmentExpression)).leftHandSide, this);
+    } else if (parent5 is AssignmentExpression) {
+      return identical(((parent5 as AssignmentExpression)).leftHandSide, this);
     }
     return false;
   }
@@ -6013,8 +6090,8 @@ class IndexExpression extends Expression {
    * Set the element associated with the operator to the given element.
    * @param element the element associated with this operator
    */
-  void set element(MethodElement element12) {
-    this._element = element12;
+  void set element(MethodElement element11) {
+    this._element = element11;
   }
   /**
    * Set the expression used to compute the index to the given expression.
@@ -6117,6 +6194,11 @@ class InstanceCreationExpression extends Expression {
    */
   Token get keyword => _keyword;
   /**
+   * Return {@code true} if this creation expression is used to invoke a constant constructor.
+   * @return {@code true} if this creation expression is used to invoke a constant constructor
+   */
+  bool isConst() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  /**
    * Set the list of arguments to the constructor to the given list.
    * @param argumentList the list of arguments to the constructor
    */
@@ -6134,8 +6216,8 @@ class InstanceCreationExpression extends Expression {
    * Set the element associated with the constructor to the given element.
    * @param element the element associated with the constructor
    */
-  void set element(ConstructorElement element13) {
-    this._element = element13;
+  void set element(ConstructorElement element12) {
+    this._element = element12;
   }
   /**
    * Set the keyword used to indicate how an object should be created to the given keyword.
@@ -6528,8 +6610,8 @@ class Label extends ASTNode {
    * Set the label being associated with the statement to the given label.
    * @param label the label being associated with the statement
    */
-  void set label(SimpleIdentifier label2) {
-    this._label = becomeParentOf(label2);
+  void set label(SimpleIdentifier label3) {
+    this._label = becomeParentOf(label3);
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_label, visitor);
@@ -6713,17 +6795,18 @@ class LibraryIdentifier extends Identifier {
    * @return the components of the identifier
    */
   NodeList<SimpleIdentifier> get components => _components;
+  Element get element => null;
   Token get endToken => _components.endToken;
   String get name {
     StringBuffer builder = new StringBuffer();
     bool needsPeriod = false;
     for (SimpleIdentifier identifier in _components) {
       if (needsPeriod) {
-        builder.add(".");
+        builder.write(".");
       } else {
         needsPeriod = true;
       }
-      builder.add(identifier.name);
+      builder.write(identifier.name);
     }
     return builder.toString();
   }
@@ -7010,8 +7093,7 @@ class MapLiteralEntry extends ASTNode {
  * <pre>
  * methodDeclaration ::=
  * methodSignature {@link FunctionBody body}methodSignature ::=
- * 'external'? ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName{@link FormalParameterList formalParameterList}methodName ::={@link SimpleIdentifier name} ('.' {@link SimpleIdentifier name})?
- * | 'operator' {@link SimpleIdentifier operator}</pre>
+ * 'external'? ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName{@link FormalParameterList formalParameterList}methodName ::={@link SimpleIdentifier name}| 'operator' {@link SimpleIdentifier operator}</pre>
  */
 class MethodDeclaration extends ClassMember {
   /**
@@ -7040,7 +7122,7 @@ class MethodDeclaration extends ClassMember {
   /**
    * The name of the method.
    */
-  Identifier _name;
+  SimpleIdentifier _name;
   /**
    * The parameters associated with the method, or {@code null} if this method declares a getter.
    */
@@ -7063,7 +7145,7 @@ class MethodDeclaration extends ClassMember {
    * declares a getter
    * @param body the body of the method
    */
-  MethodDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, Identifier name, FormalParameterList parameters, FunctionBody body) : super.full(comment, metadata) {
+  MethodDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super.full(comment, metadata) {
     this._externalKeyword = externalKeyword;
     this._modifierKeyword = modifierKeyword;
     this._returnType = becomeParentOf(returnType);
@@ -7087,7 +7169,7 @@ class MethodDeclaration extends ClassMember {
    * declares a getter
    * @param body the body of the method
    */
-  MethodDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, Identifier name, FormalParameterList parameters, FunctionBody body}) : this.full(comment, metadata, externalKeyword, modifierKeyword, returnType, propertyKeyword, operatorKeyword, name, parameters, body);
+  MethodDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body}) : this.full(comment, metadata, externalKeyword, modifierKeyword, returnType, propertyKeyword, operatorKeyword, name, parameters, body);
   accept(ASTVisitor visitor) => visitor.visitMethodDeclaration(this);
   /**
    * Return the body of the method.
@@ -7119,7 +7201,7 @@ class MethodDeclaration extends ClassMember {
    * Return the name of the method.
    * @return the name of the method
    */
-  Identifier get name => _name;
+  SimpleIdentifier get name => _name;
   /**
    * Return the token representing the 'operator' keyword, or {@code null} if this method does not
    * declare an operator.
@@ -7144,6 +7226,11 @@ class MethodDeclaration extends ClassMember {
    */
   TypeName get returnType => _returnType;
   /**
+   * Return {@code true} if this method is declared to be an abstract method.
+   * @return {@code true} if this method is declared to be an abstract method
+   */
+  bool isAbstract() => _modifierKeyword != null && identical(((_modifierKeyword as KeywordToken)).keyword, Keyword.ABSTRACT);
+  /**
    * Return {@code true} if this method declares a getter.
    * @return {@code true} if this method declares a getter
    */
@@ -7158,6 +7245,11 @@ class MethodDeclaration extends ClassMember {
    * @return {@code true} if this method declares a setter
    */
   bool isSetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
+  /**
+   * Return {@code true} if this method is declared to be a static method.
+   * @return {@code true} if this method is declared to be a static method
+   */
+  bool isStatic() => _modifierKeyword != null && identical(((_modifierKeyword as KeywordToken)).keyword, Keyword.STATIC);
   /**
    * Set the body of the method to the given function body.
    * @param functionBody the body of the method
@@ -7183,7 +7275,7 @@ class MethodDeclaration extends ClassMember {
    * Set the name of the method to the given identifier.
    * @param identifier the name of the method
    */
-  void set name(Identifier identifier) {
+  void set name(SimpleIdentifier identifier) {
     _name = becomeParentOf(identifier);
   }
   /**
@@ -7407,6 +7499,18 @@ class NamedExpression extends Expression {
   NamedExpression({Label name, Expression expression}) : this.full(name, expression);
   accept(ASTVisitor visitor) => visitor.visitNamedExpression(this);
   Token get beginToken => _name.beginToken;
+  /**
+   * Return the element representing the parameter being named by this expression, or {@code null}if the AST structure has not been resolved or if there is no parameter with the same name as
+   * this expression.
+   * @return the element representing the parameter being named by this expression
+   */
+  ParameterElement get element {
+    Element element19 = _name.label.element;
+    if (element19 is ParameterElement) {
+      return element19 as ParameterElement;
+    }
+    return null;
+  }
   Token get endToken => _expression.endToken;
   /**
    * Return the expression with which the name is associated.
@@ -7556,9 +7660,9 @@ abstract class NormalFormalParameter extends FormalParameter {
   Comment get documentationComment => _comment;
   SimpleIdentifier get identifier => _identifier;
   ParameterKind get kind {
-    ASTNode parent5 = parent;
-    if (parent5 is DefaultFormalParameter) {
-      return ((parent5 as DefaultFormalParameter)).kind;
+    ASTNode parent6 = parent;
+    if (parent6 is DefaultFormalParameter) {
+      return ((parent6 as DefaultFormalParameter)).kind;
     }
     return ParameterKind.REQUIRED;
   }
@@ -7588,8 +7692,8 @@ abstract class NormalFormalParameter extends FormalParameter {
    * Set the name of the parameter being declared to the given identifier.
    * @param identifier the name of the parameter being declared
    */
-  void set identifier(SimpleIdentifier identifier6) {
-    this._identifier = becomeParentOf(identifier6);
+  void set identifier(SimpleIdentifier identifier8) {
+    this._identifier = becomeParentOf(identifier8);
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     if (commentIsBeforeAnnotations()) {
@@ -7978,8 +8082,8 @@ class PostfixExpression extends Expression {
    * Set the element associated with the operator to the given element.
    * @param element the element associated with the operator
    */
-  void set element(MethodElement element14) {
-    this._element = element14;
+  void set element(MethodElement element13) {
+    this._element = element13;
   }
   /**
    * Set the expression computing the operand for the operator to the given expression.
@@ -8057,8 +8161,8 @@ class PrefixExpression extends Expression {
    * Set the element associated with the operator to the given element.
    * @param element the element associated with the operator
    */
-  void set element(MethodElement element15) {
-    this._element = element15;
+  void set element(MethodElement element14) {
+    this._element = element14;
   }
   /**
    * Set the expression computing the operand for the operator to the given expression.
@@ -8118,6 +8222,12 @@ class PrefixedIdentifier extends Identifier {
   PrefixedIdentifier({SimpleIdentifier prefix, Token period, SimpleIdentifier identifier}) : this.full(prefix, period, identifier);
   accept(ASTVisitor visitor) => visitor.visitPrefixedIdentifier(this);
   Token get beginToken => _prefix.beginToken;
+  Element get element {
+    if (_identifier == null) {
+      return null;
+    }
+    return _identifier.element;
+  }
   Token get endToken => _identifier.endToken;
   /**
    * Return the identifier being prefixed.
@@ -8139,8 +8249,8 @@ class PrefixedIdentifier extends Identifier {
    * Set the identifier being prefixed to the given identifier.
    * @param identifier the identifier being prefixed
    */
-  void set identifier(SimpleIdentifier identifier7) {
-    this._identifier = becomeParentOf(identifier7);
+  void set identifier(SimpleIdentifier identifier9) {
+    this._identifier = becomeParentOf(identifier9);
   }
   /**
    * Set the period used to separate the prefix from the identifier to the given token.
@@ -8382,8 +8492,8 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * Set the element associated with the constructor to the given element.
    * @param element the element associated with the constructor
    */
-  void set element(ConstructorElement element16) {
-    this._element = element16;
+  void set element(ConstructorElement element15) {
+    this._element = element15;
   }
   /**
    * Set the token for the 'this' keyword to the given token.
@@ -8666,6 +8776,11 @@ class SimpleIdentifier extends Identifier {
    */
   Token _token;
   /**
+   * The element associated with this identifier, or {@code null} if the AST structure has not been
+   * resolved or if this identifier could not be resolved.
+   */
+  Element _element;
+  /**
    * Initialize a newly created identifier.
    * @param token the token representing the identifier
    */
@@ -8679,6 +8794,7 @@ class SimpleIdentifier extends Identifier {
   SimpleIdentifier({Token token}) : this.full(token);
   accept(ASTVisitor visitor) => visitor.visitSimpleIdentifier(this);
   Token get beginToken => _token;
+  Element get element => _element;
   Token get endToken => _token;
   String get name => _token.lexeme;
   /**
@@ -8687,6 +8803,38 @@ class SimpleIdentifier extends Identifier {
    */
   Token get token => _token;
   /**
+   * Return {@code true} if this identifier is the name being declared in a declaration.
+   * @return {@code true} if this identifier is the name being declared in a declaration
+   */
+  bool inDeclarationContext() {
+    ASTNode parent7 = parent;
+    if (parent7 is CatchClause) {
+      CatchClause clause = parent7 as CatchClause;
+      return identical(this, clause.exceptionParameter) || identical(this, clause.stackTraceParameter);
+    } else if (parent7 is ClassDeclaration) {
+      return identical(this, ((parent7 as ClassDeclaration)).name);
+    } else if (parent7 is ClassTypeAlias) {
+      return identical(this, ((parent7 as ClassTypeAlias)).name);
+    } else if (parent7 is ConstructorDeclaration) {
+      return identical(this, ((parent7 as ConstructorDeclaration)).name);
+    } else if (parent7 is FunctionDeclaration) {
+      return identical(this, ((parent7 as FunctionDeclaration)).name);
+    } else if (parent7 is FunctionTypeAlias) {
+      return identical(this, ((parent7 as FunctionTypeAlias)).name);
+    } else if (parent7 is Label) {
+      return identical(this, ((parent7 as Label)).label) && (parent7.parent is LabeledStatement);
+    } else if (parent7 is MethodDeclaration) {
+      return identical(this, ((parent7 as MethodDeclaration)).name);
+    } else if (parent7 is NormalFormalParameter) {
+      return identical(this, ((parent7 as NormalFormalParameter)).identifier);
+    } else if (parent7 is TypeParameter) {
+      return identical(this, ((parent7 as TypeParameter)).name);
+    } else if (parent7 is VariableDeclaration) {
+      return identical(this, ((parent7 as VariableDeclaration)).name);
+    }
+    return false;
+  }
+  /**
    * Return {@code true} if this expression is computing a right-hand value.
    * <p>
    * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
@@ -8694,18 +8842,25 @@ class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a getter will be invoked
    */
   bool inGetterContext() {
-    ASTNode parent6 = parent;
+    ASTNode parent8 = parent;
     ASTNode target = this;
-    if (parent6 is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = (parent6 as PrefixedIdentifier);
+    if (parent8 is PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = parent8 as PrefixedIdentifier;
       if (identical(prefixed.prefix, this)) {
         return true;
       }
-      parent6 = prefixed.parent;
+      parent8 = prefixed.parent;
       target = prefixed;
+    } else if (parent8 is PropertyAccess) {
+      PropertyAccess access = parent8 as PropertyAccess;
+      if (identical(access.target, this)) {
+        return true;
+      }
+      parent8 = access.parent;
+      target = access;
     }
-    if (parent6 is AssignmentExpression) {
-      AssignmentExpression expr = (parent6 as AssignmentExpression);
+    if (parent8 is AssignmentExpression) {
+      AssignmentExpression expr = parent8 as AssignmentExpression;
       if (identical(expr.leftHandSide, target) && identical(expr.operator.type, TokenType.EQ)) {
         return false;
       }
@@ -8720,26 +8875,40 @@ class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a setter will be invoked
    */
   bool inSetterContext() {
-    ASTNode parent7 = parent;
+    ASTNode parent9 = parent;
     ASTNode target = this;
-    if (parent7 is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = (parent7 as PrefixedIdentifier);
+    if (parent9 is PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = parent9 as PrefixedIdentifier;
       if (identical(prefixed.prefix, this)) {
         return false;
       }
-      parent7 = prefixed.parent;
+      parent9 = prefixed.parent;
       target = prefixed;
+    } else if (parent9 is PropertyAccess) {
+      PropertyAccess access = parent9 as PropertyAccess;
+      if (identical(access.target, this)) {
+        return false;
+      }
+      parent9 = access.parent;
+      target = access;
     }
-    if (parent7 is PrefixExpression) {
-      return ((parent7 as PrefixExpression)).operator.type.isIncrementOperator();
-    } else if (parent7 is PostfixExpression) {
+    if (parent9 is PrefixExpression) {
+      return ((parent9 as PrefixExpression)).operator.type.isIncrementOperator();
+    } else if (parent9 is PostfixExpression) {
       return true;
-    } else if (parent7 is AssignmentExpression) {
-      return identical(((parent7 as AssignmentExpression)).leftHandSide, target);
+    } else if (parent9 is AssignmentExpression) {
+      return identical(((parent9 as AssignmentExpression)).leftHandSide, target);
     }
     return false;
   }
   bool isSynthetic() => _token.isSynthetic();
+  /**
+   * Set the element associated with this identifier to the given element.
+   * @param element the element associated with this identifier
+   */
+  void set element(Element element16) {
+    this._element = element16;
+  }
   /**
    * Set the token representing the identifier to the given token.
    * @param token the token representing the literal
@@ -9537,6 +9706,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    */
   TopLevelVariableDeclaration({Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon}) : this.full(comment, metadata, variableList, semicolon);
   accept(ASTVisitor visitor) => visitor.visitTopLevelVariableDeclaration(this);
+  Element get element => null;
   Token get endToken => _semicolon;
   /**
    * Return the semicolon terminating the declaration.
@@ -9975,6 +10145,7 @@ class TypeParameter extends Declaration {
    * @return the name of the upper bound for legal arguments
    */
   TypeName get bound => _bound;
+  TypeVariableElement get element => _name != null ? (_name.element as TypeVariableElement) : null;
   Token get endToken {
     if (_bound == null) {
       return _name.endToken;
@@ -10232,11 +10403,6 @@ class VariableDeclaration extends Declaration {
    */
   VariableDeclaration({Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer}) : this.full(comment, metadata, name, equals, initializer);
   accept(ASTVisitor visitor) => visitor.visitVariableDeclaration(this);
-  /**
-   * Return the {@link VariableElement} associated with this variable, or {@code null} if the AST
-   * structure has not been resolved.
-   * @return the {@link VariableElement} associated with this variable
-   */
   VariableElement get element => _name != null ? (_name.element as VariableElement) : null;
   Token get endToken {
     if (_initializer != null) {
@@ -10261,6 +10427,22 @@ class VariableDeclaration extends Declaration {
    * @return the name of the variable being declared
    */
   SimpleIdentifier get name => _name;
+  /**
+   * Return {@code true} if this variable declaration is declared to be a const variable.
+   * @return {@code true} if this variable is declared to be a const variable
+   */
+  bool isConst() {
+    ASTNode parent10 = parent;
+    return parent10 is VariableDeclarationList && ((parent10 as VariableDeclarationList)).isConst();
+  }
+  /**
+   * Return {@code true} if this variable declaration is declared to be a final variable.
+   * @return {@code true} if this variable is declared to be a final variable
+   */
+  bool isFinal() {
+    ASTNode parent11 = parent;
+    return parent11 is VariableDeclarationList && ((parent11 as VariableDeclarationList)).isFinal();
+  }
   /**
    * Set the equal sign separating the variable name from the initial value to the given token.
    * @param equals the equal sign separating the variable name from the initial value
@@ -10360,6 +10542,18 @@ class VariableDeclarationList extends ASTNode {
    * @return a list containing the individual variables being declared
    */
   NodeList<VariableDeclaration> get variables => _variables;
+  /**
+   * Return {@code true} if the variable declarations in this list are declared to be const
+   * variables.
+   * @return {@code true} if the variables in this list are declared to be const variables
+   */
+  bool isConst() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  /**
+   * Return {@code true} if the variable declarations in this list are declared to be final
+   * variables.
+   * @return {@code true} if the variables in this list are declared to be final variables
+   */
+  bool isFinal() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
   /**
    * Set the token representing the 'final', 'const' or 'var' keyword to the given token.
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
@@ -10661,7 +10855,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
-      builder.add(value);
+      builder.write(value);
     }
     return builder.toString();
   }
@@ -10674,114 +10868,117 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     if (identical(rightOperand2, NOT_A_CONSTANT)) {
       return rightOperand2;
     }
-    if (node.operator.type == TokenType.AMPERSAND) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) & (rightOperand2 as int);
+    while (true) {
+      if (node.operator.type == TokenType.AMPERSAND) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) & (rightOperand2 as int);
+        }
+      } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+        if (leftOperand2 is bool && rightOperand2 is bool) {
+          return ((leftOperand2 as bool)) && ((rightOperand2 as bool));
+        }
+      } else if (node.operator.type == TokenType.BANG_EQ) {
+        if (leftOperand2 is bool && rightOperand2 is bool) {
+          return ((leftOperand2 as bool)) != ((rightOperand2 as bool));
+        } else if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) != rightOperand2;
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) != rightOperand2;
+        } else if (leftOperand2 is String && rightOperand2 is String) {
+          return ((leftOperand2 as String)) != rightOperand2;
+        }
+      } else if (node.operator.type == TokenType.BAR) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) | (rightOperand2 as int);
+        }
+      } else if (node.operator.type == TokenType.BAR_BAR) {
+        if (leftOperand2 is bool && rightOperand2 is bool) {
+          return ((leftOperand2 as bool)) || ((rightOperand2 as bool));
+        }
+      } else if (node.operator.type == TokenType.CARET) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) ^ (rightOperand2 as int);
+        }
+      } else if (node.operator.type == TokenType.EQ_EQ) {
+        if (leftOperand2 is bool && rightOperand2 is bool) {
+          return identical(((leftOperand2 as bool)), ((rightOperand2 as bool)));
+        } else if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) == rightOperand2;
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) == rightOperand2;
+        } else if (leftOperand2 is String && rightOperand2 is String) {
+          return ((leftOperand2 as String)) == rightOperand2;
+        }
+      } else if (node.operator.type == TokenType.GT) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) > 0;
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) > 0;
+        }
+      } else if (node.operator.type == TokenType.GT_EQ) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) >= 0;
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) >= 0;
+        }
+      } else if (node.operator.type == TokenType.GT_GT) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) >> ((rightOperand2 as int));
+        }
+      } else if (node.operator.type == TokenType.LT) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) < 0;
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) < 0;
+        }
+      } else if (node.operator.type == TokenType.LT_EQ) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) <= 0;
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) <= 0;
+        }
+      } else if (node.operator.type == TokenType.LT_LT) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) << ((rightOperand2 as int));
+        }
+      } else if (node.operator.type == TokenType.MINUS) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) - (rightOperand2 as int);
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) - ((rightOperand2 as double));
+        }
+      } else if (node.operator.type == TokenType.PERCENT) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)).remainder((rightOperand2 as int));
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) % ((rightOperand2 as double));
+        }
+      } else if (node.operator.type == TokenType.PLUS) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) + (rightOperand2 as int);
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) + ((rightOperand2 as double));
+        }
+      } else if (node.operator.type == TokenType.STAR) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) * (rightOperand2 as int);
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) * ((rightOperand2 as double));
+        }
+      } else if (node.operator.type == TokenType.SLASH) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) / ((rightOperand2 as double));
+        }
+      } else if (node.operator.type == TokenType.TILDE_SLASH) {
+        if (leftOperand2 is int && rightOperand2 is int) {
+          return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+        } else if (leftOperand2 is double && rightOperand2 is double) {
+          return ((leftOperand2 as double)) ~/ ((rightOperand2 as double));
+        }
       }
-    } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-      if (leftOperand2 is bool && rightOperand2 is bool) {
-        return ((leftOperand2 as bool)) && ((rightOperand2 as bool));
-      }
-    } else if (node.operator.type == TokenType.BANG_EQ) {
-      if (leftOperand2 is bool && rightOperand2 is bool) {
-        return ((leftOperand2 as bool)) != ((rightOperand2 as bool));
-      } else if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) != rightOperand2;
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) != rightOperand2;
-      } else if (leftOperand2 is String && rightOperand2 is String) {
-        return ((leftOperand2 as String)) != rightOperand2;
-      }
-    } else if (node.operator.type == TokenType.BAR) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) | (rightOperand2 as int);
-      }
-    } else if (node.operator.type == TokenType.BAR_BAR) {
-      if (leftOperand2 is bool && rightOperand2 is bool) {
-        return ((leftOperand2 as bool)) || ((rightOperand2 as bool));
-      }
-    } else if (node.operator.type == TokenType.CARET) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) ^ (rightOperand2 as int);
-      }
-    } else if (node.operator.type == TokenType.EQ_EQ) {
-      if (leftOperand2 is bool && rightOperand2 is bool) {
-        return identical(((leftOperand2 as bool)), ((rightOperand2 as bool)));
-      } else if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) == rightOperand2;
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) == rightOperand2;
-      } else if (leftOperand2 is String && rightOperand2 is String) {
-        return ((leftOperand2 as String)) == rightOperand2;
-      }
-    } else if (node.operator.type == TokenType.GT) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) > 0;
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) > 0;
-      }
-    } else if (node.operator.type == TokenType.GT_EQ) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) >= 0;
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) >= 0;
-      }
-    } else if (node.operator.type == TokenType.GT_GT) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) >> ((rightOperand2 as int));
-      }
-    } else if (node.operator.type == TokenType.LT) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) < 0;
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) < 0;
-      }
-    } else if (node.operator.type == TokenType.LT_EQ) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) <= 0;
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) <= 0;
-      }
-    } else if (node.operator.type == TokenType.LT_LT) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) << ((rightOperand2 as int));
-      }
-    } else if (node.operator.type == TokenType.MINUS) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) - (rightOperand2 as int);
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) - ((rightOperand2 as double));
-      }
-    } else if (node.operator.type == TokenType.PERCENT) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)).remainder((rightOperand2 as int));
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) % ((rightOperand2 as double));
-      }
-    } else if (node.operator.type == TokenType.PLUS) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) + (rightOperand2 as int);
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) + ((rightOperand2 as double));
-      }
-    } else if (node.operator.type == TokenType.STAR) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) * (rightOperand2 as int);
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) * ((rightOperand2 as double));
-      }
-    } else if (node.operator.type == TokenType.SLASH) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) / ((rightOperand2 as double));
-      }
-    } else if (node.operator.type == TokenType.TILDE_SLASH) {
-      if (leftOperand2 is int && rightOperand2 is int) {
-        return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
-      } else if (leftOperand2 is double && rightOperand2 is double) {
-        return ((leftOperand2 as double)) ~/ ((rightOperand2 as double));
-      }
+      break;
     }
     return visitExpression(node);
   }
@@ -10811,11 +11008,11 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     Map<String, Object> map = new Map<String, Object>();
     for (MapLiteralEntry entry in node.entries) {
       Object key2 = entry.key.accept(this);
-      Object value7 = entry.value.accept(this);
-      if (key2 is! String || identical(value7, NOT_A_CONSTANT)) {
+      Object value8 = entry.value.accept(this);
+      if (key2 is! String || identical(value8, NOT_A_CONSTANT)) {
         return NOT_A_CONSTANT;
       }
-      map[(key2 as String)] = value7;
+      map[(key2 as String)] = value8;
     }
     return map;
   }
@@ -10829,24 +11026,27 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     if (identical(operand2, NOT_A_CONSTANT)) {
       return operand2;
     }
-    if (node.operator.type == TokenType.BANG) {
-      if (identical(operand2, true)) {
-        return false;
-      } else if (identical(operand2, false)) {
-        return true;
+    while (true) {
+      if (node.operator.type == TokenType.BANG) {
+        if (identical(operand2, true)) {
+          return false;
+        } else if (identical(operand2, false)) {
+          return true;
+        }
+      } else if (node.operator.type == TokenType.TILDE) {
+        if (operand2 is int) {
+          return ~((operand2 as int));
+        }
+      } else if (node.operator.type == TokenType.MINUS) {
+        if (operand2 == null) {
+          return null;
+        } else if (operand2 is int) {
+          return -((operand2 as int));
+        } else if (operand2 is double) {
+          return -((operand2 as double));
+        }
       }
-    } else if (node.operator.type == TokenType.TILDE) {
-      if (operand2 is int) {
-        return ~((operand2 as int));
-      }
-    } else if (node.operator.type == TokenType.MINUS) {
-      if (operand2 == null) {
-        return null;
-      } else if (operand2 is int) {
-        return -((operand2 as int));
-      } else if (operand2 is double) {
-        return -((operand2 as double));
-      }
+      break;
     }
     return NOT_A_CONSTANT;
   }
@@ -10860,7 +11060,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
-      builder.add(value);
+      builder.write(value);
     }
     return builder.toString();
   }
@@ -10871,11 +11071,51 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
    */
   Object getConstantValue(Element element) {
     if (element is FieldElement) {
-      FieldElement field = (element as FieldElement);
+      FieldElement field = element as FieldElement;
       if (field.isStatic() && field.isConst()) {
       }
     }
     return NOT_A_CONSTANT;
+  }
+}
+/**
+ * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}associated with a given {@link ASTNode AST node}.
+ */
+class ElementLocator {
+  /**
+   * Locate the {@link Element Dart model element} associated with the given {@link ASTNode AST
+   * node}.
+   * @param node the node (not {@code null})
+   * @return the associated element, or {@code null} if none is found
+   */
+  static Element locate(ASTNode node) {
+    ElementLocator_ElementMapper mapper = new ElementLocator_ElementMapper();
+    return node.accept(mapper);
+  }
+  /**
+   * Clients should use {@link #locate(ASTNode)}.
+   */
+  ElementLocator() {
+  }
+}
+/**
+ * Visitor that maps nodes to elements.
+ */
+class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
+  Element visitBinaryExpression(BinaryExpression node) => node.element;
+  Element visitIdentifier(Identifier node) => node.element;
+  Element visitImportDirective(ImportDirective node) => node.element;
+  Element visitIndexExpression(IndexExpression node) => node.element;
+  Element visitLibraryDirective(LibraryDirective node) => node.element;
+  Element visitPostfixExpression(PostfixExpression node) => node.element;
+  Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.element;
+  Element visitPrefixExpression(PrefixExpression node) => node.element;
+  Element visitStringLiteral(StringLiteral node) {
+    ASTNode parent12 = node.parent;
+    if (parent12 is UriBasedDirective) {
+      return ((parent12 as UriBasedDirective)).element;
+    }
+    return null;
   }
 }
 /**
@@ -10969,7 +11209,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   R visitMapLiteral(MapLiteral node) => visitTypedLiteral(node);
   R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
   R visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
-  R visitMethodInvocation(MethodInvocation node) => visitNode(node);
+  R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
   R visitNamedExpression(NamedExpression node) => visitExpression(node);
   R visitNamespaceDirective(NamespaceDirective node) => visitUriBasedDirective(node);
   R visitNode(ASTNode node) {
@@ -11044,10 +11284,10 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param offset the offset used to identify the node
    */
   NodeLocator.con1(int offset) {
-    _jtd_constructor_114_impl(offset);
+    _jtd_constructor_116_impl(offset);
   }
-  _jtd_constructor_114_impl(int offset) {
-    _jtd_constructor_115_impl(offset, offset);
+  _jtd_constructor_116_impl(int offset) {
+    _jtd_constructor_117_impl(offset, offset);
   }
   /**
    * Initialize a newly created locator to locate one or more {@link ASTNode AST nodes} by locating
@@ -11057,9 +11297,9 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param end the end offset of the range used to identify the node
    */
   NodeLocator.con2(int start, int end) {
-    _jtd_constructor_115_impl(start, end);
+    _jtd_constructor_117_impl(start, end);
   }
-  _jtd_constructor_115_impl(int start, int end) {
+  _jtd_constructor_117_impl(int start, int end) {
     this._startOffset = start;
     this._endOffset = end;
   }
@@ -12453,7 +12693,9 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
   }
   bool addAll(Collection<E> nodes) {
     if (nodes != null) {
-      super.addAll(nodes);
+      for (E node in nodes) {
+        add(node);
+      }
       return true;
     }
     return false;

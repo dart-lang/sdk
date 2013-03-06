@@ -228,9 +228,9 @@ class Modifiers {
   bool appendKeyword(StringBuffer builder, bool needsSpace, Token keyword) {
     if (keyword != null) {
       if (needsSpace) {
-        builder.addCharCode(0x20);
+        builder.writeCharCode(0x20);
       }
-      builder.add(keyword.lexeme);
+      builder.write(keyword.lexeme);
       return true;
     }
     return needsSpace;
@@ -334,13 +334,13 @@ class Parser {
    */
   void appendScalarValue(StringBuffer builder, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
-      reportError3(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
+      reportError4(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
-      builder.addCharCode((scalarValue as int));
+      builder.writeCharCode((scalarValue as int));
     } else {
-      builder.add(Character.toChars(scalarValue));
+      builder.write(Character.toChars(scalarValue));
     }
   }
   /**
@@ -407,7 +407,7 @@ class Parser {
    */
   void ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable()) {
-      reportError3(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
+      reportError4(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
     }
   }
   /**
@@ -420,7 +420,7 @@ class Parser {
     if (matches(keyword)) {
       return andAdvance;
     }
-    reportError3(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
+    reportError4(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
   }
   /**
@@ -434,9 +434,9 @@ class Parser {
       return andAdvance;
     }
     if (identical(type, TokenType.SEMICOLON)) {
-      reportError4(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
+      reportError5(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
     } else {
-      reportError3(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
+      reportError4(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     }
     return _currentToken;
   }
@@ -537,8 +537,8 @@ class Parser {
     if (token == null) {
       return false;
     }
-    TokenType type15 = token.type;
-    return identical(type15, TokenType.EQ) || identical(type15, TokenType.COMMA) || identical(type15, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+    TokenType type20 = token.type;
+    return identical(type20, TokenType.EQ) || identical(type20, TokenType.COMMA) || identical(type20, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
   }
   /**
    * Return {@code true} if the current token appears to be the beginning of a switch member.
@@ -568,8 +568,8 @@ class Parser {
     int firstOffset = 2147483647;
     for (Token token in tokens) {
       if (token != null) {
-        int offset4 = token.offset;
-        if (offset4 < firstOffset) {
+        int offset5 = token.offset;
+        if (offset5 < firstOffset) {
           first = token;
         }
       }
@@ -601,7 +601,7 @@ class Parser {
    * @param type the type of token that is being tested for
    * @return {@code true} if the given token has the given type
    */
-  bool matches4(Token token, TokenType type24) => identical(token.type, type24);
+  bool matches4(Token token, TokenType type29) => identical(token.type, type29);
   /**
    * Return {@code true} if the current token has the given type. Note that this method, unlike
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
@@ -610,33 +610,33 @@ class Parser {
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
    */
-  bool matches5(TokenType type25) {
+  bool matches5(TokenType type30) {
     TokenType currentType = _currentToken.type;
-    if (currentType != type25) {
-      if (identical(type25, TokenType.GT)) {
+    if (currentType != type30) {
+      if (identical(type30, TokenType.GT)) {
         if (identical(currentType, TokenType.GT_GT)) {
-          int offset5 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset5);
-          Token second = new Token(TokenType.GT, offset5 + 1);
+          int offset6 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset6);
+          Token second = new Token(TokenType.GT, offset6 + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_EQ)) {
-          int offset6 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset6);
-          Token second = new Token(TokenType.EQ, offset6 + 1);
+          int offset7 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset7);
+          Token second = new Token(TokenType.EQ, offset7 + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_GT_EQ)) {
-          int offset7 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset7);
-          Token second = new Token(TokenType.GT, offset7 + 1);
-          Token third = new Token(TokenType.EQ, offset7 + 2);
+          int offset8 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset8);
+          Token second = new Token(TokenType.GT, offset8 + 1);
+          Token third = new Token(TokenType.EQ, offset8 + 2);
           third.setNext(_currentToken.next);
           second.setNext(third);
           first.setNext(second);
@@ -792,7 +792,7 @@ class Parser {
       arguments.add(argument);
       if (foundNamedArgument) {
         if (!generatedError && argument is! NamedExpression) {
-          reportError3(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
+          reportError4(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
           generatedError = true;
         }
       } else if (argument is NamedExpression) {
@@ -842,10 +842,10 @@ class Parser {
         if (expression is SimpleIdentifier) {
           expression = new MethodInvocation.full(null, null, (expression as SimpleIdentifier), argumentList);
         } else if (expression is PrefixedIdentifier) {
-          PrefixedIdentifier identifier = (expression as PrefixedIdentifier);
+          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
           expression = new MethodInvocation.full(identifier.prefix, identifier.period, identifier.identifier, argumentList);
         } else if (expression is PropertyAccess) {
-          PropertyAccess access = (expression as PropertyAccess);
+          PropertyAccess access = expression as PropertyAccess;
           expression = new MethodInvocation.full(access.target, access.operator, access.propertyName, argumentList);
         } else {
           expression = new FunctionExpressionInvocation.full(expression, argumentList);
@@ -857,7 +857,7 @@ class Parser {
       Expression selectorExpression = parseAssignableSelector(expression, isOptional || (expression is PrefixedIdentifier));
       if (identical(selectorExpression, expression)) {
         if (!isOptional && (expression is PrefixedIdentifier)) {
-          PrefixedIdentifier identifier = (expression as PrefixedIdentifier);
+          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
           expression = new PropertyAccess.full(identifier.prefix, identifier.period, identifier.identifier);
         }
         return expression;
@@ -888,7 +888,7 @@ class Parser {
       return new PropertyAccess.full(prefix, period, parseSimpleIdentifier());
     } else {
       if (!optional) {
-        reportError3(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+        reportError4(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
       }
       return prefix;
     }
@@ -977,7 +977,7 @@ class Parser {
         statements.add(statement);
       }
       if (identical(_currentToken, statementStart)) {
-        reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -1000,7 +1000,7 @@ class Parser {
       label = parseSimpleIdentifier();
     }
     if (!_inLoop && !_inSwitch && label == null) {
-      reportError4(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
+      reportError5(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new BreakStatement.full(breakKeyword, label, semicolon);
@@ -1009,7 +1009,7 @@ class Parser {
    * Parse a cascade section.
    * <pre>
    * cascadeSection ::=
-   * '..' cascadeSelector arguments* (assignableSelector arguments*)* cascadeAssignment?
+   * '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
    * cascadeSelector ::=
    * '[' expression ']'
    * | identifier
@@ -1031,7 +1031,7 @@ class Parser {
       expression = new IndexExpression.forCascade_full(period, leftBracket, index, rightBracket);
       period = null;
     } else {
-      reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+      reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
       return expression;
     }
     if (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
@@ -1065,7 +1065,7 @@ class Parser {
     if (_currentToken.type.isAssignmentOperator()) {
       Token operator = andAdvance;
       ensureAssignable(expression);
-      expression = new AssignmentExpression.full(expression, operator, parseExpression2());
+      expression = new AssignmentExpression.full(expression, operator, parseExpressionWithoutCascade());
     }
     return expression;
   }
@@ -1097,29 +1097,29 @@ class Parser {
         if (extendsClause == null) {
           extendsClause = parseExtendsClause();
           if (withClause != null) {
-            reportError4(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
+            reportError5(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
           } else if (implementsClause != null) {
-            reportError4(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
+            reportError5(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
           }
         } else {
-          reportError4(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
+          reportError5(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
           parseExtendsClause();
         }
       } else if (matches(Keyword.WITH)) {
         if (withClause == null) {
           withClause = parseWithClause();
           if (implementsClause != null) {
-            reportError4(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
+            reportError5(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
           }
         } else {
-          reportError4(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
+          reportError5(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
           parseWithClause();
         }
       } else if (matches(Keyword.IMPLEMENTS)) {
         if (implementsClause == null) {
           implementsClause = parseImplementsClause();
         } else {
-          reportError4(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
+          reportError5(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
           parseImplementsClause();
         }
       } else {
@@ -1127,19 +1127,19 @@ class Parser {
       }
     }
     if (withClause != null && extendsClause == null) {
-      reportError4(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
+      reportError5(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
     }
     Token leftBracket = null;
     List<ClassMember> members = null;
     Token rightBracket = null;
     if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
-      members = parseClassMembers(className);
+      members = parseClassMembers(className, ((leftBracket as BeginToken)).endToken != null);
       rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
     } else {
       leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
       rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
-      reportError3(ParserErrorCode.MISSING_CLASS_BODY, []);
+      reportError4(ParserErrorCode.MISSING_CLASS_BODY, []);
     }
     return new ClassDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
   }
@@ -1185,7 +1185,7 @@ class Parser {
     } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (!matchesIdentifier()) {
@@ -1211,7 +1211,7 @@ class Parser {
     } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
     } else if (!matchesIdentifier()) {
@@ -1227,14 +1227,17 @@ class Parser {
    * classMembers ::=
    * (metadata memberDefinition)
    * </pre>
+   * @param className the name of the class whose members are being parsed
+   * @param balancedBrackets {@code true} if the opening and closing brackets for the class are
+   * balanced
    * @return the list of class members that were parsed
    */
-  List<ClassMember> parseClassMembers(String className) {
+  List<ClassMember> parseClassMembers(String className, bool balancedBrackets) {
     List<ClassMember> members = new List<ClassMember>();
     Token memberStart = _currentToken;
-    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)) {
+    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && (balancedBrackets || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
       if (matches5(TokenType.SEMICOLON)) {
-        reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         ClassMember member = parseClassMember(className);
@@ -1243,7 +1246,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       memberStart = _currentToken;
@@ -1344,7 +1347,7 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_4(errorFound);
+      AnalysisErrorListener listener = new AnalysisErrorListener_6(errorFound);
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
@@ -1449,18 +1452,18 @@ class Parser {
     Token memberStart = _currentToken;
     while (!matches5(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-      if (matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) {
+      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
-          reportError3(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
+          reportError4(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
           directiveFoundAfterDeclaration = true;
         }
         if (directive is LibraryDirective) {
           if (libraryDirectiveFound) {
-            reportError3(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
+            reportError4(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
           } else {
             if (directives.length > 0) {
-              reportError3(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
+              reportError4(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
             }
             libraryDirectiveFound = true;
           }
@@ -1468,28 +1471,28 @@ class Parser {
           partDirectiveFound = true;
         } else if (partDirectiveFound) {
           if (directive is ExportDirective) {
-            reportError3(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, []);
+            reportError4(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, []);
           } else if (directive is ImportDirective) {
-            reportError3(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, []);
+            reportError4(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, []);
           }
         }
         if (directive is PartOfDirective) {
           if (partOfDirectiveFound) {
-            reportError3(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
+            reportError4(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
           } else {
             for (Directive preceedingDirective in directives) {
-              reportError4(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, preceedingDirective.keyword, []);
+              reportError5(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, preceedingDirective.keyword, []);
             }
             partOfDirectiveFound = true;
           }
         } else {
           if (partOfDirectiveFound) {
-            reportError4(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
+            reportError5(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
           }
         }
         directives.add(directive);
       } else if (matches5(TokenType.SEMICOLON)) {
-        reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
@@ -1498,7 +1501,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       memberStart = _currentToken;
@@ -1526,7 +1529,7 @@ class Parser {
     Modifiers modifiers = parseModifiers();
     if (matches(Keyword.CLASS)) {
       return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
-    } else if (matches(Keyword.TYPEDEF)) {
+    } else if (matches(Keyword.TYPEDEF) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
@@ -1552,7 +1555,7 @@ class Parser {
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null, false);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
       return null;
     } else if (!matchesIdentifier()) {
       return null;
@@ -1649,7 +1652,7 @@ class Parser {
     } else {
       body = parseFunctionBody(true, false);
       if (!bodyAllowed && body is! EmptyFunctionBody) {
-        reportError3(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, []);
+        reportError4(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, []);
       }
     }
     return new ConstructorDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, constKeyword, factoryKeyword, returnType, period, name, parameters, separator, initializers, redirectedConstructor, body);
@@ -1715,14 +1718,14 @@ class Parser {
   Statement parseContinueStatement() {
     Token continueKeyword = expect(Keyword.CONTINUE);
     if (!_inLoop && !_inSwitch) {
-      reportError4(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
+      reportError5(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
     }
     SimpleIdentifier label = null;
     if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (_inSwitch && !_inLoop && label == null) {
-      reportError4(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
+      reportError5(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new ContinueStatement.full(continueKeyword, label, semicolon);
@@ -1968,7 +1971,7 @@ class Parser {
       if (matchesIdentifier2(peek()) || matches4(peek(), TokenType.LT) || matches3(peek(), Keyword.THIS) || (matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && (matchesIdentifier2(peek2(3)) || matches4(peek2(3), TokenType.LT) || matches3(peek2(3), Keyword.THIS)))) {
         type = parseReturnType();
       } else if (!optional) {
-        reportError3(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError4(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
     }
     return new FinalConstVarOrType(keyword, type);
@@ -1991,7 +1994,7 @@ class Parser {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.NAMED)) {
-        reportError4(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
+        reportError5(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
         reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
@@ -2000,7 +2003,7 @@ class Parser {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.POSITIONAL)) {
-        reportError4(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
+        reportError5(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
         reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
@@ -2030,6 +2033,12 @@ class Parser {
    * @return the formal parameters that were parsed
    */
   FormalParameterList parseFormalParameterList() {
+    if (matches5(TokenType.EQ) && matches4(peek(), TokenType.OPEN_PAREN)) {
+      Token previous4 = _currentToken.previous;
+      if ((matches4(previous4, TokenType.EQ_EQ) || matches4(previous4, TokenType.BANG_EQ)) && _currentToken.offset == previous4.offset + 2) {
+        advance();
+      }
+    }
     Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
     if (matches5(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList.full(leftParenthesis, null, null, null, andAdvance);
@@ -2054,7 +2063,7 @@ class Parser {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
         if (((leftParenthesis as BeginToken)).endToken != null) {
-          reportError3(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
+          reportError4(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
         } else {
           break;
         }
@@ -2062,11 +2071,11 @@ class Parser {
       initialToken = _currentToken;
       if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
-          reportError3(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
+          reportError4(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
           reportedMuliplePositionalGroups = true;
         }
         if (leftCurlyBracket != null && !reportedMixedGroups) {
-          reportError3(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportError4(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftSquareBracket = andAdvance;
@@ -2074,11 +2083,11 @@ class Parser {
         kind = ParameterKind.POSITIONAL;
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
-          reportError3(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
+          reportError4(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
           reportedMulipleNamedGroups = true;
         }
         if (leftSquareBracket != null && !reportedMixedGroups) {
-          reportError3(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportError4(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftCurlyBracket = andAdvance;
@@ -2092,20 +2101,36 @@ class Parser {
         rightSquareBracket = andAdvance;
         currentParameters = normalParameters;
         if (leftSquareBracket == null) {
+          if (leftCurlyBracket != null) {
+            reportError4(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+            rightCurlyBracket = rightSquareBracket;
+            rightSquareBracket = null;
+          } else {
+            reportError4(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
+          }
         }
         kind = ParameterKind.REQUIRED;
       } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = andAdvance;
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
+          if (leftSquareBracket != null) {
+            reportError4(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+            rightSquareBracket = rightCurlyBracket;
+            rightCurlyBracket = null;
+          } else {
+            reportError4(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
+          }
         }
         kind = ParameterKind.REQUIRED;
       }
     } while (!matches5(TokenType.CLOSE_PAREN) && initialToken != _currentToken);
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
     if (leftSquareBracket != null && rightSquareBracket == null) {
+      reportError4(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
+      reportError4(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
     }
     if (leftSquareBracket == null) {
       leftSquareBracket = leftCurlyBracket;
@@ -2152,15 +2177,15 @@ class Parser {
         if (matches(Keyword.IN)) {
           SimpleFormalParameter loopParameter = null;
           if (variableList == null) {
-            reportError3(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
+            reportError4(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
             NodeList<VariableDeclaration> variables3 = variableList.variables;
             if (variables3.length > 1) {
-              reportError3(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables3.length.toString()]);
+              reportError4(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables3.length.toString()]);
             }
             VariableDeclaration variable = variables3[0];
             if (variable.initializer != null) {
-              reportError3(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
+              reportError4(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
             loopParameter = new SimpleFormalParameter.full(null, null, variableList.keyword, variableList.type, variable.name);
           }
@@ -2211,7 +2236,7 @@ class Parser {
     try {
       if (matches5(TokenType.SEMICOLON)) {
         if (!mayBeEmpty) {
-          reportError3(ParserErrorCode.MISSING_FUNCTION_BODY, []);
+          reportError4(ParserErrorCode.MISSING_FUNCTION_BODY, []);
         }
         return new EmptyFunctionBody.full(andAdvance);
       } else if (matches5(TokenType.FUNCTION)) {
@@ -2229,7 +2254,7 @@ class Parser {
         parseStringLiteral();
         return new EmptyFunctionBody.full(andAdvance);
       } else {
-        reportError3(ParserErrorCode.MISSING_FUNCTION_BODY, []);
+        reportError4(ParserErrorCode.MISSING_FUNCTION_BODY, []);
         return new EmptyFunctionBody.full(createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
@@ -2267,10 +2292,10 @@ class Parser {
         parameters = parseFormalParameterList();
         validateFormalParameterList(parameters);
       } else {
-        reportError3(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
+        reportError4(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
       }
     } else if (matches5(TokenType.OPEN_PAREN)) {
-      reportError3(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+      reportError4(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       parseFormalParameterList();
     }
     FunctionBody body = null;
@@ -2278,7 +2303,7 @@ class Parser {
       body = parseFunctionBody(false, false);
     }
     if (!isStatement && matches5(TokenType.SEMICOLON)) {
-      reportError3(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
+      reportError4(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
     }
     return new FunctionDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, returnType, keyword, name, new FunctionExpression.full(parameters, body));
@@ -2340,8 +2365,8 @@ class Parser {
     if (matches5(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
-    if (matches5(TokenType.SEMICOLON)) {
-      reportError3(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+    if (matches5(TokenType.SEMICOLON) || matches5(TokenType.EOF)) {
+      reportError4(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       FormalParameterList parameters = new FormalParameterList.full(createSyntheticToken(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken(TokenType.CLOSE_PAREN));
       Token semicolon = expect2(TokenType.SEMICOLON);
       return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
@@ -2373,13 +2398,13 @@ class Parser {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
     if (matches5(TokenType.OPEN_PAREN) && matches4(peek(), TokenType.CLOSE_PAREN)) {
-      reportError3(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+      reportError4(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       advance();
       advance();
     }
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError3(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
+      reportError4(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, null, body);
   }
@@ -2548,7 +2573,7 @@ class Parser {
       StringLiteral string = parseStringLiteral();
       reportError(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
     } else {
-      reportError4(missingNameError, missingNameToken, []);
+      reportError5(missingNameError, missingNameToken, []);
     }
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
     components.add(createSyntheticIdentifier());
@@ -2613,7 +2638,7 @@ class Parser {
     } else if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
       return parseListLiteral(modifier, typeArguments);
     }
-    reportError3(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
+    reportError4(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
     return new ListLiteral.full(modifier, typeArguments, createSyntheticToken(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken(TokenType.CLOSE_SQUARE_BRACKET));
   }
   /**
@@ -2754,51 +2779,51 @@ class Parser {
     Modifiers modifiers = new Modifiers();
     bool progress = true;
     while (progress) {
-      if (matches(Keyword.ABSTRACT)) {
+      if (matches(Keyword.ABSTRACT) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.abstractKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.abstractKeyword = andAdvance;
         }
       } else if (matches(Keyword.CONST)) {
         if (modifiers.constKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.constKeyword = andAdvance;
         }
-      } else if (matches(Keyword.EXTERNAL)) {
+      } else if (matches(Keyword.EXTERNAL) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.externalKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.externalKeyword = andAdvance;
         }
-      } else if (matches(Keyword.FACTORY)) {
+      } else if (matches(Keyword.FACTORY) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.factoryKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.factoryKeyword = andAdvance;
         }
       } else if (matches(Keyword.FINAL)) {
         if (modifiers.finalKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.finalKeyword = andAdvance;
         }
-      } else if (matches(Keyword.STATIC)) {
+      } else if (matches(Keyword.STATIC) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.staticKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.staticKeyword = andAdvance;
         }
       } else if (matches(Keyword.VAR)) {
         if (modifiers.varKeyword != null) {
-          reportError3(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError4(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.varKeyword = andAdvance;
@@ -2970,9 +2995,9 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
     }
-    TypeName type16 = holder.type;
-    if (type16 != null && matches3(type16.name.beginToken, Keyword.VOID)) {
-      reportError4(ParserErrorCode.VOID_PARAMETER, type16.name.beginToken, []);
+    TypeName type21 = holder.type;
+    if (type21 != null && matches3(type21.name.beginToken, Keyword.VOID)) {
+      reportError5(ParserErrorCode.VOID_PARAMETER, type21.name.beginToken, []);
     }
     if (thisKeyword != null) {
       return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier);
@@ -2997,14 +3022,14 @@ class Parser {
   MethodDeclaration parseOperator(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
     Token operatorKeyword = expect(Keyword.OPERATOR);
     if (!_currentToken.isUserDefinableOperator()) {
-      reportError3(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
+      reportError4(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError3(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
+      reportError4(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, null, returnType, null, operatorKeyword, name, parameters, body);
   }
@@ -3064,7 +3089,7 @@ class Parser {
         if (matches5(TokenType.OPEN_PAREN)) {
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
-            PropertyAccess access = (operand as PropertyAccess);
+            PropertyAccess access = operand as PropertyAccess;
             operand = new MethodInvocation.full(access.target, access.operator, access.propertyName, argumentList);
           } else {
             operand = new FunctionExpressionInvocation.full(operand, argumentList);
@@ -3079,7 +3104,7 @@ class Parser {
       return operand;
     }
     if (operand is FunctionExpressionInvocation) {
-      reportError3(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+      reportError4(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
     }
     Token operator = andAdvance;
     return new PostfixExpression.full(operand, operator);
@@ -3184,7 +3209,7 @@ class Parser {
     } else if (matches5(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
     } else if (matches(Keyword.VOID)) {
-      reportError3(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
+      reportError4(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
       return parsePrimaryExpression();
     } else {
@@ -3228,8 +3253,8 @@ class Parser {
     }
     Expression expression = parseShiftExpression();
     if (matches(Keyword.AS)) {
-      Token isOperator = andAdvance;
-      expression = new AsExpression.full(expression, isOperator, parseTypeName());
+      Token asOperator = andAdvance;
+      expression = new AsExpression.full(expression, asOperator, parseTypeName());
     } else if (matches(Keyword.IS)) {
       Token isOperator = andAdvance;
       Token notOperator = null;
@@ -3299,7 +3324,7 @@ class Parser {
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError3(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
+      reportError4(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, parameters, body);
   }
@@ -3337,7 +3362,7 @@ class Parser {
     if (matchesIdentifier()) {
       return new SimpleIdentifier.full(andAdvance);
     }
-    reportError3(ParserErrorCode.MISSING_IDENTIFIER, []);
+    reportError4(ParserErrorCode.MISSING_IDENTIFIER, []);
     return createSyntheticIdentifier();
   }
   /**
@@ -3353,11 +3378,11 @@ class Parser {
     if (matchesIdentifier()) {
       Token token = andAdvance;
       if (identical(token.type, TokenType.KEYWORD)) {
-        reportError4(errorCode, token, [token.lexeme]);
+        reportError5(errorCode, token, [token.lexeme]);
       }
       return new SimpleIdentifier.full(token);
     }
-    reportError3(ParserErrorCode.MISSING_IDENTIFIER, []);
+    reportError4(ParserErrorCode.MISSING_IDENTIFIER, []);
     return createSyntheticIdentifier();
   }
   /**
@@ -3395,7 +3420,7 @@ class Parser {
     while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
-        reportError4(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError5(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -3452,7 +3477,7 @@ class Parser {
       }
     }
     if (strings.length < 1) {
-      reportError3(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
+      reportError4(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
       return createSyntheticStringLiteral();
     } else if (strings.length == 1) {
       return strings[0];
@@ -3508,7 +3533,7 @@ class Parser {
           SimpleIdentifier identifier = parseSimpleIdentifier();
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
-            reportError4(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
+            reportError5(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
           } else {
             javaSetAdd(definedLabels, label);
           }
@@ -3525,7 +3550,7 @@ class Parser {
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchDefault.full(labels, defaultKeyword, colon, parseStatements2()));
         } else {
-          reportError3(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
+          reportError4(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
           while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
             advance();
           }
@@ -3621,7 +3646,7 @@ class Parser {
       finallyClause = parseBlock();
     } else {
       if (catchClauses.isEmpty) {
-        reportError3(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
+        reportError4(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
       }
     }
     return new TryStatement.full(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
@@ -3759,21 +3784,21 @@ class Parser {
       Token operator = andAdvance;
       if (matches(Keyword.SUPER)) {
         if (identical(operator.type, TokenType.MINUS_MINUS)) {
-          int offset8 = operator.offset;
-          Token firstOperator = new Token(TokenType.MINUS, offset8);
-          Token secondOperator = new Token(TokenType.MINUS, offset8 + 1);
+          int offset9 = operator.offset;
+          Token firstOperator = new Token(TokenType.MINUS, offset9);
+          Token secondOperator = new Token(TokenType.MINUS, offset9 + 1);
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
           return new PrefixExpression.full(firstOperator, new PrefixExpression.full(secondOperator, new SuperExpression.full(andAdvance)));
         } else {
-          reportError3(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
+          reportError4(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
           return new PrefixExpression.full(operator, new SuperExpression.full(andAdvance));
         }
       }
       return new PrefixExpression.full(operator, parseAssignableExpression(false));
     } else if (matches5(TokenType.PLUS)) {
-      reportError3(ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR, []);
+      reportError4(ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR, []);
     }
     return parsePostfixExpression();
   }
@@ -3872,13 +3897,13 @@ class Parser {
    * @return the with clause that was parsed
    */
   WithClause parseWithClause() {
-    Token with6 = expect(Keyword.WITH);
+    Token with2 = expect(Keyword.WITH);
     List<TypeName> types = new List<TypeName>();
     types.add(parseTypeName());
     while (optional(TokenType.COMMA)) {
       types.add(parseTypeName());
     }
-    return new WithClause.full(with6, types);
+    return new WithClause.full(with2, types);
   }
   /**
    * Return the token that is immediately after the current token. This is equivalent to{@link #peek(int) peek(1)}.
@@ -3911,8 +3936,8 @@ class Parser {
    * @param errorCode the error code of the error to be reported
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError3(ParserErrorCode errorCode, List<Object> arguments) {
-    reportError4(errorCode, _currentToken, arguments);
+  void reportError4(ParserErrorCode errorCode, List<Object> arguments) {
+    reportError5(errorCode, _currentToken, arguments);
   }
   /**
    * Report an error with the given error code and arguments.
@@ -3920,7 +3945,7 @@ class Parser {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError4(ParserErrorCode errorCode, Token token, List<Object> arguments) {
+  void reportError5(ParserErrorCode errorCode, Token token, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, [arguments]));
   }
   /**
@@ -4102,20 +4127,20 @@ class Parser {
    */
   Token skipStringInterpolation(Token startToken) {
     Token token = startToken;
-    TokenType type17 = token.type;
-    while (identical(type17, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type17, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-      if (identical(type17, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+    TokenType type22 = token.type;
+    while (identical(type22, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type22, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      if (identical(type22, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         token = token.next;
-        type17 = token.type;
+        type22 = token.type;
         int bracketNestingLevel = 1;
         while (bracketNestingLevel > 0) {
-          if (identical(type17, TokenType.EOF)) {
+          if (identical(type22, TokenType.EOF)) {
             return null;
-          } else if (identical(type17, TokenType.OPEN_CURLY_BRACKET)) {
+          } else if (identical(type22, TokenType.OPEN_CURLY_BRACKET)) {
             bracketNestingLevel++;
-          } else if (identical(type17, TokenType.CLOSE_CURLY_BRACKET)) {
+          } else if (identical(type22, TokenType.CLOSE_CURLY_BRACKET)) {
             bracketNestingLevel--;
-          } else if (identical(type17, TokenType.STRING)) {
+          } else if (identical(type22, TokenType.STRING)) {
             token = skipStringLiteral(token);
             if (token == null) {
               return null;
@@ -4123,10 +4148,10 @@ class Parser {
           } else {
             token = token.next;
           }
-          type17 = token.type;
+          type22 = token.type;
         }
         token = token.next;
-        type17 = token.type;
+        type22 = token.type;
       } else {
         token = token.next;
         if (token.type != TokenType.IDENTIFIER) {
@@ -4134,10 +4159,10 @@ class Parser {
         }
         token = token.next;
       }
-      type17 = token.type;
-      if (identical(type17, TokenType.STRING)) {
+      type22 = token.type;
+      if (identical(type22, TokenType.STRING)) {
         token = token.next;
-        type17 = token.type;
+        type22 = token.type;
       }
     }
     return token;
@@ -4160,8 +4185,8 @@ class Parser {
     Token token = startToken;
     while (token != null && matches4(token, TokenType.STRING)) {
       token = token.next;
-      TokenType type18 = token.type;
-      if (identical(type18, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type18, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      TokenType type23 = token.type;
+      if (identical(type23, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type23, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         token = skipStringInterpolation(token);
       }
     }
@@ -4292,7 +4317,7 @@ class Parser {
   int translateCharacter(StringBuffer builder, String lexeme, int index) {
     int currentChar = lexeme.codeUnitAt(index);
     if (currentChar != 0x5C) {
-      builder.addCharCode(currentChar);
+      builder.writeCharCode(currentChar);
       return index + 1;
     }
     int length8 = lexeme.length;
@@ -4302,41 +4327,41 @@ class Parser {
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
-      builder.addCharCode(0xA);
+      builder.writeCharCode(0xA);
     } else if (currentChar == 0x72) {
-      builder.addCharCode(0xD);
+      builder.writeCharCode(0xD);
     } else if (currentChar == 0x66) {
-      builder.addCharCode(0xC);
+      builder.writeCharCode(0xC);
     } else if (currentChar == 0x62) {
-      builder.addCharCode(0x8);
+      builder.writeCharCode(0x8);
     } else if (currentChar == 0x74) {
-      builder.addCharCode(0x9);
+      builder.writeCharCode(0x9);
     } else if (currentChar == 0x76) {
-      builder.addCharCode(0xB);
+      builder.writeCharCode(0xB);
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length8) {
-        reportError3(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportError4(ParserErrorCode.INVALID_HEX_ESCAPE, []);
         return length8;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
-        reportError3(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportError4(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
-        builder.addCharCode((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) as int));
+        builder.writeCharCode((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) as int));
       }
       return currentIndex + 3;
     } else if (currentChar == 0x75) {
       currentIndex++;
       if (currentIndex >= length8) {
-        reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+        reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         return length8;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
       if (currentChar == 0x7B) {
         currentIndex++;
         if (currentIndex >= length8) {
-          reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length8;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
@@ -4344,7 +4369,7 @@ class Parser {
         int value = 0;
         while (currentChar != 0x7D) {
           if (!isHexDigit(currentChar)) {
-            reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
             while (currentIndex < length8 && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
@@ -4355,19 +4380,19 @@ class Parser {
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
           if (currentIndex >= length8) {
-            reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             return length8;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
-          reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         }
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length8) {
-          reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length8;
         }
         int firstDigit = currentChar;
@@ -4375,14 +4400,14 @@ class Parser {
         int thirdDigit = lexeme.codeUnitAt(currentIndex + 2);
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit) || !isHexDigit(fourthDigit)) {
-          reportError3(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
           appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), ((((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16)), index, currentIndex + 3);
         }
         return currentIndex + 4;
       }
     } else {
-      builder.addCharCode(currentChar);
+      builder.writeCharCode(currentChar);
     }
     return currentIndex + 1;
   }
@@ -4405,16 +4430,16 @@ class Parser {
   Token validateModifiersForClass(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.constKeyword != null) {
-      reportError4(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportError5(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError4(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
+      reportError5(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError4(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportError5(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError4(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
+      reportError5(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
     }
     return modifiers.abstractKeyword;
   }
@@ -4426,25 +4451,25 @@ class Parser {
    */
   Token validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError3(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError4(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError4(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
+      reportError5(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError4(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
+      reportError5(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError4(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError5(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword6 = modifiers.externalKeyword;
     Token constKeyword4 = modifiers.constKeyword;
     Token factoryKeyword4 = modifiers.factoryKeyword;
     if (externalKeyword6 != null && constKeyword4 != null && constKeyword4.offset < externalKeyword6.offset) {
-      reportError4(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword6, []);
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword6, []);
     }
     if (externalKeyword6 != null && factoryKeyword4 != null && factoryKeyword4.offset < externalKeyword6.offset) {
-      reportError4(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword6, []);
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword6, []);
     }
     return constKeyword4;
   }
@@ -4456,13 +4481,13 @@ class Parser {
    */
   Token validateModifiersForField(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError3(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError4(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError4(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportError5(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError4(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError5(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     Token staticKeyword3 = modifiers.staticKeyword;
     Token constKeyword5 = modifiers.constKeyword;
@@ -4470,23 +4495,23 @@ class Parser {
     Token varKeyword3 = modifiers.varKeyword;
     if (constKeyword5 != null) {
       if (finalKeyword3 != null) {
-        reportError4(ParserErrorCode.CONST_AND_FINAL, finalKeyword3, []);
+        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword3, []);
       }
       if (varKeyword3 != null) {
-        reportError4(ParserErrorCode.CONST_AND_VAR, varKeyword3, []);
+        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword3, []);
       }
       if (staticKeyword3 != null && constKeyword5.offset < staticKeyword3.offset) {
-        reportError4(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword3, []);
+        reportError5(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword3, []);
       }
     } else if (finalKeyword3 != null) {
       if (varKeyword3 != null) {
-        reportError4(ParserErrorCode.FINAL_AND_VAR, varKeyword3, []);
+        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword3, []);
       }
       if (staticKeyword3 != null && finalKeyword3.offset < staticKeyword3.offset) {
-        reportError4(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword3, []);
+        reportError5(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword3, []);
       }
     } else if (varKeyword3 != null && staticKeyword3 != null && varKeyword3.offset < staticKeyword3.offset) {
-      reportError4(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword3, []);
+      reportError5(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword3, []);
     }
     return lexicallyFirst([constKeyword5, finalKeyword3, varKeyword3]);
   }
@@ -4496,24 +4521,24 @@ class Parser {
    */
   void validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError3(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError4(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError4(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportError5(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError4(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError5(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError4(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportError5(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError4(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError5(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword7 = modifiers.externalKeyword;
     Token staticKeyword4 = modifiers.staticKeyword;
     if (externalKeyword7 != null && staticKeyword4 != null && staticKeyword4.offset < externalKeyword7.offset) {
-      reportError4(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword7, []);
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword7, []);
     }
   }
   /**
@@ -4522,22 +4547,22 @@ class Parser {
    */
   void validateModifiersForOperator(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError3(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError4(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError4(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportError5(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError4(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError5(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError4(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportError5(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError4(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
+      reportError5(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError4(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError5(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
   /**
@@ -4546,10 +4571,10 @@ class Parser {
    */
   void validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
     if (modifiers.factoryKeyword != null) {
-      reportError4(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
+      reportError5(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError4(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
+      reportError5(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
     }
   }
   /**
@@ -4559,16 +4584,16 @@ class Parser {
   void validateModifiersForTopLevelFunction(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError3(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
+      reportError4(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError4(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportError5(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError4(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportError5(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError4(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError5(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
   /**
@@ -4580,24 +4605,24 @@ class Parser {
   Token validateModifiersForTopLevelVariable(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError3(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
+      reportError4(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError4(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportError5(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     Token constKeyword6 = modifiers.constKeyword;
     Token finalKeyword4 = modifiers.finalKeyword;
     Token varKeyword4 = modifiers.varKeyword;
     if (constKeyword6 != null) {
       if (finalKeyword4 != null) {
-        reportError4(ParserErrorCode.CONST_AND_FINAL, finalKeyword4, []);
+        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword4, []);
       }
       if (varKeyword4 != null) {
-        reportError4(ParserErrorCode.CONST_AND_VAR, varKeyword4, []);
+        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword4, []);
       }
     } else if (finalKeyword4 != null) {
       if (varKeyword4 != null) {
-        reportError4(ParserErrorCode.FINAL_AND_VAR, varKeyword4, []);
+        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword4, []);
       }
     }
     return lexicallyFirst([constKeyword6, finalKeyword4, varKeyword4]);
@@ -4610,25 +4635,25 @@ class Parser {
   void validateModifiersForTypedef(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError4(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
+      reportError5(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError4(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
+      reportError5(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError4(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
+      reportError5(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError4(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
+      reportError5(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError4(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
+      reportError5(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
     }
   }
 }
-class AnalysisErrorListener_4 implements AnalysisErrorListener {
+class AnalysisErrorListener_6 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_4(this.errorFound);
+  AnalysisErrorListener_6(this.errorFound);
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }
@@ -4704,42 +4729,45 @@ class ParserErrorCode implements ErrorCode {
   static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con2('MISSING_IDENTIFIER', 61, "Expected an identifier");
   static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 62, "Library directives must include a library name");
   static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_PART_OF_DIRECTIVE', 63, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con2('MISSING_TYPEDEF_PARAMETERS', 64, "Type aliases for functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('MISSING_VARIABLE_IN_FOR_EACH', 65, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
-  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con2('MIXED_PARAMETER_GROUPS', 66, "Cannot have both positional and named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_EXTENDS_CLAUSES', 67, "Each class definition can have at most one extends clause");
-  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_IMPLEMENTS_CLAUSES', 68, "Each class definition can have at most one implements clause");
-  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_LIBRARY_DIRECTIVES', 69, "Only one library directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_NAMED_PARAMETER_GROUPS', 70, "Cannot have multiple groups of named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_PART_OF_DIRECTIVES', 71, "Only one part-of directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 72, "Cannot have multiple groups of positional parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con2('MULTIPLE_VARIABLES_IN_FOR_EACH', 73, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
-  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con2('MULTIPLE_WITH_CLAUSES', 74, "Each class definition can have at most one with clause");
-  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('NAMED_PARAMETER_OUTSIDE_GROUP', 75, "Named parameters must be enclosed in curly braces ('{' and '}')");
-  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con2('NON_CONSTRUCTOR_FACTORY', 76, "Only constructors can be declared to be a 'factory'");
-  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con2('NON_IDENTIFIER_LIBRARY_NAME', 77, "The name of a library must be an identifier");
-  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con2('NON_PART_OF_DIRECTIVE_IN_PART', 78, "The part-of directive must be the only directive in a part");
-  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con2('NON_USER_DEFINABLE_OPERATOR', 79, "The operator '%s' is not user definable");
-  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con2('POSITIONAL_AFTER_NAMED_ARGUMENT', 80, "Positional arguments must occur before named arguments");
-  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 81, "Positional parameters must be enclosed in square brackets ('[' and ']')");
-  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con2('STATIC_AFTER_CONST', 82, "The modifier 'static' should be before the modifier 'const'");
-  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con2('STATIC_AFTER_FINAL', 83, "The modifier 'static' should be before the modifier 'final'");
-  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con2('STATIC_AFTER_VAR', 84, "The modifier 'static' should be before the modifier 'var'");
-  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con2('STATIC_CONSTRUCTOR', 85, "Constructors cannot be static");
-  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con2('STATIC_OPERATOR', 86, "Operators cannot be static");
-  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('STATIC_TOP_LEVEL_DECLARATION', 87, "Top-level declarations cannot be declared to be 'static'");
-  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con2('UNEXPECTED_TOKEN', 88, "Unexpected token '%s'");
-  static final ParserErrorCode USE_OF_UNARY_PLUS_OPERATOR = new ParserErrorCode.con2('USE_OF_UNARY_PLUS_OPERATOR', 89, "There is no unary plus operator in Dart");
-  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con2('WITH_BEFORE_EXTENDS', 90, "The extends clause must be before the with clause");
-  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con2('WITH_WITHOUT_EXTENDS', 91, "The with clause cannot be used without an extends clause");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 92, "The default value of a named parameter should be preceeded by ':'");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 93, "The default value of a positional parameter should be preceeded by '='");
-  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con2('VAR_CLASS', 94, "Classes cannot be declared to be 'var'");
-  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con2('VAR_RETURN_TYPE', 95, "The return type cannot be 'var'");
-  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con2('VAR_TYPEDEF', 96, "Type aliases cannot be declared to be 'var'");
-  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con2('VOID_PARAMETER', 97, "Parameters cannot have a type of 'void'");
-  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con2('VOID_VARIABLE', 98, "Variables cannot have a type of 'void'");
-  static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, BUILT_IN_IDENTIFIER_AS_TYPE_NAME, BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EXPECTED_CASE_OR_DEFAULT, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_PARAMETER_OUTSIDE_GROUP, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_OPERATOR, STATIC_TOP_LEVEL_DECLARATION, UNEXPECTED_TOKEN, USE_OF_UNARY_PLUS_OPERATOR, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
+  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 64, "There is no '%s' to close the parameter group");
+  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con2('MISSING_TYPEDEF_PARAMETERS', 65, "Type aliases for functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('MISSING_VARIABLE_IN_FOR_EACH', 66, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
+  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con2('MIXED_PARAMETER_GROUPS', 67, "Cannot have both positional and named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_EXTENDS_CLAUSES', 68, "Each class definition can have at most one extends clause");
+  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_IMPLEMENTS_CLAUSES', 69, "Each class definition can have at most one implements clause");
+  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_LIBRARY_DIRECTIVES', 70, "Only one library directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_NAMED_PARAMETER_GROUPS', 71, "Cannot have multiple groups of named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_PART_OF_DIRECTIVES', 72, "Only one part-of directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 73, "Cannot have multiple groups of positional parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con2('MULTIPLE_VARIABLES_IN_FOR_EACH', 74, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con2('MULTIPLE_WITH_CLAUSES', 75, "Each class definition can have at most one with clause");
+  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('NAMED_PARAMETER_OUTSIDE_GROUP', 76, "Named parameters must be enclosed in curly braces ('{' and '}')");
+  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con2('NON_CONSTRUCTOR_FACTORY', 77, "Only constructors can be declared to be a 'factory'");
+  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con2('NON_IDENTIFIER_LIBRARY_NAME', 78, "The name of a library must be an identifier");
+  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con2('NON_PART_OF_DIRECTIVE_IN_PART', 79, "The part-of directive must be the only directive in a part");
+  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con2('NON_USER_DEFINABLE_OPERATOR', 80, "The operator '%s' is not user definable");
+  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con2('POSITIONAL_AFTER_NAMED_ARGUMENT', 81, "Positional arguments must occur before named arguments");
+  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 82, "Positional parameters must be enclosed in square brackets ('[' and ']')");
+  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con2('STATIC_AFTER_CONST', 83, "The modifier 'static' should be before the modifier 'const'");
+  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con2('STATIC_AFTER_FINAL', 84, "The modifier 'static' should be before the modifier 'final'");
+  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con2('STATIC_AFTER_VAR', 85, "The modifier 'static' should be before the modifier 'var'");
+  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con2('STATIC_CONSTRUCTOR', 86, "Constructors cannot be static");
+  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con2('STATIC_OPERATOR', 87, "Operators cannot be static");
+  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('STATIC_TOP_LEVEL_DECLARATION', 88, "Top-level declarations cannot be declared to be 'static'");
+  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 89, "There is no '%s' to open a parameter group");
+  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con2('UNEXPECTED_TOKEN', 90, "Unexpected token '%s'");
+  static final ParserErrorCode USE_OF_UNARY_PLUS_OPERATOR = new ParserErrorCode.con2('USE_OF_UNARY_PLUS_OPERATOR', 91, "There is no unary plus operator in Dart");
+  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con2('WITH_BEFORE_EXTENDS', 92, "The extends clause must be before the with clause");
+  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con2('WITH_WITHOUT_EXTENDS', 93, "The with clause cannot be used without an extends clause");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 94, "The default value of a named parameter should be preceeded by ':'");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 95, "The default value of a positional parameter should be preceeded by '='");
+  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 96, "Expected '%s' to close parameter group");
+  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con2('VAR_CLASS', 97, "Classes cannot be declared to be 'var'");
+  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con2('VAR_RETURN_TYPE', 98, "The return type cannot be 'var'");
+  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con2('VAR_TYPEDEF', 99, "Type aliases cannot be declared to be 'var'");
+  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con2('VOID_PARAMETER', 100, "Parameters cannot have a type of 'void'");
+  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con2('VOID_VARIABLE', 101, "Variables cannot have a type of 'void'");
+  static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, BUILT_IN_IDENTIFIER_AS_TYPE_NAME, BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EXPECTED_CASE_OR_DEFAULT, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_TERMINATOR_FOR_PARAMETER_GROUP, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_PARAMETER_OUTSIDE_GROUP, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_OPERATOR, STATIC_TOP_LEVEL_DECLARATION, UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, UNEXPECTED_TOKEN, USE_OF_UNARY_PLUS_OPERATOR, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, WRONG_TERMINATOR_FOR_PARAMETER_GROUP, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
   String __name;
   int __ordinal = 0;
   /**
@@ -4756,9 +4784,9 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con1(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_217_impl(___name, ___ordinal, severity2, message2);
+    _jtd_constructor_252_impl(___name, ___ordinal, severity2, message2);
   }
-  _jtd_constructor_217_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
+  _jtd_constructor_252_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._severity = severity2;
@@ -4769,10 +4797,10 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con2(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_218_impl(___name, ___ordinal, message);
+    _jtd_constructor_253_impl(___name, ___ordinal, message);
   }
-  _jtd_constructor_218_impl(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_217_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
+  _jtd_constructor_253_impl(String ___name, int ___ordinal, String message) {
+    _jtd_constructor_252_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
   }
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;
@@ -5081,10 +5109,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
-    NodeList<FormalParameter> parameters11 = node.parameters;
-    int size7 = parameters11.length;
+    NodeList<FormalParameter> parameters13 = node.parameters;
+    int size7 = parameters13.length;
     for (int i = 0; i < size7; i++) {
-      FormalParameter parameter = parameters11[i];
+      FormalParameter parameter = parameters13[i];
       if (i > 0) {
         _writer.print(", ");
       }

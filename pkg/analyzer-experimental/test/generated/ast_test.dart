@@ -51,10 +51,131 @@ class NodeLocatorTest extends ParserTestCase {
     });
   }
 }
+class IndexExpressionTest extends EngineTestCase {
+  void test_inGetterContext_assignment_compound_left() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    JUnitTestCase.assertTrue(expression.inGetterContext());
+  }
+  void test_inGetterContext_assignment_simple_left() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
+    JUnitTestCase.assertFalse(expression.inGetterContext());
+  }
+  void test_inGetterContext_nonAssignment() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
+    JUnitTestCase.assertTrue(expression.inGetterContext());
+  }
+  void test_inSetterContext_assignment_compound_left() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+  void test_inSetterContext_assignment_compound_right() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+  void test_inSetterContext_assignment_simple_left() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+  void test_inSetterContext_assignment_simple_right() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.assignmentExpression(null, TokenType.EQ, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+  void test_inSetterContext_nonAssignment() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+  void test_inSetterContext_postfix() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+  void test_inSetterContext_prefix_bang() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.prefixExpression(TokenType.BANG, expression);
+    JUnitTestCase.assertFalse(expression.inSetterContext());
+  }
+  void test_inSetterContext_prefix_minusMinus() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+  void test_inSetterContext_prefix_plusPlus() {
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    ASTFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
+    JUnitTestCase.assertTrue(expression.inSetterContext());
+  }
+  static dartSuite() {
+    _ut.group('IndexExpressionTest', () {
+      _ut.test('test_inGetterContext_assignment_compound_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_assignment_compound_left);
+      });
+      _ut.test('test_inGetterContext_assignment_simple_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_assignment_simple_left);
+      });
+      _ut.test('test_inGetterContext_nonAssignment', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inGetterContext_nonAssignment);
+      });
+      _ut.test('test_inSetterContext_assignment_compound_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_left);
+      });
+      _ut.test('test_inSetterContext_assignment_compound_right', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_right);
+      });
+      _ut.test('test_inSetterContext_assignment_simple_left', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_left);
+      });
+      _ut.test('test_inSetterContext_assignment_simple_right', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_right);
+      });
+      _ut.test('test_inSetterContext_nonAssignment', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_nonAssignment);
+      });
+      _ut.test('test_inSetterContext_postfix', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_postfix);
+      });
+      _ut.test('test_inSetterContext_prefix_bang', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_bang);
+      });
+      _ut.test('test_inSetterContext_prefix_minusMinus', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_minusMinus);
+      });
+      _ut.test('test_inSetterContext_prefix_plusPlus', () {
+        final __test = new IndexExpressionTest();
+        runJUnitTest(__test, __test.test_inSetterContext_prefix_plusPlus);
+      });
+    });
+  }
+}
 /**
  * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
  * associated with the nodes by a parser are also created, but the token stream is not constructed.
+ * None of the nodes are resolved.
+ * <p>
+ * The general pattern is for the name of the factory method to be the same as the name of the class
+ * of AST node being created. There are two notable exceptions. The first is for methods creating
+ * nodes that are part of a cascade expression. These methods are all prefixed with 'cascaded'. The
+ * second is places where a shorter name seemed unambiguous and easier to read, such as using
+ * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
  */
 class ASTFactory {
   static AdjacentStrings adjacentStrings(List<StringLiteral> strings) => new AdjacentStrings.full(list(strings));
@@ -119,7 +240,15 @@ class ASTFactory {
   static FunctionExpression functionExpression2(FormalParameterList parameters, FunctionBody body) => new FunctionExpression.full(parameters, body);
   static FunctionExpressionInvocation functionExpressionInvocation(Expression function, List<Expression> arguments) => new FunctionExpressionInvocation.full(function, argumentList(arguments));
   static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType, String identifier, List<FormalParameter> parameters) => new FunctionTypedFormalParameter.full(null, null, returnType, identifier2(identifier), formalParameterList(parameters));
-  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier8) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier8);
+  static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) => new HideCombinator.full(TokenFactory.token2("hide"), list(identifiers));
+  static HideCombinator hideCombinator2(List<String> identifiers) {
+    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
+    for (String identifier in identifiers) {
+      identifierList.add(identifier2(identifier));
+    }
+    return new HideCombinator.full(TokenFactory.token2("hide"), identifierList);
+  }
+  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier10) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier10);
   static SimpleIdentifier identifier2(String lexeme) => new SimpleIdentifier.full(TokenFactory.token4(TokenType.IDENTIFIER, lexeme));
   static PrefixedIdentifier identifier3(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier.full(identifier2(prefix), TokenFactory.token3(TokenType.PERIOD), identifier);
   static PrefixedIdentifier identifier4(String prefix, String identifier) => new PrefixedIdentifier.full(identifier2(prefix), TokenFactory.token3(TokenType.PERIOD), identifier2(identifier));
@@ -128,17 +257,16 @@ class ASTFactory {
   static ImplementsClause implementsClause(List<TypeName> types) => new ImplementsClause.full(TokenFactory.token(Keyword.IMPLEMENTS), list(types));
   static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective.full(null, metadata, TokenFactory.token(Keyword.IMPORT), string2(uri), prefix == null ? null : TokenFactory.token(Keyword.AS), prefix == null ? null : identifier2(prefix), list(combinators), TokenFactory.token3(TokenType.SEMICOLON));
   static ImportDirective importDirective2(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, prefix, combinators);
-  static HideCombinator importHideCombinator(List<SimpleIdentifier> identifiers) => new HideCombinator.full(TokenFactory.token2("hide"), list(identifiers));
-  static ShowCombinator importShowCombinator(List<SimpleIdentifier> identifiers) => new ShowCombinator.full(TokenFactory.token2("show"), list(identifiers));
   static IndexExpression indexExpression(Expression array, Expression index) => new IndexExpression.forTarget_full(array, TokenFactory.token3(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.token3(TokenType.CLOSE_SQUARE_BRACKET));
-  static InstanceCreationExpression instanceCreationExpression(Keyword keyword, TypeName type, List<Expression> arguments) => instanceCreationExpression2(keyword, type, null, arguments);
-  static InstanceCreationExpression instanceCreationExpression2(Keyword keyword, TypeName type, String identifier, List<Expression> arguments) => new InstanceCreationExpression.full(keyword == null ? null : TokenFactory.token(keyword), new ConstructorName.full(type, identifier == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier == null ? null : identifier2(identifier)), argumentList(arguments));
+  static InstanceCreationExpression instanceCreationExpression(Keyword keyword, ConstructorName name, List<Expression> arguments) => new InstanceCreationExpression.full(keyword == null ? null : TokenFactory.token(keyword), name, argumentList(arguments));
+  static InstanceCreationExpression instanceCreationExpression2(Keyword keyword, TypeName type, List<Expression> arguments) => instanceCreationExpression3(keyword, type, null, arguments);
+  static InstanceCreationExpression instanceCreationExpression3(Keyword keyword, TypeName type, String identifier, List<Expression> arguments) => instanceCreationExpression(keyword, new ConstructorName.full(type, identifier == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier == null ? null : identifier2(identifier)), arguments);
   static IntegerLiteral integer(int value) => new IntegerLiteral.full(TokenFactory.token4(TokenType.INT, value.toString()), value);
   static InterpolationExpression interpolationExpression(Expression expression) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_EXPRESSION), expression, TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
   static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier2(identifier), null);
   static InterpolationString interpolationString(String contents, String value) => new InterpolationString.full(TokenFactory.token2(contents), value);
   static IsExpression isExpression(Expression expression, bool negated, TypeName type) => new IsExpression.full(expression, TokenFactory.token(Keyword.IS), negated ? TokenFactory.token3(TokenType.BANG) : null, type);
-  static Label label(String label4) => new Label.full(identifier2(label4), TokenFactory.token3(TokenType.COLON));
+  static Label label(String label5) => new Label.full(identifier2(label5), TokenFactory.token3(TokenType.COLON));
   static LabeledStatement labeledStatement(List<Label> labels, Statement statement) => new LabeledStatement.full(labels, statement);
   static LibraryDirective libraryDirective(List<Annotation> metadata, LibraryIdentifier libraryName) => new LibraryDirective.full(null, metadata, TokenFactory.token(Keyword.LIBRARY), libraryName, TokenFactory.token3(TokenType.SEMICOLON));
   static LibraryDirective libraryDirective2(String libraryName) => libraryDirective(new List<Annotation>(), libraryIdentifier2([libraryName]));
@@ -162,11 +290,11 @@ class ASTFactory {
   static MapLiteral mapLiteral(Keyword keyword, TypeArgumentList typeArguments, List<MapLiteralEntry> entries) => new MapLiteral.full(keyword == null ? null : TokenFactory.token(keyword), typeArguments, TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(entries), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
   static MapLiteral mapLiteral2(List<MapLiteralEntry> entries) => mapLiteral(null, null, entries);
   static MapLiteralEntry mapLiteralEntry(String key, Expression value) => new MapLiteralEntry.full(string2(key), TokenFactory.token3(TokenType.COLON), value);
-  static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, Identifier name, FormalParameterList parameters) => new MethodDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), modifier == null ? null : TokenFactory.token(modifier), returnType, property == null ? null : TokenFactory.token(property), operator == null ? null : TokenFactory.token(operator), name, parameters, emptyFunctionBody());
-  static MethodDeclaration methodDeclaration2(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, Identifier name, FormalParameterList parameters, FunctionBody body) => new MethodDeclaration.full(null, null, null, modifier == null ? null : TokenFactory.token(modifier), returnType, property == null ? null : TokenFactory.token(property), operator == null ? null : TokenFactory.token(operator), name, parameters, body);
+  static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters) => new MethodDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), modifier == null ? null : TokenFactory.token(modifier), returnType, property == null ? null : TokenFactory.token(property), operator == null ? null : TokenFactory.token(operator), name, parameters, emptyFunctionBody());
+  static MethodDeclaration methodDeclaration2(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) => new MethodDeclaration.full(null, null, null, modifier == null ? null : TokenFactory.token(modifier), returnType, property == null ? null : TokenFactory.token(property), operator == null ? null : TokenFactory.token(operator), name, parameters, body);
   static MethodInvocation methodInvocation(Expression target, String methodName, List<Expression> arguments) => new MethodInvocation.full(target, target == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier2(methodName), argumentList(arguments));
   static MethodInvocation methodInvocation2(String methodName, List<Expression> arguments) => methodInvocation(null, methodName, arguments);
-  static NamedExpression namedExpression(String label5, Expression expression) => new NamedExpression.full(label(label5), expression);
+  static NamedExpression namedExpression(String label6, Expression expression) => new NamedExpression.full(label(label6), expression);
   static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter.full(parameter, ParameterKind.NAMED, expression == null ? null : TokenFactory.token3(TokenType.COLON), expression);
   static NullLiteral nullLiteral() => new NullLiteral.full(TokenFactory.token(Keyword.NULL));
   static ParenthesizedExpression parenthesizedExpression(Expression expression) => new ParenthesizedExpression.full(TokenFactory.token3(TokenType.OPEN_PAREN), expression, TokenFactory.token3(TokenType.CLOSE_PAREN));
@@ -177,12 +305,21 @@ class ASTFactory {
   static DefaultFormalParameter positionalFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter.full(parameter, ParameterKind.POSITIONAL, expression == null ? null : TokenFactory.token3(TokenType.EQ), expression);
   static PostfixExpression postfixExpression(Expression expression, TokenType operator) => new PostfixExpression.full(expression, TokenFactory.token3(operator));
   static PrefixExpression prefixExpression(TokenType operator, Expression expression) => new PrefixExpression.full(TokenFactory.token3(operator), expression);
-  static PropertyAccess propertyAccess(Expression target, String propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), identifier2(propertyName));
+  static PropertyAccess propertyAccess(Expression target, SimpleIdentifier propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), propertyName);
+  static PropertyAccess propertyAccess2(Expression target, String propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), identifier2(propertyName));
   static RedirectingConstructorInvocation redirectingConstructorInvocation(List<Expression> arguments) => redirectingConstructorInvocation2(null, arguments);
   static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation.full(TokenFactory.token(Keyword.THIS), constructorName == null ? null : TokenFactory.token3(TokenType.PERIOD), constructorName == null ? null : identifier2(constructorName), argumentList(arguments));
   static ReturnStatement returnStatement() => returnStatement2(null);
   static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement.full(TokenFactory.token(Keyword.RETURN), expression, TokenFactory.token3(TokenType.SEMICOLON));
   static ScriptTag scriptTag(String scriptTag5) => new ScriptTag.full(TokenFactory.token2(scriptTag5));
+  static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) => new ShowCombinator.full(TokenFactory.token2("show"), list(identifiers));
+  static ShowCombinator showCombinator2(List<String> identifiers) {
+    List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
+    for (String identifier in identifiers) {
+      identifierList.add(identifier2(identifier));
+    }
+    return new ShowCombinator.full(TokenFactory.token2("show"), identifierList);
+  }
   static SimpleFormalParameter simpleFormalParameter(Keyword keyword, String parameterName) => simpleFormalParameter2(keyword, null, parameterName);
   static SimpleFormalParameter simpleFormalParameter2(Keyword keyword, TypeName type, String parameterName) => new SimpleFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, identifier2(parameterName));
   static SimpleFormalParameter simpleFormalParameter3(String parameterName) => simpleFormalParameter2(null, null, parameterName);
@@ -215,11 +352,11 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element42, List<TypeName> arguments) {
-    SimpleIdentifier name19 = identifier2(element42.name);
-    name19.element = element42;
-    TypeName typeName = typeName2(name19, arguments);
-    typeName.type = element42.type;
+  static TypeName typeName(ClassElement element49, List<TypeName> arguments) {
+    SimpleIdentifier name20 = identifier2(element49.name);
+    name20.element = element49;
+    TypeName typeName = typeName2(name20, arguments);
+    typeName.type = element49.type;
     return typeName;
   }
   static TypeName typeName2(Identifier name, List<TypeName> arguments) {
@@ -258,173 +395,715 @@ class ASTFactory {
   }
 }
 class SimpleIdentifierTest extends ParserTestCase {
-  void test_inGetterContext_assignmentParent_notPure() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.assignmentExpression(identifier, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(identifier.inGetterContext());
+  void test_inDeclarationContext_argumentDefinition() {
+    SimpleIdentifier identifier14 = ASTFactory.argumentDefinitionTest("p").identifier;
+    JUnitTestCase.assertFalse(identifier14.inDeclarationContext());
   }
-  void test_inGetterContext_assignmentParent_pure() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.assignmentExpression(identifier, TokenType.EQ, null);
-    JUnitTestCase.assertFalse(identifier.inGetterContext());
+  void test_inDeclarationContext_catch_exception() {
+    SimpleIdentifier identifier = ASTFactory.catchClause("e", []).exceptionParameter;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inGetterContext_notAssignmentParent() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.binaryExpression(identifier, TokenType.PLUS, null);
-    JUnitTestCase.assertTrue(identifier.inGetterContext());
+  void test_inDeclarationContext_catch_stack() {
+    SimpleIdentifier identifier = ASTFactory.catchClause2("e", "s", []).stackTraceParameter;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inGetterContext_qualifier() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.identifier(identifier, null);
-    JUnitTestCase.assertTrue(identifier.inGetterContext());
+  void test_inDeclarationContext_classDeclaration() {
+    SimpleIdentifier identifier = ASTFactory.classDeclaration(null, "C", null, null, null, null, []).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inGetterContext_whenQualified_false() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    PrefixedIdentifier prefixedIdentifier = ASTFactory.identifier3("myPrefix", identifier);
-    ASTFactory.assignmentExpression(prefixedIdentifier, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(identifier.inGetterContext());
+  void test_inDeclarationContext_classTypeAlias() {
+    SimpleIdentifier identifier = ASTFactory.classTypeAlias("C", null, null, null, null, null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inGetterContext_whenQualified_true() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    PrefixedIdentifier prefixedIdentifier = ASTFactory.identifier3("myPrefix", identifier);
-    ASTFactory.assignmentExpression(prefixedIdentifier, TokenType.EQ, null);
-    JUnitTestCase.assertFalse(identifier.inGetterContext());
+  void test_inDeclarationContext_constructorDeclaration() {
+    SimpleIdentifier identifier = ASTFactory.constructorDeclaration(ASTFactory.identifier2("C"), "c", null, null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_assignmentParent_leftEq() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.assignmentExpression(identifier, TokenType.EQ, null);
-    JUnitTestCase.assertTrue(identifier.inSetterContext());
+  void test_inDeclarationContext_functionDeclaration() {
+    SimpleIdentifier identifier = ASTFactory.functionDeclaration(null, null, "f", null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_assignmentParent_leftPlusEq() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.assignmentExpression(identifier, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(identifier.inSetterContext());
+  void test_inDeclarationContext_functionTypeAlias() {
+    SimpleIdentifier identifier = ASTFactory.typeAlias(null, "F", null, null).name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_assignmentParent_rightEq() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.assignmentExpression(null, TokenType.EQ, identifier);
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  void test_inDeclarationContext_label_false() {
+    SimpleIdentifier identifier = ASTFactory.namedExpression("l", ASTFactory.integer(0)).name.label;
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_assignmentParent_rightPlusEq() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.assignmentExpression(null, TokenType.PLUS_EQ, identifier);
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  void test_inDeclarationContext_label_true() {
+    Label label2 = ASTFactory.label("l");
+    SimpleIdentifier identifier = label2.label;
+    ASTFactory.labeledStatement(ASTFactory.list([label2]), ASTFactory.emptyStatement());
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_notInterestingParent() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.binaryExpression(identifier, null, null);
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  void test_inDeclarationContext_methodDeclaration() {
+    SimpleIdentifier identifier = ASTFactory.identifier2("m");
+    ASTFactory.methodDeclaration2(null, null, null, null, identifier, null, null);
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_postfixParent() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.postfixExpression(identifier, null);
-    JUnitTestCase.assertTrue(identifier.inSetterContext());
+  void test_inDeclarationContext_normalFormalParameter() {
+    SimpleIdentifier identifier15 = ASTFactory.simpleFormalParameter3("p").identifier;
+    JUnitTestCase.assertTrue(identifier15.inDeclarationContext());
   }
-  void test_inSetterContext_prefixParent_bang() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.prefixExpression(TokenType.BANG, identifier);
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  void test_inDeclarationContext_typeParameter_bound() {
+    TypeName bound = ASTFactory.typeName3("A", []);
+    SimpleIdentifier identifier = bound.name as SimpleIdentifier;
+    ASTFactory.typeParameter2("E", bound);
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_prefixParent_minusMinus() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.prefixExpression(TokenType.MINUS_MINUS, identifier);
-    JUnitTestCase.assertTrue(identifier.inSetterContext());
+  void test_inDeclarationContext_typeParameter_name() {
+    SimpleIdentifier identifier = ASTFactory.typeParameter("E").name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_prefixParent_plusPlus() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.prefixExpression(TokenType.PLUS_PLUS, identifier);
-    JUnitTestCase.assertTrue(identifier.inSetterContext());
+  void test_inDeclarationContext_variableDeclaration() {
+    SimpleIdentifier identifier = ASTFactory.variableDeclaration("v").name;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inSetterContext_qualifier() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    ASTFactory.identifier(identifier, null);
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  void test_inGetterContext() {
+    for (WrapperKind wrapper in WrapperKind.values) {
+      for (AssignmentKind assignment in AssignmentKind.values) {
+        SimpleIdentifier identifier = createIdentifier(wrapper, assignment);
+        if (identical(assignment, AssignmentKind.SIMPLE_LEFT) && wrapper != WrapperKind.PREFIXED_LEFT && wrapper != WrapperKind.PROPERTY_LEFT) {
+          if (identifier.inGetterContext()) {
+            JUnitTestCase.fail("Expected ${topMostNode(identifier).toSource()} to be false");
+          }
+        } else {
+          if (!identifier.inGetterContext()) {
+            JUnitTestCase.fail("Expected ${topMostNode(identifier).toSource()} to be true");
+          }
+        }
+      }
+    }
   }
-  void test_inSetterContext_whenQualified_prefixParent_bang() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    PrefixedIdentifier prefixedIdentifier = ASTFactory.identifier3("myPrefix", identifier);
-    ASTFactory.prefixExpression(TokenType.BANG, prefixedIdentifier);
-    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  void test_inSetterContext() {
+    for (WrapperKind wrapper in WrapperKind.values) {
+      for (AssignmentKind assignment in AssignmentKind.values) {
+        SimpleIdentifier identifier = createIdentifier(wrapper, assignment);
+        if (identical(wrapper, WrapperKind.PREFIXED_LEFT) || identical(wrapper, WrapperKind.PROPERTY_LEFT) || identical(assignment, AssignmentKind.BINARY) || identical(assignment, AssignmentKind.COMPOUND_RIGHT) || identical(assignment, AssignmentKind.PREFIX_NOT) || identical(assignment, AssignmentKind.SIMPLE_RIGHT) || identical(assignment, AssignmentKind.NONE)) {
+          if (identifier.inSetterContext()) {
+            JUnitTestCase.fail("Expected ${topMostNode(identifier).toSource()} to be false");
+          }
+        } else {
+          if (!identifier.inSetterContext()) {
+            JUnitTestCase.fail("Expected ${topMostNode(identifier).toSource()} to be true");
+          }
+        }
+      }
+    }
   }
-  void test_inSetterContext_whenQualified_prefixParent_plusPlus() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("field");
-    PrefixedIdentifier prefixedIdentifier = ASTFactory.identifier3("myPrefix", identifier);
-    ASTFactory.prefixExpression(TokenType.PLUS_PLUS, prefixedIdentifier);
-    JUnitTestCase.assertTrue(identifier.inSetterContext());
+  SimpleIdentifier createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
+    SimpleIdentifier identifier = ASTFactory.identifier2("a");
+    Expression expression = identifier;
+    while (true) {
+      if (wrapper == WrapperKind.PREFIXED_LEFT) {
+        expression = ASTFactory.identifier(identifier, ASTFactory.identifier2("_"));
+      } else if (wrapper == WrapperKind.PREFIXED_RIGHT) {
+        expression = ASTFactory.identifier(ASTFactory.identifier2("_"), identifier);
+      } else if (wrapper == WrapperKind.PROPERTY_LEFT) {
+        expression = ASTFactory.propertyAccess2(expression, "_");
+      } else if (wrapper == WrapperKind.PROPERTY_RIGHT) {
+        expression = ASTFactory.propertyAccess(ASTFactory.identifier2("_"), identifier);
+      }
+      break;
+    }
+    while (true) {
+      if (assignment == AssignmentKind.BINARY) {
+        ASTFactory.binaryExpression(expression, TokenType.PLUS, ASTFactory.identifier2("_"));
+      } else if (assignment == AssignmentKind.COMPOUND_LEFT) {
+        ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, ASTFactory.identifier2("_"));
+      } else if (assignment == AssignmentKind.COMPOUND_RIGHT) {
+        ASTFactory.assignmentExpression(ASTFactory.identifier2("_"), TokenType.PLUS_EQ, expression);
+      } else if (assignment == AssignmentKind.POSTFIX_INC) {
+        ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+      } else if (assignment == AssignmentKind.PREFIX_DEC) {
+        ASTFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
+      } else if (assignment == AssignmentKind.PREFIX_INC) {
+        ASTFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
+      } else if (assignment == AssignmentKind.PREFIX_NOT) {
+        ASTFactory.prefixExpression(TokenType.BANG, expression);
+      } else if (assignment == AssignmentKind.SIMPLE_LEFT) {
+        ASTFactory.assignmentExpression(expression, TokenType.EQ, ASTFactory.identifier2("_"));
+      } else if (assignment == AssignmentKind.SIMPLE_RIGHT) {
+        ASTFactory.assignmentExpression(ASTFactory.identifier2("_"), TokenType.EQ, expression);
+      }
+      break;
+    }
+    return identifier;
+  }
+  /**
+   * Return the top-most node in the AST structure containing the given identifier.
+   * @param identifier the identifier in the AST structure being traversed
+   * @return the root of the AST structure containing the identifier
+   */
+  ASTNode topMostNode(SimpleIdentifier identifier) {
+    ASTNode child = identifier;
+    ASTNode parent18 = identifier.parent;
+    while (parent18 != null) {
+      child = parent18;
+      parent18 = parent18.parent;
+    }
+    return child;
   }
   static dartSuite() {
     _ut.group('SimpleIdentifierTest', () {
-      _ut.test('test_inGetterContext_assignmentParent_notPure', () {
+      _ut.test('test_inDeclarationContext_argumentDefinition', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignmentParent_notPure);
+        runJUnitTest(__test, __test.test_inDeclarationContext_argumentDefinition);
       });
-      _ut.test('test_inGetterContext_assignmentParent_pure', () {
+      _ut.test('test_inDeclarationContext_catch_exception', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignmentParent_pure);
+        runJUnitTest(__test, __test.test_inDeclarationContext_catch_exception);
       });
-      _ut.test('test_inGetterContext_notAssignmentParent', () {
+      _ut.test('test_inDeclarationContext_catch_stack', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext_notAssignmentParent);
+        runJUnitTest(__test, __test.test_inDeclarationContext_catch_stack);
       });
-      _ut.test('test_inGetterContext_qualifier', () {
+      _ut.test('test_inDeclarationContext_classDeclaration', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext_qualifier);
+        runJUnitTest(__test, __test.test_inDeclarationContext_classDeclaration);
       });
-      _ut.test('test_inGetterContext_whenQualified_false', () {
+      _ut.test('test_inDeclarationContext_classTypeAlias', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext_whenQualified_false);
+        runJUnitTest(__test, __test.test_inDeclarationContext_classTypeAlias);
       });
-      _ut.test('test_inGetterContext_whenQualified_true', () {
+      _ut.test('test_inDeclarationContext_constructorDeclaration', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inGetterContext_whenQualified_true);
+        runJUnitTest(__test, __test.test_inDeclarationContext_constructorDeclaration);
       });
-      _ut.test('test_inSetterContext_assignmentParent_leftEq', () {
+      _ut.test('test_inDeclarationContext_functionDeclaration', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignmentParent_leftEq);
+        runJUnitTest(__test, __test.test_inDeclarationContext_functionDeclaration);
       });
-      _ut.test('test_inSetterContext_assignmentParent_leftPlusEq', () {
+      _ut.test('test_inDeclarationContext_functionTypeAlias', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignmentParent_leftPlusEq);
+        runJUnitTest(__test, __test.test_inDeclarationContext_functionTypeAlias);
       });
-      _ut.test('test_inSetterContext_assignmentParent_rightEq', () {
+      _ut.test('test_inDeclarationContext_label_false', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignmentParent_rightEq);
+        runJUnitTest(__test, __test.test_inDeclarationContext_label_false);
       });
-      _ut.test('test_inSetterContext_assignmentParent_rightPlusEq', () {
+      _ut.test('test_inDeclarationContext_label_true', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignmentParent_rightPlusEq);
+        runJUnitTest(__test, __test.test_inDeclarationContext_label_true);
       });
-      _ut.test('test_inSetterContext_notInterestingParent', () {
+      _ut.test('test_inDeclarationContext_methodDeclaration', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_notInterestingParent);
+        runJUnitTest(__test, __test.test_inDeclarationContext_methodDeclaration);
       });
-      _ut.test('test_inSetterContext_postfixParent', () {
+      _ut.test('test_inDeclarationContext_normalFormalParameter', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_postfixParent);
+        runJUnitTest(__test, __test.test_inDeclarationContext_normalFormalParameter);
       });
-      _ut.test('test_inSetterContext_prefixParent_bang', () {
+      _ut.test('test_inDeclarationContext_typeParameter_bound', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefixParent_bang);
+        runJUnitTest(__test, __test.test_inDeclarationContext_typeParameter_bound);
       });
-      _ut.test('test_inSetterContext_prefixParent_minusMinus', () {
+      _ut.test('test_inDeclarationContext_typeParameter_name', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefixParent_minusMinus);
+        runJUnitTest(__test, __test.test_inDeclarationContext_typeParameter_name);
       });
-      _ut.test('test_inSetterContext_prefixParent_plusPlus', () {
+      _ut.test('test_inDeclarationContext_variableDeclaration', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefixParent_plusPlus);
+        runJUnitTest(__test, __test.test_inDeclarationContext_variableDeclaration);
       });
-      _ut.test('test_inSetterContext_qualifier', () {
+      _ut.test('test_inGetterContext', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_qualifier);
+        runJUnitTest(__test, __test.test_inGetterContext);
       });
-      _ut.test('test_inSetterContext_whenQualified_prefixParent_bang', () {
+      _ut.test('test_inSetterContext', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_whenQualified_prefixParent_bang);
+        runJUnitTest(__test, __test.test_inSetterContext);
       });
-      _ut.test('test_inSetterContext_whenQualified_prefixParent_plusPlus', () {
-        final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inSetterContext_whenQualified_prefixParent_plusPlus);
+    });
+  }
+}
+class AssignmentKind {
+  static final AssignmentKind BINARY = new AssignmentKind('BINARY', 0);
+  static final AssignmentKind COMPOUND_LEFT = new AssignmentKind('COMPOUND_LEFT', 1);
+  static final AssignmentKind COMPOUND_RIGHT = new AssignmentKind('COMPOUND_RIGHT', 2);
+  static final AssignmentKind POSTFIX_INC = new AssignmentKind('POSTFIX_INC', 3);
+  static final AssignmentKind PREFIX_DEC = new AssignmentKind('PREFIX_DEC', 4);
+  static final AssignmentKind PREFIX_INC = new AssignmentKind('PREFIX_INC', 5);
+  static final AssignmentKind PREFIX_NOT = new AssignmentKind('PREFIX_NOT', 6);
+  static final AssignmentKind SIMPLE_LEFT = new AssignmentKind('SIMPLE_LEFT', 7);
+  static final AssignmentKind SIMPLE_RIGHT = new AssignmentKind('SIMPLE_RIGHT', 8);
+  static final AssignmentKind NONE = new AssignmentKind('NONE', 9);
+  static final List<AssignmentKind> values = [BINARY, COMPOUND_LEFT, COMPOUND_RIGHT, POSTFIX_INC, PREFIX_DEC, PREFIX_INC, PREFIX_NOT, SIMPLE_LEFT, SIMPLE_RIGHT, NONE];
+  final String __name;
+  final int __ordinal;
+  AssignmentKind(this.__name, this.__ordinal) {
+  }
+  String toString() => __name;
+}
+class WrapperKind {
+  static final WrapperKind PREFIXED_LEFT = new WrapperKind('PREFIXED_LEFT', 0);
+  static final WrapperKind PREFIXED_RIGHT = new WrapperKind('PREFIXED_RIGHT', 1);
+  static final WrapperKind PROPERTY_LEFT = new WrapperKind('PROPERTY_LEFT', 2);
+  static final WrapperKind PROPERTY_RIGHT = new WrapperKind('PROPERTY_RIGHT', 3);
+  static final WrapperKind NONE = new WrapperKind('NONE', 4);
+  static final List<WrapperKind> values = [PREFIXED_LEFT, PREFIXED_RIGHT, PROPERTY_LEFT, PROPERTY_RIGHT, NONE];
+  final String __name;
+  final int __ordinal;
+  WrapperKind(this.__name, this.__ordinal) {
+  }
+  String toString() => __name;
+}
+class ConstantEvaluatorTest extends ParserTestCase {
+  void fail_constructor() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void fail_identifier_class() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void fail_identifier_function() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void fail_identifier_static() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void fail_identifier_staticMethod() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void fail_identifier_topLevel() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void fail_identifier_typeVariable() {
+    Object value = getConstantValue("?");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void test_binary_bitAnd() {
+    Object value = getConstantValue("74 & 42");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(74 & 42, ((value as int)));
+  }
+  void test_binary_bitOr() {
+    Object value = getConstantValue("74 | 42");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(74 | 42, ((value as int)));
+  }
+  void test_binary_bitXor() {
+    Object value = getConstantValue("74 ^ 42");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(74 ^ 42, ((value as int)));
+  }
+  void test_binary_divide_double() {
+    Object value = getConstantValue("3.2 / 2.3");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(3.2 / 2.3, ((value as double)));
+  }
+  void test_binary_divide_integer() {
+    Object value = getConstantValue("3 / 2");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(1, ((value as int)));
+  }
+  void test_binary_equal_boolean() {
+    Object value = getConstantValue("true == false");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_binary_equal_integer() {
+    Object value = getConstantValue("2 == 3");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_binary_equal_invalidLeft() {
+    Object value = getConstantValue("a == 3");
+    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+  }
+  void test_binary_equal_invalidRight() {
+    Object value = getConstantValue("2 == a");
+    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+  }
+  void test_binary_equal_string() {
+    Object value = getConstantValue("'a' == 'b'");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_binary_greaterThan() {
+    Object value = getConstantValue("2 > 3");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_binary_greaterThanOrEqual() {
+    Object value = getConstantValue("2 >= 3");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_binary_leftShift() {
+    Object value = getConstantValue("16 << 2");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(64, ((value as int)));
+  }
+  void test_binary_lessThan() {
+    Object value = getConstantValue("2 < 3");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_binary_lessThanOrEqual() {
+    Object value = getConstantValue("2 <= 3");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_binary_logicalAnd() {
+    Object value = getConstantValue("true && false");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_binary_logicalOr() {
+    Object value = getConstantValue("true || false");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_binary_minus_double() {
+    Object value = getConstantValue("3.2 - 2.3");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(3.2 - 2.3, ((value as double)));
+  }
+  void test_binary_minus_integer() {
+    Object value = getConstantValue("3 - 2");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(1, ((value as int)));
+  }
+  void test_binary_notEqual_boolean() {
+    Object value = getConstantValue("true != false");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_binary_notEqual_integer() {
+    Object value = getConstantValue("2 != 3");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_binary_notEqual_invalidLeft() {
+    Object value = getConstantValue("a != 3");
+    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+  }
+  void test_binary_notEqual_invalidRight() {
+    Object value = getConstantValue("2 != a");
+    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+  }
+  void test_binary_notEqual_string() {
+    Object value = getConstantValue("'a' != 'b'");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_binary_plus_double() {
+    Object value = getConstantValue("2.3 + 3.2");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(2.3 + 3.2, ((value as double)));
+  }
+  void test_binary_plus_integer() {
+    Object value = getConstantValue("2 + 3");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(5, ((value as int)));
+  }
+  void test_binary_remainder_double() {
+    Object value = getConstantValue("3.2 % 2.3");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(3.2 % 2.3, ((value as double)));
+  }
+  void test_binary_remainder_integer() {
+    Object value = getConstantValue("8 % 3");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(2, ((value as int)));
+  }
+  void test_binary_rightShift() {
+    Object value = getConstantValue("64 >> 2");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(16, ((value as int)));
+  }
+  void test_binary_times_double() {
+    Object value = getConstantValue("2.3 * 3.2");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(2.3 * 3.2, ((value as double)));
+  }
+  void test_binary_times_integer() {
+    Object value = getConstantValue("2 * 3");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(6, ((value as int)));
+  }
+  void test_binary_truncatingDivide_double() {
+    Object value = getConstantValue("3.2 ~/ 2.3");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(1, ((value as int)));
+  }
+  void test_binary_truncatingDivide_integer() {
+    Object value = getConstantValue("10 ~/ 3");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(3, ((value as int)));
+  }
+  void test_literal_boolean_false() {
+    Object value = getConstantValue("false");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_literal_boolean_true() {
+    Object value = getConstantValue("true");
+    JUnitTestCase.assertEquals(true, value);
+  }
+  void test_literal_list() {
+    Object value = getConstantValue("['a', 'b', 'c']");
+    EngineTestCase.assertInstanceOf(List, value);
+    List<Object> list = value as List<Object>;
+    JUnitTestCase.assertEquals(3, list.length);
+    JUnitTestCase.assertEquals("a", list[0]);
+    JUnitTestCase.assertEquals("b", list[1]);
+    JUnitTestCase.assertEquals("c", list[2]);
+  }
+  void test_literal_map() {
+    Object value = getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
+    EngineTestCase.assertInstanceOf(Map, value);
+    Map<Object, Object> map = value as Map<Object, Object>;
+    JUnitTestCase.assertEquals(3, map.length);
+    JUnitTestCase.assertEquals("m", map["a"]);
+    JUnitTestCase.assertEquals("n", map["b"]);
+    JUnitTestCase.assertEquals("o", map["c"]);
+  }
+  void test_literal_null() {
+    Object value = getConstantValue("null");
+    JUnitTestCase.assertEquals(null, value);
+  }
+  void test_literal_number_double() {
+    Object value = getConstantValue("3.45");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(3.45, ((value as double)));
+  }
+  void test_literal_number_integer() {
+    Object value = getConstantValue("42");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(42, ((value as int)));
+  }
+  void test_literal_string_adjacent() {
+    Object value = getConstantValue("'abc' 'def'");
+    JUnitTestCase.assertEquals("abcdef", value);
+  }
+  void test_literal_string_interpolation_invalid() {
+    Object value = getConstantValue("'a\${f()}c'");
+    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
+  }
+  void test_literal_string_interpolation_valid() {
+    Object value = getConstantValue("'a\${3}c'");
+    JUnitTestCase.assertEquals("a3c", value);
+  }
+  void test_literal_string_simple() {
+    Object value = getConstantValue("'abc'");
+    JUnitTestCase.assertEquals("abc", value);
+  }
+  void test_parenthesizedExpression() {
+    Object value = getConstantValue("('a')");
+    JUnitTestCase.assertEquals("a", value);
+  }
+  void test_unary_bitNot() {
+    Object value = getConstantValue("~42");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(~42, ((value as int)));
+  }
+  void test_unary_logicalNot() {
+    Object value = getConstantValue("!true");
+    JUnitTestCase.assertEquals(false, value);
+  }
+  void test_unary_negated_double() {
+    Object value = getConstantValue("-42.3");
+    EngineTestCase.assertInstanceOf(double, value);
+    JUnitTestCase.assertEquals(-42.3, ((value as double)));
+  }
+  void test_unary_negated_integer() {
+    Object value = getConstantValue("-42");
+    EngineTestCase.assertInstanceOf(int, value);
+    JUnitTestCase.assertEquals(-42, ((value as int)));
+  }
+  Object getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator());
+  static dartSuite() {
+    _ut.group('ConstantEvaluatorTest', () {
+      _ut.test('test_binary_bitAnd', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_bitAnd);
+      });
+      _ut.test('test_binary_bitOr', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_bitOr);
+      });
+      _ut.test('test_binary_bitXor', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_bitXor);
+      });
+      _ut.test('test_binary_divide_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_divide_double);
+      });
+      _ut.test('test_binary_divide_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_divide_integer);
+      });
+      _ut.test('test_binary_equal_boolean', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_equal_boolean);
+      });
+      _ut.test('test_binary_equal_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_equal_integer);
+      });
+      _ut.test('test_binary_equal_invalidLeft', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_equal_invalidLeft);
+      });
+      _ut.test('test_binary_equal_invalidRight', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_equal_invalidRight);
+      });
+      _ut.test('test_binary_equal_string', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_equal_string);
+      });
+      _ut.test('test_binary_greaterThan', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_greaterThan);
+      });
+      _ut.test('test_binary_greaterThanOrEqual', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_greaterThanOrEqual);
+      });
+      _ut.test('test_binary_leftShift', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_leftShift);
+      });
+      _ut.test('test_binary_lessThan', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_lessThan);
+      });
+      _ut.test('test_binary_lessThanOrEqual', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_lessThanOrEqual);
+      });
+      _ut.test('test_binary_logicalAnd', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_logicalAnd);
+      });
+      _ut.test('test_binary_logicalOr', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_logicalOr);
+      });
+      _ut.test('test_binary_minus_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_minus_double);
+      });
+      _ut.test('test_binary_minus_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_minus_integer);
+      });
+      _ut.test('test_binary_notEqual_boolean', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_notEqual_boolean);
+      });
+      _ut.test('test_binary_notEqual_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_notEqual_integer);
+      });
+      _ut.test('test_binary_notEqual_invalidLeft', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_notEqual_invalidLeft);
+      });
+      _ut.test('test_binary_notEqual_invalidRight', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_notEqual_invalidRight);
+      });
+      _ut.test('test_binary_notEqual_string', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_notEqual_string);
+      });
+      _ut.test('test_binary_plus_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_plus_double);
+      });
+      _ut.test('test_binary_plus_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_plus_integer);
+      });
+      _ut.test('test_binary_remainder_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_remainder_double);
+      });
+      _ut.test('test_binary_remainder_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_remainder_integer);
+      });
+      _ut.test('test_binary_rightShift', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_rightShift);
+      });
+      _ut.test('test_binary_times_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_times_double);
+      });
+      _ut.test('test_binary_times_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_times_integer);
+      });
+      _ut.test('test_binary_truncatingDivide_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_truncatingDivide_double);
+      });
+      _ut.test('test_binary_truncatingDivide_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_binary_truncatingDivide_integer);
+      });
+      _ut.test('test_literal_boolean_false', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_boolean_false);
+      });
+      _ut.test('test_literal_boolean_true', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_boolean_true);
+      });
+      _ut.test('test_literal_list', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_list);
+      });
+      _ut.test('test_literal_map', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_map);
+      });
+      _ut.test('test_literal_null', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_null);
+      });
+      _ut.test('test_literal_number_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_number_double);
+      });
+      _ut.test('test_literal_number_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_number_integer);
+      });
+      _ut.test('test_literal_string_adjacent', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_string_adjacent);
+      });
+      _ut.test('test_literal_string_interpolation_invalid', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_string_interpolation_invalid);
+      });
+      _ut.test('test_literal_string_interpolation_valid', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_string_interpolation_valid);
+      });
+      _ut.test('test_literal_string_simple', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_literal_string_simple);
+      });
+      _ut.test('test_parenthesizedExpression', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_parenthesizedExpression);
+      });
+      _ut.test('test_unary_bitNot', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_unary_bitNot);
+      });
+      _ut.test('test_unary_logicalNot', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_unary_logicalNot);
+      });
+      _ut.test('test_unary_negated_double', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_unary_negated_double);
+      });
+      _ut.test('test_unary_negated_integer', () {
+        final __test = new ConstantEvaluatorTest();
+        runJUnitTest(__test, __test.test_unary_negated_integer);
       });
     });
   }
@@ -668,10 +1347,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource(";", ASTFactory.emptyStatement());
   }
   void test_visitExportDirective_combinator() {
-    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [(ASTFactory.importShowCombinator([ASTFactory.identifier2("A")]) as Combinator)]));
+    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [(ASTFactory.showCombinator([ASTFactory.identifier2("A")]) as Combinator)]));
   }
   void test_visitExportDirective_combinators() {
-    assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [ASTFactory.importShowCombinator([ASTFactory.identifier2("A")]), ASTFactory.importHideCombinator([ASTFactory.identifier2("B")])]));
+    assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier2("A")]), ASTFactory.hideCombinator([ASTFactory.identifier2("B")])]));
   }
   void test_visitExportDirective_minimal() {
     assertSource("export 'a.dart';", ASTFactory.exportDirective2("a.dart", []));
@@ -818,10 +1497,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("implements A", ASTFactory.implementsClause([ASTFactory.typeName3("A", [])]));
   }
   void test_visitImportDirective_combinator() {
-    assertSource("import 'a.dart' show A;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.importShowCombinator([ASTFactory.identifier2("A")])]));
+    assertSource("import 'a.dart' show A;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier2("A")])]));
   }
   void test_visitImportDirective_combinators() {
-    assertSource("import 'a.dart' show A hide B;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.importShowCombinator([ASTFactory.identifier2("A")]), ASTFactory.importHideCombinator([ASTFactory.identifier2("B")])]));
+    assertSource("import 'a.dart' show A hide B;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier2("A")]), ASTFactory.hideCombinator([ASTFactory.identifier2("B")])]));
   }
   void test_visitImportDirective_minimal() {
     assertSource("import 'a.dart';", ASTFactory.importDirective2("a.dart", null, []));
@@ -830,31 +1509,34 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("import 'a.dart' as p;", ASTFactory.importDirective2("a.dart", "p", []));
   }
   void test_visitImportDirective_prefix_combinator() {
-    assertSource("import 'a.dart' as p show A;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.importShowCombinator([ASTFactory.identifier2("A")])]));
+    assertSource("import 'a.dart' as p show A;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier2("A")])]));
   }
   void test_visitImportDirective_prefix_combinators() {
-    assertSource("import 'a.dart' as p show A hide B;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.importShowCombinator([ASTFactory.identifier2("A")]), ASTFactory.importHideCombinator([ASTFactory.identifier2("B")])]));
+    assertSource("import 'a.dart' as p show A hide B;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier2("A")]), ASTFactory.hideCombinator([ASTFactory.identifier2("B")])]));
   }
   void test_visitImportHideCombinator_multiple() {
-    assertSource("hide a, b", ASTFactory.importHideCombinator([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
+    assertSource("hide a, b", ASTFactory.hideCombinator([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
   }
   void test_visitImportHideCombinator_single() {
-    assertSource("hide a", ASTFactory.importHideCombinator([ASTFactory.identifier2("a")]));
+    assertSource("hide a", ASTFactory.hideCombinator([ASTFactory.identifier2("a")]));
   }
   void test_visitImportShowCombinator_multiple() {
-    assertSource("show a, b", ASTFactory.importShowCombinator([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
+    assertSource("show a, b", ASTFactory.showCombinator([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
   }
   void test_visitImportShowCombinator_single() {
-    assertSource("show a", ASTFactory.importShowCombinator([ASTFactory.identifier2("a")]));
+    assertSource("show a", ASTFactory.showCombinator([ASTFactory.identifier2("a")]));
   }
   void test_visitIndexExpression() {
     assertSource("a[i]", ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("i")));
   }
+  void test_visitInstanceCreationExpression_const() {
+    assertSource("const C()", ASTFactory.instanceCreationExpression2(Keyword.CONST, ASTFactory.typeName3("C", []), []));
+  }
   void test_visitInstanceCreationExpression_named() {
-    assertSource("new C.c()", ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName3("C", []), "c", []));
+    assertSource("new C.c()", ASTFactory.instanceCreationExpression3(Keyword.NEW, ASTFactory.typeName3("C", []), "c", []));
   }
   void test_visitInstanceCreationExpression_unnamed() {
-    assertSource("new C()", ASTFactory.instanceCreationExpression(Keyword.NEW, ASTFactory.typeName3("C", []), []));
+    assertSource("new C()", ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName3("C", []), []));
   }
   void test_visitIntegerLiteral() {
     assertSource("42", ASTFactory.integer(42));
@@ -989,7 +1671,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("-a", ASTFactory.prefixExpression(TokenType.MINUS, ASTFactory.identifier2("a")));
   }
   void test_visitPropertyAccess() {
-    assertSource("a.b", ASTFactory.propertyAccess(ASTFactory.identifier2("a"), "b"));
+    assertSource("a.b", ASTFactory.propertyAccess2(ASTFactory.identifier2("a"), "b"));
   }
   void test_visitRedirectingConstructorInvocation_named() {
     assertSource("this.c()", ASTFactory.redirectingConstructorInvocation2("c", []));
@@ -1725,6 +2407,10 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitIndexExpression);
       });
+      _ut.test('test_visitInstanceCreationExpression_const', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitInstanceCreationExpression_const);
+      });
       _ut.test('test_visitInstanceCreationExpression_named', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitInstanceCreationExpression_named);
@@ -2124,579 +2810,6 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitWithClause_single', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitWithClause_single);
-      });
-    });
-  }
-}
-class IndexExpressionTest extends EngineTestCase {
-  void test_inGetterContext_assignment_compound_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(expression.inGetterContext());
-  }
-  void test_inGetterContext_assignment_simple_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
-    JUnitTestCase.assertFalse(expression.inGetterContext());
-  }
-  void test_inGetterContext_nonAssignment() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
-    JUnitTestCase.assertTrue(expression.inGetterContext());
-  }
-  void test_inSetterContext_assignment_compound_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-  void test_inSetterContext_assignment_compound_right() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-  void test_inSetterContext_assignment_simple_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-  void test_inSetterContext_assignment_simple_right() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.assignmentExpression(null, TokenType.EQ, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-  void test_inSetterContext_nonAssignment() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-  void test_inSetterContext_postfix() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-  void test_inSetterContext_prefix_bang() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.prefixExpression(TokenType.BANG, expression);
-    JUnitTestCase.assertFalse(expression.inSetterContext());
-  }
-  void test_inSetterContext_prefix_minusMinus() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-  void test_inSetterContext_prefix_plusPlus() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
-    ASTFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-    JUnitTestCase.assertTrue(expression.inSetterContext());
-  }
-  static dartSuite() {
-    _ut.group('IndexExpressionTest', () {
-      _ut.test('test_inGetterContext_assignment_compound_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignment_compound_left);
-      });
-      _ut.test('test_inGetterContext_assignment_simple_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_assignment_simple_left);
-      });
-      _ut.test('test_inGetterContext_nonAssignment', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inGetterContext_nonAssignment);
-      });
-      _ut.test('test_inSetterContext_assignment_compound_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_left);
-      });
-      _ut.test('test_inSetterContext_assignment_compound_right', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_compound_right);
-      });
-      _ut.test('test_inSetterContext_assignment_simple_left', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_left);
-      });
-      _ut.test('test_inSetterContext_assignment_simple_right', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_assignment_simple_right);
-      });
-      _ut.test('test_inSetterContext_nonAssignment', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_nonAssignment);
-      });
-      _ut.test('test_inSetterContext_postfix', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_postfix);
-      });
-      _ut.test('test_inSetterContext_prefix_bang', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_bang);
-      });
-      _ut.test('test_inSetterContext_prefix_minusMinus', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_minusMinus);
-      });
-      _ut.test('test_inSetterContext_prefix_plusPlus', () {
-        final __test = new IndexExpressionTest();
-        runJUnitTest(__test, __test.test_inSetterContext_prefix_plusPlus);
-      });
-    });
-  }
-}
-class ConstantEvaluatorTest extends ParserTestCase {
-  void fail_constructor() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void fail_identifier_class() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void fail_identifier_function() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void fail_identifier_static() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void fail_identifier_staticMethod() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void fail_identifier_topLevel() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void fail_identifier_typeVariable() {
-    Object value = getConstantValue("?");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void test_binary_bitAnd() {
-    Object value = getConstantValue("74 & 42");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(74 & 42, ((value as int)));
-  }
-  void test_binary_bitOr() {
-    Object value = getConstantValue("74 | 42");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(74 | 42, ((value as int)));
-  }
-  void test_binary_bitXor() {
-    Object value = getConstantValue("74 ^ 42");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(74 ^ 42, ((value as int)));
-  }
-  void test_binary_divide_double() {
-    Object value = getConstantValue("3.2 / 2.3");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(3.2 / 2.3, ((value as double)));
-  }
-  void test_binary_divide_integer() {
-    Object value = getConstantValue("3 / 2");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(1, ((value as int)));
-  }
-  void test_binary_equal_boolean() {
-    Object value = getConstantValue("true == false");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_binary_equal_integer() {
-    Object value = getConstantValue("2 == 3");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_binary_equal_invalidLeft() {
-    Object value = getConstantValue("a == 3");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
-  }
-  void test_binary_equal_invalidRight() {
-    Object value = getConstantValue("2 == a");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
-  }
-  void test_binary_equal_string() {
-    Object value = getConstantValue("'a' == 'b'");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_binary_greaterThan() {
-    Object value = getConstantValue("2 > 3");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_binary_greaterThanOrEqual() {
-    Object value = getConstantValue("2 >= 3");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_binary_leftShift() {
-    Object value = getConstantValue("16 << 2");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(64, ((value as int)));
-  }
-  void test_binary_lessThan() {
-    Object value = getConstantValue("2 < 3");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_binary_lessThanOrEqual() {
-    Object value = getConstantValue("2 <= 3");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_binary_logicalAnd() {
-    Object value = getConstantValue("true && false");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_binary_logicalOr() {
-    Object value = getConstantValue("true || false");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_binary_minus_double() {
-    Object value = getConstantValue("3.2 - 2.3");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(3.2 - 2.3, ((value as double)));
-  }
-  void test_binary_minus_integer() {
-    Object value = getConstantValue("3 - 2");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(1, ((value as int)));
-  }
-  void test_binary_notEqual_boolean() {
-    Object value = getConstantValue("true != false");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_binary_notEqual_integer() {
-    Object value = getConstantValue("2 != 3");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_binary_notEqual_invalidLeft() {
-    Object value = getConstantValue("a != 3");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
-  }
-  void test_binary_notEqual_invalidRight() {
-    Object value = getConstantValue("2 != a");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
-  }
-  void test_binary_notEqual_string() {
-    Object value = getConstantValue("'a' != 'b'");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_binary_plus_double() {
-    Object value = getConstantValue("2.3 + 3.2");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(2.3 + 3.2, ((value as double)));
-  }
-  void test_binary_plus_integer() {
-    Object value = getConstantValue("2 + 3");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(5, ((value as int)));
-  }
-  void test_binary_remainder_double() {
-    Object value = getConstantValue("3.2 % 2.3");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(3.2 % 2.3, ((value as double)));
-  }
-  void test_binary_remainder_integer() {
-    Object value = getConstantValue("8 % 3");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(2, ((value as int)));
-  }
-  void test_binary_rightShift() {
-    Object value = getConstantValue("64 >> 2");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(16, ((value as int)));
-  }
-  void test_binary_times_double() {
-    Object value = getConstantValue("2.3 * 3.2");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(2.3 * 3.2, ((value as double)));
-  }
-  void test_binary_times_integer() {
-    Object value = getConstantValue("2 * 3");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(6, ((value as int)));
-  }
-  void test_binary_truncatingDivide_double() {
-    Object value = getConstantValue("3.2 ~/ 2.3");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(1, ((value as int)));
-  }
-  void test_binary_truncatingDivide_integer() {
-    Object value = getConstantValue("10 ~/ 3");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(3, ((value as int)));
-  }
-  void test_literal_boolean_false() {
-    Object value = getConstantValue("false");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_literal_boolean_true() {
-    Object value = getConstantValue("true");
-    JUnitTestCase.assertEquals(true, value);
-  }
-  void test_literal_list() {
-    Object value = getConstantValue("['a', 'b', 'c']");
-    EngineTestCase.assertInstanceOf(List, value);
-    List<Object> list = (value as List<Object>);
-    JUnitTestCase.assertEquals(3, list.length);
-    JUnitTestCase.assertEquals("a", list[0]);
-    JUnitTestCase.assertEquals("b", list[1]);
-    JUnitTestCase.assertEquals("c", list[2]);
-  }
-  void test_literal_map() {
-    Object value = getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
-    EngineTestCase.assertInstanceOf(Map, value);
-    Map<Object, Object> map = (value as Map<Object, Object>);
-    JUnitTestCase.assertEquals(3, map.length);
-    JUnitTestCase.assertEquals("m", map["a"]);
-    JUnitTestCase.assertEquals("n", map["b"]);
-    JUnitTestCase.assertEquals("o", map["c"]);
-  }
-  void test_literal_null() {
-    Object value = getConstantValue("null");
-    JUnitTestCase.assertEquals(null, value);
-  }
-  void test_literal_number_double() {
-    Object value = getConstantValue("3.45");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(3.45, ((value as double)));
-  }
-  void test_literal_number_integer() {
-    Object value = getConstantValue("42");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(42, ((value as int)));
-  }
-  void test_literal_string_adjacent() {
-    Object value = getConstantValue("'abc' 'def'");
-    JUnitTestCase.assertEquals("abcdef", value);
-  }
-  void test_literal_string_interpolation_invalid() {
-    Object value = getConstantValue("'a\${f()}c'");
-    JUnitTestCase.assertEquals(ConstantEvaluator.NOT_A_CONSTANT, value);
-  }
-  void test_literal_string_interpolation_valid() {
-    Object value = getConstantValue("'a\${3}c'");
-    JUnitTestCase.assertEquals("a3c", value);
-  }
-  void test_literal_string_simple() {
-    Object value = getConstantValue("'abc'");
-    JUnitTestCase.assertEquals("abc", value);
-  }
-  void test_parenthesizedExpression() {
-    Object value = getConstantValue("('a')");
-    JUnitTestCase.assertEquals("a", value);
-  }
-  void test_unary_bitNot() {
-    Object value = getConstantValue("~42");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(~42, ((value as int)));
-  }
-  void test_unary_logicalNot() {
-    Object value = getConstantValue("!true");
-    JUnitTestCase.assertEquals(false, value);
-  }
-  void test_unary_negated_double() {
-    Object value = getConstantValue("-42.3");
-    EngineTestCase.assertInstanceOf(double, value);
-    JUnitTestCase.assertEquals(-42.3, ((value as double)));
-  }
-  void test_unary_negated_integer() {
-    Object value = getConstantValue("-42");
-    EngineTestCase.assertInstanceOf(int, value);
-    JUnitTestCase.assertEquals(-42, ((value as int)));
-  }
-  Object getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator());
-  static dartSuite() {
-    _ut.group('ConstantEvaluatorTest', () {
-      _ut.test('test_binary_bitAnd', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_bitAnd);
-      });
-      _ut.test('test_binary_bitOr', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_bitOr);
-      });
-      _ut.test('test_binary_bitXor', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_bitXor);
-      });
-      _ut.test('test_binary_divide_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_divide_double);
-      });
-      _ut.test('test_binary_divide_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_divide_integer);
-      });
-      _ut.test('test_binary_equal_boolean', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_equal_boolean);
-      });
-      _ut.test('test_binary_equal_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_equal_integer);
-      });
-      _ut.test('test_binary_equal_invalidLeft', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_equal_invalidLeft);
-      });
-      _ut.test('test_binary_equal_invalidRight', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_equal_invalidRight);
-      });
-      _ut.test('test_binary_equal_string', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_equal_string);
-      });
-      _ut.test('test_binary_greaterThan', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_greaterThan);
-      });
-      _ut.test('test_binary_greaterThanOrEqual', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_greaterThanOrEqual);
-      });
-      _ut.test('test_binary_leftShift', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_leftShift);
-      });
-      _ut.test('test_binary_lessThan', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_lessThan);
-      });
-      _ut.test('test_binary_lessThanOrEqual', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_lessThanOrEqual);
-      });
-      _ut.test('test_binary_logicalAnd', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_logicalAnd);
-      });
-      _ut.test('test_binary_logicalOr', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_logicalOr);
-      });
-      _ut.test('test_binary_minus_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_minus_double);
-      });
-      _ut.test('test_binary_minus_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_minus_integer);
-      });
-      _ut.test('test_binary_notEqual_boolean', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_notEqual_boolean);
-      });
-      _ut.test('test_binary_notEqual_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_notEqual_integer);
-      });
-      _ut.test('test_binary_notEqual_invalidLeft', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_notEqual_invalidLeft);
-      });
-      _ut.test('test_binary_notEqual_invalidRight', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_notEqual_invalidRight);
-      });
-      _ut.test('test_binary_notEqual_string', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_notEqual_string);
-      });
-      _ut.test('test_binary_plus_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_plus_double);
-      });
-      _ut.test('test_binary_plus_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_plus_integer);
-      });
-      _ut.test('test_binary_remainder_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_remainder_double);
-      });
-      _ut.test('test_binary_remainder_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_remainder_integer);
-      });
-      _ut.test('test_binary_rightShift', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_rightShift);
-      });
-      _ut.test('test_binary_times_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_times_double);
-      });
-      _ut.test('test_binary_times_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_times_integer);
-      });
-      _ut.test('test_binary_truncatingDivide_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_truncatingDivide_double);
-      });
-      _ut.test('test_binary_truncatingDivide_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_binary_truncatingDivide_integer);
-      });
-      _ut.test('test_literal_boolean_false', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_boolean_false);
-      });
-      _ut.test('test_literal_boolean_true', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_boolean_true);
-      });
-      _ut.test('test_literal_list', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_list);
-      });
-      _ut.test('test_literal_map', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_map);
-      });
-      _ut.test('test_literal_null', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_null);
-      });
-      _ut.test('test_literal_number_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_number_double);
-      });
-      _ut.test('test_literal_number_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_number_integer);
-      });
-      _ut.test('test_literal_string_adjacent', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_string_adjacent);
-      });
-      _ut.test('test_literal_string_interpolation_invalid', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_string_interpolation_invalid);
-      });
-      _ut.test('test_literal_string_interpolation_valid', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_string_interpolation_valid);
-      });
-      _ut.test('test_literal_string_simple', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_literal_string_simple);
-      });
-      _ut.test('test_parenthesizedExpression', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_parenthesizedExpression);
-      });
-      _ut.test('test_unary_bitNot', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_unary_bitNot);
-      });
-      _ut.test('test_unary_logicalNot', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_unary_logicalNot);
-      });
-      _ut.test('test_unary_negated_double', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_unary_negated_double);
-      });
-      _ut.test('test_unary_negated_integer', () {
-        final __test = new ConstantEvaluatorTest();
-        runJUnitTest(__test, __test.test_unary_negated_integer);
       });
     });
   }

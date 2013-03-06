@@ -103,10 +103,25 @@ abstract class ClassElement implements Element {
    */
   bool isAbstract();
   /**
+   * Return {@code true} if this class is defined by a typedef construct.
+   * @return {@code true} if this class is defined by a typedef construct
+   */
+  bool isTypedef();
+  /**
+   * Return {@code true} if this class can validly be used as a mixin when defining another class.
+   * The behavior of this method is defined by the Dart Language Specification in section 9:
+   * <blockquote>It is a compile-time error if a declared or derived mixin refers to super. It is a
+   * compile-time error if a declared or derived mixin explicitly declares a constructor. It is a
+   * compile-time error if a mixin is derived from a class whose superclass is not
+   * Object.</blockquote>
+   * @return {@code true} if this class can validly be used as a mixin
+   */
+  bool isValidMixin();
+  /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
-   * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
+   * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
    * with respect to library <i>L</i> is:
    * <ul>
    * <li>If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
@@ -194,10 +209,10 @@ abstract class CompilationUnitElement implements Element {
    */
   List<ClassElement> get types;
   /**
-   * Return an array containing all of the variables contained in this compilation unit.
-   * @return the variables contained in this compilation unit
+   * Return an array containing all of the top-level variables contained in this compilation unit.
+   * @return the top-level variables contained in this compilation unit
    */
-  List<VariableElement> get variables;
+  List<TopLevelVariableElement> get topLevelVariables;
 }
 /**
  * The interface {@code ConstructorElement} defines the behavior of elements representing a
@@ -241,6 +256,17 @@ abstract class ConstructorElement implements ExecutableElement {
  * program.
  */
 abstract class Element {
+  /**
+   * A comparator that can be used to sort elements by their name offset. Elements with a smaller
+   * offset will be sorted to be before elements with a larger name offset.
+   */
+  static Comparator<Element> SORT_BY_OFFSET = (Element firstElement, Element secondElement) => firstElement.nameOffset - secondElement.nameOffset;
+  /**
+   * Use the given visitor to visit this element.
+   * @param visitor the visitor that will visit this element
+   * @return the value returned by the visitor as a result of visiting this element
+   */
+  accept(ElementVisitor visitor);
   /**
    * Return the element of the given class that most immediately encloses this element, or{@code null} if there is no enclosing element of the given class.
    * @param elementClass the class of the element to be returned
@@ -314,38 +340,51 @@ abstract class Element {
    * @return {@code true} if this element is synthetic
    */
   bool isSynthetic();
+  /**
+   * Use the given visitor to visit all of the children of this element. There is no guarantee of
+   * the order in which the children will be visited.
+   * @param visitor the visitor that will be used to visit the children of this element
+   */
+  void visitChildren(ElementVisitor<Object> visitor);
 }
 /**
  * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
  */
 class ElementKind {
-  static final ElementKind CLASS = new ElementKind('CLASS', 0);
-  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 1);
-  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 2);
-  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 3);
-  static final ElementKind ERROR = new ElementKind('ERROR', 4);
-  static final ElementKind EXPORT = new ElementKind('EXPORT', 5);
-  static final ElementKind FIELD = new ElementKind('FIELD', 6);
-  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 7);
-  static final ElementKind GETTER = new ElementKind('GETTER', 8);
-  static final ElementKind HTML = new ElementKind('HTML', 9);
-  static final ElementKind IMPORT = new ElementKind('IMPORT', 10);
-  static final ElementKind LABEL = new ElementKind('LABEL', 11);
-  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 12);
-  static final ElementKind METHOD = new ElementKind('METHOD', 13);
-  static final ElementKind NAME = new ElementKind('NAME', 14);
-  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 15);
-  static final ElementKind PREFIX = new ElementKind('PREFIX', 16);
-  static final ElementKind SETTER = new ElementKind('SETTER', 17);
-  static final ElementKind TYPE_ALIAS = new ElementKind('TYPE_ALIAS', 18);
-  static final ElementKind TYPE_VARIABLE = new ElementKind('TYPE_VARIABLE', 19);
-  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 20);
-  static final ElementKind VARIABLE = new ElementKind('VARIABLE', 21);
-  static final List<ElementKind> values = [CLASS, COMPILATION_UNIT, CONSTRUCTOR, DYNAMIC, ERROR, EXPORT, FIELD, FUNCTION, GETTER, HTML, IMPORT, LABEL, LIBRARY, METHOD, NAME, PARAMETER, PREFIX, SETTER, TYPE_ALIAS, TYPE_VARIABLE, UNIVERSE, VARIABLE];
+  static final ElementKind CLASS = new ElementKind('CLASS', 0, "class");
+  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 2, "constructor");
+  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 3, "<dynamic>");
+  static final ElementKind ERROR = new ElementKind('ERROR', 4, "<error>");
+  static final ElementKind EXPORT = new ElementKind('EXPORT', 5, "export directive");
+  static final ElementKind FIELD = new ElementKind('FIELD', 6, "field");
+  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 7, "function");
+  static final ElementKind GETTER = new ElementKind('GETTER', 8, "getter");
+  static final ElementKind HTML = new ElementKind('HTML', 9, "html");
+  static final ElementKind IMPORT = new ElementKind('IMPORT', 10, "import directive");
+  static final ElementKind LABEL = new ElementKind('LABEL', 11, "label");
+  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 12, "library");
+  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 13, "local variable");
+  static final ElementKind METHOD = new ElementKind('METHOD', 14, "method");
+  static final ElementKind NAME = new ElementKind('NAME', 15, "<name>");
+  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 16, "parameter");
+  static final ElementKind PREFIX = new ElementKind('PREFIX', 17, "import prefix");
+  static final ElementKind SETTER = new ElementKind('SETTER', 18, "setter");
+  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 19, "top level variable");
+  static final ElementKind TYPE_ALIAS = new ElementKind('TYPE_ALIAS', 20, "function type alias");
+  static final ElementKind TYPE_VARIABLE = new ElementKind('TYPE_VARIABLE', 21, "type variable");
+  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 22, "<universe>");
+  static final List<ElementKind> values = [CLASS, COMPILATION_UNIT, CONSTRUCTOR, DYNAMIC, ERROR, EXPORT, FIELD, FUNCTION, GETTER, HTML, IMPORT, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, NAME, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_ALIAS, TYPE_VARIABLE, UNIVERSE];
   final String __name;
   final int __ordinal;
-  ElementKind(this.__name, this.__ordinal) {
+  String _displayName;
+  ElementKind(this.__name, this.__ordinal, String displayName) {
+    this._displayName = displayName;
   }
+  /**
+   * @return the name of this {@link ElementKind} to display in UI.
+   */
+  String get displayName => _displayName;
   String toString() => __name;
 }
 /**
@@ -361,6 +400,31 @@ abstract class ElementLocation {
   String get encoding;
 }
 /**
+ * The interface {@code ElementVisitor} defines the behavior of objects that can be used to visit an
+ * element structure.
+ */
+abstract class ElementVisitor<R> {
+  R visitClassElement(ClassElement element);
+  R visitCompilationUnitElement(CompilationUnitElement element);
+  R visitConstructorElement(ConstructorElement element);
+  R visitExportElement(ExportElement element);
+  R visitFieldElement(FieldElement element);
+  R visitFunctionElement(FunctionElement element);
+  R visitHtmlElement(HtmlElement element);
+  R visitImportElement(ImportElement element);
+  R visitLabelElement(LabelElement element);
+  R visitLibraryElement(LibraryElement element);
+  R visitLocalVariableElement(LocalVariableElement element);
+  R visitMethodElement(MethodElement element);
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element);
+  R visitParameterElement(ParameterElement element);
+  R visitPrefixElement(PrefixElement element);
+  R visitPropertyAccessorElement(PropertyAccessorElement element);
+  R visitTopLevelVariableElement(TopLevelVariableElement element);
+  R visitTypeAliasElement(TypeAliasElement element);
+  R visitTypeVariableElement(TypeVariableElement element);
+}
+/**
  * The interface {@code ExecutableElement} defines the behavior of elements representing an
  * executable object, including functions, methods, constructors, getters, and setters.
  */
@@ -369,7 +433,7 @@ abstract class ExecutableElement implements Element {
    * Return an array containing all of the functions defined within this executable element.
    * @return the functions defined within this executable element
    */
-  List<ExecutableElement> get functions;
+  List<FunctionElement> get functions;
   /**
    * Return an array containing all of the labels defined within this executable element.
    * @return the labels defined within this executable element
@@ -379,7 +443,7 @@ abstract class ExecutableElement implements Element {
    * Return an array containing all of the local variables defined within this executable element.
    * @return the local variables defined within this executable element
    */
-  List<VariableElement> get localVariables;
+  List<LocalVariableElement> get localVariables;
   /**
    * Return an array containing all of the parameters defined by this executable element.
    * @return the parameters defined by this executable element
@@ -390,6 +454,12 @@ abstract class ExecutableElement implements Element {
    * @return the type of function defined by this executable element
    */
   FunctionType get type;
+  /**
+   * Return {@code true} if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   * @return {@code true} if this executable element is a static element
+   */
+  bool isStatic();
 }
 /**
  * The interface {@code ExportElement} defines the behavior of objects representing information
@@ -414,57 +484,19 @@ abstract class ExportElement implements Element {
 }
 /**
  * The interface {@code FieldElement} defines the behavior of elements representing a field defined
- * within a type. Note that explicitly defined fields implicitly define a synthetic getter and that
- * non-{@code final} explicitly defined fields implicitly define a synthetic setter. Symmetrically,
- * synthetic fields are implicitly created for explicitly defined getters and setters. The following
- * rules apply:
- * <ul>
- * <li>Every explicit field is represented by a non-synthetic {@link FieldElement}.
- * <li>Every explicit field induces a getter and possibly a setter, both of which are represented by
- * synthetic {@link PropertyAccessorElement}s.
- * <li>Every explicit getter or setter is represented by a non-synthetic{@link PropertyAccessorElement}.
- * <li>Every explicit getter or setter (or pair thereof if they have the same name) induces a field
- * that is represented by a synthetic {@link FieldElement}.
- * </ul>
+ * within a type.
  */
-abstract class FieldElement implements VariableElement {
+abstract class FieldElement implements PropertyInducingElement {
   /**
-   * Return the getter associated with this field. If this field was explicitly defined (is not
-   * synthetic) then the getter associated with it will be synthetic.
-   * @return the getter associated with this field
+   * Return the type in which this field is defined.
+   * @return the type in which this field is defined
    */
-  PropertyAccessorElement get getter;
-  /**
-   * Return the setter associated with this field, or {@code null} if the field is effectively{@code final} and therefore does not have a setter associated with it. (This can happen either
-   * because the field is explicitly defined as being {@code final} or because the field is induced
-   * by an explicit getter that does not have a corresponding setter.) If this field was explicitly
-   * defined (is not synthetic) then the setter associated with it will be synthetic.
-   * @return the setter associated with this field
-   */
-  PropertyAccessorElement get setter;
-  /**
-   * Return {@code true} if this field is a static field.
-   * @return {@code true} if this field is a static field
-   */
-  bool isStatic();
+  ClassElement get enclosingElement;
 }
 /**
  * The interface {@code FunctionElement} defines the behavior of elements representing a function.
  */
-abstract class FunctionElement implements ExecutableElement {
-  /**
-   * Return a source range that covers the approximate portion of the source in which the name of
-   * this function is visible, or {@code null} if there is no single range of characters within
-   * which the variable's name is visible.
-   * <ul>
-   * <li>For a local function, this includes everything from the beginning of the function's body to
-   * the end of the block that encloses the function declaration.</li>
-   * <li>For top-level functions, {@code null} will be returned because they are potentially visible
-   * in multiple sources.</li>
-   * </ul>
-   * @return the range of characters in which the name of this function is visible
-   */
-  SourceRange get visibleRange;
+abstract class FunctionElement implements ExecutableElement, LocalElement {
 }
 /**
  * The interface {@code HideCombinator} defines the behavior of combinators that cause some of the
@@ -582,6 +614,40 @@ abstract class LibraryElement implements Element {
    * @return {@code true} if this library is an application that can be run in the browser
    */
   bool isBrowserApplication();
+  /**
+   * Return {@code true} if this library is the dart:core library.
+   * @return {@code true} if this library is the dart:core library
+   */
+  bool isDartCore();
+}
+/**
+ * The interface {@code LocalElement} defines the behavior of elements that can be (but are not
+ * required to be) defined within a method or function (an {@link ExecutableElement}).
+ */
+abstract class LocalElement implements Element {
+  /**
+   * Return a source range that covers the approximate portion of the source in which the name of
+   * this element is visible, or {@code null} if there is no single range of characters within which
+   * the element name is visible.
+   * <ul>
+   * <li>For a local variable, this includes everything from the end of the variable's initializer
+   * to the end of the block that encloses the variable declaration.</li>
+   * <li>For a parameter, this includes the body of the method or function that declares the
+   * parameter.</li>
+   * <li>For a local function, this includes everything from the beginning of the function's body to
+   * the end of the block that encloses the function declaration.</li>
+   * <li>For top-level functions, {@code null} will be returned because they are potentially visible
+   * in multiple sources.</li>
+   * </ul>
+   * @return the range of characters in which the name of this element is visible
+   */
+  SourceRange get visibleRange;
+}
+/**
+ * The interface {@code LocalVariableElement} defines the behavior common to elements that represent
+ * a local variable.
+ */
+abstract class LocalVariableElement implements LocalElement, VariableElement {
 }
 /**
  * The interface {@code MethodElement} defines the behavior of elements that represent a method
@@ -599,12 +665,6 @@ abstract class MethodElement implements ExecutableElement {
    * @return {@code true} if this method is abstract
    */
   bool isAbstract();
-  /**
-   * Return {@code true} if this method is static. Methods are static if they have been marked as
-   * being static using the {@code static} modifier.
-   * @return {@code true} if this method is static
-   */
-  bool isStatic();
 }
 /**
  * The interface {@code MultiplyDefinedElement} defines the behavior of pseudo-elements that
@@ -635,7 +695,7 @@ abstract class NamespaceCombinator {
  * The interface {@code ParameterElement} defines the behavior of elements representing a parameter
  * defined within an executable element.
  */
-abstract class ParameterElement implements VariableElement {
+abstract class ParameterElement implements LocalElement, VariableElement {
   /**
    * Return the kind of this parameter.
    * @return the kind of this parameter
@@ -679,11 +739,11 @@ abstract class PrefixElement implements Element {
  */
 abstract class PropertyAccessorElement implements ExecutableElement {
   /**
-   * Return the field associated with this accessor. If this accessor was explicitly defined (is not
-   * synthetic) then the field associated with it will be synthetic.
-   * @return the field associated with this accessor
+   * Return the field or top-level variable associated with this accessor. If this accessor was
+   * explicitly defined (is not synthetic) then the variable associated with it will be synthetic.
+   * @return the variable associated with this accessor
    */
-  FieldElement get field;
+  PropertyInducingElement get variable;
   /**
    * Return {@code true} if this accessor represents a getter.
    * @return {@code true} if this accessor represents a getter
@@ -696,6 +756,43 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   bool isSetter();
 }
 /**
+ * The interface {@code PropertyInducingElement} defines the behavior of elements representing a
+ * variable that has an associated getter and possibly a setter. Note that explicitly defined
+ * variables implicitly define a synthetic getter and that non-{@code final} explicitly defined
+ * variables implicitly define a synthetic setter. Symmetrically, synthetic fields are implicitly
+ * created for explicitly defined getters and setters. The following rules apply:
+ * <ul>
+ * <li>Every explicit variable is represented by a non-synthetic {@link PropertyInducingElement}.
+ * <li>Every explicit variable induces a getter and possibly a setter, both of which are represented
+ * by synthetic {@link PropertyAccessorElement}s.
+ * <li>Every explicit getter or setter is represented by a non-synthetic{@link PropertyAccessorElement}.
+ * <li>Every explicit getter or setter (or pair thereof if they have the same name) induces a
+ * variable that is represented by a synthetic {@link PropertyInducingElement}.
+ * </ul>
+ */
+abstract class PropertyInducingElement implements VariableElement {
+  /**
+   * Return the getter associated with this variable. If this variable was explicitly defined (is
+   * not synthetic) then the getter associated with it will be synthetic.
+   * @return the getter associated with this variable
+   */
+  PropertyAccessorElement get getter;
+  /**
+   * Return the setter associated with this variable, or {@code null} if the variable is effectively{@code final} and therefore does not have a setter associated with it. (This can happen either
+   * because the variable is explicitly defined as being {@code final} or because the variable is
+   * induced by an explicit getter that does not have a corresponding setter.) If this variable was
+   * explicitly defined (is not synthetic) then the setter associated with it will be synthetic.
+   * @return the setter associated with this variable
+   */
+  PropertyAccessorElement get setter;
+  /**
+   * Return {@code true} if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   * @return {@code true} if this executable element is a static element
+   */
+  bool isStatic();
+}
+/**
  * The interface {@code ShowCombinator} defines the behavior of combinators that cause some of the
  * names in a namespace to be visible (and the rest hidden) when being imported.
  */
@@ -706,6 +803,12 @@ abstract class ShowCombinator implements NamespaceCombinator {
    * @return the names from the imported library that are visible in the importing library
    */
   List<String> get shownNames;
+}
+/**
+ * The interface {@code TopLevelVariableElement} defines the behavior of elements representing a
+ * top-level variable.
+ */
+abstract class TopLevelVariableElement implements PropertyInducingElement {
 }
 /**
  * The interface {@code TypeAliasElement} defines the behavior of elements representing a type alias
@@ -777,21 +880,6 @@ abstract class VariableElement implements Element {
    */
   Type2 get type;
   /**
-   * Return a source range that covers the approximate portion of the source in which the name of
-   * this variable is visible, or {@code null} if there is no single range of characters within
-   * which the variable's name is visible.
-   * <ul>
-   * <li>For a local variable, this includes everything from the end of the variable's initializer
-   * to the end of the block that encloses the variable declaration.</li>
-   * <li>For a parameter, this includes the body of the method or function that declares the
-   * parameter.</li>
-   * <li>For fields and top-level variables, {@code null} will be returned because they are
-   * potentially visible in multiple sources.</li>
-   * </ul>
-   * @return the range of characters in which the name of this variable is visible
-   */
-  SourceRange get visibleRange;
-  /**
    * Return {@code true} if this variable is a const variable. Variables are const if they have been
    * marked as being const using the {@code const} modifier.
    * @return {@code true} if this variable is a const variable
@@ -803,6 +891,208 @@ abstract class VariableElement implements Element {
    * @return {@code true} if this variable is a final variable
    */
   bool isFinal();
+}
+/**
+ * Instances of the class {@code GeneralizingElementVisitor} implement an element visitor that will
+ * recursively visit all of the elements in an element model (like instances of the class{@link RecursiveElementVisitor}). In addition, when an element of a specific type is visited not
+ * only will the visit method for that specific type of element be invoked, but additional methods
+ * for the supertypes of that element will also be invoked. For example, using an instance of this
+ * class to visit a {@link MethodElement} will cause the method{@link #visitMethodElement(MethodElement)} to be invoked but will also cause the methods{@link #visitExecutableElement(ExecutableElement)} and {@link #visitElement(Element)} to be
+ * subsequently invoked. This allows visitors to be written that visit all executable elements
+ * without needing to override the visit method for each of the specific subclasses of{@link ExecutableElement}.
+ * <p>
+ * Note, however, that unlike many visitors, element visitors visit objects based on the interfaces
+ * implemented by those elements. Because interfaces form a graph structure rather than a tree
+ * structure the way classes do, and because it is generally undesirable for an object to be visited
+ * more than once, this class flattens the interface graph into a pseudo-tree. In particular, this
+ * class treats elements as if the element types were structured in the following way:
+ * <p>
+ * <pre>
+ * Element
+ * ClassElement
+ * CompilationUnitElement
+ * ExecutableElement
+ * ConstructorElement
+ * LocalElement
+ * FunctionElement
+ * MethodElement
+ * PropertyAccessorElement
+ * ExportElement
+ * HtmlElement
+ * ImportElement
+ * LabelElement
+ * LibraryElement
+ * MultiplyDefinedElement
+ * PrefixElement
+ * TypeAliasElement
+ * TypeVariableElement
+ * UndefinedElement
+ * VariableElement
+ * PropertyInducingElement
+ * FieldElement
+ * TopLevelVariableElement
+ * LocalElement
+ * LocalVariableElement
+ * ParameterElement
+ * </pre>
+ * <p>
+ * Subclasses that override a visit method must either invoke the overridden visit method or
+ * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
+ * for superclasses of the element to not be invoked and will cause the children of the visited node
+ * to not be visited.
+ */
+class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
+  R visitClassElement(ClassElement element) => visitElement(element);
+  R visitCompilationUnitElement(CompilationUnitElement element) => visitElement(element);
+  R visitConstructorElement(ConstructorElement element) => visitExecutableElement(element);
+  R visitElement(Element element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitExecutableElement(ExecutableElement element) => visitElement(element);
+  R visitExportElement(ExportElement element) => visitElement(element);
+  R visitFieldElement(FieldElement element) => visitPropertyInducingElement(element);
+  R visitFunctionElement(FunctionElement element) => visitLocalElement(element);
+  R visitHtmlElement(HtmlElement element) => visitElement(element);
+  R visitImportElement(ImportElement element) => visitElement(element);
+  R visitLabelElement(LabelElement element) => visitElement(element);
+  R visitLibraryElement(LibraryElement element) => visitElement(element);
+  R visitLocalElement(LocalElement element) {
+    if (element is LocalVariableElement) {
+      return visitVariableElement((element as LocalVariableElement));
+    } else if (element is ParameterElement) {
+      return visitVariableElement((element as ParameterElement));
+    } else if (element is FunctionElement) {
+      return visitExecutableElement((element as FunctionElement));
+    }
+    return null;
+  }
+  R visitLocalVariableElement(LocalVariableElement element) => visitLocalElement(element);
+  R visitMethodElement(MethodElement element) => visitExecutableElement(element);
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => visitElement(element);
+  R visitParameterElement(ParameterElement element) => visitLocalElement(element);
+  R visitPrefixElement(PrefixElement element) => visitElement(element);
+  R visitPropertyAccessorElement(PropertyAccessorElement element) => visitExecutableElement(element);
+  R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
+  R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
+  R visitTypeAliasElement(TypeAliasElement element) => visitElement(element);
+  R visitTypeVariableElement(TypeVariableElement element) => visitElement(element);
+  R visitVariableElement(VariableElement element) => visitElement(element);
+}
+/**
+ * Instances of the class {@code RecursiveElementVisitor} implement an element visitor that will
+ * recursively visit all of the element in an element model. For example, using an instance of this
+ * class to visit a {@link CompilationUnitElement} will also cause all of the types in the
+ * compilation unit to be visited.
+ * <p>
+ * Subclasses that override a visit method must either invoke the overridden visit method or must
+ * explicitly ask the visited element to visit its children. Failure to do so will cause the
+ * children of the visited element to not be visited.
+ */
+class RecursiveElementVisitor<R> implements ElementVisitor<R> {
+  R visitClassElement(ClassElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitCompilationUnitElement(CompilationUnitElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitConstructorElement(ConstructorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitExportElement(ExportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitFieldElement(FieldElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitFunctionElement(FunctionElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitHtmlElement(HtmlElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitImportElement(ImportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitLabelElement(LabelElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitLibraryElement(LibraryElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitLocalVariableElement(LocalVariableElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitMethodElement(MethodElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitParameterElement(ParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitPrefixElement(PrefixElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitPropertyAccessorElement(PropertyAccessorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitTopLevelVariableElement(TopLevelVariableElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitTypeAliasElement(TypeAliasElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+  R visitTypeVariableElement(TypeVariableElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+}
+/**
+ * Instances of the class {@code SimpleElementVisitor} implement an element visitor that will do
+ * nothing when visiting an element. It is intended to be a superclass for classes that use the
+ * visitor pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a
+ * whole structure) and that only need to visit a small number of element types.
+ */
+class SimpleElementVisitor<R> implements ElementVisitor<R> {
+  R visitClassElement(ClassElement element) => null;
+  R visitCompilationUnitElement(CompilationUnitElement element) => null;
+  R visitConstructorElement(ConstructorElement element) => null;
+  R visitExportElement(ExportElement element) => null;
+  R visitFieldElement(FieldElement element) => null;
+  R visitFunctionElement(FunctionElement element) => null;
+  R visitHtmlElement(HtmlElement element) => null;
+  R visitImportElement(ImportElement element) => null;
+  R visitLabelElement(LabelElement element) => null;
+  R visitLibraryElement(LibraryElement element) => null;
+  R visitLocalVariableElement(LocalVariableElement element) => null;
+  R visitMethodElement(MethodElement element) => null;
+  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => null;
+  R visitParameterElement(ParameterElement element) => null;
+  R visitPrefixElement(PrefixElement element) => null;
+  R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
+  R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
+  R visitTypeAliasElement(TypeAliasElement element) => null;
+  R visitTypeVariableElement(TypeVariableElement element) => null;
 }
 /**
  * Instances of the class {@code AnnotationImpl} implement an {@link Annotation}.
@@ -878,36 +1168,37 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   ClassElementImpl(Identifier name) : super.con1(name) {
   }
+  accept(ElementVisitor visitor) => visitor.visitClassElement(this);
   List<PropertyAccessorElement> get accessors => _accessors;
   List<InterfaceType> get allSupertypes {
     Collection<InterfaceType> list = new Set<InterfaceType>();
     collectAllSupertypes(list);
     return new List.from(list);
   }
-  ElementImpl getChild(String identifier19) {
+  ElementImpl getChild(String identifier24) {
     for (PropertyAccessorElement accessor in _accessors) {
-      if (((accessor as PropertyAccessorElementImpl)).identifier == identifier19) {
-        return (accessor as PropertyAccessorElementImpl);
+      if (((accessor as PropertyAccessorElementImpl)).identifier == identifier24) {
+        return accessor as PropertyAccessorElementImpl;
       }
     }
     for (ConstructorElement constructor in _constructors) {
-      if (((constructor as ConstructorElementImpl)).identifier == identifier19) {
-        return (constructor as ConstructorElementImpl);
+      if (((constructor as ConstructorElementImpl)).identifier == identifier24) {
+        return constructor as ConstructorElementImpl;
       }
     }
     for (FieldElement field in _fields) {
-      if (((field as FieldElementImpl)).identifier == identifier19) {
-        return (field as FieldElementImpl);
+      if (((field as FieldElementImpl)).identifier == identifier24) {
+        return field as FieldElementImpl;
       }
     }
     for (MethodElement method in _methods) {
-      if (((method as MethodElementImpl)).identifier == identifier19) {
-        return (method as MethodElementImpl);
+      if (((method as MethodElementImpl)).identifier == identifier24) {
+        return method as MethodElementImpl;
       }
     }
     for (TypeVariableElement typeVariable in _typeVariables) {
-      if (((typeVariable as TypeVariableElementImpl)).identifier == identifier19) {
-        return (typeVariable as TypeVariableElementImpl);
+      if (((typeVariable as TypeVariableElementImpl)).identifier == identifier24) {
+        return typeVariable as TypeVariableElementImpl;
       }
     }
     return null;
@@ -918,10 +1209,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   ElementKind get kind => ElementKind.CLASS;
   List<MethodElement> get methods => _methods;
   List<InterfaceType> get mixins => _mixins;
-  ConstructorElement getNamedConstructor(String name21) {
+  ConstructorElement getNamedConstructor(String name22) {
     for (ConstructorElement element in constructors) {
       String elementName = element.name;
-      if (elementName != null && elementName == name21) {
+      if (elementName != null && elementName == name22) {
         return element;
       }
     }
@@ -940,6 +1231,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
   bool isAbstract() => hasModifier(Modifier.ABSTRACT);
+  bool isTypedef() => hasModifier(Modifier.TYPEDEF);
+  bool isValidMixin() => hasModifier(Modifier.MIXIN);
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     PropertyAccessorElement element = getGetter(getterName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -1088,8 +1381,15 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * Set the type defined by the class to the given type.
    * @param type the type defined by the class
    */
-  void set type(InterfaceType type4) {
-    this._type = type4;
+  void set type(InterfaceType type5) {
+    this._type = type5;
+  }
+  /**
+   * Set whether this class is defined by a typedef construct to correspond to the given value.
+   * @param isTypedef {@code true} if the class is defined by a typedef construct
+   */
+  void set typedef(bool isTypedef) {
+    setModifier(Modifier.TYPEDEF, isTypedef);
   }
   /**
    * Set the type variables defined for this class to the given type variables.
@@ -1101,23 +1401,38 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this._typeVariables = typeVariables2;
   }
+  /**
+   * Set whether this class is a valid mixin to correspond to the given value.
+   * @param isValidMixin {@code true} if this class can be used as a mixin
+   */
+  void set validMixin(bool isValidMixin) {
+    setModifier(Modifier.MIXIN, isValidMixin);
+  }
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_accessors, visitor);
+    safelyVisitChildren(_constructors, visitor);
+    safelyVisitChildren(_fields, visitor);
+    safelyVisitChildren(_methods, visitor);
+    safelyVisitChildren(_typeVariables, visitor);
+  }
   void appendTo(StringBuffer builder) {
     String name11 = name;
     if (name11 == null) {
-      builder.add("{unnamed class}");
+      builder.write("{unnamed class}");
     } else {
-      builder.add(name11);
+      builder.write(name11);
     }
     int variableCount = _typeVariables.length;
     if (variableCount > 0) {
-      builder.add("<");
+      builder.write("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
-          builder.add(", ");
+          builder.write(", ");
         }
         ((_typeVariables[i] as TypeVariableElementImpl)).appendTo(builder);
       }
-      builder.add(">");
+      builder.write(">");
     }
   }
   void collectAllSupertypes(Collection<InterfaceType> list) {
@@ -1197,7 +1512,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   /**
    * An array containing all of the variables contained in this compilation unit.
    */
-  List<VariableElement> _variables = VariableElementImpl.EMPTY_ARRAY;
+  List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
   /**
    * The source that corresponds to this compilation unit.
    */
@@ -1220,44 +1535,45 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    */
   CompilationUnitElementImpl(String name) : super.con2(name, -1) {
   }
-  bool operator ==(Object object) => identical(this.runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
+  accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
+  bool operator ==(Object object) => identical(runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
   List<PropertyAccessorElement> get accessors => _accessors;
-  ElementImpl getChild(String identifier20) {
+  ElementImpl getChild(String identifier25) {
     for (PropertyAccessorElement accessor in _accessors) {
-      if (((accessor as PropertyAccessorElementImpl)).identifier == identifier20) {
-        return (accessor as PropertyAccessorElementImpl);
+      if (((accessor as PropertyAccessorElementImpl)).identifier == identifier25) {
+        return accessor as PropertyAccessorElementImpl;
       }
     }
     for (VariableElement variable in _variables) {
-      if (((variable as VariableElementImpl)).identifier == identifier20) {
-        return (variable as VariableElementImpl);
+      if (((variable as VariableElementImpl)).identifier == identifier25) {
+        return variable as VariableElementImpl;
       }
     }
     for (ExecutableElement function in _functions) {
-      if (((function as ExecutableElementImpl)).identifier == identifier20) {
-        return (function as ExecutableElementImpl);
+      if (((function as ExecutableElementImpl)).identifier == identifier25) {
+        return function as ExecutableElementImpl;
       }
     }
     for (TypeAliasElement typeAlias in _typeAliases) {
-      if (((typeAlias as TypeAliasElementImpl)).identifier == identifier20) {
-        return (typeAlias as TypeAliasElementImpl);
+      if (((typeAlias as TypeAliasElementImpl)).identifier == identifier25) {
+        return typeAlias as TypeAliasElementImpl;
       }
     }
     for (ClassElement type in _types) {
-      if (((type as ClassElementImpl)).identifier == identifier20) {
-        return (type as ClassElementImpl);
+      if (((type as ClassElementImpl)).identifier == identifier25) {
+        return type as ClassElementImpl;
       }
     }
     return null;
   }
-  LibraryElement get enclosingElement => (super.enclosingElement as LibraryElement);
+  LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
   List<FunctionElement> get functions => _functions;
   String get identifier => source.fullName;
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
   Source get source => _source;
+  List<TopLevelVariableElement> get topLevelVariables => _variables;
   List<TypeAliasElement> get typeAliases => _typeAliases;
   List<ClassElement> get types => _types;
-  List<VariableElement> get variables => _variables;
   int get hashCode => _source.hashCode;
   /**
    * Set the top-level accessors (getters and setters) contained in this compilation unit to the
@@ -1288,6 +1604,16 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     this._source = source5;
   }
   /**
+   * Set the top-level variables contained in this compilation unit to the given variables.
+   * @param variables the top-level variables contained in this compilation unit
+   */
+  void set topLevelVariables(List<TopLevelVariableElement> variables2) {
+    for (TopLevelVariableElement field in variables2) {
+      ((field as TopLevelVariableElementImpl)).enclosingElement = this;
+    }
+    this._variables = variables2;
+  }
+  /**
    * Set the type aliases contained in this compilation unit to the given type aliases.
    * @param typeAliases the type aliases contained in this compilation unit
    */
@@ -1307,21 +1633,19 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
     this._types = types2;
   }
-  /**
-   * Set the variables contained in this compilation unit to the given variables.
-   * @param variables the variables contained in this compilation unit
-   */
-  void set variables(List<VariableElement> variables2) {
-    for (VariableElement field in variables2) {
-      ((field as VariableElementImpl)).enclosingElement = this;
-    }
-    this._variables = variables2;
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_accessors, visitor);
+    safelyVisitChildren(_functions, visitor);
+    safelyVisitChildren(_typeAliases, visitor);
+    safelyVisitChildren(_types, visitor);
+    safelyVisitChildren(_variables, visitor);
   }
   void appendTo(StringBuffer builder) {
     if (_source == null) {
-      builder.add("{compilation unit}");
+      builder.write("{compilation unit}");
     } else {
-      builder.add(_source.fullName);
+      builder.write(_source.fullName);
     }
   }
 }
@@ -1339,10 +1663,12 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
    */
   ConstructorElementImpl(Identifier name) : super.con1(name) {
   }
-  ClassElement get enclosingElement => (super.enclosingElement as ClassElement);
+  accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
+  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.CONSTRUCTOR;
   bool isConst() => hasModifier(Modifier.CONST);
   bool isFactory() => hasModifier(Modifier.FACTORY);
+  bool isStatic() => false;
   /**
    * Set whether this constructor represents a factory method to the given value.
    * @param isFactory {@code true} if this constructor represents a factory method
@@ -1351,11 +1677,11 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
     setModifier(Modifier.FACTORY, isFactory);
   }
   void appendTo(StringBuffer builder) {
-    builder.add(enclosingElement.name);
+    builder.write(enclosingElement.name);
     String name12 = name;
     if (name12 != null && !name12.isEmpty) {
-      builder.add(".");
-      builder.add(name12);
+      builder.write(".");
+      builder.write(name12);
     }
     super.appendTo(builder);
   }
@@ -1369,7 +1695,7 @@ class DynamicElementImpl extends ElementImpl {
    * Return the unique instance of this class.
    * @return the unique instance of this class
    */
-  static DynamicElementImpl get instance => (DynamicTypeImpl.instance.element as DynamicElementImpl);
+  static DynamicElementImpl get instance => DynamicTypeImpl.instance.element as DynamicElementImpl;
   /**
    * The type defined by this element.
    */
@@ -1382,6 +1708,7 @@ class DynamicElementImpl extends ElementImpl {
   DynamicElementImpl() : super.con2(Keyword.DYNAMIC.syntax, -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
+  accept(ElementVisitor visitor) => null;
   ElementKind get kind => ElementKind.DYNAMIC;
   /**
    * Return the type defined by this element.
@@ -1392,8 +1719,8 @@ class DynamicElementImpl extends ElementImpl {
    * Set the type defined by this element to the given type.
    * @param type the type defined by this element
    */
-  void set type(DynamicTypeImpl type5) {
-    this._type = type5;
+  void set type(DynamicTypeImpl type6) {
+    this._type = type6;
   }
 }
 /**
@@ -1427,11 +1754,11 @@ abstract class ElementImpl implements Element {
    * Initialize a newly created element to have the given name.
    * @param name the name of this element
    */
-  ElementImpl.con1(Identifier name22) {
-    _jtd_constructor_135_impl(name22);
+  ElementImpl.con1(Identifier name23) {
+    _jtd_constructor_158_impl(name23);
   }
-  _jtd_constructor_135_impl(Identifier name22) {
-    _jtd_constructor_136_impl(name22 == null ? "" : name22.name, name22 == null ? -1 : name22.offset);
+  _jtd_constructor_158_impl(Identifier name23) {
+    _jtd_constructor_159_impl(name23 == null ? "" : name23.name, name23 == null ? -1 : name23.offset);
   }
   /**
    * Initialize a newly created element to have the given name.
@@ -1440,20 +1767,20 @@ abstract class ElementImpl implements Element {
    * declaration of this element
    */
   ElementImpl.con2(String name8, int nameOffset2) {
-    _jtd_constructor_136_impl(name8, nameOffset2);
+    _jtd_constructor_159_impl(name8, nameOffset2);
   }
-  _jtd_constructor_136_impl(String name8, int nameOffset2) {
+  _jtd_constructor_159_impl(String name8, int nameOffset2) {
     this._name = name8;
     this._nameOffset = nameOffset2;
     this._modifiers = new Set();
   }
-  bool operator ==(Object object) => object is Element && ((object as Element)).location == location;
+  bool operator ==(Object object) => object != null && identical(object.runtimeType, runtimeType) && ((object as Element)).location == location;
   Element getAncestor(Type elementClass) {
     Element ancestor = _enclosingElement;
     while (ancestor != null && !isInstanceOf(ancestor, elementClass)) {
       ancestor = ancestor.enclosingElement;
     }
-    return (ancestor as Element);
+    return ancestor as Element;
   }
   /**
    * Return the child of this element that is uniquely identified by the given identifier, or{@code null} if there is no such child.
@@ -1480,9 +1807,9 @@ abstract class ElementImpl implements Element {
     return _enclosingElement.source;
   }
   int get hashCode => location.hashCode;
-  bool isAccessibleIn(LibraryElement library18) {
+  bool isAccessibleIn(LibraryElement library19) {
     if (Identifier.isPrivateName(_name)) {
-      return library18 == library;
+      return library19 == library;
     }
     return true;
   }
@@ -1506,17 +1833,19 @@ abstract class ElementImpl implements Element {
     appendTo(builder);
     return builder.toString();
   }
+  void visitChildren(ElementVisitor<Object> visitor) {
+  }
   /**
    * Append a textual representation of this type to the given builder.
    * @param builder the builder to which the text is to be appended
    */
   void appendTo(StringBuffer builder) {
     if (_name == null) {
-      builder.add("<unnamed ");
-      builder.add(runtimeType.toString());
-      builder.add(">");
+      builder.write("<unnamed ");
+      builder.write(runtimeType.toString());
+      builder.write(">");
     } else {
-      builder.add(_name);
+      builder.write(_name);
     }
   }
   /**
@@ -1531,6 +1860,28 @@ abstract class ElementImpl implements Element {
    * @return {@code true} if this element has the given modifier associated with it
    */
   bool hasModifier(Modifier modifier) => _modifiers.contains(modifier);
+  /**
+   * If the given child is not {@code null}, use the given visitor to visit it.
+   * @param child the child to be visited
+   * @param visitor the visitor to be used to visit the child
+   */
+  void safelyVisitChild(Element child, ElementVisitor<Object> visitor) {
+    if (child != null) {
+      child.accept(visitor);
+    }
+  }
+  /**
+   * Use the given visitor to visit all of the children in the given array.
+   * @param children the children to be visited
+   * @param visitor the visitor being used to visit the children
+   */
+  void safelyVisitChildren(List<Element> children, ElementVisitor<Object> visitor) {
+    if (children != null) {
+      for (Element child in children) {
+        child.accept(visitor);
+      }
+    }
+  }
   /**
    * Set the enclosing element of this element to the given element.
    * @param element the enclosing element of this element
@@ -1569,9 +1920,9 @@ class ElementLocationImpl implements ElementLocation {
    * @param element the element whose location is being represented
    */
   ElementLocationImpl.con1(Element element) {
-    _jtd_constructor_137_impl(element);
+    _jtd_constructor_160_impl(element);
   }
-  _jtd_constructor_137_impl(Element element) {
+  _jtd_constructor_160_impl(Element element) {
     List<String> components = new List<String>();
     Element ancestor = element;
     while (ancestor != null) {
@@ -1585,16 +1936,16 @@ class ElementLocationImpl implements ElementLocation {
    * @param encoding the encoded form of a location
    */
   ElementLocationImpl.con2(String encoding) {
-    _jtd_constructor_138_impl(encoding);
+    _jtd_constructor_161_impl(encoding);
   }
-  _jtd_constructor_138_impl(String encoding) {
+  _jtd_constructor_161_impl(String encoding) {
     this._components = decode(encoding);
   }
   bool operator ==(Object object) {
     if (object is! ElementLocationImpl) {
       return false;
     }
-    ElementLocationImpl location = (object as ElementLocationImpl);
+    ElementLocationImpl location = object as ElementLocationImpl;
     return JavaArrays.equals(_components, location._components);
   }
   /**
@@ -1607,7 +1958,7 @@ class ElementLocationImpl implements ElementLocation {
     int length2 = _components.length;
     for (int i = 0; i < length2; i++) {
       if (i > 0) {
-        builder.addCharCode(_SEPARATOR_CHAR);
+        builder.writeCharCode(_SEPARATOR_CHAR);
       }
       encode(builder, _components[i]);
     }
@@ -1629,7 +1980,7 @@ class ElementLocationImpl implements ElementLocation {
       int currentChar = encoding.codeUnitAt(index);
       if (currentChar == _SEPARATOR_CHAR) {
         if (index + 1 < length3 && encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
-          builder.addCharCode(_SEPARATOR_CHAR);
+          builder.writeCharCode(_SEPARATOR_CHAR);
           index += 2;
         } else {
           components.add(builder.toString());
@@ -1637,7 +1988,7 @@ class ElementLocationImpl implements ElementLocation {
           index++;
         }
       } else {
-        builder.addCharCode(currentChar);
+        builder.writeCharCode(currentChar);
         index++;
       }
     }
@@ -1656,9 +2007,9 @@ class ElementLocationImpl implements ElementLocation {
     for (int i = 0; i < length4; i++) {
       int currentChar = component.codeUnitAt(i);
       if (currentChar == _SEPARATOR_CHAR) {
-        builder.addCharCode(_SEPARATOR_CHAR);
+        builder.writeCharCode(_SEPARATOR_CHAR);
       }
-      builder.addCharCode(currentChar);
+      builder.writeCharCode(currentChar);
     }
   }
 }
@@ -1669,7 +2020,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   /**
    * An array containing all of the functions defined within this executable element.
    */
-  List<ExecutableElement> _functions = EMPTY_ARRAY;
+  List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
   /**
    * An array containing all of the labels defined within this executable element.
    */
@@ -1677,7 +2028,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   /**
    * An array containing all of the local variables defined within this executable element.
    */
-  List<VariableElement> _localVariables = VariableElementImpl.EMPTY_ARRAY;
+  List<LocalVariableElement> _localVariables = LocalVariableElementImpl.EMPTY_ARRAY;
   /**
    * An array containing all of the parameters defined by this executable element.
    */
@@ -1695,9 +2046,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * @param name the name of this element
    */
   ExecutableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_139_impl(name);
+    _jtd_constructor_162_impl(name);
   }
-  _jtd_constructor_139_impl(Identifier name) {
+  _jtd_constructor_162_impl(Identifier name) {
   }
   /**
    * Initialize a newly created executable element to have the given name.
@@ -1706,45 +2057,45 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * declaration of this element
    */
   ExecutableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_140_impl(name, nameOffset);
+    _jtd_constructor_163_impl(name, nameOffset);
   }
-  _jtd_constructor_140_impl(String name, int nameOffset) {
+  _jtd_constructor_163_impl(String name, int nameOffset) {
   }
-  ElementImpl getChild(String identifier21) {
+  ElementImpl getChild(String identifier26) {
     for (ExecutableElement function in _functions) {
-      if (((function as ExecutableElementImpl)).identifier == identifier21) {
-        return (function as ExecutableElementImpl);
+      if (((function as ExecutableElementImpl)).identifier == identifier26) {
+        return function as ExecutableElementImpl;
       }
     }
     for (LabelElement label in _labels) {
-      if (((label as LabelElementImpl)).identifier == identifier21) {
-        return (label as LabelElementImpl);
+      if (((label as LabelElementImpl)).identifier == identifier26) {
+        return label as LabelElementImpl;
       }
     }
     for (VariableElement variable in _localVariables) {
-      if (((variable as VariableElementImpl)).identifier == identifier21) {
-        return (variable as VariableElementImpl);
+      if (((variable as VariableElementImpl)).identifier == identifier26) {
+        return variable as VariableElementImpl;
       }
     }
     for (ParameterElement parameter in _parameters) {
-      if (((parameter as ParameterElementImpl)).identifier == identifier21) {
-        return (parameter as ParameterElementImpl);
+      if (((parameter as ParameterElementImpl)).identifier == identifier26) {
+        return parameter as ParameterElementImpl;
       }
     }
     return null;
   }
-  List<ExecutableElement> get functions => _functions;
+  List<FunctionElement> get functions => _functions;
   List<LabelElement> get labels => _labels;
-  List<VariableElement> get localVariables => _localVariables;
+  List<LocalVariableElement> get localVariables => _localVariables;
   List<ParameterElement> get parameters => _parameters;
   FunctionType get type => _type;
   /**
    * Set the functions defined within this executable element to the given functions.
    * @param functions the functions defined within this executable element
    */
-  void set functions(List<ExecutableElement> functions3) {
-    for (ExecutableElement function in functions3) {
-      ((function as ExecutableElementImpl)).enclosingElement = this;
+  void set functions(List<FunctionElement> functions3) {
+    for (FunctionElement function in functions3) {
+      ((function as FunctionElementImpl)).enclosingElement = this;
     }
     this._functions = functions3;
   }
@@ -1762,9 +2113,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * Set the local variables defined within this executable element to the given variables.
    * @param localVariables the local variables defined within this executable element
    */
-  void set localVariables(List<VariableElement> localVariables2) {
-    for (VariableElement variable in localVariables2) {
-      ((variable as VariableElementImpl)).enclosingElement = this;
+  void set localVariables(List<LocalVariableElement> localVariables2) {
+    for (LocalVariableElement variable in localVariables2) {
+      ((variable as LocalVariableElementImpl)).enclosingElement = this;
     }
     this._localVariables = localVariables2;
   }
@@ -1782,22 +2133,29 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * Set the type of function defined by this executable element to the given type.
    * @param type the type of function defined by this executable element
    */
-  void set type(FunctionType type6) {
-    this._type = type6;
+  void set type(FunctionType type7) {
+    this._type = type7;
+  }
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_functions, visitor);
+    safelyVisitChildren(_labels, visitor);
+    safelyVisitChildren(_localVariables, visitor);
+    safelyVisitChildren(_parameters, visitor);
   }
   void appendTo(StringBuffer builder) {
-    builder.add("(");
+    builder.write("(");
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.add(", ");
+        builder.write(", ");
       }
       ((_parameters[i] as ParameterElementImpl)).appendTo(builder);
     }
-    builder.add(")");
+    builder.write(")");
     if (_type != null) {
-      builder.add(" -> ");
-      builder.add(_type.returnType);
+      builder.write(" -> ");
+      builder.write(_type.returnType);
     }
   }
 }
@@ -1819,6 +2177,7 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
    */
   ExportElementImpl() : super.con1(null) {
   }
+  accept(ElementVisitor visitor) => visitor.visitExportElement(this);
   List<NamespaceCombinator> get combinators => _combinators;
   LibraryElement get exportedLibrary => _exportedLibrary;
   ElementKind get kind => ElementKind.EXPORT;
@@ -1839,22 +2198,14 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
     this._exportedLibrary = exportedLibrary2;
   }
   void appendTo(StringBuffer builder) {
-    builder.add("export ");
+    builder.write("export ");
     ((_exportedLibrary as LibraryElementImpl)).appendTo(builder);
   }
 }
 /**
  * Instances of the class {@code FieldElementImpl} implement a {@code FieldElement}.
  */
-class FieldElementImpl extends VariableElementImpl implements FieldElement {
-  /**
-   * The getter associated with this field.
-   */
-  PropertyAccessorElement _getter;
-  /**
-   * The setter associated with this field, or {@code null} if the field is effectively{@code final} and therefore does not have a setter associated with it.
-   */
-  PropertyAccessorElement _setter;
+class FieldElementImpl extends PropertyInducingElementImpl implements FieldElement {
   /**
    * An empty array of field elements.
    */
@@ -1864,38 +2215,23 @@ class FieldElementImpl extends VariableElementImpl implements FieldElement {
    * @param name the name of this element
    */
   FieldElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_142_impl(name);
+    _jtd_constructor_165_impl(name);
   }
-  _jtd_constructor_142_impl(Identifier name) {
+  _jtd_constructor_165_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic field element to have the given name.
    * @param name the name of this element
    */
-  FieldElementImpl.con2(String name) : super.con2(name, -1) {
-    _jtd_constructor_143_impl(name);
+  FieldElementImpl.con2(String name) : super.con2(name) {
+    _jtd_constructor_166_impl(name);
   }
-  _jtd_constructor_143_impl(String name) {
-    synthetic = true;
+  _jtd_constructor_166_impl(String name) {
   }
-  PropertyAccessorElement get getter => _getter;
+  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.FIELD;
-  PropertyAccessorElement get setter => _setter;
   bool isStatic() => hasModifier(Modifier.STATIC);
-  /**
-   * Set the getter associated with this field to the given accessor.
-   * @param getter the getter associated with this field
-   */
-  void set getter(PropertyAccessorElement getter2) {
-    this._getter = getter2;
-  }
-  /**
-   * Set the setter associated with this field to the given accessor.
-   * @param setter the setter associated with this field
-   */
-  void set setter(PropertyAccessorElement setter2) {
-    this._setter = setter2;
-  }
   /**
    * Set whether this field is static to correspond to the given value.
    * @param isStatic {@code true} if the field is static
@@ -1925,9 +2261,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * Initialize a newly created synthetic function element.
    */
   FunctionElementImpl() : super.con2("", -1) {
-    _jtd_constructor_144_impl();
+    _jtd_constructor_167_impl();
   }
-  _jtd_constructor_144_impl() {
+  _jtd_constructor_167_impl() {
     synthetic = true;
   }
   /**
@@ -1935,10 +2271,11 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * @param name the name of this element
    */
   FunctionElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_145_impl(name);
+    _jtd_constructor_168_impl(name);
   }
-  _jtd_constructor_145_impl(Identifier name) {
+  _jtd_constructor_168_impl(Identifier name) {
   }
+  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
   String get identifier => name;
   ElementKind get kind => ElementKind.FUNCTION;
   SourceRange get visibleRange {
@@ -1947,6 +2284,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
+  bool isStatic() => enclosingElement is CompilationUnitElement;
   /**
    * Set the visible range for this element to the range starting at the given offset with the given
    * length.
@@ -1961,7 +2299,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   void appendTo(StringBuffer builder) {
     String name13 = name;
     if (name13 != null) {
-      builder.add(name13);
+      builder.write(name13);
     }
     super.appendTo(builder);
   }
@@ -1991,13 +2329,13 @@ class HideCombinatorImpl implements HideCombinator {
   }
   String toString() {
     StringBuffer builder = new StringBuffer();
-    builder.add("show ");
+    builder.write("show ");
     int count = _hiddenNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.add(", ");
+        builder.write(", ");
       }
-      builder.add(_hiddenNames[i]);
+      builder.write(_hiddenNames[i]);
     }
     return builder.toString();
   }
@@ -2030,7 +2368,8 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   HtmlElementImpl(AnalysisContext context, String name) : super.con2(name, -1) {
     this._context = context;
   }
-  bool operator ==(Object object) => identical(this.runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
+  accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
+  bool operator ==(Object object) => identical(runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
   AnalysisContext get context => _context;
   ElementKind get kind => ElementKind.HTML;
   List<LibraryElement> get libraries => _libraries;
@@ -2051,11 +2390,15 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   void set source(Source source6) {
     this._source = source6;
   }
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_libraries, visitor);
+  }
   void appendTo(StringBuffer builder) {
     if (_source == null) {
-      builder.add("{HTML file}");
+      builder.write("{HTML file}");
     } else {
-      builder.add(_source.fullName);
+      builder.write(_source.fullName);
     }
   }
 }
@@ -2082,6 +2425,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
    */
   ImportElementImpl() : super.con1(null) {
   }
+  accept(ElementVisitor visitor) => visitor.visitImportElement(this);
   List<NamespaceCombinator> get combinators => _combinators;
   LibraryElement get importedLibrary => _importedLibrary;
   ElementKind get kind => ElementKind.IMPORT;
@@ -2109,8 +2453,12 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   void set prefix(PrefixElement prefix3) {
     this._prefix = prefix3;
   }
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_prefix, visitor);
+  }
   void appendTo(StringBuffer builder) {
-    builder.add("import ");
+    builder.write("import ");
     ((_importedLibrary as LibraryElementImpl)).appendTo(builder);
   }
 }
@@ -2140,7 +2488,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
     this._onSwitchStatement = onSwitchStatement;
     this._onSwitchMember = onSwitchMember;
   }
-  ExecutableElement get enclosingElement => (super.enclosingElement as ExecutableElement);
+  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
+  ExecutableElement get enclosingElement => super.enclosingElement as ExecutableElement;
   ElementKind get kind => ElementKind.LABEL;
   /**
    * Return {@code true} if this label is associated with a {@code switch} member ({@code case} or{@code default}).
@@ -2193,14 +2542,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   LibraryElementImpl(AnalysisContext context, LibraryIdentifier name) : super.con1(name) {
     this._context = context;
   }
-  bool operator ==(Object object) => identical(this.runtimeType, object.runtimeType) && _definingCompilationUnit == ((object as LibraryElementImpl)).definingCompilationUnit;
-  ElementImpl getChild(String identifier22) {
-    if (((_definingCompilationUnit as CompilationUnitElementImpl)).identifier == identifier22) {
-      return (_definingCompilationUnit as CompilationUnitElementImpl);
+  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
+  bool operator ==(Object object) => identical(runtimeType, object.runtimeType) && _definingCompilationUnit == ((object as LibraryElementImpl)).definingCompilationUnit;
+  ElementImpl getChild(String identifier27) {
+    if (((_definingCompilationUnit as CompilationUnitElementImpl)).identifier == identifier27) {
+      return _definingCompilationUnit as CompilationUnitElementImpl;
     }
     for (CompilationUnitElement part in _parts) {
-      if (((part as CompilationUnitElementImpl)).identifier == identifier22) {
-        return (part as CompilationUnitElementImpl);
+      if (((part as CompilationUnitElementImpl)).identifier == identifier27) {
+        return part as CompilationUnitElementImpl;
       }
     }
     return null;
@@ -2241,6 +2591,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
   int get hashCode => _definingCompilationUnit.hashCode;
   bool isBrowserApplication() => _entryPoint != null && isOrImportsBrowserLibrary();
+  bool isDartCore() => name == "dart.core";
   /**
    * Set the compilation unit that defines this library to the given compilation unit.
    * @param definingCompilationUnit the compilation unit that defines this library
@@ -2254,7 +2605,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param entryPoint the entry point for this library
    */
   void set entryPoint(FunctionElement entryPoint2) {
-    ((entryPoint2 as FunctionElementImpl)).enclosingElement = this;
     this._entryPoint = entryPoint2;
   }
   /**
@@ -2262,6 +2612,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param exports the specifications of all of the exports defined in this library
    */
   void set exports(List<ExportElement> exports2) {
+    for (ExportElement exportElement in exports2) {
+      ((exportElement as ExportElementImpl)).enclosingElement = this;
+    }
     this._exports = exports2;
   }
   /**
@@ -2269,6 +2622,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param imports the specifications of all of the imports defined in this library
    */
   void set imports(List<ImportElement> imports2) {
+    for (ImportElement importElement in imports2) {
+      ((importElement as ImportElementImpl)).enclosingElement = this;
+      PrefixElementImpl prefix5 = importElement.prefix as PrefixElementImpl;
+      if (prefix5 != null) {
+        prefix5.enclosingElement = this;
+      }
+    }
     this._imports = imports2;
   }
   /**
@@ -2281,18 +2641,25 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     this._parts = parts2;
   }
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_definingCompilationUnit, visitor);
+    safelyVisitChildren(_exports, visitor);
+    safelyVisitChildren(_imports, visitor);
+    safelyVisitChildren(_parts, visitor);
+  }
   /**
    * Answer {@code true} if the receiver directly or indirectly imports the dart:html libraries.
    * @return {@code true} if the receiver directly or indirectly imports the dart:html libraries
    */
   bool isOrImportsBrowserLibrary() {
     List<LibraryElement> visited = new List<LibraryElement>(10);
-    Source htmlLibSource = definingCompilationUnit.source.resolve(DartSdk.DART_HTML);
+    Source htmlLibSource = definingCompilationUnit.source.resolve("dart:html");
     visited.add(this);
     for (int index = 0; index < visited.length; index++) {
       LibraryElement library = visited[index];
-      Source source8 = library.definingCompilationUnit.source;
-      if (source8 == htmlLibSource) {
+      Source source10 = library.definingCompilationUnit.source;
+      if (source10 == htmlLibSource) {
         return true;
       }
       for (LibraryElement importedLibrary in library.importedLibraries) {
@@ -2310,6 +2677,54 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 }
 /**
+ * Instances of the class {@code LocalVariableElementImpl} implement a {@code LocalVariableElement}.
+ */
+class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
+  /**
+   * The offset to the beginning of the visible range for this element.
+   */
+  int _visibleRangeOffset = 0;
+  /**
+   * The length of the visible range for this element, or {@code -1} if this element does not have a
+   * visible range.
+   */
+  int _visibleRangeLength = -1;
+  /**
+   * An empty array of field elements.
+   */
+  static List<LocalVariableElement> EMPTY_ARRAY = new List<LocalVariableElement>(0);
+  /**
+   * Initialize a newly created parameter element to have the given name.
+   * @param name the name of this element
+   */
+  LocalVariableElementImpl(Identifier name) : super.con1(name) {
+  }
+  accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
+  ElementKind get kind => ElementKind.LOCAL_VARIABLE;
+  SourceRange get visibleRange {
+    if (_visibleRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
+  }
+  /**
+   * Set the visible range for this element to the range starting at the given offset with the given
+   * length.
+   * @param offset the offset to the beginning of the visible range for this element
+   * @param length the length of the visible range for this element, or {@code -1} if this element
+   * does not have a visible range
+   */
+  void setVisibleRange(int offset, int length) {
+    _visibleRangeOffset = offset;
+    _visibleRangeLength = length;
+  }
+  void appendTo(StringBuffer builder) {
+    builder.write(type);
+    builder.write(" ");
+    builder.write(name);
+  }
+}
+/**
  * Instances of the class {@code MethodElementImpl} implement a {@code MethodElement}.
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
@@ -2322,9 +2737,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * @param name the name of this element
    */
   MethodElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_151_impl(name);
+    _jtd_constructor_175_impl(name);
   }
-  _jtd_constructor_151_impl(Identifier name) {
+  _jtd_constructor_175_impl(Identifier name) {
   }
   /**
    * Initialize a newly created method element to have the given name.
@@ -2333,11 +2748,12 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * declaration of this element
    */
   MethodElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_152_impl(name, nameOffset);
+    _jtd_constructor_176_impl(name, nameOffset);
   }
-  _jtd_constructor_152_impl(String name, int nameOffset) {
+  _jtd_constructor_176_impl(String name, int nameOffset) {
   }
-  ClassElement get enclosingElement => (super.enclosingElement as ClassElement);
+  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
+  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.METHOD;
   bool isAbstract() => hasModifier(Modifier.ABSTRACT);
   bool isStatic() => hasModifier(Modifier.STATIC);
@@ -2356,9 +2772,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     setModifier(Modifier.STATIC, isStatic);
   }
   void appendTo(StringBuffer builder) {
-    builder.add(enclosingElement.name);
-    builder.add(".");
-    builder.add(name);
+    builder.write(enclosingElement.name);
+    builder.write(".");
+    builder.write(name);
     super.appendTo(builder);
   }
 }
@@ -2373,10 +2789,12 @@ class Modifier {
   static final Modifier FINAL = new Modifier('FINAL', 3);
   static final Modifier GETTER = new Modifier('GETTER', 4);
   static final Modifier INITIALIZING_FORMAL = new Modifier('INITIALIZING_FORMAL', 5);
-  static final Modifier SETTER = new Modifier('SETTER', 6);
-  static final Modifier STATIC = new Modifier('STATIC', 7);
-  static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 8);
-  static final List<Modifier> values = [ABSTRACT, CONST, FACTORY, FINAL, GETTER, INITIALIZING_FORMAL, SETTER, STATIC, SYNTHETIC];
+  static final Modifier MIXIN = new Modifier('MIXIN', 6);
+  static final Modifier SETTER = new Modifier('SETTER', 7);
+  static final Modifier STATIC = new Modifier('STATIC', 8);
+  static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 9);
+  static final Modifier TYPEDEF = new Modifier('TYPEDEF', 10);
+  static final List<Modifier> values = [ABSTRACT, CONST, FACTORY, FINAL, GETTER, INITIALIZING_FORMAL, MIXIN, SETTER, STATIC, SYNTHETIC, TYPEDEF];
   final String __name;
   final int __ordinal;
   Modifier(this.__name, this.__ordinal) {
@@ -2410,6 +2828,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     _name = firstElement.name;
     _conflictingElements = computeConflictingElements(firstElement, secondElement);
   }
+  accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
   Element getAncestor(Type elementClass) => null;
   List<Element> get conflictingElements => _conflictingElements;
   AnalysisContext get context => _context;
@@ -2432,16 +2851,18 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool isSynthetic() => true;
   String toString() {
     StringBuffer builder = new StringBuffer();
-    builder.add("[");
+    builder.write("[");
     int count = _conflictingElements.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.add(", ");
+        builder.write(", ");
       }
       ((_conflictingElements[i] as ElementImpl)).appendTo(builder);
     }
-    builder.add("]");
+    builder.write("]");
     return builder.toString();
+  }
+  void visitChildren(ElementVisitor<Object> visitor) {
   }
   /**
    * Add the given element to the list of elements. If the element is a multiply-defined element,
@@ -2482,6 +2903,15 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    */
   ParameterKind _parameterKind;
   /**
+   * The offset to the beginning of the visible range for this element.
+   */
+  int _visibleRangeOffset = 0;
+  /**
+   * The length of the visible range for this element, or {@code -1} if this element does not have a
+   * visible range.
+   */
+  int _visibleRangeLength = -1;
+  /**
    * An empty array of field elements.
    */
   static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>(0);
@@ -2491,8 +2921,15 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
    */
   ParameterElementImpl(Identifier name) : super.con1(name) {
   }
+  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
   ElementKind get kind => ElementKind.PARAMETER;
   ParameterKind get parameterKind => _parameterKind;
+  SourceRange get visibleRange {
+    if (_visibleRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
+  }
   bool isInitializingFormal() => hasModifier(Modifier.INITIALIZING_FORMAL);
   /**
    * Set whether this parameter is an initializing formal parameter to match the given value.
@@ -2508,13 +2945,24 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   void set parameterKind(ParameterKind parameterKind2) {
     this._parameterKind = parameterKind2;
   }
+  /**
+   * Set the visible range for this element to the range starting at the given offset with the given
+   * length.
+   * @param offset the offset to the beginning of the visible range for this element
+   * @param length the length of the visible range for this element, or {@code -1} if this element
+   * does not have a visible range
+   */
+  void setVisibleRange(int offset, int length) {
+    _visibleRangeOffset = offset;
+    _visibleRangeLength = length;
+  }
   void appendTo(StringBuffer builder) {
-    builder.add(type);
-    builder.add(" ");
-    builder.add(name);
-    builder.add(" (");
-    builder.add(kind);
-    builder.add(")");
+    builder.write(type);
+    builder.write(" ");
+    builder.write(name);
+    builder.write(" (");
+    builder.write(kind);
+    builder.write(")");
   }
 }
 /**
@@ -2535,7 +2983,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
    */
   PrefixElementImpl(Identifier name) : super.con1(name) {
   }
-  LibraryElement get enclosingElement => (super.enclosingElement as LibraryElement);
+  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
+  LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
   List<LibraryElement> get importedLibraries => _importedLibraries;
   ElementKind get kind => ElementKind.PREFIX;
   /**
@@ -2549,7 +2998,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     this._importedLibraries = importedLibraries2;
   }
   void appendTo(StringBuffer builder) {
-    builder.add("as ");
+    builder.write("as ");
     super.appendTo(builder);
   }
 }
@@ -2558,50 +3007,46 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
  */
 class PropertyAccessorElementImpl extends ExecutableElementImpl implements PropertyAccessorElement {
   /**
-   * The field associated with this accessor.
+   * The variable associated with this accessor.
    */
-  FieldElement _field;
+  PropertyInducingElement _variable;
   /**
    * An empty array of property accessor elements.
    */
   static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>(0);
   /**
-   * Initialize a newly created synthetic property accessor element to be associated with the given
-   * field.
-   * @param name the name of this element
-   */
-  PropertyAccessorElementImpl.con1(FieldElementImpl field2) : super.con2(field2.name, -1) {
-    _jtd_constructor_157_impl(field2);
-  }
-  _jtd_constructor_157_impl(FieldElementImpl field2) {
-    this._field = field2;
-    synthetic = true;
-  }
-  /**
    * Initialize a newly created property accessor element to have the given name.
    * @param name the name of this element
    */
-  PropertyAccessorElementImpl.con2(Identifier name) : super.con1(name) {
-    _jtd_constructor_158_impl(name);
+  PropertyAccessorElementImpl.con1(Identifier name) : super.con1(name) {
+    _jtd_constructor_181_impl(name);
   }
-  _jtd_constructor_158_impl(Identifier name) {
+  _jtd_constructor_181_impl(Identifier name) {
   }
-  FieldElement get field => _field;
+  /**
+   * Initialize a newly created synthetic property accessor element to be associated with the given
+   * variable.
+   * @param variable the variable with which this access is associated
+   */
+  PropertyAccessorElementImpl.con2(PropertyInducingElementImpl variable2) : super.con2(variable2.name, -1) {
+    _jtd_constructor_182_impl(variable2);
+  }
+  _jtd_constructor_182_impl(PropertyInducingElementImpl variable2) {
+    this._variable = variable2;
+    synthetic = true;
+  }
+  accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
+  bool operator ==(Object object) => super == object && identical(isGetter(), ((object as PropertyAccessorElement)).isGetter());
   ElementKind get kind {
     if (isGetter()) {
       return ElementKind.GETTER;
     }
     return ElementKind.SETTER;
   }
+  PropertyInducingElement get variable => _variable;
   bool isGetter() => hasModifier(Modifier.GETTER);
   bool isSetter() => hasModifier(Modifier.SETTER);
-  /**
-   * Set the field associated with this accessor to the given field.
-   * @param field the field associated with this accessor
-   */
-  void set field(FieldElement field3) {
-    this._field = field3;
-  }
+  bool isStatic() => variable.isStatic();
   /**
    * Set whether this accessor is a getter to correspond to the given value.
    * @param isGetter {@code true} if the accessor is a getter
@@ -2616,10 +3061,69 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   void set setter(bool isSetter) {
     setModifier(Modifier.SETTER, isSetter);
   }
+  /**
+   * Set the variable associated with this accessor to the given variable.
+   * @param variable the variable associated with this accessor
+   */
+  void set variable(PropertyInducingElement variable3) {
+    this._variable = variable3;
+  }
   void appendTo(StringBuffer builder) {
-    builder.add(isGetter() ? "get " : "set ");
-    builder.add(field.name);
+    builder.write(isGetter() ? "get " : "set ");
+    builder.write(variable.name);
     super.appendTo(builder);
+  }
+}
+/**
+ * Instances of the class {@code PropertyInducingElementImpl} implement a{@code PropertyInducingElement}.
+ */
+abstract class PropertyInducingElementImpl extends VariableElementImpl implements PropertyInducingElement {
+  /**
+   * The getter associated with this element.
+   */
+  PropertyAccessorElement _getter;
+  /**
+   * The setter associated with this element, or {@code null} if the element is effectively{@code final} and therefore does not have a setter associated with it.
+   */
+  PropertyAccessorElement _setter;
+  /**
+   * An empty array of elements.
+   */
+  static List<PropertyInducingElement> EMPTY_ARRAY = new List<PropertyInducingElement>(0);
+  /**
+   * Initialize a newly created element to have the given name.
+   * @param name the name of this element
+   */
+  PropertyInducingElementImpl.con1(Identifier name) : super.con1(name) {
+    _jtd_constructor_183_impl(name);
+  }
+  _jtd_constructor_183_impl(Identifier name) {
+  }
+  /**
+   * Initialize a newly created synthetic element to have the given name.
+   * @param name the name of this element
+   */
+  PropertyInducingElementImpl.con2(String name) : super.con2(name, -1) {
+    _jtd_constructor_184_impl(name);
+  }
+  _jtd_constructor_184_impl(String name) {
+    synthetic = true;
+  }
+  PropertyAccessorElement get getter => _getter;
+  PropertyAccessorElement get setter => _setter;
+  /**
+   * Set the getter associated with this element to the given accessor.
+   * @param getter the getter associated with this element
+   */
+  void set getter(PropertyAccessorElement getter2) {
+    this._getter = getter2;
+  }
+  /**
+   * Set the setter associated with this element to the given accessor.
+   * @param setter the setter associated with this element
+   */
+  void set setter(PropertyAccessorElement setter2) {
+    this._setter = setter2;
   }
 }
 /**
@@ -2647,16 +3151,46 @@ class ShowCombinatorImpl implements ShowCombinator {
   }
   String toString() {
     StringBuffer builder = new StringBuffer();
-    builder.add("show ");
+    builder.write("show ");
     int count = _shownNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
-        builder.add(", ");
+        builder.write(", ");
       }
-      builder.add(_shownNames[i]);
+      builder.write(_shownNames[i]);
     }
     return builder.toString();
   }
+}
+/**
+ * Instances of the class {@code TopLevelVariableElementImpl} implement a{@code TopLevelVariableElement}.
+ */
+class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements TopLevelVariableElement {
+  /**
+   * An empty array of top-level variable elements.
+   */
+  static List<TopLevelVariableElement> EMPTY_ARRAY = new List<TopLevelVariableElement>(0);
+  /**
+   * Initialize a newly created top-level variable element to have the given name.
+   * @param name the name of this element
+   */
+  TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name) {
+    _jtd_constructor_186_impl(name);
+  }
+  _jtd_constructor_186_impl(Identifier name) {
+  }
+  /**
+   * Initialize a newly created synthetic top-level variable element to have the given name.
+   * @param name the name of this element
+   */
+  TopLevelVariableElementImpl.con2(String name) : super.con2(name) {
+    _jtd_constructor_187_impl(name);
+  }
+  _jtd_constructor_187_impl(String name) {
+  }
+  accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
+  ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+  bool isStatic() => true;
 }
 /**
  * Instances of the class {@code TypeAliasElementImpl} implement a {@code TypeAliasElement}.
@@ -2684,20 +3218,21 @@ class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
    */
   TypeAliasElementImpl(Identifier name) : super.con1(name) {
   }
-  ElementImpl getChild(String identifier23) {
+  accept(ElementVisitor visitor) => visitor.visitTypeAliasElement(this);
+  ElementImpl getChild(String identifier28) {
     for (VariableElement parameter in _parameters) {
-      if (((parameter as VariableElementImpl)).identifier == identifier23) {
-        return (parameter as VariableElementImpl);
+      if (((parameter as VariableElementImpl)).identifier == identifier28) {
+        return parameter as VariableElementImpl;
       }
     }
     for (TypeVariableElement typeVariable in _typeVariables) {
-      if (((typeVariable as TypeVariableElementImpl)).identifier == identifier23) {
-        return (typeVariable as TypeVariableElementImpl);
+      if (((typeVariable as TypeVariableElementImpl)).identifier == identifier28) {
+        return typeVariable as TypeVariableElementImpl;
       }
     }
     return null;
   }
-  CompilationUnitElement get enclosingElement => (super.enclosingElement as CompilationUnitElement);
+  CompilationUnitElement get enclosingElement => super.enclosingElement as CompilationUnitElement;
   ElementKind get kind => ElementKind.TYPE_ALIAS;
   List<ParameterElement> get parameters => _parameters;
   FunctionType get type => _type;
@@ -2718,8 +3253,8 @@ class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
    * Set the type of function defined by this type alias to the given type.
    * @param type the type of function defined by this type alias
    */
-  void set type(FunctionType type7) {
-    this._type = type7;
+  void set type(FunctionType type8) {
+    this._type = type8;
   }
   /**
    * Set the type variables defined for this type to the given variables.
@@ -2731,32 +3266,37 @@ class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
     }
     this._typeVariables = typeVariables3;
   }
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(_parameters, visitor);
+    safelyVisitChildren(_typeVariables, visitor);
+  }
   void appendTo(StringBuffer builder) {
-    builder.add("typedef ");
-    builder.add(name);
+    builder.write("typedef ");
+    builder.write(name);
     int variableCount = _typeVariables.length;
     if (variableCount > 0) {
-      builder.add("<");
+      builder.write("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
-          builder.add(", ");
+          builder.write(", ");
         }
         ((_typeVariables[i] as TypeVariableElementImpl)).appendTo(builder);
       }
-      builder.add(">");
+      builder.write(">");
     }
-    builder.add("(");
+    builder.write("(");
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.add(", ");
+        builder.write(", ");
       }
       ((_parameters[i] as ParameterElementImpl)).appendTo(builder);
     }
-    builder.add(")");
+    builder.write(")");
     if (_type != null) {
-      builder.add(" -> ");
-      builder.add(_type.returnType);
+      builder.write(" -> ");
+      builder.write(_type.returnType);
     }
   }
 }
@@ -2783,6 +3323,7 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
    */
   TypeVariableElementImpl(Identifier name) : super.con1(name) {
   }
+  accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
   Type2 get bound => _bound;
   ElementKind get kind => ElementKind.TYPE_VARIABLE;
   TypeVariableType get type => _type;
@@ -2797,21 +3338,21 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
    * Set the type defined by this type variable to the given type
    * @param type the type defined by this type variable
    */
-  void set type(TypeVariableType type8) {
-    this._type = type8;
+  void set type(TypeVariableType type9) {
+    this._type = type9;
   }
   void appendTo(StringBuffer builder) {
-    builder.add(name);
+    builder.write(name);
     if (_bound != null) {
-      builder.add(" extends ");
-      builder.add(_bound);
+      builder.write(" extends ");
+      builder.write(_bound);
     }
   }
 }
 /**
  * Instances of the class {@code VariableElementImpl} implement a {@code VariableElement}.
  */
-class VariableElementImpl extends ElementImpl implements VariableElement {
+abstract class VariableElementImpl extends ElementImpl implements VariableElement {
   /**
    * The declared type of this variable.
    */
@@ -2822,15 +3363,6 @@ class VariableElementImpl extends ElementImpl implements VariableElement {
    */
   FunctionElement _initializer;
   /**
-   * The offset to the beginning of the visible range for this element.
-   */
-  int _visibleRangeOffset = 0;
-  /**
-   * The length of the visible range for this element, or {@code -1} if this element does not have a
-   * visible range.
-   */
-  int _visibleRangeLength = -1;
-  /**
    * An empty array of variable elements.
    */
   static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>(0);
@@ -2839,9 +3371,9 @@ class VariableElementImpl extends ElementImpl implements VariableElement {
    * @param name the name of this element
    */
   VariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_162_impl(name);
+    _jtd_constructor_190_impl(name);
   }
-  _jtd_constructor_162_impl(Identifier name) {
+  _jtd_constructor_190_impl(Identifier name) {
   }
   /**
    * Initialize a newly created variable element to have the given name.
@@ -2850,19 +3382,12 @@ class VariableElementImpl extends ElementImpl implements VariableElement {
    * declaration of this element
    */
   VariableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_163_impl(name, nameOffset);
+    _jtd_constructor_191_impl(name, nameOffset);
   }
-  _jtd_constructor_163_impl(String name, int nameOffset) {
+  _jtd_constructor_191_impl(String name, int nameOffset) {
   }
   FunctionElement get initializer => _initializer;
-  ElementKind get kind => ElementKind.VARIABLE;
   Type2 get type => _type;
-  SourceRange get visibleRange {
-    if (_visibleRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
-  }
   bool isConst() => hasModifier(Modifier.CONST);
   bool isFinal() => hasModifier(Modifier.FINAL);
   /**
@@ -2893,24 +3418,17 @@ class VariableElementImpl extends ElementImpl implements VariableElement {
    * Set the declared type of this variable to the given type.
    * @param type the declared type of this variable
    */
-  void set type(Type2 type9) {
-    this._type = type9;
+  void set type(Type2 type10) {
+    this._type = type10;
   }
-  /**
-   * Set the visible range for this element to the range starting at the given offset with the given
-   * length.
-   * @param offset the offset to the beginning of the visible range for this element
-   * @param length the length of the visible range for this element, or {@code -1} if this element
-   * does not have a visible range
-   */
-  void setVisibleRange(int offset, int length) {
-    _visibleRangeOffset = offset;
-    _visibleRangeLength = length;
+  void visitChildren(ElementVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_initializer, visitor);
   }
   void appendTo(StringBuffer builder) {
-    builder.add(type);
-    builder.add(" ");
-    builder.add(name);
+    builder.write(type);
+    builder.write(" ");
+    builder.write(name);
   }
 }
 /**
@@ -2957,8 +3475,9 @@ class DynamicTypeImpl extends TypeImpl {
     ((element as DynamicElementImpl)).type = this;
   }
   bool operator ==(Object object) => object is DynamicTypeImpl;
+  bool isDynamic() => true;
   bool isMoreSpecificThan(Type2 type) => false;
-  bool isSubtypeOf(Type2 type) => false;
+  bool isSubtypeOf(Type2 type) => identical(this, type);
   bool isSupertypeOf(Type2 type) => true;
   DynamicTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
 }
@@ -2968,14 +3487,15 @@ class DynamicTypeImpl extends TypeImpl {
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
-   * Return {@code true} if all of the types in the first array are equal to the corresponding types
-   * in the second array.
-   * @param firstTypes the first array of types being compared
-   * @param secondTypes the second array of types being compared
-   * @return {@code true} if all of the types in the first array are equal to the corresponding
-   * types in the second array
+   * Return {@code true} if all of the name/type pairs in the first map are equal to the
+   * corresponding name/type pairs in the second map. The maps are expected to iterate over their
+   * entries in the same order in which those entries were added to the map.
+   * @param firstTypes the first map of name/type pairs being compared
+   * @param secondTypes the second map of name/type pairs being compared
+   * @return {@code true} if all of the name/type pairs in the first map are equal to the
+   * corresponding name/type pairs in the second map
    */
-  static bool equals2(LinkedHashMap<String, Type2> firstTypes, LinkedHashMap<String, Type2> secondTypes) {
+  static bool equals2(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes) {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
@@ -2999,7 +3519,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param parameterTypes the parameter types for the substitution
    * @return the result of performing the substitution on each of the types
    */
-  static LinkedHashMap<String, Type2> substitute3(LinkedHashMap<String, Type2> types, List<Type2> argumentTypes, List<Type2> parameterTypes) {
+  static Map<String, Type2> substitute3(Map<String, Type2> types, List<Type2> argumentTypes, List<Type2> parameterTypes) {
+    if (types.isEmpty) {
+      return types;
+    }
     LinkedHashMap<String, Type2> newTypes = new LinkedHashMap<String, Type2>();
     for (MapEntry<String, Type2> entry in getMapEntrySet(types)) {
       newTypes[entry.getKey()] = entry.getValue().substitute2(argumentTypes, parameterTypes);
@@ -3025,7 +3548,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * A table mapping the names of named parameters to the types of the named parameters of this type
    * of function.
    */
-  LinkedHashMap<String, Type2> _namedParameterTypes = new LinkedHashMap<String, Type2>();
+  Map<String, Type2> _namedParameterTypes = new Map();
   /**
    * The type of object returned by this type of function.
    */
@@ -3036,9 +3559,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con1(ExecutableElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_209_impl(element);
+    _jtd_constructor_242_impl(element);
   }
-  _jtd_constructor_209_impl(ExecutableElement element) {
+  _jtd_constructor_242_impl(ExecutableElement element) {
   }
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
@@ -3046,15 +3569,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con2(TypeAliasElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_210_impl(element);
+    _jtd_constructor_243_impl(element);
   }
-  _jtd_constructor_210_impl(TypeAliasElement element) {
+  _jtd_constructor_243_impl(TypeAliasElement element) {
   }
   bool operator ==(Object object) {
     if (object is! FunctionTypeImpl) {
       return false;
     }
-    FunctionTypeImpl otherType = (object as FunctionTypeImpl);
+    FunctionTypeImpl otherType = object as FunctionTypeImpl;
     return element == otherType.element && JavaArrays.equals(_normalParameterTypes, otherType._normalParameterTypes) && JavaArrays.equals(_optionalParameterTypes, otherType._optionalParameterTypes) && equals2(_namedParameterTypes, otherType._namedParameterTypes);
   }
   Map<String, Type2> get namedParameterTypes => _namedParameterTypes;
@@ -3063,20 +3586,24 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Type2 get returnType => _returnType;
   List<Type2> get typeArguments => _typeArguments;
   int get hashCode {
-    Element element34 = element;
-    if (element34 == null) {
+    Element element37 = element;
+    if (element37 == null) {
       return 0;
     }
-    return element34.hashCode;
+    return element37.hashCode;
   }
   bool isSubtypeOf(Type2 type) {
-    if (type == null || type is! FunctionType) {
+    if (type == null) {
       return false;
-    } else if (identical(this, type) || this == type) {
+    } else if (identical(this, type) || type.isDynamic() || type.isDartCoreFunction()) {
+      return true;
+    } else if (type is! FunctionType) {
+      return false;
+    } else if (this == type) {
       return true;
     }
     FunctionType t = this;
-    FunctionType s = (type as FunctionType);
+    FunctionType s = type as FunctionType;
     if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
       return false;
     } else if (t.normalParameterTypes.length > 0) {
@@ -3174,21 +3701,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (argumentTypes.length == 0) {
       return this;
     }
-    Element element35 = element;
-    FunctionTypeImpl newType = (element35 is ExecutableElement) ? new FunctionTypeImpl.con1((element35 as ExecutableElement)) : new FunctionTypeImpl.con2((element35 as TypeAliasElement));
+    Element element38 = element;
+    FunctionTypeImpl newType = (element38 is ExecutableElement) ? new FunctionTypeImpl.con1((element38 as ExecutableElement)) : new FunctionTypeImpl.con2((element38 as TypeAliasElement));
     newType.returnType = _returnType.substitute2(argumentTypes, parameterTypes);
     newType.normalParameterTypes = TypeImpl.substitute(_normalParameterTypes, argumentTypes, parameterTypes);
     newType.optionalParameterTypes = TypeImpl.substitute(_optionalParameterTypes, argumentTypes, parameterTypes);
-    newType.namedParameterTypes = substitute3(_namedParameterTypes, argumentTypes, parameterTypes);
+    newType._namedParameterTypes = substitute3(_namedParameterTypes, argumentTypes, parameterTypes);
     return newType;
   }
   void appendTo(StringBuffer builder) {
-    builder.add("(");
+    builder.write("(");
     bool needsComma = false;
     if (_normalParameterTypes.length > 0) {
       for (Type2 type in _normalParameterTypes) {
         if (needsComma) {
-          builder.add(", ");
+          builder.write(", ");
         } else {
           needsComma = true;
         }
@@ -3197,42 +3724,46 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     if (_optionalParameterTypes.length > 0) {
       if (needsComma) {
-        builder.add(", ");
+        builder.write(", ");
         needsComma = false;
       }
-      builder.add("[");
+      builder.write("[");
       for (Type2 type in _optionalParameterTypes) {
         if (needsComma) {
-          builder.add(", ");
+          builder.write(", ");
         } else {
           needsComma = true;
         }
         ((type as TypeImpl)).appendTo(builder);
       }
-      builder.add("]");
+      builder.write("]");
       needsComma = true;
     }
     if (_namedParameterTypes.length > 0) {
       if (needsComma) {
-        builder.add(", ");
+        builder.write(", ");
         needsComma = false;
       }
-      builder.add("{");
+      builder.write("{");
       for (MapEntry<String, Type2> entry in getMapEntrySet(_namedParameterTypes)) {
         if (needsComma) {
-          builder.add(", ");
+          builder.write(", ");
         } else {
           needsComma = true;
         }
-        builder.add(entry.getKey());
-        builder.add(": ");
+        builder.write(entry.getKey());
+        builder.write(": ");
         ((entry.getValue() as TypeImpl)).appendTo(builder);
       }
-      builder.add("}");
+      builder.write("}");
       needsComma = true;
     }
-    builder.add(") -> ");
-    ((_returnType as TypeImpl)).appendTo(builder);
+    builder.write(") -> ");
+    if (_returnType == null) {
+      builder.write("null");
+    } else {
+      ((_returnType as TypeImpl)).appendTo(builder);
+    }
   }
 }
 /**
@@ -3303,9 +3834,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #getLeastUpperBound(Type)
    */
   static Set<InterfaceType> computeSuperinterfaceSet2(InterfaceType type, Set<InterfaceType> set) {
-    Element element36 = type.element;
-    if (element36 != null && element36 is ClassElement) {
-      ClassElement classElement = (element36 as ClassElement);
+    Element element39 = type.element;
+    if (element39 != null && element39 is ClassElement) {
+      ClassElement classElement = element39 as ClassElement;
       List<InterfaceType> superinterfaces = classElement.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
         javaSetAdd(set, superinterface);
@@ -3328,9 +3859,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param element the element representing the declaration of the type
    */
   InterfaceTypeImpl.con1(ClassElement element) : super(element, element.name) {
-    _jtd_constructor_211_impl(element);
+    _jtd_constructor_244_impl(element);
   }
-  _jtd_constructor_211_impl(ClassElement element) {
+  _jtd_constructor_244_impl(ClassElement element) {
   }
   /**
    * Initialize a newly created type to have the given name. This constructor should only be used in
@@ -3338,18 +3869,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param name the name of the type
    */
   InterfaceTypeImpl.con2(String name) : super(null, name) {
-    _jtd_constructor_212_impl(name);
+    _jtd_constructor_245_impl(name);
   }
-  _jtd_constructor_212_impl(String name) {
+  _jtd_constructor_245_impl(String name) {
   }
   bool operator ==(Object object) {
     if (object is! InterfaceTypeImpl) {
       return false;
     }
-    InterfaceTypeImpl otherType = (object as InterfaceTypeImpl);
+    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
     return element == otherType.element && JavaArrays.equals(_typeArguments, otherType._typeArguments);
   }
-  ClassElement get element => (super.element as ClassElement);
+  ClassElement get element => super.element as ClassElement;
   Type2 getLeastUpperBound(Type2 type) {
     Type2 dynamicType = DynamicTypeImpl.instance;
     if (identical(this, dynamicType) || identical(type, dynamicType)) {
@@ -3359,7 +3890,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
     InterfaceType i = this;
-    InterfaceType j = (type as InterfaceType);
+    InterfaceType j = type as InterfaceType;
     Set<InterfaceType> si = computeSuperinterfaceSet(i);
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
     javaSetAdd(si, i);
@@ -3367,7 +3898,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     si.retainAll(sj);
     Set<InterfaceType> s = si;
     List<InterfaceType> sn = new List.from(s);
-    List<int> depths = new List<int>(sn.length);
+    List<int> depths = new List<int>.filled(sn.length, 0);
     int maxDepth = 0;
     for (int n = 0; n < sn.length; n++) {
       depths[n] = computeLongestInheritancePathToObject(sn[n]);
@@ -3396,11 +3927,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
   List<Type2> get typeArguments => _typeArguments;
   int get hashCode {
-    ClassElement element37 = element;
-    if (element37 == null) {
+    ClassElement element40 = element;
+    if (element40 == null) {
       return 0;
     }
-    return element37.hashCode;
+    return element40.hashCode;
+  }
+  bool isDartCoreFunction() {
+    ClassElement element41 = element;
+    if (element41 == null) {
+      return false;
+    }
+    return element41.name == "Function" && element41.library.isDartCore();
   }
   bool isDirectSupertypeOf(InterfaceType type) {
     ClassElement i = element;
@@ -3431,7 +3969,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (type is! InterfaceType) {
       return false;
     }
-    InterfaceType s = (type as InterfaceType);
+    InterfaceType s = type as InterfaceType;
     if (this == s) {
       return true;
     }
@@ -3469,7 +4007,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     InterfaceType typeT = this;
-    InterfaceType typeS = (type as InterfaceType);
+    InterfaceType typeS = type as InterfaceType;
     ClassElement elementT = element;
     if (elementT == null) {
       return false;
@@ -3528,17 +4066,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return newType;
   }
   void appendTo(StringBuffer builder) {
-    builder.add(name);
+    builder.write(name);
     int argumentCount = _typeArguments.length;
     if (argumentCount > 0) {
-      builder.add("<");
+      builder.write("<");
       for (int i = 0; i < argumentCount; i++) {
         if (i > 0) {
-          builder.add(", ");
+          builder.write(", ");
         }
         ((_typeArguments[i] as TypeImpl)).appendTo(builder);
       }
-      builder.add(">");
+      builder.write(">");
     }
   }
 }
@@ -3557,6 +4095,9 @@ abstract class TypeImpl implements Type2 {
    */
   static List<Type2> substitute(List<Type2> types, List<Type2> argumentTypes, List<Type2> parameterTypes) {
     int length6 = types.length;
+    if (length6 == 0) {
+      return types;
+    }
     List<Type2> newTypes = new List<Type2>(length6);
     for (int i = 0; i < length6; i++) {
       newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
@@ -3589,8 +4130,11 @@ abstract class TypeImpl implements Type2 {
   Type2 getLeastUpperBound(Type2 type) => null;
   String get name => _name;
   bool isAssignableTo(Type2 type) => this.isSubtypeOf(type) || type.isSubtypeOf(this);
+  bool isDartCoreFunction() => false;
+  bool isDynamic() => false;
   bool isMoreSpecificThan(Type2 type) => false;
   bool isSupertypeOf(Type2 type) => type.isSubtypeOf(this);
+  bool isVoid() => false;
   String toString() {
     StringBuffer builder = new StringBuffer();
     appendTo(builder);
@@ -3602,9 +4146,9 @@ abstract class TypeImpl implements Type2 {
    */
   void appendTo(StringBuffer builder) {
     if (_name == null) {
-      builder.add("<unnamed type>");
+      builder.write("<unnamed type>");
     } else {
-      builder.add(_name);
+      builder.write(_name);
     }
   }
 }
@@ -3635,7 +4179,7 @@ class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   TypeVariableTypeImpl(TypeVariableElement element) : super(element, element.name) {
   }
   bool operator ==(Object object) => object is TypeVariableTypeImpl && element == ((object as TypeVariableTypeImpl)).element;
-  TypeVariableElement get element => (super.element as TypeVariableElement);
+  TypeVariableElement get element => super.element as TypeVariableElement;
   int get hashCode => element.hashCode;
   bool isMoreSpecificThan(Type2 type) {
     Type2 upperBound = element.bound;
@@ -3672,6 +4216,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   }
   bool operator ==(Object object) => identical(object, this);
   bool isSubtypeOf(Type2 type) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
+  bool isVoid() => true;
   VoidTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
 }
 /**
@@ -3923,6 +4468,18 @@ abstract class Type2 {
    */
   bool isAssignableTo(Type2 type);
   /**
+   * Return {@code true} if this type represents the type 'Function' defined in the dart:core
+   * library.
+   * @return {@code true} if this type represents the type 'Function' defined in the dart:core
+   * library
+   */
+  bool isDartCoreFunction();
+  /**
+   * Return {@code true} if this type represents the type 'dynamic'.
+   * @return {@code true} if this type represents the type 'dynamic'
+   */
+  bool isDynamic();
+  /**
    * Return {@code true} if this type is more specific than the given type.
    * @param type the type being compared with this type
    * @return {@code true} if this type is more specific than the given type
@@ -3941,6 +4498,11 @@ abstract class Type2 {
    * @return {@code true} if this type is a supertype of the given type
    */
   bool isSupertypeOf(Type2 type);
+  /**
+   * Return {@code true} if this type represents the type 'void'.
+   * @return {@code true} if this type represents the type 'void'
+   */
+  bool isVoid();
   /**
    * Return the type resulting from substituting the given arguments for the given parameters in
    * this type. The specification defines this operation in section 2: <blockquote> The notation

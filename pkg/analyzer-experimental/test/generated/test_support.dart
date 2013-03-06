@@ -4,12 +4,14 @@
 library engine.test_support;
 
 import 'dart:collection';
+import 'dart:uri';
 import 'package:analyzer-experimental/src/generated/java_core.dart';
 import 'package:analyzer-experimental/src/generated/java_engine.dart';
 import 'package:analyzer-experimental/src/generated/java_junit.dart';
 import 'package:analyzer-experimental/src/generated/source.dart';
 import 'package:analyzer-experimental/src/generated/error.dart';
 import 'package:analyzer-experimental/src/generated/scanner.dart';
+import 'package:analyzer-experimental/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
@@ -42,17 +44,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_258_impl();
+    _jtd_constructor_297_impl();
   }
-  _jtd_constructor_258_impl() {
+  _jtd_constructor_297_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_259_impl(rawSource2);
+    _jtd_constructor_298_impl(rawSource2);
   }
-  _jtd_constructor_259_impl(String rawSource2) {
+  _jtd_constructor_298_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
@@ -120,15 +122,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
       if (actualCount != expectedCount) {
         if (builder.length == 0) {
-          builder.add("Expected ");
+          builder.write("Expected ");
         } else {
-          builder.add("; ");
+          builder.write("; ");
         }
-        builder.add(expectedCount);
-        builder.add(" errors of type ");
-        builder.add(code);
-        builder.add(", found ");
-        builder.add(actualCount);
+        builder.write(expectedCount);
+        builder.write(" errors of type ");
+        builder.write(code);
+        builder.write(", found ");
+        builder.write(actualCount);
       }
     }
     for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
@@ -136,23 +138,23 @@ class GatheringErrorListener implements AnalysisErrorListener {
       List<AnalysisError> actualErrors = entry.getValue();
       int actualCount = actualErrors.length;
       if (builder.length == 0) {
-        builder.add("Expected ");
+        builder.write("Expected ");
       } else {
-        builder.add("; ");
+        builder.write("; ");
       }
-      builder.add("0 errors of type ");
-      builder.add(code);
-      builder.add(", found ");
-      builder.add(actualCount);
-      builder.add(" (");
+      builder.write("0 errors of type ");
+      builder.write(code);
+      builder.write(", found ");
+      builder.write(actualCount);
+      builder.write(" (");
       for (int i = 0; i < actualErrors.length; i++) {
         AnalysisError error = actualErrors[i];
         if (i > 0) {
-          builder.add(", ");
+          builder.write(", ");
         }
-        builder.add(error.offset);
+        builder.write(error.offset);
       }
-      builder.add(")");
+      builder.write(")");
     }
     if (builder.length > 0) {
       JUnitTestCase.fail(builder.toString());
@@ -272,15 +274,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(expectedErrors.length);
     writer.print(" errors:");
     for (AnalysisError error in expectedErrors) {
-      Source source9 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source9];
+      Source source11 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source11];
       writer.println();
       if (lineInfo == null) {
-        int offset9 = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source9 == null ? "" : source9.shortName, error.errorCode, offset9, offset9 + error.length]);
+        int offset10 = error.offset;
+        writer.printf("  %s %s (%d..%d)", [source11 == null ? "" : source11.shortName, error.errorCode, offset10, offset10 + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source9 == null ? "" : source9.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [source11 == null ? "" : source11.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
     writer.println();
@@ -288,15 +290,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
-      Source source10 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source10];
+      Source source12 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source12];
       writer.println();
       if (lineInfo == null) {
-        int offset10 = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source10 == null ? "" : source10.shortName, error.errorCode, offset10, offset10 + error.length, error.message]);
+        int offset11 = error.offset;
+        writer.printf("  %s %s (%d..%d): %s", [source12 == null ? "" : source12.shortName, error.errorCode, offset11, offset11 + error.length, error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source10 == null ? "" : source10.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [source12 == null ? "" : source12.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
@@ -351,7 +353,7 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertNotNull(actualValues);
     int expectedLength = expectedValues.length;
     JUnitTestCase.assertEquals(expectedLength, actualValues.length);
-    List<bool> found = new List<bool>(expectedLength);
+    List<bool> found = new List<bool>.filled(expectedLength, false);
     for (int i = 0; i < expectedLength; i++) {
       found[i] = false;
     }
@@ -471,7 +473,7 @@ class EngineTestCase extends JUnitTestCase {
     if (!isInstanceOf(object, expectedClass)) {
       JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
-    return (object as Object);
+    return object as Object;
   }
   /**
    * Assert that the given array is non-{@code null} and has the expected number of elements.
@@ -564,6 +566,36 @@ class EngineTestCase extends JUnitTestCase {
     }
     return diffPos;
   }
+  /**
+   * Return the getter in the given type with the given name. Inherited getters are ignored.
+   * @param type the type in which the getter is declared
+   * @param getterName the name of the getter to be returned
+   * @return the property accessor element representing the getter with the given name
+   */
+  PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
+    for (PropertyAccessorElement accessor in type.element.accessors) {
+      if (accessor.isGetter() && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    JUnitTestCase.fail("Could not find getter named ${getterName} in ${type.name}");
+    return null;
+  }
+  /**
+   * Return the method in the given type with the given name. Inherited methods are ignored.
+   * @param type the type in which the method is declared
+   * @param methodName the name of the method to be returned
+   * @return the method element representing the method with the given name
+   */
+  MethodElement getMethod(InterfaceType type, String methodName) {
+    for (MethodElement method in type.element.methods) {
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    JUnitTestCase.fail("Could not find method named ${methodName} in ${type.name}");
+    return null;
+  }
   static dartSuite() {
     _ut.group('EngineTestCase', () {
     });
@@ -585,10 +617,17 @@ class TestSource implements Source {
   String get shortName {
     throw new UnsupportedOperationException();
   }
+  String get encoding {
+    throw new UnsupportedOperationException();
+  }
+  bool exists() => true;
   bool isInSystemLibrary() {
     throw new UnsupportedOperationException();
   }
   Source resolve(String uri) {
+    throw new UnsupportedOperationException();
+  }
+  Source resolveRelative(Uri uri) {
     throw new UnsupportedOperationException();
   }
 }
