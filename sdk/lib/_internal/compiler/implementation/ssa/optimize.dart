@@ -439,7 +439,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType leftType = left.instructionType;
     HType rightType = right.instructionType;
 
-    // We don't optimize on numbers to preserve the runtime semantics.
+    // Intersection of int and double return conflicting, so
+    // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull() && right.isNumberOrNull()) &&
         leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, constantSystem);

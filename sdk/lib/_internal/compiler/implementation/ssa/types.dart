@@ -416,6 +416,7 @@ class HBooleanType extends HPrimitiveType {
     if (other.isUnknown()) return HType.BOOLEAN;
     if (other.isBooleanOrNull()) return HType.BOOLEAN;
     if (other.isBoolean()) return HType.BOOLEAN;
+    if (other.isTop(compiler)) return HType.BOOLEAN;
     return HType.CONFLICTING;
   }
 }
@@ -453,7 +454,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isTop(compiler)) {
+    if (other.canBePrimitiveNumber(compiler)) {
       return other.canBeNull() ? this : HType.NUMBER;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -493,6 +494,7 @@ class HNumberType extends HPrimitiveType {
     if (other.isIntegerOrNull()) return HType.INTEGER;
     if (other.isDoubleOrNull()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.NUMBER;
+    if (other.canBePrimitiveNumber(compiler)) return HType.NUMBER;
     return HType.CONFLICTING;
   }
 }
@@ -531,7 +533,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.NULL;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.isTop(compiler)) {
+    if (other.canBePrimitiveNumber(compiler)) {
       return other.canBeNull() ? this : HType.INTEGER;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -574,6 +576,7 @@ class HIntegerType extends HNumberType {
     if (other.isDoubleOrNull()) return HType.CONFLICTING;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER;
+    if (other.canBePrimitiveNumber(compiler)) return HType.INTEGER;
     return HType.CONFLICTING;
   }
 }
@@ -612,7 +615,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.isTop(compiler)) {
+    if (other.canBePrimitiveNumber(compiler)) {
       return other.canBeNull() ? this : HType.DOUBLE;
     }
     if (other.canBeNull()) return HType.NULL;
@@ -655,6 +658,7 @@ class HDoubleType extends HNumberType {
     if (other.isDoubleOrNull()) return HType.DOUBLE;
     if (other.isNumber()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.DOUBLE;
+    if (other.canBePrimitiveNumber(compiler)) return HType.DOUBLE;
     return HType.CONFLICTING;
   }
 }
