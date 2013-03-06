@@ -1246,7 +1246,7 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   }
   const int32_t offset =
       Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
     ldr(rd, Address(PP, offset));
   } else {
@@ -1409,7 +1409,7 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset =
       Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
     ldr(LR, Address(PP, offset));
   } else {
@@ -1444,7 +1444,7 @@ void Assembler::BranchLinkStore(const ExternalLabel* label, Address ad) {
 void Assembler::BranchLinkOffset(Register base, int offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
     ldr(IP, Address(base, offset));
   } else {
@@ -1511,7 +1511,7 @@ void Assembler::LoadFromOffset(LoadOperandType type,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(type, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
@@ -1548,7 +1548,7 @@ void Assembler::StoreToOffset(StoreOperandType type,
                               Register base,
                               int32_t offset,
                               Condition cond) {
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(type, offset, &offset_mask)) {
     ASSERT(reg != IP);
     ASSERT(base != IP);
@@ -1579,7 +1579,7 @@ void Assembler::LoadSFromOffset(SRegister reg,
                                 Register base,
                                 int32_t offset,
                                 Condition cond) {
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(kLoadSWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
@@ -1594,7 +1594,7 @@ void Assembler::StoreSToOffset(SRegister reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(kStoreSWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
@@ -1609,7 +1609,7 @@ void Assembler::LoadDFromOffset(DRegister reg,
                                 Register base,
                                 int32_t offset,
                                 Condition cond) {
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(kLoadDWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
@@ -1624,7 +1624,7 @@ void Assembler::StoreDToOffset(DRegister reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  int32_t offset_mask;
+  int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(kStoreDWord, offset, &offset_mask)) {
     ASSERT(base != IP);
     AddImmediate(IP, base, offset & ~offset_mask, cond);
