@@ -548,7 +548,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
                && !RuntimeTypeInformation.hasTypeArguments(type)) {
-      DartType receiverType = expressionType.computeType(compiler);
+      var receiverType = expressionType.computeType(compiler);
       if (receiverType != null) {
         if (!receiverType.isMalformed &&
             !type.isMalformed &&
