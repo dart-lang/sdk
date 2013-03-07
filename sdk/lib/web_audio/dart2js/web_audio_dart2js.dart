@@ -364,6 +364,18 @@ class AudioListener native "*AudioListener" {
 @DomName('AudioNode')
 class AudioNode native "*AudioNode" {
 
+  @DomName('AudioNode.channelCount')
+  @DocsEditable
+  int channelCount;
+
+  @DomName('AudioNode.channelCountMode')
+  @DocsEditable
+  String channelCountMode;
+
+  @DomName('AudioNode.channelInterpretation')
+  @DocsEditable
+  String channelInterpretation;
+
   @DomName('AudioNode.context')
   @DocsEditable
   final AudioContext context;

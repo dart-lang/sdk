@@ -11192,6 +11192,87 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('EXTDrawBuffers')
+class ExtDrawBuffers extends NativeFieldWrapperClass1 {
+  ExtDrawBuffers.internal();
+
+  static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
+
+  static const int COLOR_ATTACHMENT10_EXT = 0x8CEA;
+
+  static const int COLOR_ATTACHMENT11_EXT = 0x8CEB;
+
+  static const int COLOR_ATTACHMENT12_EXT = 0x8CEC;
+
+  static const int COLOR_ATTACHMENT13_EXT = 0x8CED;
+
+  static const int COLOR_ATTACHMENT14_EXT = 0x8CEE;
+
+  static const int COLOR_ATTACHMENT15_EXT = 0x8CEF;
+
+  static const int COLOR_ATTACHMENT1_EXT = 0x8CE1;
+
+  static const int COLOR_ATTACHMENT2_EXT = 0x8CE2;
+
+  static const int COLOR_ATTACHMENT3_EXT = 0x8CE3;
+
+  static const int COLOR_ATTACHMENT4_EXT = 0x8CE4;
+
+  static const int COLOR_ATTACHMENT5_EXT = 0x8CE5;
+
+  static const int COLOR_ATTACHMENT6_EXT = 0x8CE6;
+
+  static const int COLOR_ATTACHMENT7_EXT = 0x8CE7;
+
+  static const int COLOR_ATTACHMENT8_EXT = 0x8CE8;
+
+  static const int COLOR_ATTACHMENT9_EXT = 0x8CE9;
+
+  static const int DRAW_BUFFER0_EXT = 0x8825;
+
+  static const int DRAW_BUFFER10_EXT = 0x882F;
+
+  static const int DRAW_BUFFER11_EXT = 0x8830;
+
+  static const int DRAW_BUFFER12_EXT = 0x8831;
+
+  static const int DRAW_BUFFER13_EXT = 0x8832;
+
+  static const int DRAW_BUFFER14_EXT = 0x8833;
+
+  static const int DRAW_BUFFER15_EXT = 0x8834;
+
+  static const int DRAW_BUFFER1_EXT = 0x8826;
+
+  static const int DRAW_BUFFER2_EXT = 0x8827;
+
+  static const int DRAW_BUFFER3_EXT = 0x8828;
+
+  static const int DRAW_BUFFER4_EXT = 0x8829;
+
+  static const int DRAW_BUFFER5_EXT = 0x882A;
+
+  static const int DRAW_BUFFER6_EXT = 0x882B;
+
+  static const int DRAW_BUFFER7_EXT = 0x882C;
+
+  static const int DRAW_BUFFER8_EXT = 0x882D;
+
+  static const int DRAW_BUFFER9_EXT = 0x882E;
+
+  static const int MAX_COLOR_ATTACHMENTS_EXT = 0x8CDF;
+
+  static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
   ExtTextureFilterAnisotropic.internal();
@@ -19612,7 +19693,7 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 
   @DomName('NotificationCenter.requestPermission')
   @DocsEditable
-  void _requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
+  void _requestPermission([VoidCallback callback]) native "NotificationCenter_requestPermission_Callback";
 
   Future requestPermission() {
     var completer = new Completer();
@@ -19813,6 +19894,19 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 @DomName('OESTextureFloat')
 class OesTextureFloat extends NativeFieldWrapperClass1 {
   OesTextureFloat.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('OESTextureHalfFloat')
+class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
+  OesTextureHalfFloat.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26674,6 +26768,8 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   static const int GREEN_BITS = 0x0D53;
 
+  static const int HALF_FLOAT_OES = 0x8D61;
+
   static const int HIGH_FLOAT = 0x8DF2;
 
   static const int HIGH_INT = 0x8DF5;
@@ -28703,11 +28799,11 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.setInterval')
   @DocsEditable
-  int _setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
+  int _setInterval(Object handler, int timeout) native "DOMWindow_setInterval_Callback";
 
   @DomName('DOMWindow.setTimeout')
   @DocsEditable
-  int _setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
+  int _setTimeout(Object handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
   @DomName('DOMWindow.showModalDialog')
   @DocsEditable
@@ -29105,11 +29201,11 @@ class WorkerContext extends EventTarget {
 
   @DomName('WorkerContext.setInterval')
   @DocsEditable
-  int setInterval(TimeoutHandler handler, int timeout) native "WorkerContext_setInterval_Callback";
+  int setInterval(Object handler, int timeout) native "WorkerContext_setInterval_Callback";
 
   @DomName('WorkerContext.setTimeout')
   @DocsEditable
-  int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
+  int setTimeout(Object handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable

@@ -488,6 +488,30 @@ class AudioListener extends NativeFieldWrapperClass1 {
 class AudioNode extends NativeFieldWrapperClass1 {
   AudioNode.internal();
 
+  @DomName('AudioNode.channelCount')
+  @DocsEditable
+  int get channelCount native "AudioNode_channelCount_Getter";
+
+  @DomName('AudioNode.channelCount')
+  @DocsEditable
+  void set channelCount(int value) native "AudioNode_channelCount_Setter";
+
+  @DomName('AudioNode.channelCountMode')
+  @DocsEditable
+  String get channelCountMode native "AudioNode_channelCountMode_Getter";
+
+  @DomName('AudioNode.channelCountMode')
+  @DocsEditable
+  void set channelCountMode(String value) native "AudioNode_channelCountMode_Setter";
+
+  @DomName('AudioNode.channelInterpretation')
+  @DocsEditable
+  String get channelInterpretation native "AudioNode_channelInterpretation_Getter";
+
+  @DomName('AudioNode.channelInterpretation')
+  @DocsEditable
+  void set channelInterpretation(String value) native "AudioNode_channelInterpretation_Setter";
+
   @DomName('AudioNode.context')
   @DocsEditable
   AudioContext get context native "AudioNode_context_Getter";
