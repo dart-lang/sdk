@@ -272,22 +272,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
-  struct _stat entry_info;
-  const wchar_t* system_name = StringUtils::Utf8ToWide(pathname);
-  // TODO(whesse): We need to use FileGetAttributes here, and more complex
-  // checks.
-  int stat_success = _wstat(system_name, &st);
-  free(const_cast<wchar_t*>(system_name));
-  if (stat_success == -1) return File::kDoesNotExist;
-  if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
-  if (S_ISREG(entry_info.st_mode)) return File::kIsFile;
-  //  if (S_ISLNK(entry_info.st_mode)) return File::kIsLink;
   return File::kDoesNotExist;
 }
-
-  struct _stat st;
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
-  int stat_status = _wstat(system_name, &st);
-  free(const_cast<wchar_t*>(system_name));
 
 #endif  // defined(TARGET_OS_WINDOWS)
