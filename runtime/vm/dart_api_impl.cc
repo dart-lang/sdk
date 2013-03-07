@@ -1006,8 +1006,10 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   if (!isolate->message_handler()->HandleNextMessage()) {
-    // TODO(turnidge): Clear sticky error here?
-    return Api::NewHandle(isolate, isolate->object_store()->sticky_error());
+    Dart_Handle error =
+        Api::NewHandle(isolate, isolate->object_store()->sticky_error());
+    isolate->object_store()->clear_sticky_error();
+    return error;
   }
   return Api::Success(isolate);
 }
