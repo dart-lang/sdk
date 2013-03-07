@@ -16,6 +16,14 @@ void testHEAD(int totalConnections) {
           List<int> data = new List<int>.filled(200, 0);
           response.add(data);
           response.close();
+        } else if (request.uri.path == "/testChunked100") {
+          List<int> data = new List<int>.filled(100, 0);
+          response.add(data);
+          response.close();
+        } else if (request.uri.path == "/testChunked200") {
+          List<int> data = new List<int>.filled(200, 0);
+          response.add(data);
+          response.close();
         } else {
           assert(false);
         }
@@ -24,6 +32,15 @@ void testHEAD(int totalConnections) {
     HttpClient client = new HttpClient();
 
     int count = 0;
+
+    requestDone() {
+      count++;
+      if (count == totalConnections * 2) {
+        client.close();
+        server.close();
+      }
+    }
+
     for (int i = 0; i < totalConnections; i++) {
       int len = (i % 2 == 0) ? 100 : 200;
       client.open("HEAD", "127.0.0.1", server.port, "/test$len")
@@ -32,13 +49,17 @@ void testHEAD(int totalConnections) {
           Expect.equals(len, response.contentLength);
           response.listen(
             (_) => Expect.fail("Data from HEAD request"),
-            onDone: () {
-              count++;
-              if (count == totalConnections) {
-                client.close();
-                server.close();
-              }
-            });
+            onDone: requestDone);
+        });
+
+      client.open("HEAD", "127.0.0.1", server.port, "/testChunked$len")
+        .then((request) => request.close())
+        .then((HttpClientResponse response) {
+            print(response.headers);
+          Expect.equals(-1, response.contentLength);
+          response.listen(
+            (_) => Expect.fail("Data from HEAD request"),
+            onDone: requestDone);
         });
     }
   });

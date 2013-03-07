@@ -566,17 +566,17 @@ class _HttpParser
               _controller.add(_incoming);
               break;
             }
-            if (_chunked) {
-              _state = _State.CHUNK_SIZE;
-              _remainingContent = 0;
-            } else if (_transferLength == 0 ||
-                         (_messageType == _MessageType.RESPONSE &&
-                          (_noMessageBody || _responseToMethod == "HEAD"))) {
+            if (_transferLength == 0 ||
+                (_messageType == _MessageType.RESPONSE &&
+                 (_noMessageBody || _responseToMethod == "HEAD"))) {
               _reset();
               var tmp = _incoming;
               _closeIncoming();
               _controller.add(tmp);
               break;
+            } else if (_chunked) {
+              _state = _State.CHUNK_SIZE;
+              _remainingContent = 0;
             } else if (_transferLength > 0) {
               _remainingContent = _transferLength;
               _state = _State.BODY;
