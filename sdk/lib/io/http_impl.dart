@@ -398,11 +398,8 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
 
   void _writeHeaders() {
     if (_headersWritten) return;
-    bool _tmpIgnoreBody = _ignoreBody;
-    _ignoreBody = false;
     _headersWritten = true;
     _writeHeader();
-    _ignoreBody = _tmpIgnoreBody;
     if (_ignoreBody) {
       _ioSink.close();
       return;
@@ -455,19 +452,19 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   HttpConnectionInfo get connectionInfo => _httpRequest.connectionInfo;
 
   void _writeHeader() {
-    writeSP() => add([_CharCode.SP]);
-    writeCRLF() => add([_CharCode.CR, _CharCode.LF]);
+    writeSP() => _ioSink.add([_CharCode.SP]);
+    writeCRLF() => _ioSink.add([_CharCode.CR, _CharCode.LF]);
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      add(_Const.HTTP11);
+      _ioSink.add(_Const.HTTP11);
     } else {
-      add(_Const.HTTP10);
+      _ioSink.add(_Const.HTTP10);
     }
     writeSP();
-    addString(statusCode.toString());
+    _ioSink.addString(statusCode.toString());
     writeSP();
-    addString(reasonPhrase);
+    _ioSink.addString(reasonPhrase);
     writeCRLF();
 
     var session = _httpRequest._session;
@@ -498,7 +495,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(this);
+    headers._write(_ioSink);
     writeCRLF();
   }
 
@@ -648,10 +645,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
   }
 
   void _writeHeader() {
-    writeSP() => add([_CharCode.SP]);
-    writeCRLF() => add([_CharCode.CR, _CharCode.LF]);
+    writeSP() => _ioSink.add([_CharCode.SP]);
+    writeCRLF() => _ioSink.add([_CharCode.CR, _CharCode.LF]);
 
-    addString(method);
+    _ioSink.addString(method);
     writeSP();
     // Send the path for direct connections and the whole URL for
     // proxy connections.
@@ -665,12 +662,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
           path = "${path}?${uri.query}";
         }
       }
-      addString(path);
+      _ioSink.addString(path);
     } else {
-      addString(uri.toString());
+      _ioSink.addString(uri.toString());
     }
     writeSP();
-    add(_Const.HTTP11);
+    _ioSink.add(_Const.HTTP11);
     writeCRLF();
 
     // Add the cookies to the headers.
@@ -688,7 +685,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     headers._finalize();
 
     // Write headers.
-    headers._write(this);
+    headers._write(_ioSink);
     writeCRLF();
   }
 }
