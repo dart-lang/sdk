@@ -895,9 +895,9 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
 
   bool visitInterfaceType(InterfaceType t, DartType s) {
 
-    bool checkTypeArguments(InterfaceType instance) {
+    bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
       Link<DartType> tTypeArgs = instance.typeArguments;
-      Link<DartType> sTypeArgs = s.typeArguments;
+      Link<DartType> sTypeArgs = other.typeArguments;
       while (!tTypeArgs.isEmpty) {
         assert(!sTypeArgs.isEmpty);
         if (!isSubtype(tTypeArgs.head, sTypeArgs.head)) {
@@ -921,7 +921,7 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
         return true;
       }
       InterfaceType instance = t.asInstanceOf(s.element);
-      return instance != null && checkTypeArguments(instance);
+      return instance != null && checkTypeArguments(instance, s);
     } else if (s is FunctionType) {
       Member call = lookupCall(t);
       if (call == null) return false;
