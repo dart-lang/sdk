@@ -74,7 +74,7 @@ gc_test: Skip  # Issue 1487, flaky.
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
-super_operator_index5_test: Crash # Issue 8919
+super_operator_index5_test: Fail # Issue 8919
 
 [ $compiler == none && $unchecked ]
 
@@ -306,7 +306,7 @@ super_operator_index_test/04: Fail
 
 
 [ $compiler == none && $runtime == drt ]
-type_variable_field_initializer_closure_test: Fail # issue 8847 
+type_variable_field_initializer_closure_test: Fail # issue 8847
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
@@ -544,7 +544,7 @@ compile_time_constant_checked3_test/06: Fail, OK
 type_error_test: Fail, OK # VM bug: http://dartbug.com/5280
 type_parameter_literal_test: Fail
 
-type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847 
+type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847
 
 super_getter_setter_test: Fail # VM bug: issue 8917
 super_operator_index7_test: Fail # VM bug: issue 8918
