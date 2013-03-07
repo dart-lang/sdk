@@ -11,15 +11,16 @@ import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dar
 
 void main() {
   testInterfaceSubtype();
+  testCallableSubtype();
 }
 
 void testInterfaceSubtype() {
   var env = new TypeEnvironment(r"""
       class A<T> {}
-      class B<T1,T2> extends A<T1> {}
+      class B<T1, T2> extends A<T1> {}
       // TODO(johnniwinther): Inheritance with different type arguments is
       // currently not supported by the implementation.
-      class C<T1,T2> extends B<T2,T1> /*implements A<A<T1>>*/ {}
+      class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
       """);
 
   void expect(bool value, DartType T, DartType S) {
@@ -215,4 +216,40 @@ void testInterfaceSubtype() {
   expect(false, C_int_String, instantiate(A, [A_String]));
 }
 
+void testCallableSubtype() {
 
+  var env = new TypeEnvironment(r"""
+      class U {}
+      class V extends U {}
+      class W extends V {}
+      class A {
+        int call(V v, int i);
+
+        int m1(U u, int i);
+        int m2(W w, num n);
+        U m3(V v, int i);
+        int m4(V v, U u);
+        void m5(V v, int i);
+      }
+      """);
+
+  void expect(bool value, DartType T, DartType S) {
+    Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+  }
+
+  ClassElement classA = env.getElement('A');
+  DartType A = classA.rawType;
+  DartType function = env['Function'];
+  DartType m1 = env.getMemberType(classA, 'm1');
+  DartType m2 = env.getMemberType(classA, 'm2');
+  DartType m3 = env.getMemberType(classA, 'm3');
+  DartType m4 = env.getMemberType(classA, 'm4');
+  DartType m5 = env.getMemberType(classA, 'm5');
+
+  expect(true, A, function);
+  expect(true, A, m1);
+  expect(true, A, m2);
+  expect(false, A, m3);
+  expect(false, A, m4);
+  expect(true, A, m5);
+}

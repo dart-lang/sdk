@@ -894,7 +894,6 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   }
 
   bool visitInterfaceType(InterfaceType t, DartType s) {
-    if (s is !InterfaceType) return false;
 
     bool checkTypeArguments(InterfaceType instance) {
       Link<DartType> tTypeArgs = instance.typeArguments;
@@ -911,12 +910,25 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       return true;
     }
 
+    lookupCall(type) => type.lookupMember(Compiler.CALL_OPERATOR_NAME);
+
     // TODO(johnniwinther): Currently needed since literal types like int,
     // double, bool etc. might not have been resolved yet.
     t.element.ensureResolved(compiler);
 
-    InterfaceType instance = t.asInstanceOf(s.element);
-    return instance != null && checkTypeArguments(instance);
+    if (s is InterfaceType) {
+      if (s.element == compiler.functionClass && lookupCall(t) != null) {
+        return true;
+      }
+      InterfaceType instance = t.asInstanceOf(s.element);
+      return instance != null && checkTypeArguments(instance);
+    } else if (s is FunctionType) {
+      Member call = lookupCall(t);
+      if (call == null) return false;
+      return isSubtype(call.computeType(compiler), s);
+    } else {
+      return false;
+    }
   }
 
   bool visitFunctionType(FunctionType t, DartType s) {
