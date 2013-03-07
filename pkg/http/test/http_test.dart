@@ -58,7 +58,7 @@ main() {
             'path': '/',
             'headers': {
               'content-type': [
-                'application/x-www-form-urlencoded; charset=UTF-8'
+                'application/x-www-form-urlencoded; charset=utf-8'
               ],
               'content-length': ['40'],
               'x-random-header': ['Value'],
@@ -107,7 +107,7 @@ main() {
             'path': '/',
             'headers': {
               'content-type': [
-                'application/x-www-form-urlencoded; charset=UTF-8'
+                'application/x-www-form-urlencoded; charset=utf-8'
               ],
               'content-length': ['40'],
               'x-random-header': ['Value'],

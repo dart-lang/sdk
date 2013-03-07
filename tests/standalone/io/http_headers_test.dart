@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -205,6 +205,10 @@ void testHeaderValue() {
   headerValue = new HeaderValue.fromString(
       "xxx; aaa=bbb; ccc=\"\\\";\\a\"; ddd=\"    \"");
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
+  headerValue = new HeaderValue("xxx",
+                                {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
+  check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
+
   headerValue = new HeaderValue.fromString(
     "attachment; filename=genome.jpeg;"
     "modification-date=\"Wed, 12 February 1997 16:29:51 -0500\"");
@@ -212,6 +216,8 @@ void testHeaderValue() {
       "filename": "genome.jpeg",
       "modification-date": "Wed, 12 February 1997 16:29:51 -0500"
   };
+  check(headerValue, "attachment", parameters);
+  headerValue = new HeaderValue("attachment", parameters);
   check(headerValue, "attachment", parameters);
   headerValue = new HeaderValue.fromString(
     "  attachment  ;filename=genome.jpeg  ;"
@@ -238,47 +244,56 @@ void testContentType() {
   }
 
   ContentType contentType;
-  contentType = new ContentType();
+  contentType = new ContentType("", "");
   Expect.equals("", contentType.primaryType);
   Expect.equals("", contentType.subType);
   Expect.equals("/", contentType.value);
-  contentType.value = "text/html";
-  Expect.equals("text", contentType.primaryType);
-  Expect.equals("html", contentType.subType);
-  Expect.equals("text/html", contentType.value);
 
-  contentType = new _ContentType.fromString("text/html");
+  contentType = new ContentType.fromString("text/html");
   check(contentType, "text", "html");
   Expect.equals("text/html", contentType.toString());
-  contentType.parameters["charset"] = "utf-8";
+  contentType = new ContentType("text", "html", charset: "utf-8");
   check(contentType, "text", "html", {"charset": "utf-8"});
   Expect.equals("text/html; charset=utf-8", contentType.toString());
-  contentType.parameters["xxx"] = "yyy";
+
+  contentType = new ContentType("text",
+                                "html",
+                                parameters: {"CHARSET": "UTF-8", "xxx": "yyy"});
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
   String s = contentType.toString();
   bool expectedToString = (s == "text/html; charset=utf-8; xxx=yyy" ||
                            s == "text/html; xxx=yyy; charset=utf-8");
   Expect.isTrue(expectedToString);
 
-  contentType = new _ContentType.fromString("text/html");
+  contentType = new ContentType("text",
+                                "html",
+                                charset: "ISO-8859-1",
+                                parameters: {"CHARSET": "UTF-8", "xxx": "yyy"});
+  check(contentType, "text", "html", {"charset": "iso-8859-1", "xxx": "yyy"});
+  s = contentType.toString();
+  expectedToString = (s == "text/html; charset=iso-8859-1; xxx=yyy" ||
+                      s == "text/html; xxx=yyy; charset=iso-8859-1");
+  Expect.isTrue(expectedToString);
+
+  contentType = new ContentType.fromString("text/html");
   check(contentType, "text", "html");
-  contentType = new _ContentType.fromString(" text/html  ");
+  contentType = new ContentType.fromString(" text/html  ");
   check(contentType, "text", "html");
-  contentType = new _ContentType.fromString("text/html; charset=utf-8");
+  contentType = new ContentType.fromString("text/html; charset=utf-8");
   check(contentType, "text", "html", {"charset": "utf-8"});
-  contentType = new _ContentType.fromString(
+  contentType = new ContentType.fromString(
       "  text/html  ;  charset  =  utf-8  ");
   check(contentType, "text", "html", {"charset": "utf-8"});
-  contentType = new _ContentType.fromString(
+  contentType = new ContentType.fromString(
       "text/html; charset=utf-8; xxx=yyy");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = new _ContentType.fromString(
+  contentType = new ContentType.fromString(
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = new _ContentType.fromString(
+  contentType = new ContentType.fromString(
       'text/html; charset=utf-8; xxx="yyy"');
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = new _ContentType.fromString(
+  contentType = new ContentType.fromString(
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
 }
@@ -294,9 +309,7 @@ void testContentTypeCache() {
   Expect.equals("plain", headers.contentType.subType);
   Expect.equals("text/plain", headers.contentType.value);
   headers.removeAll(HttpHeaders.CONTENT_TYPE);
-  Expect.equals("", headers.contentType.primaryType);
-  Expect.equals("", headers.contentType.subType);
-  Expect.equals("/", headers.contentType.value);
+  Expect.isNull(headers.contentType);
 }
 
 void testCookie() {

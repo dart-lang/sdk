@@ -198,7 +198,7 @@ class _HttpHeaders implements HttpHeaders {
     if (values != null) {
       return new ContentType.fromString(values[0]);
     } else {
-      return new ContentType();
+      return null;
     }
   }
 
@@ -277,7 +277,7 @@ class _HttpHeaders implements HttpHeaders {
     } else if (lowerCaseName == HttpHeaders.CONTENT_TYPE) {
       _set(HttpHeaders.CONTENT_TYPE, value);
     } else {
-        _addValue(lowerCaseName, value);
+      _addValue(lowerCaseName, value);
     }
   }
 
@@ -493,12 +493,17 @@ class _HttpHeaders implements HttpHeaders {
 
 
 class _HeaderValue implements HeaderValue {
-  _HeaderValue([String this.value = ""]);
+  String _value;
+  Map<String, String> _parameters;
 
-  _HeaderValue.fromString(String value, {this.parameterSeparator: ";"}) {
+  _HeaderValue([String this._value = "", this._parameters]);
+
+  _HeaderValue.fromString(String value, {parameterSeparator: ";"}) {
     // Parse the string.
-    _parse(value);
+    _parse(value, parameterSeparator);
   }
+
+  String get value => _value;
 
   Map<String, String> get parameters {
     if (_parameters == null) _parameters = new Map<String, String>();
@@ -507,7 +512,7 @@ class _HeaderValue implements HeaderValue {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write(value);
+    sb.write(_value);
     if (parameters != null && parameters.length > 0) {
       _parameters.forEach((String name, String value) {
         sb.write("; ");
@@ -519,7 +524,7 @@ class _HeaderValue implements HeaderValue {
     return sb.toString();
   }
 
-  void _parse(String s) {
+  void _parse(String s, String parameterSeparator) {
     int index = 0;
 
     bool done() => index == s.length;
@@ -606,55 +611,50 @@ class _HeaderValue implements HeaderValue {
     }
 
     skipWS();
-    value = parseValue();
+    _value = parseValue();
     skipWS();
     if (done()) return;
     maybeExpect(parameterSeparator);
     parseParameters();
   }
-
-  String value;
-  String parameterSeparator;
-  Map<String, String> _parameters;
 }
 
 
 class _ContentType extends _HeaderValue implements ContentType {
-  _ContentType(String primaryType, String subType)
-      : _primaryType = primaryType, _subType = subType, super("");
+  _ContentType(String primaryType,
+               String subType,
+               String charset,
+               Map<String, String> parameters)
+      : _primaryType = primaryType, _subType = subType, super("") {
+    if (_primaryType == null) _primaryType = "";
+    if (_subType == null) _subType = "";
+    _value = "$_primaryType/$_subType";;
+    if (parameters != null) {
+      parameters.forEach((String key, String value) {
+        this.parameters[key.toLowerCase()] = value.toLowerCase();
+      });
+    }
+    if (charset != null) {
+      this.parameters["charset"] = charset.toLowerCase();
+    }
+  }
 
-  _ContentType.fromString(String value) : super.fromString(value);
-
-  String get value => "$_primaryType/$_subType";
-
-  void set value(String s) {
-    int index = s.indexOf("/");
-    if (index == -1 || index == (s.length - 1)) {
-      primaryType = s.trim().toLowerCase();
-      subType = "";
+    _ContentType.fromString(String value) : super.fromString(value) {
+    int index = _value.indexOf("/");
+    if (index == -1 || index == (_value.length - 1)) {
+      _primaryType = _value.trim().toLowerCase();
+      _subType = "";
     } else {
-      primaryType = s.substring(0, index).trim().toLowerCase();
-      subType = s.substring(index + 1).trim().toLowerCase();
+      _primaryType = _value.substring(0, index).trim().toLowerCase();
+      _subType = _value.substring(index + 1).trim().toLowerCase();
     }
   }
 
   String get primaryType => _primaryType;
 
-  void set primaryType(String s) {
-    _primaryType = s;
-  }
-
   String get subType => _subType;
 
-  void set subType(String s) {
-    _subType = s;
-  }
-
   String get charset => parameters["charset"];
-
-  void set charset(String s) {
-    parameters["charset"] = s;
-  }
 
   String _primaryType = "";
   String _subType = "";

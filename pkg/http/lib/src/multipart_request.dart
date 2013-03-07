@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -144,7 +144,7 @@ class MultipartRequest extends BaseRequest {
     // URL-encode them so we do the same.
     var header = 'content-disposition: form-data; name="${encodeUri(name)}"';
     if (!isPlainAscii(value)) {
-      header = '$header\r\ncontent-type: text/plain; charset=UTF-8';
+      header = '$header\r\ncontent-type: text/plain; charset=utf-8';
     }
     return '$header\r\n\r\n';
   }

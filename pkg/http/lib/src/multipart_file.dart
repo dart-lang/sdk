@@ -67,12 +67,15 @@ class MultipartFile {
   /// the future may be inferred from [filename].
   factory MultipartFile.fromString(String field, String value,
       {String filename, ContentType contentType}) {
-    contentType = contentType == null ? new ContentType("text", "plain") :
-        // Make a copy of the original contentType so we can modify charset.
-        new ContentType.fromString(contentType.toString());
+    contentType = contentType == null ? new ContentType("text", "plain")
+                                      : contentType;
     var charset = contentType.charset;
     var encoding = encodingForCharset(contentType.charset, Encoding.UTF_8);
-    contentType.charset = encoding.name;
+    // Make a new contentType with ensured charset.
+    contentType = new ContentType(contentType.primaryType,
+                                  contentType.subType,
+                                  charset: encoding.name,
+                                  parameters: contentType.parameters);
 
     return new MultipartFile.fromBytes(field, encodeString(value, encoding),
         filename: filename,

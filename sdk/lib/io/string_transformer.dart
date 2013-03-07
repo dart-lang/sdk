@@ -8,16 +8,23 @@ part of dart.io;
  * String encodings.
  */
 class Encoding {
-  static const Encoding UTF_8 = const Encoding._internal("UTF-8");
-  static const Encoding ISO_8859_1 = const Encoding._internal("ISO-8859-1");
-  static const Encoding ASCII = const Encoding._internal("ASCII");
+  static const Encoding UTF_8 = const Encoding._internal("utf-8");
+  static const Encoding ISO_8859_1 = const Encoding._internal("iso-8859-1");
+  static const Encoding ASCII = const Encoding._internal("us-ascii");
+
+  /**
+   * Name of the encoding. This will be the lower-case version of one of the
+   * IANA official names for the character set (see
+   * http://www.iana.org/assignments/character-sets/character-sets.xml)
+   */
+  final String name;
+
   /**
    * SYSTEM encoding is the current code page on Windows and UTF-8 on
    * Linux and Mac.
    */
-  static const Encoding SYSTEM = const Encoding._internal("SYSTEM");
+  static const Encoding SYSTEM = const Encoding._internal("system");
   const Encoding._internal(String this.name);
-  final String name;
 }
 
 

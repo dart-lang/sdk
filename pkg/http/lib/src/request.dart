@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -57,7 +57,10 @@ class Request extends BaseRequest {
     _defaultEncoding = value;
     var contentType = _contentType;
     if (contentType != null) {
-      contentType.charset = value.name;
+      contentType = new ContentType(contentType.primaryType,
+                                    contentType.subType,
+                                    charset: value.name,
+                                    parameters: contentType.parameters);
       _contentType = contentType;
     }
   }
@@ -87,8 +90,14 @@ class Request extends BaseRequest {
   set body(String value) {
     bodyBytes = encodeString(value, encoding);
     var contentType = _contentType;
-    if (contentType == null) contentType = new ContentType("text", "plain");
-    if (contentType.charset == null) contentType.charset = encoding.name;
+    if (contentType == null) {
+      contentType = new ContentType("text", "plain", charset: encoding.name);
+    } else if (contentType.charset == null) {
+      contentType = new ContentType(contentType.primaryType,
+                                    contentType.subType,
+                                    charset: encoding.name,
+                                    parameters: contentType.parameters);
+    }
     _contentType = contentType;
   }
 

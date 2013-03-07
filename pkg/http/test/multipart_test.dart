@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -76,12 +76,12 @@ void main() {
 
         value2
         --{{boundary}}
-        content-type: text/plain; charset=UTF-8
+        content-type: text/plain; charset=utf-8
         content-disposition: form-data; name="file1"; filename="filename1.txt"
 
         contents1
         --{{boundary}}
-        content-type: text/plain; charset=UTF-8
+        content-type: text/plain; charset=utf-8
         content-disposition: form-data; name="file2"
 
         contents2
@@ -109,7 +109,7 @@ void main() {
     expect(request, bodyMatches('''
         --{{boundary}}
         content-disposition: form-data; name="field"
-        content-type: text/plain; charset=UTF-8
+        content-type: text/plain; charset=utf-8
 
         vⱥlūe
         --{{boundary}}--
@@ -123,7 +123,7 @@ void main() {
 
     expect(request, bodyMatches('''
         --{{boundary}}
-        content-type: text/plain; charset=UTF-8
+        content-type: text/plain; charset=utf-8
         content-disposition: form-data; name="file"; filename="f%C3%AFl%C4%93name.txt"
 
         contents
@@ -139,7 +139,7 @@ void main() {
 
     expect(request, bodyMatches('''
         --{{boundary}}
-        content-type: application/json; charset=UTF-8
+        content-type: application/json; charset=utf-8
         content-disposition: form-data; name="file"
 
         {"hello": "world"}
