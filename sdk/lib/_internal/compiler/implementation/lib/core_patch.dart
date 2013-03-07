@@ -193,9 +193,8 @@ patch class List<E> {
 
 
 patch class String {
-  patch factory String.fromCharCodes(List<int> charCodes) {
+  patch factory String.fromCharCodes(Iterable<int> charCodes) {
     if (!isJsArray(charCodes)) {
-      if (charCodes is !List) throw new ArgumentError(charCodes);
       charCodes = new List.from(charCodes);
     }
     return Primitives.stringFromCharCodes(charCodes);

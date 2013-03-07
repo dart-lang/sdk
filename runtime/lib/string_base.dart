@@ -19,18 +19,11 @@ class _StringBase {
    *  Create the most efficient string representation for specified
    *  [codePoints].
    */
-  static String createFromCharCodes(List<int> charCodes) {
-    _ObjectArray objectArray;
-    if (charCodes is _ObjectArray) {
-      objectArray = charCodes;
-    } else {
-      int len = charCodes.length;
-      objectArray = new _ObjectArray(len);
-      for (int i = 0; i < len; i++) {
-        objectArray[i] = charCodes[i];
-      }
+  static String createFromCharCodes(Iterable<int> charCodes) {
+    if (charCodes is! _ObjectArray) {
+      charCodes = new List<int>.from(charCodes, growable: false);
     }
-    return _createFromCodePoints(objectArray);
+    return _createFromCodePoints(charCodes);
   }
 
   static String _createFromCodePoints(List<int> codePoints)
