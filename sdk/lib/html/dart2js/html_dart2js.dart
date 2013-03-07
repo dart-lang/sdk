@@ -17328,9 +17328,10 @@ class _ChildNodeListLazy implements List {
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      if (iterable._this != _this) {
+      if (!identical(iterable._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = iterable.length; i < len; ++i) {
+          // Should use $dom_firstChild, Bug 8886.
           _this.$dom_appendChild(iterable[0]);
         }
       }
@@ -17550,6 +17551,31 @@ class Node extends EventTarget native "*Node" {
 
     };
     return this;
+  }
+
+  /**
+   * Inserts all of the nodes into this node directly before refChild.
+   *
+   * See also:
+   *
+   * * [insertBefore]
+   */
+  Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+    if (newNodes is _ChildNodeListLazy) {
+      if (identical(newNodes._this, this)) {
+        throw new ArgumentError(newNodes);
+      }
+
+      // Optimized route for copying between nodes.
+      for (var i = 0, len = newNodes.length; i < len; ++i) {
+        // Should use $dom_firstChild, Bug 8886.
+        this.insertBefore(newNodes[0], refChild);
+      }
+    } else {
+      for (var node in newNodes) {
+        this.insertBefore(node, refChild);
+      }
+    }
   }
 
 

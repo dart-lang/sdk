@@ -25,33 +25,69 @@ main() {
   var isInputElement =
       predicate((x) => x is InputElement, 'is an InputElement');
 
-  test('replaceWith', () {
-    final node = makeNodeWithChildren();
-    final subnode = node.nodes[1];
-    final out = subnode.replaceWith(new Text('Bar'));
-    expect(out, equals(subnode), reason: '#replaceWith should be chainable');
-    expect(node.nodes.length, 3);
-    expect(node.nodes[0], isText);
-    expect(node.nodes[0].text, 'Foo');
-    expect(node.nodes[1], isText);
-    expect(node.nodes[1].text, 'Bar');
-    expect(node.nodes[2], isComment);
-  });
+  group('functional', () {
+    test('replaceWith', () {
+      final node = makeNodeWithChildren();
+      final subnode = node.nodes[1];
+      final out = subnode.replaceWith(new Text('Bar'));
+      expect(out, equals(subnode), reason: '#replaceWith should be chainable');
+      expect(node.nodes.length, 3);
+      expect(node.nodes[0], isText);
+      expect(node.nodes[0].text, 'Foo');
+      expect(node.nodes[1], isText);
+      expect(node.nodes[1].text, 'Bar');
+      expect(node.nodes[2], isComment);
+    });
 
-  test('remove', () {
-    final node = makeNodeWithChildren();
-    final subnode = node.nodes[1];
-    subnode.remove();
-    expect(node.nodes.length, 2);
-    expect(node.nodes[0], isText);
-    expect(node.nodes[1], isComment);
-  });
+    test('remove', () {
+      final node = makeNodeWithChildren();
+      final subnode = node.nodes[1];
+      subnode.remove();
+      expect(node.nodes.length, 2);
+      expect(node.nodes[0], isText);
+      expect(node.nodes[1], isComment);
+    });
 
-  test('contains', () {
-    final Node node = new Element.html("<div>Foo<span>Bar</span></div>");
-    expect(node.contains(node.nodes.first), isTrue);
-    expect(node.contains(node.nodes[1].nodes.first), isTrue);
-    expect(node.contains(new Text('Foo')), isFalse);
+    test('contains', () {
+      final Node node = new Element.html("<div>Foo<span>Bar</span></div>");
+      expect(node.contains(node.nodes.first), isTrue);
+      expect(node.contains(node.nodes[1].nodes.first), isTrue);
+      expect(node.contains(new Text('Foo')), isFalse);
+    });
+
+    test('insertAllBefore', () {
+      var node = makeNodeWithChildren();
+      var b = new DivElement();
+      b.nodes.addAll([
+        new HRElement(),
+        new ImageElement(),
+        new InputElement()
+      ]);
+      node.insertAllBefore(b.nodes, node.nodes[1]);
+      expect(node.nodes[0], isText);
+      expect(node.nodes[1], isHRElement);
+      expect(node.nodes[2], isImageElement);
+      expect(node.nodes[3], isInputElement);
+      expect(node.nodes[4], isBRElement);
+      expect(node.nodes[5], isComment);
+
+      var nodes = [
+        new HRElement(),
+        new ImageElement(),
+        new InputElement()
+      ];
+      node.insertAllBefore(nodes, node.nodes[5]);
+
+      expect(node.nodes[0], isText);
+      expect(node.nodes[1], isHRElement);
+      expect(node.nodes[2], isImageElement);
+      expect(node.nodes[3], isInputElement);
+      expect(node.nodes[4], isBRElement);
+      expect(node.nodes[5], isHRElement);
+      expect(node.nodes[6], isImageElement);
+      expect(node.nodes[7], isInputElement);
+      expect(node.nodes[8], isComment);
+    });
   });
 
   group('nodes', () {
