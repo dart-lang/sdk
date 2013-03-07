@@ -212,26 +212,11 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # that run the browser tests to cut down on the cycle time.
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
 
-  if not (system.startswith('win') and runtime.startswith('ie')):
-    # Run the default set of test suites.
-    TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
-
-    # TODO(kasperl): Consider running peg and css tests too.
-    extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
-  else:
-    # TODO(ricow): Enable standard sharding for IE bots when we have more vms.
-    if test_set == 'html':
-      TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
-    elif test_set == 'all':
-      TestStep("dart2js", mode, system, 'dart2js', runtime, ['dartc',
-          'samples', 'standalone', 'corelib', 'co19', 'language', 'isolate',
-          'vm', 'json', 'benchmark_smoke', 'dartdoc', 'utils', 'pub', 'lib'],
-          flags)
-      extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
-      TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
-               flags)
-
+  # Run the default set of test suites.
+  TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
+  # TODO(kasperl): Consider running peg and css tests too.
+  extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
+  TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
 
 def _DeleteTempWebdriverProfiles(directory):
   """Find all the firefox profiles in a particular directory and delete them."""
