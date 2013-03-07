@@ -70,7 +70,7 @@ element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
@@ -135,7 +135,7 @@ form_data_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_email: Fail
@@ -214,7 +214,7 @@ element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
@@ -263,7 +263,7 @@ css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
 indexeddb_1_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail
@@ -293,7 +293,7 @@ element_types_test/supported_object: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
@@ -332,7 +332,7 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
-indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
+#indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome) ]
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
