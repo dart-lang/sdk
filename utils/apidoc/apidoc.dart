@@ -108,60 +108,30 @@ void main() {
     }
   });
 
-  var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
-  lister.listen(
-      (entity) {
-        if (entity is Directory) {
-          var path = new Path(entity.path);
-          var libName = path.filename;
+  print('Generating docs...');
+  final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
+                            excludedLibraries, version);
+  apidoc.dartdocPath =
+      doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/');
+  // Select the libraries to include in the produced documentation:
+  apidoc.includeApi = true;
+  apidoc.includedLibraries = includedLibraries;
 
-          // Ignore hidden directories (like .svn) as well as pkg.xcodeproj.
-          if (libName.startsWith('.') || libName.endsWith('.xcodeproj')) {
-            return;
-          }
+  Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff]).then((_) {
+    Future<bool> documented =
+        apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
 
-          // TODO(rnystrom): Get rid of oldStylePath support when all
-          // packages are using new layout. See #5106.
-          var oldStylePath = path.append('${libName}.dart');
-          var newStylePath = path.append('lib/${libName}.dart');
+    documented.then((_) {
+      final compiled = doc.compileScript(mode, outputDir, libPath);
 
-          if (new File.fromPath(oldStylePath).existsSync()) {
-            apidocLibraries.add(oldStylePath);
-            includedLibraries.add(libName);
-          } else if (new File.fromPath(newStylePath).existsSync()) {
-            apidocLibraries.add(newStylePath);
-            includedLibraries.add(libName);
-          } else {
-            print('Warning: could not find package at $path');
-          }
-        }
-      },
-      onDone: () {
-        print('Generating docs...');
-        final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
-                                  excludedLibraries, version);
-        apidoc.dartdocPath =
-            doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/');
-        // Select the libraries to include in the produced documentation:
-        apidoc.includeApi = true;
-        apidoc.includedLibraries = includedLibraries;
-
-        Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff]).then((_) {
-          Future<bool> documented =
-              apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
-
-          documented.then((_) {
-            final compiled = doc.compileScript(mode, outputDir, libPath);
-
-            Future.wait([compiled]).then((_) {
-              apidoc.cleanup();
-            });
-          }, onError: (AsyncError asyncError) {
-            print('Generation failed: ${asyncError.error}');
-            apidoc.cleanup();
-          });
-        });
+      Future.wait([compiled]).then((_) {
+        apidoc.cleanup();
       });
+    }, onError: (AsyncError asyncError) {
+      print('Generation failed: ${asyncError.error}');
+      apidoc.cleanup();
+    });
+  });
 }
 
 class Apidoc extends doc.Dartdoc {
