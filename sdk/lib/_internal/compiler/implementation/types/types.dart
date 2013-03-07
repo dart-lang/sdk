@@ -10,6 +10,7 @@ import '../dart2jslib.dart' hide Selector;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
+import '../native_handler.dart' as native;
 import '../util/util.dart';
 import '../universe/universe.dart';
 import 'simple_types_inferrer.dart' show SimpleTypesInferrer;

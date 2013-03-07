@@ -94,7 +94,7 @@ class AnalysisResult {
     }
     // We make sure the concrete types expected by the tests don't default to
     // dynamic because of widening.
-    assert(!result.isUnkown());
+    assert(!result.isUnknown());
     return result;
   }
 
@@ -114,7 +114,7 @@ class AnalysisResult {
    * occurence of [: variable; :] in the program is the unknown concrete type.
    */
   void checkNodeHasUnknownType(String variable) {
-    return Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnkown());
+    return Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnknown());
   }
 
   /**
@@ -135,7 +135,7 @@ class AnalysisResult {
   void checkFieldHasUknownType(String className, String fieldName) {
     return Expect.isTrue(
         inferrer.inferredFieldTypes[findField(className, fieldName)]
-                .isUnkown());
+                .isUnknown());
   }
 }
 
@@ -163,9 +163,7 @@ const String CORELIB = r'''
   class Null {}
   class Type {}
   class Dynamic_ {}
-  bool identical(Object a, Object b) {}
-  dynamic JS(String typeDescription, String codeTemplate,
-             [var arg0, var arg1, var arg2]) {}''';
+  bool identical(Object a, Object b) {}''';
 
 AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
@@ -1071,13 +1069,45 @@ testDynamicIsAbsorbing() {
 
 testJsCall() {
   final String source = r"""
+    import 'dart:foreign';
+
+    class A {}
+    class B extends A {}
+    class BB extends B {}
+    class C extends A {}
+    class D extends A {}
+
+    class X {}
+
     main () {
-      var x = JS('', '', null);
-      x;
+      // we don't create any D on purpose
+      new B(); new BB(); new C();
+
+      var a = JS('', '');
+      var b = JS('Object', '');
+      var c = JS('=List', '');
+      var d = JS('String', '');
+      var e = JS('int', '');
+      var f = JS('double', '');
+      var g = JS('num', '');
+      var h = JS('bool', '');
+      var i = JS('A', '');
+      var j = JS('X', '');
+      a; b; c; d; e; f; g; h; i; j;
     }
     """;
   AnalysisResult result = analyze(source);
-  result.checkNodeHasUnknownType('x');
+  result.checkNodeHasUnknownType('a');
+  result.checkNodeHasUnknownType('b');
+  result.checkNodeHasType('c', [result.nullType, result.list]);
+  result.checkNodeHasType('d', [result.nullType, result.string]);
+  result.checkNodeHasType('e', [result.nullType, result.int]);
+  result.checkNodeHasType('f', [result.nullType, result.double]);
+  result.checkNodeHasType('g', [result.nullType, result.num]);
+  result.checkNodeHasType('h', [result.nullType, result.bool]);
+  result.checkNodeHasType('i', [result.nullType, result.base('B'),
+                                result.base('BB'), result.base('C')]);
+  result.checkNodeHasType('j', [result.nullType]);
 }
 
 testIsCheck() {

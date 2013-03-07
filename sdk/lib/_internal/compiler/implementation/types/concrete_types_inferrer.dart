@@ -100,7 +100,7 @@ abstract class ConcreteType {
   }
 
   ConcreteType union(int maxConcreteTypeSize, ConcreteType other);
-  bool isUnkown();
+  bool isUnknown();
   bool isEmpty();
   Set<BaseType> get baseTypes;
 
@@ -116,7 +116,7 @@ abstract class ConcreteType {
  */
 class UnknownConcreteType implements ConcreteType {
   const UnknownConcreteType();
-  bool isUnkown() => true;
+  bool isUnknown() => true;
   bool isEmpty() => false;
   bool operator ==(ConcreteType other) => identical(this, other);
   Set<BaseType> get baseTypes =>
@@ -139,7 +139,7 @@ class UnionType implements ConcreteType {
    */
   UnionType(this.baseTypes);
 
-  bool isUnkown() => false;
+  bool isUnknown() => false;
   bool isEmpty() => baseTypes.isEmpty;
 
   bool operator ==(ConcreteType other) {
@@ -161,7 +161,7 @@ class UnionType implements ConcreteType {
   // UnionType to know about these class elements, which is cumbersome because
   // there are no nested classes. We need factory methods instead.
   ConcreteType union(int maxConcreteTypeSize, ConcreteType other) {
-    if (other.isUnkown()) {
+    if (other.isUnknown()) {
       return const UnknownConcreteType();
     }
     UnionType otherUnion = other;  // cast
@@ -942,6 +942,58 @@ class ConcreteTypesInferrer extends TypesInferrer {
   }
 
   /**
+   * Computes the type of a call to the magic 'JS' function.
+   */
+  ConcreteType getNativeCallReturnType(Send node) {
+    native.NativeBehavior nativeBehavior =
+        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    if (nativeBehavior == null) return unknownConcreteType;
+    List typesReturned = nativeBehavior.typesReturned;
+    if (typesReturned.isEmpty) return unknownConcreteType;
+
+    ConcreteType result = singletonConcreteType(const NullBaseType());
+    for (final type in typesReturned) {
+      var concreteType;
+
+      // TODO(polux): track native types
+      if (type == native.SpecialType.JsObject) {
+        return unknownConcreteType;
+      } else if (type == native.SpecialType.JsArray) {
+        concreteType = singletonConcreteType(baseTypes.listBaseType);
+
+      // at this point, we know that type is not a SpecialType and thus has to
+      // be a DartType
+      } else if (type.element == compiler.objectClass) {
+        // We don't want to return all the subtypes of object here.
+        return unknownConcreteType;
+      } else if (type.element == compiler.stringClass){
+        concreteType = singletonConcreteType(baseTypes.stringBaseType);
+      } else if (type.element == compiler.intClass) {
+        concreteType = singletonConcreteType(baseTypes.intBaseType);
+      } else if (type.element == compiler.doubleClass) {
+        concreteType = singletonConcreteType(baseTypes.doubleBaseType);
+      } else if (type.element == compiler.numClass) {
+        concreteType = singletonConcreteType(baseTypes.numBaseType);
+      } else if (type.element == compiler.boolClass) {
+        concreteType = singletonConcreteType(baseTypes.boolBaseType);
+      } else {
+        Set<ClassElement> subtypes = compiler.world.subtypes[type.element];
+        if (subtypes == null) continue;
+        concreteType = emptyConcreteType;
+        for (ClassElement subtype in subtypes) {
+          concreteType = union(
+              concreteType,
+              singletonConcreteType(new ClassBaseType(subtype)));
+        }
+      }
+
+      result = union(result, concreteType);
+      if (result.isUnknown()) return result;
+    }
+    return result;
+  }
+
+  /**
    * Handles external methods that cannot be cached because they depend on some
    * other state of [ConcreteTypesInferrer] like [:List#[]:] and
    * [:List#[]=:]. Returns null if [function] and [environment] don't form a
@@ -949,10 +1001,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   ConcreteType getSpecialCaseReturnType(FunctionElement function,
                                         ConcreteTypesEnvironment environment) {
-    if (function.name == const SourceString('JS')) {
-      // TODO(polux): trust the type once we handle generic types
-      return unknownConcreteType;
-    } else if (function == listIndex) {
+    if (function == listIndex) {
       ConcreteType indexType = environment.lookupType(
           listIndex.functionSignature.requiredParameters.head);
       if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
@@ -1387,7 +1436,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       // since this is a sendSet we ignore non-fields
     }
 
-    if (receiverType.isUnkown()) {
+    if (receiverType.isUnknown()) {
       inferrer.addDynamicCaller(name, currentMethodOrField);
       for (Element member in inferrer.getMembersByName(name)) {
         if (!(member.isField() || member.isAbstractField())) continue;
@@ -1739,7 +1788,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       }
 
       ConcreteType receiverType = analyze(node.receiver);
-      if (receiverType.isUnkown()) {
+      if (receiverType.isUnknown()) {
         SourceString name = node.selector.asIdentifier().source;
         inferrer.addDynamicCaller(name, currentMethodOrField);
         List<Element> members = inferrer.getMembersByName(name);
@@ -1774,7 +1823,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
                                   ArgumentsTypes argumentsTypes) {
     ConcreteType result = inferrer.emptyConcreteType;
 
-    if (receiverType.isUnkown()) {
+    if (receiverType.isUnknown()) {
       inferrer.addDynamicCaller(canonicalizedMethodName, currentMethodOrField);
       List<Element> methods =
           inferrer.getMembersByName(canonicalizedMethodName);
@@ -1842,6 +1891,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitStaticSend(Send node) {
+    if (elements.getSelector(node).name == const SourceString('JS')) {
+      return inferrer.getNativeCallReturnType(node);
+    }
     Element element = elements[node].implementation;
     inferrer.addCaller(element, currentMethodOrField);
     return inferrer.getSendReturnType(element, null,

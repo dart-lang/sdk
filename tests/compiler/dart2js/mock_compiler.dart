@@ -62,6 +62,11 @@ const String DEFAULT_HELPERLIB = r'''
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
   throwAbstractClassInstantiationError(className) {}''';
 
+const String FOREIGN_LIBRARY = r'''
+  dynamic JS(String typeDescription, String codeTemplate,
+    [var arg0, var arg1, var arg2, var arg3, var arg4, var arg5, var arg6,
+     var arg7, var arg8, var arg9, var arg10, var arg11]) {}''';
+
 const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray implements List {
     var length;
@@ -121,7 +126,7 @@ const String DEFAULT_CORELIB = r'''
   class String implements Pattern {}
   class Object {
     operator ==(other) {}
-    String toString() {}
+    String toString() { return null; }
   }
   class Type {}
   class Function {}
@@ -132,7 +137,7 @@ const String DEFAULT_CORELIB = r'''
     DateTime.utc(year);
   }
   abstract class Pattern {}
-  bool identical(Object a, Object b) {}''';
+  bool identical(Object a, Object b) { return null; }''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
   class _WorkerBase {}''';
@@ -163,6 +168,7 @@ class MockCompiler extends Compiler {
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.
     jsHelperLibrary = createLibrary("helper", helperSource);
+    foreignLibrary = createLibrary("foreign", FOREIGN_LIBRARY);
     interceptorsLibrary = createLibrary("interceptors", interceptorsSource);
     isolateHelperLibrary = createLibrary("isolate_helper", isolateHelperSource);
 
@@ -208,6 +214,7 @@ class MockCompiler extends Compiler {
     parseScript(source, library);
     library.setExports(library.localScope.values.toList());
     registerSource(uri, source);
+    libraries.putIfAbsent(uri.toString(), () => library);
     return library;
   }
 
