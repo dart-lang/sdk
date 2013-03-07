@@ -325,7 +325,8 @@ class SimpleTypesInferrer extends TypesInferrer {
         compiler.intClass.rawType);
     doubleType = new TypeMask.nonNullExact(
         compiler.doubleClass.rawType);
-    numType = new TypeMask.nonNullSubtype(
+    // TODO(ngeoffray): Switch to subtype once we do proper union.
+    numType = new TypeMask.nonNullExact(
         compiler.numClass.rawType);
     stringType = new TypeMask.nonNullExact(
         compiler.stringClass.rawType);
@@ -344,14 +345,14 @@ class SimpleTypesInferrer extends TypesInferrer {
   dump() {
     int interestingTypes = 0;
     int giveUpTypes = 0;
-    returnTypeOf.forEach((Element method, TypeMask type) {
+    returnTypeOf.forEach((Element element, TypeMask type) {
       if (isGiveUpType(type)) {
         giveUpTypes++;
       } else if (type != nullType && !isDynamicType(type)) {
         interestingTypes++;
       }
     });
-    typeOf.forEach((Element method, TypeMask type) {
+    typeOf.forEach((Element element, TypeMask type) {
       if (isGiveUpType(type)) {
         giveUpTypes++;
       } else if (type != nullType && !isDynamicType(type)) {
@@ -361,7 +362,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     compiler.log('Type inferrer re-analyzed methods $recompiles times '
                  'in ${recomputeWatch.elapsedMilliseconds} ms.');
     compiler.log('Type inferrer found $interestingTypes interesting '
-                 'return types and gave up on $giveUpTypes methods.');
+                 'types and gave up on $giveUpTypes elements.');
   }
 
   /**
@@ -1146,8 +1147,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
           }
         }
         if (returnType == null) {
-          returnType = new TypeMask.nonNullExact(
-              mappedType.computeType(compiler));
+          returnType = new TypeMask.nonNullExact(mappedType.rawType);
         } else {
           return inferrer.dynamicType;
         }
