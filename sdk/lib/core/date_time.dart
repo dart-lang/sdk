@@ -5,101 +5,6 @@
 part of dart.core;
 
 /**
- * Deprecated class. Please use [DateTime] instead.
- */
-@deprecated
-abstract class Date implements Comparable<Date> {
-  // Weekday constants that are returned by [weekday] method:
-  static const int MON = 1;
-  static const int TUE = 2;
-  static const int WED = 3;
-  static const int THU = 4;
-  static const int FRI = 5;
-  static const int SAT = 6;
-  static const int SUN = 7;
-  static const int DAYS_IN_WEEK = 7;
-
-  // Month constants that are returned by the [month] getter.
-  static const int JAN = 1;
-  static const int FEB = 2;
-  static const int MAR = 3;
-  static const int APR = 4;
-  static const int MAY = 5;
-  static const int JUN = 6;
-  static const int JUL = 7;
-  static const int AUG = 8;
-  static const int SEP = 9;
-  static const int OCT = 10;
-  static const int NOV = 11;
-  static const int DEC = 12;
-
-  factory Date(int year,
-               [int month = 1,
-                int day = 1,
-                int hour = 0,
-                int minute = 0,
-                int second = 0,
-                int millisecond = 0]) {
-    return new DateTime(year, month, day, hour, minute, second, millisecond);
-  }
-
-  factory Date.utc(int year,
-                   [int month = 1,
-                    int day = 1,
-                    int hour = 0,
-                    int minute = 0,
-                    int second = 0,
-                    int millisecond = 0]) {
-    return
-        new DateTime.utc(year, month, day, hour, minute, second, millisecond);
-  }
-
-  factory Date.now() => new DateTime.now();
-
-  factory Date.fromString(String formattedString)
-      => DateTime.parse(formattedString);
-
-  factory Date.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-                                          {bool isUtc: false}) {
-    return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
-                                                   isUtc: isUtc);
-  }
-
-  bool operator ==(DateTime other);
-  bool operator <(DateTime other);
-  bool operator <=(DateTime other);
-  bool operator >(DateTime other);
-  bool operator >=(DateTime other);
-
-
-  DateTime toLocal();
-  DateTime toUtc();
-
-  String get timeZoneName;
-  Duration get timeZoneOffset;
-
-  int get year;
-  int get month;
-  int get day;
-  int get hour;
-  int get minute;
-  int get second;
-  int get millisecond;
-
-  int get weekday;
-
-  int get millisecondsSinceEpoch;
-
-  bool get isUtc;
-
-  String toString();
-
-  DateTime add(Duration duration);
-  DateTime subtract(Duration duration);
-  Duration difference(DateTime other);
-}
-
-/**
  * A DateTime object represents a point in time.
  *
  * It can represent time values that are at a distance of at most
@@ -108,7 +13,7 @@ abstract class Date implements Comparable<Date> {
  *
  * Also see [Stopwatch] for means to measure time-spans.
  */
-class DateTime implements Date {
+class DateTime {
   // Weekday constants that are returned by [weekday] method:
   static const int MON = 1;
   static const int TUE = 2;

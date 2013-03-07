@@ -200,10 +200,6 @@ LibTest/math/parseDouble_A02_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
 
-[ $compiler == dart2js && $unchecked ]
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
-
-
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
@@ -632,6 +628,49 @@ LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 
+Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: pass
+LibTest/core/Date/Date.fromString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A03_t01: pass
+LibTest/core/Date/Date.now_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.utc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t04: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/day_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/hour_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/isUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecond_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/minute_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/month_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/second_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toLocal_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+
 
 [ $compiler == dart2js && $system == macos ]
 LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
@@ -661,7 +700,7 @@ Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 [ $compiler == dart2js && $jscl ]
-LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
+LibTest/core/Date/Date.fromString_A03_t01: Pass # Issue co19 - 121 (currently passing due to co19 issues 373 and 374)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')

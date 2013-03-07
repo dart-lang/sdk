@@ -355,7 +355,7 @@ Language/14_Types/5_Function_Types_A06_t01: Fail # Inherited from dart2js
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # inherited from dart2js
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # inherited from dart2js
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # Inherited from dart2js
-LibTest/core/Date/Date.fromString_A03_t01: Fail, OK # Issue co19 - 121
+LibTest/core/Date/Date.fromString_A03_t01: Pass, OK # Issue co19 - 121 (currently passing due to co19 issues 373 and 374)
 LibTest/core/Date/toString_A02_t01: Fail, OK # inherited from VM
 LibTest/core/Date/year_A01_t01: Fail, OK # inherited from VM
 LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK # co19 issue 293
@@ -638,6 +638,49 @@ LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core
 LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
+
+Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: pass
+LibTest/core/Date/Date.fromString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A03_t01: pass
+LibTest/core/Date/Date.now_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.utc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t04: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/day_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/hour_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/isUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecond_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/minute_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/month_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/second_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toLocal_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
 LibTest/core/Strings/join_A01_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 issue 380
