@@ -156,7 +156,7 @@ is 'dart file.dart' and you specify special command
               'Progress indication mode',
               ['-p', '--progress'],
               ['compact', 'color', 'line', 'verbose',
-               'silent', 'status', 'buildbot'],
+               'silent', 'status', 'buildbot', 'diff'],
               'compact'),
           new _TestOptionSpecification(
               'step_name',
