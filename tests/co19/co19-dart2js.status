@@ -576,7 +576,6 @@ LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to 
 
 LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379.
 
-Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
 LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: pass
