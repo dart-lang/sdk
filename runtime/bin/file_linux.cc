@@ -246,4 +246,20 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kOther;
 }
 
+
+File::Type File::GetType(const char* pathname, bool follow_links) {
+  struct stat entry_info;
+  int stat_success;
+  if (follow_links) {
+    stat_success = TEMP_FAILURE_RETRY(stat(pathname, &entry_info));
+  } else {
+    stat_success = TEMP_FAILURE_RETRY(lstat(pathname, &entry_info));
+  }
+  if (stat_success == -1) return File::kDoesNotExist;
+  if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
+  if (S_ISREG(entry_info.st_mode)) return File::kIsFile;
+  if (S_ISLNK(entry_info.st_mode)) return File::kIsLink;
+  return File::kDoesNotExist;
+}
+
 #endif  // defined(TARGET_OS_LINUX)

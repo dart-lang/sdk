@@ -53,6 +53,12 @@ patch class _FileUtils {
   }
 }
 
+patch class FileSystemEntity {
+  patch static int _getType(String path, bool followLinks) {
+    throw new UnsupportedError("FileSystemEntity._getType");
+  }
+}
+
 patch class _File {
   patch static _exists(String path) {
     throw new UnsupportedError("File._exists");

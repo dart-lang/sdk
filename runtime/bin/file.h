@@ -36,6 +36,13 @@ class File {
     kDartAppend = 2
   };
 
+  enum Type {
+    kIsFile = 0,
+    kIsDirectory = 1,
+    kIsLink = 2,
+    kDoesNotExist = 3
+  };
+
   enum StdioHandleType {
     kTerminal = 0,
     kPipe = 1,
@@ -124,6 +131,7 @@ class File {
   static char* GetContainingDirectory(char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
+  static Type GetType(const char* path, bool follow_links);
   static StdioHandleType GetStdioHandleType(int fd);
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);

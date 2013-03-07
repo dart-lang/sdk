@@ -497,6 +497,26 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
+      Dart_IsBoolean(Dart_GetNativeArgument(args, 1))) {
+    const char* str =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+    bool follow_links =
+        DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+    File::Type type = File::GetType(str, follow_links);
+    Dart_SetReturnValue(args, Dart_NewInteger(static_cast<int>(type)));
+  } else  {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 static int64_t CObjectInt32OrInt64ToInt64(CObject* cobject) {
   ASSERT(cobject->IsInt32OrInt64());
   int64_t result;
