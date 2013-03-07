@@ -2720,20 +2720,25 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
-      // Even though noSuchMethod most likely does not return,
-      // we save the stored value if in case the result is needed.
-      ValueGraphVisitor for_value(owner(), temp_index());
-      node->value()->Visit(&for_value);
-      Append(for_value);
-      Do(BuildStoreExprTemp(for_value.value()));
-
-      const LocalVariable* temp =
-          owner()->parsed_function().expression_temp_var();
-      AstNode* value = new LoadLocalNode(node->token_pos(), temp);
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
       arguments->Add(node->array());
       arguments->Add(node->index_expr());
-      arguments->Add(value);
+
+      // Even though noSuchMethod most likely does not return,
+      // we save the stored value if the result is needed.
+      if (result_is_needed) {
+        ValueGraphVisitor for_value(owner(), temp_index());
+        node->value()->Visit(&for_value);
+        Append(for_value);
+        Do(BuildStoreExprTemp(for_value.value()));
+
+        const LocalVariable* temp =
+            owner()->parsed_function().expression_temp_var();
+        AstNode* value = new LoadLocalNode(node->token_pos(), temp);
+        arguments->Add(value);
+      } else {
+        arguments->Add(node->value());
+      }
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),

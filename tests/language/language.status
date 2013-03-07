@@ -23,7 +23,6 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
 method_override2_test/03: Fail # Issue 7076.
-super_operator_index5_test: Fail # Issue 8919
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
