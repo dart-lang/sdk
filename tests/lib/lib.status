@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-async/slow_consumer_test: Skip # Issue 8647
-
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
@@ -35,9 +33,6 @@ crypto/hmac_sha256_test: Fail
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/hmac_md5_test: Fail, Pass
-
-[ $runtime == vm && $arch == x64 ]
-async/slow_consumer2_test: Fail # Issue 7726
 
 [ $compiler == none && $runtime == drt ]
 async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
