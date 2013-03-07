@@ -16,7 +16,8 @@ namespace dart {
 
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
-  UNIMPLEMENTED();
+  __ ori(V0, ZR, Immediate(42));
+  __ jr(RA);
 }
 
 

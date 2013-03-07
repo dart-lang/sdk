@@ -66,6 +66,7 @@ class ARMDecoder : public ValueObject {
   size_t buffer_size_;  // The size of the character buffer.
   size_t buffer_pos_;  // Current character position in buffer.
 
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ARMDecoder);
 };
 

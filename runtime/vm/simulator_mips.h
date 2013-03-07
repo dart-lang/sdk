@@ -48,11 +48,32 @@ class Simulator {
                int32_t parameter0,
                int32_t parameter1,
                int32_t parameter2,
-               int32_t parameter3,
-               int32_t parameter4);
+               int32_t parameter3);
 
  private:
+  // A pc value used to signal the simulator to stop execution.  Generally
+  // the ra is set to this value on transition from native C code to
+  // simulated execution, so that the simulator can "return" to the native
+  // C code.
+  static const uword kEndSimulatingPC = -1;
+
+  int32_t registers_[kNumberOfCpuRegisters];
+  uword pc_;
+
+  // Simulator support.
   char* stack_;
+  int icount_;
+  bool delay_slot_;
+
+  void set_pc(uword value) { pc_ = value; }
+
+  void Format(Instr* instr, const char* format);
+
+  void DecodeSpecial(Instr* instr);
+  void InstructionDecode(Instr* instr);
+
+  void Execute();
+  void ExecuteDelaySlot();
 };
 
 }  // namespace dart

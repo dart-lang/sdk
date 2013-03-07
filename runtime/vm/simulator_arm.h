@@ -68,8 +68,7 @@ class Simulator {
                int32_t parameter0,
                int32_t parameter1,
                int32_t parameter2,
-               int32_t parameter3,
-               int32_t parameter4);
+               int32_t parameter3);
 
   // Implementation of atomic compare and exchange in the same synchronization
   // domain as other synchronization primitive instructions (e.g. ldrex, strex).
@@ -114,7 +113,6 @@ class Simulator {
   char* stack_;
   bool pc_modified_;
   int icount_;
-  static bool flag_trace_sim_;
   static int32_t flag_stop_sim_at_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
 

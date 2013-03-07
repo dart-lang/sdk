@@ -11,6 +11,17 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 
+
+void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
+  ASSERT(Utils::IsAligned(data, 4));
+  ASSERT(Utils::IsAligned(length, 4));
+  const uword end = data + length;
+  while (data < end) {
+    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
+    data += 4;
+  }
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

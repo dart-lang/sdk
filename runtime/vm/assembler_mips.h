@@ -12,36 +12,50 @@
 #include "platform/assert.h"
 #include "vm/constants_mips.h"
 
+// References to documentation in this file refer to:
+// "MIPS® Architecture For Programmers Volume I-A:
+//   Introduction to the MIPS32® Architecture" in short "VolI-A"
+// and
+// "MIPS® Architecture For Programmers Volume II-A:
+//   The MIPS32® Instruction Set" in short "VolII-A"
 namespace dart {
 
-class Operand : public ValueObject {
+class Immediate : public ValueObject {
  public:
-  Operand(const Operand& other) : ValueObject() {
-    UNIMPLEMENTED();
-  }
+  explicit Immediate(int32_t value) : value_(value) { }
 
-  Operand& operator=(const Operand& other) {
-    UNIMPLEMENTED();
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+  Immediate& operator=(const Immediate& other) {
+    value_ = other.value_;
     return *this;
   }
 
- protected:
-  Operand() { }  // Needed by subclass Address.
+ private:
+  int32_t value_;
+
+  int32_t value() const { return value_; }
+
+  friend class Assembler;
 };
 
 
-class Address : public Operand {
+class Address : public ValueObject {
  public:
-  Address(Register base, int32_t disp) {
+  Address(Register base, int32_t offset) {
     UNIMPLEMENTED();
   }
 
-  Address(const Address& other) : Operand(other) { }
-
+  Address(const Address& other)
+      : ValueObject(), base_(other.base_), offset_(other.offset_) { }
   Address& operator=(const Address& other) {
-    Operand::operator=(other);
+    base_ = other.base_;
+    offset_ = other.offset_;
     return *this;
   }
+
+ private:
+  Register base_;
+  int32_t offset_;
 };
 
 
@@ -131,24 +145,14 @@ class Assembler : public ValueObject {
   }
 
   // Misc. functionality
-  int CodeSize() const {
-    UNIMPLEMENTED();
-    return 0;
-  }
-  int prologue_offset() const {
-    UNIMPLEMENTED();
-    return 0;
-  }
+  int CodeSize() const { return buffer_.Size(); }
+  int prologue_offset() const { return -1; }
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
-    UNIMPLEMENTED();
-    return *pointer_offsets_;
+    return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const {
-    UNIMPLEMENTED();
-    return object_pool_;
-  }
+  const GrowableObjectArray& object_pool() const { return object_pool_; }
   void FinalizeInstructions(const MemoryRegion& region) {
-    UNIMPLEMENTED();
+    buffer_.FinalizeInstructions(region);
   }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
@@ -186,9 +190,7 @@ class Assembler : public ValueObject {
   void Untested(const char* message);
   void Unreachable(const char* message);
 
-  static void InitializeMemoryWithBreakpoints(uword data, int length) {
-    UNIMPLEMENTED();
-  }
+  static void InitializeMemoryWithBreakpoints(uword data, int length);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
@@ -204,10 +206,21 @@ class Assembler : public ValueObject {
     return NULL;
   }
 
+  // CPU instructions.
+  void ori(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ORI, rs, rt, imm_value);
+  }
+
+  void jr(Register rs) {
+    EmitRType(SPECIAL, rs, R0, R0, 0, JR);
+    Emit(0);  // Branch delay NOP.
+  }
+
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
-  ZoneGrowableArray<int>* pointer_offsets_;
   int prologue_offset_;
 
   class CodeComment : public ZoneAllocated {
@@ -226,6 +239,42 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
+
+  void Emit(int32_t value) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    buffer_.Emit<int32_t>(value);
+  }
+
+  // Encode CPU instructions according to the types specified in
+  // Figures 4-1, 4-2 and 4-3 in VolI-A.
+  void EmitIType(Opcode opcode,
+                 Register rs,
+                 Register rt,
+                 uint16_t imm) {
+    Emit(opcode << kOpcodeShift |
+         rs << kRsShift |
+         rt << kRtShift |
+         imm);
+  }
+
+  void EmitJType(Opcode opcode, Label* label) {
+    UNIMPLEMENTED();
+  }
+
+  void EmitRType(Opcode opcode,
+                 Register rs,
+                 Register rt,
+                 Register rd,
+                 int sa,
+                 SpecialFunction func) {
+    ASSERT(Utils::IsUint(5, sa));
+    Emit(opcode << kOpcodeShift |
+         rs << kRsShift |
+         rt << kRtShift |
+         rd << kRdShift |
+         sa << kSaShift |
+         func << kFunctionShift);
+  }
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

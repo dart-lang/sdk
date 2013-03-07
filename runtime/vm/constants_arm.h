@@ -554,7 +554,6 @@ class Instr {
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
   static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
-  Instr* Next() { return this + kInstrSize; }
 
  private:
   DISALLOW_ALLOCATION();

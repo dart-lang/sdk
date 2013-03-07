@@ -2741,8 +2741,7 @@ int64_t Simulator::Call(int32_t entry,
                         int32_t parameter0,
                         int32_t parameter1,
                         int32_t parameter2,
-                        int32_t parameter3,
-                        int32_t parameter4) {
+                        int32_t parameter3) {
   // Save the SP register before the call so we can restore it.
   int32_t sp_before_call = get_register(SP);
 
@@ -2752,18 +2751,12 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R2, parameter2);
   set_register(R3, parameter3);
 
-  // Reserve room for one stack parameter.
-  int32_t stack_pointer = sp_before_call;
-  stack_pointer -= kWordSize;
-
   // Make sure the activation frames are properly aligned.
+  int32_t stack_pointer = sp_before_call;
   static const int kFrameAlignment = OS::ActivationFrameAlignment();
   if (kFrameAlignment > 0) {
     stack_pointer = Utils::RoundDown(stack_pointer, kFrameAlignment);
   }
-
-  // Write the fourth parameter to the stack and update register SP.
-  *reinterpret_cast<int32_t*>(stack_pointer) = parameter4;
   set_register(SP, stack_pointer);
 
   // Prepare to execute the code at entry.

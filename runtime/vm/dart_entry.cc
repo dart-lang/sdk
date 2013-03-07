@@ -61,8 +61,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
         static_cast<int32_t>(code.EntryPoint()),
         reinterpret_cast<int32_t>(&arguments_descriptor),
         reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(&context),
-        0));
+        reinterpret_cast<int32_t>(&context)));
 #else
     return entrypoint(code.EntryPoint(),
                       arguments_descriptor,
