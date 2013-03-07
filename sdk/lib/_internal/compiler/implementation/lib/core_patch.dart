@@ -295,4 +295,3 @@ patch class StackTrace {
     throw new UnsupportedError('stackTrace');
   }
 }
-

@@ -301,7 +301,7 @@ class LocalsHandler {
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
     if (builder.backend.isInterceptedMethod(element)) {
-      HType type = HType.UNKNOWN;
+      HType type = builder.getTypeOfThis();
       SourceString name = const SourceString('receiver');
       if (cls == builder.backend.jsArrayClass) {
         type = HType.READABLE_ARRAY;
@@ -326,6 +326,7 @@ class LocalsHandler {
       }
       Element parameter = new InterceptedElement(type, name, element);
       HParameterValue value = new HParameterValue(parameter);
+      builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
       if (builder.backend.isInterceptorClass(cls.declaration)) {
@@ -914,30 +915,37 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // call sites do the null check.
     if (name == const SourceString('==')) {
       if (functionElement.getEnclosingClass() == compiler.objectClass) {
-        // We special case [Object.operator==] because we know the
-        // receiver is not null and therefore can just do an identity
-        // check on [:this:]. The interceptor classes have their own
-        // synthesized [:operator==:] method.
+        // We special case [Object.operator==] because we know the receiver is
+        // not null (that case goes via a call site check or the JSNull
+        // interceptor) and therefore can just do an identity check on `this`.
+
+        // TODO(sra): This method uses the explicit receiver calling convention
+        // so that interceptors may inherit it.  If we make all interceptors
+        // inherit from a common Interceptor class, we can switch back to the
+        // 'ignored receiver' convention.
         HInstruction parameter = parameters.values.first;
-        HIdentity identity = new HIdentity(graph.thisInstruction, parameter);
+        HIdentity identity =
+            new HIdentity(graph.explicitReceiverParameter, parameter);
         add(identity);
         HReturn ret = new HReturn(identity);
         close(ret).addSuccessor(graph.exit);
         return closeFunction();
       }
-      handleIf(
-          function,
-          () {
-            HParameterValue parameter = parameters.values.first;
-            push(new HIdentity(
-                parameter, graph.addConstantNull(constantSystem)));
-          },
-          () {
-            HReturn ret = new HReturn(
-                graph.addConstantBool(false, constantSystem));
-            close(ret).addSuccessor(graph.exit);
-          },
-          null);
+      if (!backend.operatorEqHandlesNullArgument(functionElement)) {
+        handleIf(
+            function,
+            () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(
+                  parameter, graph.addConstantNull(constantSystem)));
+            },
+            () {
+              HReturn ret = new HReturn(
+                  graph.addConstantBool(false, constantSystem));
+              close(ret).addSuccessor(graph.exit);
+            },
+            null);
+      }
     }
     function.body.accept(this);
     return closeFunction();

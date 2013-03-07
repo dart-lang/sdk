@@ -76,13 +76,19 @@ class JSBool implements bool {
 
 /**
  * The interceptor class for [Null].
+ *
+ * This class defines implementations for *all* methods on [Object] since the
+ * the methods on Object assume the receiver is non-null.
  */
 class JSNull implements Null {
   const JSNull();
+
+  bool operator ==(other) => identical(null, other);
 
   // Note: if you change this, also change the function [S].
   String toString() => 'null';
 
   int get hashCode => 0;
+
   Type get runtimeType => Null;
 }

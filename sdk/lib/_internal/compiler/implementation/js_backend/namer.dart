@@ -442,11 +442,11 @@ class Namer implements ClosureNamer {
     return '$getterPrefix$name';
   }
 
-  String getMappedGlobalName(String proposedName) {
+  String getMappedGlobalName(String proposedName, {bool ensureSafe: true}) {
     var newName = globalNameMap[proposedName];
     if (newName == null) {
       newName = getFreshName(proposedName, usedGlobalNames,
-                             suggestedGlobalNames, ensureSafe: true);
+                             suggestedGlobalNames, ensureSafe: ensureSafe);
       globalNameMap[proposedName] = newName;
     }
     return newName;
@@ -564,8 +564,25 @@ class Namer implements ClosureNamer {
 
   String getOneShotInterceptorName(Selector selector,
                                    Collection<ClassElement> classes) {
-    String suffix = getInterceptorSuffix(classes);
-    return getMappedGlobalName("${invocationName(selector)}\$$suffix");
+    // The one-shot name is a global name derived from the invocation name.  To
+    // avoid instability we would like the names to be unique and not clash with
+    // other global names.
+
+    String root = invocationName(selector);  // Is already safe.
+
+    if (classes.contains(compiler.objectClass)) {
+      // If the object class is in the set of intercepted classes, this is the
+      // most general specialization which uses the generic getInterceptor
+      // method.  To keep the name short, we add '$' only to distinguish from
+      // global getters or setters; operators and methods can't clash.
+      // TODO(sra): Find a way to get the simple name when Object is not in the
+      // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
+      if (selector.isGetter() || selector.isSetter()) root = '$root\$';
+      return getMappedGlobalName(root, ensureSafe: false);
+    } else {
+      String suffix = getInterceptorSuffix(classes);
+      return getMappedGlobalName("$root\$$suffix", ensureSafe: false);
+    }
   }
 
   String getBailoutName(Element element) {

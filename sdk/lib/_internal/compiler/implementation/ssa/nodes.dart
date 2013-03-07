@@ -120,6 +120,8 @@ class HGraph {
   HBasicBlock entry;
   HBasicBlock exit;
   HThis thisInstruction;
+  /// Receiver parameter, set for methods using interceptor calling convention.
+  HParameterValue explicitReceiverParameter;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
   final List<HBasicBlock> blocks;

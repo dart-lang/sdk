@@ -710,6 +710,11 @@ class JavaScriptBackend extends Backend {
   final Set<ClassElement> interceptedClasses;
 
   /**
+   * Set of classes whose `operator ==` methods handle `null` themselves.
+   */
+  final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
+
+  /**
    * Set of selectors that are used from within loops. Used by the
    * builder to allow speculative optimizations for functions without
    * loops themselves.
@@ -800,6 +805,11 @@ class JavaScriptBackend extends Backend {
     });
   }
 
+  bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
+    return specialOperatorEqClasses.contains(
+        operatorEqfunction.getEnclosingClass());
+  }
+
   void initializeHelperClasses() {
     getInterceptorMethod =
         compiler.findInterceptor(const SourceString('getInterceptor'));
@@ -840,6 +850,10 @@ class JavaScriptBackend extends Backend {
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses.add(cls);
     }
+
+    specialOperatorEqClasses
+        ..add(jsNullClass)
+        ..add(jsNumberClass);
   }
 
   void addInterceptors(ClassElement cls, Enqueuer enqueuer) {

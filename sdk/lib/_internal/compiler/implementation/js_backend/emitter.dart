@@ -988,19 +988,6 @@ class CodeEmitterTask extends CompilerTask {
         emitNoSuchMethodHandlers(builder.addProperty);
       }
     }
-
-    if (backend.isInterceptorClass(classElement)
-        && classElement != compiler.objectClass) {
-      // We optimize the operator== on interceptor classes to
-      // just do a JavaScript double or triple equals.
-      String name = backend.namer.publicInstanceMethodNameByArity(
-          const SourceString('=='), 1);
-      Function kind = (classElement == backend.jsNullClass)
-          ? js.equals
-          : js.strictEquals;
-      builder.addProperty(name, js.fun(['receiver', 'a'],
-          js.block(js.return_(kind(js['receiver'], js['a'])))));
-    }
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
