@@ -47,6 +47,9 @@ scheduled_test/test/*: Skip
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
+[ $runtime == ie9 ]
+intl/test/date_time_format_http_request_test: Fail # Issue 8983
+
 # Skip browser-specific Intl tests on VM
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
