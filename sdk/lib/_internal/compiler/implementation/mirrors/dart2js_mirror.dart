@@ -216,10 +216,10 @@ Future<String> compile(Path script,
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
   Uri scriptUri = cwd.resolve(script.toString());
-  Uri libraryUri = cwd.resolve(appendSlash(libraryRoot.toString()));
+  Uri libraryUri = cwd.resolve('${libraryRoot}/');
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = cwd.resolve(appendSlash(packageRoot.toString()));
+    packageUri = cwd.resolve('${packageRoot}/');
   }
   return api.compile(scriptUri, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler, options);
@@ -240,10 +240,10 @@ Future<MirrorSystem> analyze(List<Path> libraries,
     diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
-  Uri libraryUri = cwd.resolve(appendSlash(libraryRoot.toString()));
+  Uri libraryUri = cwd.resolve('${libraryRoot}/');
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = cwd.resolve(appendSlash(packageRoot.toString()));
+    packageUri = cwd.resolve('${packageRoot}/');
   }
   options = new List<String>.from(options);
   options.add('--analyze-only');
