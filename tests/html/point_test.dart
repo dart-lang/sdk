@@ -5,8 +5,8 @@
 library point_test;
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_config.dart';
 
 main() {
   useHtmlConfiguration();

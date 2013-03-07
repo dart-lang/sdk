@@ -1928,43 +1928,6 @@ class CharacterData extends Node {
 
 
 @DocsEditable
-@DomName('ClientRect')
-class ClientRect extends NativeFieldWrapperClass1 {
-  ClientRect.internal();
-
-  @DomName('ClientRect.bottom')
-  @DocsEditable
-  num get bottom native "ClientRect_bottom_Getter";
-
-  @DomName('ClientRect.height')
-  @DocsEditable
-  num get height native "ClientRect_height_Getter";
-
-  @DomName('ClientRect.left')
-  @DocsEditable
-  num get left native "ClientRect_left_Getter";
-
-  @DomName('ClientRect.right')
-  @DocsEditable
-  num get right native "ClientRect_right_Getter";
-
-  @DomName('ClientRect.top')
-  @DocsEditable
-  num get top native "ClientRect_top_Getter";
-
-  @DomName('ClientRect.width')
-  @DocsEditable
-  num get width native "ClientRect_width_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('CloseEvent')
 class CloseEvent extends Event {
   CloseEvent.internal() : super.internal();
@@ -10015,11 +9978,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable
-  ClientRect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
+  Rect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
   @DomName('Element.getClientRects')
   @DocsEditable
-  List<ClientRect> getClientRects() native "Element_getClientRects_Callback";
+  List<Rect> getClientRects() native "Element_getClientRects_Callback";
 
   @DomName('Element.getElementsByClassName')
   @DocsEditable
@@ -18361,11 +18324,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DocsEditable
-  int get clientX native "MouseEvent_clientX_Getter";
+  int get $dom_clientX native "MouseEvent_clientX_Getter";
 
   @DomName('MouseEvent.clientY')
   @DocsEditable
-  int get clientY native "MouseEvent_clientY_Getter";
+  int get $dom_clientY native "MouseEvent_clientY_Getter";
 
   @DomName('MouseEvent.ctrlKey')
   @DocsEditable
@@ -18385,11 +18348,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.offsetX')
   @DocsEditable
-  int get offsetX native "MouseEvent_offsetX_Getter";
+  int get $dom_offsetX native "MouseEvent_offsetX_Getter";
 
   @DomName('MouseEvent.offsetY')
   @DocsEditable
-  int get offsetY native "MouseEvent_offsetY_Getter";
+  int get $dom_offsetY native "MouseEvent_offsetY_Getter";
 
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable
@@ -18397,11 +18360,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.screenX')
   @DocsEditable
-  int get screenX native "MouseEvent_screenX_Getter";
+  int get $dom_screenX native "MouseEvent_screenX_Getter";
 
   @DomName('MouseEvent.screenY')
   @DocsEditable
-  int get screenY native "MouseEvent_screenY_Getter";
+  int get $dom_screenY native "MouseEvent_screenY_Getter";
 
   @DomName('MouseEvent.shiftKey')
   @DocsEditable
@@ -18416,19 +18379,60 @@ class MouseEvent extends UIEvent {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  int get movementX native "MouseEvent_webkitMovementX_Getter";
+  int get $dom_webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  int get movementY native "MouseEvent_webkitMovementY_Getter";
+  int get $dom_webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
+
+  @deprecated
+  int get clientX => client.x;
+  @deprecated
+  int get clientY => client.y;
+  @deprecated
+  int get offsetX => offset.x;
+  @deprecated
+  int get offsetY => offset.y;
+  @deprecated
+  int get movementX => movement.x;
+  @deprecated
+  int get movementY => movement.y;
+  @deprecated
+  int get screenX => screen.x;
+  @deprecated
+  int get screenY => screen.y;
+
+  @DomName('MouseEvent.clientX')
+  @DomName('MouseEvent.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('MouseEvent.movementX')
+  @DomName('MouseEvent.movementY')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
+
+  /**
+   * The coordinates of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
+  Point get offset => new Point($dom_offsetX, $dom_offsetY);
+
+  @DomName('MouseEvent.screenX')
+  @DomName('MouseEvent.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20778,11 +20782,11 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.getBoundingClientRect')
   @DocsEditable
-  ClientRect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
+  Rect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
 
   @DomName('Range.getClientRects')
   @DocsEditable
-  List<ClientRect> getClientRects() native "Range_getClientRects_Callback";
+  List<Rect> getClientRects() native "Range_getClientRects_Callback";
 
   @DomName('Range.insertNode')
   @DocsEditable
@@ -24505,8 +24509,6 @@ class TitleElement extends _Element_Merged {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable
 @DomName('Touch')
@@ -24515,11 +24517,11 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.clientX')
   @DocsEditable
-  int get clientX native "Touch_clientX_Getter";
+  int get $dom_clientX native "Touch_clientX_Getter";
 
   @DomName('Touch.clientY')
   @DocsEditable
-  int get clientY native "Touch_clientY_Getter";
+  int get $dom_clientY native "Touch_clientY_Getter";
 
   @DomName('Touch.identifier')
   @DocsEditable
@@ -24527,19 +24529,19 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.pageX')
   @DocsEditable
-  int get pageX native "Touch_pageX_Getter";
+  int get $dom_pageX native "Touch_pageX_Getter";
 
   @DomName('Touch.pageY')
   @DocsEditable
-  int get pageY native "Touch_pageY_Getter";
+  int get $dom_pageY native "Touch_pageY_Getter";
 
   @DomName('Touch.screenX')
   @DocsEditable
-  int get screenX native "Touch_screenX_Getter";
+  int get $dom_screenX native "Touch_screenX_Getter";
 
   @DomName('Touch.screenY')
   @DocsEditable
-  int get screenY native "Touch_screenY_Getter";
+  int get $dom_screenY native "Touch_screenY_Getter";
 
   @DomName('Touch.target')
   @DocsEditable
@@ -24573,6 +24575,18 @@ class Touch extends NativeFieldWrapperClass1 {
   @Experimental
   num get rotationAngle native "Touch_webkitRotationAngle_Getter";
 
+
+  @DomName('Touch.clientX')
+  @DomName('Touch.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('Touch.pageX')
+  @DomName('Touch.pageY')
+  Point get page => new Point($dom_pageX, $dom_pageY);
+
+  @DomName('Touch.screenX')
+  @DomName('Touch.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25083,19 +25097,19 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.layerX')
   @DocsEditable
-  int get layerX native "UIEvent_layerX_Getter";
+  int get $dom_layerX native "UIEvent_layerX_Getter";
 
   @DomName('UIEvent.layerY')
   @DocsEditable
-  int get layerY native "UIEvent_layerY_Getter";
+  int get $dom_layerY native "UIEvent_layerY_Getter";
 
   @DomName('UIEvent.pageX')
   @DocsEditable
-  int get pageX native "UIEvent_pageX_Getter";
+  int get $dom_pageX native "UIEvent_pageX_Getter";
 
   @DomName('UIEvent.pageY')
   @DocsEditable
-  int get pageY native "UIEvent_pageY_Getter";
+  int get $dom_pageY native "UIEvent_pageY_Getter";
 
   @DomName('UIEvent.view')
   @DocsEditable
@@ -25109,6 +25123,24 @@ class UIEvent extends Event {
   @DocsEditable
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
+
+  @deprecated
+  int get layerX => layer.x;
+  @deprecated
+  int get layerY => layer.y;
+
+  @deprecated
+  int get pageX => page.x;
+  @deprecated
+  int get pageY => page.y;
+
+  @DomName('UIEvent.layerX')
+  @DomName('UIEvent.layerY')
+  Point get layer => new Point($dom_layerX, $dom_layerY);
+
+  @DomName('UIEvent.pageX')
+  @DomName('UIEvent.pageY')
+  Point get page => new Point($dom_pageX, $dom_pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29582,6 +29614,132 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('ClientRect')
+class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
+
+  // NOTE! All code below should be common with Rect.
+  // TODO(blois): implement with mixins when available.
+
+  String toString() {
+    return '($left, $top, $width, $height)';
+  }
+
+  bool operator ==(other) {
+    if (other is !Rect) return false;
+    return left == other.left && top == other.top && width == other.width &&
+        height == other.height;
+  }
+
+  /**
+   * Computes the intersection of this rectangle and the rectangle parameter.
+   * Returns null if there is no intersection.
+   */
+  Rect intersection(Rect rect) {
+    var x0 = max(left, rect.left);
+    var x1 = min(left + width, rect.left + rect.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, rect.top);
+      var y1 = min(top + height, rect.top + rect.height);
+
+      if (y0 <= y1) {
+        return new Rect(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns whether a rectangle intersects this rectangle.
+   */
+  bool intersects(Rect other) {
+    return (left <= other.left + other.width && other.left <= left + width &&
+        top <= other.top + other.height && other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains this rectangle and the
+   * input rectangle.
+   */
+  Rect union(Rect rect) {
+    var right = max(this.left + this.width, rect.left + rect.width);
+    var bottom = max(this.top + this.height, rect.top + rect.height);
+
+    var left = min(this.left, rect.left);
+    var top = min(this.top, rect.top);
+
+    return new Rect(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains another rectangle.
+   */
+  bool containsRect(Rect another) {
+    return left <= another.left &&
+           left + width >= another.left + another.width &&
+           top <= another.top &&
+           top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains a point.
+   */
+  bool containsPoint(Point another) {
+    return another.x >= left &&
+           another.x <= left + width &&
+           another.y >= top &&
+           another.y <= top + height;
+  }
+
+  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
+  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
+      height.floor());
+  Rect round() => new Rect(left.round(), top.round(), width.round(),
+      height.round());
+
+  /**
+   * Truncates coordinates to integers and returns the result as a new
+   * rectangle.
+   */
+  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
+      height.toInt());
+
+  Point get topLeft => new Point(this.left, this.top);
+  Point get bottomRight => new Point(this.left + this.width,
+      this.top + this.height);
+  _ClientRect.internal();
+
+  @DomName('ClientRect.bottom')
+  @DocsEditable
+  num get bottom native "ClientRect_bottom_Getter";
+
+  @DomName('ClientRect.height')
+  @DocsEditable
+  num get height native "ClientRect_height_Getter";
+
+  @DomName('ClientRect.left')
+  @DocsEditable
+  num get left native "ClientRect_left_Getter";
+
+  @DomName('ClientRect.right')
+  @DocsEditable
+  num get right native "ClientRect_right_Getter";
+
+  @DomName('ClientRect.top')
+  @DocsEditable
+  num get top native "ClientRect_top_Getter";
+
+  @DomName('ClientRect.width')
+  @DocsEditable
+  num get width native "ClientRect_width_Getter";
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29591,104 +29749,104 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRect> {
+class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
   _ClientRectList.internal();
 
   @DomName('ClientRectList.length')
   @DocsEditable
   int get length native "ClientRectList_length_Getter";
 
-  ClientRect operator[](int index) native "ClientRectList_item_Callback";
+  Rect operator[](int index) native "ClientRectList_item_Callback";
 
-  void operator[]=(int index, ClientRect value) {
+  void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<ClientRect> mixins.
-  // ClientRect is the element type.
+  // -- start List<Rect> mixins.
+  // Rect is the element type.
 
-  // From Iterable<ClientRect>:
+  // From Iterable<Rect>:
 
-  Iterator<ClientRect> get iterator {
+  Iterator<Rect> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<ClientRect>(this);
+    return new FixedSizeListIterator<Rect>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Rect)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(ClientRect element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(Rect element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => IterableMixinWorkaround.forEach(this, f);
+  void forEach(void f(Rect element)) => IterableMixinWorkaround.forEach(this, f);
 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(ClientRect element)) =>
+  Iterable map(f(Rect element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  Iterable<ClientRect> where(bool f(ClientRect element)) =>
+  Iterable<Rect> where(bool f(Rect element)) =>
       IterableMixinWorkaround.where(this, f);
 
-  Iterable expand(Iterable f(ClientRect element)) =>
+  Iterable expand(Iterable f(Rect element)) =>
       IterableMixinWorkaround.expand(this, f);
 
-  bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool f(Rect element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool f(Rect element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ClientRect> toList({ bool growable: true }) =>
-      new List<ClientRect>.from(this, growable: growable);
+  List<Rect> toList({ bool growable: true }) =>
+      new List<Rect>.from(this, growable: growable);
 
-  Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
+  Set<Rect> toSet() => new Set<Rect>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Rect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
-  Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
+  Iterable<Rect> takeWhile(bool test(Rect value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Rect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
-  Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
+  Iterable<Rect> skipWhile(bool test(Rect value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
+  Rect firstMatching(bool test(Rect value), { Rect orElse() }) {
     return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
-  ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
+  Rect lastMatching(bool test(Rect value), {Rect orElse()}) {
     return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
-  ClientRect singleMatching(bool test(ClientRect value)) {
+  Rect singleMatching(bool test(Rect value)) {
     return IterableMixinWorkaround.singleMatching(this, test);
   }
 
-  ClientRect elementAt(int index) {
+  Rect elementAt(int index) {
     return this[index];
   }
 
-  // From Collection<ClientRect>:
+  // From Collection<Rect>:
 
-  void add(ClientRect value) {
+  void add(Rect value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(ClientRect value) {
+  void addLast(Rect value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Iterable<ClientRect> iterable) {
+  void addAll(Iterable<Rect> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<ClientRect>:
+  // From List<Rect>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
@@ -29697,49 +29855,49 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  Iterable<ClientRect> get reversed {
+  Iterable<Rect> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
-  void sort([int compare(ClientRect a, ClientRect b)]) {
+  void sort([int compare(Rect a, Rect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(ClientRect element, [int start = 0]) =>
+  int indexOf(Rect element, [int start = 0]) =>
       Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(ClientRect element, [int start]) {
+  int lastIndexOf(Rect element, [int start]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
   }
 
-  ClientRect get first {
+  Rect get first {
     if (this.length > 0) return this[0];
     throw new StateError("No elements");
   }
 
-  ClientRect get last {
+  Rect get last {
     if (this.length > 0) return this[this.length - 1];
     throw new StateError("No elements");
   }
 
-  ClientRect get single {
+  Rect get single {
     if (length == 1) return this[0];
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) =>
+  Rect min([int compare(Rect a, Rect b)]) =>
       IterableMixinWorkaround.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) =>
+  Rect max([int compare(Rect a, Rect b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
-  ClientRect removeAt(int pos) {
+  Rect removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  ClientRect removeLast() {
+  Rect removeLast() {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29755,15 +29913,15 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(ClientRect element)) {
+  void removeMatching(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(ClientRect element)) {
+  void retainMatching(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Rect> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29771,21 +29929,21 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [ClientRect initialValue]) {
+  void insertRange(int start, int rangeLength, [Rect initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<ClientRect> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <ClientRect>[]);
+  List<Rect> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Rect>[]);
 
-  Map<int, ClientRect> asMap() =>
+  Map<int, Rect> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
-  // -- end List<ClientRect> mixins.
+  // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
   @DocsEditable
-  ClientRect item(int index) native "ClientRectList_item_Callback";
+  Rect item(int index) native "ClientRectList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33894,14 +34052,7 @@ class Rect {
   final num width;
   final num height;
 
-  Rect(this.left, this.top, this.width, this.height) {
-    if (width < 0) {
-      throw new ArgumentError(width);
-    }
-    if (height < 0) {
-      throw new ArgumentError(height);
-    }
-  }
+  const Rect(this.left, this.top, this.width, this.height);
 
   factory Rect.fromPoints(Point a, Point b) {
     var left;
@@ -34346,12 +34497,10 @@ class KeyEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  int get layerX => _parent.layerX;
-  int get layerY => _parent.layerY;
+  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  int get pageX => _parent.pageX;
-  int get pageY => _parent.pageY;
+  Point get page => _parent.page;
   bool get returnValue => _parent.returnValue;
   void set returnValue(bool value) {
     _parent.returnValue = value;

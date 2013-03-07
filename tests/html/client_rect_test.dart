@@ -5,8 +5,8 @@ import 'dart:html';
 
 main() {
 
-  var isClientRectList =
-      predicate((x) => x is List<ClientRect>, 'is a List<ClientRect>');
+  var isRectList =
+      predicate((x) => x is List<Rect>, 'is a List<Rect>');
 
   insertTestDiv() {
     var element = new Element.tag('div');
@@ -25,6 +25,6 @@ main() {
     insertTestDiv();
     var range = new Range();
     var rects = range.getClientRects();
-    expect(rects, isClientRectList);
+    expect(rects, isRectList);
   });
 }

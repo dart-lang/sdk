@@ -1120,9 +1120,11 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     self._type_registry = type_registry
 
   def dart_type(self):
+    if self._data.dart_type:
+      return self._data.dart_type
     if self.list_item_type() and not self.has_generated_interface():
       return 'List<%s>' % self._type_registry.TypeInfo(self._data.item_type).dart_type()
-    return self._data.dart_type or self._dart_interface_name
+    return self._dart_interface_name
 
   def narrow_dart_type(self):
     if self.list_item_type():
@@ -1373,6 +1375,8 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
+    'ClientRect': TypeData(clazz='Interface',
+        dart_type='Rect', suppress_interface=True),
     'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
@@ -1407,7 +1411,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
     'ClientRectList': TypeData(clazz='Interface',
-        item_type='ClientRect', suppress_interface=True),
+        item_type='ClientRect', dart_type='List<Rect>', suppress_interface=True),
     'CSSRuleList': TypeData(clazz='Interface',
         item_type='CSSRule', suppress_interface=True),
     'CSSValueList': TypeData(clazz='Interface',

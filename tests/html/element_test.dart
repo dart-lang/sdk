@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 
-expectLargeRect(ClientRect rect) {
+expectLargeRect(Rect rect) {
   expect(rect.top, 0);
   expect(rect.left, 0);
   expect(rect.width, greaterThan(100));

@@ -26,14 +26,6 @@ main() {
 
     var r2 = new Rect.fromPoints(r0.bottomRight, r0.topLeft);
     expect(r2, r0);
-
-    expect(() {
-      new Rect(0, 0, -1, 0);
-    }, throwsArgumentError);
-
-    expect(() {
-      new Rect(0, 0, 0, -1);
-    }, throwsArgumentError);
   });
 
   test('intersection', () {

@@ -73,12 +73,10 @@ class KeyEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  int get layerX => _parent.layerX;
-  int get layerY => _parent.layerY;
+  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  int get pageX => _parent.pageX;
-  int get pageY => _parent.pageY;
+  Point get page => _parent.page;
   bool get returnValue => _parent.returnValue;
   void set returnValue(bool value) {
     _parent.returnValue = value;

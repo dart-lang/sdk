@@ -23,4 +23,45 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return event;
   }
 $!MEMBERS
+
+  @deprecated
+  int get clientX => client.x;
+  @deprecated
+  int get clientY => client.y;
+  @deprecated
+  int get offsetX => offset.x;
+  @deprecated
+  int get offsetY => offset.y;
+  @deprecated
+  int get movementX => movement.x;
+  @deprecated
+  int get movementY => movement.y;
+  @deprecated
+  int get screenX => screen.x;
+  @deprecated
+  int get screenY => screen.y;
+
+  @DomName('MouseEvent.clientX')
+  @DomName('MouseEvent.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('MouseEvent.movementX')
+  @DomName('MouseEvent.movementY')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
+
+  /**
+   * The coordinates of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
+  Point get offset => new Point($dom_offsetX, $dom_offsetY);
+
+  @DomName('MouseEvent.screenX')
+  @DomName('MouseEvent.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
 }
