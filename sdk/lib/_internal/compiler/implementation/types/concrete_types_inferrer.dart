@@ -429,6 +429,9 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   FunctionElement listConstructor;
 
+  /// The [TypeMask] representing [:null:].
+  TypeMask nullTypeMask;
+
   /**
    * A cache from (function x argument base types) to concrete types,
    * used to memoize [analyzeMonoSend]. Another way of seeing [cache] is as a
@@ -740,21 +743,35 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
   // -- query --
 
-  TypeMask fromBaseTypeToTypeMask(BaseType baseType) {
-    if (!baseType.isClass()) return null;
+  TypeMask fromClassBaseTypeToTypeMask(ClassBaseType baseType) {
     ClassBaseType classBaseType = baseType;
     ClassElement cls = classBaseType.element;
     return new TypeMask.nonNullExact(cls.rawType);
   }
 
+  /**
+   * Returns the [TypeMask] representation of [concreteType]. Returns [:null:]
+   * if and only if [:concreteType.isUnknown():].
+   */
   TypeMask fromConcreteToTypeMask(ConcreteType concreteType) {
     if (concreteType == null) return null;
     TypeMask typeMask;
+    bool nullable = false;
     for (BaseType baseType in concreteType.baseTypes) {
-      TypeMask current = fromBaseTypeToTypeMask(baseType);
-      typeMask = typeMask == null ? current : typeMask.union(current, compiler);
+      if (baseType.isUnknown()) {
+        return null;
+      } else if (baseType.isNull()) {
+        nullable = true;
+      } else {
+        TypeMask current = fromClassBaseTypeToTypeMask(baseType);
+        typeMask = typeMask == null
+            ? current
+            : typeMask.union(current, compiler);
+      }
     }
-    return typeMask;
+    return nullable
+        ? typeMask == null ? null : typeMask.nullable()
+        : typeMask;
   }
 
   /**
@@ -776,7 +793,14 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * Get the inferred concrete return type of [element].
    */
   TypeMask getReturnTypeOfElement(Element element) {
-    return null;
+    if (!element.isFunction()) return null;
+    Map<ConcreteTypesEnvironment, ConcreteType> templates = cache[element];
+    if (templates == null) return null;
+    ConcreteType returnType = emptyConcreteType;
+    templates.forEach((_, concreteType) {
+      returnType = union(returnType, concreteType);
+    });
+    return fromConcreteToTypeMask(returnType);
   }
 
   // --- analysis ---
@@ -1103,6 +1127,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
         compiler.listClass.lookupConstructor(
             new Selector.callConstructor(const SourceString(''),
                                          compiler.listClass.getLibrary()));
+    nullTypeMask = new TypeMask.exact(compiler.nullClass.computeType(compiler));
   }
 
   /**
