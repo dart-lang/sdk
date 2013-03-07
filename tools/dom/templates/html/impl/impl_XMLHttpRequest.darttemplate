@@ -85,7 +85,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (method == null) {
       method = 'GET';
     }
-    xhr.open(method, url, true);
+    xhr.open(method, url, async: true);
 
     if (withCredentials != null) {
       xhr.withCredentials = withCredentials;

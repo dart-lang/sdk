@@ -421,9 +421,7 @@ class HtmlDartInterfaceGenerator(object):
 
   def GenerateCallback(self):
     """Generates a typedef for the callback interface."""
-    handlers = [operation for operation in self._interface.operations
-                if operation.id == 'handleEvent']
-    info = AnalyzeOperation(self._interface, handlers)
+    info = GetCallbackInfo(self._interface)
     code = self._library_emitter.FileEmitter(self._interface.id,
         self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
@@ -860,6 +858,8 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     if IsPureInterface(self._interface.id):
       self._AddInterfaceOperation(info, html_name)
+    elif info.callback_args:
+      self._AddFutureifiedOperation(info, html_name)
     elif any(self._OperationRequiresConversions(op) for op in info.overloads):
       # Any conversions needed?
       self._AddOperationWithConversions(info, html_name)
