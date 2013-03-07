@@ -1114,6 +1114,14 @@ abstract class HInstruction implements Spannable {
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (type == null) return this;
+
+    // TODO(kasperl): This needs cleaning up. We shouldn't be creating
+    // HType objects for malformed types.
+    if (kind == HTypeConversion.CHECKED_MODE_CHECK && type.isMalformed) {
+      kind = HTypeConversion.MALFORMED_CHECKED_MODE_CHECK;
+      return new HTypeConversion(new HType.subtype(type, compiler), this, kind);
+    }
+
     if (identical(type.element, compiler.dynamicClass)) return this;
     if (identical(type.element, compiler.objectClass)) return this;
 
@@ -2189,6 +2197,7 @@ class HTypeConversion extends HCheck {
   static const int ARGUMENT_TYPE_CHECK = 2;
   static const int CAST_TYPE_CHECK = 3;
   static const int BOOLEAN_CONVERSION_CHECK = 4;
+  static const int MALFORMED_CHECKED_MODE_CHECK = 5;
 
   HTypeConversion(HType type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
@@ -2203,14 +2212,16 @@ class HTypeConversion extends HCheck {
   HTypeConversion.castCheck(HType type, HInstruction input)
       : this(type, input, CAST_TYPE_CHECK);
 
-
   bool get isChecked => kind != NO_CHECK;
   bool get isCheckedModeCheck {
-    return kind == CHECKED_MODE_CHECK || kind == BOOLEAN_CONVERSION_CHECK;
+    return kind == CHECKED_MODE_CHECK
+        || kind == BOOLEAN_CONVERSION_CHECK
+        || kind == MALFORMED_CHECKED_MODE_CHECK;
   }
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
   bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
+  bool get isMalformedCheckedModeCheck => kind == MALFORMED_CHECKED_MODE_CHECK;
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 

@@ -289,7 +289,7 @@ class SimpleTypesInferrer extends TypesInferrer {
             length, () => new Set<Element>());
         set.add(element);
     });
-    
+
     // This iteration assumes the [WorkSet] is LIFO.
     for (int i = max; i >= 0; i--) {
       Set<Element> set = methodSizes[i];
@@ -319,7 +319,7 @@ class SimpleTypesInferrer extends TypesInferrer {
 
   void initializeTypes() {
     // TODO(ngeoffray): Is that the right type?
-    nullType = new TypeMask.exact(compiler.nullClass.rawType);
+    nullType = new TypeMask.exact(compiler.nullClass.computeType(compiler));
 
     intType = new TypeMask.nonNullExact(
         compiler.intClass.rawType);

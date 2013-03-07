@@ -249,7 +249,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.

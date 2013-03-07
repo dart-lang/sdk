@@ -5,11 +5,9 @@
 part of types;
 
 /**
- * A type mask represents a set of concrete types, but the operations
- * on it are not guaranteed to be precise. When computing the union of
- * two masks you may get a mask that is too wide (like a common
- * superclass instead of a proper union type) and when computing the
- * intersection of two masks you may get a mask that is too narrow.
+ * A type mask represents a set of contained classes, but the
+ * operations on it are not guaranteed to be precise and they may
+ * yield conservative answers that contain too many classes.
  */
 class TypeMask {
 
@@ -84,7 +82,7 @@ class TypeMask {
   }
 
   TypeMask union(TypeMask other, Compiler compiler) {
-    if (base == other.base) {
+    if (base.asRaw() == other.base.asRaw()) {
       return unionSame(other, compiler);
     } else if (isSubclassOf(other.base, base, compiler)) {
       return unionSubclass(other, compiler);
@@ -100,7 +98,7 @@ class TypeMask {
   }
 
   TypeMask unionSame(TypeMask other, Compiler compiler) {
-    assert(base == other.base);
+    assert(base.asRaw() == other.base.asRaw());
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
@@ -149,7 +147,7 @@ class TypeMask {
   }
 
   TypeMask unionDisjoint(TypeMask other, Compiler compiler) {
-    assert(base != other.base);
+    assert(base.asRaw() != other.base.asRaw());
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
     // TODO(kasperl): Do this error handling earlier.
@@ -204,7 +202,7 @@ class TypeMask {
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
-    if (base == other.base) {
+    if (base.asRaw() == other.base.asRaw()) {
       return intersectionSame(other, compiler);
     } else if (isSubclassOf(other.base, base, compiler)) {
       return intersectionSubclass(other, compiler);
@@ -214,12 +212,13 @@ class TypeMask {
       return intersectionSubtype(other, compiler);
     } else if (isSubtypeOf(base, other.base, compiler)) {
       return other.intersectionSubtype(this, compiler);
+    } else {
+      return intersectionDisjoint(other, compiler);
     }
-    return null;
   }
 
   TypeMask intersectionSame(TypeMask other, Compiler compiler) {
-    assert(base == other.base);
+    assert(base.asRaw() == other.base.asRaw());
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
     // are nullable, will the result be nullable too.
@@ -267,10 +266,72 @@ class TypeMask {
     }
   }
 
+  TypeMask intersectionDisjoint(TypeMask other, Compiler compiler) {
+    assert(base.asRaw() != other.base.asRaw());
+    assert(!isSubtypeOf(base, other.base, compiler));
+    assert(!isSubtypeOf(other.base, base, compiler));
+    // TODO(kasperl): Do this error handling earlier.
+    if (base.kind != TypeKind.INTERFACE) return null;
+    if (other.base.kind != TypeKind.INTERFACE) return null;
+    // If one of the masks are exact or if both of them are subclass
+    // masks, then the intersection is empty.
+    if (isExact || other.isExact) return null;
+    if (isSubclass && other.isSubclass) return null;
+    assert(isSubtype || other.isSubtype);
+    int kind = (isSubclass || other.isSubclass) ? SUBCLASS : SUBTYPE;
+    // Compute the set of classes that are contained in both type masks.
+    Set<ClassElement> common = commonContainedClasses(this, other, compiler);
+    if (common == null || common.isEmpty) return null;
+    // Narrow down the candidates by only looking at common classes
+    // that do not have a superclass or supertype that will be a
+    // better candidate.
+    Iterable<ClassElement> candidates = common.where((ClassElement each) {
+      bool containsSuperclass = common.contains(each.supertype.element);
+      // If the superclass is also a candidate, then we don't want to
+      // deal with this class. If we're only looking for a subclass we
+      // know we don't have to look at the list of interfaces because
+      // they can never be in the common set.
+      if (containsSuperclass || kind == SUBCLASS) return !containsSuperclass;
+      // Run through the direct supertypes of the class. If the common
+      // set contains the direct supertype of the class, we ignore the
+      // the class because the supertype is a better candidate.
+      for (Link link = each.interfaces; !link.isEmpty; link = link.tail) {
+        if (common.contains(link.head.element)) return false;
+      }
+      return true;
+    });
+    // Run through the list of candidates and compute the union. The
+    // result will only be nullable if both masks are nullable.
+    int combined = (kind << 1) | (flags & other.flags & 1);
+    TypeMask result;
+    for (ClassElement each in candidates) {
+      TypeMask mask = new TypeMask.internal(each.rawType, combined);
+      result = (result == null) ? mask : result.union(mask, compiler);
+    }
+    return result;
+  }
+
+  Set<ClassElement> containedClasses(Compiler compiler) {
+    ClassElement element = base.element;
+    if (isExact) {
+      return new Set<ClassElement>()..add(element);
+    } else if (isSubclass) {
+      return compiler.world.subclasses[element];
+    } else {
+      assert(isSubtype);
+      return compiler.world.subtypes[element];
+    }
+  }
+
   bool operator ==(var other) {
     if (other is !TypeMask) return false;
     TypeMask otherMask = other;
-    return (base == otherMask.base) && (flags == otherMask.flags);
+    if (flags != otherMask.flags) return false;
+    if (base == null || otherMask.base == null) {
+      return base == otherMask.base;
+    } else {
+      return base.asRaw() == otherMask.base.asRaw();
+    }
   }
 
   String toString() {
@@ -301,5 +362,23 @@ class TypeMask {
     ClassElement yElement = y.element;
     Set<ClassElement> subtypes = compiler.world.subtypes[yElement];
     return (subtypes != null) ? subtypes.contains(xElement) : false;
+  }
+
+  static Set<ClassElement> commonContainedClasses(TypeMask x, TypeMask y,
+                                                  Compiler compiler) {
+    Set<ClassElement> xSubset = x.containedClasses(compiler);
+    if (xSubset == null) return null;
+    Set<ClassElement> ySubset = y.containedClasses(compiler);
+    if (ySubset == null) return null;
+    Set<ClassElement> smallSet, largeSet;
+    if (xSubset.length <= ySubset.length) {
+      smallSet = xSubset;
+      largeSet = ySubset;
+    } else {
+      smallSet = ySubset;
+      largeSet = xSubset;
+    }
+    var result = smallSet.where((ClassElement each) => largeSet.contains(each));
+    return result.toSet();
   }
 }

@@ -563,6 +563,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
+    // TODO(kasperl): This needs cleaning up. We shouldn't be creating
+    // HType objects for malformed types.
+    if (node.isMalformedCheckedModeCheck) return node;
     HInstruction value = node.inputs[0];
     DartType type = node.instructionType.computeType(compiler);
     if (identical(type.element, compiler.dynamicClass)
