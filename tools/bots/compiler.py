@@ -212,11 +212,16 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # that run the browser tests to cut down on the cycle time.
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
 
-  # Run the default set of test suites.
-  TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
-  # TODO(kasperl): Consider running peg and css tests too.
-  extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
-  TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+  if system.startswith('win') and runtime.startswith('ie10'):
+    TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
+  else:
+    # Run the default set of test suites.
+    TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
+
+    # TODO(kasperl): Consider running peg and css tests too.
+    extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+
 
 def _DeleteTempWebdriverProfiles(directory):
   """Find all the firefox profiles in a particular directory and delete them."""
