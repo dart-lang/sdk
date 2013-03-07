@@ -5,6 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.util.StringInterner;
 
 /**
  * <code>[name]</code> in {@link DartComment}.
@@ -15,7 +16,7 @@ public final class DartCommentRefName extends DartNode {
 
   public DartCommentRefName(String name) {
     assert name != null;
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   @Override

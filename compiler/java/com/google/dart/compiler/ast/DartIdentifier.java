@@ -6,6 +6,7 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.NodeElement;
+import com.google.dart.compiler.util.StringInterner;
 
 /**
  * Represents a Dart identifier expression.
@@ -18,11 +19,11 @@ public class DartIdentifier extends DartExpression {
 
   public DartIdentifier(String name) {
     assert name != null;
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   public DartIdentifier(DartIdentifier original) {
-    this.name = original.name;
+    this.name = StringInterner.intern(original.name);
   }
 
   @Override
