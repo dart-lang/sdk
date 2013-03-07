@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:scalarlist";
+
 // A VM patch of the dart:math library.
 patch num pow(num x, num exponent) {
   if (exponent is int) {
@@ -51,7 +53,7 @@ patch class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  final _state = new List(2);
+  final _state = new Uint32List(2);
   static const kSTATE_LO = 0;
   static const kSTATE_HI = 1;
 
