@@ -833,6 +833,12 @@ class Class : public Object {
   // Allocate the raw string classes.
   static RawClass* NewStringClass(intptr_t class_id);
 
+  // Allocate the raw TypedData classes.
+  static RawClass* NewTypedDataClass(intptr_t class_id);
+
+  // Allocate the raw ExternalTypedData classes.
+  static RawClass* NewExternalTypedDataClass(intptr_t class_id);
+
   // Allocate a class representing a function signature described by
   // signature_function, which must be a closure function or a signature
   // function.
@@ -4849,7 +4855,7 @@ class GrowableObjectArray : public Instance {
 class Float32x4 : public Instance {
  public:
   static RawFloat32x4* New(float value0, float value1, float value2,
-                                float value3, Heap::Space space = Heap::kNew);
+                           float value3, Heap::Space space = Heap::kNew);
   static RawFloat32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
 
   float x() const;
@@ -4882,7 +4888,7 @@ class Float32x4 : public Instance {
 class Uint32x4 : public Instance {
  public:
   static RawUint32x4* New(uint32_t value0, uint32_t value1, uint32_t value2,
-                             uint32_t value3, Heap::Space space = Heap::kNew);
+                          uint32_t value3, Heap::Space space = Heap::kNew);
   static RawUint32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
 
   uint32_t x() const;
@@ -4908,6 +4914,167 @@ class Uint32x4 : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint32x4, Instance);
+  friend class Class;
+};
+
+
+class TypedData : public Instance {
+ public:
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  intptr_t ElementSizeInBytes() const {
+    intptr_t cid = raw()->GetClassId();
+    return ElementSizeInBytes(cid);
+  }
+
+  intptr_t LengthInBytes() const {
+    intptr_t cid = raw()->GetClassId();
+    return (ElementSizeInBytes(cid) * Length());
+  }
+
+#define TYPED_GETTER_SETTER(name, type)                                        \
+  type Get##name(intptr_t byte_offset) const {                                 \
+    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+  }                                                                            \
+  void Set##name(intptr_t byte_offset, type value) const {                     \
+    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+  }
+  TYPED_GETTER_SETTER(Int8, int8_t)
+  TYPED_GETTER_SETTER(Uint8, uint8_t)
+  TYPED_GETTER_SETTER(Int16, int16_t)
+  TYPED_GETTER_SETTER(Uint16, uint16_t)
+  TYPED_GETTER_SETTER(Int32, int32_t)
+  TYPED_GETTER_SETTER(Uint32, uint32_t)
+  TYPED_GETTER_SETTER(Int64, int64_t)
+  TYPED_GETTER_SETTER(Uint64, uint64_t)
+  TYPED_GETTER_SETTER(Float32, float)
+  TYPED_GETTER_SETTER(Float64, double)
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawTypedData, length_);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawTypedData) == OFFSET_OF(RawTypedData, data_));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t lengthInBytes) {
+    ASSERT(0 <= lengthInBytes && lengthInBytes <= kSmiMax);
+    return RoundedAllocationSize(sizeof(RawTypedData) + lengthInBytes);
+  }
+
+  static intptr_t ElementSizeInBytes(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return element_size[class_id - kTypedDataInt8ArrayCid];
+  }
+
+  static RawTypedData* New(intptr_t class_id,
+                           intptr_t len,
+                           Heap::Space space = Heap::kNew);
+
+ protected:
+  void SetLength(intptr_t value) const {
+    raw_ptr()->length_ = Smi::New(value);
+  }
+
+ private:
+  static const intptr_t element_size[];
+
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, Instance);
+  friend class Class;
+  friend class ExternalTypedData;
+};
+
+
+class ExternalTypedData : public Instance {
+ public:
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  intptr_t ElementSizeInBytes() const {
+    intptr_t cid = raw()->GetClassId();
+    return ElementSizeInBytes(cid);
+  }
+
+  intptr_t LengthInBytes() const {
+    intptr_t cid = raw()->GetClassId();
+    return (ElementSizeInBytes(cid) * Length());
+  }
+
+#define TYPED_GETTER_SETTER(name, type)                                        \
+  type Get##name(intptr_t byte_offset) const {                                 \
+    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+  }                                                                            \
+  void Set##name(intptr_t byte_offset, type value) const {                     \
+    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+  }
+  TYPED_GETTER_SETTER(Int8, int8_t)
+  TYPED_GETTER_SETTER(Uint8, uint8_t)
+  TYPED_GETTER_SETTER(Int16, int16_t)
+  TYPED_GETTER_SETTER(Uint16, uint16_t)
+  TYPED_GETTER_SETTER(Int32, int32_t)
+  TYPED_GETTER_SETTER(Uint32, uint32_t)
+  TYPED_GETTER_SETTER(Int64, int64_t)
+  TYPED_GETTER_SETTER(Uint64, uint64_t)
+  TYPED_GETTER_SETTER(Float32, float)
+  TYPED_GETTER_SETTER(Float64, double)
+
+  FinalizablePersistentHandle* AddFinalizer(
+      void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawExternalTypedData, length_);
+  }
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawExternalTypedData, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalTypedData));
+  }
+
+  static intptr_t ElementSizeInBytes(intptr_t class_id) {
+    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+    return TypedData::element_size[class_id - kExternalTypedDataInt8ArrayCid];
+  }
+
+  static RawExternalTypedData* New(intptr_t class_id,
+                                   uint8_t* data,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+
+ protected:
+  void SetLength(intptr_t value) const {
+    raw_ptr()->length_ = Smi::New(value);
+  }
+
+  void SetData(uint8_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
+  }
+
+ private:
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData, Instance);
   friend class Class;
 };
 

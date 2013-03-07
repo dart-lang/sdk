@@ -351,6 +351,13 @@ class ObjectStore {
     external_float64_array_class_ = value.raw();
   }
 
+  RawArray* typeddata_classes() const {
+    return typeddata_classes_;
+  }
+  void set_typeddata_classes(const Array& value) {
+    typeddata_classes_ = value.raw();
+  }
+
   RawClass* stacktrace_class() const {
     return stacktrace_class_;
   }
@@ -642,6 +649,7 @@ class ObjectStore {
   RawClass* external_float32x4_array_class_;
   RawClass* external_float32_array_class_;
   RawClass* external_float64_array_class_;
+  RawArray* typeddata_classes_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;

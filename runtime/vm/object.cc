@@ -854,116 +854,67 @@ RawError* Object::Init(Isolate* isolate) {
   // Pre-register the scalarlist library so the native class implementations
   // can be hooked up before compiling it.
   LOAD_LIBRARY(Scalarlist, scalarlist);
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::ScalarlistLibrary());
+#define REGISTER_SCALARLIST_CLASS(name, object_store_name)                     \
+  cls = Class::New<name>();                                                    \
+  object_store->set_##object_store_name##_class(cls);                          \
+  RegisterPrivateClass(cls, Symbols::_##name(), lib);                          \
 
-  Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
-  ASSERT(!scalarlist_lib.IsNull());
+  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
+  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
+  REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(Int16Array, int16_array);
+  REGISTER_SCALARLIST_CLASS(Uint16Array, uint16_array);
+  REGISTER_SCALARLIST_CLASS(Int32Array, int32_array);
+  REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
+  REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
+  REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
+  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
+  REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
+  REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8Array, external_uint8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8ClampedArray,
+                            external_uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt16Array, external_int16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint16Array, external_uint16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt32Array, external_int32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
+#undef REGISTER_SCALARLIST_CLASS
 
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4(), scalarlist_lib);
+  // Pre-register the typeddata library so the native class implementations
+  // can be hooked up before compiling it.
+  LOAD_LIBRARY(TypedData, typeddata);
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::TypedDataLibrary());
+  Array& typeddata_classes =
+      Array::Handle(Array::New(RawObject::NumberOfTypedDataClasses()));
+  int index = 0;
+#define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
+  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
+  index = kTypedData##clazz##Cid - kTypedDataInt8ArrayCid;                     \
+  typeddata_classes.SetAt(index, cls);                                         \
+  RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
 
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32x4(), scalarlist_lib);
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+#undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
+  cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
+  index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
+  typeddata_classes.SetAt(index, cls);                                         \
+  RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
-  cls = Class::New<Int8Array>();
-  object_store->set_int8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int8Array(), scalarlist_lib);
-
-  cls = Class::New<Uint8Array>();
-  object_store->set_uint8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint8Array(), scalarlist_lib);
-
-  cls = Class::New<Uint8ClampedArray>();
-  object_store->set_uint8_clamped_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint8ClampedArray(), scalarlist_lib);
-
-  cls = Class::New<Int16Array>();
-  object_store->set_int16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int16Array(), scalarlist_lib);
-
-  cls = Class::New<Uint16Array>();
-  object_store->set_uint16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint16Array(), scalarlist_lib);
-
-  cls = Class::New<Int32Array>();
-  object_store->set_int32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int32Array(), scalarlist_lib);
-
-  cls = Class::New<Uint32Array>();
-  object_store->set_uint32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32Array(), scalarlist_lib);
-
-  cls = Class::New<Int64Array>();
-  object_store->set_int64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int64Array(), scalarlist_lib);
-
-  cls = Class::New<Uint64Array>();
-  object_store->set_uint64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint64Array(), scalarlist_lib);
-
-  cls = Class::New<Float32x4Array>();
-  object_store->set_float32x4_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4Array(), scalarlist_lib);
-
-  cls = Class::New<Float32Array>();
-  object_store->set_float32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32Array(), scalarlist_lib);
-
-  cls = Class::New<Float64Array>();
-  object_store->set_float64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float64Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalInt8Array>();
-  object_store->set_external_int8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt8Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint8Array>();
-  object_store->set_external_uint8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint8Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint8ClampedArray>();
-  object_store->set_external_uint8_clamped_array_class(cls);
-  RegisterPrivateClass(cls,
-                       Symbols::_ExternalUint8ClampedArray(),
-                       scalarlist_lib);
-
-  cls = Class::New<ExternalInt16Array>();
-  object_store->set_external_int16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt16Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint16Array>();
-  object_store->set_external_uint16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint16Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalInt32Array>();
-  object_store->set_external_int32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt32Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint32Array>();
-  object_store->set_external_uint32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint32Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalInt64Array>();
-  object_store->set_external_int64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt64Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint64Array>();
-  object_store->set_external_uint64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint64Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalFloat32x4Array>();
-  object_store->set_external_float32x4_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalFloat32x4Array(),
-                       scalarlist_lib);
-
-  cls = Class::New<ExternalFloat32Array>();
-  object_store->set_external_float32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalFloat32Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalFloat64Array>();
-  object_store->set_external_float64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalFloat64Array(), scalarlist_lib);
+  CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
+#undef REGISTER_EXT_TYPED_DATA_CLASS
+  object_store->set_typeddata_classes(typeddata_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -1108,83 +1059,47 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
 
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
+#define REGISTER_SCALARLIST_CLASS(name, object_store_name)                     \
+  cls = Class::New<name>();                                                    \
+  object_store->set_##object_store_name##_class(cls);                          \
 
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
+  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
+  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
+  REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(Int16Array, int16_array);
+  REGISTER_SCALARLIST_CLASS(Uint16Array, uint16_array);
+  REGISTER_SCALARLIST_CLASS(Int32Array, int32_array);
+  REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
+  REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
+  REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
+  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
+  REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
+  REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8Array, external_uint8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8ClampedArray,
+                            external_uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt16Array, external_int16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint16Array, external_uint16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt32Array, external_int32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
+#undef REGISTER_SCALARLIST_CLASS
 
-  cls = Class::New<Int8Array>();
-  object_store->set_int8_array_class(cls);
-
-  cls = Class::New<Uint8Array>();
-  object_store->set_uint8_array_class(cls);
-
-  cls = Class::New<Uint8ClampedArray>();
-  object_store->set_uint8_clamped_array_class(cls);
-
-  cls = Class::New<Int16Array>();
-  object_store->set_int16_array_class(cls);
-
-  cls = Class::New<Uint16Array>();
-  object_store->set_uint16_array_class(cls);
-
-  cls = Class::New<Int32Array>();
-  object_store->set_int32_array_class(cls);
-
-  cls = Class::New<Uint32Array>();
-  object_store->set_uint32_array_class(cls);
-
-  cls = Class::New<Int64Array>();
-  object_store->set_int64_array_class(cls);
-
-  cls = Class::New<Uint64Array>();
-  object_store->set_uint64_array_class(cls);
-
-  cls = Class::New<Float32x4Array>();
-  object_store->set_float32x4_array_class(cls);
-
-  cls = Class::New<Float32Array>();
-  object_store->set_float32_array_class(cls);
-
-  cls = Class::New<Float64Array>();
-  object_store->set_float64_array_class(cls);
-
-  cls = Class::New<ExternalInt8Array>();
-  object_store->set_external_int8_array_class(cls);
-
-  cls = Class::New<ExternalUint8Array>();
-  object_store->set_external_uint8_array_class(cls);
-
-  cls = Class::New<ExternalUint8ClampedArray>();
-  object_store->set_external_uint8_clamped_array_class(cls);
-
-  cls = Class::New<ExternalInt16Array>();
-  object_store->set_external_int16_array_class(cls);
-
-  cls = Class::New<ExternalUint16Array>();
-  object_store->set_external_uint16_array_class(cls);
-
-  cls = Class::New<ExternalInt32Array>();
-  object_store->set_external_int32_array_class(cls);
-
-  cls = Class::New<ExternalUint32Array>();
-  object_store->set_external_uint32_array_class(cls);
-
-  cls = Class::New<ExternalInt64Array>();
-  object_store->set_external_int64_array_class(cls);
-
-  cls = Class::New<ExternalUint64Array>();
-  object_store->set_external_uint64_array_class(cls);
-
-  cls = Class::New<ExternalFloat32x4Array>();
-  object_store->set_external_float32x4_array_class(cls);
-
-  cls = Class::New<ExternalFloat32Array>();
-  object_store->set_external_float32_array_class(cls);
-
-  cls = Class::New<ExternalFloat64Array>();
-  object_store->set_external_float64_array_class(cls);
+#define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
+  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+#undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
+  cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
+  CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
+#undef REGISTER_EXT_TYPED_DATA_CLASS
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -2004,6 +1919,28 @@ RawClass* Class::NewStringClass(intptr_t class_id) {
     instance_size = ExternalTwoByteString::InstanceSize();
   }
   Class& result = Class::Handle(New<String>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_next_field_offset(instance_size);
+  result.set_is_prefinalized();
+  return result.raw();
+}
+
+
+RawClass* Class::NewTypedDataClass(intptr_t class_id) {
+  ASSERT(RawObject::IsTypedDataClassId(class_id));
+  intptr_t instance_size = TypedData::InstanceSize();
+  Class& result = Class::Handle(New<TypedData>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_next_field_offset(instance_size);
+  result.set_is_prefinalized();
+  return result.raw();
+}
+
+
+RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
+  ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+  intptr_t instance_size = ExternalTypedData::InstanceSize();
+  Class& result = Class::Handle(New<ExternalTypedData>(class_id));
   result.set_instance_size(instance_size);
   result.set_next_field_offset(instance_size);
   result.set_is_prefinalized();
@@ -12414,6 +12351,81 @@ const char* Uint32x4::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
   return chars;
+}
+
+
+const intptr_t TypedData::element_size[] = {
+  1,  // kTypedDataInt8ArrayCid.
+  1,  // kTypedDataUint8ArrayCid.
+  1,  // kTypedDataUint8ClampedArrayCid.
+  2,  // kTypedDataInt16ArrayCid.
+  2,  // kTypedDataUint16ArrayCid.
+  4,  // kTypedDataInt32ArrayCid.
+  4,  // kTypedDataUint32ArrayCid.
+  8,  // kTypedDataInt64ArrayCid.
+  8,  // kTypedDataUint64ArrayCid.
+  4,  // kTypedDataFloat32ArrayCid.
+  8,  // kTypedDataFloat64ArrayCid.
+};
+
+
+RawTypedData* TypedData::New(intptr_t class_id,
+                             intptr_t len,
+                             Heap::Space space) {
+  // TODO(asiva): Add a check for maximum elements.
+  TypedData& result = TypedData::Handle();
+  {
+    // The len field has already been checked by the caller, we only assert
+    // here that it is within a valid range.
+    ASSERT((len >= 0) &&
+           (len < (kSmiMax / TypedData::ElementSizeInBytes(class_id))));
+    intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
+    RawObject* raw = Object::Allocate(class_id,
+                                      TypedData::InstanceSize(lengthInBytes),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    if (len > 0) {
+      memset(result.DataAddr(0), 0, lengthInBytes);
+    }
+  }
+  return result.raw();
+}
+
+
+const char* TypedData::ToCString() const {
+  return "TypedData";
+}
+
+
+FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
+    void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
+  SetPeer(peer);
+  return dart::AddFinalizer(*this, peer, callback);
+}
+
+
+RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
+                                             uint8_t* data,
+                                             intptr_t len,
+                                             Heap::Space space) {
+  ExternalTypedData& result = ExternalTypedData::Handle();
+  {
+    RawObject* raw = Object::Allocate(class_id,
+                                      ExternalTypedData::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetData(data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalTypedData::ToCString() const {
+  return "ExternalTypedData";
 }
 
 

@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(asiva): Remove this import of dart:scalarlist when we are ready to
-// drop scalarlist and move this implementation as the default.
-import "dart:scalarlist" as sl;
-
 // patch classes for Int8List ..... Float64List and ByteData implementations.
 
 patch class Int8List {
@@ -285,19 +281,19 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.expand(this, f);
   }
 
-  Iterable<int> take(int n) {
+  Iterable take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
-  Iterable<int> takeWhile(bool test(int value)) {
+  Iterable takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) {
+  Iterable skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
-  Iterable<int> skipWhile(bool test(int value)) {
+  Iterable skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
@@ -430,12 +426,29 @@ abstract class _TypedListBase {
         "Cannot add to a non-extendable array");
   }
 
-  List<int> toList() {
-    return new List<int>.from(this);
+  List toList() {
+    return new List.from(this);
   }
 
-  Set<int> toSet() {
-    return new Set<int>.from(this);
+  Set toSet() {
+    return new Set.from(this);
+  }
+
+  List getRange(int start, int length) {
+    _rangeCheck(this.length, start, length);
+    List result = _new(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+  }
+
+  // Method(s) implementing Object interface.
+
+  String toString() {
+    return Collections.collectionToString(this);
   }
 }
 
@@ -447,7 +460,7 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
   }
 
   int get lengthInBytes {
-    return _length() * elementSizeInBytes;
+    return length * elementSizeInBytes;
   }
 
   ByteBuffer get buffer {
@@ -457,26 +470,52 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
 
   // Methods implementing the collection interface.
 
-  int get length {
-    return _length();
-  }
+  int get length native "TypedData_length";
 
 
   // Internal utility methods.
 
-  int _length() {
-    return _array.length;
-  }
+  int _getInt8(int index) native "TypedData_GetInt8";
+  void _setInt8(int index, int value) native "TypedData_SetInt8";
 
-  sl.ByteArrayViewable _array;
+  int _getUint8(int index) native "TypedData_GetUint8";
+  void _setUint8(int index, int value) native "TypedData_SetUint8";
+
+  int _getInt16(int index) native "TypedData_GetInt16";
+  void _setInt16(int index, int value) native "TypedData_SetInt16";
+
+  int _getUint16(int index) native "TypedData_GetUint16";
+  void _setUint16(int index, int value) native "TypedData_SetUint16";
+
+  int _getInt32(int index) native "TypedData_GetInt32";
+  void _setInt32(int index, int value) native "TypedData_SetInt32";
+
+  int _getUint32(int index) native "TypedData_GetUint32";
+  void _setUint32(int index, int value) native "TypedData_SetUint32";
+
+  int _getInt64(int index) native "TypedData_GetInt64";
+  void _setInt64(int index, int value) native "TypedData_SetInt64";
+
+  int _getUint64(int index) native "TypedData_GetUint64";
+  void _setUint64(int index, int value) native "TypedData_SetUint64";
+
+  double _getFloat32(int index) native "TypedData_GetFloat32";
+  void _setFloat32(int index, double value) native "TypedData_SetFloat32";
+
+  double _getFloat64(int index) native "TypedData_GetFloat64";
+  void _setFloat64(int index, double value) native "TypedData_SetFloat64";
 }
 
 
 class _Int8Array extends _TypedList implements Int8List {
   // Factory constructors.
 
-  _Int8Array(int length) {
-    _array = new sl.Int8List(length);
+  factory _Int8Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Int8Array.view(ByteBuffer buffer,
@@ -491,43 +530,23 @@ class _Int8Array extends _TypedList implements Int8List {
   // Method(s) implementing List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt8(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt8(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt8(index, _toInt8(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Int8Array) {
-      _setRange(start * Int8List.BYTES_PER_ELEMENT,
-                length * Int8List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int8List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -540,20 +559,19 @@ class _Int8Array extends _TypedList implements Int8List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Int8Array _new(int length) native "TypedData_Int8Array_new";
 }
 
 
 class _Uint8Array extends _TypedList implements Uint8List {
   // Factory constructors.
 
-  _Uint8Array(int length) {
-    _array = new sl.Uint8List(length);
+  factory _Uint8Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Uint8Array.view(ByteBuffer buffer,
@@ -564,45 +582,28 @@ class _Uint8Array extends _TypedList implements Uint8List {
     return new _Uint8ArrayView(buffer, offsetInBytes, length);
   }
 
+
   // Methods implementing List interface.
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint8(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint8(index, _toUint8(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Uint8Array || from is _ExternalUint8Array ||
-        from is _Uint8ClampedArray || from is _ExternalUint8ClampedArray) {
-      _setRange(start * Uint8List.BYTES_PER_ELEMENT,
-                length * Uint8List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint8List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-  // Methods implementing Object interface.
-  String toString() {
-    return Collections.collectionToString(this);
-  }
 
   // Methods implementing TypedData interface.
   int get elementSizeInBytes {
@@ -611,20 +612,19 @@ class _Uint8Array extends _TypedList implements Uint8List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Uint8Array _new(int length) native "TypedData_Uint8Array_new";
 }
 
 
 class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
   // Factory constructors.
 
-  _Uint8ClampedArray(int length) {
-    _array = new sl.Uint8ClampedList(length);
+  factory _Uint8ClampedArray(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Uint8ClampedArray.view(ByteBuffer buffer,
@@ -635,67 +635,52 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
 
+
   // Methods implementing List interface.
+
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toClampedUint8(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint8(index, _toClampedUint8(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Uint8Array || from is _ExternalUint8Array ||
-        from is _Uint8ClampedArray || from is _ExternalUint8ClampedArray) {
-      _setRange(start * Uint8List.BYTES_PER_ELEMENT,
-                length * Uint8List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint8List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-  // Methods implementing Object interface.
-  String toString() {
-    return Collections.collectionToString(this);
-  }
 
   // Methods implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint8List.BYTES_PER_ELEMENT;
   }
 
+
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Uint8ClampedArray _new(int length)
+      native "TypedData_Uint8ClampedArray_new";
 }
 
 
 class _Int16Array extends _TypedList implements Int16List {
   // Factory constructors.
 
-  _Int16Array(int length) {
-    _array = new sl.Int16List(length);
+  factory _Int16Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Int16Array.view(ByteBuffer buffer,
@@ -711,43 +696,23 @@ class _Int16Array extends _TypedList implements Int16List {
   // Method(s) implementing List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt16(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt16(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt16(index, _toInt16(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Int16Array) {
-      _setRange(start * Int16List.BYTES_PER_ELEMENT,
-                length * Int16List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int16List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -760,20 +725,19 @@ class _Int16Array extends _TypedList implements Int16List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Int16Array _new(int length) native "TypedData_Int16Array_new";
 }
 
 
 class _Uint16Array extends _TypedList implements Uint16List {
   // Factory constructors.
 
-  _Uint16Array(int length) {
-    _array = new sl.Uint16List(length);
+  factory _Uint16Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Uint16Array.view(ByteBuffer buffer,
@@ -789,43 +753,23 @@ class _Uint16Array extends _TypedList implements Uint16List {
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint16(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint16(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint16(index, _toUint16(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Uint16Array) {
-      _setRange(start * Uint16List.BYTES_PER_ELEMENT,
-                length * Uint16List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint16List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -838,20 +782,19 @@ class _Uint16Array extends _TypedList implements Uint16List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Uint16Array _new(int length) native "TypedData_Uint16Array_new";
 }
 
 
 class _Int32Array extends _TypedList implements Int32List {
   // Factory constructors.
 
-  _Int32Array(int length) {
-    _array = new sl.Int32List(length);
+  factory _Int32Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Int32Array.view(ByteBuffer buffer,
@@ -867,43 +810,23 @@ class _Int32Array extends _TypedList implements Int32List {
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt32(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt32(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt32(index, _toInt32(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Int32Array) {
-      _setRange(start * Int32List.BYTES_PER_ELEMENT,
-                length * Int32List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int32List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -916,20 +839,19 @@ class _Int32Array extends _TypedList implements Int32List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Int32Array _new(int length) native "TypedData_Int32Array_new";
 }
 
 
 class _Uint32Array extends _TypedList implements Uint32List {
   // Factory constructors.
 
-  _Uint32Array(int length) {
-    _array = new sl.Uint32List(length);
+  factory _Uint32Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Uint32Array.view(ByteBuffer buffer,
@@ -945,43 +867,23 @@ class _Uint32Array extends _TypedList implements Uint32List {
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint32(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint32(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint32(index, _toUint32(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Uint32Array) {
-      _setRange(start * Uint32List.BYTES_PER_ELEMENT,
-                length * Uint32List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint32List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -994,20 +896,19 @@ class _Uint32Array extends _TypedList implements Uint32List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Uint32Array _new(int length) native "TypedData_Uint32Array_new";
 }
 
 
 class _Int64Array extends _TypedList implements Int64List {
   // Factory constructors.
 
-  _Int64Array(int length) {
-    _array = new sl.Int64List(length);
+  factory _Int64Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Int64Array.view(ByteBuffer buffer,
@@ -1023,43 +924,23 @@ class _Int64Array extends _TypedList implements Int64List {
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt64(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt64(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt64(index, _toInt64(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Int64Array) {
-      _setRange(start * Int64List.BYTES_PER_ELEMENT,
-                length * Int64List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int64List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1072,20 +953,19 @@ class _Int64Array extends _TypedList implements Int64List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Int64Array _new(int length) native "TypedData_Int64Array_new";
 }
 
 
 class _Uint64Array extends _TypedList implements Uint64List {
   // Factory constructors.
 
-  _Uint64Array(int length) {
-    _array = new sl.Uint64List(length);
+  factory _Uint64Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Uint64Array.view(ByteBuffer buffer,
@@ -1101,43 +981,23 @@ class _Uint64Array extends _TypedList implements Uint64List {
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint64(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint64(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint64(index, _toUint64(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _Uint64Array) {
-      _setRange(start * Uint64List.BYTES_PER_ELEMENT,
-                length * Uint64List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint64List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1150,20 +1010,19 @@ class _Uint64Array extends _TypedList implements Uint64List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _Uint64Array _new(int length) native "TypedData_Uint64Array_new";
 }
 
 
 class _Float32Array extends _TypedList implements Float32List {
   // Factory constructors.
 
-  _Float32Array(int length) {
-    _array = new sl.Float32List(length);
+  factory _Float32Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Float32Array.view(ByteBuffer buffer,
@@ -1179,43 +1038,23 @@ class _Float32Array extends _TypedList implements Float32List {
   // Method(s) implementing the List interface.
 
   double operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getFloat32(index);
   }
 
   void operator[]=(int index, double value) {
-    _setIndexed(index, value);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setFloat32(index, value);
   }
 
   Iterator<double> get iterator {
     return new _TypedListIterator<double>(this);
-  }
-
-  List<double> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<double> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    /**
-    if (from is _Float32Array) {
-      _setRange(start * Float32List.BYTES_PER_ELEMENT,
-                length * Float32List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Float32List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1228,20 +1067,19 @@ class _Float32Array extends _TypedList implements Float32List {
 
   // Internal utility methods.
 
-  double _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, double value) {
-    _array[index] = value;
-  }
+  static _Float32Array _new(int length) native "TypedData_Float32Array_new";
 }
 
 
 class _Float64Array extends _TypedList implements Float64List {
   // Factory constructors.
 
-  _Float64Array(int length) {
-    _array = new sl.Float64List(length);
+  factory _Float64Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
   factory _Float64Array.view(ByteBuffer buffer,
@@ -1257,43 +1095,23 @@ class _Float64Array extends _TypedList implements Float64List {
   // Method(s) implementing the List interface.
 
   double operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getFloat64(index);
   }
 
   void operator[]=(int index, double value) {
-    _setIndexed(index, value);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setFloat64(index, value);
   }
 
   Iterator<double> get iterator {
     return new _TypedListIterator<double>(this);
-  }
-
-  List<double> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<double> result = _new(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    /**
-    if (from is _Float64Array) {
-      _setRange(start * Float64List.BYTES_PER_ELEMENT,
-                length * Float64List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Float64List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1306,62 +1124,41 @@ class _Float64Array extends _TypedList implements Float64List {
 
   // Internal utility methods.
 
-  double _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, double value) {
-    _array[index] = value;
-  }
+  static _Float64Array _new(int length) native "TypedData_Float64Array_new";
 }
 
 
 class _ExternalInt8Array extends _TypedList implements Int8List {
   // Factory constructors.
 
-  _ExternalInt8Array(int length) {
-    _array = new sl.Int8List.transferable(length);
+  factory _ExternalInt8Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt8(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt8(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt8(index, value);
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int8List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalInt8Array) {
-      _setRange(start * Int8List.BYTES_PER_ELEMENT,
-                length * Int8List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int8List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1374,63 +1171,43 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalInt8Array _new(int length) native
+      "ExternalTypedData_Int8Array_new";
 }
 
 
 class _ExternalUint8Array extends _TypedList implements Uint8List {
   // Factory constructors.
 
-  _ExternalUint8Array(int length) {
-    _array = new sl.Uint8List.transferable(length);
+  factory _ExternalUint8Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint8(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint8(index, _toUint8(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint8List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalUint8Array || from is _Uint8Array) {
-      _setRange(start * Uint8List.BYTES_PER_ELEMENT,
-                length * Uint8List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint8List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1443,63 +1220,43 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalUint8Array _new(int length) native
+      "ExternalTypedData_Uint8Array_new";
 }
 
 
 class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList {
   // Factory constructors.
 
-  _ExternalUint8ClampedArray(int length) {
-    _array = new sl.Uint8ClampedList.transferable(length);
+  factory _ExternalUint8ClampedArray(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toClampedUint8(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint8(index, _toClampedUint8(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint8ClampedList(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalUint8ClampedArray || from is _Uint8ClampedArray) {
-      _setRange(start * Uint8List.BYTES_PER_ELEMENT,
-                length * Uint8List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint8List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1512,63 +1269,43 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalUint8ClampedArray _new(int length) native
+      "ExternalTypedData_Uint8ClampedArray_new";
 }
 
 
 class _ExternalInt16Array extends _TypedList implements Int16List {
   // Factory constructors.
 
-  _ExternalInt16Array(int length) {
-    _array = new sl.Int16List.transferable(length);
+  factory _ExternalInt16Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt16(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt16(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt16(index, _toInt16(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int16List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalInt16Array) {
-      _setRange(start * Int16List.BYTES_PER_ELEMENT,
-                length * Int16List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int16List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1581,63 +1318,43 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalInt16Array _new(int length) native
+      "ExternalTypedData_Int16Array_new";
 }
 
 
 class _ExternalUint16Array extends _TypedList implements Uint16List {
   // Factory constructors.
 
-  _ExternalUint16Array(int length) {
-    _array = new sl.Uint16List.transferable(length);
+  factory _ExternalUint16Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint16(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint16(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint16(index, _toUint16(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint16List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalUint16Array) {
-      _setRange(start * Uint16List.BYTES_PER_ELEMENT,
-                length * Uint16List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint16List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1650,63 +1367,43 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalUint16Array _new(int length) native
+      "ExternalTypedData_Uint16Array_new";
 }
 
 
 class _ExternalInt32Array extends _TypedList implements Int32List {
   // Factory constructors.
   
-  _ExternalInt32Array(int length) {
-    _array = new sl.Int32List.transferable(length);
+  factory _ExternalInt32Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt32(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt32(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt32(index, _toInt32(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int32List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalInt32Array) {
-      _setRange(start * Int32List.BYTES_PER_ELEMENT,
-                length * Int32List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int32List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1719,63 +1416,43 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalInt32Array _new(int length) native
+      "ExternalTypedData_Int32Array_new";
 }
 
 
 class _ExternalUint32Array extends _TypedList implements Uint32List {
   // Factory constructors.
 
-  _ExternalUint32Array(int length) {
-    _array = new sl.Uint32List.transferable(length);
+  factory _ExternalUint32Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint32(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint32(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint32(index, _toUint32(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint32List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalUint32Array) {
-      _setRange(start * Uint32List.BYTES_PER_ELEMENT,
-                length * Uint32List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint32List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1788,63 +1465,43 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalUint32Array _new(int length) native
+      "ExternalTypedData_Uint32Array_new";
 }
 
 
 class _ExternalInt64Array extends _TypedList implements Int64List {
   // Factory constructors.
 
-  _ExternalInt64Array(int length) {
-    _array = new sl.Int64List.transferable(length);
+  factory _ExternalInt64Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getInt64(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toInt64(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setInt64(index, _toInt64(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int64List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalInt64Array) {
-      _setRange(start * Int64List.BYTES_PER_ELEMENT,
-                length * Int64List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Int64List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1857,63 +1514,43 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalInt64Array _new(int length) native
+      "ExternalTypedData_Int64Array_new";
 }
 
 
 class _ExternalUint64Array extends _TypedList implements Uint64List {
   // Factory constructors.
 
-  _ExternalUint64Array(int length) {
-    _array = new sl.Uint64List.transferable(length);
+  factory _ExternalUint64Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   int operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getUint64(index);
   }
 
   void operator[]=(int index, int value) {
-    _setIndexed(index, _toUint64(value));
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setUint64(index, _toUint64(value));
   }
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint64List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalUint64Array) {
-      _setRange(start * Uint64List.BYTES_PER_ELEMENT,
-                length * Uint64List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Uint64List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1926,63 +1563,43 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
 
   // Internal utility methods.
 
-  int _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, int value) {
-    _array[index] = value;
-  }
+  static _ExternalUint64Array _new(int length) native
+      "ExternalTypedData_Uint64Array_new";
 }
 
 
 class _ExternalFloat32Array extends _TypedList implements Float32List {
   // Factory constructors.
 
-  _ExternalFloat32Array(int length) {
-    _array = new sl.Float32List.transferable(length);
+  factory _ExternalFloat32Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   double operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getFloat32(index);
   }
 
   void operator[]=(int index, double value) {
-    _setIndexed(index, value);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setFloat32(index, value);
   }
 
   Iterator<double> get iterator {
     return new _TypedListIterator<double>(this);
-  }
-
-  List<double> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<double> result = new Float32List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalFloat32Array) {
-      _setRange(start * Float32List.BYTES_PER_ELEMENT,
-                length * Float32List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Float32List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -1995,63 +1612,43 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
 
   // Internal utility methods.
 
-  double _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, double value) {
-    _array[index] = value;
-  }
+  static _ExternalFloat32Array _new(int length) native
+      "ExternalTypedData_Float32Array_new";
 }
 
 
 class _ExternalFloat64Array extends _TypedList implements Float64List {
   // Factory constructors.
 
-  _ExternalFloat64Array(int length) {
-    _array = new sl.Float64List.transferable(length);
+  factory _ExternalFloat64Array(int length) {
+    if (length < 0) {
+      String message = "$length must be greater than 0";
+      throw new ArgumentError(message);
+    }
+    return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
   double operator[](int index) {
-    return _getIndexed(index);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    return _getFloat64(index);
   }
 
   void operator[]=(int index, double value) {
-    _setIndexed(index, value);
+    if (index < 0 || index >= length) {
+      String message = "$index must be in the range [0..$length)";
+      throw new RangeError(message);
+    }
+    _setFloat64(index, value);
   }
 
   Iterator<double> get iterator {
     return new _TypedListIterator<double>(this);
-  }
-
-  List<double> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<double> result = new Float64List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    /**
-    if (from is _ExternalFloat64Array) {
-      _setRange(start * Float64List.BYTES_PER_ELEMENT,
-                length * Float64List.BYTES_PER_ELEMENT,
-                from,
-                startFrom * Float64List.BYTES_PER_ELEMENT);
-    } else {
-      Arrays.copy(from, startFrom, this, start, length);
-    }
-    */
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing the Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -2064,12 +1661,8 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
 
   // Internal utility methods.
 
-  double _getIndexed(int index) {
-    return _array[index];
-  }
-  void _setIndexed(int index, double value) {
-    _array[index] = value;
-  }
+  static _ExternalFloat64Array _new(int length) native
+      "ExternalTypedData_Float64Array_new";
 }
 
 
@@ -2161,24 +1754,6 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int8List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2223,24 +1798,6 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint8List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -2290,24 +1847,6 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8List {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint8List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2352,24 +1891,6 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int16List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -2418,24 +1939,6 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint16List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2480,24 +1983,6 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int32List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -2546,24 +2031,6 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint32List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2608,24 +2075,6 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
 
   Iterator<int> get iterator {
     return new _TypedListIterator<int>(this);
-  }
-
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Int64List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 
@@ -2674,24 +2123,6 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
     return new _TypedListIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<int> result = new Uint64List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2738,24 +2169,6 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
     return new _TypedListIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<double> result = new Float32List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
-  }
-
 
   // Method(s) implementing TypedData interface.
 
@@ -2800,24 +2213,6 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
 
   Iterator<double> get iterator {
     return new _TypedListIterator<double>(this);
-  }
-
-  List<double> getRange(int start, int length) {
-    _rangeCheck(this.length, start, length);
-    List<double> result = new Float64List(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
-  void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
-  }
-
-
-  // Method(s) implementing Object interface.
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
 

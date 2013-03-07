@@ -264,6 +264,49 @@ namespace dart {
   V(ExternalFloat32Array_setIndexed, 3)                                        \
   V(ExternalFloat64Array_getIndexed, 2)                                        \
   V(ExternalFloat64Array_setIndexed, 3)                                        \
+  V(TypedData_Int8Array_new, 1)                                                \
+  V(TypedData_Uint8Array_new, 1)                                               \
+  V(TypedData_Uint8ClampedArray_new, 1)                                        \
+  V(TypedData_Int16Array_new, 1)                                               \
+  V(TypedData_Uint16Array_new, 1)                                              \
+  V(TypedData_Int32Array_new, 1)                                               \
+  V(TypedData_Uint32Array_new, 1)                                              \
+  V(TypedData_Int64Array_new, 1)                                               \
+  V(TypedData_Uint64Array_new, 1)                                              \
+  V(TypedData_Float32Array_new, 1)                                             \
+  V(TypedData_Float64Array_new, 1)                                             \
+  V(ExternalTypedData_Int8Array_new, 1)                                        \
+  V(ExternalTypedData_Uint8Array_new, 1)                                       \
+  V(ExternalTypedData_Uint8ClampedArray_new, 1)                                \
+  V(ExternalTypedData_Int16Array_new, 1)                                       \
+  V(ExternalTypedData_Uint16Array_new, 1)                                      \
+  V(ExternalTypedData_Int32Array_new, 1)                                       \
+  V(ExternalTypedData_Uint32Array_new, 1)                                      \
+  V(ExternalTypedData_Int64Array_new, 1)                                       \
+  V(ExternalTypedData_Uint64Array_new, 1)                                      \
+  V(ExternalTypedData_Float32Array_new, 1)                                     \
+  V(ExternalTypedData_Float64Array_new, 1)                                     \
+  V(TypedData_length, 1)                                                       \
+  V(TypedData_GetInt8, 2)                                                      \
+  V(TypedData_SetInt8, 3)                                                      \
+  V(TypedData_GetUint8, 2)                                                     \
+  V(TypedData_SetUint8, 3)                                                     \
+  V(TypedData_GetInt16, 2)                                                     \
+  V(TypedData_SetInt16, 3)                                                     \
+  V(TypedData_GetUint16, 2)                                                    \
+  V(TypedData_SetUint16, 3)                                                    \
+  V(TypedData_GetInt32, 2)                                                     \
+  V(TypedData_SetInt32, 3)                                                     \
+  V(TypedData_GetUint32, 2)                                                    \
+  V(TypedData_SetUint32, 3)                                                    \
+  V(TypedData_GetInt64, 2)                                                     \
+  V(TypedData_SetInt64, 3)                                                     \
+  V(TypedData_GetUint64, 2)                                                    \
+  V(TypedData_SetUint64, 3)                                                    \
+  V(TypedData_GetFloat32, 2)                                                   \
+  V(TypedData_SetFloat32, 3)                                                   \
+  V(TypedData_GetFloat64, 2)                                                   \
+  V(TypedData_SetFloat64, 3)                                                   \
   V(isolate_getPortInternal, 0)                                                \
   V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \

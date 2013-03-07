@@ -79,6 +79,10 @@ void Bootstrap::SetupNativeResolver() {
   library = Library::ScalarlistLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
+
+  library = Library::TypedDataLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
 }
 
 }  // namespace dart

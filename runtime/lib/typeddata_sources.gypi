@@ -6,6 +6,7 @@
 
 {
   'sources': [
+    'typeddata.cc',
     'typeddata.dart',
   ],
 }

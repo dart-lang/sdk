@@ -203,6 +203,18 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = Float64Array::InstanceSize(byte_array_length);
         break;
       }
+#define SIZE_FROM_CLASS(clazz)                                                 \
+      case kTypedData##clazz##Cid:
+      CLASS_LIST_TYPED_DATA(SIZE_FROM_CLASS) {
+        const RawTypedData* raw_obj =
+            reinterpret_cast<const RawTypedData*>(this);
+        intptr_t cid = raw_obj->GetClassId();
+        intptr_t array_len = Smi::Value(raw_obj->ptr()->length_);
+        intptr_t lengthInBytes = array_len * TypedData::ElementSizeInBytes(cid);
+        instance_size = TypedData::InstanceSize(lengthInBytes);
+        break;
+      }
+#undef SIZE_FROM_CLASS
       case kTypeArgumentsCid: {
         const RawTypeArguments* raw_array =
             reinterpret_cast<const RawTypeArguments*>(this);
@@ -290,6 +302,24 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         break;                                                                 \
       }
       CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
+#undef RAW_VISITPOINTERS
+#define RAW_VISITPOINTERS(clazz)                                               \
+      case kTypedData##clazz##Cid:
+      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
+        RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(this);
+        size = RawTypedData::VisitTypedDataPointers(raw_obj, visitor);
+        break;
+      }
+#undef RAW_VISITPOINTERS
+#define RAW_VISITPOINTERS(clazz)                                               \
+      case kExternalTypedData##clazz##Cid:
+      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
+        RawExternalTypedData* raw_obj =
+            reinterpret_cast<RawExternalTypedData*>(this);
+        size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
+                                                                    visitor);
+        break;
+      }
 #undef RAW_VISITPOINTERS
       case kFreeListElement: {
         ASSERT(FreeBit::decode(ptr()->tags_));
@@ -999,8 +1029,7 @@ intptr_t RawExternalUint64Array::VisitExternalUint64ArrayPointers(
 }
 
 
-intptr_t
-    RawExternalFloat32x4Array::VisitExternalFloat32x4ArrayPointers(
+intptr_t RawExternalFloat32x4Array::VisitExternalFloat32x4ArrayPointers(
     RawExternalFloat32x4Array* raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
@@ -1024,6 +1053,27 @@ intptr_t RawExternalFloat64Array::VisitExternalFloat64ArrayPointers(
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ExternalFloat64Array::InstanceSize();
+}
+
+
+intptr_t RawTypedData::VisitTypedDataPointers(
+    RawTypedData* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  intptr_t cid = raw_obj->GetClassId();
+  intptr_t array_len = Smi::Value(raw_obj->ptr()->length_);
+  intptr_t lengthInBytes = array_len * TypedData::ElementSizeInBytes(cid);
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return TypedData::InstanceSize(lengthInBytes);
+}
+
+
+intptr_t RawExternalTypedData::VisitExternalTypedDataPointers(
+    RawExternalTypedData* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return ExternalTypedData::InstanceSize();
 }
 
 

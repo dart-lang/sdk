@@ -33,7 +33,9 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
           (class_id >= kInstanceCid && class_id <= kWeakPropertyCid) ||
-          RawObject::IsStringClassId(class_id));
+          RawObject::IsStringClassId(class_id) ||
+          RawObject::IsTypedDataClassId(class_id) ||
+          RawObject::IsExternalTypedDataClassId(class_id));
 }
 
 
@@ -312,6 +314,13 @@ RawObject* SnapshotReader::ReadObjectRef() {
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz)                                                   \
+    case kTypedData##clazz##Cid: {                                             \
+      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);                \
+      break;                                                                   \
+    }
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ)
+#undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
   if (kind_ == Snapshot::kFull) {
@@ -448,7 +457,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
     ASSERT((class_id >= kInstanceCid) &&
-           (class_id <= kExternalTwoByteStringCid));
+           (class_id <= kExternalTypedDataFloat64ArrayCid));
     return isolate()->class_table()->At(class_id);
   }
   cls_ = Object::class_class();
@@ -784,6 +793,13 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz)                                                   \
+    case kTypedData##clazz##Cid: {                                             \
+      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);                \
+      break;                                                                   \
+    }
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ)
+#undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
   if (kind_ == Snapshot::kFull) {
@@ -976,6 +992,21 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     }                                                                          \
 
     CLASS_LIST_NO_OBJECT(SNAPSHOT_WRITE)
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz)                                                  \
+    case kTypedData##clazz##Cid: {                                             \
+      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);            \
+      raw_obj->WriteTo(this, object_id, kind_);                                \
+      return;                                                                  \
+    }                                                                          \
+    case kExternalTypedData##clazz##Cid: {                                     \
+      RawExternalTypedData* raw_obj =                                          \
+        reinterpret_cast<RawExternalTypedData*>(raw);                          \
+      raw_obj->WriteTo(this, object_id, kind_);                                \
+      return;                                                                  \
+    }                                                                          \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE)
 #undef SNAPSHOT_WRITE
     default: break;
   }
@@ -1206,6 +1237,21 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     }                                                                          \
 
     CLASS_LIST_NO_OBJECT(SNAPSHOT_WRITE)
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz)                                                  \
+    case kTypedData##clazz##Cid: {                                             \
+      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);            \
+      raw_obj->WriteTo(this, object_id, kind_);                                \
+      return;                                                                  \
+    }                                                                          \
+    case kExternalTypedData##clazz##Cid: {                                     \
+      RawExternalTypedData* raw_obj =                                          \
+        reinterpret_cast<RawExternalTypedData*>(raw);                          \
+      raw_obj->WriteTo(this, object_id, kind_);                                \
+      return;                                                                  \
+    }                                                                          \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE)
 #undef SNAPSHOT_WRITE
     default: break;
   }
