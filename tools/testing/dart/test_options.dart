@@ -12,7 +12,7 @@ import "test_suite.dart";
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
-           'utils', 'lib', 'pkg'];
+           'utils', 'lib', 'pkg', 'analyze_library'];
 
 /**
  * Specification of a single test option.

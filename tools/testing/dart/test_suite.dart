@@ -815,7 +815,7 @@ class StandardTestSuite extends TestSuite {
    */
   String _createUrlPathFromFile(Path file) {
     file = TestUtils.absolutePath(file);
-    
+
     var relativeBuildDir = new Path(TestUtils.buildDir(configuration));
     var buildDir = TestUtils.absolutePath(relativeBuildDir);
     var dartDir = TestUtils.absolutePath(TestUtils.dartDir());
@@ -1324,7 +1324,7 @@ class StandardTestSuite extends TestSuite {
    * This method is static as the map is cached and shared amongst
    * configurations, so it may not use [configuration].
    */
-  static Map readOptionsFromFile(Path filePath) {
+  Map readOptionsFromFile(Path filePath) {
     if (filePath.segments().contains('co19')) {
       return readOptionsFromCo19File(filePath);
     }
@@ -1339,7 +1339,6 @@ class StandardTestSuite extends TestSuite {
     RegExp compileTimeRegExp =
         new RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
     RegExp staticCleanRegExp = new RegExp(r"// @static-clean");
-    RegExp leadingHashRegExp = new RegExp(r"^#", multiLine: true);
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
@@ -1404,7 +1403,6 @@ class StandardTestSuite extends TestSuite {
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
-    bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
     bool containsDomImport = domImportRegExp.hasMatch(contents);
@@ -1443,7 +1441,6 @@ class StandardTestSuite extends TestSuite {
              "isMultitest": isMultitest,
              "isMultiHtmlTest": isMultiHtmlTest,
              "subtestNames": subtestNames,
-             "containsLeadingHash": containsLeadingHash,
              "isolateStubs": isolateStubs,
              "containsDomImport": containsDomImport,
              "isLibraryDefinition": isLibraryDefinition,
@@ -1480,7 +1477,7 @@ class StandardTestSuite extends TestSuite {
    * pass the co19 test suite as is, and not require extra flags,
    * environment variables, configuration files, etc.
    */
-  static Map readOptionsFromCo19File(Path filePath) {
+  Map readOptionsFromCo19File(Path filePath) {
     String contents = decodeUtf8(new File.fromPath(filePath).readAsBytesSync());
 
     bool hasCompileError = contents.contains("@compile-error");
@@ -1514,7 +1511,6 @@ class StandardTestSuite extends TestSuite {
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,
       "subtestNames": <String>[],
-      "containsLeadingHash": false,
       "isolateStubs": '',
       "containsDomImport": false,
       "isLibraryDefinition": false,
@@ -1526,14 +1522,24 @@ class StandardTestSuite extends TestSuite {
 }
 
 
+/// A DartcCompilationTestSuite will run dartc on all of the tests.
+///
+/// Usually, the result of a dartc run is determined by the output of
+/// dartc in connection with annotations in the test file.
+///
+/// If you want each file that you are running as a test to have no
+/// static warnings or errors you can create a DartcCompilationTestSuite
+/// with the optional allStaticClean constructor parameter set to true.
 class DartcCompilationTestSuite extends StandardTestSuite {
   List<String> _testDirs;
+  bool allStaticClean;
 
   DartcCompilationTestSuite(Map configuration,
                             String suiteName,
                             String directoryPath,
                             List<String> this._testDirs,
-                            List<String> expectations)
+                            List<String> expectations,
+                            {bool this.allStaticClean: false})
       : super(configuration,
               suiteName,
               new Path(directoryPath),
@@ -1554,6 +1560,14 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     }
 
     return group.future;
+  }
+
+  Map readOptionsFromFile(Path p) {
+    Map options = super.readOptionsFromFile(p);
+    if (allStaticClean) {
+      options['isStaticClean'] = true;
+    }
+    return options;
   }
 }
 

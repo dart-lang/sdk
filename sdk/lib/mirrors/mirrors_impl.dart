@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.mirrors;
+
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
  * associated libraries.

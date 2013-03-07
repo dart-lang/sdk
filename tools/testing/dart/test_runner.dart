@@ -1201,7 +1201,7 @@ class BatchRunnerProcess {
       while (line != null) {
         if (line.startsWith('>>> TEST')) {
           _status = line;
-        } else if (line.startsWith('>>> BATCH START')) {
+        } else if (line.startsWith('>>> BATCH')) {
           // ignore
         } else if (line.startsWith('>>> ')) {
           throw new Exception('Unexpected command from dartc batch runner.');

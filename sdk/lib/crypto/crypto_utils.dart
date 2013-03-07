@@ -9,10 +9,10 @@ class _LineWrappingStringBuffer {
 
   void add(String s) {
     if (_lineLength != null && _currentLineLength == _lineLength) {
-      _sb.add('\r\n');
+      _sb.write('\r\n');
       _currentLineLength = 0;
     }
-    _sb.add(s);
+    _sb.write(s);
     _currentLineLength++;
   }
 
@@ -27,7 +27,7 @@ abstract class _CryptoUtils {
   static String bytesToHex(List<int> bytes) {
     var result = new StringBuffer();
     for (var part in bytes) {
-      result.add('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+      result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
     }
     return result.toString();
   }

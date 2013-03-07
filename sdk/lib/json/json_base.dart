@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.json;
+
 // JSON parsing and serialization.
 
 /**
@@ -708,7 +710,7 @@ class _JsonStringifier {
         charCodes.add(charCode);
       }
     }
-    sb.add(needsEscape ? new String.fromCharCodes(charCodes) : s);
+    sb.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
   }
 
   void checkCycle(final object) {
@@ -748,54 +750,54 @@ class _JsonStringifier {
   bool stringifyJsonValue(final object) {
     if (object is num) {
       // TODO: use writeOn.
-      sb.add(numberToString(object));
+      sb.write(numberToString(object));
       return true;
     } else if (identical(object, true)) {
-      sb.add('true');
+      sb.write('true');
       return true;
     } else if (identical(object, false)) {
-      sb.add('false');
+      sb.write('false');
        return true;
     } else if (object == null) {
-      sb.add('null');
+      sb.write('null');
       return true;
     } else if (object is String) {
-      sb.add('"');
+      sb.write('"');
       escape(sb, object);
-      sb.add('"');
+      sb.write('"');
       return true;
     } else if (object is List) {
       checkCycle(object);
       List a = object;
-      sb.add('[');
+      sb.write('[');
       if (a.length > 0) {
         stringifyValue(a[0]);
         // TODO: switch to Iterables.
         for (int i = 1; i < a.length; i++) {
-          sb.add(',');
+          sb.write(',');
           stringifyValue(a[i]);
         }
       }
-      sb.add(']');
+      sb.write(']');
       seen.removeLast();
       return true;
     } else if (object is Map) {
       checkCycle(object);
       Map<String, Object> m = object;
-      sb.add('{');
+      sb.write('{');
       bool first = true;
       m.forEach((String key, Object value) {
         if (!first) {
-          sb.add(',"');
+          sb.write(',"');
         } else {
-          sb.add('"');
+          sb.write('"');
         }
         escape(sb, key);
-        sb.add('":');
+        sb.write('":');
         stringifyValue(value);
         first = false;
       });
-      sb.add('}');
+      sb.write('}');
       seen.removeLast();
       return true;
     } else {
