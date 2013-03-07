@@ -140,14 +140,14 @@ void main() {
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
 
-  checkReturn('returnInt1', compiler.intClass);
-  checkReturn('returnInt2', compiler.intClass);
-  checkReturn('returnInt3', compiler.intClass);
-  checkReturn('returnInt4', compiler.intClass);
-  checkReturn('returnInt5', compiler.intClass);
+  checkReturn('returnInt1', typesInferrer.intType);
+  checkReturn('returnInt2', typesInferrer.intType);
+  checkReturn('returnInt3', typesInferrer.intType);
+  checkReturn('returnInt4', typesInferrer.intType);
+  checkReturn('returnInt5', typesInferrer.intType);
 
-  checkReturn('returnDyn1', compiler.dynamicClass);
-  checkReturn('returnDyn2', compiler.dynamicClass);
-  checkReturn('returnDyn3', compiler.dynamicClass);
-  checkReturn('returnDyn4', compiler.dynamicClass);
+  checkReturn('returnDyn1', typesInferrer.dynamicType);
+  checkReturn('returnDyn2', typesInferrer.dynamicType);
+  checkReturn('returnDyn3', typesInferrer.dynamicType);
+  checkReturn('returnDyn4', typesInferrer.dynamicType);
 }

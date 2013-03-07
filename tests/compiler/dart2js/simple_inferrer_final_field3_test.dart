@@ -33,5 +33,5 @@ void main() {
     Expect.equals(type, typesInferrer.typeOf[element]);
   }
 
-  checkFieldTypeInClass('A', 'dynamicField', compiler.dynamicClass);
+  checkFieldTypeInClass('A', 'dynamicField', typesInferrer.dynamicType);
 }

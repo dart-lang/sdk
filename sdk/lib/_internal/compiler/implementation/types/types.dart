@@ -25,9 +25,9 @@ part 'type_mask.dart';
  */
 abstract class TypesInferrer {
   analyzeMain(Element element);
-  getConcreteReturnTypeOfElement(Element element);
-  getConcreteTypeOfElement(Element element);
-  getConcreteTypeOfNode(Element owner, Node node);
+  TypeMask getReturnTypeOfElement(Element element);
+  TypeMask getTypeOfElement(Element element);
+  TypeMask getTypeOfNode(Element owner, Node node);
 }
 
 /**
@@ -77,11 +77,11 @@ class TypesTask extends CompilerTask {
   /**
    * Return the (inferred) guaranteed concrete type of [element] or null.
    */
-  ConcreteType getGuaranteedTypeOfElement(Element element) {
+  TypeMask getGuaranteedTypeOfElement(Element element) {
     return measure(() {
       if (typesInferrer != null) {
-        ConcreteType guaranteedType =
-            typesInferrer .getConcreteTypeOfElement(element);
+        TypeMask guaranteedType =
+            typesInferrer .getTypeOfElement(element);
         if (guaranteedType != null) return guaranteedType;
       }
       if (!element.isParameter()) return null;
@@ -95,8 +95,7 @@ class TypesTask extends CompilerTask {
       for (Element parameter in signature.requiredParameters) {
         if (types.isEmpty) return null;
         if (element == parameter) {
-          return new ConcreteType.singleton(compiler.maxConcreteTypeSize,
-                                            new ClassBaseType(types.head));
+          return new TypeMask.nonNullExact(types.head.computeType(compiler));
         }
         types = types.tail;
       }
@@ -104,11 +103,11 @@ class TypesTask extends CompilerTask {
     });
   }
 
-  ConcreteType getGuaranteedReturnTypeOfElement(Element element) {
+  TypeMask getGuaranteedReturnTypeOfElement(Element element) {
     return measure(() {
       if (typesInferrer != null) {
-        ConcreteType guaranteedType =
-            typesInferrer.getConcreteReturnTypeOfElement(element);
+        TypeMask guaranteedType =
+            typesInferrer.getReturnTypeOfElement(element);
         if (guaranteedType != null) return guaranteedType;
       }
       return null;
@@ -119,10 +118,10 @@ class TypesTask extends CompilerTask {
    * Return the (inferred) guaranteed concrete type of [node] or null.
    * [node] must be an AST node of [owner].
    */
-  ConcreteType getGuaranteedTypeOfNode(owner, node) {
+  TypeMask getGuaranteedTypeOfNode(owner, node) {
     return measure(() {
       if (typesInferrer != null) {
-        return typesInferrer.getConcreteTypeOfNode(owner, node);
+        return typesInferrer.getTypeOfNode(owner, node);
       }
       return null;
     });

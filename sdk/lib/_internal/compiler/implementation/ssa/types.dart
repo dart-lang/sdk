@@ -78,34 +78,21 @@ abstract class HType {
     return new HType.fromMask(mask, compiler);
   }
 
-  factory HType.fromBaseType(BaseType baseType, Compiler compiler) {
-    if (!baseType.isClass()) return HType.UNKNOWN;
-    ClassBaseType classBaseType = baseType;
-    ClassElement cls = classBaseType.element;
-    // Special case the list and map classes that are used as types
-    // for literals in the type inferrer.
-    if (cls == compiler.listClass) {
-      return HType.READABLE_ARRAY;
-    } else if (cls == compiler.mapClass) {
-      // TODO(ngeoffray): get the actual implementation of a map
-      // literal.
-      return new HType.nonNullSubtype(
-          compiler.mapLiteralClass.computeType(compiler), compiler);
-    } else {
-      return new HType.nonNullExact(
-          cls.computeType(compiler), compiler);
+  factory HType.fromInferredType(TypeMask mask, Compiler compiler) {
+    if (mask == null) return HType.UNKNOWN;
+    if (mask.isExact) {
+      // Special case the list and map classes that are used as types
+      // for literals in the type inferrer.
+      if (mask.base.element == compiler.listClass) {
+        return HType.READABLE_ARRAY;
+      } else if (mask.base.element == compiler.mapClass) {
+        // TODO(ngeoffray): get the actual implementation of a map
+        // literal.
+        return new HType.nonNullSubtype(
+            compiler.mapLiteralClass.rawType, compiler);
+      }
     }
-  }
-
-  factory HType.fromInferredType(ConcreteType concreteType, Compiler compiler) {
-    if (concreteType == null) return HType.UNKNOWN;
-    HType ssaType = HType.CONFLICTING;
-    for (BaseType baseType in concreteType.baseTypes) {
-      ssaType = ssaType.union(
-          new HType.fromBaseType(baseType, compiler), compiler);
-    }
-    if (ssaType.isConflicting()) return HType.UNKNOWN;
-    return ssaType;
+    return new HType.fromMask(mask, compiler);
   }
 
   factory HType.inferredReturnTypeForElement(

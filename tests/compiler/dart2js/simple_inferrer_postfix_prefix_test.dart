@@ -68,20 +68,20 @@ void main() {
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
 
-  checkReturnInClass('A', 'returnNum1', compiler.numClass);
-  checkReturnInClass('A', 'returnNum2', compiler.numClass);
-  checkReturnInClass('A', 'returnNum3', compiler.numClass);
-  checkReturnInClass('A', 'returnNum4', compiler.numClass);
-  checkReturnInClass('A', 'returnNum5', compiler.numClass);
-  checkReturnInClass('A', 'returnNum6', compiler.numClass);
-  checkReturnInClass('A', 'returnDynamic1', compiler.dynamicClass);
-  checkReturnInClass('A', 'returnDynamic2', compiler.dynamicClass);
-  checkReturnInClass('A', 'returnString1', compiler.stringClass);
+  checkReturnInClass('A', 'returnNum1', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum2', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum3', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
+  checkReturnInClass('A', 'returnDynamic1', typesInferrer.dynamicType);
+  checkReturnInClass('A', 'returnDynamic2', typesInferrer.dynamicType);
+  checkReturnInClass('A', 'returnString1', typesInferrer.stringType);
 
-  checkReturnInClass('B', 'returnNum1', compiler.numClass);
-  checkReturnInClass('B', 'returnNum2', compiler.numClass);
-  checkReturnInClass('B', 'returnNum3', compiler.numClass);
-  checkReturnInClass('B', 'returnNum4', compiler.numClass);
-  checkReturnInClass('B', 'returnString1', compiler.stringClass);
-  checkReturnInClass('B', 'returnDynamic1', compiler.dynamicClass);
+  checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum2', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum3', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum4', typesInferrer.numType);
+  checkReturnInClass('B', 'returnString1', typesInferrer.stringType);
+  checkReturnInClass('B', 'returnDynamic1', typesInferrer.dynamicType);
 }

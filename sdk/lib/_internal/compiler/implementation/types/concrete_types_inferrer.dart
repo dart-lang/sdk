@@ -724,25 +724,42 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
   // -- query --
 
+  TypeMask fromBaseTypeToTypeMask(BaseType baseType) {
+    if (!baseType.isClass()) return null;
+    ClassBaseType classBaseType = baseType;
+    ClassElement cls = classBaseType.element;
+    return new TypeMask.nonNullExact(cls.rawType);
+  }
+
+  TypeMask fromConcreteToTypeMask(ConcreteType concreteType) {
+    if (concreteType == null) return null;
+    TypeMask typeMask;
+    for (BaseType baseType in concreteType.baseTypes) {
+      TypeMask current = fromBaseTypeToTypeMask(baseType);
+      typeMask = typeMask == null ? current : typeMask.union(current, compiler);
+    }
+    return typeMask;
+  }
+
   /**
    * Get the inferred concrete type of [node].
    */
-  ConcreteType getConcreteTypeOfNode(Element owner, Node node) {
-    return inferredTypes[node];
+  TypeMask getTypeOfNode(Element owner, Node node) {
+    return fromConcreteToTypeMask(inferredTypes[node]);
   }
 
   /**
    * Get the inferred concrete type of [element].
    */
-  ConcreteType getConcreteTypeOfElement(Element element) {
+  TypeMask getTypeOfElement(Element element) {
     if (!element.isParameter()) return null;
-    return inferredParameterTypes[element];
+    return fromConcreteToTypeMask(inferredParameterTypes[element]);
   }
 
   /**
    * Get the inferred concrete return type of [element].
    */
-  ConcreteType getConcreteReturnTypeOfElement(Element element) {
+  TypeMask getReturnTypeOfElement(Element element) {
     return null;
   }
 

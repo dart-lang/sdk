@@ -108,14 +108,14 @@ void main() {
     var element = findElement(compiler, name);
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
-  checkReturn('returnNum1', compiler.numClass);
-  checkReturn('returnNum2', compiler.numClass);
-  checkReturn('returnInt1', compiler.intClass);
-  checkReturn('returnInt2', compiler.intClass);
-  checkReturn('returnDouble', compiler.doubleClass);
+  checkReturn('returnNum1', typesInferrer.numType);
+  checkReturn('returnNum2', typesInferrer.numType);
+  checkReturn('returnInt1', typesInferrer.intType);
+  checkReturn('returnInt2', typesInferrer.intType);
+  checkReturn('returnDouble', typesInferrer.doubleType);
   checkReturn('returnGiveUp', typesInferrer.giveUpType);
-  checkReturn('returnNum3', compiler.numClass);
-  checkReturn('returnNum4', compiler.numClass);
+  checkReturn('returnNum3', typesInferrer.numType);
+  checkReturn('returnNum4', typesInferrer.numType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
@@ -123,19 +123,19 @@ void main() {
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
 
-  checkReturnInClass('A', 'returnNum1', compiler.numClass);
-  checkReturnInClass('A', 'returnNum2', compiler.numClass);
-  checkReturnInClass('A', 'returnNum3', compiler.numClass);
-  checkReturnInClass('A', 'returnNum4', compiler.numClass);
-  checkReturnInClass('A', 'returnNum5', compiler.numClass);
-  checkReturnInClass('A', 'returnNum6', compiler.numClass);
+  checkReturnInClass('A', 'returnNum1', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum2', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum3', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
+  checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
 
-  checkReturnInClass('B', 'returnNum1', compiler.numClass);
-  checkReturnInClass('B', 'returnNum2', compiler.numClass);
-  checkReturnInClass('B', 'returnNum3', compiler.numClass);
-  checkReturnInClass('B', 'returnNum4', compiler.numClass);
-  checkReturnInClass('B', 'returnNum5', compiler.numClass);
-  checkReturnInClass('B', 'returnNum6', compiler.numClass);
-  checkReturnInClass('B', 'returnNum7', compiler.numClass);
-  checkReturnInClass('B', 'returnNum8', compiler.numClass);
+  checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum2', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum3', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum4', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum5', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum6', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum7', typesInferrer.numType);
+  checkReturnInClass('B', 'returnNum8', typesInferrer.numType);
 }

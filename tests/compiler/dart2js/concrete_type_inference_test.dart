@@ -48,22 +48,22 @@ void checkPrintType(String expression, checkType(compiler, type)) {
 
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
-    Expect.identical(compiler.boolClass, type.getUniqueType());
+    Expect.identical(compiler.boolClass, type.exactType.element);
   });
   checkPrintType('1.0', (compiler, type) {
-    Expect.identical(compiler.doubleClass, type.getUniqueType());
+    Expect.identical(compiler.doubleClass, type.exactType.element);
   });
   checkPrintType('1', (compiler, type) {
-    Expect.identical(compiler.intClass, type.getUniqueType());
+    Expect.identical(compiler.intClass, type.exactType.element);
   });
   checkPrintType('[]', (compiler, type) {
-    Expect.identical(compiler.listClass, type.getUniqueType());
+    Expect.identical(compiler.listClass, type.exactType.element);
   });
   checkPrintType('null', (compiler, type) {
-    Expect.identical(compiler.nullClass, type.getUniqueType());
+    Expect.identical(compiler.nullClass, type.exactType.element);
   });
   checkPrintType('"foo"', (compiler, type) {
-    Expect.identical(compiler.stringClass, type.getUniqueType());
+    Expect.identical(compiler.stringClass, type.exactType.element);
   });
 }
 
@@ -81,7 +81,7 @@ void testOptionalParameters() {
         Expect.identical(
             compiler.intClass,
             compiler.typesTask.getGuaranteedTypeOfElement(firstParameter)
-                .getUniqueType());
+                .exactType.element);
         Expect.isNull(
             compiler.typesTask.getGuaranteedTypeOfElement(secondParameter));
         Expect.isNull(

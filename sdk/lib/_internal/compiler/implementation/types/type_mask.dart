@@ -55,6 +55,8 @@ class TypeMask {
     return isNullable ? this : new TypeMask.internal(base, flags | 1);
   }
 
+  DartType get exactType => isExact ? base : null;
+
   /**
    * Returns whether or not this type mask contains the given type.
    */
