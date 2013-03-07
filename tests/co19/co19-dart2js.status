@@ -576,6 +576,49 @@ LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to 
 
 LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379.
 
+Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: pass
+LibTest/core/Date/Date.fromString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A03_t01: pass
+LibTest/core/Date/Date.now_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.utc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t04: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/day_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/hour_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/isUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecond_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/minute_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/month_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/second_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toLocal_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+
 Language/12_Statements/10_Try_A03_t01: Fail # co19 issue 381
 Language/12_Statements/10_Try_A03_t02: Fail # co19 issue 381
 Language/12_Statements/10_Try_A03_t03: Fail # co19 issue 381
@@ -627,50 +670,6 @@ LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
-
-Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: pass
-LibTest/core/Date/Date.fromString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.fromString_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.fromString_A03_t01: pass
-LibTest/core/Date/Date.now_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.now_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.now_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date.utc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/Date_A01_t04: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/add_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/add_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/add_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/compareTo_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/compareTo_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/day_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/difference_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/difference_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/hour_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/isUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/millisecond_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/minute_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/month_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/operator_GE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/operator_GT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/operator_LE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/operator_LT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/second_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/subtract_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/subtract_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/subtract_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/timeZoneName_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/timeZoneOffset_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/toLocal_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/toString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
-
 
 [ $compiler == dart2js && $system == macos ]
 LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
