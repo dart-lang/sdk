@@ -56,7 +56,7 @@ class AnalysisResult {
     string = inferrer.baseTypes.stringBaseType;
     list = inferrer.baseTypes.listBaseType;
     map = inferrer.baseTypes.mapBaseType;
-    nullType = new NullBaseType();
+    nullType = const NullBaseType();
     Element mainElement = compiler.mainApp.find(buildSourceString('main'));
     ast = mainElement.parseNode(compiler);
   }
@@ -206,7 +206,7 @@ testLiterals() {
   result.checkNodeHasType('v2', [result.double]);
   result.checkNodeHasType('v3', [result.string]);
   result.checkNodeHasType('v4', [result.bool]);
-  result.checkNodeHasType('v5', [new NullBaseType()]);
+  result.checkNodeHasType('v5', [result.nullType]);
 }
 
 testRedefinition() {
@@ -312,10 +312,18 @@ testFor2() {
 testToplevelVariable() {
   final String source = r"""
       final top = 'abc';
-      main() { var foo = top; foo; }
+      class A {
+         f() => top;
+      }
+      main() { 
+        var foo = top;
+        var bar = new A().f();
+        foo; bar;
+      }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('foo', [result.string]);
+  result.checkNodeHasType('bar', [result.string]);
 }
 
 testNonRecusiveFunction() {
@@ -438,8 +446,9 @@ testConstructor() {
       """;
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'x', [result.int, result.bool]);
-  result.checkFieldHasType('A', 'y', [result.string, new NullBaseType()]);
-  result.checkFieldHasType('A', 'z', [result.string]);
+  result.checkFieldHasType('A', 'y', [result.string, result.nullType]);
+  // TODO(polux): we can be smarter and infer {string} for z
+  result.checkFieldHasType('A', 'z', [result.string, result.nullType]);
 }
 
 testGetters() {
@@ -577,7 +586,7 @@ testOptionalNamedParameters() {
   AnalysisResult result = analyze(source);
 
   final foo = result.base('Foo');
-  final nil = new NullBaseType();
+  final nil = result.nullType;
 
   result.checkFieldHasType('A', 'x', [result.int, result.string]);
   result.checkFieldHasType('A', 'y', [nil]);
@@ -649,7 +658,7 @@ testOptionalPositionalParameters() {
   AnalysisResult result = analyze(source);
 
   final foo = result.base('Foo');
-  final nil = new NullBaseType();
+  final nil = result.nullType;
 
   result.checkFieldHasType('A', 'x', [result.int, result.string]);
   result.checkFieldHasType('A', 'y', [nil, result.bool]);
@@ -799,10 +808,8 @@ testSetIndexOperator() {
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('x', [result.string]);
-  // TODO(polux): the two following results should be [:[null, string:], see
-  // testFieldInitialization().
-  result.checkFieldHasType('A', 'witness1', [result.int]);
-  result.checkFieldHasType('A', 'witness2', [result.string]);
+  result.checkFieldHasType('A', 'witness1', [result.int, result.nullType]);
+  result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
 }
 
 testCompoundOperators1() {
@@ -862,12 +869,10 @@ testCompoundOperators2() {
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'xx', [result.int]);
   result.checkFieldHasType('A', 'yy', [result.int]);
-  // TODO(polux): the four following results should be [:[null, string]:], see
-  // testFieldInitialization().
-  result.checkFieldHasType('A', 'witness1', [result.string]);
-  result.checkFieldHasType('A', 'witness2', [result.string]);
-  result.checkFieldHasType('A', 'witness3', [result.string]);
-  result.checkFieldHasType('A', 'witness4', [result.string]);
+  result.checkFieldHasType('A', 'witness1', [result.string, result.nullType]);
+  result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
+  result.checkFieldHasType('A', 'witness3', [result.string, result.nullType]);
+  result.checkFieldHasType('A', 'witness4', [result.string, result.nullType]);
 }
 
 testInequality() {
@@ -890,24 +895,68 @@ testInequality() {
   result.checkNodeHasType('foo', [result.bool]);
   result.checkNodeHasType('bar', [result.bool]);
   result.checkNodeHasType('baz', []);
-  // TODO(polux): the following result should be [:[null, string]:], see
-  // testFieldInitialization().
-  result.checkFieldHasType('A', 'witness', [result.string]);
+  result.checkFieldHasType('A', 'witness', [result.string, result.nullType]);
 }
 
-testFieldInitialization() {
+testFieldInitialization1() {
   final String source = r"""
     class A {
       var x;
       var y = 1;
+    }
+    class B extends A {
+      var z = "foo";
+    }
+    main () {
+      new B();
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkFieldHasType('A', 'x', [result.nullType]);
+  result.checkFieldHasType('A', 'y', [result.int]);
+  result.checkFieldHasType('B', 'z', [result.string]);
+}
+
+testFieldInitialization2() {
+  final String source = r"""
+    var top = 42;
+    class A {
+      var x = top;
     }
     main () {
       new A();
     }
     """;
   AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'x', [result.nullType]);
-  result.checkFieldHasType('A', 'y', [result.int]);
+  result.checkFieldHasType('A', 'x', [result.int]);
+}
+
+testFieldInitialization3() {
+  final String source = r"""
+    class A {
+      var x;
+    }
+    f() => new A().x;
+    class B {
+      var x = new A().x;
+      var y = f();
+    }
+    main () {
+      var foo = new B().x;
+      var bar = new B().y;
+      new A().x = "a";
+      foo; bar;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  // checks that B.B is set as a reader of A.x
+  result.checkFieldHasType('B', 'x', [result.nullType, result.string]);
+  // checks that B.B is set as a caller of f
+  result.checkFieldHasType('B', 'y', [result.nullType, result.string]);
+  // checks that readers of x are notified by changes in x's type
+  result.checkNodeHasType('foo', [result.nullType, result.string]);
+  // checks that readers of y are notified by changes in y's type
+  result.checkNodeHasType('bar', [result.nullType, result.string]);
 }
 
 testLists() {
@@ -1078,7 +1127,7 @@ void main() {
   testWhile();
   testFor1();
   testFor2();
-  // testToplevelVariable();  // toplevel variables are not yet supported
+  testToplevelVariable();
   testNonRecusiveFunction();
   testRecusiveFunction();
   testMutuallyRecusiveFunction();
@@ -1101,7 +1150,9 @@ void main() {
   testCompoundOperators2();
   testSetIndexOperator();
   testInequality();
-  // testFieldInitialization(); // TODO(polux)
+  testFieldInitialization1();
+  testFieldInitialization2();
+  testFieldInitialization3();
   testSendWithWrongArity();
   testBigTypesWidening1();
   testBigTypesWidening2();

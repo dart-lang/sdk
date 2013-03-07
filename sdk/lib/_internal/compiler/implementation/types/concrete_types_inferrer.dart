@@ -65,7 +65,7 @@ class UnknownBaseType implements BaseType {
  */
 class NullBaseType implements BaseType {
   const NullBaseType();
-  bool operator ==(BaseType other) => other is NullBaseType;
+  bool operator ==(BaseType other) => identical(other, this);
   int get hashCode => 1;
   bool isClass() => false;
   bool isUnknown() => false;
@@ -374,12 +374,16 @@ class ConcreteTypesEnvironment {
  * A work item for the type inference queue.
  */
 class InferenceWorkItem {
-  FunctionElement method;
+  Element methodOrField;
   ConcreteTypesEnvironment environment;
-  InferenceWorkItem(this.method, this.environment);
+  InferenceWorkItem(this.methodOrField, this.environment);
 
-  toString() => "{ method = ${method.name.slowToString()}, "
-                "environment = $environment }";
+  toString() {
+    final elementType = methodOrField.isField() ? "field" : "method";
+    final elementRepresentation = methodOrField.name.slowToString();
+    return "{ $elementType = $elementRepresentation"
+           ", environment = $environment }";
+  }
 }
 
 /**
@@ -443,11 +447,17 @@ class ConcreteTypesInferrer extends TypesInferrer {
   /** The work queue consumed by [analyzeMain]. */
   final Queue<InferenceWorkItem> workQueue;
 
-  /** [: callers[f] :] is the list of [: f :]'s possible callers. */
-  final Map<FunctionElement, Set<FunctionElement>> callers;
+  /**
+   * [:callers[f]:] is the list of [:f:]'s possible callers or fields
+   * whose initialization is a call to [:f:].
+   */
+  final Map<FunctionElement, Set<Element>> callers;
 
-  /** [: readers[field] :] is the list of [: field :]'s possible readers. */
-  final Map<Element, Set<FunctionElement>> readers;
+  /**
+   * [:readers[field]:] is the list of [:field:]'s possible readers or fields
+   * whose initialization is a read of [:field:].
+   */
+  final Map<Element, Set<Element>> readers;
 
   /// The set of classes encountered so far.
   final Set<ClassElement> seenClasses;
@@ -475,8 +485,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
         inferredFieldTypes = new Map<Element, ConcreteType>(),
         inferredParameterTypes = new Map<VariableElement, ConcreteType>(),
         workQueue = new Queue<InferenceWorkItem>(),
-        callers = new Map<FunctionElement, Set<FunctionElement>>(),
-        readers = new Map<Element, Set<FunctionElement>>(),
+        callers = new Map<FunctionElement, Set<Element>>(),
+        readers = new Map<Element, Set<Element>>(),
         listElementType = new ConcreteType.empty(),
         seenClasses = new Set<ClassElement>(),
         dynamicCallers = new Map<SourceString, Set<FunctionElement>>() {
@@ -595,7 +605,14 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   ConcreteType getFieldType(Element field) {
     ConcreteType result = inferredFieldTypes[field];
-    return (result == null) ? emptyConcreteType : result;
+    if (result != null) {
+      return result;
+    } else {
+      // field is a toplevel variable, we trigger its analysis because no object
+      // creation is never going to trigger it
+      result = analyzeFieldInitialization(field);
+      return (result == null) ? emptyConcreteType : result;
+    }
   }
 
   /**
@@ -611,14 +628,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       inferredFieldTypes[field] = newType;
       final fieldReaders = readers[field];
       if (fieldReaders != null) {
-        for (final reader in fieldReaders) {
-          final readerInstances = cache[reader];
-          if (readerInstances != null) {
-            readerInstances.forEach((environment, _) {
-              workQueue.addLast(new InferenceWorkItem(reader, environment));
-            });
-          }
-        }
+        fieldReaders.forEach(invalidate);
       }
     }
   }
@@ -659,12 +669,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
   /**
    * Add [caller] to the set of [callee]'s callers.
    */
-  void addCaller(FunctionElement callee, FunctionElement caller) {
-    Set<FunctionElement> current = callers[callee];
+  void addCaller(FunctionElement callee, Element caller) {
+    Set<Element> current = callers[callee];
     if (current != null) {
       current.add(caller);
     } else {
-      Set<FunctionElement> newSet = new Set<FunctionElement>();
+      Set<Element> newSet = new Set<Element>();
       newSet.add(caller);
       callers[callee] = newSet;
     }
@@ -687,12 +697,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
   /**
    * Add [reader] to the set of [field]'s readers.
    */
-  void addReader(Element field, FunctionElement reader) {
-    Set<FunctionElement> current = readers[field];
+  void addReader(Element field, Element reader) {
+    Set<Element> current = readers[field];
     if (current != null) {
       current.add(reader);
     } else {
-      Set<FunctionElement> newSet = new Set<FunctionElement>();
+      Set<Element> newSet = new Set<Element>();
       newSet.add(reader);
       readers[field] = newSet;
     }
@@ -702,23 +712,29 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * Add callers of [function] to the workqueue.
    */
   void invalidateCallers(FunctionElement function) {
-    Set<FunctionElement> methodCallers = callers[function];
+    Set<Element> methodCallers = callers[function];
     if (methodCallers == null) return;
-    for (FunctionElement caller in methodCallers) {
+    for (Element caller in methodCallers) {
       invalidate(caller);
     }
   }
 
   /**
-   * Add all instances of method to the workqueue.
+   * Add all instances of [methodOrField] to the workqueue.
    */
-  void invalidate(FunctionElement method) {
-    Map<ConcreteTypesEnvironment, ConcreteType> instances = cache[method];
-    if (instances != null) {
-      instances.forEach((environment, _) {
-        workQueue.addLast(
-            new InferenceWorkItem(method, environment));
-      });
+  void invalidate(Element methodOrField) {
+    if (methodOrField.isField()) {
+      workQueue.addLast(new InferenceWorkItem(
+          methodOrField, new ConcreteTypesEnvironment(this)));
+    } else {
+      Map<ConcreteTypesEnvironment, ConcreteType> instances =
+          cache[methodOrField];
+      if (instances != null) {
+        instances.forEach((environment, _) {
+          workQueue.addLast(
+              new InferenceWorkItem(methodOrField, environment));
+        });
+      }
     }
   }
 
@@ -933,11 +949,21 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return null;
   }
 
-  ConcreteType analyze(FunctionElement element,
+  /**
+   * [element] must be either a field with an initializing expression,
+   * a generative constructor or a function.
+   */
+  ConcreteType analyze(Element element,
                        ConcreteTypesEnvironment environment) {
-    return element.isGenerativeConstructor()
-        ? analyzeConstructor(element, environment)
-        : analyzeMethod(element, environment);
+    if (element.isGenerativeConstructor()) {
+      return analyzeConstructor(element, environment);
+    } else if (element.isField()) {
+      analyzeFieldInitialization(element);
+      return emptyConcreteType;
+    } else {
+      assert(element is FunctionElement);
+      return analyzeMethod(element, environment);
+    }
   }
 
   ConcreteType analyzeMethod(FunctionElement element,
@@ -958,15 +984,36 @@ class ConcreteTypesInferrer extends TypesInferrer {
     }
   }
 
-  ConcreteType analyzeConstructor(FunctionElement element,
-                                  ConcreteTypesEnvironment environment) {
-    ClassElement enclosingClass = element.enclosingElement;
-    augmentSeenClasses(enclosingClass);
-    FunctionExpression tree = compiler.parser.parse(element);
+  /**
+   * Analyzes the initialization of a field. Returns [:null:] if and only if
+   * [element] has no initialization expression.
+   */
+  ConcreteType analyzeFieldInitialization(VariableElement element) {
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element];
-    Visitor visitor =
-        new TypeInferrerVisitor(elements, element, this, environment);
+    Visitor visitor = new TypeInferrerVisitor(elements, element, this,
+        new ConcreteTypesEnvironment(this));
+    Node tree = element.parseNode(compiler);
+    ConcreteType type = initializerDo(tree, (node) => node.accept(visitor));
+    if (type != null) {
+      augmentFieldType(element, type);
+    }
+    return type;
+  }
+
+  ConcreteType analyzeConstructor(FunctionElement element,
+                                  ConcreteTypesEnvironment environment) {
+    Set<Element> uninitializedFields = new Set<Element>();
+
+    // initialize fields
+    ClassElement enclosingClass = element.enclosingElement;
+    augmentSeenClasses(enclosingClass);
+    enclosingClass.forEachInstanceField((_, VariableElement field) {
+      ConcreteType type = analyzeFieldInitialization(field);
+      if (type == null) {
+        uninitializedFields.add(field);
+      }
+    }, includeSuperMembers: false);
 
     // handle initializing formals
     element.functionSignature.forEachParameter((param) {
@@ -974,19 +1021,34 @@ class ConcreteTypesInferrer extends TypesInferrer {
         FieldParameterElement fieldParam = param;
         augmentFieldType(fieldParam.fieldElement,
             environment.lookupType(param));
+        uninitializedFields.remove(fieldParam.fieldElement);
       }
     });
 
     // analyze initializers, including a possible call to super or a redirect
+    FunctionExpression tree = compiler.parser.parse(element);
+    TreeElements elements =
+        compiler.enqueuer.resolution.resolvedElements[element];
+    Visitor visitor =
+        new TypeInferrerVisitor(elements, element, this, environment);
+
     bool foundSuperOrRedirect = false;
     if (tree.initializers != null) {
       // we look for a possible call to super in the initializer list
       for (final init in tree.initializers) {
         init.accept(visitor);
+        SendSet sendSet = init.asSendSet();
         if (init.asSendSet() == null) {
           foundSuperOrRedirect = true;
+        } else {
+          uninitializedFields.remove(elements[init]);
         }
       }
+    }
+
+    // set uninitialized fields to null
+    for (VariableElement field in uninitializedFields) {
+      augmentFieldType(field, singletonConcreteType(const NullBaseType()));
     }
 
     // if no call to super or redirect has been found, call the default
@@ -1022,7 +1084,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
           listConstructor.functionSignature.optionalParameters;
       ConcreteType lengthType = environment.lookupType(parameters.head);
       if (lengthType.baseTypes.contains(baseTypes.intBaseType)) {
-        augmentListElementType(singletonConcreteType(new NullBaseType()));
+        augmentListElementType(singletonConcreteType(const NullBaseType()));
       }
       return singletonConcreteType(baseTypes.listBaseType);
     }
@@ -1056,11 +1118,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
           new InferenceWorkItem(element, new ConcreteTypesEnvironment(this)));
       while (!workQueue.isEmpty) {
         InferenceWorkItem item = workQueue.removeFirst();
-        ConcreteType concreteType = analyze(item.method, item.environment);
-        var template = cache[item.method];
+        ConcreteType concreteType =
+            analyze(item.methodOrField, item.environment);
+        if (item.methodOrField.isField()) continue;
+        var template = cache[item.methodOrField];
         if (template[item.environment] == concreteType) continue;
         template[item.environment] = concreteType;
-        invalidateCallers(item.method);
+        invalidateCallers(item.methodOrField);
       }
       return true;
     } on CancelTypeInferenceException catch(e) {
@@ -1135,12 +1199,12 @@ class ArgumentsTypes {
 class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   final ConcreteTypesInferrer inferrer;
 
-  final FunctionElement currentMethod;
+  final Element currentMethodOrField;
   ConcreteTypesEnvironment environment;
   Node lastSeenNode;
 
-  TypeInferrerVisitor(TreeElements elements, this.currentMethod, this.inferrer,
-                      this.environment)
+  TypeInferrerVisitor(TreeElements elements, this.currentMethodOrField,
+                      this.inferrer, this.environment)
       : super(elements);
 
   ArgumentsTypes analyzeArguments(Link<Node> arguments) {
@@ -1299,7 +1363,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     }
 
     if (receiverType.isUnkown()) {
-      inferrer.addDynamicCaller(name, currentMethod);
+      inferrer.addDynamicCaller(name, currentMethodOrField);
       for (Element member in inferrer.getMembersByName(name)) {
         if (!(member.isField() || member.isAbstractField())) continue;
         Element cls = member.getEnclosingClass();
@@ -1418,7 +1482,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitNewExpression(NewExpression node) {
     Element constructor = elements[node.send];
-    inferrer.addCaller(constructor, currentMethod);
+    inferrer.addCaller(constructor, currentMethodOrField);
     ClassElement cls = constructor.enclosingElement;
     return inferrer.getSendReturnType(constructor, cls,
                                       analyzeArguments(node.send.arguments));
@@ -1601,13 +1665,13 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType analyzeFieldRead(Element field) {
-    inferrer.addReader(field, currentMethod);
+    inferrer.addReader(field, currentMethodOrField);
     return inferrer.getFieldType(field);
   }
 
   ConcreteType analyzeGetterSend(ClassElement receiverType,
                                  FunctionElement getter) {
-      inferrer.addCaller(getter, currentMethod);
+      inferrer.addCaller(getter, currentMethodOrField);
       return inferrer.getSendReturnType(getter,
                                         receiverType,
                                         new ArgumentsTypes([], new Map()));
@@ -1652,7 +1716,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       ConcreteType receiverType = analyze(node.receiver);
       if (receiverType.isUnkown()) {
         SourceString name = node.selector.asIdentifier().source;
-        inferrer.addDynamicCaller(name, currentMethod);
+        inferrer.addDynamicCaller(name, currentMethodOrField);
         List<Element> members = inferrer.getMembersByName(name);
         for (Element member in members) {
           if (!(member.isField() || member.isAbstractField())) continue;
@@ -1686,7 +1750,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType result = inferrer.emptyConcreteType;
 
     if (receiverType.isUnkown()) {
-      inferrer.addDynamicCaller(canonicalizedMethodName, currentMethod);
+      inferrer.addDynamicCaller(canonicalizedMethodName, currentMethodOrField);
       List<Element> methods =
           inferrer.getMembersByName(canonicalizedMethodName);
       for (Element element in methods) {
@@ -1694,7 +1758,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         // that are closures.
         if (!element.isFunction()) continue;
         FunctionElement method = element;
-        inferrer.addCaller(method, currentMethod);
+        inferrer.addCaller(method, currentMethodOrField);
         Element cls = method.enclosingElement;
         result = inferrer.union(
             result,
@@ -1709,7 +1773,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
           FunctionElement method = cls.lookupMember(canonicalizedMethodName);
           if (method != null) {
             method = method.implementation;
-            inferrer.addCaller(method, currentMethod);
+            inferrer.addCaller(method, currentMethodOrField);
             result = inferrer.union(
                 result,
                 inferrer.getSendReturnType(method, cls, argumentsTypes));
@@ -1732,7 +1796,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType receiverType = (node.receiver != null)
         ? analyze(node.receiver)
         : inferrer.singletonConcreteType(
-            new ClassBaseType(currentMethod.getEnclosingClass()));
+            new ClassBaseType(currentMethodOrField.getEnclosingClass()));
     SourceString name =
         canonicalizeMethodName(node.selector.asIdentifier().source);
     ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
@@ -1754,7 +1818,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitStaticSend(Send node) {
     Element element = elements[node].implementation;
-    inferrer.addCaller(element, currentMethod);
+    inferrer.addCaller(element, currentMethodOrField);
     return inferrer.getSendReturnType(element, null,
         analyzeArguments(node.arguments));
   }
