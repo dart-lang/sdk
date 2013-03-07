@@ -2588,28 +2588,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   // TODO(karlklose): change construction of the representations to be GVN'able
   // (dartbug.com/7182).
-  List<HInstruction> buildTypeArgumentRepresentations(DartType type) {
+  HInstruction buildTypeArgumentRepresentations(DartType type) {
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
-    HInstruction representations;
     if (type.kind == TypeKind.TYPE_VARIABLE) {
-      return <HInstruction>[addTypeVariableReference(type)];
+      return new HLiteralList(<HInstruction>[addTypeVariableReference(type)]);
     } else {
       assert(type.element.isClass());
-      List<HInstruction> arguments = <HInstruction>[];
       InterfaceType interface = type;
+      List<HInstruction> inputs = <HInstruction>[];
+      bool first = true;
+      List<String> templates = <String>[];
       for (DartType argument in interface.typeArguments) {
-        List<HInstruction> inputs = <HInstruction>[];
-        String template = rti.getTypeRepresentation(argument, (variable) {
+        templates.add(rti.getTypeRepresentation(argument, (variable) {
           HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
-        });
-        HInstruction representation =
-            createForeign(template, HType.READABLE_ARRAY, inputs);
-        add(representation);
-        arguments.add(representation);
+        }));
       }
-      return arguments;
+      String template = '[${templates.join(', ')}]';
+      HInstruction representation =
+        createForeign(template, HType.READABLE_ARRAY, inputs);
+      return representation;
     }
   }
 
@@ -2649,9 +2648,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       HInstruction instruction;
       if (type.kind == TypeKind.TYPE_VARIABLE) {
-        List<HInstruction> representations =
-            buildTypeArgumentRepresentations(type);
-        assert(representations.length == 1);
         HInstruction runtimeType = addTypeVariableReference(type);
         Element helper = backend.getGetObjectIsSubtype();
         HInstruction helperCall = new HStatic(helper);
@@ -2669,8 +2665,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           Element helper = backend.getCheckArguments();
           HInstruction helperCall = new HStatic(helper);
           add(helperCall);
-          List<HInstruction> representations =
+          HInstruction representations =
               buildTypeArgumentRepresentations(type);
+          add(representations);
           Element element = type.element;
           String substitution = backend.namer.substitutionName(element);
           if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
@@ -2678,13 +2675,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           }
           HInstruction fieldGet =
               createForeign('#.$substitution', HType.UNKNOWN, [expression]);
-          HInstruction representationList = new HLiteralList(representations);
           add(fieldGet);
-          add(representationList);
           List<HInstruction> inputs = <HInstruction>[helperCall,
                                                      fieldGet,
                                                      typeInfo,
-                                                     representationList];
+                                                     representations];
           push(new HInvokeStatic(inputs, HType.UNKNOWN));
         }
 
