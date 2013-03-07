@@ -54,6 +54,7 @@ abstract class IOSink<T> implements StreamConsumer<List<int>, T> {
 class _IOSinkImpl<T> implements IOSink<T> {
   final StreamConsumer<List<int>, T> _target;
 
+  Completer _writeStreamCompleter;
   StreamController<List<int>> _controllerInstance;
   Future<T> _pipeFuture;
   StreamSubscription<List<int>> _bindSubscription;
@@ -98,12 +99,27 @@ class _IOSinkImpl<T> implements IOSink<T> {
     return _pipeFuture.then((_) => this);
   }
 
+  void _completeWriteStreamCompleter([error]) {
+    if (_writeStreamCompleter == null) return;
+    var tmp = _writeStreamCompleter;
+    _writeStreamCompleter = null;
+    if (error == null) {
+      _bindSubscription = null;
+      tmp.complete();
+    } else {
+      tmp.completeError(error);
+    }
+  }
+
   StreamController<List<int>> get _controller {
     if (_controllerInstance == null) {
       _controllerInstance = new StreamController<List<int>>(
           onPauseStateChange: _onPauseStateChange,
           onSubscriptionStateChange: _onSubscriptionStateChange);
-      _pipeFuture = _controller.stream.pipe(_target).then((_) => this);
+      var future = _controller.stream.pipe(_target);
+      future.then((_) => _completeWriteStreamCompleter(),
+                  onError: (error) => _completeWriteStreamCompleter(error));
+      _pipeFuture = future.then((_) => this);
     }
     return _controllerInstance;
   }
@@ -153,26 +169,15 @@ class _IOSinkImpl<T> implements IOSink<T> {
 
   Future<T> _fillFromStream(Stream<List<int>> stream, {unbind: false}) {
     _controller;
-    Completer<T> unbindCompleter;
+    assert(_writeStreamCompleter == null);
     if (unbind) {
-      unbindCompleter = new Completer<T>();
-    }
-    completeUnbind([error]) {
-      if (unbindCompleter == null) return;
-      var tmp = unbindCompleter;
-      unbindCompleter = null;
-      if (error == null) {
-        _bindSubscription = null;
-        tmp.complete();
-      } else {
-        tmp.completeError(error);
-      }
+      _writeStreamCompleter = new Completer<T>();
     }
     _bindSubscription = stream.listen(
         _controller.add,
         onDone: () {
           if (unbind) {
-            completeUnbind();
+            _completeWriteStreamCompleter();
           } else {
             _controller.close();
           }
@@ -180,10 +185,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
         onError: _controller.signalError);
     if (_paused) _pause();
     if (unbind) {
-      _pipeFuture
-          .then((_) => completeUnbind(),
-                onError: (error) => completeUnbind(error));
-      return unbindCompleter.future;
+      return _writeStreamCompleter.future;
     } else {
       return _pipeFuture.then((_) => this);
     }
