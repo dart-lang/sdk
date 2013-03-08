@@ -51,7 +51,6 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  var useContentSecurityPolicy = firstConf['csp'];
 
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
@@ -74,23 +73,8 @@ main() {
     print(output_words.join(' '));
   }
 
-  var runningBrowserTests = configurations.any((config) {
-    return TestUtils.isBrowserRuntime(config['runtime']);
-  });
-
   var testSuites = new List<TestSuite>();
   for (var conf in configurations) {
-    if (!listTests && runningBrowserTests) {
-      // Start global http servers that serve the entire dart repo.
-      // The http server is available on window.location.port, and a second
-      // server for cross-domain tests can be found by calling
-      // getCrossOriginPortNumber().
-      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
-                                       useContentSecurityPolicy);
-      servers.startServers('127.0.0.1');
-      conf['_servers_'] = servers;
-    }
-
     if (selectors.containsKey('co19')) {
       testSuites.add(new Co19TestSuite(conf));
     }
@@ -110,11 +94,6 @@ main() {
   }
 
   void allTestsFinished() {
-    for (var conf in configurations) {
-      if (conf.containsKey('_servers_')) {
-        conf['_servers_'].stopServers();
-      }
-    }
     DebugLogger.close();
   }
 
