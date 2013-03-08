@@ -10,7 +10,7 @@ part of _interceptors;
  * actually use the receiver of the method, which is generated as an extra
  * argument added to each member.
  */
-class JSString implements String {
+class JSString implements String, JSIndexable {
   const JSString();
 
   int codeUnitAt(int index) {

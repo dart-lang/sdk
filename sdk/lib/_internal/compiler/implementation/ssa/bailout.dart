@@ -132,6 +132,12 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
         if (speculatedType.element == backend.jsNumberClass) {
           speculatedType = compiler.numClass.computeType(compiler);
         }
+        // Use the JSString type instead of String because String is
+        // not assignment compatible with JSIndexable, but we still
+        // want to generate a type guard.
+        if (sourceType.element == compiler.stringClass) {
+          sourceType = backend.jsStringClass.computeType(compiler);
+        }
         if (!compiler.types.isAssignable(speculatedType, sourceType)) {
           return false;
         }

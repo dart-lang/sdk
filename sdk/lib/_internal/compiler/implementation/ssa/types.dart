@@ -44,6 +44,8 @@ abstract class HType {
       return isNullable
           ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
+    } else if (element == backend.jsIndexableClass && !isNullable) {
+      return HType.INDEXABLE_PRIMITIVE;
     }
     return new HBoundedType(mask);
   }
@@ -339,7 +341,6 @@ abstract class HPrimitiveType extends HType {
   bool isPrimitive() => true;
   bool canBePrimitive(Compiler compiler) => true;
   bool isPrimitiveOrNull() => true;
-  bool isExact() => true;
 }
 
 class HNullType extends HPrimitiveType {
@@ -347,6 +348,7 @@ class HNullType extends HPrimitiveType {
   bool canBeNull() => true;
   bool isNull() => true;
   String toString() => 'null type';
+  bool isExact() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -430,6 +432,7 @@ class HBooleanType extends HPrimitiveType {
   bool isBoolean() => true;
   bool isBooleanOrNull() => true;
   String toString() => "boolean";
+  bool isExact() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -463,7 +466,6 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
   const HNumberOrNullType();
   bool isNumberOrNull() => true;
   String toString() => "number or null";
-  bool isExact() => false;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -505,7 +507,6 @@ class HNumberType extends HPrimitiveType {
   bool isNumber() => true;
   bool isNumberOrNull() => true;
   String toString() => "number";
-  bool isExact() => false;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -584,6 +585,7 @@ class HIntegerType extends HNumberType {
   bool isInteger() => true;
   bool isIntegerOrNull() => true;
   String toString() => "integer";
+  bool isExact() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -666,6 +668,7 @@ class HDoubleType extends HNumberType {
   bool isDouble() => true;
   bool isDoubleOrNull() => true;
   String toString() => "double";
+  bool isExact() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -707,17 +710,13 @@ class HIndexablePrimitiveType extends HPrimitiveType {
   String toString() => "indexable";
 
   DartType computeType(Compiler compiler) {
-    // TODO(ngeoffray): Represent union types.
-    return null;
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsIndexableClass.computeType(compiler);
   }
 
   TypeMask computeMask(Compiler compiler) {
-    // TODO(ngeoffray): Represent union types.
-    return null;
+    return new TypeMask.nonNullSubtype(computeType(compiler));
   }
-
-  bool useOldIntersection() => true;
-  bool useOldUnion() => true;
 
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.INDEXABLE_PRIMITIVE;
@@ -803,6 +802,7 @@ class HStringType extends HIndexablePrimitiveType {
   bool isString() => true;
   bool isStringOrNull() => true;
   String toString() => "String";
+  bool isExact() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -849,6 +849,9 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
   }
+
+  bool useOldIntersection() => true;
+  bool useOldUnion() => true;
 
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.READABLE_ARRAY;
@@ -902,6 +905,7 @@ class HFixedArrayType extends HMutableArrayType {
   const HFixedArrayType();
   bool isFixedArray() => true;
   String toString() => "fixed array";
+  bool isExact() => true;
 
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.FIXED_ARRAY;
@@ -931,6 +935,7 @@ class HExtendableArrayType extends HMutableArrayType {
   const HExtendableArrayType();
   bool isExtendableArray() => true;
   String toString() => "extendable array";
+  bool isExact() => true;
 
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.EXTENDABLE_ARRAY;

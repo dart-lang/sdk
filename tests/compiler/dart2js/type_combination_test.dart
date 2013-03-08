@@ -32,6 +32,7 @@ HType nonPrimitive2;
 HType potentialArray;
 HType potentialString;
 HType jsArrayOrNull;
+HType jsIndexableOrNull;
 
 void testUnion(MockCompiler compiler) {
   Expect.equals(CONFLICTING,
@@ -344,7 +345,7 @@ void testUnion(MockCompiler compiler) {
                 INDEXABLE_PRIMITIVE.union(INTEGER_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 INDEXABLE_PRIMITIVE.union(DOUBLE_OR_NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 INDEXABLE_PRIMITIVE.union(STRING_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 INDEXABLE_PRIMITIVE.union(NULL, compiler));
@@ -901,7 +902,7 @@ void testUnion(MockCompiler compiler) {
                 STRING_OR_NULL.union(INTEGER, compiler));
   Expect.equals(UNKNOWN,
                 STRING_OR_NULL.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 STRING_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
   Expect.equals(STRING_OR_NULL,
                 STRING_OR_NULL.union(STRING, compiler));
@@ -1340,7 +1341,7 @@ void testIntersection(MockCompiler compiler) {
                 INDEXABLE_PRIMITIVE.intersection(INTEGER_OR_NULL, compiler));
   Expect.equals(CONFLICTING,
                 INDEXABLE_PRIMITIVE.intersection(DOUBLE_OR_NULL, compiler));
-  Expect.equals(CONFLICTING,
+  Expect.equals(STRING,
                 INDEXABLE_PRIMITIVE.intersection(STRING_OR_NULL, compiler));
   Expect.equals(CONFLICTING,
                 INDEXABLE_PRIMITIVE.intersection(NULL, compiler));
@@ -2057,6 +2058,8 @@ void main() {
       patternClass.computeType(compiler), compiler);
   jsArrayOrNull = new HType.exact(
       compiler.backend.jsArrayClass.computeType(compiler), compiler);
+  jsIndexableOrNull = new HType.subtype(
+      compiler.backend.jsIndexableClass.computeType(compiler), compiler);
 
   testUnion(compiler);
   testIntersection(compiler);

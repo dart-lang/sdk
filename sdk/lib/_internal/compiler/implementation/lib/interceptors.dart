@@ -92,3 +92,12 @@ class JSNull implements Null {
 
   Type get runtimeType => Null;
 }
+
+
+/**
+ * The supertype for JSString and JSArray. Used by the backend as to
+ * have a type mask that contains the primitive objects that we can
+ * use the [] operator on.
+ */
+class JSIndexable {
+}

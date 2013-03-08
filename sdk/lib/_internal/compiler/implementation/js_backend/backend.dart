@@ -642,6 +642,7 @@ class JavaScriptBackend extends Backend {
   ClassElement jsFunctionClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
+  ClassElement jsIndexableClass;
   Element jsArrayLength;
   Element jsStringLength;
   Element jsArrayRemoveLast;
@@ -828,6 +829,9 @@ class JavaScriptBackend extends Backend {
       jsFunctionClass =
           compiler.findInterceptor(const SourceString('JSFunction')),
       jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
+
+    jsIndexableClass =
+        compiler.findInterceptor(const SourceString('JSIndexable'));
 
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength = compiler.lookupElementIn(

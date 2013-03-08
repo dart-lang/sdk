@@ -10,7 +10,7 @@ part of _interceptors;
  * actually use the receiver of the method, which is generated as an extra
  * argument added to each member.
  */
-class JSArray<E> implements List<E> {
+class JSArray<E> implements List<E>, JSIndexable {
   const JSArray();
 
   void add(E value) {

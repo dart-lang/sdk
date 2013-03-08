@@ -68,13 +68,14 @@ const String FOREIGN_LIBRARY = r'''
      var arg7, var arg8, var arg9, var arg10, var arg11]) {}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
-  class JSArray implements List {
+  class JSIndexable {}
+  class JSArray implements List, JSIndexable {
     var length;
     operator[](index) {}
     operator[]=(index, value) {}
     var add;
   }
-  class JSString implements String {
+  class JSString implements String, JSIndexable {
     var length;
     operator[](index) {}
     toString() {}
