@@ -124,6 +124,7 @@ convert_to_future_members = monitored.Set(
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
 _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
+  'CanvasRenderingContext2D.arc',
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',

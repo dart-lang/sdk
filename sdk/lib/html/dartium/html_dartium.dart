@@ -1476,7 +1476,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+  void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable
@@ -1873,6 +1873,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
+
+  @DomName('CanvasRenderingContext2D.arc')
+  void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
+      [bool anticlockwise: false]) {
+    $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
+  }
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

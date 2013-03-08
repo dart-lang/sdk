@@ -1197,9 +1197,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @Experimental
   List lineDash;
 
+  @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
+  void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable
@@ -1472,6 +1473,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
+
+  @DomName('CanvasRenderingContext2D.arc')
+  void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
+      [bool anticlockwise: false]) {
+    $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
+  }
+
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   num get lineDashOffset => JS('num',
