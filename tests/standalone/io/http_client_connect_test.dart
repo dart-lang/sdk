@@ -32,7 +32,7 @@ void testGetDataRequest() {
   HttpServer.bind().then((server) {
     var data = "lalala".codeUnits;
     server.listen((request) {
-      request.response.add(data);
+      request.response.writeBytes(data);
       request.pipe(request.response);
     });
 
@@ -84,8 +84,8 @@ void testGetDataServerClose() {
   HttpServer.bind().then((server) {
     server.listen((request) {
       request.response.contentLength = 100;
-      request.response.addString("data");
-      request.response.addString("more data");
+      request.response.write("data");
+      request.response.write("more data");
       completer.future.then((_) => server.close());
     });
 

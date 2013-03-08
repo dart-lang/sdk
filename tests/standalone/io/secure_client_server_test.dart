@@ -22,7 +22,7 @@ Future<SecureServerSocket> startEchoServer() {
     server.listen((SecureSocket client) {
       client.reduce(<int>[], (message, data) => message..addAll(data))
           .then((message) {
-            client.add(message);
+            client.writeBytes(message);
             client.close();
           });
     });
@@ -32,7 +32,7 @@ Future<SecureServerSocket> startEchoServer() {
 
 Future testClient(server) {
   return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
-    socket.add("Hello server.".codeUnits);
+    socket.write("Hello server.");
     socket.close();
     return socket.reduce(<int>[], (message, data) => message..addAll(data))
         .then((message) {

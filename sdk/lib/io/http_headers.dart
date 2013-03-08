@@ -350,7 +350,7 @@ class _HttpHeaders implements HttpHeaders {
     var bufferPos = 0;
 
     void writeBuffer() {
-      sink.add(buffer.getRange(0, bufferPos));
+      sink.writeBytes(buffer.getRange(0, bufferPos));
       bufferPos = 0;
     }
 
@@ -621,6 +621,9 @@ class _HeaderValue implements HeaderValue {
 
 
 class _ContentType extends _HeaderValue implements ContentType {
+  String _primaryType = "";
+  String _subType = "";
+
   _ContentType(String primaryType,
                String subType,
                String charset,
@@ -639,7 +642,7 @@ class _ContentType extends _HeaderValue implements ContentType {
     }
   }
 
-    _ContentType.fromString(String value) : super.fromString(value) {
+  _ContentType.fromString(String value) : super.fromString(value) {
     int index = _value.indexOf("/");
     if (index == -1 || index == (_value.length - 1)) {
       _primaryType = _value.trim().toLowerCase();
@@ -655,9 +658,6 @@ class _ContentType extends _HeaderValue implements ContentType {
   String get subType => _subType;
 
   String get charset => parameters["charset"];
-
-  String _primaryType = "";
-  String _subType = "";
 }
 
 

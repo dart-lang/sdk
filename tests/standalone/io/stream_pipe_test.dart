@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -99,8 +99,8 @@ testFileToFilePipe2() {
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.addStream(srcStream).then((_) {
-    output.add([32]);
+  output.writeStream(srcStream).then((_) {
+    output.writeBytes([32]);
     output.close();
     output.done.then((_) {
       var src = srcFile.openSync();
@@ -142,9 +142,9 @@ testFileToFilePipe3() {
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.addStream(srcStream).then((_) {
+  output.writeStream(srcStream).then((_) {
     var srcStream2 = srcFile.openRead();
-    output.addStream(srcStream2).then((_) {
+    output.writeStream(srcStream2).then((_) {
       output.close();
       output.done.then((_) {
         var src = srcFile.openSync();

@@ -676,6 +676,32 @@ abstract class HttpRequest implements Stream<List<int>> {
 
 /**
  * HTTP response to be send back to the client.
+ *
+ * This object has a number of properties for setting up the HTTP
+ * header of the response. When the header has been set up the methods
+ * from the [IOSink] can be used to write the actual body of the HTTP
+ * response. When one of the [IOSink] methods is used for the
+ * first time the request header is send. Calling any methods that
+ * will change the header after it is sent will throw an exception.
+ *
+ * When writing string data through the [IOSink] the encoding used
+ * will be determined from the "charset" parameter of the
+ * "Content-Type" header.
+ *
+ *   HttpResponse response = ...
+ *   response.headers.contentType
+ *       = new ContentType("application", "json", charset: "utf-8");
+ *   response.write(...);  // Strings written will be UTF-8 encoded.
+ *
+ * If no charset is provided the default of ISO-8859-1 (Latin 1) will
+ * be used.
+ *
+ *   HttpResponse response = ...
+ *   response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *   response.write(...);  // Strings written will be ISO-8859-1 encoded.
+ *
+ * If an unsupported encoding is used an exception will be thrown if
+ * using one of the write methods taking a string.
  */
 abstract class HttpResponse implements IOSink<HttpResponse> {
   // TODO(ajohnsen): Add documentation of how to pipe a file to the response.
@@ -860,13 +886,31 @@ abstract class HttpClient {
 /**
  * HTTP request for a client connection.
  *
- * The request is an [IOSink], used to write the request data. When
- * all request data has been written, close the stream to indicate the end of
- * the request.
+ * This object has a number of properties for setting up the HTTP
+ * header of the request. When the header has been set up the methods
+ * from the [IOSink] can be used to write the actual body of the HTTP
+ * request. When one of the [IOSink] methods is used for the first
+ * time the request header is send. Calling any methods that will
+ * change the header after it is sent will throw an exception.
  *
- * When this is accessed for the first time the request header is
- * send. Calling any methods that will change the header after
- * having retrieved the output stream will throw an exception.
+ * When writing string data through the [IOSink] the
+ * encoding used will be determined from the "charset" parameter of
+ * the "Content-Type" header.
+ *
+ *   HttpClientRequest request = ...
+ *   request.headers.contentType
+ *       = new ContentType("application", "json", charset: "utf-8");
+ *   request.write(...);  // Strings written will be UTF-8 encoded.
+ *
+ * If no charset is provided the default of ISO-8859-1 (Latin 1) will
+ * be used.
+ *
+ *   HttpClientRequest request = ...
+ *   request.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *   request.write(...);  // Strings written will be ISO-8859-1 encoded.
+ *
+ * If an unsupported encoding is used an exception will be thrown if
+ * using one of the write methods taking a string.
  */
 abstract class HttpClientRequest
     implements IOSink<HttpClientRequest> {

@@ -21,14 +21,14 @@ void testServerDetachSocket() {
         socket.listen(
           (data) => body.add(new String.fromCharCodes(data)),
           onDone: () => Expect.equals("Some data", body.toString()));
-        socket.addString("Test!");
+        socket.write("Test!");
         socket.close();
       });
       server.close();
     });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.addString("GET / HTTP/1.1\r\n"
+      socket.write("GET / HTTP/1.1\r\n"
                        "content-length: 0\r\n\r\n"
                        "Some data");
       var body = new StringBuffer();
@@ -57,7 +57,7 @@ void testBadServerDetachSocket() {
     });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.addString("GET / HTTP/1.1\r\n"
+      socket.write("GET / HTTP/1.1\r\n"
                        "content-length: 0\r\n\r\n");
       socket.listen((_) {}, onDone: () {
           socket.close();
@@ -69,7 +69,7 @@ void testBadServerDetachSocket() {
 void testClientDetachSocket() {
   ServerSocket.bind().then((server) {
     server.listen((socket) {
-      socket.addString("HTTP/1.1 200 OK\r\n"
+      socket.write("HTTP/1.1 200 OK\r\n"
                        "\r\n"
                        "Test!");
       var body = new StringBuffer();
@@ -99,7 +99,7 @@ void testClientDetachSocket() {
                             body.toString());
               client.close();
             });
-          socket.addString("Some data");
+          socket.write("Some data");
           socket.close();
         });
       });

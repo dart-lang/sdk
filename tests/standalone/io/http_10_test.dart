@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,10 +25,10 @@ void testHttp10NoKeepAlive() {
           response.done
               .then((_) => Expect.fail("Unexpected response completion"))
               .catchError((e) => Expect.isTrue(e.error is HttpException));
-          response.addString("Z");
-          response.addString("Z");
+          response.write("Z");
+          response.write("Z");
           response.close();
-          Expect.throws(() => response.addString("x"),
+          Expect.throws(() => response.write("x"),
                         (e) => e is StateError);
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
@@ -36,7 +36,7 @@ void testHttp10NoKeepAlive() {
     int count = 0;
     makeRequest() {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-          socket.addString("GET / HTTP/1.0\r\n\r\n");
+          socket.write("GET / HTTP/1.0\r\n\r\n");
 
           List<int> response = [];
           socket.listen(
@@ -72,7 +72,7 @@ void testHttp10ServerClose() {
           Expect.equals(-1, request.contentLength);
           var response = request.response;
           Expect.equals("1.0", request.protocolVersion);
-          response.addString("Z");
+          response.write("Z");
           response.close();
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
@@ -80,8 +80,8 @@ void testHttp10ServerClose() {
     int count = 0;
     makeRequest() {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-        socket.addString("GET / HTTP/1.0\r\n\r\n");
-        socket.addString("Connection: Keep-Alive\r\n\r\n");
+        socket.write("GET / HTTP/1.0\r\n\r\n");
+        socket.write("Connection: Keep-Alive\r\n\r\n");
 
         List<int> response = [];
         socket.listen(
@@ -119,15 +119,15 @@ void testHttp10KeepAlive() {
           var response = request.response;
           response.contentLength = 1;
           Expect.equals("1.0", request.protocolVersion);
-          response.addString("Z");
+          response.write("Z");
           response.close();
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
       void sendRequest() {
-        socket.addString("GET / HTTP/1.0\r\n");
-        socket.addString("Connection: Keep-Alive\r\n\r\n");
+        socket.write("GET / HTTP/1.0\r\n");
+        socket.write("Connection: Keep-Alive\r\n\r\n");
       }
 
       List<int> response = [];
@@ -169,7 +169,7 @@ void testHttp10KeepAliveServerCloses() {
           Expect.equals(-1, request.contentLength);
           var response = request.response;
           Expect.equals("1.0", request.protocolVersion);
-          response.addString("Z");
+          response.write("Z");
           response.close();
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
@@ -177,8 +177,8 @@ void testHttp10KeepAliveServerCloses() {
     int count = 0;
     makeRequest() {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-        socket.addString("GET / HTTP/1.0\r\n");
-        socket.addString("Connection: Keep-Alive\r\n\r\n");
+        socket.write("GET / HTTP/1.0\r\n");
+        socket.write("Connection: Keep-Alive\r\n\r\n");
 
         List<int> response = [];
         socket.listen(

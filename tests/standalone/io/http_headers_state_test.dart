@@ -19,7 +19,7 @@ void test(int totalConnections, [String body]) {
         // Can still mutate response headers as long as no data has been sent.
         response.headers.add("X-Response-Header", "value");
         if (body != null) {
-          response.addString(body);
+          response.write(body);
           // Cannot mutate response headers when data has been sent.
           Expect.throws(() => request.headers.add("X-Request-Header", "value2"),
                         (e) => e is HttpException);
@@ -42,7 +42,7 @@ void test(int totalConnections, [String body]) {
           // Can still mutate request headers as long as no data has been sent.
           request.headers.add("X-Request-Header", "value");
           if (body != null) {
-            request.addString(body);
+            request.write(body);
             // Cannot mutate request headers when data has been sent.
             Expect.throws(
                 () => request.headers.add("X-Request-Header", "value2"),

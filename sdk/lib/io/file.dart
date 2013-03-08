@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -174,8 +174,14 @@ abstract class File extends FileSystemEntity {
    * * [FileMode.WRITE]: truncates the file to length zero.
    * * [FileMode.APPEND]: sets the initial write position to the end
    *   of the file.
+   *
+   *  When writing strings through the returned [IOSink] the encoding
+   *  specified using [encoding] will be used. The returned [IOSink]
+   *  has an [:encoding:] property which can be changed after the
+   *  [IOSink] has been created.
    */
-  IOSink<File> openWrite([FileMode mode = FileMode.WRITE]);
+  IOSink<File> openWrite({FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8});
 
   /**
    * Read the entire file contents as a list of bytes. Returns a

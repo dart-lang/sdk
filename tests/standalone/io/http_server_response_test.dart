@@ -55,7 +55,7 @@ void testResponseAddStream() {
   int bytes = new File(new Options().script).lengthSync();
 
   testServerRequest((server, request) {
-    request.response.addStream(new File(new Options().script).openRead())
+    request.response.writeStream(new File(new Options().script).openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -63,9 +63,9 @@ void testResponseAddStream() {
   }, bytes: bytes);
 
   testServerRequest((server, request) {
-    request.response.addStream(new File(new Options().script).openRead())
+    request.response.writeStream(new File(new Options().script).openRead())
         .then((response) {
-          request.response.addStream(new File(new Options().script).openRead())
+          request.response.writeStream(new File(new Options().script).openRead())
               .then((response) {
                 response.close();
                 response.done.then((_) => server.close());
@@ -75,7 +75,7 @@ void testResponseAddStream() {
 
   testServerRequest((server, request) {
     var controller = new StreamController();
-    request.response.addStream(controller.stream)
+    request.response.writeStream(controller.stream)
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -87,7 +87,7 @@ void testResponseAddStream() {
 void testBadResponseAdd() {
   testServerRequest((server, request) {
     request.response.contentLength = 0;
-    request.response.add([0]);
+    request.response.writeBytes([0]);
     request.response.done.catchError((error) {
       server.close();
     }, test: (e) => e is HttpException);
@@ -95,8 +95,8 @@ void testBadResponseAdd() {
 
   testServerRequest((server, request) {
     request.response.contentLength = 5;
-    request.response.add([0, 0, 0]);
-    request.response.add([0, 0, 0]);
+    request.response.writeBytes([0, 0, 0]);
+    request.response.writeBytes([0, 0, 0]);
     request.response.done.catchError((error) {
       server.close();
     }, test: (e) => e is HttpException);
@@ -104,9 +104,9 @@ void testBadResponseAdd() {
 
   testServerRequest((server, request) {
     request.response.contentLength = 0;
-    request.response.add(new Uint8List(64 * 1024));
-    request.response.add(new Uint8List(64 * 1024));
-    request.response.add(new Uint8List(64 * 1024));
+    request.response.writeBytes(new Uint8List(64 * 1024));
+    request.response.writeBytes(new Uint8List(64 * 1024));
+    request.response.writeBytes(new Uint8List(64 * 1024));
     request.response.done.catchError((error) {
       server.close();
     }, test: (e) => e is HttpException);
@@ -124,7 +124,7 @@ void testBadResponseClose() {
 
   testServerRequest((server, request) {
     request.response.contentLength = 5;
-    request.response.add([0]);
+    request.response.writeBytes([0]);
     request.response.close();
     request.response.done.catchError((error) {
       server.close();

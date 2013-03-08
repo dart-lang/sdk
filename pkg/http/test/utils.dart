@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -57,9 +57,18 @@ Future startServer() {
       }
 
       new ByteStream(request).toBytes().then((requestBodyBytes) {
-        response.statusCode = 200;
-        response.headers.contentType = new ContentType("application", "json");
-      response.headers.set('single', 'value');
+        var outputEncoding;
+        var encodingName = request.queryParameters['response-encoding'];
+        if (encodingName != null) {
+          outputEncoding = requiredEncodingForCharset(encodingName);
+        } else {
+          outputEncoding = Encoding.ASCII;
+        }
+
+        response.headers.contentType =
+            new ContentType(
+                "application", "json", charset: outputEncoding.name);
+        response.headers.set('single', 'value');
 
         var requestBody;
         if (requestBodyBytes.isEmpty) {
@@ -86,17 +95,9 @@ Future startServer() {
           content['headers'][name] = values;
         });
 
-        var outputEncoding;
-        var encodingName = request.queryParameters['response-encoding'];
-        if (encodingName != null) {
-          outputEncoding = requiredEncodingForCharset(encodingName);
-        } else {
-          outputEncoding = Encoding.ASCII;
-        }
-
         var body = json.stringify(content);
         response.contentLength = body.length;
-        response.addString(body, outputEncoding);
+        response.write(body);
         response.close();
       });
     });

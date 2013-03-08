@@ -468,14 +468,15 @@ class _File extends _FileBase implements File {
     return new _FileStream(_path);
   }
 
-  IOSink<File> openWrite([FileMode mode = FileMode.WRITE]) {
+  IOSink<File> openWrite({FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8}) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new FileIOException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
     var consumer = new _FileStreamConsumer(this, mode);
-    return new IOSink<File>(consumer);
+    return new IOSink<File>(consumer, encoding: encoding);
   }
 
   Future<List<int>> readAsBytes() {
@@ -547,23 +548,14 @@ class _File extends _FileBase implements File {
 
   Future<File> writeAsBytes(List<int> bytes,
                             [FileMode mode = FileMode.WRITE]) {
-    Completer<File> completer = new Completer<File>();
     try {
-      var stream = openWrite(mode);
-      stream.add(bytes);
-      stream.close();
-      stream.done
-        .then((_) {
-          completer.complete(this);
-        })
-        .catchError((e) {
-          completer.completeError(e);
-        });
+      IOSink<File> sink = openWrite(mode: mode);
+      sink.writeBytes(bytes);
+      sink.close();
+      return sink.done.then((_) => this);;
     } catch (e) {
-      Timer.run(() => completer.completeError(e));
-      return completer.future;
+      return new Future.immediateError(e);
     }
-    return completer.future;
   }
 
   void writeAsBytesSync(List<int> bytes, [FileMode mode = FileMode.WRITE]) {

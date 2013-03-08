@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,7 +28,7 @@ fuzzSyncMethods() {
       doItSync(f.readAsLinesSync);
       typeMapping.forEach((k2, v2) {
         doItSync(() => f.openSync(v2));
-        doItSync(() => f.openWrite(v2));
+        doItSync(() => f.openWrite(mode: v2));
         doItSync(() => f.readAsStringSync(v2));
         doItSync(() => f.readAsLinesSync(v2));
       });

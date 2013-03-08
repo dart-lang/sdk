@@ -111,7 +111,7 @@ class TestServer {
     var response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
-    response.addString("Page not found");
+    response.write("Page not found");
     response.close();
   }
 
@@ -170,11 +170,11 @@ void testRead(bool chunkedEncoding) {
       httpClient.post("127.0.0.1", port, "/echo")
           .then((request) {
             if (chunkedEncoding) {
-              request.addString(data.substring(0, 10));
-              request.addString(data.substring(10, data.length));
+              request.write(data.substring(0, 10));
+              request.write(data.substring(10, data.length));
             } else {
               request.contentLength = data.length;
-              request.add(data.codeUnits);
+              request.writeBytes(data.codeUnits);
             }
             return request.close();
           })

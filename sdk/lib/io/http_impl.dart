@@ -332,7 +332,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
 
   _HttpOutboundMessage(String protocolVersion, _HttpOutgoing outgoing)
       : _outgoing = outgoing,
-        _ioSink = new IOSink(outgoing),
+      _ioSink = new IOSink(outgoing, encoding: Encoding.ASCII),
         headers = new _HttpHeaders(protocolVersion);
 
   int get contentLength => headers.contentLength;
@@ -345,6 +345,67 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     headers.persistentConnection = p;
   }
 
+  Encoding get encoding {
+    var charset;
+    if (headers.contentType != null && headers.contentType.charset != null) {
+      charset = headers.contentType.charset;
+    } else {
+      charset = "iso-8859-1";
+    }
+    return Encoding.fromName(charset);
+  }
+
+  void set encoding(Encoding value) {
+    throw new StateError("IOSink encoding is not mutable");
+  }
+
+  void write(Object obj) {
+    _writeHeaders();
+    if (_ignoreBody) return;
+    // This comment is copied from runtime/lib/string_buffer_patch.dart.
+    // TODO(srdjan): The following four lines could be replaced by
+    // '$obj', but apparently this is too slow on the Dart VM.
+    String string;
+    if (obj is String) {
+      string = obj;
+    } else {
+      string = obj.toString();
+      if (string is! String) {
+        throw new ArgumentError('toString() did not return a string');
+      }
+    }
+    if (string.isEmpty) return;
+    if (_chunked) {
+      _ChunkedTransformer._addChunk(_encodeString(string, encoding),
+                                    _ioSink.writeBytes);
+    } else {
+      _ioSink.write(string);
+    }
+  }
+
+  void writeAll(Iterable objects) {
+    for (Object obj in objects) write(obj);
+  }
+
+  void writeln(Object obj) {
+    write(obj);
+    write("\n");
+  }
+
+  void writeCharCode(int charCode) {
+    write(new String.fromCharCode(charCode));
+  }
+
+  void writeBytes(List<int> data) {
+    _writeHeaders();
+    if (_ignoreBody || data.length == 0) return;
+    if (_chunked) {
+      _ChunkedTransformer._addChunk(data, _ioSink.writeBytes);
+    } else {
+      _ioSink.writeBytes(data);
+    }
+  }
+
   Future<T> consume(Stream<List<int>> stream) {
     _writeHeaders();
     if (_ignoreBody) return new Future.immediate(this);
@@ -355,28 +416,14 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     return _ioSink.consume(stream).then((_) => this);
   }
 
-  void add(List<int> data) {
-    _writeHeaders();
-    if (_ignoreBody || data.length == 0) return;
-    if (_chunked) {
-      _ChunkedTransformer._addChunk(data, _ioSink.add);
-    } else {
-      _ioSink.add(data);
-    }
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    add(_encodeString(string, encoding));
-  }
-
-  Future<T> addStream(Stream<List<int>> stream) {
+  Future<T> writeStream(Stream<List<int>> stream) {
     _writeHeaders();
     if (_ignoreBody) return new Future.immediate(this);
     if (_chunked) {
       // Transform when chunked.
       stream = stream.transform(new _ChunkedTransformer(writeEnd: false));
     }
-    return _ioSink.addStream(stream).then((_) => this);
+    return _ioSink.writeStream(stream).then((_) => this);
   }
 
   void close() {
@@ -388,7 +435,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _writeHeaders();
     if (!_ignoreBody) {
       if (_chunked) {
-        _ChunkedTransformer._addChunk([], _ioSink.add);
+        _ChunkedTransformer._addChunk([], _ioSink.writeBytes);
       }
     }
     _ioSink.close();
@@ -399,7 +446,9 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   void _writeHeaders() {
     if (_headersWritten) return;
     _headersWritten = true;
+    _ioSink.encoding = Encoding.ASCII;
     _writeHeader();
+    _ioSink.encoding = encoding;
     if (_ignoreBody) {
       _ioSink.close();
       return;
@@ -452,19 +501,19 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   HttpConnectionInfo get connectionInfo => _httpRequest.connectionInfo;
 
   void _writeHeader() {
-    writeSP() => _ioSink.add([_CharCode.SP]);
-    writeCRLF() => _ioSink.add([_CharCode.CR, _CharCode.LF]);
+    writeSP() => _ioSink.writeBytes([_CharCode.SP]);
+    writeCRLF() => _ioSink.writeBytes([_CharCode.CR, _CharCode.LF]);
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      _ioSink.add(_Const.HTTP11);
+      _ioSink.writeBytes(_Const.HTTP11);
     } else {
-      _ioSink.add(_Const.HTTP10);
+      _ioSink.writeBytes(_Const.HTTP10);
     }
     writeSP();
-    _ioSink.addString(statusCode.toString());
+    _ioSink.write(statusCode.toString());
     writeSP();
-    _ioSink.addString(reasonPhrase);
+    _ioSink.write(reasonPhrase);
     writeCRLF();
 
     var session = _httpRequest._session;
@@ -645,10 +694,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
   }
 
   void _writeHeader() {
-    writeSP() => _ioSink.add([_CharCode.SP]);
-    writeCRLF() => _ioSink.add([_CharCode.CR, _CharCode.LF]);
+    writeSP() => _ioSink.writeBytes([_CharCode.SP]);
+    writeCRLF() => _ioSink.writeBytes([_CharCode.CR, _CharCode.LF]);
 
-    _ioSink.addString(method);
+    _ioSink.write(method);
     writeSP();
     // Send the path for direct connections and the whole URL for
     // proxy connections.
@@ -662,12 +711,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
           path = "${path}?${uri.query}";
         }
       }
-      _ioSink.addString(path);
+      _ioSink.write(path);
     } else {
-      _ioSink.addString(uri.toString());
+      _ioSink.write(uri.toString());
     }
     writeSP();
-    _ioSink.add(_Const.HTTP11);
+    _ioSink.writeBytes(_Const.HTTP11);
     writeCRLF();
 
     // Add the cookies to the headers.
@@ -775,7 +824,8 @@ class _DataValidatorTransformer
               _controller.signalError(new HttpException(
                   "Content size exceeds specified contentLength. "
                   "$_bytesWritten bytes written while expected "
-                  "$expectedTransferLength."));
+                  "$expectedTransferLength. "
+                  "[${new String.fromCharCodes(data)}]"));
               _controller.close();
               return;
             }
@@ -901,7 +951,7 @@ class _HttpClientConnection {
         // Sending request, set up response completer.
         _nextResponseCompleter = new Completer();
 
-        var requestFuture = _socket.addStream(stream)
+        var requestFuture = _socket.writeStream(stream)
             .catchError((e) {
               destroy();
               throw e;
@@ -1228,7 +1278,7 @@ class _HttpConnection {
                                            outgoing);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
           outgoing.onStream((stream) {
-            return _streamFuture = _socket.addStream(stream)
+            return _streamFuture = _socket.writeStream(stream)
                 .then((_) {
                   if (_state == _DETACHED) return;
                   if (response.persistentConnection &&
@@ -1509,24 +1559,40 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
                             unsubscribeOnError: unsubscribeOnError);
   }
 
+  Encoding get encoding => _socket.encoding;
+
+  void set encoding(Encoding value) {
+    _socket.encoding = value;
+  }
+
+  void write(Object obj) => _socket.write(obj);
+
+  void writeln(Object obj) => _socket.writeln(obj);
+
+  void writeCharCode(int charCode) => _socket.writeCharCode(charCode);
+
+  void writeAll(Iterable objects) => _socket.writeAll(objects);
+
+  void writeBytes(List<int> bytes) => _socket.writeBytes(bytes);
+
   Future<Socket> consume(Stream<List<int>> stream) {
     return _socket.consume(stream);
   }
 
-  Future<Socket> addStream(Stream<List<int>> stream) {
-    return _socket.addStream(stream);
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    return _socket.addString(string, encoding);
+  Future<Socket> writeStream(Stream<List<int>> stream) {
+    return _socket.writeStream(stream);
   }
 
   void destroy() => _socket.destroy();
-  void add(List<int> data) => _socket.add(data);
+
   void close() => _socket.close();
+
   Future<Socket> get done => _socket.done;
+
   int get port => _socket.port;
+
   String get remoteHost => _socket.remoteHost;
+
   int get remotePort => _socket.remotePort;
 }
 

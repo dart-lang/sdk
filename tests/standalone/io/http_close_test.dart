@@ -91,7 +91,7 @@ void testClientCloseDelayed(int connections) {
       client.post("localhost", server.port, "/")
           .then((request) {
             req = request;
-            request.add(new Uint8List(1024));
+            request.writeBytes(new Uint8List(1024));
             return request.response;
           })
           .then((response) {
@@ -124,7 +124,7 @@ void testClientCloseSendingResponse(int connections) {
     }
     server.listen((request) {
       var timer = new Timer.repeating(const Duration(milliseconds: 20), (_) {
-        request.response.add(new Uint8List(16 * 1024));
+        request.response.writeBytes(new Uint8List(16 * 1024));
       });
       request.response.done
           .catchError((_) {})

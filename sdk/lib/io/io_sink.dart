@@ -5,18 +5,31 @@
 part of dart.io;
 
 /**
- * Helper class to wrap a [StreamConsumer<List<int>, T>] and provide utility
- * functions for writing to the StreamConsumer directly. The [IOSink]
- * buffers the input given by [add] and [addString] and will delay a [consume]
- * or [addStream] until the buffer is flushed.
+ * Helper class to wrap a [StreamConsumer<List<int>, T>] and provide
+ * utility functions for writing to the StreamConsumer directly. The
+ * [IOSink] buffers the input given by [write], [writeAll], [writeln],
+ * [writeCharCode] and [writeBytes] and will delay a [consume] or
+ * [writeStream] until the buffer is flushed.
  *
  * When the [IOSink] is bound to a stream (through either [consume]
- * or [addStream]) any call to the [IOSink] will throw a
+ * or [writeStream]) any call to the [IOSink] will throw a
  * [StateError].
  */
-abstract class IOSink<T> implements StreamConsumer<List<int>, T> {
-  factory IOSink(StreamConsumer<List<int>, T> target)
-      => new _IOSinkImpl(target);
+abstract class IOSink<T> implements StreamConsumer<List<int>, T>, StringSink {
+  factory IOSink(StreamConsumer<List<int>, T> target,
+                 {Encoding encoding: Encoding.UTF_8})
+      => new _IOSinkImpl(target, encoding);
+
+  /**
+   * The [Encoding] used when writing strings. Depending on the
+   * underlying consumer this property might be mutable.
+   */
+  Encoding encoding;
+
+  /**
+   * Writes the bytes uninterpreted to the consumer.
+   */
+  void writeBytes(List<int> data);
 
   /**
    * Provide functionality for piping to the [IOSink].
@@ -26,17 +39,7 @@ abstract class IOSink<T> implements StreamConsumer<List<int>, T> {
   /**
    * Like [consume], but will not close the target when done.
    */
-  Future<T> addStream(Stream<List<int>> stream);
-
-  /**
-   * Write a list of bytes to the target.
-   */
-  void add(List<int> data);
-
-  /**
-   * Write a String to the target.
-   */
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]);
+  Future<T> writeStream(Stream<List<int>> stream);
 
   /**
    * Close the target.
@@ -59,8 +62,56 @@ class _IOSinkImpl<T> implements IOSink<T> {
   Future<T> _pipeFuture;
   StreamSubscription<List<int>> _bindSubscription;
   bool _paused = true;
+  bool _encodingMutable = true;
 
-  _IOSinkImpl(StreamConsumer<List<int>, T> target) : _target = target;
+  _IOSinkImpl(StreamConsumer<List<int>, T> this._target, this._encoding);
+
+  Encoding _encoding;
+
+  Encoding get encoding => _encoding;
+  void set encoding(Encoding value) {
+    if (!_encodingMutable) {
+      throw new StateError("IOSink encoding is not mutable");
+    }
+    _encoding = value;
+  }
+
+  void write(Object obj) {
+    // This comment is copied from runtime/lib/string_buffer_patch.dart.
+    // TODO(srdjan): The following four lines could be replaced by
+    // '$obj', but apparently this is too slow on the Dart VM.
+    String string;
+    if (obj is String) {
+      string = obj;
+    } else {
+      string = obj.toString();
+      if (string is! String) {
+        throw new ArgumentError('toString() did not return a string');
+      }
+    }
+    if (string.isEmpty) return;
+    writeBytes(_encodeString(string, _encoding));
+  }
+
+  void writeAll(Iterable objects) {
+    for (Object obj in objects) write(obj);
+  }
+
+  void writeln(Object obj) {
+    write(obj);
+    write("\n");
+  }
+
+  void writeCharCode(int charCode) {
+    write(new String.fromCharCode(charCode));
+  }
+
+  void writeBytes(List<int> data) {
+    if (_isBound) {
+      throw new StateError("IOSink is already bound to a stream");
+    }
+    _controller.add(data);
+  }
 
   Future<T> consume(Stream<List<int>> stream) {
     if (_isBound) {
@@ -69,22 +120,11 @@ class _IOSinkImpl<T> implements IOSink<T> {
     return _fillFromStream(stream);
   }
 
-  Future<T> addStream(Stream<List<int>> stream) {
+  Future<T> writeStream(Stream<List<int>> stream) {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
     }
     return _fillFromStream(stream, unbind: true);
-  }
-
-  void add(List<int> data) {
-    if (_isBound) {
-      throw new StateError("IOSink is already bound to a stream");
-    }
-    _controller.add(data);
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    add(_encodeString(string, encoding));
   }
 
   void close() {

@@ -40,7 +40,7 @@ void test2(int totalConnections, int outputStreamWrites) {
   // Server which responds without waiting for request body.
   HttpServer.bind().then((server) {
     server.listen((HttpRequest request) {
-      request.response.addString("!dlrow ,olleH");
+      request.response.write("!dlrow ,olleH");
       request.response.close();
     });
 
@@ -51,7 +51,7 @@ void test2(int totalConnections, int outputStreamWrites) {
         .then((HttpClientRequest request) {
           request.contentLength = -1;
           for (int i = 0; i < outputStreamWrites; i++) {
-            request.addString("Hello, world!");
+            request.write("Hello, world!");
           }
           request.done.catchError((_) {});
           return request.close();
@@ -86,7 +86,7 @@ void test3(int totalConnections) {
 
   server.listen((HttpRequest request) {
     request.listen((_) {}, onDone: () {
-      request.response.addString("!dlrow ,olleH");
+      request.response.write("!dlrow ,olleH");
       request.response.close();
     });
   });
@@ -97,7 +97,7 @@ void test3(int totalConnections) {
     client.get("127.0.0.1", server.port, "/")
       .then((HttpClientRequest request) {
         request.contentLength = -1;
-        request.addString("Hello, world!");
+        request.write("Hello, world!");
         return request.close();
       })
       .then((HttpClientResponse response) {
@@ -164,7 +164,7 @@ void test5(int totalConnections) {
     for (int i = 0; i < totalConnections; i++) {
       client.post("127.0.0.1", server.port, "/")
         .then((request) {
-            request.add([0]);
+            request.writeBytes([0]);
             // TODO(sgjesse): Make this test work with
             //request.response instead of request.close() return
             //return request.response;

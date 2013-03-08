@@ -113,7 +113,7 @@ void testConnectConsumerWriteClose() {
   ServerSocket.bind().then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.add([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      socket.writeBytes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       socket.close();
       socket.done.then((_) {
         socket.destroy();
@@ -155,7 +155,7 @@ void testConnectStreamDataClose(bool useDestroy) {
   ServerSocket.bind().then((server) {
     server.listen(
         (client) {
-          client.add(sendData);
+          client.writeBytes(sendData);
           if (useDestroy) {
             client.destroy();
           } else {
@@ -171,7 +171,7 @@ void testConnectStreamDataClose(bool useDestroy) {
                         Expect.isFalse(onDoneCalled);
                         onDoneCalled = true;
                         if (!useDestroy) Expect.listEquals(sendData, data);
-                        socket.add([0]);
+                        socket.writeBytes([0]);
                         socket.close();
                         server.close();
                         port.close();
@@ -186,7 +186,7 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
   ServerSocket.bind().then((server) {
     server.listen(
         (client) {
-          client.add(sendData);
+          client.writeBytes(sendData);
           if (useDestroy) {
             client.destroy();
           } else {

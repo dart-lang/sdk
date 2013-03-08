@@ -49,7 +49,7 @@ class Server {
               String path = request.uri.path.substring(1);
               String content = "$path$path$path";
               Expect.equals(content, body.toString());
-              response.addString(request.uri.path);
+              response.write(request.uri.path);
               response.close();
             });
       });
@@ -165,7 +165,7 @@ void testDirectProxy() {
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;
-          clientRequest.addString(content);
+          clientRequest.write(content);
           return clientRequest.close();
         })
        .then((HttpClientResponse response) {
@@ -224,7 +224,7 @@ void testProxy() {
         client.postUrl(Uri.parse(url))
           .then((HttpClientRequest clientRequest) {
             String content = "$i$i$i";
-            clientRequest.addString(content);
+            clientRequest.write(content);
             return clientRequest.close();
           })
           .then((HttpClientResponse response) {
@@ -290,7 +290,7 @@ void testProxyChain() {
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;
-          clientRequest.addString(content);
+          clientRequest.write(content);
           return clientRequest.close();
         })
         .then((HttpClientResponse response) {
@@ -333,7 +333,7 @@ void testRealProxy() {
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;
-          clientRequest.addString(content);
+          clientRequest.write(content);
           return clientRequest.close();
         })
         .then((HttpClientResponse response) {

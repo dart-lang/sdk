@@ -15,7 +15,7 @@ void testHttp10Close(bool closeRequest) {
 
     Socket.connect("127.0.0.1", server.port)
       .then((socket) {
-        socket.addString("GET / HTTP/1.0\r\n\r\n");
+        socket.write("GET / HTTP/1.0\r\n\r\n");
         socket.listen(
           (data) {},
           onDone: () {
@@ -36,7 +36,7 @@ void testHttp11Close(bool closeRequest) {
     Socket.connect("127.0.0.1", server.port)
       .then((socket) {
         List<int> buffer = new List<int>(1024);
-        socket.addString("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
+        socket.write("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
         socket.listen(
           (data) {},
           onDone: () {
@@ -53,7 +53,7 @@ void testStreamResponse() {
     server.listen((request) {
       // TODO(ajohnsen): Use timer (see old version).
       for (int i = 0; i < 10; i++) {
-        request.response.addString(
+        request.response.write(
             'data:${new DateTime.now().millisecondsSinceEpoch}\n\n');
       }
     });

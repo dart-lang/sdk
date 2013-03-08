@@ -12,6 +12,54 @@ class Encoding {
   static const Encoding ISO_8859_1 = const Encoding._internal("iso-8859-1");
   static const Encoding ASCII = const Encoding._internal("us-ascii");
 
+  // All aliasses (in lowercase) of supported encoding from
+  // http://www.iana.org/assignments/character-sets/character-sets.xml.
+  static Map<String, Encoding> _nameToEncoding = <String, Encoding> {
+    // ISO_8859-1:1987.
+    "iso_8859-1:1987": ISO_8859_1,
+    "iso-ir-100": ISO_8859_1,
+    "iso_8859-1": ISO_8859_1,
+    "iso-8859-1": ISO_8859_1,
+    "latin1": ISO_8859_1,
+    "l1": ISO_8859_1,
+    "ibm819": ISO_8859_1,
+    "cp819": ISO_8859_1,
+    "csisolatin1": ISO_8859_1,
+
+    // US-ASCII.
+    "iso-ir-6": ASCII,
+    "ansi_x3.4-1968": ASCII,
+    "ansi_x3.4-1986": ASCII,
+    "iso_646.irv:1991": ASCII,
+    "iso646-us": ASCII,
+    "us-ascii": ASCII,
+    "us": ASCII,
+    "ibm367": ASCII,
+    "cp367": ASCII,
+    "csascii": ASCII,
+    "ascii": ASCII,  // This is not in the IANA official names.
+
+    // UTF-8.
+    "csutf8": UTF_8,
+    "utf-8": UTF_8
+  };
+
+  /**
+   * Gets an [Encoding] object from the name of the character set
+   * name. The names used are the IANA official names for the
+   * character set (see
+   * http://www.iana.org/assignments/character-sets/character-sets.xml).
+   *
+   * The [name] passed is case insensitive.
+   *
+   * If character set is not supported [:null:] is returned.
+   */
+  static Encoding fromName(String name) {
+    if (name == null) return null;
+    name = name.toLowerCase();
+    return _nameToEncoding[name];
+  }
+
   /**
    * Name of the encoding. This will be the lower-case version of one of the
    * IANA official names for the character set (see

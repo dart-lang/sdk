@@ -21,16 +21,16 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
             .catchError((e) {
               Expect.isTrue(e.error is HttpException);
             });
-          // addString with content length 0 closes the connection and
+          // write with content length 0 closes the connection and
           // reports an error.
-          response.addString("x");
-          // Subsequent addString are ignored as there is already an
+          response.write("x");
+          // Subsequent write are ignored as there is already an
           // error.
-          response.addString("x");
-          // After an explicit close, addString becomes a state error
+          response.write("x");
+          // After an explicit close, write becomes a state error
           // because we have said we will not add more.
           response.close();
-          Expect.throws(() => response.addString("x"),
+          Expect.throws(() => response.write("x"),
                         (e) => e is StateError);
         },
         onError: (e) {
@@ -82,11 +82,11 @@ void testBody(int totalConnections, bool useHeader) {
           request.listen(
               (d) {},
               onDone: () {
-                response.addString("x");
+                response.write("x");
                 Expect.throws(() => response.contentLength = 3,
                               (e) => e is HttpException);
-                response.addString("x");
-                response.addString("x");
+                response.write("x");
+                response.write("x");
                 response.done
                     .then((_) {
                       Expect.fail("Unexpected successful response completion");
@@ -98,7 +98,7 @@ void testBody(int totalConnections, bool useHeader) {
                       }
                     });
                 response.close();
-                Expect.throws(() => response.addString("x"),
+                Expect.throws(() => response.write("x"),
                               (e) => e is StateError);
               });
         },
@@ -115,10 +115,10 @@ void testBody(int totalConnections, bool useHeader) {
               request.headers.add(HttpHeaders.CONTENT_LENGTH, "7");
               request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
             }
-            request.addString("x");
+            request.write("x");
             Expect.throws(() => request.contentLength = 3,
                           (e) => e is HttpException);
-            request.addString("x");
+            request.write("x");
             return request.close();
           })
           .then((response) {
@@ -153,14 +153,14 @@ void testBodyChunked(int totalConnections, bool useHeader) {
           request.listen(
               (d) {},
               onDone: () {
-                response.addString("x");
+                response.write("x");
                 Expect.throws(
                     () => response.headers.chunkedTransferEncoding = false,
                     (e) => e is HttpException);
-                response.addString("x");
-                response.addString("x");
+                response.write("x");
+                response.write("x");
                 response.close();
-                Expect.throws(() => response.addString("x"),
+                Expect.throws(() => response.write("x"),
                               (e) => e is StateError);
               });
         },
@@ -178,11 +178,11 @@ void testBodyChunked(int totalConnections, bool useHeader) {
               request.headers.add(HttpHeaders.CONTENT_LENGTH, "2");
               request.headers.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
             }
-            request.addString("x");
+            request.write("x");
             Expect.throws(() => request.headers.chunkedTransferEncoding = false,
                           (e) => e is HttpException);
-            request.addString("x");
-            request.addString("x");
+            request.write("x");
+            request.write("x");
             return request.close();
           })
           .then((response) {
@@ -212,7 +212,7 @@ void testSetContentLength() {
           response.headers.set("content-length", 3);
           Expect.equals("3", response.headers.value('content-length'));
           Expect.equals(3, response.contentLength);
-          response.addString("xxx");
+          response.write("xxx");
           response.close();
         });
 

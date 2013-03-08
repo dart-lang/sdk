@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -121,7 +121,7 @@ void serve([List<Descriptor> contents]) {
           stream.toBytes().then((data) {
             response.statusCode = 200;
             response.contentLength = data.length;
-            response.add(data);
+            response.writeBytes(data);
             response.close();
           }).catchError((e) {
             print("Exception while handling ${request.uri}: $e");
@@ -1439,7 +1439,7 @@ class ScheduledProcess {
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
     _schedule((_) => _processFuture.then(
-        (p) => p.stdin.add('$line\n'.codeUnits)));
+        (p) => p.stdin.writeln('$line')));
   }
 
   /// Kills the process, and waits until it's dead.

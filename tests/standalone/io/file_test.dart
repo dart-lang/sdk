@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -91,7 +91,7 @@ class FileTest {
             tempDirectory.path.concat("/out_read_write_stream");
         var file2 = new File(outFilename);
         var output = file2.openWrite();
-        output.add(buffer);
+        output.writeBytes(buffer);
         output.close();
         output.done.then((_) {
           // Now read the contents of the file just written.
@@ -129,8 +129,8 @@ class FileTest {
         tempDirectory.path.concat("/out_read_write_stream_large_file");
     File file = new File(filename);
     IOSink output = file.openWrite();
-    output.add(buffer);
-    output.add(buffer);
+    output.writeBytes(buffer);
+    output.writeBytes(buffer);
     output.close();
     output.done.then((_) {
       Stream input = file.openRead();
@@ -344,12 +344,12 @@ class FileTest {
     file.createSync();
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
-    output.add(buffer);
+    output.writeBytes(buffer);
     output.close();
     output.done.then((_) {
       File file2 = new File(filename);
-      var appendingOutput = file2.openWrite(FileMode.APPEND);
-      appendingOutput.add(buffer);
+      var appendingOutput = file2.openWrite(mode: FileMode.APPEND);
+      appendingOutput.writeBytes(buffer);
       appendingOutput.close();
       appendingOutput.done.then((_) {
         File file3 = new File(filename);
@@ -376,11 +376,15 @@ class FileTest {
     file.createSync();
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
-    output.addString("abcdABCD");
-    output.addString("abcdABCD", Encoding.UTF_8);
-    output.addString("abcdABCD", Encoding.ISO_8859_1);
-    output.addString("abcdABCD", Encoding.ASCII);
-    output.addString("æøå", Encoding.UTF_8);
+    output.write("abcdABCD");
+    output.encoding = Encoding.UTF_8;
+    output.write("abcdABCD");
+    output.encoding = Encoding.ISO_8859_1;
+    output.write("abcdABCD");
+    output.encoding = Encoding.ASCII;
+    output.write("abcdABCD");
+    output.encoding = Encoding.UTF_8;
+    output.write("æøå");
     output.close();
     output.done.then((_) {
       RandomAccessFile raf = file.openSync();
@@ -761,7 +765,7 @@ class FileTest {
     file.createSync();
     var output = file.openWrite();
     output.close();
-    Expect.throws(() => output.add(buffer));
+    Expect.throws(() => output.writeBytes(buffer));
     output.done.then((_) {
       file.deleteSync();
       asyncTestDone("testCloseExceptionStream");

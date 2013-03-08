@@ -19,9 +19,9 @@ main() {
   var scriptDir = new Path(options.script).directoryPath;
   var script = scriptDir.append('regress_7191_script.dart').toNativePath();
   Process.start(executable, [script]).then((process) {
-    process.stdin.add([0]);
+    process.stdin.writeBytes([0]);
       process.stdout.listen((_) { },
-                            onDone: () { process.stdin.add([0]); });
+                            onDone: () { process.stdin.writeBytes([0]); });
     process.stderr.listen((_) { });
     process.exitCode.then((exitCode) => port.close());
   });

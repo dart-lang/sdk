@@ -13,9 +13,9 @@ void main() {
   HttpServer.bind().then((server) {
     server.listen((request) {
       request.response
-        ..addString("first line\n")
-        ..addString("")
-        ..addString("second line\n")
+        ..writeln("first line")
+        ..write("")
+        ..writeln("second line")
         ..close();
     });
 

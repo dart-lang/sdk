@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -58,7 +58,7 @@ main() {
         expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.addString(json.stringify({
+        response.write(json.stringify({
           'success': {'message': 'Good job!'}
         }));
         response.close();
@@ -77,7 +77,7 @@ main() {
     server.handle('DELETE', '/packages/pkg/uploaders/email.json',
         (request, response) {
       response.headers.contentType = new ContentType("application", "json");
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'success': {'message': 'Good job!'}
       }));
       response.close();
@@ -97,7 +97,7 @@ main() {
     server.handle('POST', '/packages/test_pkg/uploaders.json',
         (request, response) {
       response.headers.contentType = new ContentType("application", "json");
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'success': {'message': 'Good job!'}
       }));
       response.close();
@@ -115,7 +115,7 @@ main() {
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
       response.statusCode = 400;
       response.headers.contentType = new ContentType("application", "json");
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
       response.close();
@@ -135,7 +135,7 @@ main() {
         (request, response) {
       response.statusCode = 400;
       response.headers.contentType = new ContentType("application", "json");
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
       response.close();
@@ -151,7 +151,7 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      response.addString("{not json");
+      response.write("{not json");
       response.close();
     });
 
@@ -167,7 +167,7 @@ main() {
 
     server.handle('DELETE', '/packages/pkg/uploaders/email.json',
         (request, response) {
-      response.addString("{not json");
+      response.write("{not json");
       response.close();
     });
 

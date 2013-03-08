@@ -763,20 +763,25 @@ class _Socket extends Stream<List<int>> implements Socket {
         unsubscribeOnError: unsubscribeOnError);
   }
 
+  Encoding get encoding => _sink.encoding;
+  void set encoding(Encoding value) => _sink.encoding = value;
+
+  void write(Object obj) => _sink.write(obj);
+
+  void writeln(Object obj) => _sink.writeln(obj);
+
+  void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
+
+  void writeAll(Iterable objects) => _sink.writeAll(objects);
+
+  void writeBytes(List<int> bytes) => _sink.writeBytes(bytes);
+
   Future<Socket> consume(Stream<List<int>> stream) {
     return _sink.consume(stream);
   }
 
-  Future<Socket> addStream(Stream<List<int>> stream) {
-    return _sink.addStream(stream);
-  }
-
-  void add(List<int> data) {
-    return _sink.add(data);
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    return _sink.addString(string, encoding);
+  Future<Socket> writeStream(Stream<List<int>> stream) {
+    return _sink.writeStream(stream);
   }
 
   close() => _sink.close();
