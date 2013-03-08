@@ -85,6 +85,7 @@ main() {
 
   int warningCount = 0;
   int errorCount = 0;
+  int infoCount = 0;
   void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
     if (uri != null) {
       // print('$uri:$begin:$end: $kind: $message');
@@ -93,6 +94,8 @@ main() {
         warningCount++;
       } else if (kind == Diagnostic.ERROR) {
         errorCount++;
+      } else if (kind == Diagnostic.INFO || kind == Diagnostic.VERBOSE_INFO){
+        infoCount++;
       } else {
         throw kind;
       }
@@ -107,10 +110,11 @@ main() {
   result.then((String code) {
     Expect.isNull(code);
     Expect.isTrue(10 < count);
-    // Two warnings for each time RECURSIVE_MAIN is read, except the
-    // first time.
-    Expect.equals(2 * (count - 1), warningCount);
+    Expect.equals(0, warningCount);
     Expect.equals(1, errorCount);
+    // Two infos for each time RECURSIVE_MAIN is read, except the
+    // first time.
+    Expect.equals(2 * (count - 1), infoCount);
   }, onError: (AsyncError e) {
       throw 'Compilation failed';
   });
