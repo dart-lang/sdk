@@ -27,7 +27,12 @@ void RuntimeEntry::Call(Assembler* assembler) const {
   // into the runtime system.
   uword entry = GetEntryPoint();
 #if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry, Simulator::kRuntimeCall);
+  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
+  // in registers.
+  ASSERT(!is_leaf() || (argument_count() <= 4));
+  Simulator::CallKind call_kind =
+      is_leaf() ? Simulator::kLeafRuntimeCall : Simulator::kRuntimeCall;
+  entry = Simulator::RedirectExternalReference(entry, call_kind);
 #endif
   if (is_leaf()) {
     ExternalLabel label(name(), entry);

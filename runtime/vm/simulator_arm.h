@@ -79,6 +79,7 @@ class Simulator {
   // Runtime and native call support.
   enum CallKind {
     kRuntimeCall,
+    kLeafRuntimeCall,
     kNativeCall
   };
   static uword RedirectExternalReference(uword function, CallKind call_kind);

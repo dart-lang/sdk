@@ -5,6 +5,8 @@
 #ifndef VM_CONSTANTS_ARM_H_
 #define VM_CONSTANTS_ARM_H_
 
+#include "platform/assert.h"
+
 namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at

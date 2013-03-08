@@ -64,12 +64,9 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 
 [ $arch == simarm ]
 # Tests needing an assembler.
-cc/CallLeafRuntimeStubCode: Skip
-cc/CallRuntimeStubCode: Skip
 cc/Dart2JSCompileAll: Skip
 cc/FrameLookup: Skip
 cc/IcDataAccess: Skip
-cc/Jump: Skip
 cc/UseDartApi: Skip
 # Tests needing Dart execution.
 dart/*: Skip

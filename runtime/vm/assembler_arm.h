@@ -518,6 +518,9 @@ class Assembler : public ValueObject {
   // Branch to an entry address. Call sequence is never patched.
   void Branch(const ExternalLabel* label, Condition cond = AL);
 
+  // Branch to an entry address. Call sequence can be patched or even replaced.
+  void BranchPatchable(const ExternalLabel* label);
+
   // Branch and link to an entry address. Call sequence is never patched.
   void BranchLink(const ExternalLabel* label);
 

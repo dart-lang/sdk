@@ -1398,7 +1398,18 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 
 void Assembler::Branch(const ExternalLabel* label, Condition cond) {
   LoadImmediate(IP, label->address(), cond);  // Address is never patched.
-  mov(PC, ShifterOperand(IP), cond);
+  bx(IP, cond);
+}
+
+
+void Assembler::BranchPatchable(const ExternalLabel* label) {
+  // Use a fixed size code sequence, since a function prologue may be patched
+  // with this branch sequence.
+  // Contrarily to BranchLinkPatchable, BranchPatchable requires an instruction
+  // cache flush upon patching.
+  movw(IP, Utils::Low16Bits(label->address()));
+  movt(IP, Utils::High16Bits(label->address()));
+  bx(IP);
 }
 
 

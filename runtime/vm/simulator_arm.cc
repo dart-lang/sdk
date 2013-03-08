@@ -1301,6 +1301,9 @@ void Simulator::HandleRList(Instr* instr, bool load) {
 // Calls into the Dart runtime are based on this interface.
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 
+// Calls to leaf Dart runtime functions are based on this interface.
+typedef int32_t (*SimulatorLeafRuntimeCall)(
+    int32_t r0, int32_t r1, int32_t r2, int32_t r3);
 
 // Calls to native Dart functions are based on this interface.
 typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
@@ -1329,6 +1332,16 @@ void Simulator::SupervisorCall(Instr* instr) {
           SimulatorRuntimeCall target =
               reinterpret_cast<SimulatorRuntimeCall>(external);
           target(arguments);
+          set_register(R0, icount_);  // Zap result register from void function.
+        } else if (redirection->call_kind() == kLeafRuntimeCall) {
+          int32_t r0 = get_register(R0);
+          int32_t r1 = get_register(R1);
+          int32_t r2 = get_register(R2);
+          int32_t r3 = get_register(R3);
+          SimulatorLeafRuntimeCall target =
+              reinterpret_cast<SimulatorLeafRuntimeCall>(external);
+          r0 = target(r0, r1, r2, r3);
+          set_register(R0, r0);  // Set returned result from function.
         } else {
           ASSERT(redirection->call_kind() == kNativeCall);
           NativeArguments* arguments;
@@ -1336,10 +1349,12 @@ void Simulator::SupervisorCall(Instr* instr) {
           SimulatorNativeCall target =
               reinterpret_cast<SimulatorNativeCall>(external);
           target(arguments);
+          set_register(R0, icount_);  // Zap result register from void function.
         }
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.
+        set_register(R1, icount_);
         set_register(R2, icount_);
         set_register(R3, icount_);
         set_register(IP, icount_);
@@ -1355,9 +1370,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         }
 #endif  // VFPv3_D32
 
-        // Zap result register pair R0:R1 and return.
-        set_register(R0, icount_);
-        set_register(R1, icount_);
+        // Return.
         set_pc(saved_lr);
       }
 
