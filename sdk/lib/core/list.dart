@@ -52,6 +52,7 @@ abstract class List<E> implements Collection<E> {
   /**
    * *Deprecated*: Use `new List(count)` instead.
    */
+  @deprecated
   factory List.fixedLength(int count, { E fill }) {
     List<E> result = new List(count);
     if (fill != null) {
