@@ -68,6 +68,9 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 
   bool checkWhiteList(Uri uri, String message) {
+    if (uri == null) {
+      return false;
+    }
     String path = uri.path;
     for (String file in whiteListMap.keys) {
       if (path.endsWith(file)) {

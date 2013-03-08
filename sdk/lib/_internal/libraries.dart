@@ -91,7 +91,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "typeddata": const LibraryInfo(
       "typeddata/typeddata.dart",
-      category: "Common",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/typeddata_patch.dart"),
 
   "svg": const LibraryInfo(
@@ -157,7 +156,8 @@ class LibraryInfo {
 
   /**
    * The category in which the library should appear in the editor
-   * (e.g. "Common", "Client", "Server", ...).
+   * (e.g. "Shared", "Client", "Server", ...).
+   * If a category is not specified it defaults to "Shared".
    */
   final String category;
 
