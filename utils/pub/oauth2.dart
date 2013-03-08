@@ -35,14 +35,23 @@ final _secret = 'SWeqj8seoJW0w7_CpEPFLX0K';
 /// a refresh token from the server. See the [Google OAuth2 documentation][].
 ///
 /// [Google OAuth2 documentation]: https://developers.google.com/accounts/docs/OAuth2WebServer#offline
-final _authorizationEndpoint = Uri.parse(
+final authorizationEndpoint = Uri.parse(
     'https://accounts.google.com/o/oauth2/auth?access_type=offline'
     '&approval_prompt=force');
 
 /// The URL from which the pub client will request an access token once it's
-/// been authorized by the user.
-final _tokenEndpoint = Uri.parse(
-    'https://accounts.google.com/o/oauth2/token');
+/// been authorized by the user. This can be controlled externally by setting
+/// the _PUB_TEST_TOKEN_ENDPOINT environment variable.
+Uri get tokenEndpoint {
+  var tokenEndpoint = Platform.environment['_PUB_TEST_TOKEN_ENDPOINT'];
+  if (tokenEndpoint != null) {
+    return Uri.parse(tokenEndpoint);
+  } else {
+    return _tokenEndpoint;
+  }
+}
+
+final _tokenEndpoint = Uri.parse('https://accounts.google.com/o/oauth2/token');
 
 /// The OAuth2 scopes that the pub client needs. Currently the client only needs
 /// the user's email so that the server can verify their identity.
@@ -152,18 +161,10 @@ String _credentialsFile(SystemCache cache) =>
 /// Gets the user to authorize pub as a client of pub.dartlang.org via oauth2.
 /// Returns a Future that will complete to a fully-authorized [Client].
 Future<Client> _authorize() {
-  // Allow the tests to inject their own token endpoint URL.
-  var tokenEndpoint = Platform.environment['_PUB_TEST_TOKEN_ENDPOINT'];
-  if (tokenEndpoint != null) {
-    tokenEndpoint = Uri.parse(tokenEndpoint);
-  } else {
-    tokenEndpoint = _tokenEndpoint;
-  }
-
   var grant = new AuthorizationCodeGrant(
       _identifier,
       _secret,
-      _authorizationEndpoint,
+      authorizationEndpoint,
       tokenEndpoint,
       httpClient: httpClient);
 

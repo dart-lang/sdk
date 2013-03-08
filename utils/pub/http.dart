@@ -13,12 +13,16 @@ import 'dart:json' as json;
 import '../../pkg/http/lib/http.dart' as http;
 import 'io.dart';
 import 'log.dart' as log;
+import 'oauth2.dart' as oauth2;
 import 'utils.dart';
 
 // TODO(nweiz): make this configurable
 /// The amount of time in milliseconds to allow HTTP requests before assuming
 /// they've failed.
 final HTTP_TIMEOUT = 30 * 1000;
+
+/// Headers and field names that should be censored in the log output.
+final _CENSORED_FIELDS = const ['refresh_token', 'authorization'];
 
 /// An HTTP client that transforms 40* errors and socket exceptions into more
 /// user-friendly error messages.
@@ -29,8 +33,7 @@ class PubHttpClient extends http.BaseClient {
     : this.inner = inner == null ? new http.Client() : inner;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    // TODO(rnystrom): Log request body when it's available and plaintext, but
-    // not when it contains OAuth2 credentials.
+    _logRequest(request);
 
     // TODO(nweiz): remove this when issue 4061 is fixed.
     var stackTrace;
@@ -43,13 +46,16 @@ class PubHttpClient extends http.BaseClient {
     // TODO(nweiz): Ideally the timeout would extend to reading from the
     // response input stream, but until issue 3657 is fixed that's not feasible.
     return timeout(inner.send(request).then((streamedResponse) {
-      log.fine("Got response ${streamedResponse.statusCode} "
-               "${streamedResponse.reasonPhrase}.");
+      _logResponse(streamedResponse);
 
       var status = streamedResponse.statusCode;
       // 401 responses should be handled by the OAuth2 client. It's very
-      // unlikely that they'll be returned by non-OAuth2 requests.
-      if (status < 400 || status == 401) return streamedResponse;
+      // unlikely that they'll be returned by non-OAuth2 requests. We also want
+      // to pass along 400 responses from the token endpoint.
+      var tokenRequest = streamedResponse.request.url == oauth2.tokenEndpoint;
+      if (status < 400 || status == 401 || (status == 400 && tokenRequest)) {
+        return streamedResponse;
+      }
 
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
@@ -70,6 +76,63 @@ class PubHttpClient extends http.BaseClient {
       }
       throw asyncError;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
+  }
+
+  /// Logs the fact that [request] was sent, and information about it.
+  void _logRequest(http.BaseRequest request) {
+    var requestLog = new StringBuffer();
+    requestLog.writeln("HTTP ${request.method} ${request.url}");
+    request.headers.forEach((name, value) =>
+        requestLog.writeln(_logField(name, value)));
+
+    if (request.method == 'POST') {
+      var contentTypeString = request.headers[HttpHeaders.CONTENT_TYPE];
+      if (contentTypeString == null) contentTypeString = '';
+      var contentType = new ContentType.fromString(contentTypeString);
+      if (contentType.value == 'application/x-www-form-urlencoded') {
+        requestLog.writeln('');
+        requestLog.writeln("Body fields:");
+        request.bodyFields.forEach((name, value) =>
+            requestLog.writeln(_logField(name, value)));
+      } else if (contentType.value == 'text/plain' ||
+          contentType.value == 'application/json') {
+        requestLog.write(request.body);
+      } else if (request is http.MultipartRequest) {
+        requestLog.writeln('');
+        requestLog.writeln("Body fields:");
+        request.fields.forEach((name, value) =>
+            requestLog.writeln(_logField(name, value)));
+
+        // TODO(nweiz): make MultipartRequest.files readable, and log them?
+      }
+    }
+
+    log.fine(requestLog.toString().trim());
+  }
+
+  /// Logs the fact that [response] was received, and information about it.
+  void _logResponse(http.StreamedResponse response) {
+    // TODO(nweiz): Fork the response stream and log the response body. Be
+    // careful not to log OAuth2 private data, though.
+
+    var responseLog = new StringBuffer();
+    var request = response.request;
+    responseLog.writeln("HTTP response ${response.statusCode} "
+        "${response.reasonPhrase} for ${request.method} ${request.url}");
+    response.headers.forEach((name, value) =>
+        responseLog.writeln(_logField(name, value)));
+
+    log.fine(responseLog.toString().trim());
+  }
+
+  /// Returns a log-formatted string for the HTTP field or header with the given
+  /// [name] and [value].
+  String _logField(String name, String value) {
+    if (_CENSORED_FIELDS.contains(name.toLowerCase())) {
+      return "$name: <censored>";
+    } else {
+      return "$name: $value";
+    }
   }
 }
 

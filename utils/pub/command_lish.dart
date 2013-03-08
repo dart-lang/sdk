@@ -92,6 +92,8 @@ class LishCommand extends PubCommand {
         throw 'Failed to upload the package.';
       } else if (url.origin == server.origin) {
         handleJsonError(asyncError.error.response);
+      } else {
+        throw asyncError;
       }
     });
   }

@@ -147,6 +147,40 @@ main() {
     credentialsFile(server, 'new access token').scheduleValidate();
   });
 
+  // Regression test for issue 8849.
+  integration('with a server-rejected refresh token, authenticates again and '
+      'saves credentials.json', () {
+    var server = new ScheduledServer();
+    credentialsFile(server, 'access token',
+        refreshToken: 'bad refresh token',
+        expiration: new DateTime.now().subtract(new Duration(hours: 1)))
+        .scheduleCreate();
+
+    var pub = startPubLish(server);
+    confirmPublish(pub);
+
+    server.handle('POST', '/token', (request, response) {
+      return new ByteStream(request).toBytes().then((bytes) {
+        response.statusCode = 400;
+        response.reasonPhrase = 'Bad request';
+        response.headers.contentType = new ContentType("application", "json");
+        response.write(json.stringify({"error": "invalid_request"}));
+        response.close();
+      });
+    });
+
+    authorizePub(pub, server, 'new access token');
+
+    server.handle('GET', '/packages/versions/new.json', (request, response) {
+      expect(request.headers.value('authorization'),
+          equals('Bearer new access token'));
+
+      response.close();
+    });
+
+    pub.kill();
+  });
+
   integration('with server-rejected credentials, authenticates again and saves '
       'credentials.json', () {
     var server = new ScheduledServer();
@@ -218,3 +252,4 @@ void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
     });
   });
 }
+
