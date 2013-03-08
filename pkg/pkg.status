@@ -15,6 +15,9 @@ scheduled_test/lib/*: Skip
 [$compiler == dart2dart]
 *: Skip
 
+[ $system == macos ]
+scheduled_test/test/scheduled_test_test: Crash # Issue 9021
+
 # Don't compile tests that use dart:io to JS
 [ $compiler == dart2js || $compiler == dart2dart ]
 http/test/*: Skip
