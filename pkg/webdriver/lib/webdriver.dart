@@ -4,6 +4,7 @@
 
 library webdriver;
 
+import 'dart:async';
 import 'dart:json' as json;
 import 'dart:uri';
 import 'dart:io';
