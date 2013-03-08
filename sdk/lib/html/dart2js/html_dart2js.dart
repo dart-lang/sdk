@@ -1476,7 +1476,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
-      [bool anticlockwise: false]) {
+      [bool anticlockwise = false]) {
     $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
   }
 
