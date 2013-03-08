@@ -1476,7 +1476,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+  void arc(num x, num y, num radius, num startAngle, num endAngle, [bool anticlockwise]) native "CanvasRenderingContext2D_arc_Callback";
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable

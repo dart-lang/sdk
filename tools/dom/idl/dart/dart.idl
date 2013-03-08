@@ -138,6 +138,12 @@ interface WebGLRenderingContext {
 };
 
 [Supplemental]
+interface CanvasRenderingContext2D {
+    [Suppressed] any arc( float x,  float y,  float radius,  float startAngle,  float endAngle, boolean anticlockwise);
+    [Custom] void arc( float x,  float y,  float radius,  float startAngle,  float endAngle, [Optional] boolean anticlockwise);
+};
+
+[Supplemental]
 interface CSSStyleDeclaration {
   void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
   [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
@@ -265,7 +271,6 @@ interface EntrySync {
   EntrySync getParent();
 };
 
-
 [Supplemental,
   CustomConstructor,
   Constructor(in Array blobParts,
@@ -356,7 +361,6 @@ interface XMLHttpRequest {
    [Custom] void send(in DOMFormData data)
        raises(DOMException);
 };
-
 
 [Suppressed]
 interface Entity {};
