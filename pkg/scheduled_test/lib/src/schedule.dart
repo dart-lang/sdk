@@ -60,7 +60,6 @@ class Schedule {
   ScheduleState _state = ScheduleState.SET_UP;
 
   // TODO(nweiz): make this a read-only view once issue 8321 is fixed.
-
   /// Errors thrown by the task queues.
   ///
   /// When running tasks in [tasks], this will always be empty. If an error
@@ -73,6 +72,10 @@ class Schedule {
   /// Any out-of-band callbacks that throw errors will also have those errors
   /// added to this list.
   final errors = <ScheduleError>[];
+
+  // TODO(nweiz): make this a read-only view once issue 8321 is fixed.
+  /// Additional debugging info registered via [addDebugInfo].
+  final debugInfo = <String>[];
 
   /// The task queue that's currently being run. One of [tasks], [onException],
   /// or [onComplete]. This starts as [tasks], and can only be `null` after the
@@ -92,7 +95,7 @@ class Schedule {
   /// If a task times out and then later completes with an error, that error
   /// cannot be handled. The user will still be notified of it.
   Duration get timeout => _timeout;
-  Duration _timeout = new Duration(seconds: 30);
+  Duration _timeout = new Duration(seconds: 2);
   set timeout(Duration duration) {
     _timeout = duration;
     heartbeat();
@@ -185,6 +188,12 @@ class Schedule {
     }
   }
 
+  /// Adds [info] to the debugging output that will be printed if the test
+  /// fails. Unlike [signalError], this won't cause the test to fail, nor will
+  /// it short-circuit the current [TaskQueue]; it's just useful for providing
+  /// additional information that may not fit cleanly into an existing error.
+  void addDebugInfo(String info) => debugInfo.add(info);
+
   /// Notifies the schedule of an error that occurred in a task or out-of-band
   /// callback after the appropriate queue has timed out. If this schedule is
   /// still running, the error will be added to the errors list to be shown
@@ -272,10 +281,18 @@ class Schedule {
   /// Returns a string representation of all errors registered on this schedule.
   String errorString() {
     if (errors.isEmpty) return "The schedule had no errors.";
-    if (errors.length == 1) return errors.first.toString();
-    var errorStrings = errors.map((e) => e.toString()).join("\n================"
-        "================================================================\n");
-    return "The schedule had ${errors.length} errors:\n$errorStrings";
+    if (errors.length == 1 && debugInfo.isEmpty) return errors.first.toString();
+
+    var border = "\n==========================================================="
+      "=====================\n";
+    var errorStrings = errors.map((e) => e.toString()).join(border);
+    var message = "The schedule had ${errors.length} errors:\n$errorStrings";
+
+    if (!debugInfo.isEmpty) {
+      message = "$message$border\nDebug info:\n${debugInfo.join(border)}";
+    }
+
+    return message;
   }
 
   /// Notifies the schedule that progress is being made on an asynchronous task.
@@ -371,7 +388,20 @@ class TaskQueue {
   /// null if no task is currently running.
   SubstituteFuture _taskFuture;
 
-  TaskQueue._(this.name, this._schedule);
+  /// A [Future] that completes when the tasks in [this] are all complete. If an
+  /// error occurs while running this queue, the returned [Future] will complete
+  /// with that error.
+  ///
+  /// The returned [Future] can complete before outstanding out-of-band
+  /// callbacks have finished running.
+  Future get onTasksComplete => _onTasksCompleteCompleter.future;
+  final _onTasksCompleteCompleter = new Completer();
+
+  TaskQueue._(this.name, this._schedule) {
+    // Avoid top-leveling errors that are passed to onTasksComplete if there are
+    // no listeners.
+    onTasksComplete.catchError((_) {});
+  }
 
   /// Whether this queue is currently running.
   bool get isRunning => _schedule.state == ScheduleState.RUNNING &&
@@ -403,7 +433,11 @@ class TaskQueue {
       return task.runChild(wrappedFn, description);
     }
 
-    var task = new Task(fn, description, this);
+    var task = new Task(() {
+      return new Future.of(fn).catchError((e) {
+        throw new ScheduleError.from(_schedule, e);
+      });
+    }, description, this);
     _contents.add(task);
     return task.result;
   }
@@ -421,14 +455,27 @@ class TaskQueue {
         _taskFuture = null;
         _schedule.heartbeat();
       }).catchError((e) {
-        if (_error != null) _schedule._addError(_error);
-        throw new ScheduleError.from(_schedule, e);
+        var error = new ScheduleError.from(_schedule, e);
+        _signalError(error);
+        throw _error;
       });
+    }).then((_) {
+      _onTasksCompleteCompleter.complete();
+    }).catchError((e) {
+      _onTasksCompleteCompleter.completeError(e);
+      throw e;
     }).whenComplete(() {
       _schedule._currentTask = null;
-      return _schedule._awaitNoPendingCallbacks();
-    }).then((_) {
+      return _schedule._awaitNoPendingCallbacks().catchError((e) {
+        // Signal the error rather than passing it through directly so that if a
+        // timeout happens after an in-task error, both are reported.
+        _signalError(new ScheduleError.from(_schedule, e));
+      });
+    }).whenComplete(() {
       _schedule.heartbeat();
+      // If the tasks were otherwise successful, make sure we throw any
+      // out-of-band errors. If a task failed, make sure we throw the most
+      // recent error.
       if (_error != null) throw _error;
     });
   }

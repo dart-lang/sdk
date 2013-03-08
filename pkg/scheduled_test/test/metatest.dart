@@ -17,6 +17,11 @@ import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
 
+// TODO(nweiz): get rid of this once issue 8863 is fixed.
+/// The path to the Dart executable. This is only set in a child isolate.
+String get dartExecutable => _executable;
+String _executable;
+
 /// Declares a test with the given [description] and [body]. [body] corresponds
 /// to the `main` method of a test file, and will be run in an isolate. By
 /// default, this expects that all tests defined in [body] pass, but if
@@ -99,7 +104,8 @@ Future<bool> get _inChildIsolate {
 
   var completer = new Completer();
   port.receive((message, replyTo) {
-    _testToRun = message;
+    _testToRun = message['testToRun'];
+    _executable = message['executable'];
     _replyTo = replyTo;
     port.close();
     completer.complete(true);
@@ -117,8 +123,10 @@ Future<bool> get _inChildIsolate {
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   // TODO(nweiz): Don't use path here once issue 8440 is fixed.
-  var future = spawnUri(path.join(path.current, new Options().script))
-      .call(description);
+  var future = spawnUri(path.join(path.current, new Options().script)).call({
+    'testToRun': description,
+    'executable': new Options().executable
+  });
   // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
   // capture top-level exceptions.
   return timeout(future, 30 * 1000, () {

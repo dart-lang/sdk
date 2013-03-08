@@ -181,12 +181,13 @@ import 'src/schedule.dart';
 import 'src/schedule_error.dart';
 import 'src/utils.dart';
 
-export 'package:unittest/matcher.dart';
+export 'package:unittest/matcher.dart' hide completes, completion;
 export 'package:unittest/unittest.dart' show
     config, configure, Configuration, logMessage, expectThrow;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
+export 'src/scheduled_future_matchers.dart';
 export 'src/task.dart';
 
 /// The [Schedule] for the current test. This is used to add new tasks and

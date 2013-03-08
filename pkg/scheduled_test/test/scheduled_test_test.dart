@@ -650,6 +650,30 @@ void main() {
     });
   }, passing: ['test 2']);
 
+  expectTestsPass('currentSchedule.errors contains both an error raised in a '
+      'task and an error raised afterwards out-of-band', () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.onComplete.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      sleep(2).then(wrapAsync((_) {
+        throw 'out-of-band';
+      }));
+
+      schedule(() => sleep(1).then((_) {
+        throw 'in-band';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['in-band', 'out-of-band']));
+    });
+  }, passing: ['test 2']);
+
   expectTestsPass('currentSchedule.currentTask returns the current task while '
       'executing a task', () {
     test('test', () {
@@ -1003,6 +1027,32 @@ void main() {
     });
   }, passing: ['test 2']);
 
+  expectTestsPass("a task that has an error then times out waiting for an "
+      "out-of-band callback records both", () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeout = new Duration(milliseconds: 2);
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        throw 'error';
+      });
+      wrapFuture(sleep(3));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals([
+        "error",
+        "The schedule timed out after 0:00:00.002000 of inactivity."
+      ]));
+    });
+  }, passing: ['test 2']);
+
   expectTestsPass("currentSchedule.heartbeat resets the timeout timer", () {
     mock_clock.mock().run();
     test('test', () {
@@ -1171,6 +1221,142 @@ void main() {
 
     test('test 2', () {
       expect(parentTaskFinishedBeforeOnComplete, isTrue);
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an error thrown in a scheduled task should be piped to that "
+      "task's return value", () {
+    var error;
+    test('test 1', () {
+      schedule(() {
+        throw 'error';
+      }).catchError((e) {
+        error = e;
+      });
+    });
+
+    test('test 2', () {
+      expect(error, new isInstanceOf<ScheduleError>());
+      expect(error.error, equals('error'));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an error thrown in a scheduled task should be piped to "
+      "future tasks' return values", () {
+    var error;
+    test('test 1', () {
+      schedule(() {
+        throw 'error';
+      });
+
+      schedule(() => null).catchError((e) {
+        error = e;
+      });
+    });
+
+    test('test 2', () {
+      expect(error, new isInstanceOf<ScheduleError>());
+      expect(error.error, equals('error'));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an out-of-band error should be piped to future tasks' "
+      "return values, but not the current task's", () {
+    mock_clock.mock().run();
+    var error;
+    var firstTaskError = false;
+    var secondTaskRun = false;
+    test('test 1', () {
+      schedule(() => sleep(2)).catchError((_) {
+        firstTaskError = true;
+      });
+
+      sleep(1).then(wrapAsync((_) {
+        throw 'error';
+      }));
+
+      schedule(() {
+        secondTaskRun = true;
+      }).catchError((e) {
+        error = e;
+      });
+    });
+
+    test('test 2', () {
+      expect(firstTaskError, isFalse);
+      expect(secondTaskRun, isFalse);
+      expect(error, new isInstanceOf<ScheduleError>());
+      expect(error.error, equals('error'));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("expect(..., completes) with a completing future should pass",
+      () {
+    test('test', () {
+      expect(pumpEventQueue(), completes);
+    });
+  });
+
+  expectTestsPass("expect(..., completes) with a failing future should signal "
+      "an out-of-band error", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      expect(pumpEventQueue().then((_) {
+        throw 'error';
+      }), completes);
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("expect(..., completion(...)) with a matching future should "
+      "pass", () {
+    test('test', () {
+      expect(pumpEventQueue().then((_) => 'foo'), completion(equals('foo')));
+    });
+  });
+
+  expectTestsPass("expect(..., completion(...)) with a non-matching future "
+      "should signal an out-of-band error", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      expect(pumpEventQueue().then((_) => 'foo'), completion(equals('bar')));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error, new isInstanceOf<TestFailure>());
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("expect(..., completion(...)) with a failing future should "
+      "signal an out-of-band error", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      expect(pumpEventQueue().then((_) {
+        throw 'error';
+      }), completion(equals('bar')));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
     });
   }, passing: ['test 2']);
 }

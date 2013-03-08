@@ -44,6 +44,10 @@ class Task {
   /// The body of the task.
   TaskBody fn;
 
+  /// The current state of [this].
+  TaskState get state => _state;
+  var _state = TaskState.WAITING;
+
   /// The identifier of the task. For top-level tasks, this is the index of the
   /// task within [queue]; for nested tasks, this is the index within
   /// [parent.children]. It's used for debugging when [description] isn't
@@ -63,6 +67,11 @@ class Task {
 
   Task._(fn(), this.description, this.queue, this.parent, this._id) {
     this.fn = () {
+      if (state != TaskState.WAITING) {
+        throw new StateError("Can't run $state task '$this'.");
+      }
+
+      _state = TaskState.RUNNING;
       var future = new Future.immediate(null).then((_) => fn())
           .whenComplete(() {
         if (_childGroup == null || _childGroup.completed) return;
@@ -72,9 +81,18 @@ class Task {
       return future;
     };
 
-    // Make sure any error thrown by fn isn't top-leveled by virtue of being
-    // passed to the result future.
-    result.catchError((_) {});
+    // If the parent queue experiences an error before this task has started
+    // running, pipe that error out through [result]. This ensures that we don't
+    // get deadlocked by something like `expect(schedule(...), completes)`.
+    queue.onTasksComplete.catchError((e) {
+      if (state == TaskState.WAITING) _resultCompleter.completeError(e);
+    });
+
+    // catchError makes sure any error thrown by fn isn't top-leveled by virtue
+    // of being passed to the result future.
+    result.whenComplete(() {
+      _state = TaskState.DONE;
+    }).catchError((_) {});
   }
 
   /// Run [fn] as a child of this task. Returns a Future that will complete with
@@ -97,4 +115,23 @@ class Task {
 
   /// Returns a detailed representation of [queue] with this task highlighted.
   String generateTree() => queue.generateTree(this);
+}
+
+/// An enum of states for a [Task].
+class TaskState {
+  /// The task is waiting to be run.
+  static const WAITING = const TaskState._("WAITING");
+
+  /// The task is currently running.
+  static const RUNNING = const TaskState._("RUNNING");
+
+  /// The task has finished running, either successfully or with an error.
+  static const DONE = const TaskState._("DONE");
+
+  /// The name of the state.
+  final String name;
+
+  const TaskState._(this.name);
+
+  String toString() => name;
 }
