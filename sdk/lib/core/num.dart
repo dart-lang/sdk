@@ -83,7 +83,7 @@ abstract class num implements Comparable<num> {
   /**
    * Clamps [this] to be in the range [lowerLimit]-[upperLimit]. The comparison
    * is done using [compareTo] and therefore takes [:-0.0:] into account.
-   * It also implies that [double.NaN] is treated as the maximal double value.
+   * It also implies that [double.NAN] is treated as the maximal double value.
    */
   num clamp(num lowerLimit, num upperLimit);
 
