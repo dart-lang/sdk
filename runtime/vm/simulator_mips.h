@@ -35,6 +35,12 @@ class Simulator {
   void set_register(Register reg, int32_t value);
   int32_t get_register(Register reg) const;
 
+  // Accessors for hi, lo registers.
+  void set_hi_register(int32_t value) { hi_reg_ = value; }
+  void set_lo_register(int32_t value) { lo_reg_ = value; }
+  int32_t get_hi_register() const { return hi_reg_; }
+  int32_t get_lo_register() const { return lo_reg_; }
+
   // Accessor to the internal simulator stack top.
   uword StackTop() const;
 
@@ -57,6 +63,10 @@ class Simulator {
   // C code.
   static const uword kEndSimulatingPC = -1;
 
+  // Special registers for the results of div, divu.
+  int32_t hi_reg_;
+  int32_t lo_reg_;
+
   int32_t registers_[kNumberOfCpuRegisters];
   uword pc_;
 
@@ -65,11 +75,17 @@ class Simulator {
   int icount_;
   bool delay_slot_;
 
+  bool OverflowFrom(int32_t alu_out,
+                    int32_t left,
+                    int32_t right,
+                    bool addition);
+
   void set_pc(uword value) { pc_ = value; }
 
   void Format(Instr* instr, const char* format);
 
   void DecodeSpecial(Instr* instr);
+  void DecodeSpecial2(Instr* instr);
   void InstructionDecode(Instr* instr);
 
   void Execute();

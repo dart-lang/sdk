@@ -100,16 +100,112 @@ void Simulator::Format(Instr* instr, const char* format) {
   UNIMPLEMENTED();
 }
 
+
+bool Simulator::OverflowFrom(int32_t alu_out,
+                             int32_t left, int32_t right, bool addition) {
+  bool overflow;
+  if (addition) {
+               // Operands have the same sign.
+    overflow = ((left >= 0 && right >= 0) || (left < 0 && right < 0))
+               // And operands and result have different sign.
+               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
+  } else {
+               // Operands have different signs.
+    overflow = ((left < 0 && right >= 0) || (left >= 0 && right < 0))
+               // And first operand and result have different signs.
+               && ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
+  }
+  return overflow;
+}
+
+
 void Simulator::DecodeSpecial(Instr* instr) {
   switch (instr->FunctionField()) {
+    case ADDU: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "addu 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val + rt_val);
+      break;
+    }
+    case AND: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "and 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val & rt_val);
+      break;
+    }
+    case DIV: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "div 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      if (rt_val == 0) {
+        // Results are unpredictable.
+        set_hi_register(0);
+        set_lo_register(0);
+        // TODO(zra): Drop into the debugger here.
+        break;
+      }
+
+      if ((rs_val == static_cast<int32_t>(0x80000000)) &&
+          (rt_val == static_cast<int32_t>(0xffffffff))) {
+        set_lo_register(0x80000000);
+        set_hi_register(0);
+      } else {
+        set_lo_register(rs_val / rt_val);
+        set_hi_register(rs_val % rt_val);
+      }
+      break;
+    }
+    case DIVU: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "divu 'rs, 'rt");
+      uint32_t rs_val = get_register(instr->RsField());
+      uint32_t rt_val = get_register(instr->RtField());
+      if (rt_val == 0) {
+        // Results are unpredictable.
+        set_hi_register(0);
+        set_lo_register(0);
+        // TODO(zra): Drop into the debugger here.
+        break;
+      }
+
+      set_lo_register(rs_val / rt_val);
+      set_hi_register(rs_val % rt_val);
+      break;
+    }
+    case MFHI: {
+      ASSERT(instr->RsField() == 0);
+      ASSERT(instr->RtField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "mfhi 'rd");
+      set_register(instr->RdField(), get_hi_register());
+      break;
+    }
+    case MFLO: {
+      ASSERT(instr->RsField() == 0);
+      ASSERT(instr->RtField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "mflo 'rd");
+      set_register(instr->RdField(), get_lo_register());
+      break;
+    }
     case SLL: {
+      ASSERT(instr->RsField() == 0);
       if ((instr->RdField() == R0) &&
           (instr->RtField() == R0) &&
           (instr->SaField() == 0)) {
         // Format(instr, "nop");
         // Nothing to be done for NOP.
       } else {
-        Format(instr, "sll 'rd, 'rt, 'sa");
+        int32_t rt_val = get_register(instr->RtField());
+        int sa = instr->SaField();
+        set_register(instr->RdField(), rt_val << sa);
       }
       break;
     }
@@ -132,10 +228,86 @@ void Simulator::DecodeSpecial(Instr* instr) {
 }
 
 
+void Simulator::DecodeSpecial2(Instr* instr) {
+  switch (instr->FunctionField()) {
+    case CLO: {
+      ASSERT(instr->SaField() == 0);
+      ASSERT(instr->RtField() == instr->RdField());
+      // Format(instr, "clo 'rd, 'rs");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t bitcount = 0;
+      while (rs_val < 0) {
+        bitcount++;
+        rs_val <<= 1;
+      }
+      set_register(instr->RdField(), bitcount);
+      break;
+    }
+    case CLZ: {
+      ASSERT(instr->SaField() == 0);
+      ASSERT(instr->RtField() == instr->RdField());
+      // Format(instr, "clz 'rd, 'rs");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t bitcount = 0;
+      if (rs_val != 0) {
+        while (rs_val > 0) {
+          bitcount++;
+          rs_val <<= 1;
+        }
+      } else {
+        bitcount = 32;
+      }
+      set_register(instr->RdField(), bitcount);
+      break;
+    }
+    default: {
+      OS::PrintErr("DecodeSpecial2: 0x%x\n", instr->InstructionBits());
+      UNREACHABLE();
+      break;
+    }
+  }
+}
+
+
 void Simulator::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
       DecodeSpecial(instr);
+      break;
+    }
+    case SPECIAL2: {
+      DecodeSpecial2(instr);
+      break;
+    }
+    case ADDI: {
+      // Format(instr, "addi 'rt, 'rs, 'immu");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      int32_t res = rs_val + imm_val;
+      // Rt is not set on overflow.
+      if (!OverflowFrom(res, rs_val, imm_val, true)) {
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
+    case ADDIU: {
+      // Format(instr, "addiu 'rt, 'rs, 'immu");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      int32_t res = rs_val + imm_val;
+      // Rt is set even on overflow.
+      set_register(instr->RtField(), res);
+      break;
+    }
+    case ANDI: {
+      // Format(instr, "andi 'rt, 'rs, 'immu");
+      int32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RtField(), rs_val & instr->UImmField());
+      break;
+    }
+    case LUI: {
+      ASSERT(instr->RsField() == 0);
+      set_register(instr->RtField(), instr->UImmField() << 16);
       break;
     }
     case ORI: {

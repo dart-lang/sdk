@@ -220,6 +220,62 @@ class Assembler : public ValueObject {
   }
 
   // CPU instructions.
+  void addi(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ADDI, rs, rt, imm_value);
+  }
+
+  void addiu(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ADDIU, rs, rt, imm_value);
+  }
+
+  void addu(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, ADDU);
+  }
+
+  void and_(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, AND);
+  }
+
+  void andi(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ANDI, rs, rt, imm_value);
+  }
+
+  void clo(Register rd, Register rs) {
+    EmitRType(SPECIAL2, rs, rd, rd, 0, CLO);
+  }
+
+  void clz(Register rd, Register rs) {
+    EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
+  }
+
+  void div(Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
+  }
+
+  void divu(Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, R0, 0, DIVU);
+  }
+
+  void lui(Register rt, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(LUI, R0, rt, imm_value);
+  }
+
+  void mfhi(Register rd) {
+    EmitRType(SPECIAL, R0, R0, rd, 0, MFHI);
+  }
+
+  void mflo(Register rd) {
+    EmitRType(SPECIAL, R0, R0, rd, 0, MFLO);
+  }
+
   void ori(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsUint(16, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
@@ -231,6 +287,16 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, R0, R0, 0, JR);
     Emit(Instr::kNopInstruction);  // Branch delay NOP.
     delay_slot_available_ = true;
+  }
+
+  void sll(Register rd, Register rt, int sa) {
+    EmitRType(SPECIAL, R0, rt, rd, sa, SLL);
+  }
+
+  // Macros.
+  void LoadImmediate(Register rd, int32_t value) {
+    lui(rd, Immediate((value >> 16) & 0xffff));
+    ori(rd, rd, Immediate(value & 0xffff));
   }
 
  private:
@@ -275,6 +341,16 @@ class Assembler : public ValueObject {
     Emit(opcode << kOpcodeShift |
          rs << kRsShift |
          rt << kRtShift |
+         imm);
+  }
+
+  void EmitRegImmType(Opcode opcode,
+                      Register rs,
+                      RtRegImm code,
+                      uint16_t imm) {
+    Emit(opcode << kOpcodeShift |
+         rs << kRsShift |
+         code << kRtShift |
          imm);
   }
 

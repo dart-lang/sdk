@@ -218,6 +218,7 @@ enum Opcode {
 
 
 enum SpecialFunction {
+  // SPECIAL opcodes.
   SLL = 0,
   MOVCI = 1,
   SRL = 2,
@@ -256,6 +257,10 @@ enum SpecialFunction {
   TLTU = 51,
   TEQ = 52,
   TNE = 54,
+
+  // SPECIAL2 opcodes.
+  CLZ = 32,
+  CLO = 33,
 };
 
 

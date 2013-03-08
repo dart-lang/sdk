@@ -36,6 +36,7 @@ class MIPSDecoder : public ValueObject {
   void Format(Instr* instr, const char* format);
 
   void DecodeSpecial(Instr* instr);
+  void DecodeSpecial2(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -176,6 +177,30 @@ void MIPSDecoder::Format(Instr* instr, const char* format) {
 
 void MIPSDecoder::DecodeSpecial(Instr* instr) {
   switch (instr->FunctionField()) {
+    case ADDU: {
+      Format(instr, "addu 'rd, 'rs, 'rt");
+      break;
+    }
+    case AND: {
+      Format(instr, "and 'rd, 'rs, 'rt");
+      break;
+    }
+    case DIV: {
+      Format(instr, "div 'rs, 'rt");
+      break;
+    }
+    case DIVU: {
+      Format(instr, "divu 'rs, 'rt");
+      break;
+    }
+    case MFHI: {
+      Format(instr, "mfhi 'rd");
+      break;
+    }
+    case MFLO: {
+      Format(instr, "mflo 'rd");
+      break;
+    }
     case SLL: {
       if ((instr->RdField() == R0) &&
           (instr->RtField() == R0) &&
@@ -201,10 +226,49 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
 }
 
 
+void MIPSDecoder::DecodeSpecial2(Instr* instr) {
+  switch (instr->FunctionField()) {
+    case CLO: {
+      Format(instr, "clo 'rd, 'rs");
+      break;
+    }
+    case CLZ: {
+      Format(instr, "clz 'rd, 'rs");
+      break;
+    }
+    default: {
+      OS::PrintErr("DecodeSpecial2: 0x%x\n", instr->InstructionBits());
+      UNREACHABLE();
+      break;
+    }
+  }
+}
+
+
 void MIPSDecoder::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
       DecodeSpecial(instr);
+      break;
+    }
+    case SPECIAL2: {
+      DecodeSpecial2(instr);
+      break;
+    }
+    case ADDI: {
+      Format(instr, "addi 'rt, 'rs, 'immu");
+      break;
+    }
+    case ADDIU: {
+      Format(instr, "addiu 'rt, 'rs, 'immu");
+      break;
+    }
+    case ANDI: {
+      Format(instr, "andi 'rt, 'rs, 'immu");
+      break;
+    }
+    case LUI: {
+      Format(instr, "lui 'rt, 'immu");
       break;
     }
     case ORI: {
