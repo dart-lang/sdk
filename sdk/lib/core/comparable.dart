@@ -13,6 +13,7 @@ part of dart.core;
  * smaller than the former).
  *
  * A [Comparator] function represents such a total ordering by returning
+ *
  * * a negative integer if [a] is smaller than [b],
  * * zero if [a] is equal to [b], and
  * * a positive integer if [a] is greater than [b].
