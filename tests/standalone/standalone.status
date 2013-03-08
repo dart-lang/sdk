@@ -11,7 +11,6 @@ io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
 io/status_file_parser_test: fail
 io/test_runner_exit_code_test: fail
 io/test_runner_test: fail
-io/web_socket_test: Pass, Fail # Issue 8943
 
 [ $compiler == dartc ]
 io/skipping_dart2js_compilations_test: Fail  # Date-to-DateTime renaming. Also fails on VM above.
