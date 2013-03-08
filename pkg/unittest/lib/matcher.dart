@@ -1,14 +1,9 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 /**
  * The matcher library provides a 3rd generation assertion mechanism, drawing
- * inspiration from [Hamcrest] and Ladislav Thon's [dart-matchers]
- * library.
- *
- * See [Hamcrest] http://en.wikipedia.org/wiki/Hamcrest
- *     [Hamcrest] http://code.google.com/p/hamcrest/
- *     [dart-matchers] https://github.com/Ladicek/dart-matchers
+ * inspiration from [Hamcrest](http://code.google.com/p/hamcrest/).
  */
 library matcher;
 
