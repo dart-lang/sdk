@@ -2175,7 +2175,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                  cls == backend.jsDoubleClass ||
                  cls == backend.jsNumberClass) {
         throw 'internal error';
-      } else if (cls == backend.jsArrayClass) {
+      } else if (cls == backend.jsArrayClass ||
+                 cls == backend.jsMutableArrayClass ||
+                 cls == backend.jsFixedArrayClass ||
+                 cls == backend.jsExtendableArrayClass) {
         condition = receiver['constructor'].equals('Array');
       } else if (cls == backend.jsStringClass) {
         condition = receiver.typeof.equals(js.string('string'));
@@ -2198,7 +2201,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     bool hasNumber = false;
     bool hasString = false;
     for (ClassElement cls in classes) {
-      if (cls == backend.jsArrayClass) hasArray = true;
+      if (cls == backend.jsArrayClass ||
+          cls == backend.jsMutableArrayClass ||
+          cls == backend.jsFixedArrayClass ||
+          cls == backend.jsExtendableArrayClass) hasArray = true;
       else if (cls == backend.jsBoolClass) hasBool = true;
       else if (cls == backend.jsDoubleClass) hasDouble = true;
       else if (cls == backend.jsFunctionClass) hasFunction = true;

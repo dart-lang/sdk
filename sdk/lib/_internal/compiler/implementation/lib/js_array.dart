@@ -302,3 +302,11 @@ class JSArray<E> implements List<E>, JSIndexable {
     return IterableMixinWorkaround.asMapList(this);
   }
 }
+
+/**
+ * Dummy subclasses that allow the backend to track more precise
+ * information about arrays through their type.
+ */
+class JSMutableArray extends JSArray {}
+class JSFixedArray extends JSMutableArray {}
+class JSExtendableArray extends JSMutableArray {}

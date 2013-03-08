@@ -642,10 +642,12 @@ class JavaScriptBackend extends Backend {
   ClassElement jsFunctionClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
-  ClassElement typeLiteralClass;
-  ClassElement mapLiteralClass;
-  ClassElement constMapLiteralClass;
+
   ClassElement jsIndexableClass;
+  ClassElement jsMutableArrayClass;
+  ClassElement jsFixedArrayClass;
+  ClassElement jsExtendableArrayClass;
+
   Element jsArrayLength;
   Element jsStringLength;
   Element jsArrayRemoveLast;
@@ -653,9 +655,15 @@ class JavaScriptBackend extends Backend {
   Element jsStringSplit;
   Element jsStringConcat;
   Element jsStringToString;
+
+  ClassElement typeLiteralClass;
+  ClassElement mapLiteralClass;
+  ClassElement constMapLiteralClass;
+
   Element getInterceptorMethod;
   Element interceptedNames;
   Element fixedLengthListConstructor;
+
   bool seenAnyClass = false;
 
   final Namer namer;
@@ -831,10 +839,26 @@ class JavaScriptBackend extends Backend {
       jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
       jsFunctionClass =
           compiler.findInterceptor(const SourceString('JSFunction')),
-      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
+      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool')),
+      jsMutableArrayClass =
+          compiler.findInterceptor(const SourceString('JSMutableArray')),
+      jsFixedArrayClass =
+          compiler.findInterceptor(const SourceString('JSFixedArray')),
+      jsExtendableArrayClass =
+          compiler.findInterceptor(const SourceString('JSExtendableArray'))];
 
     jsIndexableClass =
         compiler.findInterceptor(const SourceString('JSIndexable'));
+
+    // TODO(kasperl): Some tests do not define the special JSArray
+    // subclasses, so we check to see if they are defined before
+    // trying to resolve them.
+    if (jsFixedArrayClass != null) {
+      jsFixedArrayClass.ensureResolved(compiler);
+    }
+    if (jsExtendableArrayClass != null) {
+      jsExtendableArrayClass.ensureResolved(compiler);
+    }
 
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength = compiler.lookupElementIn(

@@ -77,6 +77,9 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator[]=(index, value) {}
     var add;
   }
+  class JSMutableArray extends JSArray {}
+  class JSFixedArray extends JSMutableArray {}
+  class JSExtendableArray extends JSMutableArray {}
   class JSString implements String, JSIndexable {
     var length;
     operator[](index) {}

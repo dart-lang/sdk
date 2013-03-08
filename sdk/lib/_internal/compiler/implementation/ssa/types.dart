@@ -40,12 +40,18 @@ abstract class HType {
     } else if (element == compiler.nullClass
                || element == backend.jsNullClass) {
       return HType.NULL;
-    } else if (element == backend.jsArrayClass) {
-      return isNullable
-          ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
-          : HType.READABLE_ARRAY;
-    } else if (element == backend.jsIndexableClass && !isNullable) {
-      return HType.INDEXABLE_PRIMITIVE;
+    } else if (!isNullable) {
+      if (element == backend.jsIndexableClass) {
+        return HType.INDEXABLE_PRIMITIVE;
+      } else if (element == backend.jsArrayClass) {
+        return HType.READABLE_ARRAY;
+      } else if (element == backend.jsMutableArrayClass) {
+        return HType.MUTABLE_ARRAY;
+      } else if (element == backend.jsFixedArrayClass) {
+        return HType.FIXED_ARRAY;
+      } else if (element == backend.jsExtendableArrayClass) {
+        return HType.EXTENDABLE_ARRAY;
+      }
     }
     return new HBoundedType(mask);
   }
@@ -837,11 +843,11 @@ class HReadableArrayType extends HIndexablePrimitiveType {
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.jsArrayClass.rawType;
+    return backend.jsArrayClass.computeType(compiler);
   }
 
   TypeMask computeMask(Compiler compiler) {
-    return new TypeMask.nonNullExact(computeType(compiler));
+    return new TypeMask.nonNullSubclass(computeType(compiler));
   }
 
   bool useOldIntersection() => true;
@@ -873,6 +879,15 @@ class HMutableArrayType extends HReadableArrayType {
   bool isMutableArray() => true;
   String toString() => "mutable array";
 
+  DartType computeType(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsMutableArrayClass.computeType(compiler);
+  }
+
+  TypeMask computeMask(Compiler compiler) {
+    return new TypeMask.nonNullSubclass(computeType(compiler));
+  }
+
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.MUTABLE_ARRAY;
     if (other.isUnknown()) return HType.UNKNOWN;
@@ -900,6 +915,15 @@ class HFixedArrayType extends HMutableArrayType {
   bool isFixedArray() => true;
   String toString() => "fixed array";
   bool isExact() => true;
+
+  DartType computeType(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsFixedArrayClass.computeType(compiler);
+  }
+
+  TypeMask computeMask(Compiler compiler) {
+    return new TypeMask.nonNullExact(computeType(compiler));
+  }
 
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.FIXED_ARRAY;
@@ -930,6 +954,15 @@ class HExtendableArrayType extends HMutableArrayType {
   bool isExtendableArray() => true;
   String toString() => "extendable array";
   bool isExact() => true;
+
+  DartType computeType(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsExtendableArrayClass.computeType(compiler);
+  }
+
+  TypeMask computeMask(Compiler compiler) {
+    return new TypeMask.nonNullExact(computeType(compiler));
+  }
 
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.EXTENDABLE_ARRAY;
@@ -978,8 +1011,12 @@ class HBoundedType extends HType {
 
   bool canBePrimitiveArray(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    DartType jsArrayType = backend.jsArrayClass.computeType(compiler);
-    return mask.contains(jsArrayType, compiler);
+    DartType jsArrayType = backend.jsArrayClass.rawType;
+    DartType jsFixedArrayType = backend.jsFixedArrayClass.rawType;
+    DartType jsExtendableArrayType = backend.jsExtendableArrayClass.rawType;
+    return mask.contains(jsArrayType, compiler)
+        || mask.contains(jsFixedArrayType, compiler)
+        || mask.contains(jsExtendableArrayType, compiler);
   }
 
   bool canBePrimitiveString(Compiler compiler) {

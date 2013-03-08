@@ -31,7 +31,11 @@ HType nonPrimitive1;
 HType nonPrimitive2;
 HType potentialArray;
 HType potentialString;
+
 HType jsArrayOrNull;
+HType jsMutableArrayOrNull;
+HType jsFixedArrayOrNull;
+HType jsExtendableArrayOrNull;
 HType jsIndexableOrNull;
 
 void testUnion(MockCompiler compiler) {
@@ -482,7 +486,7 @@ void testUnion(MockCompiler compiler) {
                 MUTABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 MUTABLE_ARRAY.union(STRING_OR_NULL, compiler));
-  Expect.equals(jsArrayOrNull,
+  Expect.equals(jsMutableArrayOrNull,
                 MUTABLE_ARRAY.union(NULL, compiler));
   Expect.equals(MUTABLE_ARRAY,
                 MUTABLE_ARRAY.union(FIXED_ARRAY, compiler));
@@ -527,7 +531,7 @@ void testUnion(MockCompiler compiler) {
                 EXTENDABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 EXTENDABLE_ARRAY.union(STRING_OR_NULL, compiler));
-  Expect.equals(jsArrayOrNull,
+  Expect.equals(jsExtendableArrayOrNull,
                 EXTENDABLE_ARRAY.union(NULL, compiler));
   Expect.equals(MUTABLE_ARRAY,
                 EXTENDABLE_ARRAY.union(FIXED_ARRAY, compiler));
@@ -953,9 +957,9 @@ void testUnion(MockCompiler compiler) {
                 NULL.union(STRING, compiler));
   Expect.equals(jsArrayOrNull,
                 NULL.union(READABLE_ARRAY, compiler));
-  Expect.equals(jsArrayOrNull,
+  Expect.equals(jsMutableArrayOrNull,
                 NULL.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(jsArrayOrNull,
+  Expect.equals(jsExtendableArrayOrNull,
                 NULL.union(EXTENDABLE_ARRAY, compiler));
   Expect.equals(UNKNOWN,
                 NULL.union(nonPrimitive1, compiler));
@@ -977,7 +981,7 @@ void testUnion(MockCompiler compiler) {
                 NULL.union(STRING_OR_NULL, compiler));
   Expect.equals(NULL,
                 NULL.union(NULL, compiler));
-  Expect.equals(jsArrayOrNull,
+  Expect.equals(jsFixedArrayOrNull,
                 NULL.union(FIXED_ARRAY, compiler));
 
   Expect.equals(FIXED_ARRAY,
@@ -1020,7 +1024,7 @@ void testUnion(MockCompiler compiler) {
                 FIXED_ARRAY.union(DOUBLE_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 FIXED_ARRAY.union(STRING_OR_NULL, compiler));
-  Expect.equals(jsArrayOrNull,
+  Expect.equals(jsFixedArrayOrNull,
                 FIXED_ARRAY.union(NULL, compiler));
   Expect.equals(FIXED_ARRAY,
                 FIXED_ARRAY.union(FIXED_ARRAY, compiler));
@@ -2056,8 +2060,14 @@ void main() {
       compiler.listClass.computeType(compiler), compiler);
   potentialString = new HType.subtype(
       patternClass.computeType(compiler), compiler);
-  jsArrayOrNull = new HType.exact(
+  jsArrayOrNull = new HType.subclass(
       compiler.backend.jsArrayClass.computeType(compiler), compiler);
+  jsMutableArrayOrNull = new HType.subclass(
+      compiler.backend.jsMutableArrayClass.computeType(compiler), compiler);
+  jsFixedArrayOrNull = new HType.exact(
+      compiler.backend.jsFixedArrayClass.computeType(compiler), compiler);
+  jsExtendableArrayOrNull = new HType.exact(
+      compiler.backend.jsExtendableArrayClass.computeType(compiler), compiler);
   jsIndexableOrNull = new HType.subtype(
       compiler.backend.jsIndexableClass.computeType(compiler), compiler);
 

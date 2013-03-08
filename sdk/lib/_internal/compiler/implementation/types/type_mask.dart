@@ -59,8 +59,10 @@ class TypeMask {
    * Returns whether or not this type mask contains the given type.
    */
   bool contains(DartType type, Compiler compiler) {
-    if (isExact) {
-      return identical(base.element, type.element);
+    if (identical(base.element, type.element)) {
+      return true;
+    } else if (isExact) {
+      return false;
     } else if (isSubclass) {
       return isSubclassOf(type, base, compiler);
     } else {
