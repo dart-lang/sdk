@@ -31,10 +31,10 @@ main() {
   }
   new CollectionTest(fixedList);
 
-  // Dynamic size list.
+  // Growable list.
   new CollectionTest(new List.from(TEST_ELEMENTS));
 
-  // Dynamic size set.
+  // Set.
   new CollectionTest(new Set.from(TEST_ELEMENTS));
 
   // Queue.

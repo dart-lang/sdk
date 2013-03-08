@@ -56,7 +56,7 @@ class _LocalMirrorSystemImpl implements MirrorSystem {
     if (_dynamicType == null) {
       _dynamicType =
           new _LocalClassMirrorImpl(
-              null, 'Dynamic', false, null, null, [], null,
+              null, 'dynamic', false, null, null, [], null,
               const {}, const {}, const {});
     }
     return _dynamicType;
@@ -340,8 +340,7 @@ class _LazyTypeMirror {
 
   TypeMirror resolve(MirrorSystem mirrors) {
     if (libraryName == null) {
-      // TODO(turnidge): Remove support for 'Dynamic'.
-      if ((typeName == 'dynamic') || (typeName == 'Dynamic')) {
+      if (typeName == 'dynamic') {
         return mirrors.dynamicType;
       } else if (typeName == 'void') {
         return mirrors.voidType;
@@ -385,7 +384,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       }
     } else {
       // The owner of a ClassMirror is null in certain odd cases, like
-      // 'void', 'Dynamic' and function type mirrors.
+      // 'void', 'dynamic' and function type mirrors.
       _qualifiedName = simpleName;
     }
     return _qualifiedName;

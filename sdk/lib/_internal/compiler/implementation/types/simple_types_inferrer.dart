@@ -430,7 +430,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   /**
-   * Returns the return type of [element]. Returns [:Dynamic:] if
+   * Returns the return type of [element]. Returns [:dynamic:] if
    * [element] has not been analyzed yet.
    */
   TypeMask returnTypeOfElement(Element element) {
@@ -447,7 +447,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   /**
-   * Returns the type of [element]. Returns [:Dynamic:] if
+   * Returns the type of [element]. Returns [:dynamic:] if
    * [element] has not been analyzed yet.
    */
   TypeMask typeOfElement(Element element) {
@@ -974,7 +974,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
     Selector getterSelector =
         elements.getGetterSelectorInComplexSendSet(node);
-    Selector operatorSelector = 
+    Selector operatorSelector =
         elements.getOperatorSelectorInComplexSendSet(node);
     Selector setterSelector = elements.getSelector(node);
 
@@ -984,7 +984,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     TypeMask receiverType = element != null
         ? inferrer.dynamicType
         : visit(node.receiver);
-      
+
     TypeMask rhsType = isIncrementOrDecrement
         ? inferrer.intType
         : node.isIndex
@@ -1095,7 +1095,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     } else {
       analyzeArguments(node.arguments);
       // Closure call on a getter. We don't have function types yet,
-      // so we just return [:Dynamic:].
+      // so we just return [:dynamic:].
       return inferrer.dynamicType;
     }
   }

@@ -1671,7 +1671,7 @@ class Dartdoc {
   annotateType(ContainerMirror enclosingType,
                TypeMirror type,
                [String paramName = null]) {
-    // Don't bother explicitly displaying Dynamic.
+    // Don't bother explicitly displaying dynamic.
     if (type.isDynamic) {
       if (paramName != null) write(paramName);
       return;
@@ -1701,7 +1701,7 @@ class Dartdoc {
       return;
     }
     if (type.isDynamic) {
-      // Do not generate links for Dynamic.
+      // Do not generate links for dynamic.
       write('dynamic');
       return;
     }

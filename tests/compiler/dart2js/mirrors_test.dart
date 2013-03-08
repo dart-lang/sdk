@@ -110,7 +110,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
                 "Unexpected library returned from type");
 
   Expect.isFalse(fooClass.isObject, "Class is Object");
-  Expect.isFalse(fooClass.isDynamic, "Class is Dynamic");
+  Expect.isFalse(fooClass.isDynamic, "Class is dynamic");
   Expect.isFalse(fooClass.isVoid, "Class is void");
   Expect.isFalse(fooClass.isTypeVariable, "Class is a type variable");
   Expect.isFalse(fooClass.isTypedef, "Class is a typedef");
@@ -437,7 +437,7 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
                 "Unexpected library returned from type");
 
   Expect.isFalse(barClass.isObject, "Interface is Object");
-  Expect.isFalse(barClass.isDynamic, "Interface is Dynamic");
+  Expect.isFalse(barClass.isDynamic, "Interface is dynamic");
   Expect.isFalse(barClass.isVoid, "Interface is void");
   Expect.isFalse(barClass.isTypeVariable, "Interface is a type variable");
   Expect.isFalse(barClass.isTypedef, "Interface is a typedef");
@@ -531,7 +531,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                 "Unexpected library returned from type");
 
   Expect.isFalse(bazClass.isObject, "Class is Object");
-  Expect.isFalse(bazClass.isDynamic, "Class is Dynamic");
+  Expect.isFalse(bazClass.isDynamic, "Class is dynamic");
   Expect.isFalse(bazClass.isVoid, "Class is void");
   Expect.isFalse(bazClass.isTypeVariable, "Class is a type variable");
   Expect.isFalse(bazClass.isTypedef, "Class is a typedef");
@@ -642,12 +642,12 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   var dynamicType = method1.returnType;
   Expect.isNotNull(dynamicType, "Return type was null");
-  Expect.isFalse(dynamicType.isObject, "Dynamic is Object");
-  Expect.isTrue(dynamicType.isDynamic, "Dynamic is not Dynamic");
-  Expect.isFalse(dynamicType.isVoid, "Dynamic is void");
-  Expect.isFalse(dynamicType.isTypeVariable, "Dynamic is a type variable");
-  Expect.isFalse(dynamicType.isTypedef, "Dynamic is a typedef");
-  Expect.isFalse(dynamicType.isFunction, "Dynamic is a function");
+  Expect.isFalse(dynamicType.isObject, "dynamic is Object");
+  Expect.isTrue(dynamicType.isDynamic, "dynamic is not dynamic");
+  Expect.isFalse(dynamicType.isVoid, "dynamic is void");
+  Expect.isFalse(dynamicType.isTypeVariable, "dynamic is a type variable");
+  Expect.isFalse(dynamicType.isTypedef, "dynamic is a typedef");
+  Expect.isFalse(dynamicType.isFunction, "dynamic is a function");
 
   var method1Parameters = method1.parameters;
   Expect.isNotNull(method1Parameters, "Method parameters is null");
@@ -697,7 +697,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   var voidType = method2.returnType;
   Expect.isNotNull(voidType, "Return type was null");
   Expect.isFalse(voidType.isObject, "void is Object");
-  Expect.isFalse(voidType.isDynamic, "void is Dynamic");
+  Expect.isFalse(voidType.isDynamic, "void is dynamic");
   Expect.isTrue(voidType.isVoid, "void is not void");
   Expect.isFalse(voidType.isTypeVariable, "void is a type variable");
   Expect.isFalse(voidType.isTypedef, "void is a typedef");
@@ -811,7 +811,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals("mirrors_helper.Func", funcTypedef.qualifiedName,
                       "Unexpected simpleName");
   Expect.isFalse(funcTypedef.isObject, "Typedef is Object");
-  Expect.isFalse(funcTypedef.isDynamic, "Typedef is Dynamic");
+  Expect.isFalse(funcTypedef.isDynamic, "Typedef is dynamic");
   Expect.isFalse(funcTypedef.isVoid, "Typedef is void");
   Expect.isFalse(funcTypedef.isTypeVariable, "Typedef is a type variable");
   Expect.isTrue(funcTypedef.isTypedef, "Typedef is not a typedef");

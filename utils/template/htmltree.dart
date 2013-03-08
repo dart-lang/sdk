@@ -361,10 +361,10 @@ class TreePrinter implements TreeVisitor {
   void visitTemplateDocument(TemplateDocument node) {
     output.heading('Content', node.span);
     output.depth++;
-    // TODO(terry): Ugly use of 'as Dynamic' instead of children[0] to
+    // TODO(terry): Ugly use of 'as dynamic' instead of children[0] to
     //              surpress warning.
     assert(node.children.length == 1 &&
-        (node.children as Dynamic)[0].tagTokenId == -1);
+        (node.children as dynamic)[0].tagTokenId == -1);
     output.writeNodeList("document", node.children);
     output.depth--;
   }

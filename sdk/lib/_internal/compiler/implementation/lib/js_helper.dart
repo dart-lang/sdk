@@ -934,7 +934,7 @@ jsPropertyAccess(var jsObject, String property) {
 getFallThroughError() => const FallThroughErrorImplementation();
 
 /**
- * Represents the type Dynamic. The compiler treats this specially.
+ * Represents the type dynamic. The compiler treats this specially.
  */
 abstract class Dynamic_ {
 }

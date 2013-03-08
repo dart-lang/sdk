@@ -1224,7 +1224,7 @@ class _Deserializer {
 
   deserialize(x) {
     if (isPrimitive(x)) return x;
-    // TODO(floitsch): this should be new HashMap<int, var|Dynamic>()
+    // TODO(floitsch): this should be new HashMap<int, dynamic>()
     _deserialized = new HashMap();
     return _deserializeHelper(x);
   }

@@ -1409,10 +1409,6 @@ class TypeResolver {
       String stringValue = typeName.source.stringValue;
       if (identical(stringValue, 'void')) {
         return compiler.types.voidType.element;
-      } else if (identical(stringValue, 'Dynamic')) {
-        // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-        compiler.onDeprecatedFeature(typeName, 'Dynamic');
-        return compiler.dynamicClass;
       } else if (identical(stringValue, 'dynamic')) {
         return compiler.dynamicClass;
       } else {

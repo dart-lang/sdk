@@ -268,7 +268,7 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(?:void|bool|num|int|double|Dynamic|var|String)\b</string>
+					<string>\b(?:void|bool|num|int|double|dynamic|var|String)\b</string>
 					<key>name</key>
 					<string>storage.type.primitive.dart</string>
 				</dict>
