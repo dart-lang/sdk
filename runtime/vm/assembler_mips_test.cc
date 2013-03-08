@@ -16,8 +16,8 @@ namespace dart {
 
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
-  __ ori(V0, ZR, Immediate(42));
   __ jr(RA);
+  __ delay_slot()->ori(V0, ZR, Immediate(42));
 }
 
 

@@ -133,6 +133,8 @@ class Assembler : public ValueObject {
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
+        delay_slot_available_(false),
+        in_delay_slot_(false),
         comments_() { }
   ~Assembler() { }
 
@@ -206,6 +208,17 @@ class Assembler : public ValueObject {
     return NULL;
   }
 
+  // A utility to be able to assemble an instruction into the delay slot.
+  Assembler* delay_slot() {
+    ASSERT(delay_slot_available_);
+    ASSERT(buffer_.Load<int32_t>(buffer_.GetPosition() - sizeof(int32_t)) ==
+        Instr::kNopInstruction);
+    buffer_.Remit<int32_t>();
+    delay_slot_available_ = false;
+    in_delay_slot_ = true;
+    return this;
+  }
+
   // CPU instructions.
   void ori(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsUint(16, imm.value()));
@@ -214,14 +227,19 @@ class Assembler : public ValueObject {
   }
 
   void jr(Register rs) {
+    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
     EmitRType(SPECIAL, rs, R0, R0, 0, JR);
-    Emit(0);  // Branch delay NOP.
+    Emit(Instr::kNopInstruction);  // Branch delay NOP.
+    delay_slot_available_ = true;
   }
 
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   int prologue_offset_;
+
+  bool delay_slot_available_;
+  bool in_delay_slot_;
 
   class CodeComment : public ZoneAllocated {
    public:
@@ -241,6 +259,9 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   void Emit(int32_t value) {
+    // Emitting an instruction clears the delay slot state.
+    in_delay_slot_ = false;
+    delay_slot_available_ = false;
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     buffer_.Emit<int32_t>(value);
   }

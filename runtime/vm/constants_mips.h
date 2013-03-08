@@ -286,6 +286,7 @@ class Instr {
 
   static const int32_t kBreakPointInstruction =
       (SPECIAL << kOpcodeShift) | (BREAK << kFunctionShift);
+  static const int32_t kNopInstruction = 0;
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {
