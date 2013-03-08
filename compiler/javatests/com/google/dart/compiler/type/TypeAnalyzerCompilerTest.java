@@ -46,7 +46,6 @@ import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -1553,9 +1552,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
     }
     // Check that unqualified foo() invocation is resolved to the top-level (library) function.
-    NodeElement element = invocation.getTarget().getElement();
+    Element element = invocation.getTarget().getElement();
     assertNotNull(element);
-    assertSame(testUnit, element.getNode().getParent());
+    assertTrue(element.getEnclosingElement() instanceof LibraryElement);
   }
 
   /**
@@ -5170,7 +5169,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertSame(typeA, type);
       // .named
       DartIdentifier nameNode = findNode(DartIdentifier.class, "named;");
-      NodeElement nameElement = nameNode.getElement();
+      Element nameElement = nameNode.getElement();
       assertNotNull(nameElement);
       assertSame(elementA.lookupConstructor("named"), nameElement);
     }

@@ -5,7 +5,6 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.NodeElement;
 
 /**
  * Represents a Dart property access expression (a.b).
@@ -71,7 +70,7 @@ public class DartPropertyAccess extends DartExpression {
   }
 
   @Override
-  public NodeElement getElement() {
+  public Element getElement() {
     return name.getElement();
   }
 

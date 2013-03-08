@@ -5,7 +5,6 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.util.StringInterner;
 
 /**
@@ -14,7 +13,7 @@ import com.google.dart.compiler.util.StringInterner;
 public class DartIdentifier extends DartExpression {
 
   private final String name;
-  private NodeElement element;
+  private Element element;
   private boolean resolutionAlreadyReportedThatTheMethodCouldNotBeFound;
 
   public DartIdentifier(String name) {
@@ -27,7 +26,7 @@ public class DartIdentifier extends DartExpression {
   }
 
   @Override
-  public NodeElement getElement() {
+  public Element getElement() {
     return element;
   }
 
@@ -48,7 +47,7 @@ public class DartIdentifier extends DartExpression {
 
   @Override
   public void setElement(Element element) {
-    this.element = (NodeElement) element;
+    this.element = element;
   }
 
   /**

@@ -118,7 +118,6 @@ import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -1787,7 +1786,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       } else {
         variableType = typeOf(node.getIdentifier());
         // in most cases variable, but sometimes field
-        NodeElement identifierElement = node.getIdentifier().getElement();
+        Element identifierElement = node.getIdentifier().getElement();
         if (identifierElement instanceof VariableElement) {
           variableElement = (VariableElement) identifierElement;
         }
@@ -2780,7 +2779,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * Report warning if given {@link Element} is deprecated.
      */
     private void checkDeprecated(HasSourceInfo nameNode, Element element) {
-      if (element != null && element.getMetadata().isDeprecated()) {
+      if (element != null && element.getMetadata() != null && element.getMetadata().isDeprecated()) {
         onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT,
             Elements.getDeprecatedElementTitle(element));
       }

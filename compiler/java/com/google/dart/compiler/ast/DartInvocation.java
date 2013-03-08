@@ -5,7 +5,6 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.NodeElement;
 
 import java.util.List;
 
@@ -36,7 +35,7 @@ import java.util.List;
 public abstract class DartInvocation extends DartExpression {
 
   private final NodeList<DartExpression> arguments = NodeList.create(this);
-  private NodeElement element;
+  private Element element;
 
   public DartInvocation(List<DartExpression> arguments) {
     if (arguments != null && !arguments.isEmpty()) {
@@ -53,12 +52,12 @@ public abstract class DartInvocation extends DartExpression {
   }
 
   @Override
-  public NodeElement getElement() {
+  public Element getElement() {
     return element;
   }
 
   @Override
   public void setElement(Element element) {
-    this.element = (NodeElement) element;
+    this.element = element;
   }
 }
