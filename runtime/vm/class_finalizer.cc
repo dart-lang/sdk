@@ -1543,6 +1543,11 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       case kExternalFloat32ArrayCid:
       case kFloat64ArrayCid:
       case kExternalFloat64ArrayCid:
+#define DO_NOT_EXTEND_TYPED_DATA_CLASSES(clazz)                               \
+      case kTypedData##clazz##Cid:                                            \
+      case kExternalTypedData##clazz##Cid:
+      CLASS_LIST_TYPED_DATA(DO_NOT_EXTEND_TYPED_DATA_CLASSES)
+#undef DO_NOT_EXTEND_TYPED_DATA_CLASSES
       case kDartFunctionCid:
       case kWeakPropertyCid:
         is_error = true;
