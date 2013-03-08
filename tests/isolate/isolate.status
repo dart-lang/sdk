@@ -45,7 +45,7 @@ compute_this_script_browser_test: Pass
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750
 
-[ $compiler == dart2js && ($runtime == d8 || $jscl || ($runtime == ff && $system == windows)) ]
+[ $compiler == dart2js && ($runtime == d8 || $jscl || (($runtime == ff || $runtime == ie9) && $system == windows)) ]
 global_error_handler_test: Fail # http://dartbug.com/9012
 
 [ $runtime == safari ]
