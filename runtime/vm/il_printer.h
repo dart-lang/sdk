@@ -53,6 +53,7 @@ class FlowGraphPrinter : public ValueObject {
                              const AbstractType& dst_type,
                              const String& dst_name,
                              bool eliminated);
+  static void PrintBlock(BlockEntryInstr* block, bool print_locations);
 
   static void PrintGraph(const char* phase, FlowGraph* flow_graph);
 

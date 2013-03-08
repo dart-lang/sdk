@@ -260,6 +260,35 @@ class ConstantPropagator : public FlowGraphVisitor {
 };
 
 
+// Rewrite branches to eliminate materialization of boolean values after
+// inlining, and to expose other optimizations (e.g., constant folding of
+// branches, unreachable code elimination).
+class BranchSimplifier : public AllStatic {
+ public:
+  static void Simplify(FlowGraph* flow_graph);
+
+ private:
+  // Match an instance of the pattern to rewrite.  See the implementation
+  // for the patterns that are handled by this pass.
+  static bool Match(JoinEntryInstr* block);
+
+  // Replace a target entry instruction with a join entry instruction.  Does
+  // not update the original target's predecessors to point to the new block
+  // and does not replace the target in already computed block order lists.
+  static JoinEntryInstr* ToJoinEntry(TargetEntryInstr* target);
+
+  // Duplicate a constant, assigning it a new SSA name.
+  static ConstantInstr* CloneConstant(FlowGraph* flow_graph,
+                                      ConstantInstr* constant);
+
+  // Duplicate a branch while replacing its comparison's left and right
+  // inputs.
+  static BranchInstr* CloneBranch(BranchInstr* branch,
+                                  Value* left,
+                                  Value* right);
+};
+
+
 }  // namespace dart
 
 #endif  // VM_FLOW_GRAPH_OPTIMIZER_H_

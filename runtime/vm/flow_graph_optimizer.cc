@@ -4374,4 +4374,185 @@ void ConstantPropagator::Transform() {
 }
 
 
+bool BranchSimplifier::Match(JoinEntryInstr* block) {
+  // Match the pattern of a branch on a comparison whose left operand is a
+  // phi from the same block, and whose right operand is a constant.
+  //
+  //   Branch(Comparison(kind, Phi, Constant))
+  //
+  // These are the branches produced by inlining in a test context.  Also,
+  // the phi and the constant have no other uses so they can simply be
+  // eliminated.  The block has no other phis and no instructions
+  // intervening between the phi, constant, and branch so the block can
+  // simply be eliminated.
+  BranchInstr* branch = block->last_instruction()->AsBranch();
+  ASSERT(branch != NULL);
+  ComparisonInstr* comparison = branch->comparison();
+  Value* left = comparison->left();
+  PhiInstr* phi = left->definition()->AsPhi();
+  Value* right = comparison->right();
+  ConstantInstr* constant = right->definition()->AsConstant();
+  return (phi != NULL) &&
+      (constant != NULL) &&
+      (phi->GetBlock() == block) &&
+      phi->HasOnlyUse(left) &&
+      constant->HasOnlyUse(right) &&
+      (block->next() == constant) &&
+      (constant->next() == branch) &&
+      (block->phis()->length() == 1);
+}
+
+
+JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
+  // Convert a target block into a join block.  Branches will be duplicated
+  // so the former true and false targets become joins of the control flows
+  // from all the duplicated branches.
+  JoinEntryInstr* join =
+      new JoinEntryInstr(target->block_id(), target->try_index());
+  join->LinkTo(target->next());
+  join->set_last_instruction(target->last_instruction());
+  return join;
+}
+
+
+ConstantInstr* BranchSimplifier::CloneConstant(FlowGraph* flow_graph,
+                                               ConstantInstr* constant) {
+  ConstantInstr* new_constant = new ConstantInstr(constant->value());
+  new_constant->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
+  return new_constant;
+}
+
+
+BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
+                                           Value* left,
+                                           Value* right) {
+  ComparisonInstr* comparison = branch->comparison();
+  ComparisonInstr* new_comparison = NULL;
+  if (comparison->IsStrictCompare()) {
+    new_comparison = new StrictCompareInstr(comparison->kind(), left, right);
+  } else if (comparison->IsEqualityCompare()) {
+    new_comparison =
+        new EqualityCompareInstr(comparison->AsEqualityCompare()->token_pos(),
+                                 comparison->kind(),
+                                 left,
+                                 right);
+  } else {
+    ASSERT(comparison->IsRelationalOp());
+    new_comparison =
+        new RelationalOpInstr(comparison->AsRelationalOp()->token_pos(),
+                              comparison->kind(),
+                              left,
+                              right);
+  }
+  return new BranchInstr(new_comparison, branch->is_checked());
+}
+
+
+void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
+  // Optimize some branches that test the value of a phi.  When it is safe
+  // to do so, push the branch to each of the predecessor blocks.  This is
+  // an optimization when (a) it can avoid materializing a boolean object at
+  // the phi only to test its value, and (b) it can expose opportunities for
+  // constant propagation and unreachable code elimination.  This
+  // optimization is intended to run after inlining which creates
+  // opportunities for optimization (a) and before constant folding which
+  // can perform optimization (b).
+
+  // Begin with a worklist of join blocks ending in branches.  They are
+  // candidates for the pattern below.
+  const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();
+  GrowableArray<BlockEntryInstr*> worklist(postorder.length());
+  for (BlockIterator it(postorder); !it.Done(); it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    if (block->IsJoinEntry() && block->last_instruction()->IsBranch()) {
+      worklist.Add(block);
+    }
+  }
+
+  // Rewrite until no more instance of the pattern exists.
+  bool changed = false;
+  while (!worklist.is_empty()) {
+    // All blocks in the worklist are join blocks (ending with a branch).
+    JoinEntryInstr* block = worklist.RemoveLast()->AsJoinEntry();
+    ASSERT(block != NULL);
+
+    if (Match(block)) {
+      changed = true;
+
+      // The branch will be copied and pushed to all the join's
+      // predecessors.  Convert the true and false target blocks into join
+      // blocks to join the control flows from all of the true
+      // (respectively, false) targets of the copied branches.
+      //
+      // The converted join block will have no phis, so it cannot be another
+      // instance of the pattern.  There is thus no need to add it to the
+      // worklist.
+      BranchInstr* branch = block->last_instruction()->AsBranch();
+      ASSERT(branch != NULL);
+      JoinEntryInstr* join_true = ToJoinEntry(branch->true_successor());
+      JoinEntryInstr* join_false = ToJoinEntry(branch->false_successor());
+
+      ComparisonInstr* comparison = branch->comparison();
+      PhiInstr* phi = comparison->left()->definition()->AsPhi();
+      ConstantInstr* constant = comparison->right()->definition()->AsConstant();
+      ASSERT(constant != NULL);
+      // Copy the constant and branch and push it to all the predecessors.
+      for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
+        GotoInstr* old_goto =
+            block->PredecessorAt(i)->last_instruction()->AsGoto();
+        ASSERT(old_goto != NULL);
+
+        // Insert a copy of the constant in all the predecessors.
+        ConstantInstr* new_constant = CloneConstant(flow_graph, constant);
+        new_constant->InsertBefore(old_goto);
+
+        // Replace the goto in each predecessor with a rewritten branch,
+        // rewritten to use the corresponding phi input instead of the phi.
+        Value* new_left = phi->InputAt(i)->Copy();
+        Value* new_right = new Value(new_constant);
+        BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
+        new_branch->InsertBefore(old_goto);
+        new_branch->set_next(NULL);  // Detaching the goto from the graph.
+        old_goto->UnuseAllInputs();
+
+        // Update the predecessor block.  We may have created another
+        // instance of the pattern so add it to the worklist if necessary.
+        BlockEntryInstr* branch_block = new_branch->GetBlock();
+        branch_block->set_last_instruction(new_branch);
+        if (branch_block->IsJoinEntry()) worklist.Add(branch_block);
+
+        // Connect the branch to the true and false joins, via empty target
+        // blocks.
+        TargetEntryInstr* true_target =
+            new TargetEntryInstr(flow_graph->max_block_id() + 1,
+                                 block->try_index());
+        TargetEntryInstr* false_target =
+            new TargetEntryInstr(flow_graph->max_block_id() + 2,
+                                 block->try_index());
+        flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
+        *new_branch->true_successor_address() = true_target;
+        *new_branch->false_successor_address() = false_target;
+        GotoInstr* goto_true = new GotoInstr(join_true);
+        true_target->LinkTo(goto_true);
+        true_target->set_last_instruction(goto_true);
+        GotoInstr* goto_false = new GotoInstr(join_false);
+        false_target->LinkTo(goto_false);
+        false_target->set_last_instruction(goto_false);
+      }
+      // When all predecessors have been rewritten, the original block is
+      // unreachable from the graph.
+      phi->UnuseAllInputs();
+      branch->UnuseAllInputs();
+    }
+  }
+
+  if (changed) {
+    // We may have changed the block order and the dominator tree.
+    flow_graph->DiscoverBlocks();
+    GrowableArray<BitVector*> dominance_frontier;
+    flow_graph->ComputeDominators(&dominance_frontier);
+  }
+}
+
+
 }  // namespace dart

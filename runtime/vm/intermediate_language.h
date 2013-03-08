@@ -563,7 +563,7 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsControl());
+    ASSERT(!IsControl() || (instr == NULL));
     ASSERT(!IsPhi());
     ASSERT(instr == NULL || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
@@ -1312,6 +1312,7 @@ class Definition : public Instruction {
   bool HasUses() const {
     return (input_use_list_ != NULL) || (env_use_list_ != NULL);
   }
+  bool HasOnlyUse(Value* use) const;
 
   Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
@@ -2032,6 +2033,8 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   const Object& value() const { return value_; }
 

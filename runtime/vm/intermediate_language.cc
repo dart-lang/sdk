@@ -497,6 +497,15 @@ void Value::RemoveFromUseList() {
 }
 
 
+bool Definition::HasOnlyUse(Value* use) const {
+  if (((input_use_list() == use) && (env_use_list() == NULL)) ||
+      ((input_use_list() == NULL) && (env_use_list() == use))) {
+    return (use->next_use() == NULL);
+  }
+  return false;
+}
+
+
 void Definition::ReplaceUsesWith(Definition* other) {
   ASSERT(other != NULL);
   ASSERT(this != other);
@@ -1160,6 +1169,11 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
     default:
       return false;
   }
+}
+
+
+Definition* ConstantInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  return HasUses() ? this : NULL;
 }
 
 

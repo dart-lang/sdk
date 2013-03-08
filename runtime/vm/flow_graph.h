@@ -142,6 +142,7 @@ class FlowGraph : public ZoneAllocated {
 #endif  // DEBUG
 
  private:
+  friend class BranchSimplifier;
   friend class ConstantPropagator;
 
   void DiscoverBlocks();

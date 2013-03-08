@@ -40,28 +40,27 @@ void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
 }
 
 
+void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
+                                  bool print_locations) {
+  // Print the block entry.
+  PrintOneInstruction(block, print_locations);
+  OS::Print("\n");
+  // And all the successors in the block.
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* current = it.Current();
+    PrintOneInstruction(current, print_locations);
+    OS::Print("\n");
+  }
+}
+
+
 void FlowGraphPrinter::PrintBlocks() {
   if (!function_.IsNull()) {
     OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
   }
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    // Print the block entry.
-    PrintInstruction(block_order_[i]);
-    // And all the successors until an exit, branch, or a block entry.
-    Instruction* current = block_order_[i];
-    for (ForwardInstructionIterator it(current->AsBlockEntry());
-         !it.Done();
-         it.Advance()) {
-      current = it.Current();
-      OS::Print("\n");
-      PrintInstruction(current);
-    }
-    if (current->next() != NULL) {
-      ASSERT(current->next()->IsBlockEntry());
-      OS::Print(" goto %"Pd"", current->next()->AsBlockEntry()->block_id());
-    }
-    OS::Print("\n");
+    PrintBlock(block_order_[i], print_locations_);
   }
 }
 
