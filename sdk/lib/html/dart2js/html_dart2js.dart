@@ -8772,6 +8772,38 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
+  @deprecated
+  int get clientHeight => client.height;
+  @deprecated
+  int get clientLeft => client.left;
+  @deprecated
+  int get clientTop => client.top;
+  @deprecated
+  int get clientWidth => client.width;
+
+  @DomName('Element.clientHeight')
+  @DomName('Element.clientLeft')
+  @DomName('Element.clientTop')
+  @DomName('Element.clientWidth')
+  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
+      $dom_clientHeight);
+
+  @deprecated
+  int get offsetHeight => offset.height;
+  @deprecated
+  int get offsetLeft => offset.left;
+  @deprecated
+  int get offsetTop => offset.top;
+  @deprecated
+  int get offsetWidth => offset.width;
+
+  @DomName('Element.offsetHeight')
+  @DomName('Element.offsetLeft')
+  @DomName('Element.offsetTop')
+  @DomName('Element.offsetWidth')
+  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
+      $dom_offsetHeight);
+
   /**
    * Adds the specified element to after the last child of this element.
    */
@@ -9285,21 +9317,25 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   String $dom_className;
 
+  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable
-  final int clientHeight;
+  final int $dom_clientHeight;
 
+  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable
-  final int clientLeft;
+  final int $dom_clientLeft;
 
+  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable
-  final int clientTop;
+  final int $dom_clientTop;
 
+  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable
-  final int clientWidth;
+  final int $dom_clientWidth;
 
   @JSName('firstElementChild')
   @DomName('Element.firstElementChild')
@@ -9315,25 +9351,29 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   final Element nextElementSibling;
 
+  @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable
-  final int offsetHeight;
+  final int $dom_offsetHeight;
 
+  @JSName('offsetLeft')
   @DomName('Element.offsetLeft')
   @DocsEditable
-  final int offsetLeft;
+  final int $dom_offsetLeft;
 
   @DomName('Element.offsetParent')
   @DocsEditable
   final Element offsetParent;
 
+  @JSName('offsetTop')
   @DomName('Element.offsetTop')
   @DocsEditable
-  final int offsetTop;
+  final int $dom_offsetTop;
 
+  @JSName('offsetWidth')
   @DomName('Element.offsetWidth')
   @DocsEditable
-  final int offsetWidth;
+  final int $dom_offsetWidth;
 
   @DomName('Element.previousElementSibling')
   @DocsEditable
@@ -19807,7 +19847,7 @@ class RtcdtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
   @DocsEditable
   final String tone;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19817,20 +19857,31 @@ class RtcdtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
 class Screen native "*Screen" {
 
   @DomName('Screen.availHeight')
-  @DocsEditable
-  final int availHeight;
+  @DomName('Screen.availLeft')
+  @DomName('Screen.availTop')
+  @DomName('Screen.availWidth')
+  Rect get available => new Rect($dom_availLeft, $dom_availTop, $dom_availWidth,
+      $dom_availHeight);
 
+  @JSName('availHeight')
+  @DomName('Screen.availHeight')
+  @DocsEditable
+  final int $dom_availHeight;
+
+  @JSName('availLeft')
   @DomName('Screen.availLeft')
   @DocsEditable
-  final int availLeft;
+  final int $dom_availLeft;
 
+  @JSName('availTop')
   @DomName('Screen.availTop')
   @DocsEditable
-  final int availTop;
+  final int $dom_availTop;
 
+  @JSName('availWidth')
   @DomName('Screen.availWidth')
   @DocsEditable
-  final int availWidth;
+  final int $dom_availWidth;
 
   @DomName('Screen.colorDepth')
   @DocsEditable

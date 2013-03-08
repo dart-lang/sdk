@@ -9509,6 +9509,38 @@ abstract class Element extends Node implements ElementTraversal {
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
+  @deprecated
+  int get clientHeight => client.height;
+  @deprecated
+  int get clientLeft => client.left;
+  @deprecated
+  int get clientTop => client.top;
+  @deprecated
+  int get clientWidth => client.width;
+
+  @DomName('Element.clientHeight')
+  @DomName('Element.clientLeft')
+  @DomName('Element.clientTop')
+  @DomName('Element.clientWidth')
+  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
+      $dom_clientHeight);
+
+  @deprecated
+  int get offsetHeight => offset.height;
+  @deprecated
+  int get offsetLeft => offset.left;
+  @deprecated
+  int get offsetTop => offset.top;
+  @deprecated
+  int get offsetWidth => offset.width;
+
+  @DomName('Element.offsetHeight')
+  @DomName('Element.offsetLeft')
+  @DomName('Element.offsetTop')
+  @DomName('Element.offsetWidth')
+  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
+      $dom_offsetHeight);
+
   /**
    * Adds the specified element to after the last child of this element.
    */
@@ -9857,19 +9889,19 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.clientHeight')
   @DocsEditable
-  int get clientHeight native "Element_clientHeight_Getter";
+  int get $dom_clientHeight native "Element_clientHeight_Getter";
 
   @DomName('Element.clientLeft')
   @DocsEditable
-  int get clientLeft native "Element_clientLeft_Getter";
+  int get $dom_clientLeft native "Element_clientLeft_Getter";
 
   @DomName('Element.clientTop')
   @DocsEditable
-  int get clientTop native "Element_clientTop_Getter";
+  int get $dom_clientTop native "Element_clientTop_Getter";
 
   @DomName('Element.clientWidth')
   @DocsEditable
-  int get clientWidth native "Element_clientWidth_Getter";
+  int get $dom_clientWidth native "Element_clientWidth_Getter";
 
   @DomName('Element.firstElementChild')
   @DocsEditable
@@ -9885,11 +9917,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.offsetHeight')
   @DocsEditable
-  int get offsetHeight native "Element_offsetHeight_Getter";
+  int get $dom_offsetHeight native "Element_offsetHeight_Getter";
 
   @DomName('Element.offsetLeft')
   @DocsEditable
-  int get offsetLeft native "Element_offsetLeft_Getter";
+  int get $dom_offsetLeft native "Element_offsetLeft_Getter";
 
   @DomName('Element.offsetParent')
   @DocsEditable
@@ -9897,11 +9929,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.offsetTop')
   @DocsEditable
-  int get offsetTop native "Element_offsetTop_Getter";
+  int get $dom_offsetTop native "Element_offsetTop_Getter";
 
   @DomName('Element.offsetWidth')
   @DocsEditable
-  int get offsetWidth native "Element_offsetWidth_Getter";
+  int get $dom_offsetWidth native "Element_offsetWidth_Getter";
 
   @DomName('Element.previousElementSibling')
   @DocsEditable
@@ -21480,33 +21512,38 @@ class RtcdtmfToneChangeEvent extends Event {
   String get tone native "RTCDTMFToneChangeEvent_tone_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('Screen')
 class Screen extends NativeFieldWrapperClass1 {
+
+  @DomName('Screen.availHeight')
+  @DomName('Screen.availLeft')
+  @DomName('Screen.availTop')
+  @DomName('Screen.availWidth')
+  Rect get available => new Rect($dom_availLeft, $dom_availTop, $dom_availWidth,
+      $dom_availHeight);
   Screen.internal();
 
   @DomName('Screen.availHeight')
   @DocsEditable
-  int get availHeight native "Screen_availHeight_Getter";
+  int get $dom_availHeight native "Screen_availHeight_Getter";
 
   @DomName('Screen.availLeft')
   @DocsEditable
-  int get availLeft native "Screen_availLeft_Getter";
+  int get $dom_availLeft native "Screen_availLeft_Getter";
 
   @DomName('Screen.availTop')
   @DocsEditable
-  int get availTop native "Screen_availTop_Getter";
+  int get $dom_availTop native "Screen_availTop_Getter";
 
   @DomName('Screen.availWidth')
   @DocsEditable
-  int get availWidth native "Screen_availWidth_Getter";
+  int get $dom_availWidth native "Screen_availWidth_Getter";
 
   @DomName('Screen.colorDepth')
   @DocsEditable
@@ -21523,7 +21560,6 @@ class Screen extends NativeFieldWrapperClass1 {
   @DomName('Screen.width')
   @DocsEditable
   int get width native "Screen_width_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

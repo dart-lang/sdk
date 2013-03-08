@@ -731,6 +731,38 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
+  @deprecated
+  int get clientHeight => client.height;
+  @deprecated
+  int get clientLeft => client.left;
+  @deprecated
+  int get clientTop => client.top;
+  @deprecated
+  int get clientWidth => client.width;
+
+  @DomName('Element.clientHeight')
+  @DomName('Element.clientLeft')
+  @DomName('Element.clientTop')
+  @DomName('Element.clientWidth')
+  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
+      $dom_clientHeight);
+
+  @deprecated
+  int get offsetHeight => offset.height;
+  @deprecated
+  int get offsetLeft => offset.left;
+  @deprecated
+  int get offsetTop => offset.top;
+  @deprecated
+  int get offsetWidth => offset.width;
+
+  @DomName('Element.offsetHeight')
+  @DomName('Element.offsetLeft')
+  @DomName('Element.offsetTop')
+  @DomName('Element.offsetWidth')
+  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
+      $dom_offsetHeight);
+
   /**
    * Adds the specified element to after the last child of this element.
    */

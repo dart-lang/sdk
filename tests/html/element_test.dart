@@ -60,10 +60,10 @@ main() {
       container.children.add(element);
       document.body.children.add(container);
 
-      expect(element.clientWidth, greaterThan(100));
-      expect(element.clientHeight, greaterThan(100));
-      expect(element.offsetWidth, greaterThan(100));
-      expect(element.offsetHeight, greaterThan(100));
+      expect(element.client.width, greaterThan(100));
+      expect(element.client.height, greaterThan(100));
+      expect(element.offset.width, greaterThan(100));
+      expect(element.offset.height, greaterThan(100));
       expect(element.scrollWidth, greaterThan(100));
       expect(element.scrollHeight, greaterThan(100));
       expect(element.getBoundingClientRect().left, 8);

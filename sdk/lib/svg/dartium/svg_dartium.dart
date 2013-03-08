@@ -6169,7 +6169,7 @@ class StopElement extends StyledElement {
 
   @DomName('SVGStopElement.offset')
   @DocsEditable
-  AnimatedNumber get offset native "SVGStopElement_offset_Getter";
+  AnimatedNumber get gradientOffset native "SVGStopElement_offset_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8289,7 +8289,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
 
   @DomName('SVGComponentTransferFunctionElement.offset')
   @DocsEditable
-  AnimatedNumber get offset native "SVGComponentTransferFunctionElement_offset_Getter";
+  AnimatedNumber get gradientOffset native "SVGComponentTransferFunctionElement_offset_Getter";
 
   @DomName('SVGComponentTransferFunctionElement.slope')
   @DocsEditable

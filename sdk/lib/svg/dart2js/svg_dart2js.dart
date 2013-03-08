@@ -5456,9 +5456,10 @@ class StopElement extends StyledElement native "*SVGStopElement" {
   @DocsEditable
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
+  @JSName('offset')
   @DomName('SVGStopElement.offset')
   @DocsEditable
-  final AnimatedNumber offset;
+  final AnimatedNumber gradientOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7413,9 +7414,10 @@ class _SVGComponentTransferFunctionElement extends SvgElement native "*SVGCompon
   @DocsEditable
   final AnimatedNumber intercept;
 
+  @JSName('offset')
   @DomName('SVGComponentTransferFunctionElement.offset')
   @DocsEditable
-  final AnimatedNumber offset;
+  final AnimatedNumber gradientOffset;
 
   @DomName('SVGComponentTransferFunctionElement.slope')
   @DocsEditable
