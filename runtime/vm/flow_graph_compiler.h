@@ -161,10 +161,38 @@ struct CidTarget {
 
 class FlowGraphCompiler : public ValueObject {
  private:
-  struct BlockInfo : public ZoneAllocated {
+  class BlockInfo : public ZoneAllocated {
    public:
-    BlockInfo() : label() { }
-    Label label;
+    BlockInfo()
+        : jump_label_(&block_label_),
+          block_label_(),
+          fallthrough_label_(NULL),
+          is_marked_(false) {}
+
+    Label* jump_label() const { return jump_label_; }
+    void set_jump_label(Label* label) { jump_label_ = label; }
+
+    // Label of the block that will follow this block in the generated code.
+    // Can be NULL if the block is the last block.
+    Label* fallthrough_label() const { return fallthrough_label_; }
+    void set_fallthrough_label(Label* fallthrough_label) {
+      fallthrough_label_ = fallthrough_label;
+    }
+
+    bool WasCompacted() const {
+      return jump_label_ != &block_label_;
+    }
+
+    bool is_marked() const { return is_marked_; }
+    void mark() { is_marked_ = true; }
+
+   private:
+    Label* jump_label_;
+    Label block_label_;
+
+    Label* fallthrough_label_;
+
+    bool is_marked_;
   };
 
  public:
@@ -321,11 +349,12 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.
-  Label* GetBlockLabel(BlockEntryInstr* block_entry) const;
+  Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
+  bool WasCompacted(BlockEntryInstr* block_entry) const;
 
   // Returns true if there is a next block after the current one in
   // the block order and if it is the given block.
-  bool IsNextBlock(BlockEntryInstr* block_entry) const;
+  bool CanFallThroughTo(BlockEntryInstr* block_entry) const;
 
   void AddExceptionHandler(intptr_t try_index,
                            intptr_t outer_try_index,
@@ -487,6 +516,9 @@ class FlowGraphCompiler : public ValueObject {
   // The expected number of elements to sort is less than 10.
   static void SortICDataByCount(const ICData& ic_data,
                                 GrowableArray<CidTarget>* sorted);
+
+  void CompactBlock(BlockEntryInstr* block);
+  void CompactBlocks();
 
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;

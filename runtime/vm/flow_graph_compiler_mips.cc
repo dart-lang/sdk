@@ -15,7 +15,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
   for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
+    ASSERT(!block_info_[i]->jump_label()->IsLinked());
   }
 }
 

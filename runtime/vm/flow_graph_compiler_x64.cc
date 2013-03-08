@@ -31,8 +31,8 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
   for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
-    ASSERT(!block_info_[i]->label.HasNear());
+    ASSERT(!block_info_[i]->jump_label()->IsLinked());
+    ASSERT(!block_info_[i]->jump_label()->HasNear());
   }
 }
 
@@ -1437,7 +1437,7 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
   assembler()->comisd(left, right);
   BlockEntryInstr* nan_result = (true_condition == NOT_EQUAL) ?
       branch->true_successor() : branch->false_successor();
-  assembler()->j(PARITY_EVEN, GetBlockLabel(nan_result));
+  assembler()->j(PARITY_EVEN, GetJumpLabel(nan_result));
   branch->EmitBranchOnCondition(this, true_condition);
 }
 

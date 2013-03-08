@@ -209,12 +209,62 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 }
 
 
+static bool IsEmptyBlock(BlockEntryInstr* block) {
+  return !block->HasParallelMove() &&
+         block->next()->IsGoto() &&
+         !block->next()->AsGoto()->HasParallelMove();
+}
+
+
+void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
+  BlockInfo* block_info = block_info_[block->postorder_number()];
+
+  if (block_info->is_marked()) {
+    return;
+  }
+  block_info->mark();
+
+  if (IsEmptyBlock(block)) {
+    BlockEntryInstr* target = block->next()->AsGoto()->successor();
+    CompactBlock(target);
+    block_info->set_jump_label(GetJumpLabel(target));
+  }
+}
+
+
+void FlowGraphCompiler::CompactBlocks() {
+  Label* fallthrough_label = NULL;
+  for (intptr_t i = block_order().length() - 1; i >= 1; --i) {
+    BlockEntryInstr* block = block_order()[i];
+
+    CompactBlock(block);
+
+    if (!WasCompacted(block)) {
+      BlockInfo* block_info = block_info_[block->postorder_number()];
+      block_info->set_fallthrough_label(fallthrough_label);
+      fallthrough_label = GetJumpLabel(block);
+    }
+  }
+
+  ASSERT(block_order()[0]->IsGraphEntry());
+  BlockInfo* block_info = block_info_[block_order()[0]->postorder_number()];
+  block_info->set_fallthrough_label(fallthrough_label);
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
+  CompactBlocks();
+
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
     assembler()->Comment("B%"Pd"", entry->block_id());
     set_current_block(entry);
+
+    if (WasCompacted(entry)) {
+      continue;
+    }
+
     entry->PrepareEntry(this);
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -259,17 +309,24 @@ intptr_t FlowGraphCompiler::StackSize() const {
 }
 
 
-Label* FlowGraphCompiler::GetBlockLabel(
+Label* FlowGraphCompiler::GetJumpLabel(
     BlockEntryInstr* block_entry) const {
-  intptr_t block_index = block_entry->postorder_number();
-  return &block_info_[block_index]->label;
+  const intptr_t block_index = block_entry->postorder_number();
+  return block_info_[block_index]->jump_label();
 }
 
 
-bool FlowGraphCompiler::IsNextBlock(BlockEntryInstr* block_entry) const {
-  intptr_t current_index = reverse_index(current_block()->postorder_number());
-  return (current_index < (block_order().length() - 1)) &&
-      (block_order()[current_index + 1] == block_entry);
+bool FlowGraphCompiler::WasCompacted(
+    BlockEntryInstr* block_entry) const {
+  const intptr_t block_index = block_entry->postorder_number();
+  return block_info_[block_index]->WasCompacted();
+}
+
+
+bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
+  const intptr_t current_index = current_block()->postorder_number();
+  Label* fallthrough_label = block_info_[current_index]->fallthrough_label();
+  return fallthrough_label == GetJumpLabel(block_entry);
 }
 
 

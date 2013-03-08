@@ -2897,8 +2897,8 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // We can fall through if the successor is the next block in the list.
   // Otherwise, we need a jump.
-  if (!compiler->IsNextBlock(successor())) {
-    __ jmp(compiler->GetBlockLabel(successor()));
+  if (!compiler->CanFallThroughTo(successor())) {
+    __ jmp(compiler->GetJumpLabel(successor()));
   }
 }
 
@@ -2925,25 +2925,29 @@ static Condition NegateCondition(Condition condition) {
 
 void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
                                            bool value) {
-  if (value && compiler->IsNextBlock(false_successor())) {
-    __ jmp(compiler->GetBlockLabel(true_successor()));
-  } else if (!value && compiler->IsNextBlock(true_successor())) {
-    __ jmp(compiler->GetBlockLabel(false_successor()));
+  if (value && !compiler->CanFallThroughTo(true_successor())) {
+    __ jmp(compiler->GetJumpLabel(true_successor()));
+  } else if (!value && !compiler->CanFallThroughTo(false_successor())) {
+    __ jmp(compiler->GetJumpLabel(false_successor()));
   }
 }
 
 
 void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                                Condition true_condition) {
-  if (compiler->IsNextBlock(false_successor())) {
+  if (compiler->CanFallThroughTo(false_successor())) {
     // If the next block is the false successor we will fall through to it.
-    __ j(true_condition, compiler->GetBlockLabel(true_successor()));
+    __ j(true_condition, compiler->GetJumpLabel(true_successor()));
   } else {
     // If the next block is the true successor we negate comparison and fall
     // through to it.
-    ASSERT(compiler->IsNextBlock(true_successor()));
     Condition false_condition = NegateCondition(true_condition);
-    __ j(false_condition, compiler->GetBlockLabel(false_successor()));
+    __ j(false_condition, compiler->GetJumpLabel(false_successor()));
+
+    // Fall through or jump to the true successor.
+    if (!compiler->CanFallThroughTo(true_successor())) {
+      __ jmp(compiler->GetJumpLabel(true_successor()));
+    }
   }
 }
 

@@ -1336,7 +1336,7 @@ void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 
 void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetBlockLabel(this));
+  __ Bind(compiler->GetJumpLabel(this));
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -1344,7 +1344,7 @@ void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 
 void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetBlockLabel(this));
+  __ Bind(compiler->GetJumpLabel(this));
   if (IsCatchEntry()) {
     compiler->AddExceptionHandler(catch_try_index(),
                                   try_index(),
