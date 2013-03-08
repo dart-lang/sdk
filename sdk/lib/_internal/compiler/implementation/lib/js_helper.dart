@@ -515,7 +515,7 @@ class Primitives {
       // sort implementation, we use the JavaScript one instead.
       JS('void', '#.sort()', listOfNamedArguments);
       listOfNamedArguments.forEach((String name) {
-        buffer.add('\$$name');
+        buffer.write('\$$name');
         arguments.add(namedArguments[name]);
       });
     }
@@ -1455,10 +1455,10 @@ String joinArguments(var types, int startIndex) {
     if (firstArgument) {
       firstArgument = false;
     } else {
-      buffer. add(', ');
+      buffer.write(', ');
     }
     var argument = types[index];
-    buffer.add(runtimeTypeToString(argument));
+    buffer.write(runtimeTypeToString(argument));
   }
   return buffer.toString();
 }

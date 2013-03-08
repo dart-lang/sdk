@@ -19,7 +19,7 @@ void testServerDetachSocket() {
         Expect.isNotNull(socket);
         var body = new StringBuffer();
         socket.listen(
-          (data) => body.add(new String.fromCharCodes(data)),
+          (data) => body.write(new String.fromCharCodes(data)),
           onDone: () => Expect.equals("Some data", body.toString()));
         socket.write("Test!");
         socket.close();
@@ -33,7 +33,7 @@ void testServerDetachSocket() {
                        "Some data");
       var body = new StringBuffer();
       socket.listen(
-        (data) => body.add(new String.fromCharCodes(data)),
+        (data) => body.write(new String.fromCharCodes(data)),
         onDone: () {
           Expect.equals("HTTP/1.1 200 OK\r\n"
                         "content-length: 0\r\n"
@@ -74,7 +74,7 @@ void testClientDetachSocket() {
                        "Test!");
       var body = new StringBuffer();
       socket.listen(
-        (data) => body.add(new String.fromCharCodes(data)),
+        (data) => body.write(new String.fromCharCodes(data)),
         onDone: () {
           Expect.equals("GET / HTTP/1.1\r\n"
                         "content-length: 0\r\n"
@@ -93,7 +93,7 @@ void testClientDetachSocket() {
         response.detachSocket().then((socket) {
           var body = new StringBuffer();
           socket.listen(
-            (data) => body.add(new String.fromCharCodes(data)),
+            (data) => body.write(new String.fromCharCodes(data)),
             onDone: () {
               Expect.equals("Test!",
                             body.toString());

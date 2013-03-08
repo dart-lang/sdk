@@ -48,7 +48,6 @@ main() {
 
   test("closing after done", () {
     var controller = new StreamController();
-    var buffer = new StringBuffer();
     controller.stream.map((e) => e).transform(new StreamTransformer(
         handleData: (element, sink) { sink.add(element); },
         handleDone: (sink) { sink.close(); })

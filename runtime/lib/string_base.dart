@@ -247,11 +247,11 @@ class _StringBase {
     Iterator iterator = pattern.allMatches(this).iterator;
     if (iterator.moveNext()) {
       Match match = iterator.current;
-      buffer..add(this.substring(startIndex, match.start))
-            ..add(replacement);
+      buffer..write(this.substring(startIndex, match.start))
+            ..write(replacement);
       startIndex = match.end;
     }
-    return (buffer..add(this.substring(startIndex))).toString();
+    return (buffer..write(this.substring(startIndex))).toString();
   }
 
   String replaceAll(Pattern pattern, String replacement) {
@@ -265,11 +265,11 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     for (Match match in pattern.allMatches(this)) {
-      buffer..add(this.substring(startIndex, match.start))
-            ..add(replacement);
+      buffer..write(this.substring(startIndex, match.start))
+            ..write(replacement);
       startIndex = match.end;
     }
-    return (buffer..add(this.substring(startIndex))).toString();
+    return (buffer..write(this.substring(startIndex))).toString();
   }
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
@@ -285,9 +285,9 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int length = this.length;
     int i = 0;
-    buffer.add(onNonMatch(""));
+    buffer.write(onNonMatch(""));
     while (i < length) {
-      buffer.add(onMatch(new _StringMatch(i, this, "")));
+      buffer.write(onMatch(new _StringMatch(i, this, "")));
       // Special case to avoid splitting a surrogate pair.
       int code = this.codeUnitAt(i);
       if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
@@ -295,16 +295,16 @@ class _StringBase {
         code = this.codeUnitAt(i + 1);
         if ((code & ~0x3FF) == 0xDC00) {
           // Matching trailing surrogate.
-          buffer.add(onNonMatch(this.substring(i, i + 2)));
+          buffer.write(onNonMatch(this.substring(i, i + 2)));
           i += 2;
           continue;
         }
       }
-      buffer.add(onNonMatch(this[i]));
+      buffer.write(onNonMatch(this[i]));
       i++;
     }
-    buffer.add(onMatch(new _StringMatch(i, this, "")));
-    buffer.add(onNonMatch(""));
+    buffer.write(onMatch(new _StringMatch(i, this, "")));
+    buffer.write(onNonMatch(""));
     return buffer.toString();
   }
 
@@ -325,11 +325,11 @@ class _StringBase {
     StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
     for (Match match in pattern.allMatches(this)) {
-      buffer.add(onNonMatch(this.substring(startIndex, match.start)));
-      buffer.add(onMatch(match).toString());
+      buffer.write(onNonMatch(this.substring(startIndex, match.start)));
+      buffer.write(onMatch(match).toString());
       startIndex = match.end;
     }
-    buffer.add(onNonMatch(this.substring(startIndex)));
+    buffer.write(onNonMatch(this.substring(startIndex)));
     return buffer.toString();
   }
 

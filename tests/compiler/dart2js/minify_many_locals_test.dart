@@ -7,15 +7,15 @@ import 'compiler_helper.dart';
 
 main() {
   var buffer = new StringBuffer();
-  buffer.add("var foo(");
+  buffer.write("var foo(");
   for (int i = 0; i < 2000; i++) {
-    buffer.add("x$i, ");
+    buffer.write("x$i, ");
   }
-  buffer.add("x) { int i = ");
+  buffer.write("x) { int i = ");
   for (int i = 0; i < 2000; i++) {
-    buffer.add("x$i+");
+    buffer.write("x$i+");
   }
-  buffer.add("2000; return i; }");
+  buffer.write("2000; return i; }");
   var generated = compile(buffer.toString(), entry: 'foo', minify: true);
   RegExp re = new RegExp(r"\(a,b,c");
   Expect.isTrue(re.hasMatch(generated));

@@ -186,7 +186,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   throw new WebSocketException("Protocol error");
 
                 case _WebSocketMessageType.TEXT:
-                  _buffer.add(_decodeString(buffer.getRange(index, payload)));
+                  _buffer.write(_decodeString(buffer.getRange(index, payload)));
                   index += payload;
                   if (_remainingPayloadBytes == 0) {
                     _messageFrameEnd(sink);
@@ -194,7 +194,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   break;
 
                 case _WebSocketMessageType.BINARY:
-                  _buffer.add(buffer.getRange(index, payload));
+                  _buffer.write(buffer.getRange(index, payload));
                   index += payload;
                   if (_remainingPayloadBytes == 0) {
                     _messageFrameEnd(sink);

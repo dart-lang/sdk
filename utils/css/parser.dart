@@ -924,7 +924,7 @@ class Parser {
     int runningStart = _peekToken.start;
     while (_peek() != stopToken && _peek() != TokenKind.END_OF_FILE) {
       var tok = _next();
-      stringValue.add(tok.text);
+      stringValue.write(tok.text);
     }
 
     if (stopToken != TokenKind.RPAREN) {

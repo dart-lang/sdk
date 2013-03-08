@@ -107,26 +107,26 @@ patch class NoSuchMethodError {
     if (_arguments != null) {
       for (; i < _arguments.length; i++) {
         if (i > 0) {
-          actual_buf.add(", ");
+          actual_buf.write(", ");
         }
-        actual_buf.add(Error.safeToString(_arguments[i]));
+        actual_buf.write(Error.safeToString(_arguments[i]));
       }
     }
     if (_namedArguments != null) {
       _namedArguments.forEach((String key, var value) {
         if (i > 0) {
-          actual_buf.add(", ");
+          actual_buf.write(", ");
         }
-        actual_buf.add(key);
-        actual_buf.add(": ");
-        actual_buf.add(Error.safeToString(value));
+        actual_buf.write(key);
+        actual_buf.write(": ");
+        actual_buf.write(Error.safeToString(value));
         i++;
       });
     }
     var args_mismatch = _existingArgumentNames != null;
     StringBuffer msg_buf = new StringBuffer(_developerMessage(args_mismatch));
     if (!args_mismatch) {
-      msg_buf.add(
+      msg_buf.write(
           "NoSuchMethodError : method not found: '$_memberName'\n"
           "Receiver: ${Error.safeToString(_receiver)}\n"
           "Arguments: [$actual_buf]");
@@ -135,12 +135,12 @@ patch class NoSuchMethodError {
       StringBuffer formal_buf = new StringBuffer();
       for (int i = 0; i < _existingArgumentNames.length; i++) {
         if (i > 0) {
-          formal_buf.add(", ");
+          formal_buf.write(", ");
         }
-        formal_buf.add(_existingArgumentNames[i]);
+        formal_buf.write(_existingArgumentNames[i]);
       }
       String formalParameters = formal_buf.toString();
-      msg_buf.add( 
+      msg_buf.write(
           "NoSuchMethodError: incorrect number of arguments passed to "
           "method named '$_memberName'\n"
           "Receiver: ${Error.safeToString(_receiver)}\n"

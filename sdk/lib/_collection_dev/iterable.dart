@@ -176,8 +176,8 @@ abstract class ListIterable<E> extends Iterable<E> {
       }
       StringBuffer buffer = new StringBuffer(first);
       for (int i = 1; i < length; i++) {
-        buffer.add(separator);
-        buffer.add("${elementAt(i)}");
+        buffer.write(separator);
+        buffer.write("${elementAt(i)}");
         if (length != this.length) {
           throw new ConcurrentModificationError(this);
         }
@@ -186,7 +186,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     } else {
       StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < length; i++) {
-        buffer.add("${elementAt(i)}");
+        buffer.write("${elementAt(i)}");
         if (length != this.length) {
           throw new ConcurrentModificationError(this);
         }

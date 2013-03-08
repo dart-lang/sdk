@@ -138,13 +138,13 @@ String stripComment(String comment) {
     for (int index = 0 ; index < lines.length ; index++) {
       String line = lines[index];
       if (index == 0) {
-        sb.add(line); // Add the first line unprocessed.
+        sb.write(line); // Add the first line unprocessed.
         continue;
       }
-      sb.add('\n');
+      sb.write('\n');
       match = _multiLineCommentLineStart.firstMatch(line);
       if (match != null) {
-        sb.add(match[1]);
+        sb.write(match[1]);
       } else if (index < lines.length-1 || !line.trim().isEmpty) {
         // Do not add the last line if it only contains white space.
         // This interprets cases like
@@ -152,7 +152,7 @@ String stripComment(String comment) {
         //      * Foo
         //      */
         // as "\nFoo\n" and not as "\nFoo\n     ".
-        sb.add(line);
+        sb.write(line);
       }
     }
     return sb.toString();

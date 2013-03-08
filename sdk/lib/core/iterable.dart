@@ -133,13 +133,13 @@ abstract class Iterable<E> {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       do {
-        buffer.add("${iterator.current}");
+        buffer.write("${iterator.current}");
       } while (iterator.moveNext());
     } else {
-      buffer.add("${iterator.current}");
+      buffer.write("${iterator.current}");
       while (iterator.moveNext()) {
-        buffer.add(separator);
-        buffer.add("${iterator.current}");
+        buffer.write(separator);
+        buffer.write("${iterator.current}");
       }
     }
     return buffer.toString();

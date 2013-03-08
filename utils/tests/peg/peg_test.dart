@@ -322,14 +322,14 @@ void check(grammar, rule, input, expected) {
 printList(item) {
   if (item is List) {
     StringBuffer sb = new StringBuffer();
-    sb.add('[');
+    sb.write('[');
     var sep = '';
     for (var x in item) {
-      sb.add(sep);
-      sb.add(printList(x));
+      sb.write(sep);
+      sb.write(printList(x));
       sep = ',';
     }
-    sb.add(']');
+    sb.write(']');
     return sb.toString();
   }
   if (item == null)

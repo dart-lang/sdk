@@ -118,27 +118,27 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
           numBackslash++;
           pos--;
         }
-        sb.add(argument.substring(nextPos, quotePos - numBackslash));
+        sb.write(argument.substring(nextPos, quotePos - numBackslash));
         for (var i = 0; i < numBackslash; i++) {
-          sb.add(r'\\');
+          sb.write(r'\\');
         }
-        sb.add(r'\"');
+        sb.write(r'\"');
         nextPos = quotePos + 1;
         quotePos = argument.indexOf('"', nextPos);
       }
-      sb.add(argument.substring(nextPos, argument.length));
+      sb.write(argument.substring(nextPos, argument.length));
       result = sb.toString();
 
       // Add '"' at the beginning and end and replace all '\' at
       // the end with two '\'.
       sb = new StringBuffer('"');
-      sb.add(result);
+      sb.write(result);
       nextPos = argument.length - 1;
       while (argument.codeUnitAt(nextPos) == backslash) {
-        sb.add('\\');
+        sb.write('\\');
         nextPos--;
       }
-      sb.add('"');
+      sb.write('"');
       result = sb.toString();
     }
 
@@ -302,7 +302,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
         .reduce(
             new StringBuffer(),
             (buf, data) {
-              buf.add(data);
+              buf.write(data);
               return buf;
             });
 
@@ -311,7 +311,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
         .reduce(
             new StringBuffer(),
             (buf, data) {
-              buf.add(data);
+              buf.write(data);
               return buf;
             });
 

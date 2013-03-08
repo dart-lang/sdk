@@ -53,7 +53,7 @@ int writeLongFileSync(File file) {
   file.createSync();
   StringBuffer buffer = new StringBuffer();
   for (var i = 0; i < 10000; i++) {
-    buffer.add("Hello, world");
+    buffer.write("Hello, world");
   }
   file.writeAsStringSync(buffer.toString());
   var length = file.lengthSync();

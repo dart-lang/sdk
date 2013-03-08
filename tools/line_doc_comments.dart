@@ -83,7 +83,7 @@ String fixContents(List<String> lines) {
       }
     }
 
-    if (line != null) buffer.add('$line\n');
+    if (line != null) buffer.write('$line\n');
   }
 
   return buffer.toString();

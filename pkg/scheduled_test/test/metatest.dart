@@ -137,29 +137,29 @@ bool _hasError(Map results) {
 String _summarizeTests(Map results) {
   var buffer = new StringBuffer();
   for (var t in results["results"]) {
-    buffer.add("${t['result'].toUpperCase()}: ${t['description']}\n");
-    if (t['message'] != '') buffer.add("${_indent(t['message'])}\n");
+    buffer.writeln("${t['result'].toUpperCase()}: ${t['description']}");
+    if (t['message'] != '') buffer.writeln("${_indent(t['message'])}");
     if (t['stackTrace'] != null && t['stackTrace'] != '') {
-      buffer.add("${_indent(t['stackTrace'])}\n");
+      buffer.writeln("${_indent(t['stackTrace'])}");
     }
   }
 
-  buffer.add("\n");
+  buffer.writeln("");
 
   var success = false;
   if (results['passed'] == 0 && results['failed'] == 0 &&
       results['errors'] == 0 && results['uncaughtError'] == null) {
-    buffer.add('No tests found.');
+    buffer.write('No tests found.');
     // This is considered a failure too.
   } else if (results['failed'] == 0 && results['errors'] == 0 &&
       results['uncaughtError'] == null) {
-    buffer.add('All ${results['passed']} tests passed.');
+    buffer.write('All ${results['passed']} tests passed.');
     success = true;
   } else {
     if (results['uncaughtError'] != null) {
-      buffer.add('Top-level uncaught error: ${results['uncaughtError']}');
+      buffer.write('Top-level uncaught error: ${results['uncaughtError']}');
     }
-    buffer.add('${results['passed']} PASSED, ${results['failed']} FAILED, '
+    buffer.write('${results['passed']} PASSED, ${results['failed']} FAILED, '
         '${results['errors']} ERRORS');
   }
   return prefixLines(buffer.toString());

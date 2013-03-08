@@ -116,9 +116,9 @@ String _uriEncode(List<int> canonicalTable, String text) {
   for (int i = 0; i < text.length; i++) {
     int ch = text.codeUnitAt(i);
     if (ch < 128 && ((canonicalTable[ch >> 4] & (1 << (ch & 0x0f))) != 0)) {
-      result.add(text[i]);
+      result.write(text[i]);
     } else if (text[i] == " ") {
-      result.add("+");
+      result.write("+");
     } else {
       if (ch >= 0xD800 && ch < 0xDC00) {
         // Low surrogate. We expect a next char high surrogate.
@@ -132,7 +132,7 @@ String _uriEncode(List<int> canonicalTable, String text) {
         }
       }
       for (int codepoint in codepointsToUtf8([ch])) {
-        result.add(byteToHex(codepoint));
+        result.write(byteToHex(codepoint));
       }
     }
   }
@@ -173,9 +173,9 @@ String _uriDecode(String text) {
     String ch = text[i];
     if (ch != '%') {
       if (ch == '+') {
-        result.add(" ");
+        result.write(" ");
       } else {
-        result.add(ch);
+        result.write(ch);
       }
       i++;
     } else {
@@ -190,7 +190,7 @@ String _uriDecode(String text) {
           break;
         ch = text[i];
       }
-      result.add(decodeUtf8(codepoints));
+      result.write(decodeUtf8(codepoints));
     }
   }
   return result.toString();

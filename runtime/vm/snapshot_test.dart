@@ -1483,10 +1483,10 @@ class MandelbrotState {
     for (int i = 0; i < _result.length; i++) {
       List<int> line = _result[i];
       for (int j = 0; j < line.length; j++) {
-        if (line[j] < 10) output.add("0");
-        output.add(line[j]);
+        if (line[j] < 10) output.write("0");
+        output.write(line[j]);
       }
-      output.add("\n");
+      output.write("\n");
     }
     // print(output);
   }

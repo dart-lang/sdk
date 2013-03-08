@@ -112,40 +112,40 @@ class Result {
     row.onClick.listen(clickHandler);
     row.onMouseUp.listen((event) => hideDropDownSuspend = false);
     var sb = new StringBuffer();
-    sb.add('<td class="drop-down-link-td">');
-    sb.add('<table class="drop-down-table"><tr><td colspan="2">');
+    sb.write('<td class="drop-down-link-td">');
+    sb.write('<table class="drop-down-table"><tr><td colspan="2">');
     if (kind == GETTER) {
-      sb.add('get ');
+      sb.write('get ');
     } else if (kind == SETTER) {
-      sb.add('set ');
+      sb.write('set ');
     }
-    sb.add(match.toHtml());
+    sb.write(match.toHtml());
     if (kind == CLASS || kind == INTERFACE || kind == TYPEDEF) {
-      sb.add(args);
+      sb.write(args);
     } else if (kind == CONSTRUCTOR || kind == METHOD) {
       if (noargs) {
-        sb.add("()");
+        sb.write("()");
       } else {
-        sb.add('(...)');
+        sb.write('(...)');
       }
     }
-    sb.add('</td></tr><tr><td class="drop-down-link-kind">');
-    sb.add(kindToString(kind));
+    sb.write('</td></tr><tr><td class="drop-down-link-kind">');
+    sb.write(kindToString(kind));
     if (prefix != null) {
-      sb.add(' in ');
-      sb.add(prefix.toHtml());
-      sb.add(args);
+      sb.write(' in ');
+      sb.write(prefix.toHtml());
+      sb.write(args);
     } else if (type != null) {
-      sb.add(' in ');
-      sb.add(type);
-      sb.add(args);
+      sb.write(' in ');
+      sb.write(type);
+      sb.write(args);
     }
 
-    sb.add('</td><td class="drop-down-link-library">');
+    sb.write('</td><td class="drop-down-link-library">');
     if (library != null) {
-      sb.add('library $library');
+      sb.write('library $library');
     }
-    sb.add('</td></tr></table></td>');
+    sb.write('</td></tr></table></td>');
     row.innerHtml = sb.toString();
   }
 }

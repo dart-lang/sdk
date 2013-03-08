@@ -306,16 +306,16 @@ testMixinApplications() {
 
 testUnparseParameters(List<String> variableDeclarations) {
   var sb = new StringBuffer();
-  sb.add('Constructor(');
+  sb.write('Constructor(');
   int index = 0;
   for (String variableDeclaration in variableDeclarations) {
     if (index != 0) {
-      sb.add(', ');
+      sb.write(', ');
     }
-    sb.add(variableDeclaration);
+    sb.write(variableDeclaration);
     index++;
   }
-  sb.add(');');
+  sb.write(');');
 
   FunctionExpression node = parseMember(sb.toString());
   index = 0;

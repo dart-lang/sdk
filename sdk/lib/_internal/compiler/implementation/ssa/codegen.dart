@@ -79,10 +79,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
         // arguments, the emitter will generate stubs to handle them,
         // and needs to know if the method is overridden.
         nativeEmitter.overriddenMethods.add(element);
-        StringBuffer buffer = new StringBuffer();
-        body =
-            nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
-                element, codegen.body, codegen.parameters);
+        body = nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
+                  element, codegen.body, codegen.parameters);
       } else {
         body = codegen.body;
       }

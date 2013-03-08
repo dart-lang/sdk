@@ -568,6 +568,25 @@ LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374
 LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
 
+LibTest/core/StringBuffer/addAll_A01_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/add_A01_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/add_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/addAll_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/toString_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/12_Statements/01_Blocks_A01_t03: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t12: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t05: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A13_t03: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t06: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+
 [ $compiler == none && $runtime == vm && $unchecked ]
 LibTest/core/Future/chain_A02_t05: Fail # Future is in async library. co19 issue 367
 LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 issue 367

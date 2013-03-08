@@ -31,9 +31,9 @@ void testListTooLongName() {
       // Construct a long string of the form
       // 'tempdir/subdir/../subdir/../subdir'.
       var buffer = new StringBuffer();
-      buffer.add(subDir.path);
+      buffer.write(subDir.path);
       for (var i = 0; i < 1000; i++) {
-        buffer.add("/../${subDirName}");
+        buffer.write("/../${subDirName}");
       }
       var long = new Directory("${buffer.toString()}");
       Expect.throws(() => long.listSync(),

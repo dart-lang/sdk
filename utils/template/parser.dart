@@ -672,7 +672,7 @@ class Parser {
         _next(false);
       } else if (_peek() != TokenKind.RBRACE) {
         // Yes, grab the chars after the >
-        stringValue.add(_previousToken.source.text.substring(
+        stringValue.write(_previousToken.source.text.substring(
             this._previousToken.end, this._peekToken.start));
       }
     }
@@ -706,7 +706,7 @@ class Parser {
         start = _peekToken.start;
       } else if (tok.kind != TokenKind.START_EXPRESSION) {
         // Only save the the contents between ${ and }
-        stringValue.add(tok.text);
+        stringValue.write(tok.text);
       }
     }
 

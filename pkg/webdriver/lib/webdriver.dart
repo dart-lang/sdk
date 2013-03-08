@@ -269,7 +269,7 @@ class WebDriverBase {
         s.onData = () {
           var data = s.read();
           if (data != null) {
-            sbuf.add(data);
+            sbuf.write(data);
           }
         };
         s.onClosed = () {

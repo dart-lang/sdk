@@ -142,28 +142,28 @@ class Runner {
 
       FunctionType ft = fe.computeType(compiler);
 
-      sb.add("<div>${indentation}");
+      sb.write("<div>${indentation}");
       ft.returnType.name.printOn(sb);
-      sb.add(" ");
+      sb.write(" ");
       fe.name.printOn(sb);
-      sb.add("(");
+      sb.write("(");
       ft.parameterTypes.printOn(sb, ", ");
-      sb.add(");</div>");
+      sb.write(");</div>");
 
     }
 
     void printField(FieldElement fe, [String indentation = ""]) {
-      sb.add("<div>${indentation}var ");
+      sb.write("<div>${indentation}var ");
       fe.name.printOn(sb);
-      sb.add(";</div>");
+      sb.write(";</div>");
     }
 
     void printClass(ClassElement ce) {
       ce.parseNode(compiler);
 
-      sb.add("<div>class ");
+      sb.write("<div>class ");
       ce.name.printOn(sb);
-      sb.add(" {");
+      sb.write(" {");
 
       for (Element e in ce.members.reverse()) {
         switch(e.kind) {
@@ -178,7 +178,7 @@ class Runner {
           break;
         }
       }
-      sb.add("}</div>");
+      sb.write("}</div>");
     }
 
     for (Element c in e.topLevelElements.reverse()) {

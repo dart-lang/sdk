@@ -487,10 +487,10 @@ class TokenKind {
     StringBuffer invertResult = new StringBuffer();
     int paddings = minDigits - result.length;
     while (paddings-- > 0) {
-      invertResult.add('0');
+      invertResult.write('0');
     }
     for (int idx = result.length - 1; idx >= 0; idx--) {
-      invertResult.add(result[idx]);
+      invertResult.write(result[idx]);
     }
 
     return invertResult.toString();

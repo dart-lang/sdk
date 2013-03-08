@@ -64,28 +64,28 @@ class ScheduleError extends AsyncError {
 
     var errorString = error.toString();
     if (errorString.contains("\n")) {
-      result.add('ScheduleError:\n');
-      result.add(prefixLines(errorString.trim()));
-      result.add("\n\n");
+      result.write('ScheduleError:\n');
+      result.write(prefixLines(errorString.trim()));
+      result.write("\n\n");
     } else {
-      result.add('ScheduleError: "$errorString"\n');
+      result.write('ScheduleError: "$errorString"\n');
     }
 
-    result.add('Stack trace:\n');
-    result.add(prefixLines(stackTrace.toString().trim()));
-    result.add("\n\n");
+    result.write('Stack trace:\n');
+    result.write(prefixLines(stackTrace.toString().trim()));
+    result.write("\n\n");
 
     if (task != null) {
-      result.add('Error detected during task in queue "$queue":\n');
-      result.add(task.generateTree());
+      result.write('Error detected during task in queue "$queue":\n');
+      result.write(task.generateTree());
     } else if (_stateWhenDetected == ScheduleState.DONE) {
-      result.add('Error detected after all tasks in the schedule had '
+      result.write('Error detected after all tasks in the schedule had '
           'finished.');
     } else if (_stateWhenDetected == ScheduleState.RUNNING) {
-      result.add('Error detected when waiting for out-of-band callbacks in '
+      result.write('Error detected when waiting for out-of-band callbacks in '
           'queue "$queue".');
     } else { // _stateWhenDetected == ScheduleState.SET_UP
-      result.add('Error detected before the schedule started running.');
+      result.write('Error detected before the schedule started running.');
     }
 
     return result.toString();

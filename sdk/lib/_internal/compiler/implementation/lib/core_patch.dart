@@ -251,19 +251,19 @@ patch class NoSuchMethodError {
     if (_arguments != null) {
       for (; i < _arguments.length; i++) {
         if (i > 0) {
-          sb.add(", ");
+          sb.write(", ");
         }
-        sb.add(Error.safeToString(_arguments[i]));
+        sb.write(Error.safeToString(_arguments[i]));
       }
     }
     if (_namedArguments != null) {
       _namedArguments.forEach((String key, var value) {
         if (i > 0) {
-          sb.add(", ");
+          sb.write(", ");
         }
-        sb.add(key);
-        sb.add(": ");
-        sb.add(Error.safeToString(value));
+        sb.write(key);
+        sb.write(": ");
+        sb.write(Error.safeToString(value));
         i++;
       });
     }
@@ -276,9 +276,9 @@ patch class NoSuchMethodError {
       sb = new StringBuffer();
       for (int i = 0; i < _existingArgumentNames.length; i++) {
         if (i > 0) {
-          sb.add(", ");
+          sb.write(", ");
         }
-        sb.add(_existingArgumentNames[i]);
+        sb.write(_existingArgumentNames[i]);
       }
       String formalParameters = sb.toString();
       return "NoSuchMethodError: incorrect number of arguments passed to "

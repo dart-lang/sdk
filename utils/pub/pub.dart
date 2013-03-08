@@ -160,14 +160,14 @@ Future validatePlatform() {
 void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // Build up a buffer so it shows up as a single log entry.
   var buffer = new StringBuffer();
-  buffer.add(description);
-  buffer.add('\n\n');
-  buffer.add('Usage: pub command [arguments]\n\n');
-  buffer.add('Global options:\n');
-  buffer.add('${pubArgParser.getUsage()}\n\n');
+  buffer.write(description);
+  buffer.write('\n\n');
+  buffer.write('Usage: pub command [arguments]\n\n');
+  buffer.write('Global options:\n');
+  buffer.write('${pubArgParser.getUsage()}\n\n');
 
   // Show the commands sorted.
-  buffer.add('Available commands:\n');
+  buffer.write('Available commands:\n');
 
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
@@ -182,12 +182,13 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   names.sort((a, b) => a.compareTo(b));
 
   for (var name in names) {
-    buffer.add('  ${padRight(name, length)}   '
+    buffer.write('  ${padRight(name, length)}   '
         '${pubCommands[name].description}\n');
   }
 
-  buffer.add('\n');
-  buffer.add('Use "pub help [command]" for more information about a command.');
+  buffer.write('\n');
+  buffer.write(
+      'Use "pub help [command]" for more information about a command.');
   log.message(buffer.toString());
 }
 
@@ -301,12 +302,12 @@ abstract class PubCommand {
     if (description == null) description = this.description;
 
     var buffer = new StringBuffer();
-    buffer.add('$description\n\nUsage: $usage');
+    buffer.write('$description\n\nUsage: $usage');
 
     var commandUsage = commandParser.getUsage();
     if (!commandUsage.isEmpty) {
-      buffer.add('\n');
-      buffer.add(commandUsage);
+      buffer.write('\n');
+      buffer.write(commandUsage);
     }
 
     log.message(buffer.toString());

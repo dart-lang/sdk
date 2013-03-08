@@ -128,7 +128,7 @@ class NullConstant extends PrimitiveConstant {
   }
 
   void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.add(JsNull);
+    buffer.write(JsNull);
   }
 
   // The magic constant has no meaning. It is just a random value.

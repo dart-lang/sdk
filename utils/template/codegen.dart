@@ -78,7 +78,7 @@ class CGBlock {
   String get globalDeclarations {
     StringBuffer buff = new StringBuffer();
     for (final CGStatement stmt in _stmts) {
-      buff.add(stmt.globalDeclaration());
+      buff.write(stmt.globalDeclaration());
     }
 
     return buff.toString();
@@ -98,7 +98,7 @@ class CGBlock {
   String get globalInitializers {
     StringBuffer buff = new StringBuffer();
     for (final CGStatement stmt in _stmts) {
-      buff.add(stmt.globalInitializers());
+      buff.write(stmt.globalInitializers());
     }
 
     return buff.toString();
@@ -108,7 +108,7 @@ class CGBlock {
     StringBuffer buff = new StringBuffer();
 
     for (final CGStatement stmt in _stmts) {
-      buff.add(stmt.emitDartStatement());
+      buff.write(stmt.emitDartStatement());
     }
 
     return buff.toString();
@@ -163,7 +163,7 @@ class CGStatement {
   }
 
   void add(String value) {
-    _buff.add(value);
+    _buff.write(value);
   }
 
   bool get isClosed => _closed;
@@ -270,15 +270,15 @@ class Codegen {
     StringBuffer buff = new StringBuffer();
     int injectId = 0;         // Inject function id
 
-    buff.add("// Generated Dart class from HTML template.\n");
-    buff.add("// DO NOT EDIT.\n\n");
+    buff.write("// Generated Dart class from HTML template.\n");
+    buff.write("// DO NOT EDIT.\n\n");
 
     String addStylesheetFuncName = "add_${filename}_templatesStyles";
 
     for (final template in templates) {
       // Emit the template class.
       TemplateSignature sig = template.signature;
-      buff.add(_emitClass(sig.name, sig.params, template.content,
+      buff.write(_emitClass(sig.name, sig.params, template.content,
         addStylesheetFuncName));
     }
 
@@ -286,25 +286,25 @@ class Codegen {
     //              bound to this template file not global to the app.
 
     // Emit the stylesheet aggregator.
-    buff.add("\n\n// Inject all templates stylesheet once into the head.\n");
-    buff.add("bool ${filename}_stylesheet_added = false;\n");
-    buff.add("void ${addStylesheetFuncName}() {\n");
-    buff.add("  if (!${filename}_stylesheet_added) {\n");
-    buff.add("    StringBuffer styles = new StringBuffer();\n\n");
+    buff.write("\n\n// Inject all templates stylesheet once into the head.\n");
+    buff.write("bool ${filename}_stylesheet_added = false;\n");
+    buff.write("void ${addStylesheetFuncName}() {\n");
+    buff.write("  if (!${filename}_stylesheet_added) {\n");
+    buff.write("    StringBuffer styles = new StringBuffer();\n\n");
 
-    buff.add("    // All templates stylesheet.\n");
+    buff.write("    // All templates stylesheet.\n");
 
     for (final template in templates) {
       TemplateSignature sig = template.signature;
-      buff.add("    styles.add(${sig.name}.stylesheet);\n");
+      buff.write("    styles.add(${sig.name}.stylesheet);\n");
     }
 
-    buff.add("\n    ${filename}_stylesheet_added = true;\n");
+    buff.write("\n    ${filename}_stylesheet_added = true;\n");
 
-    buff.add("    document.head.elements.add(new Element.html('<style>"
+    buff.write("    document.head.elements.add(new Element.html('<style>"
              "\${styles.toString()}</style>'));\n");
-    buff.add("  }\n");
-    buff.add("}\n");
+    buff.write("  }\n");
+    buff.write("}\n");
 
     return buff.toString();
   }
@@ -347,9 +347,9 @@ class Codegen {
     StringBuffer buff = new StringBuffer();
     if (classes.length > 0) {
       assert(classes.length == dartNames.length);
-      buff.add("\n  // CSS class selectors for this template.\n");
+      buff.write("\n  // CSS class selectors for this template.\n");
       for (int i = 0; i < classes.length; i++) {
-        buff.add(
+        buff.write(
           "  static String get ${dartNames[i]} => \"${classes[i]}\";\n");
       }
     }
@@ -364,17 +364,17 @@ class Codegen {
     StringBuffer buff = new StringBuffer();
 
     // Emit the template class.
-    buff.add("class ${className} {\n");
+    buff.write("class ${className} {\n");
 
-    buff.add("  Map<String, Object> _scopes;\n");
-    buff.add("  Element _fragment;\n\n");
+    buff.write("  Map<String, Object> _scopes;\n");
+    buff.write("  Element _fragment;\n\n");
 
     bool anyParams = false;
     for (final param in params) {
-      buff.add("  ${param['type']} ${param['name']};\n");
+      buff.write("  ${param['type']} ${param['name']};\n");
       anyParams = true;
     }
-    if (anyParams) buff.add("\n");
+    if (anyParams) buff.write("\n");
 
     ElemCG ecg = new ElemCG();
 
@@ -403,79 +403,79 @@ class Codegen {
     // Create all element names marked with var.
     String decls = ecg.globalDeclarations;
     if (decls.length > 0) {
-      buff.add("\n  // Elements bound to a variable:\n");
-      buff.add("${decls}\n");
+      buff.write("\n  // Elements bound to a variable:\n");
+      buff.write("${decls}\n");
     }
 
     // Create the constructor.
-    buff.add("  ${className}(");
+    buff.write("  ${className}(");
     bool firstParam = true;
     for (final param in params) {
       if (!firstParam) {
-        buff.add(", ");
+        buff.write(", ");
       }
-      buff.add("this.${param['name']}");
+      buff.write("this.${param['name']}");
       firstParam = false;
     }
-    buff.add(") : _scopes = new Map<String, Object>() {\n");
+    buff.write(") : _scopes = new Map<String, Object>() {\n");
 
     String initializers = ecg.globalInitializers;
     if (initializers.length > 0) {
-      buff.add("    //Global initializers.\n");
-      buff.add("${initializers}\n");
+      buff.write("    //Global initializers.\n");
+      buff.write("${initializers}\n");
     }
 
-    buff.add("    // Insure stylesheet for template exist in the document.\n");
-    buff.add("    ${addStylesheetFuncName}();\n\n");
+    buff.write("    // Insure stylesheet for template exist in the document.\n");
+    buff.write("    ${addStylesheetFuncName}();\n\n");
 
-    buff.add("    _fragment = new DocumentFragment();\n");
+    buff.write("    _fragment = new DocumentFragment();\n");
 
-    buff.add(ecg.codeBody);     // HTML for constructor to build.
+    buff.write(ecg.codeBody);     // HTML for constructor to build.
 
-    buff.add("  }\n\n");        // End constructor
+    buff.write("  }\n\n");        // End constructor
 
-    buff.add(emitGetters(content.getters));
+    buff.write(emitGetters(content.getters));
 
-    buff.add("  Element get root => _fragment;\n");
+    buff.write("  Element get root => _fragment;\n");
 
     // Emit all CSS class selectors:
-    buff.add(_emitCSSSelectors(content.css));
+    buff.write(_emitCSSSelectors(content.css));
 
     // Emit the injection functions.
-    buff.add("\n  // Injection functions:");
+    buff.write("\n  // Injection functions:");
     for (final expr in ecg.expressions) {
-      buff.add("${expr}");
+      buff.write("${expr}");
     }
 
-    buff.add("\n  // Each functions:\n");
+    buff.write("\n  // Each functions:\n");
     for (var eachFunc in ecg.eachs) {
-      buff.add("${eachFunc}\n");
+      buff.write("${eachFunc}\n");
     }
 
-    buff.add("\n  // With functions:\n");
+    buff.write("\n  // With functions:\n");
     for (var withFunc in ecg.withs) {
-      buff.add("${withFunc}\n");
+      buff.write("${withFunc}\n");
     }
 
-    buff.add("\n  // CSS for this template.\n");
-    buff.add("  static const String stylesheet = ");
+    buff.write("\n  // CSS for this template.\n");
+    buff.write("  static const String stylesheet = ");
 
     if (content.css != null) {
-      buff.add("\'\'\'\n    ${content.css.toString()}\n");
-      buff.add("  \'\'\';\n\n");
+      buff.write("\'\'\'\n    ${content.css.toString()}\n");
+      buff.write("  \'\'\';\n\n");
 
       // TODO(terry): Emit all known selectors for this template.
-      buff.add("  // Stylesheet class selectors:\n");
+      buff.write("  // Stylesheet class selectors:\n");
     } else {
-      buff.add("\"\";\n");
+      buff.write("\"\";\n");
     }
 
-    buff.add("  String safeHTML(String html) {\n");
-    buff.add("    // TODO(terry): Escaping for XSS vulnerabilities TBD.\n");
-    buff.add("    return html;\n");
-    buff.add("  }\n");
+    buff.write("  String safeHTML(String html) {\n");
+    buff.write("    // TODO(terry): Escaping for XSS vulnerabilities TBD.\n");
+    buff.write("    return html;\n");
+    buff.write("  }\n");
 
-    buff.add("}\n");              // End class
+    buff.write("}\n");              // End class
 
     return buff.toString();
   }
@@ -485,14 +485,14 @@ class Codegen {
   static String emitGetters(List<TemplateGetter> getters) {
     StringBuffer buff = new StringBuffer();
     for (final TemplateGetter getter in getters) {
-      buff.add('  String ${getter.getterSignatureAsString()} {\n');
-      buff.add('    return \'\'\'');
+      buff.write('  String ${getter.getterSignatureAsString()} {\n');
+      buff.write('    return \'\'\'');
       var docFrag = getter.docFrag.children[0];
       for (final child in docFrag.children) {
-        buff.add(child.toString().trim());
+        buff.write(child.toString().trim());
       }
-      buff.add('\'\'\';\n');
-      buff.add('  }\n\n');
+      buff.write('\'\'\';\n');
+      buff.write('  }\n\n');
     }
 
     return buff.toString();
@@ -982,7 +982,7 @@ Nested #each or #with must have a localName;
     if (item == null) {
       item = "_item";
     }
-    buff.add("${spaces}_scopes[\"${item}\"] = ${item};\n");
+    buff.write("${spaces}_scopes[\"${item}\"] = ${item};\n");
   }
 
   removeScope(int indent, StringBuffer buff, String item) {
@@ -991,7 +991,7 @@ Nested #each or #with must have a localName;
     if (item == null) {
       item = "_item";
     }
-    buff.add("${spaces}_scopes.remove(\"${item}\");\n");
+    buff.write("${spaces}_scopes.remove(\"${item}\");\n");
   }
 
   String defineScopes() {
@@ -1000,11 +1000,11 @@ Nested #each or #with must have a localName;
     // Construct the active scope names for name resolution.
     List<String> names = activeBlocksLocalNames();
     if (names.length > 0) {
-      buff.add("    // Local scoped block names.\n");
+      buff.write("    // Local scoped block names.\n");
       for (String name in names) {
-        buff.add("    var ${name} = _scopes[\"${name}\"];\n");
+        buff.write("    var ${name} = _scopes[\"${name}\"];\n");
       }
-      buff.add("\n");
+      buff.write("\n");
     }
 
     return buff.toString();

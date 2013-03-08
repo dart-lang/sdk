@@ -135,7 +135,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void addComment(String comment, CodeBuffer buffer) {
-    buffer.add(jsAst.prettyPrint(js.comment(comment), compiler));
+    buffer.write(jsAst.prettyPrint(js.comment(comment), compiler));
   }
 
   void computeRequiredTypeChecks() {
@@ -618,7 +618,7 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitFinishIsolateConstructorInvocation(CodeBuffer buffer) {
     String isolate = namer.isolateName;
-    buffer.add("$isolate = $finishIsolateConstructorName($isolate)$N");
+    buffer.write("$isolate = $finishIsolateConstructorName($isolate)$N");
   }
 
   /**
@@ -1012,8 +1012,8 @@ class CodeEmitterTask extends CompilerTask {
       if (!needsHolder(cls)) return;
       String holder = namer.isolateAccess(cls);
       String name = namer.getName(cls);
-      buffer.add('$holder$_=$_{builtin\$cls:$_"$name"');
-      buffer.add('}$N');
+      buffer.write('$holder$_=$_{builtin\$cls:$_"$name"');
+      buffer.write('}$N');
     }
 
     // Create representation objects for classes that we do not have a class
@@ -1027,10 +1027,10 @@ class CodeEmitterTask extends CompilerTask {
     for (ClassElement cls in typeChecks) {
       String holder = namer.isolateAccess(cls);
       for (ClassElement check in typeChecks[cls]) {
-        buffer.add('$holder.${namer.operatorIs(check)}$_=${_}true$N');
+        buffer.write('$holder.${namer.operatorIs(check)}$_=${_}true$N');
         String body = rti.getSupertypeSubstitution(cls, check);
         if (body != null) {
-          buffer.add('$holder.${namer.substitutionName(check)}$_=${_}$body$N');
+          buffer.write('$holder.${namer.substitutionName(check)}$_=${_}$body$N');
         }
       };
     }
@@ -1340,8 +1340,8 @@ class CodeEmitterTask extends CompilerTask {
 
     jsAst.Expression init =
         js[classesCollector][className].assign(builder.toObjectInitializer());
-    buffer.add(jsAst.prettyPrint(init, compiler));
-    buffer.add('$N$n');
+    buffer.write(jsAst.prettyPrint(init, compiler));
+    buffer.write('$N$n');
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
@@ -1545,12 +1545,12 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
-      buffer.add('$finishClassesName($classesCollector,'
-                 '$_$isolateProperties,'
-                 '${_}null)$N');
+      buffer.write('$finishClassesName($classesCollector,'
+                   '$_$isolateProperties,'
+                   '${_}null)$N');
 
       // Reset the map.
-      buffer.add("$classesCollector$_=${_}null$N$n");
+      buffer.write("$classesCollector$_=${_}null$N$n");
     }
   }
 
@@ -1559,8 +1559,8 @@ class CodeEmitterTask extends CompilerTask {
                           jsAst.Expression functionExpression) {
     jsAst.Expression assignment =
         js[isolateProperties][name].assign(functionExpression);
-    buffer.add(jsAst.prettyPrint(assignment, compiler));
-    buffer.add('$N$n');
+    buffer.write(jsAst.prettyPrint(assignment, compiler));
+    buffer.write('$N$n');
   }
 
   void emitStaticFunctions(CodeBuffer eagerBuffer) {
@@ -1611,24 +1611,23 @@ class CodeEmitterTask extends CompilerTask {
       String staticName = namer.getName(element);
       String invocationName = namer.instanceMethodName(callElement);
       String fieldAccess = '$isolateProperties.$staticName';
-      buffer.add("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
+      buffer.write("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
 
       addParameterStubs(callElement, (String name, jsAst.Expression value) {
         jsAst.Expression assignment =
             js[isolateProperties][staticName][name].assign(value);
-        buffer.add(
-            jsAst.prettyPrint(assignment.toStatement(), compiler));
-        buffer.add('$N');
+        buffer.write(jsAst.prettyPrint(assignment.toStatement(), compiler));
+        buffer.write('$N');
       });
 
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
-      buffer.add('$fieldAccess.$fieldName$_=$_"$staticName"$N');
+      buffer.write('$fieldAccess.$fieldName$_=$_"$staticName"$N');
       getTypedefChecksOn(element.computeType(compiler)).forEach(
         (Element typedef) {
           String operator = namer.operatorIs(typedef);
-          buffer.add('$fieldAccess.$operator$_=${_}true$N');
+          buffer.write('$fieldAccess.$operator$_=${_}true$N');
         }
       );
     }
@@ -1868,8 +1867,8 @@ class CodeEmitterTask extends CompilerTask {
         jsAst.Expression init =
           js[isolateProperties][namer.getName(element)].assign(
               constantEmitter.referenceInInitializationContext(initialValue));
-        buffer.add(jsAst.prettyPrint(init, compiler));
-        buffer.add('$N');
+        buffer.write(jsAst.prettyPrint(init, compiler));
+        buffer.write('$N');
       });
     }
   }
@@ -1900,8 +1899,8 @@ class CodeEmitterTask extends CompilerTask {
           arguments.add(getter);
         }
         jsAst.Expression init = js[lazyInitializerName](arguments);
-        buffer.add(jsAst.prettyPrint(init, compiler));
-        buffer.add("$N");
+        buffer.write(jsAst.prettyPrint(init, compiler));
+        buffer.write("$N");
       }
     }
   }
@@ -1934,14 +1933,14 @@ class CodeEmitterTask extends CompilerTask {
           bufferForElement(constant.computeType(compiler).element, eagerBuffer);
       jsAst.Expression init = js[isolateProperties][name].assign(
           constantInitializerExpression(constant));
-      buffer.add(jsAst.prettyPrint(init, compiler));
-      buffer.add('$N');
+      buffer.write(jsAst.prettyPrint(init, compiler));
+      buffer.write('$N');
     }
   }
 
   void emitMakeConstantList(CodeBuffer buffer) {
-    buffer.add(namer.isolateName);
-    buffer.add(r'''.makeConstantList = function(list) {
+    buffer.write(namer.isolateName);
+    buffer.write(r'''.makeConstantList = function(list) {
   list.immutable$list = true;
   list.fixed$length = true;
   return list;
@@ -2116,7 +2115,7 @@ class CodeEmitterTask extends CompilerTask {
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       Selector selector = new Selector.callClosure(0);
       String invocationName = namer.invocationName(selector);
-      buffer.add("$mainAccess.$invocationName = $mainAccess$N");
+      buffer.write("$mainAccess.$invocationName = $mainAccess$N");
     }
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
@@ -2133,7 +2132,7 @@ class CodeEmitterTask extends CompilerTask {
       mainCall = '${namer.isolateAccess(main)}()';
     }
     addComment('BEGIN invoke [main].', buffer);
-    buffer.add("""
+    buffer.write("""
 if (typeof document !== "undefined" && document.readyState !== "complete") {
   document.addEventListener("readystatechange", function () {
     if (document.readyState == "complete") {
@@ -2266,10 +2265,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     }
     block.statements.add(js.return_(receiver));
 
-    buffer.add(jsAst.prettyPrint(
+    buffer.write(jsAst.prettyPrint(
         js[isolateProperties][key].assign(js.fun(['receiver'], block)),
         compiler));
-    buffer.add(N);
+    buffer.write(N);
   }
 
   /**
@@ -2526,8 +2525,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       jsAst.PropertyAccess property =
           js[isolateProperties][name];
 
-      buffer.add(jsAst.prettyPrint(property.assign(function), compiler));
-      buffer.add(N);
+      buffer.write(jsAst.prettyPrint(property.assign(function), compiler));
+      buffer.write(N);
     }
   }
 
@@ -2553,8 +2552,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         backend.usedInterceptors.length,
         elements);
 
-    buffer.add(jsAst.prettyPrint(property.assign(array), compiler));
-    buffer.add(N);
+    buffer.write(jsAst.prettyPrint(property.assign(array), compiler));
+    buffer.write(N);
   }
 
   void emitInitFunction(CodeBuffer buffer) {
@@ -2567,7 +2566,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     );
     jsAst.FunctionDeclaration decl = new jsAst.FunctionDeclaration(
         new jsAst.VariableDeclaration('init'), fun);
-    buffer.add(jsAst.prettyPrint(decl, compiler).getText());
+    buffer.write(jsAst.prettyPrint(decl, compiler).getText());
   }
 
   String assembleProgram() {
@@ -2693,9 +2692,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitDeferredCode(CodeBuffer buffer) {
     if (buffer.isEmpty) return;
 
-    buffer.add(n);
+    buffer.write(n);
 
-    buffer.add('${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+    buffer.write(
+        '${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
 
     String code = buffer.getText();
     compiler.outputProvider('part', 'js')
@@ -2707,17 +2707,17 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
     if (!buffer.isEmpty) return;
 
-    buffer.add(GENERATED_BY);
+    buffer.write(GENERATED_BY);
 
-    buffer.add('var old${namer.CURRENT_ISOLATE}$_='
-               '$_${namer.CURRENT_ISOLATE}$N');
+    buffer.write('var old${namer.CURRENT_ISOLATE}$_='
+                 '$_${namer.CURRENT_ISOLATE}$N');
 
     // TODO(ahe): This defines a lot of properties on the
     // Isolate.prototype object.  We know this will turn it into a
     // slow object in V8, so instead we should do something similar to
     // Isolate.$finishIsolateConstructor.
-    buffer.add('${namer.CURRENT_ISOLATE}$_='
-               '$_${namer.isolateName}.prototype$N$n');
+    buffer.write('${namer.CURRENT_ISOLATE}$_='
+                 '$_${namer.isolateName}.prototype$N$n');
   }
 
   String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {

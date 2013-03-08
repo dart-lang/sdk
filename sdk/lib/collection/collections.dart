@@ -279,13 +279,13 @@ class IterableMixinWorkaround {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       do {
-        buffer.add("${iterator.current}");
+        buffer.write("${iterator.current}");
       } while (iterator.moveNext());
     } else {
-      buffer.add("${iterator.current}");
+      buffer.write("${iterator.current}");
       while (iterator.moveNext()) {
-        buffer.add(separator);
-        buffer.add("${iterator.current}");
+        buffer.write(separator);
+        buffer.write("${iterator.current}");
       }
     }
     return buffer.toString();
@@ -297,13 +297,13 @@ class IterableMixinWorkaround {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       for (int i = 0; i < list.length; i++) {
-        buffer.add("${list[i]}");
+        buffer.write("${list[i]}");
       }
     } else {
-      buffer.add("${list[0]}");
+      buffer.write("${list[0]}");
       for (int i = 1; i < list.length; i++) {
-        buffer.add(separator);
-        buffer.add("${list[i]}");
+        buffer.write(separator);
+        buffer.write("${list[i]}");
       }
     }
     return buffer.toString();

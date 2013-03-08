@@ -51,18 +51,18 @@ class ToString {
                               List visiting) {
     visiting.add(c);
     bool isList = c is List;
-    result.add(isList ? '[' : '{');
+    result.write(isList ? '[' : '{');
 
     bool first = true;
     for (var e in c) {
       if (!first) {
-        result.add(', ');
+        result.write(', ');
       }
       first = false;
       _emitObject(e, result, visiting);
     }
 
-    result.add(isList ? ']' : '}');
+    result.write(isList ? ']' : '}');
     visiting.removeLast();
   }
 
@@ -82,18 +82,18 @@ class ToString {
   static void _emitObject(Object o, StringBuffer result, List visiting) {
     if (o is Collection) {
       if (_containsRef(visiting, o)) {
-        result.add(o is List ? '[...]' : '{...}');
+        result.write(o is List ? '[...]' : '{...}');
       } else {
         _emitCollection(o, result, visiting);
       }
     } else if (o is Map) {
       if (_containsRef(visiting, o)) {
-        result.add('{...}');
+        result.write('{...}');
       } else {
         _emitMap(o, result, visiting);
       }
     } else { // o is neither a collection nor a map
-      result.add(o);
+      result.write(o);
     }
   }
 
@@ -142,20 +142,20 @@ class ToString {
    */
   static void _emitMap(Map m, StringBuffer result, List visiting) {
     visiting.add(m);
-    result.add('{');
+    result.write('{');
 
     bool first = true;
     m.forEach((k, v) {
       if (!first) {
-        result.add(', ');
+        result.write(', ');
       }
       first = false;
       _emitObject(k, result, visiting);
-      result.add(': ');
+      result.write(': ');
       _emitObject(v, result, visiting);
     });
 
-    result.add('}');
+    result.write('}');
     visiting.removeLast();
   }
 }

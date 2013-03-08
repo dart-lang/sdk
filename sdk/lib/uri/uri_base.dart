@@ -194,18 +194,18 @@ class Uri {
         "origin is applicable to http/https schemes only. Not \'$scheme\'");
     }
     StringBuffer sb = new StringBuffer();
-    sb.add(scheme);
-    sb.add(":");
+    sb.write(scheme);
+    sb.write(":");
     if (domain == null || domain == "") {
       // TODO(aprelev@gmail.com): Use StateException instead
       throw new ArgumentError("Cannot use origin without a domain");
     }
 
-    sb.add("//");
-    sb.add(domain);
+    sb.write("//");
+    sb.write(domain);
     if (port != 0) {
-      sb.add(":");
-      sb.add(port);
+      sb.write(":");
+      sb.write(port);
     }
     return sb.toString();
   }
@@ -214,15 +214,15 @@ class Uri {
     StringBuffer sb = new StringBuffer();
     _addIfNonEmpty(sb, scheme, scheme, ':');
     if (hasAuthority || (scheme == "file")) {
-      sb.add("//");
+      sb.write("//");
       _addIfNonEmpty(sb, userInfo, userInfo, "@");
-      sb.add(domain == null ? "null" : domain);
+      sb.write(domain == null ? "null" : domain);
       if (port != 0) {
-        sb.add(":");
-        sb.add(port.toString());
+        sb.write(":");
+        sb.write(port.toString());
       }
     }
-    sb.add(path == null ? "null" : path);
+    sb.write(path == null ? "null" : path);
     _addIfNonEmpty(sb, query, "?", query);
     _addIfNonEmpty(sb, fragment, "#", fragment);
     return sb.toString();
@@ -252,8 +252,8 @@ class Uri {
   static void _addIfNonEmpty(StringBuffer sb, String test,
                              String first, String second) {
     if ("" != test) {
-      sb.add(first == null ? "null" : first);
-      sb.add(second == null ? "null" : second);
+      sb.write(first == null ? "null" : first);
+      sb.write(second == null ? "null" : second);
     }
   }
 }

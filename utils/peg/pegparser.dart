@@ -600,14 +600,14 @@ _Rule _compileMultiRule(List rules,
 
 String _formatMultiRule(String functor, List rules) {
   var sb = new StringBuffer(functor);
-  sb.add('(');
+  sb.write('(');
   var separator = '';
   for (var rule in rules) {
-    sb.add(separator);
-    sb.add(rule);
+    sb.write(separator);
+    sb.write(rule);
     separator = ',';
   }
-  sb.add(')');
+  sb.write(')');
   return sb.toString();
 }
 

@@ -48,7 +48,7 @@ String describePattern(Pattern pattern) {
   if (pattern is! RegExp) return '$pattern';
 
   var flags = new StringBuffer();
-  if (!pattern.isCaseSensitive) flags.add('i');
-  if (pattern.isMultiLine) flags.add('m');
+  if (!pattern.isCaseSensitive) flags.write('i');
+  if (pattern.isMultiLine) flags.write('m');
   return '/${pattern.pattern}/$flags';
 }

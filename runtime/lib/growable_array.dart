@@ -226,13 +226,13 @@ class _GrowableObjectArray<T> implements List<T> {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       for (int i = 0; i < this.length; i++) {
-        buffer.add("${this[i]}");
+        buffer.write("${this[i]}");
       }
     } else {
-      buffer.add("${this[0]}");
+      buffer.write("${this[0]}");
       for (int i = 1; i < this.length; i++) {
-        buffer.add(separator);
-        buffer.add("${this[i]}");
+        buffer.write(separator);
+        buffer.write("${this[i]}");
       }
     }
     return buffer.toString();

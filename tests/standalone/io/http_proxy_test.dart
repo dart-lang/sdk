@@ -43,7 +43,7 @@ class Server {
         var body = new StringBuffer();
         request.listen(
             (data) {
-              body.add(new String.fromCharCodes(data));
+              body.write(new String.fromCharCodes(data));
             },
             onDone: () {
               String path = request.uri.path.substring(1);

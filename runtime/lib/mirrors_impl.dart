@@ -22,24 +22,24 @@ Map _filterMap(Map old_map, bool filter(key, value)) {
 String _makeSignatureString(TypeMirror returnType,
                             List<ParameterMirror> parameters) {
   StringBuffer buf = new StringBuffer();
-  buf.add(returnType.qualifiedName);
-  buf.add(' (');
+  buf.write(returnType.qualifiedName);
+  buf.write(' (');
   bool found_optional_param = false;
   for (int i = 0; i < parameters.length; i++) {
     var param = parameters[i];
     if (param.isOptional && !found_optional_param) {
-      buf.add('[');
+      buf.write('[');
       found_optional_param = true;
     }
-    buf.add(param.type.qualifiedName);
+    buf.write(param.type.qualifiedName);
     if (i < (parameters.length - 1)) {
-      buf.add(', ');
+      buf.write(', ');
     }
   }
   if (found_optional_param) {
-    buf.add(']');
+    buf.write(']');
   }
-  buf.add(')');
+  buf.write(')');
   return buf.toString();
 }
 
@@ -253,7 +253,7 @@ String _dartEscape(String str) {
         }
         break;
     }
-    buf.add(output);
+    buf.write(output);
   }
   return buf.toString();
 }

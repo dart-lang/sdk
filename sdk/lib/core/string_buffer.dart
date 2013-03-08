@@ -23,14 +23,6 @@ class StringBuffer implements StringSink {
   /** Returns whether the buffer is empty. This is a constant-time operation. */
   bool get isEmpty => length == 0;
 
-  /**
-   * Converts [obj] to a string and adds it to the buffer.
-   *
-   * *Deprecated*. Use [write] instead.
-   */
-  @deprecated
-  void add(Object obj) => write(obj);
-
   /// Adds the contents of [obj], converted to a string, to the buffer.
   external void write(Object obj);
 
@@ -44,26 +36,6 @@ class StringBuffer implements StringSink {
   void writeln(Object obj) {
     write(obj);
     write("\n");
-  }
-
-  /**
-   * Adds the string representation of [charCode] to the buffer.
-   *
-   * *Deprecated* Use [writeCharCode] instead.
-   */
-  @deprecated
-  void addCharCode(int charCode) {
-    writeCharCode(charCode);
-  }
-
-  /**
-   * Adds all items in [objects] to the buffer.
-   *
-   * *Deprecated*. Use [writeAll] instead.
-   */
-  @deprecated
-  void addAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
   }
 
   /**

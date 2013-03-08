@@ -43,7 +43,7 @@ abstract class ByteString extends Iterable<int> implements SourceString {
   }
 
   printOn(StringBuffer sb) {
-    sb.add(slowToString());
+    sb.write(slowToString());
   }
 
   bool get isEmpty => length == 0;

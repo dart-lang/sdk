@@ -25,6 +25,11 @@ class _BufferList {
     if (offset != 0) _index = offset;
   }
 
+  /** Alias for [add]. */
+  void write(List<int> buffer, [int offset = 0]) {
+    add(buffer, offset);
+  }
+
   /**
    * Returns the first buffer from the list. This returns the whole
    * buffer and does not remove the buffer from the list. Use

@@ -41,20 +41,18 @@ class TreeOutput {
 
   void write(String s) {
     for (int i=0; i < depth; i++) {
-      buf.add(' ');
+      buf.write(' ');
     }
-    buf.add(s);
+    buf.write(s);
   }
 
   void writeln(String s) {
-    write(s);
-    buf.add('\n');
+    buf.writeln(s);
   }
 
   void heading(String name, span) {
     write(name);
-    buf.add('  (${span.locationText})');
-    buf.add('\n');
+    buf.writeln('  (${span.locationText})');
   }
 
   String toValue(value) {
@@ -79,14 +77,13 @@ class TreeOutput {
   void writeList(String label, List list) {
     write(label + ': ');
     if (list == null) {
-      buf.add('null');
-      buf.add('\n');
+      buf.writeln('null');
     } else {
       for (var item in list) {
-        buf.add(item.toString());
-        buf.add(', ');
+        buf.write(item.toString());
+        buf.write(', ');
       }
-      buf.add('\n');
+      buf.write('\n');
     }
   }
 

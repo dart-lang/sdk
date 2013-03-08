@@ -204,7 +204,7 @@ void testGET() {
           Expect.equals(HttpStatus.OK, response.statusCode);
           StringBuffer body = new StringBuffer();
           response.listen(
-            (data) => body.add(new String.fromCharCodes(data)),
+            (data) => body.write(new String.fromCharCodes(data)),
             onDone: () {
               Expect.equals("01234567890", body.toString());
               httpClient.close();
@@ -240,7 +240,7 @@ void testPOST(bool chunkedEncoding) {
             Expect.equals(HttpStatus.OK, response.statusCode);
             StringBuffer body = new StringBuffer();
             response.listen(
-              (data) => body.add(new String.fromCharCodes(data)),
+              (data) => body.write(new String.fromCharCodes(data)),
               onDone: () {
                 Expect.equals(data, body.toString());
                 count++;
@@ -274,7 +274,7 @@ void test404() {
           Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
           var body = new StringBuffer();
           response.listen(
-              (data) => body.add(new String.fromCharCodes(data)),
+              (data) => body.write(new String.fromCharCodes(data)),
               onDone: () {
                 Expect.equals("Page not found", body.toString());
                 httpClient.close();

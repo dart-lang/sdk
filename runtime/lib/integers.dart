@@ -197,9 +197,9 @@ class _IntegerImplementation {
       return "0";
     }
     StringBuffer buffer = new StringBuffer();
-    if (isNegative) buffer.add("-");
+    if (isNegative) buffer.write("-");
     for (int i = temp.length - 1; i >= 0; i--) {
-      buffer.add(table[temp[i]]);
+      buffer.write(table[temp[i]]);
     }
     return buffer.toString();
   }

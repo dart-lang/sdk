@@ -90,7 +90,7 @@ class Directory extends descriptor.Entry {
 
     var lastEntryString = prefixLines(contents.last.describe(), prefix: '    ')
         .replaceFirst('    ', "'-- ");
-    buffer.add(lastEntryString);
+    buffer.write(lastEntryString);
     return buffer.toString();
   }
 }

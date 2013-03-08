@@ -43,9 +43,9 @@ void runCss([bool debug = false, bool parseOnly = false]) {
       Stylesheet stylesheet = parser.parse();
       StringBuffer stylesheetTree = new StringBuffer();
       String prettyStylesheet = stylesheet.toString();
-      stylesheetTree.add("${prettyStylesheet}\n");
-      stylesheetTree.add("\n============>Tree Dump<============\n");
-      stylesheetTree.add(stylesheet.toDebugString());
+      stylesheetTree.write("${prettyStylesheet}\n");
+      stylesheetTree.write("\n============>Tree Dump<============\n");
+      stylesheetTree.write(stylesheet.toDebugString());
       dumpTree = stylesheetTree.toString();
     } catch (cssParseException) {
       templateValid = false;
