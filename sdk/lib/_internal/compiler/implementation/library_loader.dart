@@ -320,12 +320,12 @@ class LibraryLoaderTask extends LibraryLoader {
         compiler.reportMessage(
             compiler.spanFromSpannable(tag.name, uri),
             MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
-            api.Diagnostic.VERBOSE_INFO);
+            api.Diagnostic.WARNING);
         Uri existingUri = existing.entryCompilationUnit.script.uri;
         compiler.reportMessage(
             compiler.spanFromSpannable(existing.libraryTag.name, existingUri),
             MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
-            api.Diagnostic.VERBOSE_INFO);
+            api.Diagnostic.WARNING);
       }
     }
   }

@@ -68,6 +68,7 @@ class FormattingDiagnosticHandler {
   FormattingDiagnosticHandler(SourceFileProvider this.provider);
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
+    if (!verbose && identical(kind, api.Diagnostic.VERBOSE_INFO)) return;
     if (enableColors) {
       print('${colors.green("info:")} $message');
     } else {
@@ -79,7 +80,6 @@ class FormattingDiagnosticHandler {
                          api.Diagnostic kind) {
     // TODO(ahe): Remove this when source map is handled differently.
     if (identical(kind.name, 'source map')) return;
-    if (!verbose && identical(kind, api.Diagnostic.VERBOSE_INFO)) return;
 
     if (isAborting) return;
     isAborting = identical(kind, api.Diagnostic.CRASH);
