@@ -207,7 +207,12 @@ public class PackageLibraryManager {
     shortUri = getRelativeUri(uri);
     if (shortUri != null){
       try {
-        return new URI(null, null, shortUri.getScheme() + ":" +  shortUri.getHost() + shortUri.getPath(),null, null);
+        if (shortUri.getHost() != null){
+          return new URI(null, null, shortUri.getScheme() + ":" +  shortUri.getHost() + shortUri.getPath(),null, null);
+        }
+        else {
+          return new URI(null, null, shortUri.getScheme() + ":" +  shortUri.getSchemeSpecificPart(), null, null);
+        }
       } catch (URISyntaxException e) {
       }
     }
