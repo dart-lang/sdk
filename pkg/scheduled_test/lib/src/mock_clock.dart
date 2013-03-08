@@ -86,20 +86,14 @@ class _MockTimer implements Timer {
   /// The subscription to the [Clock.onTick] stream.
   StreamSubscription _subscription;
 
-  // TODO(nweiz): Remove this when issue 8512 is fixed.
-  var _cancelled = false;
-
   _MockTimer(Duration duration, this._callback)
       : _time = _clock.time + duration.inMilliseconds {
     _subscription = _clock.onTick.listen((time) {
-      if (_cancelled || time < _time) return;
+      if (time < _time) return;
       _subscription.cancel();
       _callback();
     });
   }
 
-  void cancel() {
-    _cancelled = true;
-    _subscription.cancel();
-  }
+  void cancel() => _subscription.cancel();
 }
