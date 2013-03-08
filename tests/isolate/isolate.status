@@ -13,6 +13,7 @@ timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                    # implement timer (currently only in d8)
 timer_isolate_test: Skip # See Issue 4997
 unresolved_ports_negative_test: Skip # See Issue 6839
+global_error_handler_test: Fail # See Issue 9013.
 
 [ $compiler == none && $runtime == drt ]
 isolate2_negative_test: Skip  # Inherited from VM.
@@ -42,6 +43,7 @@ compute_this_script_browser_test: Pass
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750
+global_error_handler_test: Fail # http://dartbug.com/9012
 
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
