@@ -72,7 +72,7 @@ main() {
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
 
         response.headers.contentType = new ContentType("application", "json");
-        response.addString(json.stringify({
+        response.write(json.stringify({
           "access_token": "new access token",
           "token_type": "bearer"
         }));
@@ -159,7 +159,7 @@ main() {
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'
           ' error_description="your token sucks"');
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'error': {'message': 'your token sucks'}
       }));
       response.close();
@@ -210,7 +210,7 @@ void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 
       response.headers.contentType = new ContentType("application", "json");
-      response.addString(json.stringify({
+      response.write(json.stringify({
         "access_token": accessToken,
         "token_type": "bearer"
       }));
