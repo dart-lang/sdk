@@ -137,7 +137,7 @@ main() {
               allLibs.add(lib);
             }
           }
-          dartdoc.excludedLibraries = allLibs;
+          dartdoc.includedLibraries = allLibs;
         }
       }, allowMultiple: true);
 
