@@ -59,7 +59,7 @@ def ProcessOsOption(os):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64'
+    options.arch = 'ia32,x64,simarm,simmips'
   if options.mode == 'all':
     options.mode = 'release,debug'
   if options.os == 'all':

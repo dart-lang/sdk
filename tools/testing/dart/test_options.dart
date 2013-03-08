@@ -474,7 +474,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64';
+      configuration['arch'] = 'ia32,x64,simarm,simmips';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
