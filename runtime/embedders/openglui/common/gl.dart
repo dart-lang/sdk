@@ -13,6 +13,43 @@ class BodyElement {
   BodyElement() : _nodes = new List();
 }
 
+// The OpenGLUI "equivalent" of Window.
+
+typedef void RequestAnimationFrameCallback(num highResTime);
+
+class Window {
+  static int _nextId = 0;
+  Map<int, RequestAnimationFrameCallback> _callbacks;
+
+  Window._internal() : _callbacks = new Map();
+
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    _callbacks[_nextId++] = callback;
+  }
+  void cancelAnimationFrame(id) {
+    if (_callbacks.containsKey(id)) {
+      _callbacks.remove(id);
+    }
+  }
+  get animationFrame {
+    // TODO(gram)
+    return null;
+  }
+
+  void _dispatch() {
+    var when = (new DateTime.now()).millisecondsSinceEpoch;
+    // We clear out the callbacks map before calling any callbacks,
+    // as they may schedule new callbacks.
+    var oldcallbacks = _callbacks;
+    _callbacks = new Map();
+    for (var c in oldcallbacks.values) {
+      c(when);
+    }
+  }
+}
+
+Window window = new Window._internal();
+
 // The OpenGLUI "equivalent" of HtmlDocument.
 class Document {
   BodyElement _body;
@@ -21,6 +58,11 @@ class Document {
 }
 
 Document document = new Document._internal();
+
+// TODO(gram): make private and call from within library context.
+update_() {
+  window._dispatch();
+}
 
 // Event handling. This is very kludgy for now, especially the
 // bare-bones Stream stuff!

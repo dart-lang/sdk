@@ -237,7 +237,7 @@ int VMGlue::CallUpdate() {
   if (initialized_script_) {
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
-    int rtn = Invoke("update", 0, 0);
+    int rtn = Invoke("update_", 0, 0);
     Dart_ExitScope();
     Dart_ExitIsolate();
     return rtn;
