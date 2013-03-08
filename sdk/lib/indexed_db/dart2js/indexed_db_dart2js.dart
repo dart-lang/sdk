@@ -1014,7 +1014,7 @@ class ObjectStore native "*IDBObjectStore" {
         controller.close();
       } else {
         controller.add(cursor);
-        if (autoAdvance == true) {
+        if (autoAdvance == true && controller.hasSubscribers) {
           cursor.next();
         }
       }

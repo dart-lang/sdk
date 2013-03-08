@@ -1073,7 +1073,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
         controller.close();
       } else {
         controller.add(cursor);
-        if (autoAdvance == true) {
+        if (autoAdvance == true && controller.hasSubscribers) {
           cursor.next();
         }
       }
