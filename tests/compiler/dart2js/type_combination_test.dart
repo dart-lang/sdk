@@ -439,7 +439,7 @@ void testUnion(MockCompiler compiler) {
                 READABLE_ARRAY.union(INTEGER_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 READABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 READABLE_ARRAY.union(STRING_OR_NULL, compiler));
   Expect.equals(jsArrayOrNull,
                 READABLE_ARRAY.union(NULL, compiler));
@@ -484,7 +484,7 @@ void testUnion(MockCompiler compiler) {
                 MUTABLE_ARRAY.union(INTEGER_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 MUTABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 MUTABLE_ARRAY.union(STRING_OR_NULL, compiler));
   Expect.equals(jsMutableArrayOrNull,
                 MUTABLE_ARRAY.union(NULL, compiler));
@@ -529,7 +529,7 @@ void testUnion(MockCompiler compiler) {
                 EXTENDABLE_ARRAY.union(INTEGER_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 EXTENDABLE_ARRAY.union(DOUBLE_OR_NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 EXTENDABLE_ARRAY.union(STRING_OR_NULL, compiler));
   Expect.equals(jsExtendableArrayOrNull,
                 EXTENDABLE_ARRAY.union(NULL, compiler));
@@ -910,11 +910,11 @@ void testUnion(MockCompiler compiler) {
                 STRING_OR_NULL.union(INDEXABLE_PRIMITIVE, compiler));
   Expect.equals(STRING_OR_NULL,
                 STRING_OR_NULL.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 STRING_OR_NULL.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 STRING_OR_NULL.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 STRING_OR_NULL.union(EXTENDABLE_ARRAY, compiler));
   Expect.equals(UNKNOWN,
                 STRING_OR_NULL.union(nonPrimitive1, compiler));
@@ -936,7 +936,7 @@ void testUnion(MockCompiler compiler) {
                 STRING_OR_NULL.union(STRING_OR_NULL, compiler));
   Expect.equals(STRING_OR_NULL,
                 STRING_OR_NULL.union(NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 STRING_OR_NULL.union(FIXED_ARRAY, compiler));
 
   Expect.equals(NULL,
@@ -1022,7 +1022,7 @@ void testUnion(MockCompiler compiler) {
                 FIXED_ARRAY.union(INTEGER_OR_NULL, compiler));
   Expect.equals(UNKNOWN,
                 FIXED_ARRAY.union(DOUBLE_OR_NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 FIXED_ARRAY.union(STRING_OR_NULL, compiler));
   Expect.equals(jsFixedArrayOrNull,
                 FIXED_ARRAY.union(NULL, compiler));

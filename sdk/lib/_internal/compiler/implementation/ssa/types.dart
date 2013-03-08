@@ -850,9 +850,6 @@ class HReadableArrayType extends HIndexablePrimitiveType {
     return new TypeMask.nonNullSubclass(computeType(compiler));
   }
 
-  bool useOldIntersection() => true;
-  bool useOldUnion() => true;
-
   HType unionOld(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.READABLE_ARRAY;
     if (other.isUnknown()) return HType.UNKNOWN;

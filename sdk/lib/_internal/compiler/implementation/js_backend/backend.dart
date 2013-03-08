@@ -966,6 +966,8 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
       addInterceptors(jsArrayClass, enqueuer);
+      enqueuer.registerInstantiatedClass(jsFixedArrayClass);
+      enqueuer.registerInstantiatedClass(jsExtendableArrayClass);
     } else if (cls == compiler.intClass) {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
