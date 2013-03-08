@@ -1258,6 +1258,12 @@ void Assembler::LoadObject(Register rd, const Object& object) {
 }
 
 
+void Assembler::PushObject(const Object& object) {
+  LoadObject(IP, object);
+  Push(IP);
+}
+
+
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
   int bound_pc = buffer_.Size();
@@ -1793,7 +1799,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve volatile CPU registers.
-  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
+  EnterFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR), 0);
 
   // Preserve all volatile FPU registers.
   vstmd(DB_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
@@ -1815,7 +1821,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   vldmd(IA_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));
 }
 
 

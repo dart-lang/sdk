@@ -682,14 +682,15 @@ class Redirection {
 
   uword external_function() const { return external_function_; }
 
-  uint32_t argument_count() const { return argument_count_; }
+  Simulator::CallKind call_kind() const { return call_kind_; }
 
-  static Redirection* Get(uword external_function, uint32_t argument_count) {
+  static Redirection* Get(uword external_function,
+                          Simulator::CallKind call_kind) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, argument_count);
+    return new Redirection(external_function, call_kind);
   }
 
   static Redirection* FromSvcInstruction(Instr* svc_instruction) {
@@ -702,16 +703,16 @@ class Redirection {
  private:
   static const int32_t kRedirectSvcInstruction =
     ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
-  Redirection(uword external_function, uint32_t argument_count)
+  Redirection(uword external_function, Simulator::CallKind call_kind)
       : external_function_(external_function),
-        argument_count_(argument_count),
+        call_kind_(call_kind),
         svc_instruction_(kRedirectSvcInstruction),
         next_(list_) {
     list_ = this;
   }
 
   uword external_function_;
-  const uint32_t argument_count_;
+  Simulator::CallKind call_kind_;
   uint32_t svc_instruction_;
   Redirection* next_;
   static Redirection* list_;
@@ -721,9 +722,8 @@ class Redirection {
 Redirection* Redirection::list_ = NULL;
 
 
-uword Simulator::RedirectExternalReference(uword function,
-                                           uint32_t argument_count) {
-  Redirection* redirection = Redirection::Get(function, argument_count);
+uword Simulator::RedirectExternalReference(uword function, CallKind call_kind) {
+  Redirection* redirection = Redirection::Get(function, call_kind);
   return redirection->address_of_svc_instruction();
 }
 
@@ -1298,15 +1298,12 @@ void Simulator::HandleRList(Instr* instr, bool load) {
 }
 
 
-// Calls into the Dart runtime are based on this simple interface.
+// Calls into the Dart runtime are based on this interface.
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 
 
-static void PrintExternalCallTrace(intptr_t external,
-                                   NativeArguments arguments) {
-  // TODO(regis): Do a reverse lookup on this address and print the symbol.
-  UNIMPLEMENTED();
-}
+// Calls to native Dart functions are based on this interface.
+typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
 
 
 void Simulator::SupervisorCall(Instr* instr) {
@@ -1316,22 +1313,30 @@ void Simulator::SupervisorCall(Instr* instr) {
       SimulatorSetjmpBuffer buffer(this);
 
       if (!setjmp(buffer.buffer_)) {
-        NativeArguments arguments;
-        ASSERT(sizeof(NativeArguments) == 4*kWordSize);
-        arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(R0));
-        arguments.argc_tag_ = get_register(R1);
-        arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
-        arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
-
         int32_t saved_lr = get_register(LR);
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
         uword external = redirection->external_function();
-        SimulatorRuntimeCall target =
-            reinterpret_cast<SimulatorRuntimeCall>(external);
         if (FLAG_trace_sim) {
-          PrintExternalCallTrace(external, arguments);
+          OS::Print("Call to host function at 0x%d\n", external);
         }
-        target(arguments);
+        if (redirection->call_kind() == kRuntimeCall) {
+          NativeArguments arguments;
+          ASSERT(sizeof(NativeArguments) == 4*kWordSize);
+          arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(R0));
+          arguments.argc_tag_ = get_register(R1);
+          arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
+          arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
+          SimulatorRuntimeCall target =
+              reinterpret_cast<SimulatorRuntimeCall>(external);
+          target(arguments);
+        } else {
+          ASSERT(redirection->call_kind() == kNativeCall);
+          NativeArguments* arguments;
+          arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
+          SimulatorNativeCall target =
+              reinterpret_cast<SimulatorNativeCall>(external);
+          target(arguments);
+        }
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.

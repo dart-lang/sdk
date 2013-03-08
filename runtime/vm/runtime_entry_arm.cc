@@ -27,7 +27,7 @@ void RuntimeEntry::Call(Assembler* assembler) const {
   // into the runtime system.
   uword entry = GetEntryPoint();
 #if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry, argument_count());
+  entry = Simulator::RedirectExternalReference(entry, Simulator::kRuntimeCall);
 #endif
   if (is_leaf()) {
     ExternalLabel label(name(), entry);

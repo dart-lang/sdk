@@ -76,9 +76,12 @@ class Simulator {
                                uword compare_value,
                                uword new_value);
 
-  // Runtime call support.
-  static uword RedirectExternalReference(uword function,
-                                         uint32_t argument_count);
+  // Runtime and native call support.
+  enum CallKind {
+    kRuntimeCall,
+    kNativeCall
+  };
+  static uword RedirectExternalReference(uword function, CallKind call_kind);
 
   void Longjmp(int32_t pc, int32_t sp, int32_t fp, const Instance& object);
 
