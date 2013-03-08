@@ -3,3 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:math";
+import "dart:scalarlist";

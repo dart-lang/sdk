@@ -78,6 +78,7 @@ namespace dart {
   V(ObjectArray_copyFromObjectArray, 5)                                        \
   V(StringBase_createFromCodePoints, 1)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
+  V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
   V(String_getHashCode, 1)                                                     \

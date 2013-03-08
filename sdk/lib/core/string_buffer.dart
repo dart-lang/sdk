@@ -31,7 +31,11 @@ class StringBuffer implements StringSink {
   @deprecated
   void add(Object obj) => write(obj);
 
+  /// Adds the contents of [obj], converted to a string, to the buffer.
   external void write(Object obj);
+
+  /// Adds the string representation of [charCode] to the buffer.
+  external void writeCharCode(int charCode);
 
   void writeAll(Iterable objects) {
     for (Object obj in objects) write(obj);
@@ -50,11 +54,6 @@ class StringBuffer implements StringSink {
   @deprecated
   void addCharCode(int charCode) {
     writeCharCode(charCode);
-  }
-
-  /// Adds the string representation of [charCode] to the buffer.
-  void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
   }
 
   /**

@@ -5399,12 +5399,12 @@ class Uint16Array : public ByteArray {
                              intptr_t len,
                              Heap::Space space = Heap::kNew);
 
- private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
+ private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint16Array, ByteArray);
   friend class ByteArray;
   friend class Class;

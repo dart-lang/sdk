@@ -233,6 +233,10 @@ patch class StringBuffer {
     _contents = Primitives.stringConcatUnchecked(_contents, str);
   }
 
+  patch void writeCharCode(int charCode) {
+    write(new String.fromCharCode(charCode));
+  }
+
   patch void clear() {
     _contents = "";
   }
