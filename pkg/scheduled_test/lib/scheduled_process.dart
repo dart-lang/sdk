@@ -154,23 +154,35 @@ class ScheduledProcess {
     // queue where the process will be killed, rather than blocking the tasks
     // queue waiting for the process to exit.
     _process.then((p) => p.exitCode).then((exitCode) {
+      print("[$description] exitCode completed with value '$exitCode'");
       if (_endExpected) {
+        print("[$description] expected the process to end, passing '$exitCode' to completer");
         exitCodeCompleter.complete(exitCode);
         return;
+      } else {
+        print("[$description] did not expect the process to end, maybe we should wait for the current task to end");
       }
 
       wrapFuture(pumpEventQueue().then((_) {
-        if (currentSchedule.currentTask != _taskBeforeEnd) return;
+        if (currentSchedule.currentTask != _taskBeforeEnd) {
+          print("[$description] not waiting for the current task to end");
+          return;
+        }
+        print("[$description] waiting for current task to end to see if the end will be expected");
         // If we're one task before the end was scheduled, wait for that task
         // to complete and pump the event queue so that _endExpected will be
         // set.
         return _taskBeforeEnd.result.then((_) => pumpEventQueue());
       }).then((_) {
+        print("[$description] passing '$exitCode' to completer");
         exitCodeCompleter.complete(exitCode);
 
         if (!_endExpected) {
+          print("[$description] end not expected, throwing error");
           throw "Process '${this.description}' ended earlier than scheduled "
             "with exit code $exitCode.";
+        } else {
+          print("[$description] end expected, not throwing error");
         }
       }));
     });
@@ -190,6 +202,7 @@ class ScheduledProcess {
   /// debug information if an error occurs.
   void _scheduleExceptionCleanup() {
     currentSchedule.onException.schedule(() {
+      print("[$description] cleaning up after exception");
       _stdoutSubscription.cancel();
       _stderrSubscription.cancel();
 
@@ -197,18 +210,22 @@ class ScheduledProcess {
 
       var killedPrematurely = false;
       if (!_exitCode.hasValue) {
+        print("[$description] exit code has not been set, killing process");
         var killedPrematurely = true;
         _endExpected = true;
         _process.value.kill();
         // Ensure that the onException queue waits for the process to actually
         // exit after being killed.
         wrapFuture(_process.value.exitCode);
+      } else {
+        print("[$description] exit code has been set to '${_process.value.exitCode.value}', process is dead");
       }
 
       return Future.wait([
         _stdoutLog.toList(),
         _stderrLog.toList()
       ]).then((results) {
+        print("[$description] got stdout/stderr, killedPrematurely=$killedPrematurely, exitCode.value=${_exitCode.value}");
         var stdout = results[0].join("\n");
         var stderr = results[1].join("\n");
 

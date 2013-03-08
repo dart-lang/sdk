@@ -95,7 +95,7 @@ class Schedule {
   /// If a task times out and then later completes with an error, that error
   /// cannot be handled. The user will still be notified of it.
   Duration get timeout => _timeout;
-  Duration _timeout = new Duration(seconds: 30);
+  Duration _timeout = new Duration(seconds: 10);
   set timeout(Duration duration) {
     _timeout = duration;
     heartbeat();
