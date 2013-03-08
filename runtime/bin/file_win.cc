@@ -272,7 +272,27 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
-  return File::kDoesNotExist;
+  const wchar_t* name = StringUtils::Utf8ToWide(pathname);
+  WIN32_FIND_DATAW file_data;
+  HANDLE find_handle = FindFirstFileW(name, &file_data);
+  if (find_handle == INVALID_HANDLE_VALUE) {
+    // TODO(whesse): Distinguish other errors from does not exist.
+    return File::kDoesNotExist;
+  }
+  DWORD attributes = file_data.dwFileAttributes;
+  if (!follow_links && (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    DWORD reparse_tag = file_data.dwReserved0;
+    if (reparse_tag == IO_REPARSE_TAG_SYMLINK ||
+        reparse_tag == IO_REPARSE_TAG_MOUNT_POINT) {
+      return File::kIsLink;
+    } else {
+      return File::kDoesNotExist;
+    }
+  } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+    return File::kIsDirectory;
+  } else {
+    return File::kIsFile;
+  }
 }
 
 #endif  // defined(TARGET_OS_WINDOWS)
