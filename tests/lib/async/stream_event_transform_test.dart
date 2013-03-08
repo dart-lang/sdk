@@ -8,37 +8,37 @@ import 'dart:async';
 import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
 
-void handleData(int data, StreamSink<int> sink) {
-  sink.signalError(new AsyncError("$data"));
+void handleData(int data, EventSink<int> sink) {
+  sink.addError(new AsyncError("$data"));
   sink.add(data + 1);
 }
 
-void handleError(AsyncError e, StreamSink<int> sink) {
+void handleError(AsyncError e, EventSink<int> sink) {
   String value = e.error;
   int data = int.parse(value);
   sink.add(data);
-  sink.signalError(new AsyncError("${data + 1}"));
+  sink.addError(new AsyncError("${data + 1}"));
 }
 
-void handleDone(StreamSink<int> sink) {
+void handleDone(EventSink<int> sink) {
   sink.add(99);
   sink.close();
 }
 
 class EventTransformer extends StreamEventTransformer<int,int> {
-  void handleData(int data, StreamSink<int> sink) {
-    sink.signalError(new AsyncError("$data"));
+  void handleData(int data, EventSink<int> sink) {
+    sink.addError(new AsyncError("$data"));
     sink.add(data + 1);
   }
 
-  void handleError(AsyncError e, StreamSink<int> sink) {
+  void handleError(AsyncError e, EventSink<int> sink) {
     String value = e.error;
     int data = int.parse(value);
     sink.add(data);
-    sink.signalError(new AsyncError("${data + 1}"));
+    sink.addError(new AsyncError("${data + 1}"));
   }
 
-  void handleDone(StreamSink<int> sink) {
+  void handleDone(EventSink<int> sink) {
     sink.add(99);
     sink.close();
   }

@@ -86,7 +86,7 @@ testSingleController() {
 
   test("Single-subscription StreamController subscription changes", () {
     StreamController c = new StreamController();
-    StreamSink sink = c.sink;
+    EventSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
     var subscription;
@@ -110,7 +110,7 @@ testSingleController() {
        " there is no subscriber",
        () {
     StreamController c = new StreamController();
-    StreamSink sink = c.sink;
+    EventSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
     sink.add(1);
@@ -129,7 +129,7 @@ testSingleController() {
   test("Single-subscription StreamController subscription changes while firing",
        () {
     StreamController c = new StreamController();
-    StreamSink sink = c.sink;
+    EventSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
     var subscription = stream.listen(null);
@@ -420,7 +420,7 @@ testRethrow() {
       Stream s = streamErrorTransform(c.stream, (e) { throw error; });
       s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync1(
           (AsyncError e) { Expect.identical(error, e); }));
-      c.signalError(null);
+      c.addError(null);
       c.close();
     });
   }

@@ -434,7 +434,7 @@ class _RawServerSocket extends Stream<RawSocket>
         if (socket != null) _controller.add(new _RawSocket(socket));
       },
       error: (e) {
-        _controller.signalError(new AsyncError(e));
+        _controller.addError(new AsyncError(e));
         _controller.close();
       }
     );
@@ -507,7 +507,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
       error: (e) {
-        _controller.signalError(new AsyncError(e));
+        _controller.addError(new AsyncError(e));
         close();
       }
     );
@@ -868,7 +868,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   void _onError(error) {
     if (!_controllerClosed) {
       _controllerClosed = true;
-      _controller.signalError(error);
+      _controller.addError(error);
       _controller.close();
     }
     _done(error);

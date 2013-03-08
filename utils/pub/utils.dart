@@ -202,7 +202,7 @@ Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
       new StreamController.broadcast() :
       new StreamController();
   var subscription = stream.listen(controller.add,
-      onError: controller.signalError,
+      onError: controller.addError,
       onDone: controller.close);
   return new Pair<Stream, StreamSubscription>(controller.stream, subscription);
 }
@@ -218,8 +218,8 @@ Pair<Stream, Stream> tee(Stream stream) {
     controller1.add(value);
     controller2.add(value);
   }, onError: (error) {
-    controller1.signalError(error);
-    controller2.signalError(error);
+    controller1.addError(error);
+    controller2.addError(error);
   }, onDone: () {
     controller1.close();
     controller2.close();

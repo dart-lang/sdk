@@ -17,7 +17,7 @@ part of dart.crypto;
  * If multiple instances of a given Hash is needed the [newInstance]
  * method can provide a new instance.
  */
-// TODO(floitsch): make Hash implement Sink, StreamSink or similar.
+// TODO(floitsch): make Hash implement Sink, EventSink or similar.
 abstract class Hash {
   /**
    * Add a list of bytes to the hash computation.
@@ -74,7 +74,7 @@ abstract class MD5 implements Hash {
  * The [add] method is used to add data to the message. The [digest] and
  * [close] methods are used to extract the message authentication code.
  */
-// TODO(floitsch): make Hash implement Sink, StreamSink or similar.
+// TODO(floitsch): make Hash implement Sink, EventSink or similar.
 abstract class HMAC {
   /**
    * Create an [HMAC] object from a [Hash] and a key.

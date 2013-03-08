@@ -58,7 +58,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
   /**
    * Process data received from the underlying communication channel.
    */
-  void handleData(List<int> buffer, StreamSink sink) {
+  void handleData(List<int> buffer, EventSink sink) {
     int count = buffer.length;
     int index = 0;
     int lastIndex = count;
@@ -216,11 +216,11 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
       }
     } catch (e) {
       _state = FAILURE;
-      sink.signalError(e);
+      sink.addError(e);
     }
   }
 
-  void _lengthDone(StreamSink sink) {
+  void _lengthDone(EventSink sink) {
     if (_masked) {
       _state = MASK;
       _remainingMaskingKeyBytes = 4;
@@ -230,12 +230,12 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
     }
   }
 
-  void _maskDone(StreamSink sink) {
+  void _maskDone(EventSink sink) {
     _remainingPayloadBytes = _len;
     _startPayload(sink);
   }
 
-  void _startPayload(StreamSink sink) {
+  void _startPayload(EventSink sink) {
     // If there is no actual payload perform perform callbacks without
     // going through the PAYLOAD state.
     if (_remainingPayloadBytes == 0) {
@@ -261,7 +261,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
     }
   }
 
-  void _messageFrameEnd(StreamSink sink) {
+  void _messageFrameEnd(EventSink sink) {
     if (_fin) {
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
@@ -281,7 +281,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
     _prepareForNextFrame();
   }
 
-  void _controlFrameEnd(StreamSink sink) {
+  void _controlFrameEnd(EventSink sink) {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
         closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
@@ -361,7 +361,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     stream.listen((request) {
         _upgrade(request)
             .then((WebSocket webSocket) => _controller.add(webSocket))
-            .catchError((error) => _controller.signalError(error));
+            .catchError((error) => _controller.addError(error));
     });
 
     return _controller.stream;
@@ -516,7 +516,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
         onError: (error) {
           if (closed) return;
           closed = true;
-          _controller.signalError(error);
+          _controller.addError(error);
           _controller.close();
         },
         onDone: () {
@@ -544,7 +544,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
           closed = true;
           _readyState = WebSocket.CLOSED;
           _closeCode = WebSocketStatus.ABNORMAL_CLOSURE;
-          _controller.signalError(error);
+          _controller.addError(error);
           _controller.close();
         })
         .whenComplete(() {

@@ -46,7 +46,8 @@ part of dart.async;
  * the stream at all, and won't trigger callbacks. From the controller's point
  * of view, the stream is completely inert when has completed.
  */
-class StreamController<T> implements StreamSink<T> {
+class StreamController<T> extends StreamSink<T> {
+  // TODO(8997): Implement EventSink instead.
   final _StreamImpl<T> stream;
 
   /**
@@ -85,9 +86,9 @@ class StreamController<T> implements StreamSink<T> {
                                                 onPauseStateChange);
 
   /**
-   * Returns a view of this object that only exposes the [StreamSink] interface.
+   * Returns a view of this object that only exposes the [EventSink] interface.
    */
-  StreamSink<T> get sink => new StreamSinkView<T>(this);
+  EventSink<T> get sink => new EventSinkView<T>(this);
 
   /**
    * Whether the stream is closed for adding more events.
@@ -120,14 +121,14 @@ class StreamController<T> implements StreamSink<T> {
    * If a subscription has requested to be unsubscribed on errors,
    * it will be unsubscribed after receiving this event.
    */
-  void signalError(Object error, [Object stackTrace]) {
+  void addError(Object error, [Object stackTrace]) {
     AsyncError asyncError;
     if (error is AsyncError) {
       asyncError = error;
     } else {
       asyncError = new AsyncError(error, stackTrace);
     }
-    stream._signalError(asyncError);
+    stream._addError(asyncError);
   }
 
   /**

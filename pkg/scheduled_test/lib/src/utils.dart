@@ -52,10 +52,10 @@ Stream futureStream(Future<Stream> future) {
   future.then((stream) {
     stream.listen(
         controller.add,
-        onError: (error) => controller.signalError(error),
+        onError: (error) => controller.addError(error),
         onDone: controller.close);
   }).catchError((e) {
-    controller.signalError(e);
+    controller.addError(e);
     controller.close();
   });
   return controller.stream;

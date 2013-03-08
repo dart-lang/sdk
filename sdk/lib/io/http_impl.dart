@@ -745,11 +745,11 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
   final bool writeEnd;
   _ChunkedTransformer({this.writeEnd: true});
 
-  void handleData(List<int> data, StreamSink<List<int>> sink) {
+  void handleData(List<int> data, EventSink<List<int>> sink) {
     _addChunk(data, sink.add);
   }
 
-  void handleDone(StreamSink<List<int>> sink) {
+  void handleDone(EventSink<List<int>> sink) {
     if (writeEnd) {
       _addChunk([], sink.add);
     }
@@ -795,7 +795,7 @@ class _DoneTransformer implements StreamTransformer<List<int>, List<int>> {
   Stream<List<int>> bind(Stream<List<int>> stream) {
     var subscription = stream.listen(
         _controller.add,
-        onError: _controller.signalError,
+        onError: _controller.addError,
         onDone: () {
           _onDone();
           _controller.close();
@@ -821,7 +821,7 @@ class _DataValidatorTransformer
             _bytesWritten += data.length;
             if (_bytesWritten > expectedTransferLength) {
               subscription.cancel();
-              _controller.signalError(new HttpException(
+              _controller.addError(new HttpException(
                   "Content size exceeds specified contentLength. "
                   "$_bytesWritten bytes written while expected "
                   "$expectedTransferLength. "
@@ -833,13 +833,13 @@ class _DataValidatorTransformer
           _controller.add(data);
         },
         onError: (error) {
-          _controller.signalError(error);
+          _controller.addError(error);
           _controller.close();
         },
         onDone: () {
           if (expectedTransferLength != null) {
             if (_bytesWritten < expectedTransferLength) {
-              _controller.signalError(new HttpException(
+              _controller.addError(new HttpException(
                   "Content size below specified contentLength. "
                   " $_bytesWritten bytes written while expected "
                   "$expectedTransferLength."));
@@ -1380,7 +1380,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
           _HttpConnection connection = new _HttpConnection(socket, this);
           _connections.add(connection);
         },
-        onError: _controller.signalError,
+        onError: _controller.addError,
         onDone: _controller.close);
     return _controller.stream.listen(onData,
                                      onError: onError,
@@ -1417,7 +1417,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   }
 
   void _handleError(AsyncError error) {
-    if (!closed) _controller.signalError(error);
+    if (!closed) _controller.addError(error);
   }
 
   void _connectionClosed(_HttpConnection connection) {

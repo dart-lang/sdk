@@ -352,15 +352,15 @@ String relativeToPub(String target) {
 
 /// A sink that writes to standard output. Errors piped to this stream will be
 /// surfaced to the top-level error handler.
-final StreamSink<List<int>> stdoutSink = _wrapStdio(stdout, "stdout");
+final EventSink<List<int>> stdoutSink = _wrapStdio(stdout, "stdout");
 
 /// A sink that writes to standard error. Errors piped to this stream will be
 /// surfaced to the top-level error handler.
-final StreamSink<List<int>> stderrSink = _wrapStdio(stderr, "stderr");
+final EventSink<List<int>> stderrSink = _wrapStdio(stderr, "stderr");
 
-/// Wrap the standard output or error [stream] in a [StreamSink]. Any errors are
+/// Wrap the standard output or error [stream] in a [EventSink]. Any errors are
 /// logged, and then the program is terminated. [name] is used for debugging.
-StreamSink<List<int>> _wrapStdio(IOSink sink, String name) {
+EventSink<List<int>> _wrapStdio(IOSink sink, String name) {
   var pair = consumerToSink(sink);
   pair.last.catchError((e) {
     // This log may or may not work, depending on how the stream failed. Not
@@ -394,13 +394,13 @@ Future drainStream(Stream stream) {
   return stream.reduce(null, (x, y) {});
 }
 
-/// Returns a [StreamSink] that pipes all data to [consumer] and a [Future] that
-/// will succeed when [StreamSink] is closed or fail with any errors that occur
+/// Returns a [EventSink] that pipes all data to [consumer] and a [Future] that
+/// will succeed when [EventSink] is closed or fail with any errors that occur
 /// while writing.
-Pair<StreamSink, Future> consumerToSink(StreamConsumer consumer) {
+Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
   var controller = new StreamController();
   var done = controller.stream.pipe(consumer);
-  return new Pair<StreamSink, Future>(controller.sink, done);
+  return new Pair<EventSink, Future>(controller.sink, done);
 }
 
 // TODO(nweiz): remove this when issue 7786 is fixed.
@@ -413,12 +413,12 @@ Pair<StreamSink, Future> consumerToSink(StreamConsumer consumer) {
 /// more data or errors will be piped from [stream] to [sink]. If
 /// [unsubscribeOnError] and [closeSink] are both true, [sink] will then be
 /// closed.
-Future store(Stream stream, StreamSink sink,
+Future store(Stream stream, EventSink sink,
     {bool unsubscribeOnError: true, closeSink: true}) {
   var completer = new Completer();
   stream.listen(sink.add,
       onError: (e) {
-        sink.signalError(e);
+        sink.addError(e);
         if (unsubscribeOnError) {
           completer.complete();
           if (closeSink) sink.close();
@@ -475,7 +475,7 @@ class PubProcess {
   final Process _process;
 
   /// The mutable field for [stdin].
-  StreamSink<List<int>> _stdin;
+  EventSink<List<int>> _stdin;
 
   /// The mutable field for [stdinClosed].
   Future _stdinClosed;
@@ -492,7 +492,7 @@ class PubProcess {
   /// The sink used for passing data to the process's standard input stream.
   /// Errors on this stream are surfaced through [stdinClosed], [stdout],
   /// [stderr], and [exitCode], which are all members of an [ErrorGroup].
-  StreamSink<List<int>> get stdin => _stdin;
+  EventSink<List<int>> get stdin => _stdin;
 
   // TODO(nweiz): write some more sophisticated Future machinery so that this
   // doesn't surface errors from the other streams/futures, but still passes its
@@ -741,7 +741,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     }).catchError((e) {
       // We don't have to worry about double-signaling here, since the store()
       // above will only be reached if startProcess succeeds.
-      controller.signalError(e.error, e.stackTrace);
+      controller.addError(e.error, e.stackTrace);
       controller.close();
     });
     return new ByteStream(controller.stream);
@@ -778,7 +778,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   }).catchError((e) {
     // We don't have to worry about double-signaling here, since the store()
     // above will only be reached if everything succeeds.
-    controller.signalError(e.error, e.stackTrace);
+    controller.addError(e.error, e.stackTrace);
     controller.close();
   });
   return new ByteStream(controller.stream);

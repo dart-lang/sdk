@@ -94,7 +94,7 @@ testMultiController() {
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
       new StreamTransformer(
-          handleData: (v, s) { s.signalError(new AsyncError(v)); },
+          handleData: (v, s) { s.addError(new AsyncError(v)); },
           handleError: (e, s) { s.add(e.error); },
           handleDone: (s) {
             s.add("foo");
@@ -283,7 +283,7 @@ testSingleController() {
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
       new StreamTransformer(
-          handleData: (v, s) { s.signalError(new AsyncError(v)); },
+          handleData: (v, s) { s.addError(new AsyncError(v)); },
           handleError: (e, s) { s.add(e.error); },
           handleDone: (s) {
             s.add("foo");
@@ -398,7 +398,7 @@ testClosed() {
     Expect.isFalse(c.isClosed);
     c.add(42);
     Expect.isFalse(c.isClosed);
-    c.signalError("bad");
+    c.addError("bad");
     Expect.isFalse(c.isClosed);
     c.close();
     Expect.isTrue(c.isClosed);

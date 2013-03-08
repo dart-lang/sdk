@@ -215,7 +215,7 @@ class LineTransformer extends StreamEventTransformer<String, String> {
   StringBuffer _buffer = new StringBuffer();
   String _carry;
 
-  void _handle(String data, StreamSink<String> sink, bool isClosing) {
+  void _handle(String data, EventSink<String> sink, bool isClosing) {
     if (_carry != null) {
       data = _carry.concat(data);
       _carry = null;
@@ -257,11 +257,11 @@ class LineTransformer extends StreamEventTransformer<String, String> {
     }
   }
 
-  void handleData(String data, StreamSink<String> sink) {
+  void handleData(String data, EventSink<String> sink) {
     _handle(data, sink, false);
   }
 
-  void handleDone(StreamSink<String> sink) {
+  void handleDone(EventSink<String> sink) {
     _handle("", sink, true);
     sink.close();
   }
@@ -274,7 +274,7 @@ abstract class _SingleByteDecoder
 
   _SingleByteDecoder(this._replacementChar);
 
-  void handleData(List<int> data, StreamSink<String> sink) {
+  void handleData(List<int> data, EventSink<String> sink) {
     var buffer = new List<int>(data.length);
     for (int i = 0; i < data.length; i++) {
       int char = _decodeByte(data[i]);
@@ -308,10 +308,10 @@ class _Latin1Decoder extends _SingleByteDecoder {
 
 abstract class _SingleByteEncoder
     extends StreamEventTransformer<String, List<int>> {
-  void handleData(String data, StreamSink<List<int>> sink) {
+  void handleData(String data, EventSink<List<int>> sink) {
     var bytes = _encode(data);
     if (bytes == null) {
-      sink.signalError(
+      sink.addError(
           new AsyncError(
               new FormatException("Invalid character for encoding")));
       sink.close();
@@ -362,7 +362,7 @@ class _WindowsCodePageEncoder extends _SingleByteEncoder {
 // Utility class for decoding Windows current code page data delivered
 // as a stream of bytes.
 class _WindowsCodePageDecoder extends StreamEventTransformer<List<int>, String> {
-  void handleData(List<int> data, StreamSink<String> sink) {
+  void handleData(List<int> data, EventSink<String> sink) {
     sink.add(_decodeBytes(data));
   }
 

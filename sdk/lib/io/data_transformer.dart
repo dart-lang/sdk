@@ -39,7 +39,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
 
   _FilterTransformer(_Filter this._filter);
 
-  void handleData(List<int> data, StreamSink<List<int>> sink) {
+  void handleData(List<int> data, EventSink<List<int>> sink) {
     if (_closed) return;
     try {
       _filter.process(data);
@@ -49,12 +49,12 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
       }
     } catch (e, s) {
       _closed = true;
-      sink.signalError(new AsyncError(e, s));
+      sink.addError(new AsyncError(e, s));
       sink.close();
     }
   }
 
-  void handleDone(StreamSink<List<int>> sink) {
+  void handleDone(EventSink<List<int>> sink) {
     if (_closed) return;
     try {
       var out;
@@ -62,7 +62,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
         sink.add(out);
       }
     } catch (e, s) {
-      sink.signalError(new AsyncError(e, s));
+      sink.addError(new AsyncError(e, s));
       _closed = true;
     }
     if (!_closed) _filter.end();

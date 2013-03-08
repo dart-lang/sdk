@@ -22,7 +22,7 @@ abstract class _StringDecoder
 
   _StringDecoder(int this._replacementChar);
 
-  void handleData(List<int> bytes, StreamSink<String> sink) {
+  void handleData(List<int> bytes, EventSink<String> sink) {
     _buffer = <int>[];
     List<int> carry = _carry;
     _carry = null;
@@ -69,7 +69,7 @@ abstract class _StringDecoder
     _buffer = null;
   }
 
-  void handleDone(StreamSink<String> sink) {
+  void handleDone(EventSink<String> sink) {
     if (_carry != null) {
       sink.add(new String.fromCharCodes(
           new List.filled(_carry.length, _replacementChar)));
@@ -142,7 +142,7 @@ class Utf8DecoderTransformer extends _StringDecoder {
 abstract class _StringEncoder
     extends StreamEventTransformer<String, List<int>> {
 
-  void handleData(String data, StreamSink<List<int>> sink) {
+  void handleData(String data, EventSink<List<int>> sink) {
     sink.add(_processString(data));
   }
 

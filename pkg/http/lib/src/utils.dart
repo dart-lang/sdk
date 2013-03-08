@@ -142,10 +142,10 @@ Stream onDone(Stream stream, void onDone()) {
 // TODO(nweiz): remove this when issue 7786 is fixed.
 /// Pipes all data and errors from [stream] into [sink]. When [stream] is done,
 /// [sink] is closed and the returned [Future] is completed.
-Future store(Stream stream, StreamSink sink) {
+Future store(Stream stream, EventSink sink) {
   var completer = new Completer();
   stream.listen(sink.add,
-      onError: sink.signalError,
+      onError: sink.addError,
       onDone: () {
         sink.close();
         completer.complete();
@@ -156,10 +156,10 @@ Future store(Stream stream, StreamSink sink) {
 /// Pipes all data and errors from [stream] into [sink]. Completes [Future] once
 /// [stream] is done. Unlike [store], [sink] remains open after [stream] is
 /// done.
-Future writeStreamToSink(Stream stream, StreamSink sink) {
+Future writeStreamToSink(Stream stream, EventSink sink) {
   var completer = new Completer();
   stream.listen(sink.add,
-      onError: sink.signalError,
+      onError: sink.addError,
       onDone: () => completer.complete());
   return completer.future;
 }
@@ -190,8 +190,8 @@ Pair<Stream, Stream> tee(Stream stream) {
     controller1.add(value);
     controller2.add(value);
   }, onError: (error) {
-    controller1.signalError(error);
-    controller2.signalError(error);
+    controller1.addError(error);
+    controller2.addError(error);
   }, onDone: () {
     controller1.close();
     controller2.close();

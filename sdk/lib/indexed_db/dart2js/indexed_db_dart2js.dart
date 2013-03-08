@@ -1005,7 +1005,7 @@ class ObjectStore native "*IDBObjectStore" {
 
     request.onError.listen((e) {
       //TODO: Report stacktrace once issue 4061 is resolved.
-      controller.signalError(e);
+      controller.addError(e);
     });
 
     request.onSuccess.listen((e) {

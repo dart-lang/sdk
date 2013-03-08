@@ -272,7 +272,7 @@ class _ErrorGroupStream extends Stream {
     _subscription.cancel();
     // Call these asynchronously to work around issue 7913.
     defer(() {
-      _controller.signalError(e.error, e.stackTrace);
+      _controller.addError(e.error, e.stackTrace);
       _controller.close();
     });
   }

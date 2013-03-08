@@ -222,7 +222,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
             _controller.close();
           }
         },
-        onError: _controller.signalError);
+        onError: _controller.addError);
     if (_paused) _pause();
     if (unbind) {
       return _writeStreamCompleter.future;

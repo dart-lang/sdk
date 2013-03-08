@@ -7,8 +7,9 @@ part of dart.async;
 typedef void _CollectionSinkCallback<T>(Collection<T> collection);
 typedef void _CollectionSinkErrorCallback(AsyncError error);
 
-/** StreamSink that stores incoming data in a collection. */
-class CollectionSink<T> implements StreamSink<T> {
+/** EventSink that stores incoming data in a collection. */
+class CollectionSink<T> extends StreamSink<T> {
+  // TODO(8997): Implement EventSink instead.
   final Collection<T> collection;
   final _CollectionSinkCallback<T> _callback;
   final _CollectionSinkErrorCallback _errorCallback;
@@ -33,8 +34,8 @@ class CollectionSink<T> implements StreamSink<T> {
     collection.add(value);
   }
 
-  void signalError(AsyncError error) {
-    if (_isClosed) throw new StateError("Singalling error on closed sink");
+  void addError(AsyncError error) {
+    if (_isClosed) throw new StateError("Adding error to closed sink");
     if (_errorCallback != null) _errorCallback(error);
   }
 

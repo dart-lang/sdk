@@ -464,7 +464,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   // up handlers to flush the pipeline when possible.
   int write(List<int> data, [int offset, int bytes]) {
     if (_closedWrite) {
-      _controller.signalError(new AsyncError(new SocketIOException(
+      _controller.addError(new AsyncError(new SocketIOException(
           "Writing to a closed socket")));
       return 0;
     }
@@ -572,7 +572,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_connectPending) {
       _handshakeComplete.completeError(e);
     } else {
-      _controller.signalError(e);
+      _controller.addError(e);
     }
     _close();
   }

@@ -218,14 +218,14 @@ main() {
         'listener', () {
       expect(stream.first, throwsFormatException);
       // errorGroup shouldn't top-level the exception
-      controller.signalError(new AsyncError(new FormatException()));
+      controller.addError(new AsyncError(new FormatException()));
     });
 
     test('should notify the error group of an exception from the stream even '
         'if it has a listener', () {
       expect(stream.first, throwsFormatException);
       expect(errorGroup.done, throwsFormatException);
-      controller.signalError(new AsyncError(new FormatException()));
+      controller.addError(new AsyncError(new FormatException()));
     });
 
     test('should pass a signaled exception to the stream if it has a listener '
@@ -262,7 +262,7 @@ main() {
     test("should pipe an exception from the stream to .done if the stream "
         "doesn't have a listener", () {
       expect(errorGroup.done, throwsFormatException);
-      controller.signalError(new AsyncError(new FormatException()));
+      controller.addError(new AsyncError(new FormatException()));
 
       // A listener added afterwards should see an empty stream, since it's not
       // single-subscription
@@ -310,7 +310,7 @@ main() {
     test("should pipe an exception from the stream to .done if the stream "
         "doesn't have a listener", () {
       expect(errorGroup.done, throwsFormatException);
-      controller.signalError(new AsyncError(new FormatException()));
+      controller.addError(new AsyncError(new FormatException()));
 
       // A listener added afterwards should receive the exception
       expect(errorGroup.done.catchError((_) {
@@ -353,7 +353,7 @@ main() {
       expect(stream2.first, throwsFormatException);
       expect(errorGroup.done, throwsFormatException);
 
-      controller1.signalError(new AsyncError(new FormatException()));
+      controller1.addError(new AsyncError(new FormatException()));
     });
 
     test("each future should be able to emit values independently", () {
@@ -372,7 +372,7 @@ main() {
 
       expect(stream1.toList().then((_) {
         // shouldn't cause a top-level exception
-        controller2.signalError(new AsyncError(new FormatException()));
+        controller2.addError(new AsyncError(new FormatException()));
       }), completes);
     });
 
@@ -407,7 +407,7 @@ main() {
       expect(future, throwsFormatException);
       expect(errorGroup.done, throwsFormatException);
 
-      controller.signalError(new AsyncError(new FormatException()));
+      controller.addError(new AsyncError(new FormatException()));
     });
 
     test("should pipe exceptions from the future to the stream", () {
@@ -435,7 +435,7 @@ main() {
 
       expect(future.then((_) {
         // shouldn't cause a top-level exception
-        controller.signalError(new AsyncError(new FormatException()));
+        controller.addError(new AsyncError(new FormatException()));
       }), completes);
     });
 

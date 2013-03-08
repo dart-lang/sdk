@@ -12010,7 +12010,7 @@ class Geolocation native "*Geolocation" {
                 controller.add(_ensurePosition(position));
               },
               (error) {
-                controller.signalError(error);
+                controller.addError(error);
               },
               options);
         } else {

@@ -12822,7 +12822,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
                 controller.add(_ensurePosition(position));
               },
               (error) {
-                controller.signalError(error);
+                controller.addError(error);
               },
               options);
         } else {

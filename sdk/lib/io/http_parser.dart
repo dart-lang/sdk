@@ -118,7 +118,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       subscription.resume();
       subscription.onData(controller.add);
       subscription.onDone(controller.close);
-      subscription.onError(controller.signalError);
+      subscription.onError(controller.addError);
     }
   }
 
@@ -708,7 +708,7 @@ class _HttpParser
       if (_state != _State.UPGRADED &&
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
-        _bodyController.signalError(
+        _bodyController.addError(
             new AsyncError(
                 new HttpParserException(
                     "Connection closed while receiving data")));
@@ -761,7 +761,7 @@ class _HttpParser
   }
 
   void _onError(e) {
-    _controller.signalError(e);
+    _controller.addError(e);
   }
 
   String get version {
@@ -929,7 +929,7 @@ class _HttpParser
   void error(error) {
     if (_socketSubscription != null) _socketSubscription.cancel();
     _state = _State.FAILURE;
-    _controller.signalError(error);
+    _controller.addError(error);
     _controller.close();
   }
 

@@ -94,7 +94,7 @@ class _FileStream extends Stream<List<int>> {
       })
       .catchError((e) {
         if (!_unsubscribed) {
-          _controller.signalError(e);
+          _controller.addError(e);
           _closeFile().then((_) { _controller.close(); });
           _unsubscribed = true;
         }
@@ -114,7 +114,7 @@ class _FileStream extends Stream<List<int>> {
         _readBlock();
       })
       .catchError((e) {
-        _controller.signalError(e);
+        _controller.addError(e);
         _controller.close();
       });
   }
