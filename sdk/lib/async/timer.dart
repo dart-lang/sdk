@@ -59,7 +59,9 @@ abstract class Timer {
           } catch (e) {
             List newCallbacks = _runCallbacks;
             _runCallbacks = [];
-            _runCallbacks.addAll(runCallbacks.skip(i + 1));
+            i++;  // Skip the current;
+            _runCallbacks.addAll(
+                runCallbacks.getRange(i, runCallbacks.length - i));
             _runCallbacks.addAll(newCallbacks);
             throw;
           }
