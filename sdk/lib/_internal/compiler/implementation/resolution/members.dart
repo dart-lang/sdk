@@ -1821,8 +1821,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
-    scope = new MethodScope(scope, function);
+    Element enclosingElement = function.enclosingElement;
+    if (node.modifiers.isStatic() &&
+        enclosingElement.kind != ElementKind.CLASS) {
+      compiler.reportErrorCode(node, MessageKind.ILLEGAL_STATIC);
+    }
 
+    scope = new MethodScope(scope, function);
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
