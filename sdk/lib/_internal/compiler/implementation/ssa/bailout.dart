@@ -123,22 +123,10 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     Element source = instruction.sourceElement;
     if (source != null) {
       DartType sourceType = source.computeType(compiler);
-      DartType speculatedType = speculativeType.computeType(compiler);
-      JavaScriptBackend backend = compiler.backend;
-      if (speculatedType != null) {
-        // Use the num type instead of JSNumber because JSNumber
-        // is not assignment compatible with int and double, but we
-        // still want to generate a type guard.
-        if (speculatedType.element == backend.jsNumberClass) {
-          speculatedType = compiler.numClass.computeType(compiler);
-        }
-        // Use the JSString type instead of String because String is
-        // not assignment compatible with JSIndexable, but we still
-        // want to generate a type guard.
-        if (sourceType.element == compiler.stringClass) {
-          sourceType = backend.jsStringClass.computeType(compiler);
-        }
-        if (!compiler.types.isAssignable(speculatedType, sourceType)) {
+      if (!sourceType.isDynamic) {
+        TypeMask sourceMask = new TypeMask.subtype(sourceType);
+        TypeMask speculatedMask = speculativeType.computeMask(compiler);
+        if (sourceMask.intersection(speculatedMask, compiler) == null) {
           return false;
         }
       }
