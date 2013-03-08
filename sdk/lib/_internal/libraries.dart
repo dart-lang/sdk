@@ -89,6 +89,11 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       category: "Server",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/scalarlist_patch.dart"),
 
+  "typeddata": const LibraryInfo(
+      "typeddata/typeddata.dart",
+      category: "Common",
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/typeddata_patch.dart"),
+
   "svg": const LibraryInfo(
         "svg/dartium/svg_dartium.dart",
         category: "Client",
