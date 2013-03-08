@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Library tag to be able to run in html test framework.
-library simd128_float32_test;
+library float32x4_test;
 
 import 'dart:scalarlist';
 
