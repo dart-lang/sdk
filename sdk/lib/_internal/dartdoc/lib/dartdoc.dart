@@ -583,7 +583,7 @@ class Dartdoc {
         <title>$title / $mainTitle</title>
         <link rel="stylesheet" type="text/css"
             href="${relativePath('styles.css')}">
-        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
         <link rel="shortcut icon" href="${relativePath('favicon.ico')}">
         ''');
   }
