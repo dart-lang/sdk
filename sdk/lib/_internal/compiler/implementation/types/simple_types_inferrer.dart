@@ -15,7 +15,7 @@ import 'types.dart' show TypesInferrer, TypeMask;
 // of Selector from dart2jslib.dart fail. For now, we work around that
 // by importing universe.dart explicitly and disabling the re-export.
 import '../dart2jslib.dart' hide Selector;
-import '../universe/universe.dart' show Selector;
+import '../universe/universe.dart' show Selector, TypedSelector;
 
 /**
  * A work queue that ensures there are no duplicates, and adds and
@@ -167,6 +167,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask functionType;
   TypeMask listType;
   TypeMask mapType;
+  TypeMask constMapType;
   TypeMask stringType;
   TypeMask typeType;
 
@@ -222,12 +223,16 @@ class SimpleTypesInferrer extends TypesInferrer {
   /**
    * Query method after the analysis to know the type of [element].
    */
-  TypeMask getReturnTypeOfElement(element) {
+  TypeMask getReturnTypeOfElement(Element element) {
     return getTypeIfValuable(returnTypeOf[element]);
   }
 
-  TypeMask getTypeOfElement(element) {
+  TypeMask getTypeOfElement(Element element) {
     return getTypeIfValuable(typeOf[element]);
+  }
+
+  TypeMask getTypeOfSelector(Selector selector) {
+    return getTypeIfValuable(typeOfSelector(selector));
   }
 
   TypeMask getTypeIfValuable(TypeMask returnType) {
@@ -254,7 +259,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (selector == null || selector.isSetter() || selector.isIndexSet()) {
       return null;
     }
-    return getTypeIfValuable(returnTypeOfSelector(selector));
+    return getTypeIfValuable(typeOfSelector(selector));
   }
 
   /**
@@ -317,29 +322,42 @@ class SimpleTypesInferrer extends TypesInferrer {
     });
   }
 
+  // TODO(ngeoffray): Get rid of this method. Unit tests don't always
+  // ensure these classes are resolved.
+  rawTypeOf(ClassElement cls) {
+    cls.ensureResolved(compiler);
+    assert(cls.rawType != null);
+    return cls.rawType;
+  }
+
   void initializeTypes() {
     // TODO(ngeoffray): Is that the right type?
-    nullType = new TypeMask.exact(compiler.nullClass.computeType(compiler));
+    Backend backend = compiler.backend;
+    nullType = new TypeMask.exact(
+        backend.nullImplementation.computeType(compiler));
 
     intType = new TypeMask.nonNullExact(
-        compiler.intClass.rawType);
+        rawTypeOf(backend.intImplementation));
     doubleType = new TypeMask.nonNullExact(
-        compiler.doubleClass.rawType);
-    // TODO(ngeoffray): Switch to subtype once we do proper union.
-    numType = new TypeMask.nonNullExact(
-        compiler.numClass.rawType);
+        rawTypeOf(backend.doubleImplementation));
+    numType = new TypeMask.nonNullSubclass(
+        rawTypeOf(backend.numImplementation));
     stringType = new TypeMask.nonNullExact(
-        compiler.stringClass.rawType);
+        rawTypeOf(backend.stringImplementation));
     boolType = new TypeMask.nonNullExact(
-        compiler.boolClass.rawType);
+        rawTypeOf(backend.boolImplementation));
     listType = new TypeMask.nonNullExact(
-        compiler.listClass.rawType);
-    mapType = new TypeMask.nonNullExact(
-        compiler.mapClass.rawType);
+        rawTypeOf(backend.listImplementation));
+
+    mapType = new TypeMask.nonNullSubtype(
+        rawTypeOf(backend.mapImplementation));
+    constMapType = new TypeMask.nonNullSubtype(
+        rawTypeOf(backend.constMapImplementation));
+
     functionType = new TypeMask.nonNullSubtype(
-        compiler.functionClass.rawType);
+        rawTypeOf(backend.functionImplementation));
     typeType = new TypeMask.nonNullExact(
-        compiler.typeClass.rawType);
+        rawTypeOf(backend.typeImplementation));
   }
 
   dump() {
@@ -436,7 +454,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask returnTypeOfElement(Element element) {
     element = element.implementation;
     if (element.isGenerativeConstructor()) {
-      return new TypeMask.nonNullExact(element.getEnclosingClass().rawType);
+      return new TypeMask.nonNullExact(rawTypeOf(element.getEnclosingClass()));
     }
     TypeMask returnType = returnTypeOf[element];
     if (returnType == null || isGiveUpType(returnType)) {
@@ -461,10 +479,14 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   /**
-   * Returns the union of the return types of all elements that match
+   * Returns the union of the types of all elements that match
    * the called [selector].
    */
-  TypeMask returnTypeOfSelector(Selector selector) {
+  TypeMask typeOfSelector(Selector selector) {
+    // Bailout for closure calls. We're not tracking types of
+    // closures.
+    if (selector.isClosureCall()) return dynamicType;
+
     TypeMask result;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
@@ -540,22 +562,6 @@ class SimpleTypesInferrer extends TypesInferrer {
   void registerCalledSelector(Element caller,
                               Selector selector,
                               ArgumentsTypes arguments) {
-    assert(isNotClosure(caller));
-    if (analyzeCount.containsKey(caller)) return;
-    iterateOverElements(selector, (Element element) {
-      assert(element.isImplementation);
-      Set<Element> callers = callersOf.putIfAbsent(
-          element, () => new Set<Element>());
-      callers.add(caller);
-      return true;
-    });
-  }
-
-  /**
-   * Registers that [caller] accesses an element matching [selector]
-   * through a property access.
-   */
-  void registerGetterOnSelector(Element caller, Selector selector) {
     assert(isNotClosure(caller));
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
@@ -839,7 +845,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       visit(node.body);
       inferrer.doneAnalyzingGenerativeConstructor(analyzedElement);
       returnType = new TypeMask.nonNullExact(
-          analyzedElement.getEnclosingClass().rawType);
+          inferrer.rawTypeOf(analyzedElement.getEnclosingClass()));
     } else if (analyzedElement.isNative()) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
@@ -870,6 +876,26 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
 
     return returnType;
+  }
+
+  TypeMask _thisType;
+  TypeMask get thisType {
+    if (_thisType != null) return _thisType;
+    ClassElement cls = outermostElement.getEnclosingClass();
+    if (compiler.world.isUsedAsMixin(cls)) {
+      return _thisType = new TypeMask.nonNullSubtype(inferrer.rawTypeOf(cls));
+    } else if (compiler.world.hasAnySubclass(cls)) {
+      return _thisType = new TypeMask.nonNullSubclass(inferrer.rawTypeOf(cls));
+    } else {
+      return _thisType = new TypeMask.nonNullExact(inferrer.rawTypeOf(cls));
+    }
+  }
+
+  TypeMask _superType;
+  TypeMask get superType {
+    if (_superType != null) return _superType;
+    return _superType = new TypeMask.nonNullExact(
+        inferrer.rawTypeOf(outermostElement.getEnclosingClass().superclass));
   }
 
   void recordReturnType(TypeMask type) {
@@ -954,7 +980,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitLiteralMap(LiteralMap node) {
-    return inferrer.mapType;
+    if (node.isConst()) {
+      return inferrer.constMapType;
+    } else {
+      return inferrer.mapType;
+    }
   }
 
   TypeMask visitLiteralNull(LiteralNull node) {
@@ -981,9 +1011,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     String op = node.assignmentOperator.source.stringValue;
     bool isIncrementOrDecrement = op == '++' || op == '--';
 
-    TypeMask receiverType = element != null
-        ? inferrer.dynamicType
-        : visit(node.receiver);
+    TypeMask receiverType;
+    if (node.receiver == null
+        && element != null
+        && element.isInstanceMember()) {
+      receiverType = thisType;
+    } else {
+      receiverType = visit(node.receiver);
+    }
 
     TypeMask rhsType = isIncrementOrDecrement
         ? inferrer.intType
@@ -1072,9 +1107,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitIdentifier(Identifier node) {
-    if (node.isThis() || node.isSuper()) {
-      // TODO(ngeoffray): Represent subclasses.
-      return inferrer.dynamicType;
+    if (node.isThis()) {
+      return thisType;
+    } else if (node.isSuper()) {
+      return superType;
     }
     return inferrer.dynamicType;
   }
@@ -1125,35 +1161,42 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       if (typesReturned.isEmpty) return inferrer.dynamicType;
       TypeMask returnType;
       for (var type in typesReturned) {
-        ClassElement mappedType;
+        TypeMask mappedType;
         if (type == native.SpecialType.JsObject) {
-          mappedType = compiler.objectClass;
+          mappedType = new TypeMask.nonNullExact(
+              inferrer.rawTypeOf(compiler.objectClass));
         } else if (type == native.SpecialType.JsArray) {
-          mappedType = compiler.listClass;
+          mappedType = inferrer.listType;
+        } else if (type.element == compiler.stringClass) {
+          mappedType = inferrer.stringType;
+        } else if (type.element == compiler.intClass) {
+          mappedType = inferrer.intType;
+        } else if (type.element == compiler.doubleClass) {
+          mappedType = inferrer.doubleType;
+        } else if (type.element == compiler.numClass) {
+          mappedType = inferrer.numType;
+        } else if (type.element == compiler.boolClass) {
+          mappedType = inferrer.boolType;
+        } else if (compiler.world.hasAnySubclass(type.element)) {
+          mappedType = new TypeMask.nonNullSubclass(
+              inferrer.rawTypeOf(type.element));
+        } else if (compiler.world.hasAnySubtype(type.element)) {
+          mappedType = new TypeMask.nonNullSubtype(
+              inferrer.rawTypeOf(type.element));
         } else {
-          mappedType = type.element;
-          // For primitive types, we know how to handle them here and
-          // in the backend.
-          if (mappedType != compiler.stringClass
-              && mappedType != compiler.intClass
-              && mappedType != compiler.doubleClass
-              && mappedType != compiler.boolClass
-              && mappedType != compiler.numClass) {
-            Set<ClassElement> subtypes = compiler.world.subtypes[mappedType];
-            // TODO(ngeoffray): Handle subtypes and subclasses.
-            if (subtypes != null && !subtypes.isEmpty) {
-              return inferrer.dynamicType;
-            }
-          }
+          mappedType = new TypeMask.nonNullExact(
+              inferrer.rawTypeOf(type.element));
         }
         if (returnType == null) {
-          returnType = new TypeMask.nonNullExact(mappedType.rawType);
+          returnType = mappedType;
         } else {
+          // TODO(ngeoffray): Do the union.
           return inferrer.dynamicType;
         }
       }
       return returnType;
-    } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')) {
+    } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
+               || name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       return inferrer.stringType;
     } else {
       return inferrer.dynamicType;
@@ -1223,16 +1266,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       inferrer.registerGetterOnElement(outermostElement, element);
       return inferrer.typeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
-      TypeMask receiverType;
-      if (node.receiver == null) {
-        // TODO(ngeoffray): Use subclass or subtype if the class is
-        // used as a mixin.
-        receiverType = inferrer.dynamicType;
-      } else {
-        receiverType = node.receiver.accept(this);
-      }
-      Selector selector = elements.getSelector(node);
-      return handleDynamicSend(selector, receiverType, null);
+      return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       inferrer.registerGetFunction(outermostElement, element);
       return inferrer.functionType;
@@ -1263,27 +1297,31 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask handleDynamicSend(Selector selector,
                              TypeMask receiver,
                              ArgumentsTypes arguments) {
-    if (selector.isGetter()) {
-      assert(arguments == null);
-      inferrer.registerGetterOnSelector(outermostElement, selector);
-    } else if (selector.isSetter()) {
+    if (selector.isSetter()) {
       // TODO(ngeoffray): Register called setter.
+      // We return null to prevent using a type for a called setter.
+      // The return type is the right hand side of the setter.
+      return null;
     } else {
       inferrer.registerCalledSelector(outermostElement, selector, arguments);
     }
-    return inferrer.returnTypeOfSelector(selector);
+    if (!inferrer.isDynamicType(receiver)) {
+      selector = new TypedSelector(receiver, selector);
+    }
+    return inferrer.typeOfSelector(selector);
   }
 
   TypeMask visitDynamicSend(Send node) {
+    Element element = elements[node];
     TypeMask receiverType;
     if (node.receiver == null) {
-      // TODO(ngeoffray): Use subclass or subtype if the class is
-      // used as a mixin.
-      receiverType = inferrer.dynamicType;
+      receiverType = thisType;
     } else {
       receiverType = visit(node.receiver);
     }
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    ArgumentsTypes arguments = node.isPropertyAccess
+        ? null
+        : analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
     return handleDynamicSend(selector, receiverType, arguments);
   }

@@ -161,6 +161,16 @@ class World {
     return uses != null && !uses.isEmpty;
   }
 
+  bool hasAnySubclass(ClassElement cls) {
+    Set<ClassElement> classes = subclasses[cls];
+    return classes != null && !classes.isEmpty;
+  }
+
+  bool hasAnySubtype(ClassElement cls) {
+    Set<ClassElement> classes = subtypes[cls];
+    return classes != null && !classes.isEmpty;
+  }
+
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
     if (!element.isClass() || !dependency.isClass()) return;

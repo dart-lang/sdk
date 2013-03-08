@@ -484,8 +484,8 @@ class TypedSelector extends Selector {
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
-    // [TypedSelector] are only used when compiling.
-    assert(compiler.phase == Compiler.PHASE_COMPILING);
+    // [TypedSelector] are only used after resolution.
+    assert(compiler.phase > Compiler.PHASE_RESOLVING);
     if (!element.isMember()) return false;
 
     // A closure can be called through any typed selector:

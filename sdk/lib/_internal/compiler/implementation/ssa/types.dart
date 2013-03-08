@@ -82,18 +82,6 @@ abstract class HType {
 
   factory HType.fromInferredType(TypeMask mask, Compiler compiler) {
     if (mask == null) return HType.UNKNOWN;
-    if (mask.isExact) {
-      // Special case the list and map classes that are used as types
-      // for literals in the type inferrer.
-      if (mask.base.element == compiler.listClass) {
-        return HType.READABLE_ARRAY;
-      } else if (mask.base.element == compiler.mapClass) {
-        // TODO(ngeoffray): get the actual implementation of a map
-        // literal.
-        return new HType.nonNullSubtype(
-            compiler.mapLiteralClass.rawType, compiler);
-      }
-    }
     return new HType.fromMask(mask, compiler);
   }
 
@@ -107,6 +95,12 @@ abstract class HType {
   factory HType.inferredTypeForElement(Element element, Compiler compiler) {
     return new HType.fromInferredType(
         compiler.typesTask.getGuaranteedTypeOfElement(element),
+        compiler);
+  }
+
+  factory HType.inferredTypeForSelector(Selector selector, Compiler compiler) {
+    return new HType.fromInferredType(
+        compiler.typesTask.getGuaranteedTypeOfSelector(selector),
         compiler);
   }
 

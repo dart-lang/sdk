@@ -155,6 +155,17 @@ abstract class Backend {
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
   }
+  ClassElement get intImplementation => compiler.intClass;
+  ClassElement get doubleImplementation => compiler.doubleClass;
+  ClassElement get numImplementation => compiler.numClass;
+  ClassElement get stringImplementation => compiler.stringClass;
+  ClassElement get listImplementation => compiler.listClass;
+  ClassElement get mapImplementation => compiler.mapClass;
+  ClassElement get constMapImplementation => compiler.mapClass;
+  ClassElement get functionImplementation => compiler.functionClass;
+  ClassElement get typeImplementation => compiler.typeClass;
+  ClassElement get boolImplementation => compiler.boolClass;
+  ClassElement get nullImplementation => compiler.nullClass;
 }
 
 /**
@@ -265,7 +276,6 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement listClass;
   ClassElement typeClass;
   ClassElement mapClass;
-  ClassElement mapLiteralClass;
   ClassElement jsInvocationMirrorClass;
   /// Document class from dart:mirrors.
   ClassElement documentClass;
@@ -344,7 +354,8 @@ abstract class Compiler implements DiagnosticListener {
 
   static const int PHASE_SCANNING = 0;
   static const int PHASE_RESOLVING = 1;
-  static const int PHASE_COMPILING = 2;
+  static const int PHASE_DONE_RESOLVING = 2;
+  static const int PHASE_COMPILING = 3;
   int phase;
 
   bool compilationFailed = false;
@@ -560,8 +571,6 @@ abstract class Compiler implements DiagnosticListener {
     listClass = lookupCoreClass('List');
     typeClass = lookupCoreClass('Type');
     mapClass = lookupCoreClass('Map');
-    // TODO: find a proper way to get to the implementation class.
-    mapLiteralClass = lookupCoreClass('LinkedHashMap');
     if (!missingCoreClasses.isEmpty) {
       internalErrorOnElement(coreLibrary,
           'dart:core library does not contain required classes: '
@@ -691,6 +700,7 @@ abstract class Compiler implements DiagnosticListener {
     if (compilationFailed) return;
     if (analyzeOnly) return;
     assert(main != null);
+    phase = PHASE_DONE_RESOLVING;
 
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.

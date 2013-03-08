@@ -55,6 +55,8 @@ const String DEFAULT_HELPERLIB = r'''
   class Null {}
   class Dynamic_ {}
   class LinkedHashMap {}
+  class ConstantMap {}
+  class TypeImpl {}
   S() {}
   unwrapException(e) {}
   assertHelper(a){}

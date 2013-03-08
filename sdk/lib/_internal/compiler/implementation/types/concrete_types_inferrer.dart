@@ -803,6 +803,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return fromConcreteToTypeMask(returnType);
   }
 
+  /**
+   * Get the inferred concrete type of [selector].
+   */
+  TypeMask getTypeOfSelector(Selector selector) {
+    return null;
+  }
+
   // --- analysis ---
 
   /**

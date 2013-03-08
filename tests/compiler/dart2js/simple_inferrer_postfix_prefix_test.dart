@@ -13,27 +13,30 @@ class A {
   operator[](index) => 'string';
   operator[]=(index, value) {}
   
-  returnString1() => foo--;
+  returnDynamic1() => foo--;
   returnNum1() => --foo;
   returnNum2() => foo -= 42;
 
-  returnDynamic1() => this[index]--;
+  returnDynamic2() => this[index]--;
   returnNum3() => --this[index];
   returnNum4() => this[index] -= 42;
 
-  returnDynamic2() => this.bar--;
+  returnDynamic3() => this.bar--;
   returnNum5() => --this.bar;
   returnNum6() => this.bar -= 42;
 }
 
 class B extends A {
-  returnString1() => super.foo--;
-  returnNum1() => --super.foo;
-  returnNum2() => super.foo -= 42;
+  get foo() => 42;
+  operator[](index) => 42;
 
-  returnDynamic1() => super[index]--;
-  returnNum3() => --super[index];
-  returnNum4() => super[index] -= 42;
+  returnString1() => super.foo--;
+  returnDynamic1() => --super.foo;
+  returnDynamic2() => super.foo -= 42;
+
+  returnString2() => super[index]--;
+  returnDynamic3() => --super[index];
+  returnDynamic4() => super[index] -= 42;
 }
 
 main() {
@@ -43,16 +46,16 @@ main() {
          ..returnNum4()
          ..returnNum5()
          ..returnNum6()
-         ..returnString1()
          ..returnDynamic1()
-         ..returnDynamic2();
+         ..returnDynamic2()
+         ..returnDynamic3();
 
-  new B()..returnNum1()
-         ..returnNum2()
-         ..returnNum3()
-         ..returnNum4()
-         ..returnString1()
-         ..returnDynamic1();
+  new B()..returnString1()
+         ..returnString2()
+         ..returnDynamic1()
+         ..returnDynamic2()
+         ..returnDynamic3()
+         ..returnDynamic4();
 }
 """;
 
@@ -76,12 +79,12 @@ void main() {
   checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
   checkReturnInClass('A', 'returnDynamic1', typesInferrer.dynamicType);
   checkReturnInClass('A', 'returnDynamic2', typesInferrer.dynamicType);
-  checkReturnInClass('A', 'returnString1', typesInferrer.stringType);
+  checkReturnInClass('A', 'returnDynamic3', typesInferrer.dynamicType);
 
-  checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
-  checkReturnInClass('B', 'returnNum2', typesInferrer.numType);
-  checkReturnInClass('B', 'returnNum3', typesInferrer.numType);
-  checkReturnInClass('B', 'returnNum4', typesInferrer.numType);
   checkReturnInClass('B', 'returnString1', typesInferrer.stringType);
+  checkReturnInClass('B', 'returnString2', typesInferrer.stringType);
   checkReturnInClass('B', 'returnDynamic1', typesInferrer.dynamicType);
+  checkReturnInClass('B', 'returnDynamic2', typesInferrer.dynamicType);
+  checkReturnInClass('B', 'returnDynamic3', typesInferrer.dynamicType);
+  checkReturnInClass('B', 'returnDynamic4', typesInferrer.dynamicType);
 }

@@ -546,6 +546,7 @@ class NativeBehavior {
       if (specString == '' || specString == 'var') {
         var behavior = new NativeBehavior();
         behavior.typesReturned.add(compiler.objectClass.computeType(compiler));
+        behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
         return behavior;
       }
       var behavior = new NativeBehavior();

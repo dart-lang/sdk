@@ -48,22 +48,28 @@ void checkPrintType(String expression, checkType(compiler, type)) {
 
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
-    Expect.identical(compiler.boolClass, type.exactType.element);
+    var backend = compiler.backend;
+    Expect.identical(backend.boolImplementation, type.exactType.element);
   });
   checkPrintType('1.0', (compiler, type) {
-    Expect.identical(compiler.doubleClass, type.exactType.element);
+    var backend = compiler.backend;
+    Expect.identical(backend.doubleImplementation, type.exactType.element);
   });
   checkPrintType('1', (compiler, type) {
-    Expect.identical(compiler.intClass, type.exactType.element);
+    var backend = compiler.backend;
+    Expect.identical(backend.intImplementation, type.exactType.element);
   });
   checkPrintType('[]', (compiler, type) {
-    Expect.identical(compiler.listClass, type.exactType.element);
+    var backend = compiler.backend;
+    Expect.identical(backend.listImplementation, type.exactType.element);
   });
   checkPrintType('null', (compiler, type) {
-    Expect.identical(compiler.nullClass, type.exactType.element);
+    var backend = compiler.backend;
+    Expect.identical(backend.nullImplementation, type.exactType.element);
   });
   checkPrintType('"foo"', (compiler, type) {
-    Expect.identical(compiler.stringClass, type.exactType.element);
+    var backend = compiler.backend;
+    Expect.identical(backend.stringImplementation, type.exactType.element);
   });
 }
 
@@ -79,7 +85,7 @@ void testOptionalParameters() {
         var thirdParameter =
           fiskElement.computeSignature(compiler).optionalParameters.tail.head;
         Expect.identical(
-            compiler.intClass,
+            compiler.backend.intImplementation,
             compiler.typesTask.getGuaranteedTypeOfElement(firstParameter)
                 .exactType.element);
         Expect.isNull(

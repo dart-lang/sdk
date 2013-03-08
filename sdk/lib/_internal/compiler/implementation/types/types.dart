@@ -29,6 +29,7 @@ abstract class TypesInferrer {
   TypeMask getReturnTypeOfElement(Element element);
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
+  TypeMask getTypeOfSelector(Selector selector);
 }
 
 /**
@@ -76,7 +77,7 @@ class TypesTask extends CompilerTask {
   }
 
   /**
-   * Return the (inferred) guaranteed concrete type of [element] or null.
+   * Return the (inferred) guaranteed type of [element] or null.
    */
   TypeMask getGuaranteedTypeOfElement(Element element) {
     return measure(() {
@@ -116,13 +117,26 @@ class TypesTask extends CompilerTask {
   }
 
   /**
-   * Return the (inferred) guaranteed concrete type of [node] or null.
+   * Return the (inferred) guaranteed type of [node] or null.
    * [node] must be an AST node of [owner].
    */
   TypeMask getGuaranteedTypeOfNode(owner, node) {
     return measure(() {
       if (typesInferrer != null) {
         return typesInferrer.getTypeOfNode(owner, node);
+      }
+      return null;
+    });
+  }
+
+  /**
+   * Return the (inferred) guaranteed type of [selector] or null.
+   * [node] must be an AST node of [owner].
+   */
+  TypeMask getGuaranteedTypeOfSelector(Selector selector) {
+    return measure(() {
+      if (typesInferrer != null) {
+        return typesInferrer.getTypeOfSelector(selector);
       }
       return null;
     });
@@ -146,12 +160,12 @@ class ConcreteTypeInferencer extends Visitor {
 
   ConcreteTypeInferencer(TypesTask task, this.elements)
     : this.task = task,
-      this.boolClass = task.compiler.boolClass,
-      this.doubleClass = task.compiler.doubleClass,
-      this.intClass = task.compiler.intClass,
-      this.listClass = task.compiler.listClass,
-      this.nullClass = task.compiler.nullClass,
-      this.stringClass = task.compiler.stringClass,
+      this.boolClass = task.compiler.backend.boolImplementation,
+      this.doubleClass = task.compiler.backend.doubleImplementation,
+      this.intClass = task.compiler.backend.intImplementation,
+      this.listClass = task.compiler.backend.listImplementation,
+      this.nullClass = task.compiler.backend.nullImplementation,
+      this.stringClass = task.compiler.backend.stringImplementation,
       this.concreteTypes = new Map<Node, ClassElement>();
 
   visitNode(Node node) => node.visitChildren(this);

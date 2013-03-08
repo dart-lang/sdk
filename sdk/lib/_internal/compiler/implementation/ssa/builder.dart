@@ -4110,11 +4110,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = new HLiteralList(inputs);
     add(keyValuePairs);
-    DartType mapType = compiler.mapLiteralClass.computeType(compiler);
-    // TODO(ngeoffray): Use the actual implementation type of a map
-    // literal.
-    pushInvokeHelper1(backend.getMapMaker(), keyValuePairs,
-        new HType.nonNullSubtype(mapType, compiler));
+    HType mapType = new HType.nonNullSubtype(
+        backend.mapLiteralClass.computeType(compiler), compiler);
+    pushInvokeHelper1(backend.getMapMaker(), keyValuePairs, mapType);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {

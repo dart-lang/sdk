@@ -642,6 +642,9 @@ class JavaScriptBackend extends Backend {
   ClassElement jsFunctionClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
+  ClassElement typeLiteralClass;
+  ClassElement mapLiteralClass;
+  ClassElement constMapLiteralClass;
   ClassElement jsIndexableClass;
   Element jsArrayLength;
   Element jsStringLength;
@@ -855,6 +858,12 @@ class JavaScriptBackend extends Backend {
       if (cls != null) interceptedClasses.add(cls);
     }
 
+    typeLiteralClass = compiler.findHelper(const SourceString('TypeImpl'));
+    mapLiteralClass =
+        compiler.coreLibrary.find(const SourceString('LinkedHashMap'));
+    constMapLiteralClass =
+        compiler.findHelper(const SourceString('ConstantMap'));
+
     specialOperatorEqClasses
         ..add(jsNullClass)
         ..add(jsNumberClass);
@@ -924,7 +933,7 @@ class JavaScriptBackend extends Backend {
         // The backend will use a literal list to initialize the entries
         // of the map.
         enqueuer.registerInstantiatedClass(compiler.listClass);
-        enqueuer.registerInstantiatedClass(compiler.mapLiteralClass);
+        enqueuer.registerInstantiatedClass(mapLiteralClass);
         enqueueInResolution(getMapMaker());
       }
     }
@@ -1029,6 +1038,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerIsCheck(DartType type, Enqueuer world) {
+    world.registerInstantiatedClass(compiler.boolClass);
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
     if (!type.isRaw || isTypeVariable) {
       enqueueInResolution(getSetRuntimeTypeInfo());
@@ -1531,4 +1541,16 @@ class JavaScriptBackend extends Backend {
   bool isNullImplementation(ClassElement cls) {
     return cls == jsNullClass;
   }
+
+  ClassElement get intImplementation => jsIntClass;
+  ClassElement get doubleImplementation => jsDoubleClass;
+  ClassElement get numImplementation => jsNumberClass;
+  ClassElement get stringImplementation => jsStringClass;
+  ClassElement get listImplementation => jsArrayClass;
+  ClassElement get mapImplementation => mapLiteralClass;
+  ClassElement get constMapImplementation => constMapLiteralClass;
+  ClassElement get functionImplementation => jsFunctionClass;
+  ClassElement get typeImplementation => typeLiteralClass;
+  ClassElement get boolImplementation => jsBoolClass;
+  ClassElement get nullImplementation => jsNullClass;
 }
