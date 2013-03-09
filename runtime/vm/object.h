@@ -4972,6 +4972,11 @@ class TypedData : public Instance {
     return element_size[class_id - kTypedDataInt8ArrayCid];
   }
 
+  static intptr_t MaxElements(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return (kSmiMax / ElementSizeInBytes(class_id));
+  }
+
   static RawTypedData* New(intptr_t class_id,
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
@@ -5048,6 +5053,11 @@ class ExternalTypedData : public Instance {
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
     return TypedData::element_size[class_id - kExternalTypedDataInt8ArrayCid];
+  }
+
+  static intptr_t MaxElements(intptr_t class_id) {
+    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+    return (kSmiMax / ElementSizeInBytes(class_id));
   }
 
   static RawExternalTypedData* New(intptr_t class_id,

@@ -71,7 +71,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 1) {                               \
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));        \
   intptr_t cid = kTypedData##name##Cid;                                        \
   intptr_t len = length.Value();                                               \
-  intptr_t max = (kSmiMax / TypedData::ElementSizeInBytes(cid));               \
+  intptr_t max = TypedData::MaxElements(cid);                                  \
   LengthCheck(len, max);                                                       \
   return TypedData::New(cid, len);                                             \
 }                                                                              \
@@ -87,7 +87,7 @@ DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 1) {                       \
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));        \
   intptr_t cid = kExternalTypedData##name##Cid;                                \
   intptr_t len = length.Value();                                               \
-  intptr_t max = (kSmiMax / ExternalTypedData::ElementSizeInBytes(cid));       \
+  intptr_t max = ExternalTypedData::MaxElements(cid);                          \
   LengthCheck(len, max);                                                       \
   intptr_t len_bytes = len * ExternalTypedData::ElementSizeInBytes(cid);       \
   uint8_t* data = OS::AllocateAlignedArray<uint8_t>(len_bytes, kAlignment);    \

@@ -439,7 +439,7 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
 }
 
 
-#define TYPED_ARRAY_ALLOCATION(type_name, scale_factor)                        \
+#define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
@@ -452,7 +452,7 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
   __ SmiUntag(RDI);                                                            \
   /* Check for maximum allowed length. */                                      \
   /* RDI: untagged array length. */                                            \
-  __ cmpq(RDI, Immediate(type_name::kMaxElements));                            \
+  __ cmpq(RDI, Immediate(max_len));                                            \
   __ j(GREATER, &fall_through);                                                \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
@@ -499,7 +499,7 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
     __ Bind(&done);                                                            \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(k##type_name##Cid)));  \
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));                \
     __ movq(FieldAddress(RAX, type_name::tags_offset()), RDI);  /* Tags. */    \
   }                                                                            \
   /* Set the length field. */                                                  \
@@ -530,88 +530,28 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
   __ Bind(&fall_through);                                                      \
 
 
-bool Intrinsifier::Int8Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int8Array, TIMES_1);
-  return false;
+#define SCALARLIST_ALLOCATOR(clazz, scale)                                     \
+bool Intrinsifier::clazz##_new(Assembler* assembler) {                         \
+  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
+  return false;                                                                \
+}                                                                              \
+bool Intrinsifier::clazz##_factory(Assembler* assembler) {                     \
+  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
+  return false;                                                                \
 }
 
 
-bool Intrinsifier::Int8Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int8Array, TIMES_1);
-  return false;
-}
-
-
-bool Intrinsifier::Uint8Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint8Array, TIMES_1);
-  return false;
-}
-
-
-bool Intrinsifier::Uint8Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint8Array, TIMES_1);
-  return false;
-}
-
-
-bool Intrinsifier::Uint8ClampedArray_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint8ClampedArray, TIMES_1);
-  return false;
-}
-
-
-bool Intrinsifier::Uint8ClampedArray_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint8ClampedArray, TIMES_1);
-  return false;
-}
-
-
-bool Intrinsifier::Int16Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int16Array, TIMES_2);
-  return false;
-}
-
-
-bool Intrinsifier::Int16Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int16Array, TIMES_2);
-  return false;
-}
-
-
-bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint16Array, TIMES_2);
-  return false;
-}
-
-
-bool Intrinsifier::Uint16Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint16Array, TIMES_2);
-  return false;
-}
-
-
-bool Intrinsifier::Int32Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int32Array, TIMES_4);
-  return false;
-}
-
-
-bool Intrinsifier::Int32Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int32Array, TIMES_4);
-  return false;
-}
-
-
-bool Intrinsifier::Uint32Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint32Array, TIMES_4);
-  return false;
-}
-
-
-bool Intrinsifier::Uint32Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint32Array, TIMES_4);
-  return false;
-}
+SCALARLIST_ALLOCATOR(Int8Array, TIMES_1)
+SCALARLIST_ALLOCATOR(Uint8Array, TIMES_1)
+SCALARLIST_ALLOCATOR(Uint8ClampedArray, TIMES_1)
+SCALARLIST_ALLOCATOR(Int16Array, TIMES_2)
+SCALARLIST_ALLOCATOR(Uint16Array, TIMES_2)
+SCALARLIST_ALLOCATOR(Int32Array, TIMES_4)
+SCALARLIST_ALLOCATOR(Uint32Array, TIMES_4)
+SCALARLIST_ALLOCATOR(Int64Array, TIMES_8)
+SCALARLIST_ALLOCATOR(Uint64Array, TIMES_8)
+SCALARLIST_ALLOCATOR(Float32Array, TIMES_4)
+SCALARLIST_ALLOCATOR(Float64Array, TIMES_8)
 
 
 bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
@@ -633,18 +573,6 @@ bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
   __ SmiTag(RAX);
   __ ret();
   __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Int64Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int64Array, TIMES_8);
-  return false;
-}
-
-
-bool Intrinsifier::Int64Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Int64Array, TIMES_8);
   return false;
 }
 
@@ -671,40 +599,47 @@ bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Uint64Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint64Array, TIMES_8);
-  return false;
+// Gets the length of a TypedData.
+bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, TypedData::length_offset()));
+  __ ret();
+  // Generate enough code to satisfy patchability constraint.
+  intptr_t offset = __ CodeSize();
+  __ nop(JumpPattern::InstructionLength() - offset);
+  return true;
 }
 
 
-bool Intrinsifier::Uint64Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Uint64Array, TIMES_8);
-  return false;
+static ScaleFactor GetScaleFactor(intptr_t size) {
+  switch (size) {
+    case 1: return TIMES_1;
+    case 2: return TIMES_2;
+    case 4: return TIMES_4;
+    case 8: return TIMES_8;
+  }
+  UNREACHABLE();
+  return static_cast<ScaleFactor>(0);
+};
+
+
+#define TYPEDDATA_ALLOCATOR(clazz)                                             \
+bool Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
+  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
+  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
+  ScaleFactor scale = GetScaleFactor(size);                                    \
+  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
+  return false;                                                                \
+}                                                                              \
+bool Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
+  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
+  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
+  ScaleFactor scale = GetScaleFactor(size);                                    \
+  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
+  return false;                                                                \
 }
-
-
-bool Intrinsifier::Float32Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Float32Array, TIMES_4);
-  return false;
-}
-
-
-bool Intrinsifier::Float32Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Float32Array, TIMES_4);
-  return false;
-}
-
-
-bool Intrinsifier::Float64Array_new(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Float64Array, TIMES_8);
-  return false;
-}
-
-
-bool Intrinsifier::Float64Array_factory(Assembler* assembler) {
-  TYPED_ARRAY_ALLOCATION(Float64Array, TIMES_8);
-  return false;
-}
+CLASS_LIST_TYPED_DATA(TYPEDDATA_ALLOCATOR)
+#undef TYPEDDATA_ALLOCATOR
 
 
 // Tests if two top most arguments are smis, jumps to label not_smi if not.

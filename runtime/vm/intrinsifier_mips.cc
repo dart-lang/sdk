@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/intrinsifier.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -202,6 +203,22 @@ bool Intrinsifier::Float64Array_new(Assembler* assembler) {
 bool Intrinsifier::Float64Array_factory(Assembler* assembler) {
   return false;
 }
+
+
+bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
+  return true;
+}
+
+
+#define TYPEDDATA_ALLOCATOR(clazz)                                             \
+bool Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
+  return false;                                                                \
+}                                                                              \
+bool Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
+  return false;                                                                \
+}
+CLASS_LIST_TYPED_DATA(TYPEDDATA_ALLOCATOR)
+#undef TYPEDDATA_ALLOCATOR
 
 
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
