@@ -118,31 +118,35 @@ void main() {
     });
   });
 
-  // TODO(nweiz): re-enable this (issue 9022).
-  // expectTestsPass("a process that ends while waiting for stdout shouldn't "
-  //     "block the test", () {
-  //   var errors;
-  //   test('test 1', () {
-  //     currentSchedule.onException.schedule(() {
-  //       errors = currentSchedule.errors;
-  //     });
-  //
-  //     var process = startDartProcess('');
-  //     expect(process.nextLine(), completion(equals('hello')));
-  //     expect(process.nextLine(), completion(equals('world')));
-  //     process.shouldExit(0);
-  //   });
-  //
-  //   test('test 2', () {
-  //     expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-  //     expect(errors.length, equals(2));
-  //     expect(errors[0].error, isStateError);
-  //     expect(errors[0].error.message, equals("No elements"));
-  //     expect(errors[1].error, matches(r"^Process "
-  //         r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
-  //         r"exit code 0\."));
-  //   });
-  // }, passing: ['test 2']);
+  expectTestsPass("a process that ends while waiting for stdout shouldn't "
+      "block the test", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+  
+      var process = startDartProcess('');
+      expect(process.nextLine(), completion(equals('hello')));
+      expect(process.nextLine(), completion(equals('world')));
+      process.shouldExit(0);
+    });
+  
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, anyOf(1, 2));
+      expect(errors[0].error, isStateError);
+      expect(errors[0].error.message, equals("No elements"));
+
+      // Whether or not this error appears depends on how quickly the "no
+      // elements" error is handled.
+      if (errors.length == 2) {
+        expect(errors[1].error, matches(r"^Process "
+            r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
+            r"exit code 0\."));
+      }
+    });
+  }, passing: ['test 2']);
 
   expectTestsPass("a process that ends during the task immediately before it's "
       "scheduled to end shouldn't cause an error", () {
@@ -168,30 +172,34 @@ void main() {
     });
   });
 
-  // TODO(nweiz): re-enable this (issue 9022).
-  // expectTestsPass("nextLine throws an error if there's no more stdout", () {
-  //   var errors;
-  //   test('test 1', () {
-  //     currentSchedule.onException.schedule(() {
-  //       errors = currentSchedule.errors;
-  //     });
-  //
-  //     var process = startDartProcess('print("hello");');
-  //     expect(process.nextLine(), completion(equals('hello')));
-  //     expect(process.nextLine(), completion(equals('world')));
-  //     process.shouldExit(0);
-  //   });
-  //
-  //   test('test 2', () {
-  //     expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-  //     expect(errors.length, equals(2));
-  //     expect(errors[0].error, isStateError);
-  //     expect(errors[0].error.message, equals("No elements"));
-  //     expect(errors[1].error, matches(r"^Process "
-  //         r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
-  //         r"exit code 0\."));
-  //   });
-  // }, passing: ['test 2']);
+  expectTestsPass("nextLine throws an error if there's no more stdout", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+  
+      var process = startDartProcess('print("hello");');
+      expect(process.nextLine(), completion(equals('hello')));
+      expect(process.nextLine(), completion(equals('world')));
+      process.shouldExit(0);
+    });
+  
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, anyOf(1, 2));
+      expect(errors[0].error, isStateError);
+      expect(errors[0].error.message, equals("No elements"));
+
+      // Whether or not this error appears depends on how quickly the "no
+      // elements" error is handled.
+      if (errors.length == 2) {
+        expect(errors[1].error, matches(r"^Process "
+            r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
+            r"exit code 0\."));
+      }
+    });
+  }, passing: ['test 2']);
 
   expectTestsPass("nextErrLine returns the next line of stderr from the "
       "process", () {
@@ -208,30 +216,34 @@ void main() {
     });
   });
 
-  // TODO(nweiz): re-enable this (issue 9022).
-  // expectTestsPass("nextErrLine throws an error if there's no more stderr", () {
-  //   var errors;
-  //   test('test 1', () {
-  //     currentSchedule.onException.schedule(() {
-  //       errors = currentSchedule.errors;
-  //     });
-  //
-  //     var process = startDartProcess(r'stderr.write("hello\n");');
-  //     expect(process.nextErrLine(), completion(equals('hello')));
-  //     expect(process.nextErrLine(), completion(equals('world')));
-  //     process.shouldExit(0);
-  //   });
-  //
-  //   test('test 2', () {
-  //     expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-  //     expect(errors.length, equals(2));
-  //     expect(errors[0].error, isStateError);
-  //     expect(errors[0].error.message, equals("No elements"));
-  //     expect(errors[1].error, matches(r"^Process "
-  //         r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
-  //         r"exit code 0\."));
-  //   });
-  // }, passing: ['test 2']);
+  expectTestsPass("nextErrLine throws an error if there's no more stderr", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+  
+      var process = startDartProcess(r'stderr.write("hello\n");');
+      expect(process.nextErrLine(), completion(equals('hello')));
+      expect(process.nextErrLine(), completion(equals('world')));
+      process.shouldExit(0);
+    });
+  
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, anyOf(1, 2));
+      expect(errors[0].error, isStateError);
+      expect(errors[0].error.message, equals("No elements"));
+
+      // Whether or not this error appears depends on how quickly the "no
+      // elements" error is handled.
+      if (errors.length == 2) {
+        expect(errors[1].error, matches(r"^Process "
+            r"'[^']+[\\/]dart(\.exe)? [^']+' ended earlier than scheduled with "
+            r"exit code 0\."));
+      }
+    });
+  }, passing: ['test 2']);
 
   expectTestsPass("remainingStdout returns all the stdout if it's not consumed "
       "any other way", () {
@@ -333,7 +345,6 @@ void main() {
 
   expectTestsPass("closeStdin closes the process's stdin stream", () {
     test('test', () {
-      currentSchedule.timeout = new Duration(seconds: 1);
       var process = startDartProcess(r'''
           stdin.listen((line) => print("> $line"),
               onDone: () => print("stdin closed"));

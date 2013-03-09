@@ -38,8 +38,8 @@ class ScheduledProcess {
   /// A line-by-line view of the standard output stream of the process.
   Stream<String> _stdout;
 
-  /// A subscription that controls both [_stdout] and [_stdoutLog].
-  StreamSubscription<String> _stdoutSubscription;
+  /// A canceller that controls both [_stdout] and [_stdoutLog].
+  StreamCanceller _stdoutCanceller;
 
   /// A fork of [_stderr] that records the standard error of the process. Used
   /// for debugging information.
@@ -48,8 +48,8 @@ class ScheduledProcess {
   /// A line-by-line view of the standard error stream of the process.
   Stream<String> _stderr;
 
-  /// A subscription that controls both [_stderr] and [_stderrLog].
-  StreamSubscription<String> _stderrSubscription;
+  /// A canceller that controls both [_stderr] and [_stderrLog].
+  StreamCanceller _stderrCanceller;
 
   /// The exit code of the process that's scheduled to run. This will naturally
   /// only complete once the process has terminated.
@@ -87,17 +87,17 @@ class ScheduledProcess {
 
     _scheduleExceptionCleanup();
 
-    var stdoutWithSubscription = _lineStreamWithSubscription(
+    var stdoutWithCanceller = _lineStreamWithCanceller(
         _process.then((p) => p.stdout));
-    _stdoutSubscription = stdoutWithSubscription.last;
-    var stdoutTee = tee(stdoutWithSubscription.first);
+    _stdoutCanceller = stdoutWithCanceller.last;
+    var stdoutTee = tee(stdoutWithCanceller.first);
     _stdout = stdoutTee.first;
     _stdoutLog = stdoutTee.last;
 
-    var stderrWithSubscription = _lineStreamWithSubscription(
+    var stderrWithCanceller = _lineStreamWithCanceller(
         _process.then((p) => p.stderr));
-    _stderrSubscription = stderrWithSubscription.last;
-    var stderrTee = tee(stderrWithSubscription.first);
+    _stderrCanceller = stderrWithCanceller.last;
+    var stderrTee = tee(stderrWithCanceller.first);
     _stderr = stderrTee.first;
     _stderrLog = stderrTee.last;
   }
@@ -177,10 +177,10 @@ class ScheduledProcess {
   }
 
   /// Converts a stream of bytes to a stream of lines and returns that along
-  /// with a [StreamSubscription] controlling it.
-  Pair<Stream<String>, StreamSubscription<String>> _lineStreamWithSubscription(
+  /// with a [StreamCanceller] controlling it.
+  Pair<Stream<String>, StreamCanceller> _lineStreamWithCanceller(
       Future<Stream<int>> streamFuture) {
-    return streamWithSubscription(futureStream(streamFuture)
+    return streamWithCanceller(futureStream(streamFuture)
         .handleError((e) => currentSchedule.signalError(e))
         .transform(new StringDecoder(_encoding))
         .transform(new LineTransformer()));
@@ -190,8 +190,8 @@ class ScheduledProcess {
   /// debug information if an error occurs.
   void _scheduleExceptionCleanup() {
     currentSchedule.onException.schedule(() {
-      _stdoutSubscription.cancel();
-      _stderrSubscription.cancel();
+      _stdoutCanceller();
+      _stderrCanceller();
 
       if (!_process.hasValue) return;
 

@@ -104,16 +104,23 @@ Future streamFirst(Stream stream) {
   return completer.future;
 }
 
-/// Returns a wrapped version of [stream] along with a [StreamSubscription] that
-/// can be used to control the wrapped stream.
-Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
+/// A function that can be called to cancel a [Stream] and send a done message.
+typedef void StreamCanceller();
+
+// TODO(nweiz): use a StreamSubscription when issue 9026 is fixed.
+/// Returns a wrapped version of [stream] along with a function that will cancel
+/// the wrapped stream. Unlike [StreamSubscription], this canceller will send a
+/// "done" message to the wrapped stream.
+Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
   var controller = stream.isBroadcast ?
       new StreamController.broadcast() :
       new StreamController();
-  var subscription = stream.listen(controller.add,
-      onError: controller.signalError,
-      onDone: controller.close);
-  return new Pair<Stream, StreamSubscription>(controller.stream, subscription);
+  var subscription = stream.listen((value) {
+    if (!controller.isClosed) controller.add(value);
+  }, onError: (error) {
+    if (!controller.isClosed) controller.signalError(error);
+  }, onDone: controller.close);
+  return new Pair<Stream, StreamCanceller>(controller.stream, controller.close);
 }
 
 // TODO(nweiz): remove this when issue 7787 is fixed.
