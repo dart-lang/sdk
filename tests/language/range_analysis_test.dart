@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
+import "package:expect/expect.dart";
+
 // Check that range analysis does not enter infinite loop trying to propagate
 // ranges through dependant phis.
 bar() {

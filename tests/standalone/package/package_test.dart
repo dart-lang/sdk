@@ -4,10 +4,10 @@
 
 // PackageRoot=none
 
-#library('package_test');
+library package_test;
 
-#import('package:lib1.dart');
-#import('package:shared.dart');
+import 'package:lib1.dart';
+import 'package:shared.dart';
 
 void main() {
   output = 'main';
@@ -15,5 +15,7 @@ void main() {
   lib1();
 
   // Make sure they were all reached successfully.
-  Expect.equals(output, 'main|lib1|lib2|lib3');
+  if (output != 'main|lib1|lib2|lib3') {
+    throw new Error("libraries were not reached successfully");
+  }
 }

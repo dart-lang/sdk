@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test various optimizations and deoptimizations of optimizing compiler..
 
+import "package:expect/expect.dart";
+
 addThem(a, b) {
   return a + b;
 }

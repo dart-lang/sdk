@@ -9,6 +9,7 @@
 // Run this test with option --verbose to see the stdout and stderr output
 // of the debug target process.
 
+import "package:expect/expect.dart";
 import "debug_lib.dart";
 
 bar(x) {

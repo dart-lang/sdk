@@ -4,6 +4,7 @@
 
 // Test that hidden native class names are not used by generated code.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*B")

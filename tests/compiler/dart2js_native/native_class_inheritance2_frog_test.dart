@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // Test to see if resolving a hidden native class's method interferes with
 // subsequent resolving the subclass's method.  This might happen if the
 // superclass caches the method in the prototype, so shadowing the dispatcher

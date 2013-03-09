@@ -4,6 +4,7 @@
 //
 
 library Library5Test.dart;
+import "package:expect/expect.dart";
 import "library5a.dart" as lib5a;
 import "library5b.dart" as lib5b;
 

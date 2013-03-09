@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+import "package:expect/expect.dart";
+
 // Local variables can shadow class names and hence should result in an
 // error.
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing use of 'this' in an instance method.
 
+import "package:expect/expect.dart";
+
 class Nested {
   Nested(int val) : a = val { }
   int a;

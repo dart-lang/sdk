@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing regular expressions in Dart.
 
+import "package:expect/expect.dart";
+
 main() {
   String str = "";
   try {

@@ -10,6 +10,7 @@
 // www.google.dk.  Add this to the test when we have secure server sockets.
 // See TODO below.
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:isolate";
 import "dart:io";

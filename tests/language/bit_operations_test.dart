@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing bitwise operations.
 
+import "package:expect/expect.dart";
+
 class BitOperationsTest {
   static testMain() {
     for (int i = 0; i < 4; i++) {

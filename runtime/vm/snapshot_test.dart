@@ -5,6 +5,12 @@
 import 'dart:isolate';
 import 'dart:async';
 
+class Expect {
+  static void equals(x, y) {
+    if (x != y) throw new RuntimeError('not equal');
+  }
+}
+
 class Fields {
   Fields(int i, int j) : fld1 = i, fld2 = j, fld5 = true {}
   int fld1;

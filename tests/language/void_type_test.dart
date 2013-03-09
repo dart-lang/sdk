@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for type checks involving the void type.
 
+import "package:expect/expect.dart";
+
 isCheckedMode() {
   try {
     var i = 1;

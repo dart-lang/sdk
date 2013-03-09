@@ -6,6 +6,8 @@
 // Ported from JavaScript contributed by Isaac Gouy.
 // Description: Repeatedly acccess a tiny integer-sequence.
 
+import "package:expect/expect.dart";
+
 class FannkuchTest {
   static fannkuch(n) {
     var p = new List(n), q = new List(n), s = new List(n);

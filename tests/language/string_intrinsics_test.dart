@@ -4,6 +4,8 @@
 // Replace with shared test once interface issues clarified.
 // Test various String intrinsics
 
+import "package:expect/expect.dart";
+
 main() {
   var oneByte = "Hello world";
   var empty = "";

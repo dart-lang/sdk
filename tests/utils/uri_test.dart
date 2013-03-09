@@ -4,6 +4,7 @@
 
 library uriTest;
 
+import "package:expect/expect.dart";
 import 'dart:utf';
 import 'dart:uri';
 

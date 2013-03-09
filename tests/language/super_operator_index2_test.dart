@@ -4,6 +4,8 @@
 
 // Test for super indexing operations.
 
+import "package:expect/expect.dart";
+
 class A {
   var map = new Map();
   operator[]=(a, b) { map[a] = b; }

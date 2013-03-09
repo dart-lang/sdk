@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing Math.min and Math.max.
 
+import "package:expect/expect.dart";
+
 negate(x) => -x;
 
 main() {

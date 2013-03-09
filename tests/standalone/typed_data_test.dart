@@ -7,6 +7,7 @@
 // Library tag to be able to run in html test framework.
 library TypedDataTest;
 
+import "package:expect/expect.dart";
 import 'dart:typeddata';
 
 void testCreateUint8TypedData() {

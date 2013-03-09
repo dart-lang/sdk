@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing resolving of dynamic and static calls.
 
+import "package:expect/expect.dart";
+
 class A {
   static staticCall() { return 4; }
   dynamicCall() { return 5; }

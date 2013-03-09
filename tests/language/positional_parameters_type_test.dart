@@ -5,6 +5,8 @@
 //
 // Dart test program for testing optional positional parameters in type tests.
 
+import "package:expect/expect.dart";
+
 class NamedParametersTypeTest {
   static int testMain() {
     int result = 0;

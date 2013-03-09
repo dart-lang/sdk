@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing argument definition test.
 
+import "package:expect/expect.dart";
+
 int test(int a, {int b: 2, int c: 3}) {
   int result = 0;
   ?b;

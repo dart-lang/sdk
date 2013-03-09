@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library TopLevelMultipleFilesTest.dart;
+
+import "package:expect/expect.dart";
 part 'top_level_file1.dart';
 part 'top_level_file2.dart';
 

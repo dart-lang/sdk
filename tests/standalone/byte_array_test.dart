@@ -7,6 +7,7 @@
 // Library tag to be able to run in html test framework.
 library ByteArrayTest;
 
+import "package:expect/expect.dart";
 import 'dart:scalarlist';
 
 void testCreateUint8ByteArray() {

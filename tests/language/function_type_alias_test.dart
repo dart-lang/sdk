@@ -5,6 +5,8 @@
 //
 // Dart test for function type alias.
 
+import "package:expect/expect.dart";
+
 typedef Fun(a, b);
 
 typedef int IntFun(a, b);

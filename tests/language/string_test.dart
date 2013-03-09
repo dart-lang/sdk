@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Replace with shared test once interface issues clarified.
 
+import "package:expect/expect.dart";
+
 class StringTest {
 
   static testMain() {

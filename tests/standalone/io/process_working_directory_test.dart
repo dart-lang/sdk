@@ -5,6 +5,7 @@
 // Process working directory test.
 
 library ProcessWorkingDirectoryTest;
+import "package:expect/expect.dart";
 import "dart:io";
 import "process_test_util.dart";
 

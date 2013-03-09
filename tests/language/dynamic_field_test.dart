@@ -4,6 +4,8 @@
 //
 // Test that ensures that fields can be accessed dynamically.
 
+import "package:expect/expect.dart";
+
 class A extends C {
   var a;
   var b;

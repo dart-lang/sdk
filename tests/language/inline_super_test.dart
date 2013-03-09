@@ -5,6 +5,7 @@
 // Regression test for dart2js issue 6639.
 
 library inline_super_test;
+import "package:expect/expect.dart";
 
 part 'inline_super_part.dart';
 

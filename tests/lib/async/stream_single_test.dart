@@ -5,6 +5,7 @@
 // Test the Stream.single method.
 library stream_single_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import '../../../pkg/unittest/lib/unittest.dart';

@@ -8,6 +8,7 @@
 // Library tag to allow Dartium to run the test.
 library low_test;
 
+import "package:expect/expect.dart";
 import 'dart:math';
 
 void main() {

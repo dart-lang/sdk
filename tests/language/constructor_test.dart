@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
+import "package:expect/expect.dart";
+
 class A extends B {
   A(x, y) : super(y), a = x { }
 

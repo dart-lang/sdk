@@ -5,6 +5,7 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
+import "package:expect/expect.dart";
 import "dart:async";
 import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';

@@ -8,6 +8,7 @@
 
 library collection_to_string;
 
+import "package:expect/expect.dart";
 import 'dart:collection' show Queue, LinkedHashMap;
 import 'dart:math' as Math;
 

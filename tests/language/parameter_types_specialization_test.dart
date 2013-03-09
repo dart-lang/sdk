@@ -4,6 +4,8 @@
 // Test that we invalidate parameter type optimization in the presence
 // of optional parameters.
 
+import "package:expect/expect.dart";
+
 class A {
   void foo(bool firstInvocation, [a = 42, b = 'foo']) {
     if (firstInvocation) {

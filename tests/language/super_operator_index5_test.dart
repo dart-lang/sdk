@@ -4,6 +4,8 @@
 
 // Test for unresolved super[]=.
 
+import "package:expect/expect.dart";
+
 class A {
   var indexField = new List(2);
   operator[](index) => indexField[index];

@@ -4,6 +4,8 @@
 // Test division by power of two.
 // Test that results before and after optimization are the same.
 
+import "package:expect/expect.dart";
+
 // [function, [list of tuples argument/result]].
 var expectedResults =
   [ [divBy1,

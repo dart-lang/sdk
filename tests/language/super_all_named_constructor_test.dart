@@ -4,6 +4,8 @@
 // Dart test for testing implicit invocation of super constructor with all
 // named parameters.
 
+import "package:expect/expect.dart";
+
 var res = 0;
 
 class A {

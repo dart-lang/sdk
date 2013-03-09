@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check const classes.
 
+import "package:expect/expect.dart";
+
 class AConst {
   const AConst() : b_ = 3 ;
   final int b_;

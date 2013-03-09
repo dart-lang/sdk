@@ -4,6 +4,8 @@
 // Test to check that we can parse closure type formal parameters with
 // default value.
 
+import "package:expect/expect.dart";
+
 class FunctionTypeParameterTest {
 
   static var formatter;

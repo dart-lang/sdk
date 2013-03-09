@@ -5,6 +5,8 @@
 // Test that [:this:] in a class A used as a mixin in class D knows it can be an
 // instance of D.
 
+import "package:expect/expect.dart";
+
 class A {
   foo() => bar(); // Implicit use of [:this:]
   bar() => 42;

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test compile-time constants with string-interpolation.
 
+import "package:expect/expect.dart";
+
 const str = "foo";
 const m1 = const { "foo": 499 };
 const m2 = const { "$str": 499 };

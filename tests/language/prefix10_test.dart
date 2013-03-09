@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library Prefix10Test.dart;
+import "package:expect/expect.dart";
 import "library10.dart" as lib10;
 import "library11.dart" as lib11;
 

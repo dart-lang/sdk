@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test basic integer operations.
 
+import "package:expect/expect.dart";
+
 main() {
   Expect.equals("NaN", (double.NAN).toStringAsPrecision(1));
   Expect.equals("Infinity", (double.INFINITY).toStringAsPrecision(2));
