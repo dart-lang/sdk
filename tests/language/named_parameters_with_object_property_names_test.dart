@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // Test for named parameter with the name of a JavaScript property found on
 // 'Object'.  For such a NAME, foo.NAME may exist in an empty map, i.e.
 //    'toString' in {} --> true.

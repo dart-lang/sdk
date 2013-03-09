@@ -4,8 +4,6 @@
 // VMOptions=--enable_checked_mode
 // Tests the type checking when passing code into closure from inside a factory method
 
-import "package:expect/expect.dart";
-
 abstract class Foo<T> {
   factory Foo.from() = Bar<T>.from;
 }

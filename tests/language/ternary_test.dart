@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing the ternary operator.
 
-import "package:expect/expect.dart";
-
 class TernaryTest {
   static true_cond() { return true; }
   static false_cond() { return false; }

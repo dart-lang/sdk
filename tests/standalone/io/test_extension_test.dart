@@ -4,7 +4,6 @@
 //
 // Dart test program for testing native extensions.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';

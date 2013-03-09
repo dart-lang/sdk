@@ -4,8 +4,6 @@
 // A subtest of the larger MapTest. Will eliminate once the full
 // test is running.
 
-import "package:expect/expect.dart";
-
 class MapTest {
 
   static void testDeletedElement(Map map) {

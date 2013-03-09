@@ -4,8 +4,6 @@
 // Third dart test program.
 // @static-clean
 
-import "package:expect/expect.dart";
-
 class A extends B {
   var a;
   static var s;

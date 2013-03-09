@@ -4,8 +4,6 @@
 //
 // Tests optimizing (a << b) & c if c is a Smi constant.
 
-import "package:expect/expect.dart";
-
 main() {
   checkshiftAnd32();
   checkShiftAnd64();

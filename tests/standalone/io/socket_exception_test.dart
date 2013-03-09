@@ -4,7 +4,6 @@
 //
 // Tests socket exceptions.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:isolate";
 import "dart:io";

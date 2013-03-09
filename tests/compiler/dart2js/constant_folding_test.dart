@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
 
-import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 const String NUMBER_FOLDING = """

@@ -6,7 +6,6 @@
 // Type parameters can shadow a library prefix.
 
 library Prefix10NegativeTest.dart;
-import "package:expect/expect.dart";
 import "library10.dart" as T;
 
 class P<T> {

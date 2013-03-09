@@ -6,7 +6,6 @@
 
 library math_vm_test;
 
-import "package:expect/expect.dart";
 import 'dart:math';
 
 class FakeNumber {

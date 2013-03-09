@@ -5,7 +5,6 @@
 // Smoke test of the dart2js compiler API.
 library analyze_only;
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:uri';
 

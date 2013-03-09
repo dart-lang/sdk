@@ -3,7 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library TopLevelNonPrefixLibraryTest.dart;
-
-import "package:expect/expect.dart";
 import 'top_level_prefixed_library_test.lib';
 part 'top_level_file1.dart';

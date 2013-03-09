@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test canonicalization of simple arithmetic equivalences.
 
-import "package:expect/expect.dart";
-
 main() {
   for (var i = 0; i < 5000; i++) {
     Expect.isTrue(mul1double(i) is double);

@@ -4,8 +4,6 @@
 // Dart test for testing implicit super calls with bad arguments or no default
 // constructor in super class.
 
-import "package:expect/expect.dart";
-
 class A {
   A(
     this.x  /// 01: compile-time error

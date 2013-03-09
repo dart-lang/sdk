@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test megamorphic, but single target field load.
 
-import "package:expect/expect.dart";
-
 class Base {
   var f;
 }

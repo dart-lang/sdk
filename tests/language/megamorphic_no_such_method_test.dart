@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test program for correct optimizations related to types fo allocated lists.
 
-import "package:expect/expect.dart";
-
 // Classes to induce polymorphism of degree 10.
 class A0 {
   test() => 0;

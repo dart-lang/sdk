@@ -4,8 +4,6 @@
 // This test is making sure we don't try to constant fold numbers
 // where the semantics differ at compile-time (Dart) and runtime (JS).
 
-import "package:expect/expect.dart";
-
 foo() => 0.0;
 bar() => 0;
 

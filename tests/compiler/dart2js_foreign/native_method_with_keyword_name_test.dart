@@ -4,7 +4,6 @@
 
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

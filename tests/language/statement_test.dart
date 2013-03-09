@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // Tests all statement types. Not an exhaustive test of all statement semantics.
 class StatementTest {
 

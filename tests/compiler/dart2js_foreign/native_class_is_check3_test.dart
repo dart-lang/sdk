@@ -4,7 +4,6 @@
 
 // Test for correct simple is-checks on hidden native classes.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 interface J {

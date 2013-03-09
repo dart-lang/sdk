@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);

@@ -5,8 +5,6 @@
 // Dart test program testing the use of 'dynamic' in generic types.
 // @static-clean
 
-import "package:expect/expect.dart";
-
 abstract class Iface<K,V> {
 }
 

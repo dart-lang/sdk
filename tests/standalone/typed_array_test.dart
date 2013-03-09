@@ -6,7 +6,6 @@
 
 // Library tag to be able to run in html test framework.
 library TypedArray;
-import "package:expect/expect.dart";
 import 'dart:isolate';
 import 'dart:typeddata';
 

@@ -4,8 +4,6 @@
 // Check that our SSA graph does have the try body a predecessor of a
 // try/finally.
 
-import "package:expect/expect.dart";
-
 var a;
 
 foo1() {

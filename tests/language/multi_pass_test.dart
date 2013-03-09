@@ -4,7 +4,6 @@
 // Dart test for loading several dart files and resolving superclasses lazily.
 
 library MultiPassTest.dart;
-import "package:expect/expect.dart";
 part "multi_pass_a.dart";
 part "multi_pass_b.dart";
 

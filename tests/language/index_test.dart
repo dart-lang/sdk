@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing index operators.
 
-import "package:expect/expect.dart";
-
 class Helper {
   static int fibonacci(int n) {
     int a = 0, b = 1, i = 0;

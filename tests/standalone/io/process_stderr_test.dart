@@ -9,7 +9,6 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';

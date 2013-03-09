@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test integer div by zero.
 
-import "package:expect/expect.dart";
-
 class DivByZeroTest {
 
   static double divBy(int a, int b) {

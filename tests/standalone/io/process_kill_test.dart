@@ -5,7 +5,6 @@
 // Process test program to test process communication.
 
 library ProcessKillTest;
-import "package:expect/expect.dart";
 import "dart:io";
 import "process_test_util.dart";
 

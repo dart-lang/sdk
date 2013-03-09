@@ -5,7 +5,6 @@
 // Check that calling a constructor of a class that cannot be resolved causes
 // a runtime error.
 
-import "package:expect/expect.dart";
 import 'dart:math';
 
 never() {

@@ -5,7 +5,6 @@
 // as Smi's would be used to represent many of the numbers.
 
 library MediumIntegerTest;
-import "package:expect/expect.dart";
 
 
 class MediumIntegerTest {

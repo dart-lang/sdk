@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library int32test;
-import "package:expect/expect.dart";
 import 'package:fixnum/fixnum.dart';
 
 void main() {

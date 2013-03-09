@@ -5,8 +5,6 @@
 // Test that we are accessing the right field in a method of a super
 // class, when that field is overridden.
 
-import "package:expect/expect.dart";
-
 class A {
   final a = [42];
   foo() => a[0];

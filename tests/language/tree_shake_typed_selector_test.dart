@@ -4,8 +4,6 @@
 // Check that dart2js emits code for classes that implement another
 // class.
 
-import "package:expect/expect.dart";
-
 class A {
   factory A() => new B();
   foo() => 0;

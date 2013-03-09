@@ -5,8 +5,6 @@
 //
 // Test of calling Function, which is field of some class.
 
-import "package:expect/expect.dart";
-
 class Wrapper {
   Function f;
 }

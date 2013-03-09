@@ -4,9 +4,6 @@
 
 // Test optimized CodeUnitAt and array access.
 
-import "package:expect/expect.dart";
-
-
 String one_byte = "hest";
 String two_byte = "høns";
 

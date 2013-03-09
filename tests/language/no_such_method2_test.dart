@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // Regression test for https://code.google.com/p/dart/issues/detail?id=7697.
 // dart2js used to optimize [noSuchMethod] based on the user-provided
 // argument, and forget that the runtime might call it with its own

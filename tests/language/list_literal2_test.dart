@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test program for array literals.
 
-import "package:expect/expect.dart";
-
 class ArrayLiteral2Test {
   static const int LAUREL = 1965;
   static const int HARDY = 1957;

@@ -7,7 +7,6 @@
 // superclass caches the method in the prototype, so shadowing the dispatcher
 // stored on Object.prototype.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 // Version 1: It might be possible to call foo directly.

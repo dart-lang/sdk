@@ -4,9 +4,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test that a stack trace is properly terminated (issue 8850).
-
-import "package:expect/expect.dart";
-
 void main() {
   var ex = new Exception("fail");
   try {

@@ -4,8 +4,6 @@
 // Tests dangling else. The VM should not have any problems, but dart2js or
 // dart2dart could get this wrong.
 
-import "package:expect/expect.dart";
-
 nestedIf1(notTrue) {
   if (notTrue) return 'bad input';
   if (notTrue) {

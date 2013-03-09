@@ -7,7 +7,6 @@
 // issue https://code.google.com/p/dart/issues/detail?id=7679 in revisions
 // without the fix for this issue.
 
-import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";

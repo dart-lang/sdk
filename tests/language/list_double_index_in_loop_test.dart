@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing arrays.
 
-import "package:expect/expect.dart";
-
 bar() => true;
 
 // The type propagation in Dart2Js wrongly took the intersection of all incoming

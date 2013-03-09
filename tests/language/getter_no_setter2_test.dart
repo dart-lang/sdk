@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Verifies behavior with a static getter, but no field and no setter.
 
-import "package:expect/expect.dart";
-
 class Example {
   static int _var = 1;
   static int get nextVar => _var++;

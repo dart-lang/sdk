@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // This tests a bug in dart2js which caused the compiler to emit bad
 // type assertions for supertypes of String.
 

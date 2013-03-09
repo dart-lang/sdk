@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test overriding of fields.
 
-import "package:expect/expect.dart";
-
 
 class A {}
 class B1 extends A {}

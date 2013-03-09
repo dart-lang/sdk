@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing correct initialization of variables in scopes.
 
-import "package:expect/expect.dart";
-
 class VarInitTest {
   static void testMain() {
     for (int i = 0; i < 10; i++) {

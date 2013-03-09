@@ -4,7 +4,6 @@
 
 library queue.test;
 
-import "package:expect/expect.dart";
 import 'dart:collection';
 
 abstract class QueueTest {

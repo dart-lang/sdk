@@ -4,7 +4,6 @@
 
 // Test that deprecated language features are diagnosed correctly.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:uri';
 

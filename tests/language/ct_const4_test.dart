@@ -4,7 +4,6 @@
 // Check compile-time constant library references with prefixes
 
 library CTConst4Test;
-import "package:expect/expect.dart";
 import "ct_const4_lib.dart" as mylib;
 
 const A = mylib.B;

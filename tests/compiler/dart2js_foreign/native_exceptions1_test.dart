@@ -13,7 +13,6 @@
 // is no place in the Dart language to communicate (3).  So we use the following
 // fake body technique.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 // The exception type.

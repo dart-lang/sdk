@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing named parameters.
 
-import "package:expect/expect.dart";
-
 
 class TypeTester<T> {}
 

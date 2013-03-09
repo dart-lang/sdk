@@ -7,7 +7,6 @@
 // superclass caches the method in the prototype, so shadowing the dispatcher
 // stored on Object.prototype.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

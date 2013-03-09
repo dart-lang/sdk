@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing setting/getting of instance fields.
 
-import "package:expect/expect.dart";
-
 class A {
   var x = 4;
   A(this.x);

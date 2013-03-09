@@ -4,7 +4,6 @@
 
 library json_test;
 
-import "package:expect/expect.dart";
 import "dart:json";
 
 bool badFormat(e) => e is FormatException;

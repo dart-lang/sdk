@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for the "is" type test operator.
 
-import "package:expect/expect.dart";
-
 testTryCatch(x) {
   try {
     throw x;

@@ -4,7 +4,6 @@
 
 library strip_comment_test;
 
-import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 
 testComment(String strippedText, String commentText) {

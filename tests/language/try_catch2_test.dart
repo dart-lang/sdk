@@ -4,8 +4,6 @@
 // Dart test program for testing try/catch statement without any exceptions
 // being thrown. (Nested try/catch blocks).
 
-import "package:expect/expect.dart";
-
 abstract class TestException {
   String getMessage();
 }

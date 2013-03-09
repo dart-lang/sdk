@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // All things regarding compile time constant expressions.
 
-import "package:expect/expect.dart";
-
 abstract class Roman {
   static const I = 1;
   static const II = 2;

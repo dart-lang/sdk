@@ -5,7 +5,6 @@
 
 library compiler_helper;
 
-import "package:expect/expect.dart";
 import 'dart:uri';
 export 'dart:uri' show Uri;
 

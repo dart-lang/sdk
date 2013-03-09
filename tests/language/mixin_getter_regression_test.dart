@@ -5,8 +5,6 @@
 // Regression test case for dart2js bug where the getter for y wasn't
 // properly mixed in.
 
-import "package:expect/expect.dart";
-
 class C {
   int x;
   int get y => x;

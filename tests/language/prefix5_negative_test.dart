@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library Prefix5NegativeTest.dart;
-import "package:expect/expect.dart";
 import "library10.dart";
 
 class Prefix5NegativeTest {

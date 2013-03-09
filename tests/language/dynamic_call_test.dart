@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing dynamic calls.
 
-import "package:expect/expect.dart";
-
 class Helper {
   Helper() {}
   int foo(int i) {

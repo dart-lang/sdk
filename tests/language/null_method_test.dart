@@ -5,8 +5,6 @@
 // Regression test for dart2js that used to not compile null methods
 // in the presence of typed selectors.
 
-import "package:expect/expect.dart";
-
 class C {
   foo(s) {
     return s.hashCode;

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that instanceof works correctly with type variables.
 
-import "package:expect/expect.dart";
-
 // Test that partially typed generic instances are correctly constructed.
 
 // Test factory case.

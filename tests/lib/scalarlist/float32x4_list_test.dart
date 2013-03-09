@@ -5,7 +5,6 @@
 // Library tag to be able to run in html test framework.
 library float32x4_list_test;
 
-import "package:expect/expect.dart";
 import 'dart:scalarlist';
 
 testLoadStore(array) {

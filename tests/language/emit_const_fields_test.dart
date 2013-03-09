@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that used static consts are emitted.
 
-import "package:expect/expect.dart";
-
 class Guide {
   static const LTUAE = 42;
   static const TITLE = "Life, the Universe and Everything";

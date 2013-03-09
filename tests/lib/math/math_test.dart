@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library math_test;
-import "package:expect/expect.dart";
 import 'dart:math';
 
 class MathTest {

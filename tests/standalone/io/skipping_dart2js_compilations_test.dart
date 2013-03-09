@@ -14,7 +14,6 @@
  * output (+deps file), dart application)
  */
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:uri';

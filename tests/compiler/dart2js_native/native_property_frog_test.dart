@@ -4,7 +4,6 @@
 
 // Properties on hidden native classes.
 
-import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
 
 class A native "*A" {

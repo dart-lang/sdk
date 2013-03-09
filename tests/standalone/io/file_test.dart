@@ -4,7 +4,6 @@
 //
 // Dart test program for testing file I/O.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';

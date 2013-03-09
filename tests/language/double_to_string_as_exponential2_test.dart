@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test basic integer operations.
 
-import "package:expect/expect.dart";
-
 main() {
   Expect.throws(() => (1.0).toStringAsExponential(-1),
                 (e) => e is RangeError);

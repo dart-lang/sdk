@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // Test similar to NativeCallArity1FrogTest, but with default values to
 // parameters set to null. These parameters should be treated as if they
 // do not have a default value for the native methods.

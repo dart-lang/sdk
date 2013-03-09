@@ -4,8 +4,6 @@
 // Dart test program for testing named parameters.
 // You may not provide the same parameter as both a positional and a named argument.
 
-import "package:expect/expect.dart";
-
 int test(int a, [int b]) {
   return a;
 }

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that FallThroughError is thrown if switch clause does not terminate.
 
-import "package:expect/expect.dart";
-
 class SwitchFallthruTest {
   static String test(int n) {
     String result = "foo";

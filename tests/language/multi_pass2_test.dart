@@ -5,7 +5,6 @@
 // Same as MultiPassTest, except that the file order is reversed.
 
 library MultiPass2Test.dart;
-import "package:expect/expect.dart";
 part "multi_pass_a.dart";
 part "multi_pass_b.dart";
 

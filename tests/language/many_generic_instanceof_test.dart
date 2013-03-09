@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ManyGenericInstanceofTest.dart;
-import "package:expect/expect.dart";
 part "generic_instanceof.dart";
 
 class ManyGenericInstanceofTest {

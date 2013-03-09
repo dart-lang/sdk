@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for reading escape sequences in string literals
 
-import "package:expect/expect.dart";
-
 class CharEscapeTest {
   static testMain() {
     var x00 = "\x00";

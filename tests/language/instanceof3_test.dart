@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 
-import "package:expect/expect.dart";
-
 // In the type test 'e is T', it is a run-time error if T does not denote a type
 // available in the current lexical scope.
 

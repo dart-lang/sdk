@@ -4,7 +4,6 @@
 
 library isolate_unhandled_exception_uri_helper;
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 

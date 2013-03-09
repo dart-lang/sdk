@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library boolified_operator_test;
-import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 const String TEST = r"""

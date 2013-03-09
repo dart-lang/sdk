@@ -4,7 +4,6 @@
 
 library parser_helper;
 
-import "package:expect/expect.dart";
 import "dart:uri";
 
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";

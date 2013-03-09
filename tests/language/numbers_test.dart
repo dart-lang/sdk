@@ -4,7 +4,6 @@
 // Test number types.
 
 library NumbersTest.dart;
-import "package:expect/expect.dart";
 
 class NumbersTest {
   static double testMain() {

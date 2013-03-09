@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that fast method extraction returns correct closure.
 
-import "package:expect/expect.dart";
-
 class A {
   var f;
   A(this.f);

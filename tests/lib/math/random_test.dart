@@ -7,7 +7,6 @@
 // Library tag to allow Dartium to run the test.
 library random_test;
 
-import "package:expect/expect.dart";
 import 'dart:math';
 
 main() {

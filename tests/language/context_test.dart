@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for capturing.
 
-import "package:expect/expect.dart";
-
 class ContextTest {
   static foo(Function f) {
     return f();

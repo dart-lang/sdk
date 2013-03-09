@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing top-level variables.
 
-import "package:expect/expect.dart";
-
 
 class TopLevelFuncTest {
   static testMain() {

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that initializers of const fields can be declared out of order.
 
-import "package:expect/expect.dart";
-
 const P = 2 * (O - N);
 const N = 1;
 const O = 1 + 3;

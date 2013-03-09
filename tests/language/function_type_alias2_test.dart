@@ -5,8 +5,6 @@
 //
 // Dart test for function type alias with optional parameters.
 
-import "package:expect/expect.dart";
-
 typedef int f1<T>([int a, int b, T c]);
 typedef int f2<T>([int a, int b, T d]);
 typedef int f3<T>({int a, int b, T c});

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 /**
  * A test of simple runtime behavior on numbers, strings and lists with
  * a focus on both correct behavior and runtime errors.

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart version of two-argument Ackermann-Peter function.
 
-import "package:expect/expect.dart";
-
 class AckermannTest {
   static ack(m, n) {
     return m == 0 ?

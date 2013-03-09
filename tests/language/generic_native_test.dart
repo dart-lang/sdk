@@ -4,8 +4,6 @@
 
 // Test is-tests with type variables on native subclasses.
 
-import "package:expect/expect.dart";
-
 class A<T> {
   foo(o) => o is T;
 }

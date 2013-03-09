@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:io';
 
 main() {
@@ -10,14 +9,6 @@ main() {
   File script = new File('${temp.path}/script.dart');
   script.writeAsStringSync("""
 import 'dart:io';
-
-class Expect {
-  static void isTrue(var x) {
-    if (!identical(x, true)) {
-      throw new Error("Not identical");
-    }
-  }
-}
 
 main() {
   Directory d = new Directory('a');

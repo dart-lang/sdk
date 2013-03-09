@@ -4,8 +4,6 @@
 // Dart test program for testing execution of finally blocks after an exception
 // is thrown from inside a local function capturing a variable.
 
-import "package:expect/expect.dart";
-
 
 class MyException {
   const MyException(String message) : message_ = message;

@@ -5,8 +5,6 @@
 // Regression test for dart2js where [List.addAll] was not typed
 // correctly.
 
-import "package:expect/expect.dart";
-
 class MyIterable implements Iterable {
   get iterator => [].iterator;
 }

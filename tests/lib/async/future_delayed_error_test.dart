@@ -4,7 +4,6 @@
 
 library future_delayed_error_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 

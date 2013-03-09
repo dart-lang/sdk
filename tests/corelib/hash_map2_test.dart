@@ -6,7 +6,6 @@
 // modification errors.
 
 library hash_map2_test;
-import "package:expect/expect.dart";
 import 'dart:collection';
 
 testMap(Map newMap(), Map newMapFrom(Map map)) {

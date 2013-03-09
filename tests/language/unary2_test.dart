@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing binary operations.
 
-import "package:expect/expect.dart";
-
 class UnaryTest {
   static foo() { return -4; }
   static moo() { return +5; }

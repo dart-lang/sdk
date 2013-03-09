@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing closures.
 
-import "package:expect/expect.dart";
-
 class LocalFunction3Test {
   static testExceptions() {
     var f = (int n) { return n + 1; };

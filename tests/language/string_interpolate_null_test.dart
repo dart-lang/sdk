@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing NPE within string interpolation.
 
-import "package:expect/expect.dart";
-
 class A {
   A(String this.name) {}
   String name;

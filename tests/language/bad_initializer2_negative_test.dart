@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Variable initializer must not reference the initialized variable.
 
-import "package:expect/expect.dart";
-
 class BadInitializer2NegativeTest {
   static testMain() {
    var foo = (int n) {

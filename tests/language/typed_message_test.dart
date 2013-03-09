@@ -6,7 +6,6 @@
 // VMOptions=--checked
 
 library TypedMessageTest;
-import "package:expect/expect.dart";
 import "dart:isolate";
 
 void logMessages() {

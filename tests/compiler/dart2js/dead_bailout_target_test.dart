@@ -5,7 +5,6 @@
 // This unit test of dart2js checks that a SSA bailout target
 // instruction gets removed from the graph when it's not used.
 
-import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 String TEST = r'''

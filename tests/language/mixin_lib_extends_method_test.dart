@@ -4,7 +4,6 @@
 
 library mixin_lib_extends_method_test;
 
-import "package:expect/expect.dart";
 import "mixin_lib_extends_method_lib.dart" as L;
 
 class S {

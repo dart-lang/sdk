@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library panda_test;
-import "package:expect/expect.dart";
 import 'panda_lib.dart' as p;
 
 void main() {

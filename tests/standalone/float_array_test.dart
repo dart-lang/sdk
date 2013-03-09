@@ -7,7 +7,6 @@
 // Library tag to be able to run in html test framework.
 library FloatArrayTest;
 
-import "package:expect/expect.dart";
 import 'dart:typeddata';
 
 void testCreateFloat32Array() {

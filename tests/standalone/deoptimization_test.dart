@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization.
 
-import "package:expect/expect.dart";
-
 class SmiCompares {
   // Test deoptimization when one argument is known to be Smi.
   static bool smiCompareLessThan2(a) {

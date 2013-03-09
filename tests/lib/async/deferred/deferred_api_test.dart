@@ -8,7 +8,6 @@
 // makes it possible to pass this test without having implemented
 // deferred loading correctly.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 
 @lazy

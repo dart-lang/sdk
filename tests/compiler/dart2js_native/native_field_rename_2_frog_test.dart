@@ -6,7 +6,6 @@
 // fields.  However, native fields keep their name.  The implication: a getter
 // for the field must be based on the field's name, not the field's jsname.
 
-import "package:expect/expect.dart";
 import 'dart:_js_helper' show JSName;
 
 interface I {

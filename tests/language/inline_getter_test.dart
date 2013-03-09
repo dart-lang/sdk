@@ -5,8 +5,6 @@
 // Three classes access always the same field. Optimize method foo and inline
 // getter for classes 'A' and 'B'. Call later via 'C' and cause deoptimization.
 
-import "package:expect/expect.dart";
-
 class A {
   int f;
   A(this.f) {}

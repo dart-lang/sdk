@@ -4,7 +4,6 @@
 // Dart test program for testing class 'StringBase' (currently VM specific).
 
 library string_base_test;
-import "package:expect/expect.dart";
 
 class StringBaseTest {
 

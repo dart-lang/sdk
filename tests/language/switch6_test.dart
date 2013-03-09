@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // The break is in the right scope, http://b/3428700 was agreed upon.
 
-import "package:expect/expect.dart";
-
 class Switch6Test {
 
   static testMain() {

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
-import "package:expect/expect.dart";
-
 // Expect the initializer expressions E(i) to be evaluated
 // in the order 1, 2, 3, ...
 // Each expression must be evaluated exactly once.

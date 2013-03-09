@@ -7,7 +7,6 @@
 // TODO(7157): Merge this test into directory_test.dart testListNonExistent()
 // when it no longer crashes on Windows, when issue 7157 is resolved.
 
-import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 

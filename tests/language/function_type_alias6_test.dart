@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for legally self referencing function type alias.
 
-import "package:expect/expect.dart";
-
 typedef F(List<F> x);
 
 typedef D C();

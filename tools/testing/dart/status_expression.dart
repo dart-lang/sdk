@@ -229,16 +229,13 @@ class ExpressionParser {
     if (scanner.current == Token.LEFT_PAREN) {
       scanner.advance();
       SetExpression value = parseSetExpression();
-      if (scanner.current != Token.RIGHT_PAREN) {
-        throw new RuntimeError("Missing right parenthesis in expression");
-      }
+      Expect.equals(scanner.current, Token.RIGHT_PAREN,
+                    "Missing right parenthesis in expression");
       scanner.advance();
       return value;
     }
-    if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
-      throw new RuntimeError(
-          "Expected identifier in expression, got ${scanner.current}");
-    }
+    Expect.isTrue(new RegExp(r"^\w+$").hasMatch(scanner.current),
+                  "Expected identifier in expression, got ${scanner.current}");
     SetExpression value = new SetConstant(scanner.current);
     scanner.advance();
     return value;
@@ -270,32 +267,25 @@ class ExpressionParser {
     if (scanner.current == Token.LEFT_PAREN) {
       scanner.advance();
       BooleanExpression value = parseBooleanExpression();
-      if (scanner.current != Token.RIGHT_PAREN) {
-        throw new RuntimeError("Missing right parenthesis in expression");
-      }
+      Expect.equals(scanner.current, Token.RIGHT_PAREN,
+                    "Missing right parenthesis in expression");
       scanner.advance();
       return value;
     }
 
     // The only atomic booleans are of the form $variable == value or the
     // form $variable.
-    if (scanner.current != Token.DOLLAR_SYMBOL) {
-      throw new RuntimeError(
-          "Expected \$ in expression, got ${scanner.current}");
-    }
+    Expect.equals(scanner.current, Token.DOLLAR_SYMBOL,
+        "Expected \$ in expression, got ${scanner.current}");
     scanner.advance();
-    if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
-      throw new RuntimeError(
-          "Expected identifier in expression, got ${scanner.current}");
-    }
+    Expect.isTrue(new RegExp(r"^\w+$").hasMatch(scanner.current),
+        "Expected identifier in expression, got ${scanner.current}");
     TermVariable left = new TermVariable(scanner.current);
     scanner.advance();
     if (scanner.current == Token.EQUALS) {
       scanner.advance();
-      if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
-        throw new RuntimeError(
-            "Expected identifier in expression, got ${scanner.current}");
-      }
+      Expect.isTrue(new RegExp(r"^\w+$").hasMatch(scanner.current),
+          "Expected identifier in expression, got ${scanner.current}");
       TermConstant right = new TermConstant(scanner.current);
       scanner.advance();
       return new Comparison(left, right);

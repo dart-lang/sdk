@@ -6,7 +6,6 @@
 // modification errors.
 
 library hash_map2_test;
-import "package:expect/expect.dart";
 import 'dart:collection';
 
 testSet(Set newSet(), Set newSetFrom(Set from)) {

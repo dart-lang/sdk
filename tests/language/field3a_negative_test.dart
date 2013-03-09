@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to catch error reporting bugs in class fields declarations.
 
-import "package:expect/expect.dart";
-
 class C {
   final a;  // illegal field declaration - must be initialized
 }

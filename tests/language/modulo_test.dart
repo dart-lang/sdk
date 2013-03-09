@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test optimization of modulo operator on Smi.
 
-import "package:expect/expect.dart";
-
 
 main() {
   for (int i = -3000; i < 3000; i++) {

@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing params.
 
-import "package:expect/expect.dart";
-
 main() {
   for (int i = 0; i < 1000; i++) testNumberIdentity();
 }

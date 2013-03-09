@@ -12,7 +12,7 @@ main() {
   try {
     Cat.throwMeTheBall("ball");
   } on String catch (e) {
-    if (e != "ball") throw new RuntimeError("exception not equal to 'ball'");
+    Expect.equals("ball", e);
   }
   // Make sure the exception is thrown out to the event handler from C++ code.
   // The harness expects the string "ball" to be thrown and the process to

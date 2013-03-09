@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super class relationship.
 
-import "package:expect/expect.dart";
-
 class Foo implements Bar {
 }
 

@@ -4,8 +4,6 @@
 // Test that JavaScript properties on Object can still be classes in
 // Dart.
 
-import "package:expect/expect.dart";
-
 void main() {
   Expect.equals(42, new __defineGetter__().hello());
   Expect.equals(42, new __defineSetter__().hello());

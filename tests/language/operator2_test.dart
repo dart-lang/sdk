@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Operator dart test program.
 
-import "package:expect/expect.dart";
-
 class Helper {
   int i;
   Helper(int val) : i = val { }

@@ -6,20 +6,6 @@
 // one dart process to another using the dart:io process interface.
 import "dart:math";
 
-class Expect {
-  static void isTrue(x) {
-    if (!x) {
-      throw new Error("Not true");
-    }
-  }
-
-  static void equals(x, y) {
-    if (x != y) {
-      throw new Error("Not equal");
-    }
-  }
-}
-
 main() {
   var options = new Options();
   Expect.isTrue(options.script.endsWith('process_check_arguments_script.dart'));

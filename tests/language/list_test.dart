@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing arrays.
 
-import "package:expect/expect.dart";
-
 class ListTest {
   static void TestIterator() {
     List<int> a = new List<int>(10);

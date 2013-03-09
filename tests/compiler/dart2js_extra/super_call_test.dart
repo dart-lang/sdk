@@ -4,8 +4,6 @@ class A {
   hest(String s, int i) => "$s$i";
 }
 
-import "package:expect/expect.dart";
-
 class B extends A {
   foo() => "B.foo${super.foo()}";
   baz() => "B.baz";

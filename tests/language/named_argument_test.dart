@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 main() {
   var c1 = ({b, a}) => 'a: $a b: $b';
   var c2 = ({a, b}) => 'a: $a b: $b';

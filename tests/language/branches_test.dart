@@ -4,8 +4,6 @@
 // Dart test for branches. Make sure that shortcuts work, even if they have
 // to jump over several expressions.
 
-import "package:expect/expect.dart";
-
 class BranchesTest {
   static bool f() {
     Expect.equals("Never reached", 0);

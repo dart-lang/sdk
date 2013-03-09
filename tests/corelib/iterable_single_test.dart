@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 main() {
   List<int> list1a = <int>[1];
   List<int> list1b = <int>[1, 2, 3];

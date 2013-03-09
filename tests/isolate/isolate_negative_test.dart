@@ -5,7 +5,6 @@
 // Dart test program for testing that isolates are spawned.
 
 library IsolateNegativeTest;
-import "package:expect/expect.dart";
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 

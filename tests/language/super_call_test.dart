@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing super calls
 
-import "package:expect/expect.dart";
-
 class A {
   A() : field = 0 {}
   int field;

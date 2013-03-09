@@ -5,8 +5,6 @@
 // Test verifying that the type argument vector of subclasses are properly
 // initialized by the class finalizer.
 
-import "package:expect/expect.dart";
-
 class A<T> { A(); }
 class B extends A<Object> { B(); }
 class C extends B { C(); }

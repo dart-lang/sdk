@@ -4,7 +4,6 @@
 //
 
 library Prefix11Test.dart;
-import "package:expect/expect.dart";
 import "library10.dart";
 import "library11.dart" as lib11;
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that unused static consts are not emitted.
 
-import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 const String TEST_GUIDE = r"""

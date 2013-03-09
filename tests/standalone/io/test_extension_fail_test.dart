@@ -17,8 +17,7 @@ Future copyFileToDirectory(Path file, Path directory) {
     case 'windows':
       return Process.run('cmd.exe', ['/C', 'copy $src $dst']);
     default:
-      throw new RuntimeError(
-          'Unknown operating system ${Platform.operatingSystem}');
+      Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
 }
 
@@ -31,8 +30,7 @@ Path getExtensionPath(Path buildDirectory) {
     case 'windows':
       return buildDirectory.append('test_extension.dll');
     default:
-      throw new RuntimeError(
-          'Unknown operating system ${Platform.operatingSystem}');
+      Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
 }
 
@@ -60,14 +58,8 @@ void main() {
   }).then((ProcessResult result) {
     print("ERR: ${result.stderr}\n\n");
     print("OUT: ${result.stdout}\n\n");
-    if (result.exitCode != 255) {
-      throw new RuntimeError("bad exit code");
-    }
-    if (!result.stderr.contains("Unhandled exception:")) {
-      throw new RuntimeError("stderr doesn't contain unhandled exception.");
-    }
-    if (!result.stderr.contains("ball")) {
-      throw new RuntimeError("stderr doesn't contain 'ball'.");
-    }
+    Expect.equals(255, result.exitCode);
+    Expect.isTrue(result.stderr.contains("Unhandled exception:"));
+    Expect.isTrue(result.stderr.contains("ball"));
   }).whenComplete(() => tempDirectory.deleteSync(recursive: true));
 }

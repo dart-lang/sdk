@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Tests that lhs of a compound assignement is executed only once.
 
-import "package:expect/expect.dart";
-
 
 class Indexed {
   Indexed() : _f = new List(10), count = 0 {

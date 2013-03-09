@@ -4,7 +4,6 @@
 
 library PrefixTest;
 
-import "package:expect/expect.dart";
 import "prefix_test1.dart";
 
 

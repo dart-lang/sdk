@@ -6,8 +6,6 @@
 // Tests 'identical' for cases that not supported in dart2js (bigint,
 // disambiguation int/double).
 
-import "package:expect/expect.dart";
-
 main() {
   for (int i = 0; i < 1000; i++) testNumberIdentity();
 }

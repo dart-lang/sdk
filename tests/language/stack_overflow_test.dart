@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart program testing stack overflow.
 
-import "package:expect/expect.dart";
-
 class StackOverflowTest {
 
   static void curseTheRecurse(a, b, c) {

@@ -4,8 +4,6 @@
 
 // Test for operator[]= resolved in super class.
 
-import "package:expect/expect.dart";
-
 class A {
   var indexField = new List(2);
   operator[]=(index, value) { indexField[index] = value; }

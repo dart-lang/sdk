@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library LibraryPrivateInConstructor;
-import "package:expect/expect.dart";
 import "library_private_in_constructor_a.dart";
 import "library_private_in_constructor_b.dart";
 

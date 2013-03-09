@@ -4,7 +4,6 @@
 
 library queue.iterator.test;
 
-import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 class QueueIteratorTest {

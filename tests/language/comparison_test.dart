@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing comparison operators.
 
-import "package:expect/expect.dart";
-
 class Helper {
   static bool STRICT_EQ(a, b) {
     return identical(a, b);

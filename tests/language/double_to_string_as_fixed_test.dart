@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test basic integer operations.
 
-import "package:expect/expect.dart";
-
 class ToStringAsFixedTest {
   static void testMain() {
     Expect.equals("2.000", 2.0.toStringAsFixed(3));

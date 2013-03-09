@@ -5,7 +5,6 @@
 // This is a similar test to NativeCallArity1FrogTest, but makes sure
 // that subclasses also get the right number of arguments.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

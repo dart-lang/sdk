@@ -5,7 +5,6 @@
 // A test to compare the results of the fixnum library with the Dart VM
 
 library int64vmtest;
-import "package:expect/expect.dart";
 import 'dart:math' as math;
 
 part '../lib/src/int32.dart';

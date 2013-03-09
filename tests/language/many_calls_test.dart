@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test megamorphic calls.
 
-import "package:expect/expect.dart";
-
 class A {
   A() {}
   f1() { return 1; }

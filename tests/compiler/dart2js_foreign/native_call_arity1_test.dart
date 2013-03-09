@@ -10,7 +10,6 @@
 // * Named arguments are passed in the correct position, so require preceding
 // arguments to be passed.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

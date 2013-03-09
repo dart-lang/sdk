@@ -5,8 +5,6 @@
 // Check that an inlined field initializer has access to the enclosing
 // type variables.
 
-import "package:expect/expect.dart";
-
 class A<T> {
   var c = new List<T>();
 }

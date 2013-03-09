@@ -5,7 +5,6 @@
 library dartdoc_search_test;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../../../../pkg/expect/lib/expect.dart';
 import '../lib/src/dartdoc/nav.dart';
 import '../lib/src/client/search.dart';
 

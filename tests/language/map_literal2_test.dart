@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test program for map literals.
 
-import "package:expect/expect.dart";
-
 int nextValCtr;
 
 get nextVal {

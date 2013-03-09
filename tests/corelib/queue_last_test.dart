@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library queue.last.test;
-import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 main() {

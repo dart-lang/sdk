@@ -26,7 +26,6 @@
 // abstract<dynamic> foo;" is not illegal because "abstract" is used
 // as a typeName.
 
-import "package:expect/expect.dart";
 import 'built_in_identifier_prefix_library_abstract.dart' as abstract;
 import 'built_in_identifier_prefix_library_as.dart' as as;
 import 'built_in_identifier_prefix_library_dynamic.dart' as dynamic;

@@ -4,7 +4,6 @@
 // Test explicit import of dart:core in the source code..
 
 library ImportCorePrefixTest.dart;
-import "package:expect/expect.dart";
 import "dart:core" as mycore;
 
 class Object {
@@ -31,6 +30,6 @@ void main() {
 
   var greenwich = new Map(51, 0);
   var kpao = new Map(37, -122);
-  Expect.isTrue(greenwich.isPrimeMeridian);
-  Expect.isFalse(kpao.isPrimeMeridian);
+  mycore.Expect.isTrue(greenwich.isPrimeMeridian);
+  mycore.Expect.isFalse(kpao.isPrimeMeridian);
 }

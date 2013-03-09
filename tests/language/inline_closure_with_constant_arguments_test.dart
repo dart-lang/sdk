@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-
 // Test inlining of a closure call with constant propagation.
 primeForSmis(bool b) {
   smi_op(a, b) => a + b;

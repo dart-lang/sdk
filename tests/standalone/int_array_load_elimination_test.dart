@@ -7,7 +7,6 @@
 // TODO: remove once bug 2264 fixed.
 library int_array_load_elimination;
 
-import "package:expect/expect.dart";
 import 'dart:typeddata';
 
 void testUint16() {

@@ -4,8 +4,6 @@
 
 library yaml_test;
 
-// TODO(rnystrom): rewrite tests so that they don't need "Expect".
-import "package:expect/expect.dart";
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml/deep_equals.dart';

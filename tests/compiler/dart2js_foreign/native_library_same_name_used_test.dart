@@ -5,7 +5,6 @@
 // Test for correct hidden native class when interface has same name.
 
 library main;
-import "package:expect/expect.dart";
 import 'native_library_same_name_used_lib1.dart';
 import 'native_metadata.dart';
 

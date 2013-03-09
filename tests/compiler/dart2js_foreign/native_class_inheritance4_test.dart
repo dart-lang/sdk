@@ -6,7 +6,6 @@
 // inheritance, the superclass method must not be reached by a call on the
 // subclass.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

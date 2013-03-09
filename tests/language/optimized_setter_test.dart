@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test various setter situations, testing special cases in optimizing compiler.
 
-import "package:expect/expect.dart";
-
 class A {
   int field = 0;
 }

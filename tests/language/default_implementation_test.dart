@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to verify that factory classes are working.
 
-import "package:expect/expect.dart";
-
 // @static-clean
 
 abstract class Point {

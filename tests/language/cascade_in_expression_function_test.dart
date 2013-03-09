@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing throw statement
 
-import "package:expect/expect.dart";
-
 class MyClass {
   foo() => this..bar(3)..baz(4);
   bar(x) => x;

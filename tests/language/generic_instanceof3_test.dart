@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 
-import "package:expect/expect.dart";
-
 // Tests involving generics.
 
 abstract class I<T> {

@@ -4,8 +4,6 @@
 
 // Dart test program for elapsed getters in stopwatch support.
 
-import "package:expect/expect.dart";
-
 main() {
   Stopwatch sw = new Stopwatch()..start();
   while (sw.elapsedMilliseconds < 2) {

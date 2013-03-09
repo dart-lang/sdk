@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correct instance compound assignment operator.
 
-import "package:expect/expect.dart";
-
 class A {
   A() : f = 2 {}
   var f;

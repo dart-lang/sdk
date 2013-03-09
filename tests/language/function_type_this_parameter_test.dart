@@ -4,8 +4,6 @@
 // Check that function types are accepted for constructor arguments that
 // initialize fields.
 
-import "package:expect/expect.dart";
-
 class A {
   Function f;
   A(int this.f());

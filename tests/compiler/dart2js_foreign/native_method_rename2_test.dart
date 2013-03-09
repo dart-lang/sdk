@@ -4,7 +4,6 @@
 
 // Test the feature where the native string declares the native method's name.
 
-import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

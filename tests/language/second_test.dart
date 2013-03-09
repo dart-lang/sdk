@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Second dart test program.
 
-import "package:expect/expect.dart";
-
 class Helper {
   static empty() { }
   static int foo() { return 42; }

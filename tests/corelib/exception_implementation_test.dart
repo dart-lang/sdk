@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library exception_implementation_test;
-import "package:expect/expect.dart";
 
 main() {
   final msg = 1;

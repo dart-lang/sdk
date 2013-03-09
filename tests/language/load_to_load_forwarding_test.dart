@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correctness of side effects tracking used by load to load forwarding.
 
-import "package:expect/expect.dart";
-
 class A {
   var x, y;
   A(this.x, this.y);

@@ -4,8 +4,6 @@
 // Getters and setters can have different types, but it is a warning if the
 // two types are not assignable.
 
-import "package:expect/expect.dart";
-
 int bar = 499;
 
 int  /// 01: static type warning

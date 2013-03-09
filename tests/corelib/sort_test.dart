@@ -4,7 +4,6 @@
 
 // Dart test for sort routines.
 library sort_test;
-import "package:expect/expect.dart";
 import 'sort_helper.dart';
 
 main() {

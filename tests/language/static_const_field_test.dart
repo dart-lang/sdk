@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing static const fields.
 
-import "package:expect/expect.dart";
-
 abstract class Spain {
   static const AG = "Antoni Gaudi";
   static const SD = "Salvador Dali";

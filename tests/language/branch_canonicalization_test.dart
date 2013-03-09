@@ -5,8 +5,6 @@
 // Test that branch fusion correctly sets branch environment for comparisons
 // that require unboxing and does not fuse branches that can deoptimize.
 
-import "package:expect/expect.dart";
-
 var sideEffect = true;
 
 barDouble(a, b) {

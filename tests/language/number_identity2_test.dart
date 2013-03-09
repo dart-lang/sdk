@@ -6,8 +6,6 @@
 // Contains test that is failing on dart2js. Merge this test with
 // 'number_identity_test.dart' once fixed.
 
-import "package:expect/expect.dart";
-
 main() {
   for (int i = 0; i < 1000; i++) testNumberIdentity();
 }

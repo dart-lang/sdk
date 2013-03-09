@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors and initializers.
 
-import "package:expect/expect.dart";
-
 // Test 'expression as Type' casts.
 
 class C {

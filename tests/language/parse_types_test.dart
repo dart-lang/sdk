@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing parsing of "standard" types.
 
-import "package:expect/expect.dart";
-
 class ParseTypesTest {
   static bool callBool1() {
     return true;

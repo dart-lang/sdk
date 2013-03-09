@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization on an optimistically hoisted smi check.
 
-import "package:expect/expect.dart";
-
 sum(a, b) {
   var sum = 0;
   for (var j = 1; j < 10; j++) {
