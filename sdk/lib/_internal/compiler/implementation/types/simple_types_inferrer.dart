@@ -433,13 +433,10 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   bool internalRecordType(Element analyzedElement,
-                          TypeMask type,
+                          TypeMask newType,
                           Map<Element, TypeMask> types) {
-    assert(type != null);
+    assert(newType != null);
     TypeMask existing = types[analyzedElement];
-    TypeMask newType = isDynamicType(existing)
-        ? type // Previous analysis did not find any type.
-        : computeLUB(existing, type);
     types[analyzedElement] = newType;
     // If the return type is useful, say it has changed.
     return existing != newType
@@ -642,31 +639,27 @@ class SimpleTypesInferrer extends TypesInferrer {
 
   /**
    * Returns the least upper bound between [firstType] and
-   * [secondType]. TODO(ngeoffray): Use TypeMask.union.
+   * [secondType].
    */
   TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
-    bool isNumber(type) {
-      return type == numType || type == doubleType || type == intType;
-    }
     assert(secondType != null);
     if (firstType == null) {
       return secondType;
     } else if (isGiveUpType(firstType)) {
       return firstType;
+    } else if (isGiveUpType(secondType)) {
+      return secondType;
     } else if (isDynamicType(secondType)) {
       return secondType;
     } else if (isDynamicType(firstType)) {
       return firstType;
-    } else if (firstType != secondType) {
-      if (isNumber(firstType) && isNumber(secondType)) {
-        // The JavaScript backend knows how to deal with numbers.
-        return numType;
-      }
-      // TODO(ngeoffray): Actually compute the least upper bound.
-      return giveUpType;
+    } else if (firstType == nullType) {
+      return secondType.nullable();
+    } else if (secondType == nullType) {
+      return firstType.nullable();
     } else {
-      assert(firstType == secondType);
-      return firstType;
+      TypeMask union = firstType.union(secondType, compiler);
+      return union == null ? giveUpType : union;
     }
   }
 }
@@ -1177,6 +1170,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
           mappedType = inferrer.numType;
         } else if (type.element == compiler.boolClass) {
           mappedType = inferrer.boolType;
+        } else if (type.element == compiler.nullClass) {
+          mappedType = inferrer.nullType;
         } else if (compiler.world.hasAnySubclass(type.element)) {
           mappedType = new TypeMask.nonNullSubclass(
               inferrer.rawTypeOf(type.element));
@@ -1187,12 +1182,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
           mappedType = new TypeMask.nonNullExact(
               inferrer.rawTypeOf(type.element));
         }
-        if (returnType == null) {
-          returnType = mappedType;
-        } else {
-          // TODO(ngeoffray): Do the union.
-          return inferrer.dynamicType;
-        }
+        returnType = inferrer.computeLUB(returnType, mappedType);
       }
       return returnType;
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
