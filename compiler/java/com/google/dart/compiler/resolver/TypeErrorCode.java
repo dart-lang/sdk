@@ -63,7 +63,6 @@ public enum TypeErrorCode implements ErrorCode {
   OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE("operator '[]=' must have a return type of 'void'"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\", found \"%s\""),
   OVERRIDING_STATIC_MEMBER("overriding static member \"%s\" of \"%s\""),
-  PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'%s' cannot be used for string concatentation, use string interpolation or a StringBuffer instead"),
   REDIRECTION_CONSTRUCTOR_TARGET_MUST_BE_SUBTYPE(
       "Target type of redirecting factory constructor '%s' is not subtype of '%s'"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),

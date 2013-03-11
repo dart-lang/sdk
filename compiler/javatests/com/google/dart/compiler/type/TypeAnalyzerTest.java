@@ -1211,11 +1211,9 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "String s = 'foo';");
     analyzeClasses(source);
     analyze("{ var c = a + b; }");
-    analyzeFail("{ var c = s + b; }",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
+    analyze("{ var c = s + b; }");
     analyzeFail("var c = 'foo' + 1;",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-    analyzeFail("var c = 'foo' + 'bar';",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
+      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+    analyze("var c = 'foo' + 'bar';");
   }
 }

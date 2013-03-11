@@ -267,7 +267,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     void setCurrentClass(InterfaceType type) {
       currentClass = type;
     }
-    
+
     @VisibleForTesting
     void pushBasicBlockContext() {
       blockOldTypes.addFirst(new BlockTypeContext());
@@ -406,7 +406,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return dynamicType;
       }
     }
-    
+
     private Type analyzeTernaryOperator(DartNode node, Type lhsType, Token operator,
         DartNode diagnosticNode, DartExpression arg1, DartExpression arg2) {
       String methodName = methodNameForBinaryOperator(operator);
@@ -459,9 +459,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return rhs;
         }
 
-        case ASSIGN_ADD: {
-          checkStringConcatPlus(node, lhs);
-        }
+        case ASSIGN_ADD:
         case ASSIGN_SUB:
         case ASSIGN_MUL:
         case ASSIGN_DIV:
@@ -521,9 +519,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
 
-        case ADD:  {
-          checkStringConcatPlus(node, lhs);
-        }
+        case ADD:
         case SUB:
         case MUL:
         case DIV:
@@ -593,14 +589,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         default:
           onError(lhsNode, TypeErrorCode.CANNOT_ASSIGN_TO, ElementKind.of(lhsElement));
         break;
-      }
-    }
-
-    private void checkStringConcatPlus(DartBinaryExpression binary, Type lhs) {
-      if (Objects.equal(lhs, stringType)) {
-        Token operator = binary.getOperator();
-        HasSourceInfo errorTarget = getOperatorHasSourceInfo(binary);
-        onError(errorTarget, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT, operator);
       }
     }
 
@@ -1024,7 +1012,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         setVariableElementType(variable, mergedType, mergedTypeQuality);
       }
     }
-    
+
     private boolean isAssignable(Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
@@ -1073,7 +1061,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       return functionType;
     }
-      
+
     private FunctionType getMethodType0(Type receiver, Member member, String name,
         DartNode diagnosticNode) {
       if (member == null) {
@@ -1203,7 +1191,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           argumentIndex++;
         }
       }
-      
+
       // Check named parameters.
       {
         Set<String> usedNamedParametersPositional = Sets.newHashSet();
@@ -1413,7 +1401,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type result = analyzeBinaryOperator(node, target, Token.INDEX, node, argKey);
       return Types.makeInferred(result, target.getQuality());
     }
-    
+
     /**
      * Asserts that given {@link DartExpression} is valid for using in "assert" statement.
      */
@@ -1926,7 +1914,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         case CLASS:
           return element.getType();
-          
+
         case FIELD:
           type = typeAsMemberOf(element, currentClass);
           // try to resolve as getter/setter
@@ -2453,7 +2441,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
           Modifiers fieldModifiers = fieldElement.getModifiers();
-          
+
           // Prepare getter/setter members.
           Member getterMember;
           Member setterMember;
@@ -2689,7 +2677,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       blockOldTypes.addFirst(new BlockTypeContext());
       return typeAsVoid(node);
     }
-    
+
     @Override
     public Type visitAssertStatement(DartAssertStatement node) {
       DartExpression condition = node.getCondition();
@@ -3120,7 +3108,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitImportDirective(DartImportDirective node) {
       return voidType;
     }
-    
+
     @Override
     public Type visitExportDirective(DartExportDirective node) {
       return voidType;
@@ -3231,7 +3219,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             }
           }
         }
-        
+
         // visit mixins
         for (InterfaceType mixType : currentClass.getElement().getMixins()) {
           ClassElement mixElement = mixType.getElement();
@@ -3239,7 +3227,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             removeSuperMemberIfNotAbstract(member);
           }
         }
-        
+
         // Remove artificial "setter " members.
         for (String name : artificialNames) {
           superMembers.removeAll(name);
@@ -3257,7 +3245,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             }
           }
         }
-        
+
         // add abstract members of current class
         for (Element member : currentClass.getElement().getMembers()) {
           if (ElementKind.of(member) == ElementKind.FIELD && member.getModifiers().isAbstractField()) {
@@ -3274,7 +3262,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             unimplementedElements.add(member);
           }
         }
-        
+
         return null;
       }
 
@@ -3659,7 +3647,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     return type != null && TypeKind.of(type) != TypeKind.DYNAMIC
         && !TypeQuality.isInferred(type);
   }
-  
+
   /**
    * @return the {@link TypeQuality} of given {@link DartExpression}.
    */
@@ -3708,7 +3696,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     Type type = expr.getType();
     return isCoreType(type, "bool") || isCoreType(type, "int") || isCoreType(type, "double");
   }
-  
+
   private static boolean isCoreType(Type type, String name) {
     return type != null
         && Elements.isCoreLibrarySource(type.getElement().getSourceInfo().getSource())
