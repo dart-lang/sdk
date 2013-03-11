@@ -380,14 +380,13 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void LoadLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s lvl:%"Pd"", local().name().ToCString(), context_level());
+  f->Print("%s", local().name().ToCString());
 }
 
 
 void StoreLocalInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", local().name().ToCString());
   value()->PrintTo(f);
-  f->Print(", lvl: %"Pd"", context_level());
 }
 
 

@@ -2648,15 +2648,12 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
 class LoadLocalInstr : public TemplateDefinition<0> {
  public:
-  LoadLocalInstr(const LocalVariable& local, intptr_t context_level)
-      : local_(local),
-        context_level_(context_level) { }
+  explicit LoadLocalInstr(const LocalVariable& local) : local_(local) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
 
   const LocalVariable& local() const { return local_; }
-  intptr_t context_level() const { return context_level_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2669,7 +2666,6 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
  private:
   const LocalVariable& local_;
-  const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -2677,11 +2673,7 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
 class StoreLocalInstr : public TemplateDefinition<1> {
  public:
-  StoreLocalInstr(const LocalVariable& local,
-                  Value* value,
-                  intptr_t context_level)
-      : local_(local),
-        context_level_(context_level) {
+  StoreLocalInstr(const LocalVariable& local, Value* value) : local_(local) {
     SetInputAt(0, value);
   }
 
@@ -2690,7 +2682,6 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 
   const LocalVariable& local() const { return local_; }
   Value* value() const { return inputs_[0]; }
-  intptr_t context_level() const { return context_level_; }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
@@ -2706,7 +2697,6 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 
  private:
   const LocalVariable& local_;
-  const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };

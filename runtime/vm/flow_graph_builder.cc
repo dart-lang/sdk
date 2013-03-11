@@ -407,7 +407,7 @@ PushArgumentInstr* EffectGraphVisitor::PushArgument(Value* value) {
 Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
                                                Value* value) {
   ASSERT(!local.is_captured());
-  return new StoreLocalInstr(local, value, owner()->context_level());
+  return new StoreLocalInstr(local, value);
 }
 
 
@@ -451,7 +451,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
       return store;
     }
   } else {
-    return new StoreLocalInstr(local, value, owner()->context_level());
+    return new StoreLocalInstr(local, value);
   }
 }
 
@@ -471,7 +471,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
                               Context::variable_offset(local.index()),
                               local.type());
   } else {
-    return new LoadLocalInstr(local, owner()->context_level());
+    return new LoadLocalInstr(local);
   }
 }
 
@@ -1680,7 +1680,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   const intptr_t deopt_id = Isolate::kNoDeoptId;
   for (int i = 0; i < node->length(); ++i) {
     Value* array = Bind(
-        new LoadLocalInstr(node->temp_local(), owner()->context_level()));
+        new LoadLocalInstr(node->temp_local()));
     Value* index = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(i))));
     ValueGraphVisitor for_value(owner(), temp_index());
     node->ElementAt(i)->Visit(&for_value);
@@ -1697,8 +1697,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     Do(store);
   }
 
-  ReturnDefinition(
-      new LoadLocalInstr(node->temp_local(), owner()->context_level()));
+  ReturnDefinition(new LoadLocalInstr(node->temp_local()));
 }
 
 
