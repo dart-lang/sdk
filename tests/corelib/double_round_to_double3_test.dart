@@ -9,16 +9,24 @@ main() {
   Expect.equals(4503599627370497.0, 4503599627370497.0.roundToDouble());
   Expect.equals(4503599627370498.0, 4503599627370498.0.roundToDouble());
   Expect.equals(4503599627370499.0, 4503599627370499.0.roundToDouble());
+  Expect.equals(9007199254740991.0, 9007199254740991.0.roundToDouble());
+  Expect.equals(9007199254740992.0, 9007199254740992.0.roundToDouble());
   Expect.equals(-4503599627370496.0, (-4503599627370496.0).roundToDouble());
   Expect.equals(-4503599627370497.0, (-4503599627370497.0).roundToDouble());
   Expect.equals(-4503599627370498.0, (-4503599627370498.0).roundToDouble());
   Expect.equals(-4503599627370499.0, (-4503599627370499.0).roundToDouble());
+  Expect.equals(-9007199254740991.0, (-9007199254740991.0).roundToDouble());
+  Expect.equals(-9007199254740992.0, (-9007199254740992.0).roundToDouble());
   Expect.isTrue(4503599627370496.0.roundToDouble() is double);
   Expect.isTrue(4503599627370497.0.roundToDouble() is double);
   Expect.isTrue(4503599627370498.0.roundToDouble() is double);
   Expect.isTrue(4503599627370499.0.roundToDouble() is double);
+  Expect.isTrue(9007199254740991.0.roundToDouble() is double);
+  Expect.isTrue(9007199254740992.0.roundToDouble() is double);
   Expect.isTrue((-4503599627370496.0).roundToDouble() is double);
   Expect.isTrue((-4503599627370497.0).roundToDouble() is double);
   Expect.isTrue((-4503599627370498.0).roundToDouble() is double);
   Expect.isTrue((-4503599627370499.0).roundToDouble() is double);
+  Expect.isTrue((-9007199254740991.0).roundToDouble() is double);
+  Expect.isTrue((-9007199254740992.0).roundToDouble() is double);
 }
