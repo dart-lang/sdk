@@ -8,5 +8,6 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
+import 'dart:typeddata' as _typeddata;
 
 $!GENERATED_DART_FILES

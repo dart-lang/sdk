@@ -16,6 +16,7 @@ import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:nativewrappers';
+import 'dart:typeddata' as _typeddata;
 import 'dart:web_sql';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;

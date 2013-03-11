@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
+import 'dart:typeddata' as _typeddata;
 // DO NOT EDIT
 // Auto-generated dart:audio library.
 
@@ -267,7 +268,7 @@ class AudioContext extends EventTarget {
     if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (sampleRate is num || sampleRate == null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
-    if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
+    if ((buffer_OR_numberOfChannels is ArrayBuffer || buffer_OR_numberOfChannels is _typeddata.ByteBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
       return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
