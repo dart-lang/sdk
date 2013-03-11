@@ -12,12 +12,6 @@ main() {
   Expect.equals(1, 0.9999999999999999.round());
   Expect.equals(1, 1.0.round());
   Expect.equals(1, 1.000000000000001.round());
-  // The following numbers are on the border of 52 bits.
-  // For example: 4503599627370499 + 0.5 => 4503599627370500.
-  Expect.equals(4503599627370496, 4503599627370496.0.round());
-  Expect.equals(4503599627370497, 4503599627370497.0.round());
-  Expect.equals(4503599627370498, 4503599627370498.0.round());
-  Expect.equals(4503599627370499, 4503599627370499.0.round());
 
   Expect.equals(9007199254740991, 9007199254740991.0.round());
   Expect.equals(9007199254740992, 9007199254740992.0.round());
@@ -32,10 +26,6 @@ main() {
   Expect.equals(-1, (-0.9999999999999999).round());
   Expect.equals(-1, (-1.0).round());
   Expect.equals(-1, (-1.000000000000001).round());
-  Expect.equals(-4503599627370496, (-4503599627370496.0).round());
-  Expect.equals(-4503599627370497, (-4503599627370497.0).round());
-  Expect.equals(-4503599627370498, (-4503599627370498.0).round());
-  Expect.equals(-4503599627370499, (-4503599627370499.0).round());
   Expect.equals(-9007199254740991, (-9007199254740991.0).round());
   Expect.equals(-9007199254740992, (-9007199254740992.0).round());
   Expect.equals(-179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,
@@ -50,10 +40,6 @@ main() {
   Expect.isTrue(0.9999999999999999.round() is int);
   Expect.isTrue(1.0.round() is int);
   Expect.isTrue(1.000000000000001.round() is int);
-  Expect.isTrue(4503599627370496.0.round() is int);
-  Expect.isTrue(4503599627370497.0.round() is int);
-  Expect.isTrue(4503599627370498.0.round() is int);
-  Expect.isTrue(4503599627370499.0.round() is int);
   Expect.isTrue(9007199254740991.0.round() is int);
   Expect.isTrue(9007199254740992.0.round() is int);
   Expect.isTrue(double.MAX_FINITE.round() is int);
@@ -66,10 +52,6 @@ main() {
   Expect.isTrue((-0.9999999999999999).round() is int);
   Expect.isTrue((-1.0).round() is int);
   Expect.isTrue((-1.000000000000001).round() is int);
-  Expect.isTrue((-4503599627370496.0).round() is int);
-  Expect.isTrue((-4503599627370497.0).round() is int);
-  Expect.isTrue((-4503599627370498.0).round() is int);
-  Expect.isTrue((-4503599627370499.0).round() is int);
   Expect.isTrue((-9007199254740991.0).round() is int);
   Expect.isTrue((-9007199254740992.0).round() is int);
   Expect.isTrue((-double.MAX_FINITE).round() is int);
