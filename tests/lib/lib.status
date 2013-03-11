@@ -44,8 +44,9 @@ crypto/hmac_sha256_test: Fail
 crypto/hmac_md5_test: Fail, Pass
 
 
-[ $runtime == vm ]
+[ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
+async/run_async4_test: Pass, Fail # http://dartbug.com/9013
 
 [ $compiler == none && $runtime == drt ]
 async/deferred/deferred_api_test: Fail # http://dartbug.com/2264

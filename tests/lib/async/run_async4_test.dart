@@ -17,10 +17,6 @@ void startTest(SendPort finishPort, replyPort) {
       if (i == 50) throw new RuntimeError("ignore exception");
     });
   }
-
-  // Without this Timer the isolate will freeze.
-  // TODO(9013): Remove this Timer.
-  new Timer(const Duration(seconds: 2), () { });
 }
 
 runTest() {
@@ -33,7 +29,9 @@ bool globalErrorHandler(IsolateUnhandledException e) {
 
 main() {
   var port = new ReceivePort();
+  var timer;
   SendPort otherIsolate = spawnFunction(runTest, globalErrorHandler);
   otherIsolate.send(port.toSendPort());
-  port.receive((msg, replyPort) { port.close(); });
+  port.receive((msg, replyPort) { port.close(); timer.cancel(); });
+  timer = new Timer(const Duration(seconds: 2), () { throw "failed"; });
 }
