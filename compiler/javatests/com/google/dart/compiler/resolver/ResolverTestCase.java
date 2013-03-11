@@ -209,7 +209,7 @@ abstract class ResolverTestCase extends TestCase {
 
       ClassElement stringElement = Elements.classNamed("String");
       stringType = Types.interfaceType(stringElement, Collections.<Type>emptyList());
-      intElement.setType(intType);
+      stringElement.setType(stringType);
 
       ClassElement functionElement = Elements.classNamed("Function");
       functionType = Types.interfaceType(functionElement, Collections.<Type>emptyList());
@@ -223,7 +223,7 @@ abstract class ResolverTestCase extends TestCase {
       ClassElement listElement = Elements.classNamed("List");
       defaultListType = Types.interfaceType(listElement, Lists.<Type>newArrayList(dynamicType));
       listElement.setType(defaultListType);
-      
+
       ClassElement typeElement = Elements.classNamed("Type");
       typeType = Types.interfaceType(typeElement, Collections.<Type>emptyList());
       listElement.setType(defaultListType);

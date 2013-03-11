@@ -1200,7 +1200,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
-  public void testStringConcat() {
+  public void disabledtestStringConcat() {
     Map<String, ClassNodeElement> source = loadSource(
         "class Object {}",
         "abstract class Foo {",
