@@ -154,12 +154,6 @@ bool File::Create(const char* name) {
 }
 
 
-bool File::CreateLink(const char* name, const char* target) {
-  // TODO(whesse): Implement Junction creation.
-  return false;
-}
-
-
 bool File::Delete(const char* name) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
   int status = _wremove(system_name);

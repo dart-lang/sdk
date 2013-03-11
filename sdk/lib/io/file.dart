@@ -19,11 +19,6 @@ class FileMode {
 /**
  * [File] objects are references to files.
  *
- * If [path] is a symbolic link, rather than a file, then
- * the methods of [File] operate on the ultimate target of the
- * link, except for File.delete and File.deleteSync, which operate on
- * the link.
- *
  * To operate on the underlying file data there are two options:
  *
  *  * Use streaming: read the contents of the file from the [Stream]
