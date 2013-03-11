@@ -37,10 +37,11 @@ intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
 analyzer-experimental/test/options_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/parser_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/element_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/ast_test: Skip # Imports dart:io.
+analyzer-experimental/test/generated/element_test: Skip # Imports dart:io.
+analyzer-experimental/test/generated/parser_test: Skip # Imports dart:io.
+analyzer-experimental/test/generated/resolver_test: Skip # Imports dart:io.
+analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
 
 # Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
@@ -72,10 +73,11 @@ intl/test/date_time_format_http_request_test: Skip
 intl/test/intl_message_test: Skip
 intl/test/intl_message_basic_example_test: Skip
 serialization/test/serialization_test: Skip
-analyzer-experimental/test/generated/parser_test: Skip
-analyzer-experimental/test/generated/scanner_test: Skip
-analyzer-experimental/test/generated/element_test: Skip
 analyzer-experimental/test/generated/ast_test: Skip
+analyzer-experimental/test/generated/element_test: Skip
+analyzer-experimental/test/generated/parser_test: Skip
+analyzer-experimental/test/generated/resolver_test: Skip
+analyzer-experimental/test/generated/scanner_test: Skip
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
