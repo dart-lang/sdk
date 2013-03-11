@@ -322,6 +322,9 @@ class HUnknownType extends HAnalysisType {
   const HUnknownType() : super("unknown");
   bool canBePrimitive(Compiler compiler) => true;
   bool canBeNull() => true;
+  bool canBePrimitiveNumber(Compiler compiler) => true;
+  bool canBePrimitiveString(Compiler compiler) => true;
+  bool canBePrimitiveArray(Compiler compiler) => true;
 
   HType unionOld(HType other, Compiler compiler) => this;
   HType intersectionOld(HType other, Compiler compiler) => other;
