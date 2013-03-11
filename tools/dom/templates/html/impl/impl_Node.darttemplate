@@ -60,11 +60,11 @@ $endif
   }
 
   void add(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
   void addLast(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
 
@@ -74,13 +74,13 @@ $endif
         // Optimized route for copying between nodes.
         for (var i = 0, len = iterable.length; i < len; ++i) {
           // Should use $dom_firstChild, Bug 8886.
-          _this.$dom_appendChild(iterable[0]);
+          _this.append(iterable[0]);
         }
       }
       return;
     }
     for (Node node in iterable) {
-      _this.$dom_appendChild(node);
+      _this.append(node);
     }
   }
 
@@ -263,7 +263,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     List copy = new List.from(value);
     text = '';
     for (Node node in copy) {
-      $dom_appendChild(node);
+      append(node);
     }
   }
 

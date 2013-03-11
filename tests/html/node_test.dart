@@ -39,6 +39,12 @@ main() {
       expect(node.nodes[2], isComment);
     });
 
+    test('append', () {
+      var node = makeNode();
+      node.append(new Element.tag('hr'));
+      expect(node.nodes.last, isHRElement);
+    });
+
     test('remove', () {
       final node = makeNodeWithChildren();
       final subnode = node.nodes[1];

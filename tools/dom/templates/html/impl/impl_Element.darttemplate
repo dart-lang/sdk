@@ -133,7 +133,7 @@ class _ChildrenElementList implements List {
   }
 
   Element add(Element value) {
-    _element.$dom_appendChild(value);
+    _element.append(value);
     return value;
   }
 
@@ -147,7 +147,7 @@ class _ChildrenElementList implements List {
     }
 
     for (Element element in iterable) {
-      _element.$dom_appendChild(element);
+      _element.append(element);
     }
   }
 
@@ -764,13 +764,6 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       $dom_offsetHeight);
 
   /**
-   * Adds the specified element to after the last child of this element.
-   */
-  void append(Element e) {
-    this.children.add(e);
-  }
-
-  /**
    * Adds the specified text as a text node after the last child of this
    * element.
    */
@@ -975,7 +968,7 @@ $if DART2JS
         this.insertBefore(node, first);
         break;
       case 'beforeend':
-        this.nodes.add(node);
+        this.append(node);
         break;
       case 'afterend':
         this.parentNode.insertBefore(node, this.nextNode);

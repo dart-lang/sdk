@@ -42,7 +42,7 @@ $endif
 
   String get innerHtml {
     final e = new Element.tag("div");
-    e.nodes.add(this.clone(true));
+    e.append(this.clone(true));
     return e.innerHtml;
   }
 
@@ -60,19 +60,11 @@ $endif
   }
 
   /**
-   * Adds the specified element after the last child of this
-   * document fragment.
-   */
-  void append(Element element) {
-    this.children.add(element);
-  }
-
-  /**
    * Adds the specified text as a text node after the last child of this
    * document fragment.
    */
   void appendText(String text) {
-    this.nodes.add(new Text(text));
+    this.append(new Text(text));
   }
 
 
@@ -81,7 +73,7 @@ $endif
    * last child of this document fragment.
    */
   void appendHtml(String text) {
-    this.nodes.add(new DocumentFragment.html(text));
+    this.append(new DocumentFragment.html(text));
   }
 
 $!MEMBERS

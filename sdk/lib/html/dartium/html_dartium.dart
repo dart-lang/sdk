@@ -7663,7 +7663,7 @@ class DocumentFragment extends Node {
 
   String get innerHtml {
     final e = new Element.tag("div");
-    e.nodes.add(this.clone(true));
+    e.append(this.clone(true));
     return e.innerHtml;
   }
 
@@ -7681,19 +7681,11 @@ class DocumentFragment extends Node {
   }
 
   /**
-   * Adds the specified element after the last child of this
-   * document fragment.
-   */
-  void append(Element element) {
-    this.children.add(element);
-  }
-
-  /**
    * Adds the specified text as a text node after the last child of this
    * document fragment.
    */
   void appendText(String text) {
-    this.nodes.add(new Text(text));
+    this.append(new Text(text));
   }
 
 
@@ -7702,7 +7694,7 @@ class DocumentFragment extends Node {
    * last child of this document fragment.
    */
   void appendHtml(String text) {
-    this.nodes.add(new DocumentFragment.html(text));
+    this.append(new DocumentFragment.html(text));
   }
 
   DocumentFragment.internal() : super.internal();
@@ -8918,7 +8910,7 @@ class _ChildrenElementList implements List {
   }
 
   Element add(Element value) {
-    _element.$dom_appendChild(value);
+    _element.append(value);
     return value;
   }
 
@@ -8932,7 +8924,7 @@ class _ChildrenElementList implements List {
     }
 
     for (Element element in iterable) {
-      _element.$dom_appendChild(element);
+      _element.append(element);
     }
   }
 
@@ -9548,13 +9540,6 @@ abstract class Element extends Node implements ElementTraversal {
   @DomName('Element.offsetWidth')
   Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
       $dom_offsetHeight);
-
-  /**
-   * Adds the specified element to after the last child of this element.
-   */
-  void append(Element e) {
-    this.children.add(e);
-  }
 
   /**
    * Adds the specified text as a text node after the last child of this
@@ -18896,11 +18881,11 @@ class _ChildNodeListLazy implements List {
   }
 
   void add(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
   void addLast(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
 
@@ -18910,13 +18895,13 @@ class _ChildNodeListLazy implements List {
         // Optimized route for copying between nodes.
         for (var i = 0, len = iterable.length; i < len; ++i) {
           // Should use $dom_firstChild, Bug 8886.
-          _this.$dom_appendChild(iterable[0]);
+          _this.append(iterable[0]);
         }
       }
       return;
     }
     for (Node node in iterable) {
-      _this.$dom_appendChild(node);
+      _this.append(node);
     }
   }
 
@@ -19100,7 +19085,7 @@ class Node extends EventTarget {
     List copy = new List.from(value);
     text = '';
     for (Node node in copy) {
-      $dom_appendChild(node);
+      append(node);
     }
   }
 
@@ -19220,7 +19205,7 @@ class Node extends EventTarget {
 
   @DomName('Node.appendChild')
   @DocsEditable
-  Node $dom_appendChild(Node newChild) native "Node_appendChild_Callback";
+  Node append(Node newChild) native "Node_appendChild_Callback";
 
   @DomName('Node.cloneNode')
   @DocsEditable
