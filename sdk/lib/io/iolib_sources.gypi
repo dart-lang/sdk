@@ -21,6 +21,7 @@
     'http_session.dart',
     'http_utils.dart',
     'io_sink.dart',
+    'link.dart',
     'mime_multipart_parser.dart',
     'path.dart',
     'path_impl.dart',

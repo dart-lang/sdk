@@ -9,6 +9,8 @@ patch class _FileUtils {
 patch class _File {
   /* patch */ static _exists(String path) native "File_Exists";
   /* patch */ static _create(String path) native "File_Create";
+  /* patch */ static _createLink(String path, String target)
+      native "File_CreateLink";
   /* patch */ static _delete(String path) native "File_Delete";
   /* patch */ static _directory(String path) native "File_Directory";
   /* patch */ static _lengthFromPath(String path) native "File_LengthFromPath";

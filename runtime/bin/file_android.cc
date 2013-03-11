@@ -159,6 +159,12 @@ bool File::Create(const char* name) {
 }
 
 
+bool File::CreateLink(const char* name, const char* target) {
+  int status = TEMP_FAILURE_RETRY(symlink(target, name));
+  return (status == 0);
+}
+
+
 bool File::Delete(const char* name) {
   int status = TEMP_FAILURE_RETRY(remove(name));
   if (status == -1) {

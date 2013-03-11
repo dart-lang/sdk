@@ -123,6 +123,7 @@ class File {
 
   static bool Exists(const char* path);
   static bool Create(const char* path);
+  static bool CreateLink(const char* path, const char* target);
   static bool Delete(const char* path);
   static off_t LengthFromPath(const char* path);
   static time_t LastModified(const char* path);
