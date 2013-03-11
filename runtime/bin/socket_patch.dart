@@ -764,7 +764,10 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   Encoding get encoding => _sink.encoding;
-  void set encoding(Encoding value) => _sink.encoding = value;
+
+  void set encoding(Encoding value) {
+    _sink.encoding = value;
+  }
 
   void write(Object obj) => _sink.write(obj);
 

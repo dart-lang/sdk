@@ -69,6 +69,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
   Encoding _encoding;
 
   Encoding get encoding => _encoding;
+
   void set encoding(Encoding value) {
     if (!_encodingMutable) {
       throw new StateError("IOSink encoding is not mutable");
