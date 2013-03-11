@@ -12358,7 +12358,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(int start, [int end]) {
+  List<double> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -12367,11 +12367,11 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   @DomName('Float32Array._subarray_1')
   @DocsEditable
-  Float32Array _subarray_1(start, end) native "Float32Array__subarray_1_Callback";
+  List<double> _subarray_1(start, end) native "Float32Array__subarray_1_Callback";
 
   @DomName('Float32Array._subarray_2')
   @DocsEditable
-  Float32Array _subarray_2(start) native "Float32Array__subarray_2_Callback";
+  List<double> _subarray_2(start) native "Float32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12598,7 +12598,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(int start, [int end]) {
+  List<double> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -12607,11 +12607,11 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   @DomName('Float64Array._subarray_1')
   @DocsEditable
-  Float64Array _subarray_1(start, end) native "Float64Array__subarray_1_Callback";
+  List<double> _subarray_1(start, end) native "Float64Array__subarray_1_Callback";
 
   @DomName('Float64Array._subarray_2')
   @DocsEditable
-  Float64Array _subarray_2(start) native "Float64Array__subarray_2_Callback";
+  List<double> _subarray_2(start) native "Float64Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15826,7 +15826,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15835,11 +15835,11 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   @DomName('Int16Array._subarray_1')
   @DocsEditable
-  Int16Array _subarray_1(start, end) native "Int16Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Int16Array__subarray_1_Callback";
 
   @DomName('Int16Array._subarray_2')
   @DocsEditable
-  Int16Array _subarray_2(start) native "Int16Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Int16Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16066,7 +16066,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -16075,11 +16075,11 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   @DomName('Int32Array._subarray_1')
   @DocsEditable
-  Int32Array _subarray_1(start, end) native "Int32Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Int32Array__subarray_1_Callback";
 
   @DomName('Int32Array._subarray_2')
   @DocsEditable
-  Int32Array _subarray_2(start) native "Int32Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Int32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16306,7 +16306,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -16315,11 +16315,11 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   @DomName('Int8Array._subarray_1')
   @DocsEditable
-  Int8Array _subarray_1(start, end) native "Int8Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Int8Array__subarray_1_Callback";
 
   @DomName('Int8Array._subarray_2')
   @DocsEditable
-  Int8Array _subarray_2(start) native "Int8Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Int8Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17362,7 +17362,7 @@ class MediaElement extends _Element_Merged {
   @DocsEditable
   void play() native "HTMLMediaElement_play_Callback";
 
-  void addKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) {
+  void addKey(String keySystem, List<int> key, [List<int> initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -17386,7 +17386,7 @@ class MediaElement extends _Element_Merged {
   @Experimental
   void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void generateKeyRequest(String keySystem, [Uint8Array initData]) {
+  void generateKeyRequest(String keySystem, [List<int> initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -17582,7 +17582,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable
-  Uint8Array get initData native "MediaKeyEvent_initData_Getter";
+  List<int> get initData native "MediaKeyEvent_initData_Getter";
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable
@@ -17590,7 +17590,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable
-  Uint8Array get message native "MediaKeyEvent_message_Getter";
+  List<int> get message native "MediaKeyEvent_message_Getter";
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable
@@ -22048,7 +22048,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('SourceBuffer.append')
   @DocsEditable
-  void append(Uint8Array data) native "SourceBuffer_append_Callback";
+  void append(List<int> data) native "SourceBuffer_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25426,7 +25426,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25435,11 +25435,11 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   @DomName('Uint16Array._subarray_1')
   @DocsEditable
-  Uint16Array _subarray_1(start, end) native "Uint16Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint16Array__subarray_1_Callback";
 
   @DomName('Uint16Array._subarray_2')
   @DocsEditable
-  Uint16Array _subarray_2(start) native "Uint16Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint16Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25666,7 +25666,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25675,11 +25675,11 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   @DomName('Uint32Array._subarray_1')
   @DocsEditable
-  Uint32Array _subarray_1(start, end) native "Uint32Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint32Array__subarray_1_Callback";
 
   @DomName('Uint32Array._subarray_2')
   @DocsEditable
-  Uint32Array _subarray_2(start) native "Uint32Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25906,7 +25906,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25915,11 +25915,11 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   @DomName('Uint8Array._subarray_1')
   @DocsEditable
-  Uint8Array _subarray_1(start, end) native "Uint8Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint8Array__subarray_1_Callback";
 
   @DomName('Uint8Array._subarray_2')
   @DocsEditable
-  Uint8Array _subarray_2(start) native "Uint8Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint8Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26144,7 +26144,7 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -26153,11 +26153,11 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   @DomName('Uint8ClampedArray._subarray_1')
   @DocsEditable
-  Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint8ClampedArray__subarray_1_Callback";
 
   @DomName('Uint8ClampedArray._subarray_2')
   @DocsEditable
-  Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint8ClampedArray__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27795,7 +27795,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable
-  void uniform1fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform1fv_Callback";
+  void uniform1fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform1fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable
@@ -27803,7 +27803,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable
-  void uniform1iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform1iv_Callback";
+  void uniform1iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform1iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable
@@ -27811,7 +27811,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable
-  void uniform2fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform2fv_Callback";
+  void uniform2fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform2fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable
@@ -27819,7 +27819,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable
-  void uniform2iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform2iv_Callback";
+  void uniform2iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform2iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable
@@ -27827,7 +27827,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable
-  void uniform3fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform3fv_Callback";
+  void uniform3fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform3fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable
@@ -27835,7 +27835,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable
-  void uniform3iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform3iv_Callback";
+  void uniform3iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform3iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable
@@ -27843,7 +27843,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable
-  void uniform4fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform4fv_Callback";
+  void uniform4fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform4fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable
@@ -27851,19 +27851,19 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable
-  void uniform4iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform4iv_Callback";
+  void uniform4iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform4iv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable
-  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
+  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable
-  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
+  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable
-  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
+  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable
@@ -27879,7 +27879,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable
-  void vertexAttrib1fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
+  void vertexAttrib1fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable
@@ -27887,7 +27887,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable
-  void vertexAttrib2fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
+  void vertexAttrib2fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable
@@ -27895,7 +27895,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable
-  void vertexAttrib3fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
+  void vertexAttrib3fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable
@@ -27903,7 +27903,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable
-  void vertexAttrib4fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
+  void vertexAttrib4fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable

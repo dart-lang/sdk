@@ -11631,7 +11631,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   @DomName('Float32Array.subarray')
   @DocsEditable
-  Float32Array subarray(int start, [int end]) native;
+  @Returns('Float32Array')
+  @Creates('Float32Array')
+  List<double> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11852,7 +11854,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   @DomName('Float64Array.subarray')
   @DocsEditable
-  Float64Array subarray(int start, [int end]) native;
+  @Returns('Float64Array')
+  @Creates('Float64Array')
+  List<double> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14700,7 +14704,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Int16Array.subarray')
   @DocsEditable
-  Int16Array subarray(int start, [int end]) native;
+  @Returns('Int16Array')
+  @Creates('Int16Array')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14921,7 +14927,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Int32Array.subarray')
   @DocsEditable
-  Int32Array subarray(int start, [int end]) native;
+  @Returns('Int32Array')
+  @Creates('Int32Array')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15142,7 +15150,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   @DomName('Int8Array.subarray')
   @DocsEditable
-  Int8Array subarray(int start, [int end]) native;
+  @Returns('Int8Array')
+  @Creates('Int8Array')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16158,7 +16168,9 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable
-  final Uint8Array initData;
+  @Returns('Uint8Array')
+  @Creates('Uint8Array')
+  final List<int> initData;
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable
@@ -16166,7 +16178,9 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable
-  final Uint8Array message;
+  @Returns('Uint8Array')
+  @Creates('Uint8Array')
+  final List<int> message;
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable
@@ -23303,7 +23317,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   @DomName('Uint16Array.subarray')
   @DocsEditable
-  Uint16Array subarray(int start, [int end]) native;
+  @Returns('Uint16Array')
+  @Creates('Uint16Array')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23524,7 +23540,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   @DomName('Uint32Array.subarray')
   @DocsEditable
-  Uint32Array subarray(int start, [int end]) native;
+  @Returns('Uint32Array')
+  @Creates('Uint32Array')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23745,7 +23763,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   @DomName('Uint8Array.subarray')
   @DocsEditable
-  Uint8Array subarray(int start, [int end]) native;
+  @Returns('Uint8Array')
+  @Creates('Uint8Array')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23963,7 +23983,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   @DomName('Uint8ClampedArray.subarray')
   @DocsEditable
-  Uint8ClampedArray subarray(int start, [int end]) native;
+  @Returns('Uint8ClampedArray')
+  @Creates('Uint8ClampedArray')
+  List<int> subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
