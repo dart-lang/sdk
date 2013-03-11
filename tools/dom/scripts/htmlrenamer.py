@@ -118,6 +118,7 @@ convert_to_future_members = monitored.Set(
   'StorageInfo.queryUsageAndQuota',
   'StorageInfo.requestQuota',
   'WorkerContext.webkitResolveLocalFileSystemURL',
+  'WorkerContext.webkitRequestFileSystem',
 ])
 
 # Members from the standard dom that should not be exposed publicly in dart:html

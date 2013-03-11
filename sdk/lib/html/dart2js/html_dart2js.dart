@@ -27184,7 +27184,20 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
+  void _requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
+
+  @JSName('webkitRequestFileSystem')
+  @DomName('WorkerContext.webkitRequestFileSystem')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<FileSystem> requestFileSystem(int type, int size) {
+    var completer = new Completer<FileSystem>();
+    _requestFileSystem(type, size,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @JSName('webkitRequestFileSystemSync')
   @DomName('WorkerContext.webkitRequestFileSystemSync')
