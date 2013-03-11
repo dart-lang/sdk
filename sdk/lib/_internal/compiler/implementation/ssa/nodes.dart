@@ -886,7 +886,6 @@ abstract class HInstruction implements Spannable {
   bool isNumber() => instructionType.isNumber();
   bool isNumberOrNull() => instructionType.isNumberOrNull();
   bool isString() => instructionType.isString();
-  bool isTypeUnknown() => instructionType.isUnknown();
   bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
   bool isPrimitive() => instructionType.isPrimitive();
   bool canBeNull() => instructionType.canBeNull();

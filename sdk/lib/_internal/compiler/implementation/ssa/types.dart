@@ -466,6 +466,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
   const HNumberOrNullType();
   bool isNumberOrNull() => true;
   String toString() => "number or null";
+  bool canBePrimitiveNumber(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -507,6 +508,7 @@ class HNumberType extends HPrimitiveType {
   bool isNumber() => true;
   bool isNumberOrNull() => true;
   String toString() => "number";
+  bool canBePrimitiveNumber(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -747,6 +749,7 @@ class HStringOrNullType extends HPrimitiveOrNullType {
   const HStringOrNullType();
   bool isStringOrNull() => true;
   String toString() => "String or null";
+  bool canBePrimitiveString(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -803,6 +806,7 @@ class HStringType extends HIndexablePrimitiveType {
   bool isStringOrNull() => true;
   String toString() => "String";
   bool isExact() => true;
+  bool canBePrimitiveString(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -840,6 +844,7 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   const HReadableArrayType();
   bool isReadableArray() => true;
   String toString() => "readable array";
+  bool canBePrimitiveArray(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
