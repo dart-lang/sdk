@@ -364,9 +364,9 @@ class Dartdoc {
     var content = '';
     for (int i = 0; i < footerItems.length; i++) {
       if (i > 0) {
-        content = content.concat('\n');
+        content += '\n';
       }
-      content = content.concat('<div>${footerItems[i]}</div>');
+      content += '<div>${footerItems[i]}</div>';
     }
     return content;
   }

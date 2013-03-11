@@ -14,11 +14,11 @@ void testString(int n) {
   int length = n;
   while (true) {
     if ((length & 1) == 1) {
-      string = string.concat(s);
+      string += s;
     }
     length >>= 1;
     if (length == 0) break;
-    s = s.concat(s);
+    s += s;
   }
   testLength(string, n);
   testLength(string.codeUnits, n);

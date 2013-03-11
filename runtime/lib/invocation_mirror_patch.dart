@@ -40,7 +40,7 @@ class _InvocationMirror implements InvocationMirror {
       _memberName = _functionName.substring(4);
     } else if (_functionName.startsWith("set:")) {
       _type = _SETTER;
-      _memberName = _functionName.substring(4).concat("=");
+      _memberName = _functionName.substring(4) + "=";
     } else {
       _type = _METHOD;
       _memberName = _functionName;

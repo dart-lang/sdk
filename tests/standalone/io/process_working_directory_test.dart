@@ -42,7 +42,7 @@ class ProcessWorkingDirectoryTest {
     Expect.isTrue(directory.existsSync());
 
     var options = new ProcessOptions();
-    options.workingDirectory = directory.path.concat("/subPath");
+    options.workingDirectory = directory.path + "/subPath";
     var future = Process.start(fullTestFilePath,
                                const ["0", "0", "99", "0"],
                                options);

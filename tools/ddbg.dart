@@ -454,7 +454,7 @@ void processVmData(String data) {
   if (vmData == null || vmData.length == 0) {
     vmData = data;
   } else {
-    vmData = vmData.concat(data);
+    vmData = vmData + data;
   }
   int msg_len = jsonObjectLength(vmData);
   if (printMessages && msg_len == 0) {

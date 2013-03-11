@@ -259,7 +259,7 @@ class _DateFormatPatternField extends _DateFormatField {
     var basic = padTo(3, date.millisecond);
     if (width - 3 > 0) {
       var extra = padTo(width - 3, 0);
-      return basic.concat(extra);
+      return basic + extra;
     } else {
       return basic;
     }

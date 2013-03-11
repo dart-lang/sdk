@@ -53,7 +53,7 @@ class PipeServerGame {
 
       fileInput.pipe(_socket).then((_) {
         var tempDir = new Directory('').createTempSync();
-        var dstFileName = tempDir.path.concat("/readline_test1.dat");
+        var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);
         dstFile.createSync();
         var fileOutput = dstFile.openWrite();

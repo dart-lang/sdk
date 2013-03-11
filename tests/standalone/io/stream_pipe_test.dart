@@ -68,7 +68,7 @@ testFileToFilePipe1() {
   var srcStream = new File(srcFileName).openRead();
 
   var tempDir = new Directory('').createTempSync();
-  String dstFileName = tempDir.path.concat("/readline_test1.dat");
+  String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
   var output = new File(dstFileName).openWrite();
   srcStream.pipe(output).then((_) {
@@ -95,7 +95,7 @@ testFileToFilePipe2() {
   var srcStream = srcFile.openRead();
 
   var tempDir = new Directory('').createTempSync();
-  var dstFileName = tempDir.path.concat("/readline_test1.dat");
+  var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
@@ -138,7 +138,7 @@ testFileToFilePipe3() {
   var srcStream = srcFile.openRead();
 
   var tempDir = new Directory('').createTempSync();
-  var dstFileName = tempDir.path.concat("/readline_test1.dat");
+  var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();

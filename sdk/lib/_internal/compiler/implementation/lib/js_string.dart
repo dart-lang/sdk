@@ -25,10 +25,12 @@ class JSString implements String, JSIndexable {
     return allMatchesInStringUnchecked(this, str);
   }
 
-  String concat(String other) {
+  String operator +(String other) {
     if (other is !String) throw new ArgumentError(other);
     return JS('String', r'# + #', this, other);
   }
+
+  String concat(String other) => this + other;
 
   bool endsWith(String other) {
     checkString(other);

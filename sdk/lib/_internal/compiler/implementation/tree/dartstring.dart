@@ -124,7 +124,7 @@ class ConsDartString extends DartString {
 
   String slowToString() {
     if (toStringCache != null) return toStringCache;
-    toStringCache = left.slowToString().concat(right.slowToString());
+    toStringCache = left.slowToString() + right.slowToString();
     return toStringCache;
   }
   SourceString get source => new StringWrapper(slowToString());

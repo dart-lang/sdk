@@ -135,6 +135,12 @@ abstract class String implements Comparable<String>, Pattern {
    *     var strings = ['foo', 'bar', 'geez'];
    *     var concatenated = strings.join();
    */
+  String operator +(String other);
+
+  /**
+   * *Deprecated* Use [operator+] instead.
+   */
+  @deprecated
   String concat(String other);
 
   /**

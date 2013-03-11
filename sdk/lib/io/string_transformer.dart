@@ -217,7 +217,7 @@ class LineTransformer extends StreamEventTransformer<String, String> {
 
   void _handle(String data, EventSink<String> sink, bool isClosing) {
     if (_carry != null) {
-      data = _carry.concat(data);
+      data = _carry + data;
       _carry = null;
     }
     int startPos = 0;

@@ -9,7 +9,7 @@ class Concater {
   final x;
   final y;
   Concater(x, y) : this.x = x, this.y = y;
-  add() => x.concat(y.toString());
+  add() => x + y.toString();
 }
 
 test(expected, x) {

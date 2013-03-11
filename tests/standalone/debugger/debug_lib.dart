@@ -29,7 +29,7 @@ class JsonBuffer {
     if (buffer == null || buffer.length == 0) {
       buffer = s;
     } else {
-      buffer = buffer.concat(s);
+      buffer += s;
     }
   }
 
