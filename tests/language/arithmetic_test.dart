@@ -81,7 +81,7 @@ class ArithmeticTest {
     Expect.equals(26.0, a + b);
     Expect.equals(18.0, a - b);
     Expect.equals(88.0, a * b);
-    Expect.equals(5.0, a ~/ b);
+    Expect.equals(5, a ~/ b);
     Expect.equals(5.5, a / b);
     Expect.equals(2.0, a % b);
     Expect.equals(2.0, a.remainder(b));
@@ -206,19 +206,18 @@ class ArithmeticTest {
     Expect.equals(big, big.ceil());
     Expect.equals(-big, (-big).ceil());
     // Double.
-    Expect.equals(0.0, (0.0).ceil());
+    Expect.equals(0, (0.0).ceil());
     Expect.equals(false, (0.0).ceil().isNegative);
-    Expect.equals(1.0, (0.1).ceil());
-    Expect.equals(1.0, double.MIN_POSITIVE.ceil());
-    Expect.equals(1.0, (0.49999999999999994).ceil());
-    Expect.equals(-0.0, (-0.0).ceil());
-    Expect.equals(-0.0, (-0.3).ceil());
-    Expect.isTrue((-0.0).ceil().isNegative);
-    Expect.isTrue((-0.3).ceil().isNegative);
-    Expect.equals(-0.0, (-0.49999999999999994).ceil());
-    Expect.isTrue((-0.49999999999999994).ceil().isNegative);
-    Expect.equals(3.0, (2.1).ceil());
-    Expect.equals(-2.0, (-2.1).ceil());
+    Expect.equals(1, (0.1).ceil());
+    Expect.equals(1, double.MIN_POSITIVE.ceil());
+    Expect.equals(1, (0.49999999999999994).ceil());
+    Expect.equals(0, (-0.0).ceil());
+    Expect.equals(0, (-0.3).ceil());
+    Expect.isTrue((-0.0).ceil() is int);
+    Expect.isTrue((-0.3).ceil() is int);
+    Expect.equals(0, (-0.49999999999999994).ceil());
+    Expect.equals(3, (2.1).ceil());
+    Expect.equals(-2, (-2.1).ceil());
 
     // -- floor --.
     // Smi.
@@ -229,18 +228,18 @@ class ArithmeticTest {
     Expect.equals(big, big.floor());
     Expect.equals(-big, (-big).floor());
     // Double.
-    Expect.equals(0.0, (0.0).floor());
-    Expect.equals(0.0, (0.1).floor());
-    Expect.equals(0.0, (0.49999999999999994).floor());
-    Expect.equals(0.0, double.MIN_POSITIVE.floor());
-    Expect.equals(false, (0.0).floor().isNegative);
-    Expect.equals(false, (0.1).floor().isNegative);
-    Expect.equals(-0.0, (-0.0).floor());
-    Expect.equals(true, (-0.0).floor().isNegative);
-    Expect.equals(-1.0, (-0.1).floor());
+    Expect.equals(0, (0.0).floor());
+    Expect.equals(0, (0.1).floor());
+    Expect.equals(0, (0.49999999999999994).floor());
+    Expect.equals(0, double.MIN_POSITIVE.floor());
+    Expect.isTrue((0.0).floor() is int);
+    Expect.isTrue((0.1).floor() is int);
+    Expect.equals(0, (-0.0).floor());
+    Expect.isTrue((-0.0).floor() is int);
+    Expect.equals(-1, (-0.1).floor());
+    Expect.equals(2, (2.1).floor());
+    Expect.equals(-3, (-2.1).floor());
     Expect.equals(-1.0, (-0.49999999999999994).floor());
-    Expect.equals(2.0, (2.1).floor());
-    Expect.equals(-3.0, (-2.1).floor());
     Expect.equals(-3.0, (-2.1).floor());
 
 
@@ -253,19 +252,19 @@ class ArithmeticTest {
     Expect.equals(big, big.truncate());
     Expect.equals(-big, (-big).truncate());
     // Double.
-    Expect.equals(0.0, (0.0).truncate());
-    Expect.equals(0.0, (0.1).truncate());
-    Expect.equals(false, (0.0).truncate().isNegative);
-    Expect.equals(false, (0.1).truncate().isNegative);
-    Expect.equals(-0.0, (-0.0).truncate());
-    Expect.equals(-0.0, (-0.3).truncate());
-    Expect.equals(true, (-0.0).truncate().isNegative);
-    Expect.equals(true, (-0.3).truncate().isNegative);
-    Expect.equals(2.0, (2.1).truncate());
-    Expect.equals(-2.0, (-2.1).truncate());
+    Expect.equals(0, (0.0).truncate());
+    Expect.equals(0, (0.1).truncate());
+    Expect.isTrue((0.0).truncate() is int);
+    Expect.isTrue((0.1).truncate() is int);
+    Expect.equals(0, (-0.0).truncate());
+    Expect.equals(0, (-0.3).truncate());
+    Expect.isTrue((-0.0).truncate() is int);
+    Expect.isTrue((-0.3).truncate() is int);
+    Expect.equals(2, (2.1).truncate());
+    Expect.equals(-2, (-2.1).truncate());
 
-    double b1 = (1234567890123.0).truncate();
-    double b2 = (1234567890124.0).truncate();
+    int b1 = (1234567890123.0).truncate();
+    int b2 = (1234567890124.0).truncate();
     Expect.equals(b2, b1 + 1.0);
 
     // -- round --.
@@ -277,30 +276,30 @@ class ArithmeticTest {
     Expect.equals(big, big.round());
     Expect.equals(-big, (-big).round());
     // Double.
-    Expect.equals(3.0, (2.6).round());
-    Expect.equals(-3.0, (-2.6).round());
-    Expect.equals(3.0, (2.5).round());
-    Expect.equals(-3.0, (-2.5).round());
-    Expect.equals(0.0, (0.0).round());
-    Expect.equals(0.0, (0.1).round());
-    Expect.equals(false, (0.0).round().isNegative);
-    Expect.equals(false, (0.1).round().isNegative);
-    Expect.equals(-0.0, (-0.0).round());
-    Expect.equals(-0.0, (-0.3).round());
-    Expect.equals(2.0, (2.1).round());
-    Expect.equals(-2.0, (-2.1).round());
-    Expect.equals(1.0, (0.5).round());
-    Expect.equals(0.0, (0.49999999999999994).round());
-    Expect.equals(-0.0, (-0.49999999999999994).round());
-    Expect.equals(-1.0, (-0.5).round());
-    Expect.equals(true, (-0.0).round().isNegative);
-    Expect.equals(true, (-0.3).round().isNegative);
-    Expect.equals(true, (-0.5).round().isNegative);
-    Expect.equals(2.0, (1.5).round());
-    Expect.equals(-2.0, (-1.5).round());
-    Expect.equals(1.0, (0.99).round());
-    Expect.equals(9007199254740991.0, (9007199254740991.0).round());
-    Expect.equals(-9007199254740991.0, (-9007199254740991.0).round());
+    Expect.equals(3, (2.6).round());
+    Expect.equals(-3, (-2.6).round());
+    Expect.equals(0, (0.0).round());
+    Expect.equals(0, (0.1).round());
+    Expect.equals(3, (2.5).round());
+    Expect.equals(-3, (-2.5).round());
+    Expect.isFalse((0.0).round().isNegative);
+    Expect.isFalse((0.1).round().isNegative);
+    Expect.equals(0, (-0.0).round());
+    Expect.equals(0, (-0.3).round());
+    Expect.equals(2, (2.1).round());
+    Expect.equals(-2, (-2.1).round());
+    Expect.equals(1, (0.5).round());
+    Expect.equals(0, (0.49999999999999994).round());
+    Expect.equals(0, (-0.49999999999999994).round());
+    Expect.equals(-1, (-0.5).round());
+    Expect.isTrue((-0.0).round() is int);
+    Expect.isTrue((-0.3).round() is int);
+    Expect.isTrue((-0.5).round() is int);
+    Expect.equals(2, (1.5).round());
+    Expect.equals(-2, (-1.5).round());
+    Expect.equals(1, (0.99).round());
+    Expect.equals(9007199254740991, (9007199254740991.0).round());
+    Expect.equals(-9007199254740991, (-9007199254740991.0).round());
 
     // -- toInt --.
     // Smi.

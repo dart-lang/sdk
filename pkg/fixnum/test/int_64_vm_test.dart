@@ -56,7 +56,7 @@ int _randomInt(int n) {
   for (int i = 0; i < DISCARD; i++) {
     rand = random.nextDouble();
   }
-  return (rand * n).floor().toInt();
+  return (rand * n).floor();
 }
 
 class Op {

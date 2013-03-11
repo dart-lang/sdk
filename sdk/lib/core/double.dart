@@ -45,7 +45,7 @@ abstract class double extends num {
    * Truncating division operator.
    *
    * The result of the truncating division [:a ~/ b:] is equivalent to
-   * [:(a / b).truncate().toInt():].
+   * [:(a / b).truncate():].
    */
   int operator ~/(num other);
 
@@ -56,24 +56,66 @@ abstract class double extends num {
   double abs();
 
   /**
-   * Returns the integer value closest to this [double].
+   * Returns the integer closest to `this`.
+   *
+   * Rounds away from zero when there is no closest integer:
+   *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
+   */
+  int round();
+
+  /**
+   * Returns the greatest integer no greater than `this`.
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
+   */
+  int floor();
+
+  /**
+   * Returns the least integer no smaller than `this`.
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
+   */
+  int ceil();
+
+  /**
+   * Returns the integer obtained by discarding any fractional
+   * digits from `this`.
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
+   */
+  int truncate();
+
+  /**
+   * Returns the integer value, as a double, closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:
    *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
    */
-  double round();
-
-  /** Returns the greatest integer value no greater than this [double]. */
-  double floor();
-
-  /** Returns the least integer value that is no smaller than this [double]. */
-  double ceil();
+  double roundToDouble();
 
   /**
-   * Returns the integer value obtained by discarding any fractional
-   * digits from this [double].
+   * Returns the greatest integer value no greater than `this`.
+   *
+   * The result is a double.
    */
-  double truncate();
+  double floorToDouble();
+
+  /**
+   * Returns the least integer value no smaller than `this`.
+   *
+   * The result is a double.
+   */
+  double ceilToDouble();
+
+  /**
+   * Returns the integer obtained by discarding any fractional
+   * digits from `this`.
+   *
+   * The result is a double.
+   */
+  double truncateToDouble();
 
   /**
    * Provide a representation of this [double] value.

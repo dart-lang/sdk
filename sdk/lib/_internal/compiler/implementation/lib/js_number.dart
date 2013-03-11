@@ -41,6 +41,11 @@ class JSNumber implements num {
 
   bool get isNaN => JS('bool', r'isNaN(#)', this);
 
+  bool get isInfinite {
+    return JS('bool', r'# == Infinity', this)
+        || JS('bool', r'# == -Infinity', this);
+  }
+
   num remainder(num b) {
     checkNull(b); // TODO(ngeoffray): This is not specified but co19 tests it.
     if (b is! num) throw new ArgumentError(b);
@@ -52,26 +57,28 @@ class JSNumber implements num {
   int toInt() {
     if (isNaN) throw new UnsupportedError('NaN');
     if (isInfinite) throw new UnsupportedError('Infinity');
-    num truncated = truncate();
+    num truncated = truncateToDouble();
     return JS('bool', r'# == -0.0', truncated) ? 0 : truncated;
   }
 
-  num ceil() => JS('num', r'Math.ceil(#)', this);
+  int truncate() => toInt();
+  int ceil() => ceilToDouble().toInt();
+  int floor() => floorToDouble().toInt();
+  int round() => roundToDouble().toInt();
 
-  num floor() => JS('num', r'Math.floor(#)', this);
+  double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
 
-  bool get isInfinite {
-    return JS('bool', r'# == Infinity', this)
-      || JS('bool', r'# == -Infinity', this);
-  }
+  double floorToDouble() => JS('num', r'Math.floor(#)', this);
 
-  num round() {
+  double roundToDouble() {
     if (this < 0) {
       return JS('num', r'-Math.round(-#)', this);
     } else {
       return JS('num', r'Math.round(#)', this);
     }
   }
+
+  double truncateToDouble() => this < 0 ? ceilToDouble() : floorToDouble();
 
   num clamp(lowerLimit, upperLimit) {
     if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
@@ -85,8 +92,6 @@ class JSNumber implements num {
   }
 
   double toDouble() => this;
-
-  num truncate() => this < 0 ? ceil() : floor();
 
   String toStringAsFixed(int fractionDigits) {
     checkNum(fractionDigits);

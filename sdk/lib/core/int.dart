@@ -49,10 +49,10 @@ abstract class int extends num {
   /** Returns the absolute value of this integer. */
   int abs();
 
-  /** Returns [this]. */
+  /** Returns `this`. */
   int round();
 
-  /** Returns [this]. */
+  /** Returns `this`. */
   int floor();
 
   /** Returns [this]. */
@@ -60,6 +60,18 @@ abstract class int extends num {
 
   /** Returns [this]. */
   int truncate();
+
+  /** Returns `this.toDouble()`. */
+  double roundToDouble();
+
+  /** Returns `this.toDouble()`. */
+  double floorToDouble();
+
+  /** Returns `this.toDouble()`. */
+  double ceilToDouble();
+
+  /** Returns `this.toDouble()`. */
+  double truncateToDouble();
 
   /**
    * Returns a representation of this [int] value.

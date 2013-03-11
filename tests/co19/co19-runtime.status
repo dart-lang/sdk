@@ -6,6 +6,8 @@
 LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
 LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
 
+LibTest/core/int/operator_division_A01_t01: Fail # ~/ returns ints, issue 361
+
 [ $compiler == none && $runtime == vm ]
 Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
 Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
@@ -145,6 +147,17 @@ LibTest/core/Queue/forEach_A01_t04: Fail # behavior of forEach is undefined when
 LibTest/core/List/List_A02_t01: Fail # List constructors, co19 issue 358
 
 LibTest/core/List/last_A02_t01: Fail # List.last throws a StateError, co19 issue 359
+
+LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/double_class_A01_t01: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/isNaN_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 
 LibTest/core/double/toInt_A01_t03: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, co19 issue 360
 LibTest/core/double/toInt_A01_t04: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, co19 issue 360

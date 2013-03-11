@@ -183,7 +183,7 @@ patch class DateTime {
     // Simplify calculations by working with zero-based month.
     --month;
     // Deal with under and overflow.
-    year += (month / 12).floor().toInt();
+    year += (month / 12).floor();
     month = month % 12;
 
     // First compute the seconds in UTC, independent of the [isUtc] flag. If

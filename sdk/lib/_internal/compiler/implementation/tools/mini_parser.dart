@@ -36,7 +36,7 @@ void toolMain(List<String> arguments) {
   MyOptions options = new MyOptions();
 
   void printStats() {
-    int kb = (charCount / 1024).round().toInt();
+    int kb = (charCount / 1024).round();
     String stats =
         '$classCount classes (${kb}Kb) in ${stopwatch.elapsedMilliseconds}ms';
     if (errorCount != 0) {

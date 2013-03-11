@@ -26,11 +26,12 @@ abstract class num implements Comparable<num> {
   /**
    * Truncating division operator.
    *
-   * The result of the truncating division [:a ~/ b:] is equivalent to
-   * [:(a / b).truncate().toInt():].
+   * If either operand is a [double] then the result of the truncating division
+   * [:a ~/ b:] is equivalent to [:(a / b).truncate().toInt():].
+   *
+   * If both operands are [int]s then [:a ~/ b:] performs the truncating
+   * integer division.
    */
-  // TODO(floitsch): this is currently not true: bignum1 / bignum2 will return
-  // NaN, whereas bignum1 ~/ bignum2 will give the correct result.
   int operator ~/(num other);
 
   /** Negate operator. */
@@ -60,25 +61,69 @@ abstract class num implements Comparable<num> {
   /** Returns the absolute value of this [num]. */
   num abs();
 
-  /** Returns the greatest integer value no greater than this [num]. */
-  num floor();
-
-  /** Returns the least integer value that is no smaller than this [num]. */
-  num ceil();
-
   /**
-   * Returns the integer value closest to this [num].
+   * Returns the integer closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:
    *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
    */
-  num round();
+  int round();
 
   /**
-   * Returns the integer value obtained by discarding any fractional
-   * digits from this [num].
+   * Returns the greatest integer no greater than `this`.
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
    */
-  num truncate();
+  int floor();
+
+  /**
+   * Returns the least integer no smaller than `this`.
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
+   */
+  int ceil();
+
+  /**
+   * Returns the integer obtained by discarding any fractional
+   * digits from `this`.
+   *
+   * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
+   */
+  int truncate();
+
+  /**
+   * Returns the integer value closest to `this`.
+   *
+   * Rounds away from zero when there is no closest integer:
+   *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *
+   * The result is a double.
+   */
+  double roundToDouble();
+
+  /**
+   * Returns the greatest integer value no greater than `this`.
+   *
+   * The result is a double.
+   */
+  double floorToDouble();
+
+  /**
+   * Returns the least integer value no smaller than `this`.
+   *
+   * The result is a double.
+   */
+  double ceilToDouble();
+
+  /**
+   * Returns the integer obtained by discarding any fractional
+   * digits from `this`.
+   *
+   * The result is a double.
+   */
+  double truncateToDouble();
 
   /**
    * Clamps [this] to be in the range [lowerLimit]-[upperLimit]. The comparison

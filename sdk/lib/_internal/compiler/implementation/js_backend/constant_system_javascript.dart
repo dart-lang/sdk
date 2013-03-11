@@ -199,7 +199,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
       double doubleValue = doubleResult.value;
       if (!doubleValue.isInfinite && !doubleValue.isNaN &&
           !constant.isMinusZero()) {
-        int intValue = doubleValue.toInt();
+        int intValue = doubleValue.truncate();
         if (intValue == doubleValue && integerFitsIntoDouble(intValue)) {
           return new IntConstant(intValue);
         }

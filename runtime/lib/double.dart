@@ -100,10 +100,15 @@ class _Double implements double {
     return this < 0.0 ? -this : this;
   }
 
-  double round() native "Double_round";
-  double floor() native "Double_floor";
-  double ceil () native "Double_ceil";
-  double truncate() native "Double_truncate";
+  int round() => roundToDouble().toInt();
+  int floor() => floorToDouble().toInt();
+  int ceil () => ceilToDouble().toInt();
+  int truncate() => truncateToDouble().toInt();
+
+  double roundToDouble() native "Double_round";
+  double floorToDouble() native "Double_floor";
+  double ceilToDouble() native "Double_ceil";
+  double truncateToDouble() native "Double_truncate";
 
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit is! num) throw new ArgumentError(lowerLimit);

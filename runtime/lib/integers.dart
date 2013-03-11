@@ -131,6 +131,11 @@ class _IntegerImplementation {
   int ceil() { return this; }
   int truncate() { return this; }
 
+  double roundToDouble() { return this.toDouble(); }
+  double floorToDouble() { return this.toDouble(); }
+  double ceilToDouble() { return this.toDouble(); }
+  double truncateToDouble() { return this.toDouble(); }
+
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
     if (upperLimit is! num) throw new ArgumentError(upperLimit);

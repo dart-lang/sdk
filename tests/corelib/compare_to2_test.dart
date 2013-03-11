@@ -13,14 +13,14 @@ main() {
   var maxFraction = 0.9999999999999999;
   var minAbove1 = 1.0000000000000002;
   var maxNonInt = 4503599627370495.5;
-  var maxNonIntFloorAsDouble = maxNonInt.floor();
-  var maxNonIntFloorAsInt = maxNonIntFloorAsDouble.toInt();
+  var maxNonIntFloorAsInt = maxNonInt.floor();
+  var maxNonIntFloorAsDouble = maxNonIntFloorAsInt.toDouble();
   var maxExactIntAsDouble = 9007199254740992.0;
   var maxExactIntAsInt = 9007199254740992;
   var two53 = 1 << 53;  // Same as maxExactIntAsInt.
   var two53p1 = two53 + 1;
   var maxFiniteAsDouble = 1.7976931348623157e+308;
-  var maxFiniteAsInt = maxFiniteAsDouble.toInt();
+  var maxFiniteAsInt = maxFiniteAsDouble.truncate();
   int huge = 1 << 2000;
   int hugeP1 = huge + 1;
   var inf = double.INFINITY;

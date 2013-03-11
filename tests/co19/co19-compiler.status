@@ -565,6 +565,7 @@ LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374
 LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 LibTest/core/Date/year_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
+LibTest/core/int/operator_division_A01_t01: Fail # truncate/ceil/floor/round returns ints, issue 389
 
 [ $runtime == drt && $compiler == none ]
 *: Skip

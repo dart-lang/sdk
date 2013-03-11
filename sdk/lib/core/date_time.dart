@@ -135,7 +135,7 @@ class DateTime {
       int minute = parseIntOrZero(match[5]);
       int second = parseIntOrZero(match[6]);
       bool addOneMillisecond = false;
-      int millisecond = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
+      int millisecond = (parseDoubleOrZero(match[7]) * 1000).round();
       if (millisecond == 1000) {
         addOneMillisecond = true;
         millisecond = 999;

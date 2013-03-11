@@ -651,6 +651,21 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # 
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
 
+LibTest/core/double/operator_truncating_division_A01_t01: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t05: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t06: Fail # truncate/ceil/floor/round returns ints, issue 361
+
+LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/isNaN_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
