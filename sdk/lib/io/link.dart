@@ -153,7 +153,7 @@ abstract class Link extends FileSystemEntity {
 }
 
 
-class _Link extends FileSystemEntity {
+class _Link extends FileSystemEntity implements Link {
   final String path;
 
   _Link(String this.path);
@@ -202,6 +202,30 @@ class _Link extends FileSystemEntity {
 
   void deleteSync() {
     new File(path).deleteSync();
+  }
+
+  Future<Directory> directory() {
+    throw new UnimplementedError('Link.directory not yet implemented');
+  }
+
+  Directory directorySync() {
+    throw new UnimplementedError('Link.directorySync not yet implemented');
+  }
+
+  Future<String> target({bool linkRelative: false }) {
+    throw new UnimplementedError('Link.target not yet implemented');
+  }
+
+  String targetSync({bool linkRelative: false }) {
+    throw new UnimplementedError('Link.targetSync not yet implemented');
+  }
+
+  Future<String> fullPath() {
+    throw new UnimplementedError('Link.fullPath not yet implemented');
+  }
+
+  String fullPathSync() {
+    throw new UnimplementedError('Link.fullPathSync not yet implemented');
   }
 }
 
