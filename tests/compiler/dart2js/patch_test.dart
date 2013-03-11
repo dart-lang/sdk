@@ -3,12 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
-import
-    "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
+import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
-import
-    "../../../sdk/lib/_internal/compiler/implementation/universe/universe.dart"
-    show TypedSelector;
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
@@ -700,34 +696,6 @@ testPatchNonFunction() {
       compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_FUNCTION);
 }
 
-testPatchAndSelector() {
-  var compiler = applyPatch(
-      """
-      class A {
-      }
-      """,
-      """
-      patch class A {
-        int method() => 0;
-      }
-      """);
-  ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
-                            expectIsPatched: true);
-  cls.ensureResolved(compiler);
-  var selector = new Selector.call(
-      buildSourceString('method'), compiler.coreLibrary, 0);
-  var typedSelector = new TypedSelector.exact(cls.rawType, selector);
-
-  ensure(compiler, "method", cls.patch.lookupLocalMember,
-         checkHasBody: true, expectIsRegular: true);
-
-  Element method =
-      cls.implementation.lookupLocalMember(buildSourceString('method'));
-  Expect.isTrue(selector.applies(method, compiler));
-  compiler.phase = Compiler.PHASE_DONE_RESOLVING;
-  Expect.isTrue(typedSelector.applies(method, compiler));
-}
-
 main() {
   testPatchConstructor();
   testPatchFunction();
@@ -755,6 +723,4 @@ main() {
   testPatchNonSetter();
   testPatchNoSetter();
   testPatchNonFunction();
-
-  testPatchAndSelector();
 }
