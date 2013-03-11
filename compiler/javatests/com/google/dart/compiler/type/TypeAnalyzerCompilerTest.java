@@ -6509,4 +6509,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_MIXINS, 2, 25, 1));
   }
 
+  public void test_StringPlus() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v1 = '1' + '2';",
+        "  var v2 = '1' + 2;",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 18, 1));
+  }
 }

@@ -1199,21 +1199,4 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("while ('') {}",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
-
-  public void disabledtestStringConcat() {
-    Map<String, ClassNodeElement> source = loadSource(
-        "class Object {}",
-        "abstract class Foo {",
-        "  operator +(arg1);" +
-        "}",
-        "Foo a = new Foo();",
-        "Foo b = new Foo();",
-        "String s = 'foo';");
-    analyzeClasses(source);
-    analyze("{ var c = a + b; }");
-    analyze("{ var c = s + b; }");
-    analyzeFail("var c = 'foo' + 1;",
-      TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyze("var c = 'foo' + 'bar';");
-  }
 }
