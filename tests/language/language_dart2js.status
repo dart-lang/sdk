@@ -328,7 +328,6 @@ arithmetic_test: Fail # Issue 7881
 
 
 [ $compiler == dart2js && $runtime == ie9 ]
-div_by_zero_test: Fail
 double_to_string_as_exponential3_test: Fail
 double_to_string_as_fixed_test: Fail
 double_to_string_as_precision3_test: Fail

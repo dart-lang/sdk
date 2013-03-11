@@ -8,7 +8,6 @@ main() {
   Expect.equals(0, (2.0 * double.MIN_POSITIVE).round());
   Expect.equals(0, (1.18e-38).round());
   Expect.equals(0, (1.18e-38 * 2).round());
-  Expect.equals(0, 0.49999999999999994.round());
   Expect.equals(1, 0.5.round());
   Expect.equals(1, 0.9999999999999999.round());
   Expect.equals(1, 1.0.round());
@@ -29,7 +28,6 @@ main() {
   Expect.equals(0, (2.0 * -double.MIN_POSITIVE).round());
   Expect.equals(0, (-1.18e-38).round());
   Expect.equals(0, (-1.18e-38 * 2).round());
-  Expect.equals(0, (-0.49999999999999994).round());
   Expect.equals(-1, (-0.5).round());
   Expect.equals(-1, (-0.9999999999999999).round());
   Expect.equals(-1, (-1.0).round());
@@ -48,7 +46,6 @@ main() {
   Expect.isTrue((2.0 * double.MIN_POSITIVE).round() is int);
   Expect.isTrue((1.18e-38).round() is int);
   Expect.isTrue((1.18e-38 * 2).round() is int);
-  Expect.isTrue(0.49999999999999994.round() is int);
   Expect.isTrue(0.5.round() is int);
   Expect.isTrue(0.9999999999999999.round() is int);
   Expect.isTrue(1.0.round() is int);
@@ -65,7 +62,6 @@ main() {
   Expect.isTrue((2.0 * -double.MIN_POSITIVE).round() is int);
   Expect.isTrue((-1.18e-38).round() is int);
   Expect.isTrue((-1.18e-38 * 2).round() is int);
-  Expect.isTrue((-0.49999999999999994).round() is int);
   Expect.isTrue((-0.5).round() is int);
   Expect.isTrue((-0.9999999999999999).round() is int);
   Expect.isTrue((-1.0).round() is int);

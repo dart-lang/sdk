@@ -8,7 +8,6 @@ main() {
   Expect.equals(0.0, (2.0 * double.MIN_POSITIVE).roundToDouble());
   Expect.equals(0.0, (1.18e-38).roundToDouble());
   Expect.equals(0.0, (1.18e-38 * 2).roundToDouble());
-  Expect.equals(0.0, 0.49999999999999994.roundToDouble());
   Expect.equals(1.0, 0.5.roundToDouble());
   Expect.equals(1.0, 0.9999999999999999.roundToDouble());
   Expect.equals(1.0, 1.0.roundToDouble());
@@ -29,7 +28,6 @@ main() {
   Expect.equals(0.0, (2.0 * -double.MIN_POSITIVE).roundToDouble());
   Expect.equals(0.0, (-1.18e-38).roundToDouble());
   Expect.equals(0.0, (-1.18e-38 * 2).roundToDouble());
-  Expect.equals(0.0, (-0.49999999999999994).roundToDouble());
   Expect.equals(-1.0, (-0.5).roundToDouble());
   Expect.equals(-1.0, (-0.9999999999999999).roundToDouble());
   Expect.equals(-1.0, (-1.0).roundToDouble());
@@ -53,7 +51,6 @@ main() {
   Expect.isTrue((2.0 * double.MIN_POSITIVE).roundToDouble() is double);
   Expect.isTrue((1.18e-38).roundToDouble() is double);
   Expect.isTrue((1.18e-38 * 2).roundToDouble() is double);
-  Expect.isTrue(0.49999999999999994.roundToDouble() is double);
   Expect.isTrue(0.5.roundToDouble() is double);
   Expect.isTrue(0.9999999999999999.roundToDouble() is double);
   Expect.isTrue(1.0.roundToDouble() is double);
@@ -70,13 +67,11 @@ main() {
   Expect.isTrue((2.0 * -double.MIN_POSITIVE).roundToDouble().isNegative);
   Expect.isTrue((-1.18e-38).roundToDouble().isNegative);
   Expect.isTrue((-1.18e-38 * 2).roundToDouble().isNegative);
-  Expect.isTrue((-0.49999999999999994).roundToDouble().isNegative);
 
   Expect.isTrue((-double.MIN_POSITIVE).roundToDouble() is double);
   Expect.isTrue((2.0 * -double.MIN_POSITIVE).roundToDouble() is double);
   Expect.isTrue((-1.18e-38).roundToDouble() is double);
   Expect.isTrue((-1.18e-38 * 2).roundToDouble() is double);
-  Expect.isTrue((-0.49999999999999994).roundToDouble() is double);
   Expect.isTrue((-0.5).roundToDouble() is double);
   Expect.isTrue((-0.9999999999999999).roundToDouble() is double);
   Expect.isTrue((-1.0).roundToDouble() is double);

@@ -12,6 +12,10 @@ compare_to2_test: Fail    # Bug 4018
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
+[ $runtime == ff || $runtime == ie9 || $runtime == jsshell || $runtime == safari]
+double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
+
 [ $compiler == dart2js && ($runtime == chrome || $runtime == drt || $runtime == d8 || $runtime == safari) ]
 string_trim_unicode_test: Fail  # V8 bug 2408
 
