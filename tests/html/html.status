@@ -16,9 +16,6 @@ interactive_test: Skip # Must be run manually.
 [ $runtime == chrome ]
 touchevent_test/supported: Fail
 
-[ $runtime == chrome && $system == windows ]
-fileapi_test/getFile: Pass, Fail # issue 8985
-
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
 webgl_1_test: Pass, Fail # Issue 8219
 

@@ -84,8 +84,10 @@ main() {
             return e.getMetadata();
           }).then((Metadata metadata) {
             var changeTime = metadata.modificationTime;
-            expect(new DateTime.now().difference(changeTime).inSeconds,
-                lessThan(60));
+            // Upped because our Windows buildbots can sometimes be particularly
+            // slow.
+            expect(new DateTime.now().difference(changeTime).inMinutes,
+                lessThan(4));
             expect(metadata.size, equals(0));
           });
         });
