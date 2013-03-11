@@ -15,32 +15,6 @@ namespace dart {
 #define __ assembler->
 
 
-ASSEMBLER_TEST_GENERATE(Addi, assembler) {
-  __ addi(V0, ZR, Immediate(42));
-  __ jr(RA);
-}
-
-
-ASSEMBLER_TEST_RUN(Addi, test) {
-  typedef int (*SimpleCode)();
-  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
-}
-
-
-ASSEMBLER_TEST_GENERATE(Addi_overflow, assembler) {
-  __ LoadImmediate(V0, 0x7fffffff);
-  __ addi(V0, V0, Immediate(1));  // V0 not set on overflow
-  __ jr(RA);
-}
-
-
-ASSEMBLER_TEST_RUN(Addi_overflow, test) {
-  typedef int (*SimpleCode)();
-  EXPECT_EQ(static_cast<int32_t>(0x7fffffff),
-            EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
-}
-
-
 ASSEMBLER_TEST_GENERATE(Addiu, assembler) {
   __ addiu(V0, ZR, Immediate(42));
   __ jr(RA);
@@ -55,7 +29,7 @@ ASSEMBLER_TEST_RUN(Addiu, test) {
 
 ASSEMBLER_TEST_GENERATE(Addiu_overflow, assembler) {
   __ LoadImmediate(V0, 0x7fffffff);
-  __ addiu(V0, V0, Immediate(1));  // V0 is set on overflow
+  __ addiu(V0, V0, Immediate(1));  // V0 is modified on overflow.
   __ jr(RA);
 }
 
@@ -68,8 +42,8 @@ ASSEMBLER_TEST_RUN(Addiu_overflow, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Addu, assembler) {
-  __ addi(R2, ZR, Immediate(21));
-  __ addi(R3, ZR, Immediate(21));
+  __ addiu(R2, ZR, Immediate(21));
+  __ addiu(R3, ZR, Immediate(21));
   __ addu(V0, R2, R3);
   __ jr(RA);
 }
@@ -83,7 +57,7 @@ ASSEMBLER_TEST_RUN(Addu, test) {
 
 ASSEMBLER_TEST_GENERATE(Addu_overflow, assembler) {
   __ LoadImmediate(R2, 0x7fffffff);
-  __ addi(R3, R0, Immediate(1));
+  __ addiu(R3, R0, Immediate(1));
   __ addu(V0, R2, R3);
   __ jr(RA);
 }
@@ -97,8 +71,8 @@ ASSEMBLER_TEST_RUN(Addu_overflow, test) {
 
 
 ASSEMBLER_TEST_GENERATE(And, assembler) {
-  __ addi(R2, ZR, Immediate(42));
-  __ addi(R3, ZR, Immediate(2));
+  __ addiu(R2, ZR, Immediate(42));
+  __ addiu(R3, ZR, Immediate(2));
   __ and_(V0, R2, R3);
   __ jr(RA);
 }
@@ -111,7 +85,7 @@ ASSEMBLER_TEST_RUN(And, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Andi, assembler) {
-  __ addi(R1, ZR, Immediate(42));
+  __ addiu(R1, ZR, Immediate(42));
   __ andi(V0, R1, Immediate(2));
   __ jr(RA);
 }
@@ -124,7 +98,7 @@ ASSEMBLER_TEST_RUN(Andi, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Clo, assembler) {
-  __ addi(R1, ZR, Immediate(0xffff));
+  __ addiu(R1, ZR, Immediate(-1));
   __ clo(V0, R1);
   __ jr(RA);
 }
@@ -137,7 +111,7 @@ ASSEMBLER_TEST_RUN(Clo, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Clz, assembler) {
-  __ addi(R1, ZR, Immediate(0x7fff));
+  __ addiu(R1, ZR, Immediate(0x7fff));
   __ clz(V0, R1);
   __ jr(RA);
 }
@@ -150,8 +124,8 @@ ASSEMBLER_TEST_RUN(Clz, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Divu, assembler) {
-  __ addi(R1, ZR, Immediate(27));
-  __ addi(R2, ZR, Immediate(9));
+  __ addiu(R1, ZR, Immediate(27));
+  __ addiu(R2, ZR, Immediate(9));
   __ divu(R1, R2);
   __ mflo(V0);
   __ jr(RA);
@@ -165,8 +139,8 @@ ASSEMBLER_TEST_RUN(Divu, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Div, assembler) {
-  __ addi(R1, ZR, Immediate(27));
-  __ addi(R2, ZR, Immediate(9));
+  __ addiu(R1, ZR, Immediate(27));
+  __ addiu(R2, ZR, Immediate(9));
   __ div(R1, R2);
   __ mflo(V0);
   __ jr(RA);
@@ -180,8 +154,8 @@ ASSEMBLER_TEST_RUN(Div, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Divu_zero, assembler) {
-  __ addi(R1, ZR, Immediate(27));
-  __ addi(R2, ZR, Immediate(0));
+  __ addiu(R1, ZR, Immediate(27));
+  __ addiu(R2, ZR, Immediate(0));
   __ divu(R1, R2);
   __ mflo(V0);
   __ jr(RA);
@@ -195,8 +169,8 @@ ASSEMBLER_TEST_RUN(Divu_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Div_zero, assembler) {
-  __ addi(R1, ZR, Immediate(27));
-  __ addi(R2, ZR, Immediate(0));
+  __ addiu(R1, ZR, Immediate(27));
+  __ addiu(R2, ZR, Immediate(0));
   __ div(R1, R2);
   __ mflo(V0);
   __ jr(RA);
@@ -240,8 +214,104 @@ ASSEMBLER_TEST_RUN(Div_corner, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Lb, assembler) {
+  __ addiu(SP, SP, Immediate(-kWordSize * 30));
+  __ LoadImmediate(R1, 0xff);
+  __ sb(R1, Address(SP));
+  __ lb(V0, Address(SP));
+  __ addiu(SP, SP, Immediate(kWordSize * 30));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Lb, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lb_offset, assembler) {
+  __ addiu(SP, SP, Immediate(-kWordSize * 30));
+  __ LoadImmediate(R1, 0xff);
+  __ sb(R1, Address(SP, 1));
+  __ lb(V0, Address(SP, 1));
+  __ addiu(SP, SP, Immediate(kWordSize * 30));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Lb_offset, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lbu, assembler) {
+  __ addiu(SP, SP, Immediate(-kWordSize * 30));
+  __ LoadImmediate(R1, 0xff);
+  __ sb(R1, Address(SP));
+  __ lbu(V0, Address(SP));
+  __ addiu(SP, SP, Immediate(kWordSize * 30));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Lbu, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(255, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lh, assembler) {
+  __ addiu(SP, SP, Immediate(-kWordSize * 30));
+  __ LoadImmediate(R1, 0xffff);
+  __ sh(R1, Address(SP));
+  __ lh(V0, Address(SP));
+  __ addiu(SP, SP, Immediate(kWordSize * 30));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Lh, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lhu, assembler) {
+  __ addiu(SP, SP, Immediate(-kWordSize * 30));
+  __ LoadImmediate(R1, 0xffff);
+  __ sh(R1, Address(SP));
+  __ lhu(V0, Address(SP));
+  __ addiu(SP, SP, Immediate(kWordSize * 30));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Lhu, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(65535, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Lw, assembler) {
+  __ addiu(SP, SP, Immediate(-kWordSize * 30));
+  __ LoadImmediate(R1, -1);
+  __ sw(R1, Address(SP));
+  __ lw(V0, Address(SP));
+  __ addiu(SP, SP, Immediate(kWordSize * 30));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Lw, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Lui, assembler) {
-  __ lui(V0, Immediate(0x2a));
+  __ lui(V0, Immediate(42));
   __ jr(RA);
 }
 

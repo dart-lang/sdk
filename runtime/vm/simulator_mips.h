@@ -75,6 +75,11 @@ class Simulator {
   int icount_;
   bool delay_slot_;
 
+  // Illegal memory access support.
+  static bool IsIllegalAddress(uword addr) {
+    return addr < 64*1024;
+  }
+
   bool OverflowFrom(int32_t alu_out,
                     int32_t left,
                     int32_t right,
@@ -84,8 +89,19 @@ class Simulator {
 
   void Format(Instr* instr, const char* format);
 
+  inline int8_t ReadB(uword addr);
+  inline uint8_t ReadBU(uword addr);
+  inline int16_t ReadH(uword addr, Instr* instr);
+  inline uint16_t ReadHU(uword addr, Instr *instr);
+  inline int ReadW(uword addr, Instr* instr);
+
+  inline void WriteB(uword addr, uint8_t value);
+  inline void WriteH(uword addr, uint16_t value, Instr* isntr);
+  inline void WriteW(uword addr, int value, Instr* instr);
+
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
+  void DecodeSpecial3(Instr *instr);
   void InstructionDecode(Instr* instr);
 
   void Execute();

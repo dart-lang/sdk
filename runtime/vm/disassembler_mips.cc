@@ -37,6 +37,7 @@ class MIPSDecoder : public ValueObject {
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
+  void DecodeSpecial3(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -176,6 +177,7 @@ void MIPSDecoder::Format(Instr* instr, const char* format) {
 
 
 void MIPSDecoder::DecodeSpecial(Instr* instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL);
   switch (instr->FunctionField()) {
     case ADDU: {
       Format(instr, "addu 'rd, 'rs, 'rt");
@@ -227,6 +229,7 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
 
 
 void MIPSDecoder::DecodeSpecial2(Instr* instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL2);
   switch (instr->FunctionField()) {
     case CLO: {
       Format(instr, "clo 'rd, 'rs");
@@ -245,6 +248,18 @@ void MIPSDecoder::DecodeSpecial2(Instr* instr) {
 }
 
 
+void MIPSDecoder::DecodeSpecial3(Instr* instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL3);
+  switch (instr->FunctionField()) {
+    default: {
+      OS::PrintErr("DecodeSpecial3: 0x%x\n", instr->InstructionBits());
+      UNREACHABLE();
+      break;
+    }
+  }
+}
+
+
 void MIPSDecoder::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
@@ -255,24 +270,52 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       DecodeSpecial2(instr);
       break;
     }
-    case ADDI: {
-      Format(instr, "addi 'rt, 'rs, 'immu");
+    case SPECIAL3: {
+      DecodeSpecial3(instr);
       break;
     }
     case ADDIU: {
-      Format(instr, "addiu 'rt, 'rs, 'immu");
+      Format(instr, "addiu 'rt, 'rs, 'imms");
       break;
     }
     case ANDI: {
       Format(instr, "andi 'rt, 'rs, 'immu");
       break;
     }
+    case LB: {
+      Format(instr, "lb 'rt, 'imms('rs)");
+      break;
+    }
+    case LBU: {
+      Format(instr, "lbu 'rt, 'imms('rs)");
+      break;
+    }
+    case LH: {
+      Format(instr, "lh 'rt, 'imms('rs)");
+      break;
+    }
     case LUI: {
       Format(instr, "lui 'rt, 'immu");
       break;
     }
+    case LW: {
+      Format(instr, "lw 'rt, 'imms('rs)");
+      break;
+    }
     case ORI: {
       Format(instr, "ori 'rt, 'rs, 'immu");
+      break;
+    }
+    case SB: {
+      Format(instr, "sb 'rt, 'imms('rs)");
+      break;
+    }
+    case SH: {
+      Format(instr, "sh 'rt, 'imms('rs)");
+      break;
+    }
+    case SW: {
+      Format(instr, "sw 'rt, 'imms('rs)");
       break;
     }
     default: {

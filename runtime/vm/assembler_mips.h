@@ -41,9 +41,8 @@ class Immediate : public ValueObject {
 
 class Address : public ValueObject {
  public:
-  Address(Register base, int32_t offset) {
-    UNIMPLEMENTED();
-  }
+  Address(Register base, int32_t offset = 0)
+      : ValueObject(), base_(base), offset_(offset) { }
 
   Address(const Address& other)
       : ValueObject(), base_(other.base_), offset_(other.offset_) { }
@@ -51,6 +50,12 @@ class Address : public ValueObject {
     base_ = other.base_;
     offset_ = other.offset_;
     return *this;
+  }
+
+  uint32_t encoding() const {
+    ASSERT(Utils::IsInt(16, offset_));
+    uint16_t imm_value = static_cast<uint16_t>(offset_);
+    return (base_ << kRsShift) | imm_value;
   }
 
  private:
@@ -220,14 +225,8 @@ class Assembler : public ValueObject {
   }
 
   // CPU instructions.
-  void addi(Register rt, Register rs, const Immediate& imm) {
-    ASSERT(Utils::IsUint(16, imm.value()));
-    uint16_t imm_value = static_cast<uint16_t>(imm.value());
-    EmitIType(ADDI, rs, rt, imm_value);
-  }
-
   void addiu(Register rt, Register rs, const Immediate& imm) {
-    ASSERT(Utils::IsUint(16, imm.value()));
+    ASSERT(Utils::IsInt(16, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ADDIU, rs, rt, imm_value);
   }
@@ -262,10 +261,31 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, R0, 0, DIVU);
   }
 
+
+  void lb(Register rt, const Address& addr) {
+    EmitLoadStore(LB, rt, addr);
+  }
+
+  void lbu(Register rt, const Address& addr) {
+    EmitLoadStore(LBU, rt, addr);
+  }
+
+  void lh(Register rt, const Address& addr) {
+    EmitLoadStore(LH, rt, addr);
+  }
+
+  void lhu(Register rt, const Address& addr) {
+    EmitLoadStore(LHU, rt, addr);
+  }
+
   void lui(Register rt, const Immediate& imm) {
     ASSERT(Utils::IsUint(16, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(LUI, R0, rt, imm_value);
+  }
+
+  void lw(Register rt, const Address& addr) {
+    EmitLoadStore(LW, rt, addr);
   }
 
   void mfhi(Register rd) {
@@ -287,6 +307,18 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, R0, R0, 0, JR);
     Emit(Instr::kNopInstruction);  // Branch delay NOP.
     delay_slot_available_ = true;
+  }
+
+  void sb(Register rt, const Address& addr) {
+    EmitLoadStore(SB, rt, addr);
+  }
+
+  void sh(Register rt, const Address& addr) {
+    EmitLoadStore(SH, rt, addr);
+  }
+
+  void sw(Register rt, const Address& addr) {
+    EmitLoadStore(SW, rt, addr);
   }
 
   void sll(Register rd, Register rt, int sa) {
@@ -342,6 +374,13 @@ class Assembler : public ValueObject {
          rs << kRsShift |
          rt << kRtShift |
          imm);
+  }
+
+  void EmitLoadStore(Opcode opcode, Register rt,
+                     const Address &addr) {
+    Emit(opcode << kOpcodeShift |
+         rt << kRtShift |
+         addr.encoding());
   }
 
   void EmitRegImmType(Opcode opcode,

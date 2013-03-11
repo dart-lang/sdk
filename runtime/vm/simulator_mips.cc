@@ -101,6 +101,79 @@ void Simulator::Format(Instr* instr, const char* format) {
 }
 
 
+int8_t Simulator::ReadB(uword addr) {
+  int8_t* ptr = reinterpret_cast<int8_t*>(addr);
+  return *ptr;
+}
+
+
+uint8_t Simulator::ReadBU(uword addr) {
+  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
+  return *ptr;
+}
+
+
+int16_t Simulator::ReadH(uword addr, Instr* instr) {
+  if ((addr & 1) == 0) {
+    int16_t* ptr = reinterpret_cast<int16_t*>(addr);
+    return *ptr;
+  }
+  // TODO(zra) unaligned access. Trap into debugger.
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
+  if ((addr & 1) == 0) {
+    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
+    return *ptr;
+  }
+  // TODO(zra) unaligned access. Trap into debugger.
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+int Simulator::ReadW(uword addr, Instr* instr) {
+  if ((addr & 3) == 0) {
+    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
+    return *ptr;
+  }
+  // TODO(zra) unaligned access. Trap into debugger.
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+void Simulator::WriteB(uword addr, uint8_t value) {
+  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
+  *ptr = value;
+}
+
+
+void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
+  if ((addr & 1) == 0) {
+    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
+    *ptr = value;
+    return;
+  }
+  // TODO(zra) unaligned access. Trap into debugger.
+  UNIMPLEMENTED();
+}
+
+
+void Simulator::WriteW(uword addr, int value, Instr* instr) {
+  if ((addr & 3) == 0) {
+    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
+    *ptr = value;
+    return;
+  }
+  // TODO(zra) unaligned access. Trap into debugger.
+  UNIMPLEMENTED();
+}
+
+
 bool Simulator::OverflowFrom(int32_t alu_out,
                              int32_t left, int32_t right, bool addition) {
   bool overflow;
@@ -120,6 +193,7 @@ bool Simulator::OverflowFrom(int32_t alu_out,
 
 
 void Simulator::DecodeSpecial(Instr* instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL);
   switch (instr->FunctionField()) {
     case ADDU: {
       ASSERT(instr->SaField() == 0);
@@ -229,6 +303,7 @@ void Simulator::DecodeSpecial(Instr* instr) {
 
 
 void Simulator::DecodeSpecial2(Instr* instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL2);
   switch (instr->FunctionField()) {
     case CLO: {
       ASSERT(instr->SaField() == 0);
@@ -269,6 +344,18 @@ void Simulator::DecodeSpecial2(Instr* instr) {
 }
 
 
+void Simulator::DecodeSpecial3(Instr* instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL3);
+  switch (instr->FunctionField()) {
+    default: {
+      OS::PrintErr("DecodeSpecial3: 0x%x\n", instr->InstructionBits());
+      UNREACHABLE();
+      break;
+    }
+  }
+}
+
+
 void Simulator::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
@@ -279,19 +366,12 @@ void Simulator::InstructionDecode(Instr* instr) {
       DecodeSpecial2(instr);
       break;
     }
-    case ADDI: {
-      // Format(instr, "addi 'rt, 'rs, 'immu");
-      int32_t rs_val = get_register(instr->RsField());
-      int32_t imm_val = instr->SImmField();
-      int32_t res = rs_val + imm_val;
-      // Rt is not set on overflow.
-      if (!OverflowFrom(res, rs_val, imm_val, true)) {
-        set_register(instr->RtField(), res);
-      }
+    case SPECIAL3: {
+      DecodeSpecial3(instr);
       break;
     }
     case ADDIU: {
-      // Format(instr, "addiu 'rt, 'rs, 'immu");
+      // Format(instr, "addiu 'rt, 'rs, 'imms");
       int32_t rs_val = get_register(instr->RsField());
       int32_t imm_val = instr->SImmField();
       int32_t res = rs_val + imm_val;
@@ -305,15 +385,127 @@ void Simulator::InstructionDecode(Instr* instr) {
       set_register(instr->RtField(), rs_val & instr->UImmField());
       break;
     }
+    case LB: {
+      // Format(instr, "lb 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        int32_t res = ReadB(addr);
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
+    case LBU: {
+      // Format(instr, "lbu 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        int32_t res = ReadBU(addr);
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
+    case LH: {
+      // Format(instr, "lh 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        int32_t res = ReadH(addr, instr);
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
+    case LHU: {
+      // Format(instr, "lhu 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        int32_t res = ReadHU(addr, instr);
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
     case LUI: {
       ASSERT(instr->RsField() == 0);
       set_register(instr->RtField(), instr->UImmField() << 16);
+      break;
+    }
+    case LW: {
+      // Format(instr, "lw 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        int32_t res = ReadW(addr, instr);
+        set_register(instr->RtField(), res);
+      }
       break;
     }
     case ORI: {
       // Format(instr, "ori 'rt, 'rs, 'immu");
       int32_t rs_val = get_register(instr->RsField());
       set_register(instr->RtField(), rs_val | instr->UImmField());
+      break;
+    }
+    case SB: {
+      // Format(instr, "sb 'rt, 'imms('rs)");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        WriteB(addr, rt_val & 0xff);
+      }
+      break;
+    }
+    case SH: {
+      // Format(instr, "sh 'rt, 'imms('rs)");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        WriteH(addr, rt_val & 0xffff, instr);
+      }
+      break;
+    }
+    case SW: {
+      // Format(instr, "sw 'rt, 'imms('rs)");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        // TODO(zra) trap into debugger.
+        UNIMPLEMENTED();
+      } else {
+        WriteW(addr, rt_val, instr);
+      }
       break;
     }
     default: {
