@@ -479,7 +479,9 @@ class TypedSelector extends Selector {
    * invoked on an instance of [cls].
    */
   bool hasElementIn(ClassElement cls, Element element) {
-    return cls.lookupSelector(this) == element;
+    // Use the [:implementation] of [cls] in case [element]
+    // is in the patch class.
+    return cls.implementation.lookupSelector(this) == element;
   }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
