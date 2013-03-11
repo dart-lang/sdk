@@ -310,6 +310,22 @@ String mapToQuery(Map<String, String> map) {
   }).join("&");
 }
 
+// TODO(nweiz): remove this when issue 9068 has been fixed.
+/// Whether [uri1] and [uri2] are equal. This consider HTTP URIs to default to
+/// port 80, and HTTPs URIs to default to port 443.
+bool urisEqual(Uri uri1, Uri uri2) =>
+  canonicalizeUri(uri1) == canonicalizeUri(uri2);
+
+/// Return [uri] with redundant port information removed.
+Uri canonicalizeUri(Uri uri) {
+  var sansPort = new Uri.fromComponents(
+      scheme: uri.scheme, userInfo: uri.userInfo, domain: uri.domain,
+      path: uri.path, query: uri.query, fragment: uri.fragment);
+  if (uri.scheme == 'http' && uri.port == 80) return sansPort;
+  if (uri.scheme == 'https' && uri.port == 443) return sansPort;
+  return uri;
+}
+
 /// Add all key/value pairs from [source] to [destination], overwriting any
 /// pre-existing values.
 void mapAddAll(Map destination, Map source) =>

@@ -52,7 +52,8 @@ class PubHttpClient extends http.BaseClient {
       // 401 responses should be handled by the OAuth2 client. It's very
       // unlikely that they'll be returned by non-OAuth2 requests. We also want
       // to pass along 400 responses from the token endpoint.
-      var tokenRequest = streamedResponse.request.url == oauth2.tokenEndpoint;
+      var tokenRequest = urisEqual(
+          streamedResponse.request.url, oauth2.tokenEndpoint);
       if (status < 400 || status == 401 || (status == 400 && tokenRequest)) {
         return streamedResponse;
       }
