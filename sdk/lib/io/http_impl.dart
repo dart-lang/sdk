@@ -92,15 +92,14 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
     if (_httpServer._sessionManagerInstance != null) {
       // Map to session if exists.
-      var sessionId = cookies.reduce(null, (last, cookie) {
-        if (last != null) return last;
-        return cookie.name.toUpperCase() == _DART_SESSION_ID ?
-            cookie.value : null;
-      });
-      if (sessionId != null) {
+      var sessionIds = cookies
+          .where((cookie) => cookie.name.toUpperCase() == _DART_SESSION_ID)
+          .map((cookie) => cookie.value);
+      for (var sessionId in sessionIds) {
         _session = _httpServer._sessionManager.getSession(sessionId);
         if (_session != null) {
           _session._markSeen();
+          break;
         }
       }
     }
@@ -526,12 +525,15 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
         if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
           cookies[i].value = session.id;
           cookies[i].httpOnly = true;
+          cookies[i].path = "/";
           found = true;
-          break;
         }
       }
       if (!found) {
-        cookies.add(new Cookie(_DART_SESSION_ID, session.id)..httpOnly = true);
+        var cookie = new Cookie(_DART_SESSION_ID, session.id);
+        cookie.httpOnly = true;
+        cookie.path = "/";
+        cookies.add(cookie);
       }
     }
     // Add all the cookies set to the headers.
