@@ -21,8 +21,8 @@ child() {
 
 main() {
   useHtmlConfiguration();
-  var script = document.$dom_createElement('script');
-  document.body.$dom_appendChild(script);
+  var script = new ScriptElement();
+  document.body.append(script);
   test('spawn with other script tags in page', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
