@@ -1332,8 +1332,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   locs->set_in(0, Location::RequiresRegister());
   // The smi index is either untagged (element size == 1), or it is left smi
   // tagged (for all element sizes > 1).
-  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id());
-  if (index_scale == 1) {
+  if (index_scale() == 1) {
     locs->set_in(1, CanBeImmediateIndex(index(), class_id())
                       ? Location::Constant(
                           index()->definition()->AsConstant()->value())
@@ -1395,28 +1394,30 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
-  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id());
-
   Address element_address(kNoRegister, 0);
   if ((class_id() == kExternalUint8ArrayCid) ||
       (class_id() == kExternalUint8ClampedArrayCid)) {
     Register temp = locs()->temp(0).reg();
     element_address = index.IsRegister()
         ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
-            class_id(), index_scale, temp, index.reg())
+            class_id(), index_scale(), temp, index.reg())
         : FlowGraphCompiler::ExternalElementAddressForIntIndex(
-            class_id(), index_scale, temp,
+            class_id(), index_scale(), temp,
             Smi::Cast(index.constant()).Value());
     __ movl(temp,
             FieldAddress(array, ExternalUint8Array::data_offset()));
   } else {
     element_address = index.IsRegister()
         ? FlowGraphCompiler::ElementAddressForRegIndex(
-          class_id(), index_scale, array, index.reg())
+          class_id(), index_scale(), array, index.reg())
         : FlowGraphCompiler::ElementAddressForIntIndex(
-          class_id(), index_scale, array, Smi::Cast(index.constant()).Value());
+          class_id(), index_scale(), array,
+          Smi::Cast(index.constant()).Value());
   }
 
+  if ((index_scale() == 1) && index.IsRegister()) {
+    __ SmiUntag(index.reg());
+  }
   switch (class_id()) {
     case kArrayCid:
       if (ShouldEmitStoreBarrier()) {
@@ -1433,9 +1434,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kExternalUint8ArrayCid:
-      if (index.IsRegister()) {
-        __ SmiUntag(index.reg());
-      }
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ movb(element_address,
@@ -1448,9 +1446,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kUint8ClampedArrayCid:
     case kExternalUint8ClampedArrayCid: {
-      if (index.IsRegister()) {
-        __ SmiUntag(index.reg());
-      }
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         intptr_t value = constant.Value();

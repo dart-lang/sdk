@@ -9,6 +9,7 @@
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
@@ -1689,9 +1690,10 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
         for_value.value()->BindsToConstant()
             ? kNoStoreBarrier
             : kEmitStoreBarrier;
+    intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
     StoreIndexedInstr* store = new StoreIndexedInstr(
         array, index, for_value.value(),
-        emit_store_barrier, class_id, deopt_id);
+        emit_store_barrier, index_scale, class_id, deopt_id);
     Do(store);
   }
 

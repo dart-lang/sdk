@@ -45,6 +45,14 @@ class Range;
   V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
   V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
   V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
+  V(_ByteArrayBase, _setInt8, ByteArrayBaseSetInt8, 501962848)                 \
+  V(_ByteArrayBase, _setUint8, ByteArrayBaseSetUint8, 501962848)               \
+  V(_ByteArrayBase, _setInt16, ByteArrayBaseSetInt16, 501962848)               \
+  V(_ByteArrayBase, _setUint16, ByteArrayBaseSetUint16, 501962848)             \
+  V(_ByteArrayBase, _setInt32, ByteArrayBaseSetInt32, 501962848)               \
+  V(_ByteArrayBase, _setUint32, ByteArrayBaseSetUint32, 501962848)             \
+  V(_ByteArrayBase, _setFloat32, ByteArrayBaseSetFloat32, 864506525)           \
+  V(_ByteArrayBase, _setFloat64, ByteArrayBaseSetFloat64, 864506525)           \
   V(_Float32Array, _getIndexed, Float32ArrayGetIndexed, 734006846)             \
   V(_Float64Array, _getIndexed, Float64ArrayGetIndexed, 498074772)             \
   V(_Int8Array, _getIndexed, Int8ArrayGetIndexed, 712069760)                   \
@@ -731,6 +739,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class InvokeMathCFunctionInstr;
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
+  friend class StoreIndexedInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -2909,14 +2918,16 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
                     Value* index,
                     Value* value,
                     StoreBarrierType emit_store_barrier,
+                    intptr_t index_scale,
                     intptr_t class_id,
                     intptr_t deopt_id)
       : emit_store_barrier_(emit_store_barrier),
-        class_id_(class_id),
-        deopt_id_(deopt_id) {
+        index_scale_(index_scale),
+        class_id_(class_id) {
     SetInputAt(0, array);
     SetInputAt(1, index);
     SetInputAt(2, value);
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreIndexed)
@@ -2924,6 +2935,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
+  intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
 
   bool ShouldEmitStoreBarrier() const {
@@ -2945,8 +2957,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
  private:
   const StoreBarrierType emit_store_barrier_;
+  const intptr_t index_scale_;
   const intptr_t class_id_;
-  const intptr_t deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };

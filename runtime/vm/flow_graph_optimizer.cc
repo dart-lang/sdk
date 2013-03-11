@@ -692,6 +692,13 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
 }
 
 
+static bool CanUnboxInt32() {
+  // Int32/Uint32 can be unboxed if it fits into a smi or the platform
+  // supports unboxed mints.
+  return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedMints();
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
   ICData& value_check = ICData::ZoneHandle();
@@ -718,11 +725,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       break;
     case kInt32ArrayCid:
     case kUint32ArrayCid: {
-      // Check if elements fit into a smi or the platform supports unboxed
-      // mints.
-      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-        return false;
-      }
+      if (!CanUnboxInt32()) return false;
       // Check that value is always smi or mint, if the platform has unboxed
       // mints (ia32 with at least SSE 4.1).
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
@@ -779,11 +782,8 @@ bool FlowGraphOptimizer::TryInlineByteArraySetIndexed(InstanceCallInstr* call) {
     }
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      // Check if elements fit into a smi or the platform supports unboxed
-      // mints.
-      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-        return false;
-      }
+      if (!CanUnboxInt32()) return false;
+
       // We don't have ICData for the value stored, so we optimistically assume
       // smis first. If we ever deoptimized here, we require to unbox the value
       // before storing to handle the mint case, too.
@@ -895,10 +895,12 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
                   call);
   }
 
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
   Definition* array_op = new StoreIndexedInstr(new Value(array),
                                                new Value(index),
                                                new Value(stored_value),
                                                needs_store_barrier,
+                                               index_scale,
                                                array_cid,
                                                call->deopt_id());
   ReplaceCall(call, array_op);
@@ -925,13 +927,9 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kUint16ArrayCid:
       break;
     case kInt32ArrayCid:
-    case kUint32ArrayCid:
-      // Check if elements fit into a smi or the platform supports unboxed
-      // mints.
-      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-        return false;
-      }
-      {
+    case kUint32ArrayCid: {
+        if (!CanUnboxInt32()) return false;
+
         // Set deopt_id if we can optimistically assume that the result is Smi.
         // Assume mixed Mint/Smi if this instruction caused deoptimization once.
         ASSERT(call->HasICData());
@@ -946,10 +944,11 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   Definition* array = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
   Definition* array_op =
       new LoadIndexedInstr(new Value(array),
                            new Value(index),
-                           FlowGraphCompiler::ElementSizeFor(array_cid),
+                           index_scale,
                            array_cid,
                            deopt_id);
   ReplaceCall(call, array_op);
@@ -1603,55 +1602,175 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (IsSupportedByteArrayCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    Definition* array_op = NULL;
+    // For elements that may not fit into a smi on all platforms, check if
+    // elements fit into a smi or the platform supports unboxed mints.
+    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetInt32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseGetUint32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetInt32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetUint32)) {
+      if (!CanUnboxInt32()) return false;
+    }
+
     switch (recognized_kind) {
+      // ByteArray getters.
       case MethodRecognizer::kByteArrayBaseGetInt8:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint8:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt16:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint16:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt32:
-        // Check if elements fit into a smi or the platform supports unboxed
-        // mints.
-        if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-          return false;
-        }
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint32:
-        // Check if elements fit into a smi or the platform supports unboxed
-        // mints.
-        if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-          return false;
-        }
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat64:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
+
+      // ByteArray setters.
+      case MethodRecognizer::kByteArrayBaseSetInt8:
+        return BuildByteArrayViewStore(call, class_ids[0], kInt8ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint8:
+        return BuildByteArrayViewStore(call, class_ids[0], kUint8ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetInt16:
+        return BuildByteArrayViewStore(call, class_ids[0], kInt16ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint16:
+        return BuildByteArrayViewStore(call, class_ids[0], kUint16ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetInt32:
+        return BuildByteArrayViewStore(call, class_ids[0], kInt32ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint32:
+        return BuildByteArrayViewStore(call, class_ids[0], kUint32ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetFloat32:
+        return BuildByteArrayViewStore(call, class_ids[0], kFloat32ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetFloat64:
+        return BuildByteArrayViewStore(call, class_ids[0], kFloat64ArrayCid);
       default:
         // Unsupported method.
         return false;
     }
-    ASSERT(array_op != NULL);
-    ReplaceCall(call, array_op);
-    return true;
   }
   return false;
 }
 
 
-LoadIndexedInstr* FlowGraphOptimizer::BuildByteArrayViewLoad(
+bool FlowGraphOptimizer::BuildByteArrayViewLoad(
+    InstanceCallInstr* call,
+    intptr_t receiver_cid,
+    intptr_t view_cid) {
+  PrepareByteArrayViewOp(call, receiver_cid, view_cid);
+
+  Definition* array = call->ArgumentAt(0);
+  Definition* byte_index = call->ArgumentAt(1);
+
+  // Optimistically build a smi-checked load for Int32 and Uint32
+  // loads on ia32 like we do for normal array loads, and only revert to
+  // mint case after deoptimizing here.
+  intptr_t deopt_id = Isolate::kNoDeoptId;
+  if ((view_cid == kInt32ArrayCid || view_cid == kUint32ArrayCid) &&
+      call->ic_data()->deopt_reason() == kDeoptUnknown) {
+    deopt_id = call->deopt_id();
+  }
+  LoadIndexedInstr* array_op = new LoadIndexedInstr(new Value(array),
+                                                    new Value(byte_index),
+                                                    1,  // Index scale.
+                                                    view_cid,
+                                                    deopt_id);
+  ReplaceCall(call, array_op);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::BuildByteArrayViewStore(
+    InstanceCallInstr* call,
+    intptr_t receiver_cid,
+    intptr_t view_cid) {
+  PrepareByteArrayViewOp(call, receiver_cid, view_cid);
+  ICData& value_check = ICData::ZoneHandle();
+  switch (view_cid) {
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid: {
+      // Check that value is always smi.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      break;
+    }
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // We don't have ICData for the value stored, so we optimistically assume
+      // smis first. If we ever deoptimized here, we require to unbox the value
+      // before storing to handle the mint case, too.
+      if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
+        value_check = ICData::New(Function::Handle(),
+                                  String::Handle(),
+                                  Isolate::kNoDeoptId,
+                                  1);
+        value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      }
+      break;
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid: {
+      // Check that value is always double.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
+      break;
+    }
+    default:
+      // Array cids are already checked in the caller.
+      UNREACHABLE();
+      return NULL;
+  }
+
+  Definition* array = call->ArgumentAt(0);
+  Definition* index = call->ArgumentAt(1);
+  Definition* stored_value = call->ArgumentAt(2);
+  if (!value_check.IsNull()) {
+    AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
+                  call);
+  }
+  StoreBarrierType needs_store_barrier = kNoStoreBarrier;
+
+
+  // result = index + bytesPerElement.
+  intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
+  ConstantInstr* bytes_per_element =
+      new ConstantInstr(Smi::Handle(Smi::New(element_size)));
+  InsertBefore(call, bytes_per_element, NULL, Definition::kValue);
+  BinarySmiOpInstr* result =
+      new BinarySmiOpInstr(Token::kADD,
+                           call,
+                           new Value(index),
+                           new Value(bytes_per_element));
+  InsertBefore(call, result, call->env(), Definition::kValue);
+
+  StoreIndexedInstr* array_op = new StoreIndexedInstr(new Value(array),
+                                                      new Value(index),
+                                                      new Value(stored_value),
+                                                      needs_store_barrier,
+                                                      1,  // Index scale
+                                                      view_cid,
+                                                      call->deopt_id());
+  call->ReplaceUsesWith(result);  // Fix uses of the call's return value.
+  ReplaceCall(call, array_op);
+  array_op->ClearSSATempIndex();  // Store has no uses.
+  return true;
+}
+
+
+void FlowGraphOptimizer::PrepareByteArrayViewOp(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
     intptr_t view_cid) {
@@ -1690,15 +1809,6 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildByteArrayViewLoad(
                                         call),
                call->env(),
                Definition::kEffect);
-
-  // TODO(fschneider): Optimistically build smi load for Int32 and Uint32
-  // loads on ia32 like we do for normal array loads, and only revert to
-  // mint case after deoptimizing here.
-  return new LoadIndexedInstr(new Value(array),
-                              new Value(byte_index),
-                              1,  // Index scale.
-                              view_cid,
-                              Isolate::kNoDeoptId);  // Can't deoptimize.
 }
 
 
