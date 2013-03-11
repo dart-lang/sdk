@@ -213,7 +213,6 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   class Function {}
   class List {
     List([int length]);
-    List.filled(int length, fill);
   }
   abstract class Map {}
   class Closure {}

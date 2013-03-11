@@ -336,30 +336,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  bool isFixedSizeListConstructor(HInvokeStatic node) {
-    Element element = node.target.element;
-    if (backend.fixedLengthListConstructor == null) {
-      backend.fixedLengthListConstructor =
-        compiler.listClass.lookupConstructor(
-            new Selector.callConstructor(const SourceString(""),
-                                         compiler.listClass.getLibrary()));
-    }
-    // TODO(ngeoffray): checking if the second input is an integer
-    // should not be necessary but it currently makes it easier for
-    // other optimizations to reason on a fixed length constructor
-    // that we know takes an int.
-    return element == backend.fixedLengthListConstructor
-        && node.inputs.length == 2
-        && node.inputs[1].isInteger();
-  }
-
-  HInstruction visitInvokeStatic(HInvokeStatic node) {
-    if (isFixedSizeListConstructor(node)) {
-      node.instructionType = HType.FIXED_ARRAY;
-    }
-    return node;
-  }
-
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     if (node.isCallOnInterceptor) return handleInterceptorCall(node);
     HType receiverType = node.receiver.instructionType;
@@ -593,7 +569,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // Try to recognize the length getter with input
         // [:new List(int):].
         HInvokeStatic call = node.receiver;
-        if (isFixedSizeListConstructor(call)) {
+        Element element = call.target.element;
+        // TODO(ngeoffray): checking if the second input is an integer
+        // should not be necessary but it currently makes it easier for
+        // other optimizations to reason about a fixed length constructor
+        // that we know takes an int.
+        if (element == compiler.unnamedListConstructor
+            && call.inputs.length == 2
+            && call.inputs[1].isInteger()) {
           return call.inputs[1];
         }
       }

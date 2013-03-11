@@ -486,6 +486,23 @@ class Elements {
   static List<Element> sortedByPosition(Iterable<Element> elements) {
     return elements.toList()..sort(compareByPosition);
   }
+
+  static bool isFixedListConstructorCall(Element element,
+                                         Node node,
+                                         Compiler compiler) {
+    return element == compiler.unnamedListConstructor
+        && node.isCall
+        && !node.arguments.isEmpty
+        && node.arguments.tail.isEmpty;
+  }
+
+  static bool isGrowableListConstructorCall(Element element,
+                                            Node node,
+                                            Compiler compiler) {
+    return element == compiler.unnamedListConstructor
+        && node.isCall
+        && node.arguments.isEmpty;
+  }
 }
 
 abstract class ErroneousElement extends Element implements FunctionElement {

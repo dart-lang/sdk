@@ -7,7 +7,7 @@ part of dart.core;
 /**
  * A [List] is an indexable collection with a length.
  *
- * A `List` implementation can be choose not to support all methods
+ * A `List` implementation can choose not to support all methods
  * of the `List` interface.
  *
  * The most common list types are:

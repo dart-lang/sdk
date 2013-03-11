@@ -662,7 +662,6 @@ class JavaScriptBackend extends Backend {
 
   Element getInterceptorMethod;
   Element interceptedNames;
-  Element fixedLengthListConstructor;
 
   bool seenAnyClass = false;
 
@@ -1573,6 +1572,9 @@ class JavaScriptBackend extends Backend {
   ClassElement get numImplementation => jsNumberClass;
   ClassElement get stringImplementation => jsStringClass;
   ClassElement get listImplementation => jsArrayClass;
+  ClassElement get constListImplementation => jsArrayClass;
+  ClassElement get fixedListImplementation => jsFixedArrayClass;
+  ClassElement get growableListImplementation => jsExtendableArrayClass;
   ClassElement get mapImplementation => mapLiteralClass;
   ClassElement get constMapImplementation => constMapLiteralClass;
   ClassElement get functionImplementation => jsFunctionClass;

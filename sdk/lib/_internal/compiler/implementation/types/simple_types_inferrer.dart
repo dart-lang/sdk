@@ -166,6 +166,9 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask boolType;
   TypeMask functionType;
   TypeMask listType;
+  TypeMask constListType;
+  TypeMask fixedListType;
+  TypeMask growableListType;
   TypeMask mapType;
   TypeMask constMapType;
   TypeMask stringType;
@@ -346,8 +349,15 @@ class SimpleTypesInferrer extends TypesInferrer {
         rawTypeOf(backend.stringImplementation));
     boolType = new TypeMask.nonNullExact(
         rawTypeOf(backend.boolImplementation));
+
     listType = new TypeMask.nonNullExact(
         rawTypeOf(backend.listImplementation));
+    constListType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.constListImplementation));
+    fixedListType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.fixedListImplementation));
+    growableListType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.growableListImplementation));
 
     mapType = new TypeMask.nonNullSubtype(
         rawTypeOf(backend.mapImplementation));
@@ -969,15 +979,15 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitLiteralList(LiteralList node) {
-    return inferrer.listType;
+    return node.isConst()
+        ? inferrer.constListType
+        : inferrer.growableListType;
   }
 
   TypeMask visitLiteralMap(LiteralMap node) {
-    if (node.isConst()) {
-      return inferrer.constMapType;
-    } else {
-      return inferrer.mapType;
-    }
+    return node.isConst()
+        ? inferrer.constMapType
+        : inferrer.mapType;
   }
 
   TypeMask visitLiteralNull(LiteralNull node) {
@@ -1139,7 +1149,13 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     inferrer.registerCalledElement(outermostElement, element, arguments);
-    return inferrer.returnTypeOfElement(element);
+    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
+      return inferrer.growableListType;
+    } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
+      return inferrer.fixedListType;
+    } else {
+      return inferrer.returnTypeOfElement(element);
+    }
   }
 
   TypeMask handleForeignSend(Send node) {

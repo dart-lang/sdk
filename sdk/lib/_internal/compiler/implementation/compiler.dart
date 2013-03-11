@@ -160,6 +160,9 @@ abstract class Backend {
   ClassElement get numImplementation => compiler.numClass;
   ClassElement get stringImplementation => compiler.stringClass;
   ClassElement get listImplementation => compiler.listClass;
+  ClassElement get growableListImplementation => compiler.listClass;
+  ClassElement get fixedListImplementation => compiler.listClass;
+  ClassElement get constListImplementation => compiler.listClass;
   ClassElement get mapImplementation => compiler.mapClass;
   ClassElement get constMapImplementation => compiler.mapClass;
   ClassElement get functionImplementation => compiler.functionClass;
@@ -597,6 +600,15 @@ abstract class Compiler implements DiagnosticListener {
 
     types = new Types(this, dynamicClass);
     backend.initializeHelperClasses();
+  }
+
+  Element _unnamedListConstructor;
+  Element get unnamedListConstructor {
+    if (_unnamedListConstructor != null) return _unnamedListConstructor;
+    Selector callConstructor = new Selector.callConstructor(
+        const SourceString(""), listClass.getLibrary());
+    return _unnamedListConstructor =
+        listClass.lookupConstructor(callConstructor);
   }
 
   void scanBuiltinLibraries() {

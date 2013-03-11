@@ -3270,13 +3270,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[node];
-      if (identical(originalElement.getEnclosingClass(), compiler.listClass)) {
+      if (Elements.isFixedListConstructorCall(
+              originalElement, node, compiler)) {
         isListConstructor = true;
-        if (node.arguments.isEmpty) {
-          return HType.EXTENDABLE_ARRAY;
-        } else {
-          return HType.MUTABLE_ARRAY;
-        }
+        return HType.FIXED_ARRAY;
+      } else if (Elements.isGrowableListConstructorCall(
+                    originalElement, node, compiler)) {
+        isListConstructor = true;
+        return HType.EXTENDABLE_ARRAY;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
         return new HType.nonNullExact(cls.thisType, compiler);

@@ -45,6 +45,8 @@ Future<String> provider(Uri uri) {
                     var removeLast;
                     var add;
                   }
+                  class JSFixedArray {}
+                  class JSExtendableArray {}
                   class JSString {
                     var length;
                     var split;
