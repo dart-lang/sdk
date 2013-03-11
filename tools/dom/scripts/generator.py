@@ -1478,8 +1478,10 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
     # hence ArrayBuffer is mapped to dynamic in arguments and return
     # values.
-    'ArrayBufferView': TypeData(clazz='Interface', dart_type='dynamic'),
-    'ArrayBuffer': TypeData(clazz='Interface', dart_type='dynamic'),
+    'ArrayBufferView': TypeData(clazz='Interface', dart_type='dynamic',
+        custom_to_native=True, custom_to_dart=True),
+    'ArrayBuffer': TypeData(clazz='Interface', dart_type='dynamic',
+        custom_to_native=True, custom_to_dart=True),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
