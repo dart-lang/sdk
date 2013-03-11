@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_js_helper' show Creates, Returns;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
