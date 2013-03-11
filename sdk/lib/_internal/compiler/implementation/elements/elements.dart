@@ -488,7 +488,7 @@ class Elements {
   }
 
   static bool isFixedListConstructorCall(Element element,
-                                         Node node,
+                                         Send node,
                                          Compiler compiler) {
     return element == compiler.unnamedListConstructor
         && node.isCall
@@ -497,7 +497,7 @@ class Elements {
   }
 
   static bool isGrowableListConstructorCall(Element element,
-                                            Node node,
+                                            Send node,
                                             Compiler compiler) {
     return element == compiler.unnamedListConstructor
         && node.isCall
