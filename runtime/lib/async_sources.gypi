@@ -2,9 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains all sources for the dart:isolate library.
+# This file contains all sources for the dart:async library.
 {
   'sources': [
+    'event_loop_patch.dart',
     'timer_patch.dart',
     'deferred_load_patch.dart',
   ],

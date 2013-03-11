@@ -10,6 +10,10 @@ scalarlist/*: Skip
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
+async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
+
+[ $compiler == dart2js && ($runtime == d8 || $jscl) ]
+async/run_async4_test: Fail # no global exception handler in isolates. http://dartbug.com/9012
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
@@ -38,6 +42,10 @@ crypto/hmac_sha256_test: Fail
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/hmac_md5_test: Fail, Pass
+
+
+[ $runtime == vm ]
+async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 
 [ $compiler == none && $runtime == drt ]
 async/deferred/deferred_api_test: Fail # http://dartbug.com/2264

@@ -10,6 +10,7 @@
     'async_error.dart',
     'collection_sink.dart',
     'deferred_load.dart',
+    'event_loop.dart',
     'future.dart',
     'future_impl.dart',
     'stream.dart',

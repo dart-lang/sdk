@@ -21,6 +21,13 @@ patch class Timer {
   }
 }
 
+patch class _AsyncRun {
+  patch static void _enqueueImmediate(void callback()) {
+    // TODO(9002): don't use the Timer to enqueue the immediate callback.
+    Timer.run(callback);
+  }
+}
+
 patch class DeferredLibrary {
   patch Future<bool> load() {
     return _load(libraryName, uri);
