@@ -532,7 +532,7 @@ class Assembler : public ValueObject {
   void BranchLinkStore(const ExternalLabel* label, Address ad);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
-  void BranchLinkOffset(Register base, int offset);
+  void BranchLinkOffset(Register base, int32_t offset);
 
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL);
@@ -555,6 +555,7 @@ class Assembler : public ValueObject {
   void Drop(intptr_t stack_elements);
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
+  void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadFromOffset(LoadOperandType type,
                       Register reg,
                       Register base,
@@ -681,7 +682,7 @@ class Assembler : public ValueObject {
                   Register rd,
                   ShifterOperand so);
 
-  void EmitType5(Condition cond, int offset, bool link);
+  void EmitType5(Condition cond, int32_t offset, bool link);
 
   void EmitMemOp(Condition cond,
                  bool load,
@@ -762,9 +763,9 @@ class Assembler : public ValueObject {
                  SRegister sm);
 
   void EmitBranch(Condition cond, Label* label, bool link);
-  static int32_t EncodeBranchOffset(int offset, int32_t inst);
+  static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
   static int DecodeBranchOffset(int32_t inst);
-  int32_t EncodeTstOffset(int offset, int32_t inst);
+  int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int DecodeTstOffset(int32_t inst);
 
   // Returns whether or not the given register is used for passing parameters.

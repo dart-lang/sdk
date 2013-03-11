@@ -16,13 +16,16 @@ namespace dart {
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ BranchLinkPatchable(&StubCode::InstanceFunctionLookupLabel());
-  // Do not emit any code after the call above, since we decode backwards
-  // starting from the return address, i.e. from the end of this code buffer.
+  __ Ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Call, test) {
-  CallPattern call(test->entry() + test->code().Size(), test->code());
+  // The return address, which must be the address of an instruction contained
+  // in the code, points to the Ret instruction above, i.e. one instruction
+  // before the end of the code buffer.
+  CallPattern call(test->entry() + test->code().Size() - Instr::kInstrSize,
+                   test->code());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             call.TargetAddress());
 }

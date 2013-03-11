@@ -171,7 +171,7 @@ void Assembler::EmitType01(Condition cond,
 }
 
 
-void Assembler::EmitType5(Condition cond, int offset, bool link) {
+void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      5 << kTypeShift |
@@ -1235,6 +1235,32 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
+// Uses a code sequence that can easily be decoded.
+void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
+  ASSERT(rd != PP);
+  int32_t offset_mask = 0;
+  if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
+    ldr(rd, Address(PP, offset));
+  } else {
+    int32_t offset_hi = offset & ~offset_mask;  // signed
+    uint32_t offset_lo = offset & offset_mask;  // unsigned
+    // Inline a simplified version of AddImmediate(rd, PP, offset_hi).
+    ShifterOperand shifter_op;
+    if (ShifterOperand::CanHold(offset_hi, &shifter_op)) {
+      add(rd, PP, shifter_op);
+    } else {
+      movw(rd, Utils::Low16Bits(offset_hi));
+      const uint16_t value_high = Utils::High16Bits(offset_hi);
+      if (value_high != 0) {
+        movt(rd, value_high);
+      }
+      add(rd, PP, ShifterOperand(LR));
+    }
+    ldr(rd, Address(rd, offset_lo));
+  }
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
   if (object.IsNull() ||
       object.IsSmi() ||
@@ -1246,15 +1272,7 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   }
   const int32_t offset =
       Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-  int32_t offset_mask = 0;
-  if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
-    ldr(rd, Address(PP, offset));
-  } else {
-    int32_t offset_hi = offset & ~offset_mask;  // signed
-    uint32_t offset_lo = offset & offset_mask;  // unsigned
-    AddImmediate(rd, PP, offset_hi);
-    ldr(rd, Address(rd, offset_lo));
-  }
+  LoadWordFromPoolOffset(rd, offset);
 }
 
 
@@ -1426,26 +1444,7 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset =
       Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-  int32_t offset_mask = 0;
-  if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
-    ldr(LR, Address(PP, offset));
-  } else {
-    int32_t offset_hi = offset & ~offset_mask;  // signed
-    uint32_t offset_lo = offset & offset_mask;  // unsigned
-    // Inline a simplified version of AddImmediate(LR, CP, offset_hi).
-    ShifterOperand shifter_op;
-    if (ShifterOperand::CanHold(offset_hi, &shifter_op)) {
-      add(LR, PP, shifter_op);
-    } else {
-      movw(LR, Utils::Low16Bits(offset_hi));
-      const uint16_t value_high = Utils::High16Bits(offset_hi);
-      if (value_high != 0) {
-        movt(LR, value_high);
-      }
-      add(LR, PP, ShifterOperand(LR));
-    }
-    ldr(LR, Address(LR, offset_lo));
-  }
+  LoadWordFromPoolOffset(LR, offset);
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -1458,25 +1457,10 @@ void Assembler::BranchLinkStore(const ExternalLabel* label, Address ad) {
 }
 
 
-void Assembler::BranchLinkOffset(Register base, int offset) {
+void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
-  int32_t offset_mask = 0;
-  if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
-    ldr(IP, Address(base, offset));
-  } else {
-    int offset_hi = offset & ~offset_mask;
-    int offset_lo = offset & offset_mask;
-    ShifterOperand offset_hi_op;
-    if (ShifterOperand::CanHold(offset_hi, &offset_hi_op)) {
-      add(IP, base, offset_hi_op);
-      ldr(IP, Address(IP, offset_lo));
-    } else {
-      LoadImmediate(IP, offset_hi);
-      add(IP, IP, ShifterOperand(base));
-      ldr(IP, Address(IP, offset_lo));
-    }
-  }
+  LoadFromOffset(kLoadWord, IP, base, offset);
   blx(IP);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -1915,7 +1899,7 @@ void Assembler::Stop(const char* message) {
 }
 
 
-int32_t Assembler::EncodeBranchOffset(int offset, int32_t inst) {
+int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= 8;
   ASSERT(Utils::IsAligned(offset, 4));
