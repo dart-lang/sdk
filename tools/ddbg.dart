@@ -69,7 +69,7 @@ Future sendCmd(Map<String, dynamic> cmd) {
   if (verbose) {
     print("sending: '${json.stringify(cmd)}'");
   }
-  vmSock.addString(json.stringify(cmd));
+  vmSock.write(json.stringify(cmd));
   return completer.future;
 }
 
