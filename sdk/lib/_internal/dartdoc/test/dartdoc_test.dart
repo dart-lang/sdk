@@ -261,7 +261,7 @@ Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
 }
 
 final _dartdocCompletionRegExp =
-  new RegExp(r'Documented (\d+) libraries, (\d+) types, and (\d+) members\.');
+  new RegExp(r'Documentation complete -- documented (\d+) libraries, (\d+) types, and (\d+) members\.');
 
 void _expectDocumented(String output, { int libCount, int typeCount,
   int memberCount}) {

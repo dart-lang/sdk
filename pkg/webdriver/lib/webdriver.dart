@@ -5,9 +5,9 @@
 library webdriver;
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:json' as json;
 import 'dart:uri';
-import 'dart:io';
 
 part 'src/base64decoder.dart';
 

@@ -8,11 +8,14 @@
  */
 library universe_serializer;
 
+import 'dartdoc.dart';
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+import '../../../../../pkg/pathos/lib/path.dart' as path;
+import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
-import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../libraries.dart';
-import 'dartdoc.dart';
 
 String _stripUri(String uri) {
   String prefix = "/dart/";
@@ -40,7 +43,7 @@ class Element {
   final String id;
   /** Raw text of the comment associated with the Element if any. */
   final String comment;
-  /** Raw html comment for the Element from MDN. */ 
+  /** Raw html comment for the Element from MDN. */
   String mdnCommentHtml;
   /**
    * The URL to the page on MDN that content was pulled from for the current
@@ -136,7 +139,7 @@ class LibraryElement extends Element {
    * or implemented by classes in this library.
    */
   List<LibraryElement> dependencies;
-  
+
   /**
    * Construct a LibraryElement from a [mirror].
    *
@@ -197,21 +200,30 @@ class LibraryElement extends Element {
       // TODO(jacobr): this is a hack. Remove once these libraries are removed
       // from the sdk.
       var uri = mirror.uri;
-      var path = uri.path;
-      var pattern = new RegExp(r'[\\/]dart[\\/]pkg[\\/]([^\\/]+)[\\/]lib[\\/](.+)$');
-      var match = pattern.firstMatch(path);
-      var package;
-      if (match != null) {
-        package = match.group(1);
-        path = match.group(2);
+      var uriPath = uri.path;
+
+      var parts = path.split(uriPath);
+
+      // Find either pkg/ or packages/
+      var pkgDir = parts.lastIndexOf('pkg');
+      var packageDir = parts.lastIndexOf('packages');
+
+      if (pkgDir >= 0) {
+        packageDir = pkgDir;
       }
-      // TODO(jacobr): add a second pattern for a more typical pub environment.
-      if (package != null) {
-        return 'package:$package/$path';
-      } else {
+
+      var libDir = parts.lastIndexOf('lib');
+      var rest = parts.getRange(libDir + 1, parts.length - libDir - 1);
+
+      // If there's no lib, we can't find the package.
+      if (libDir < 0 || libDir < packageDir) {
         // TODO(jacobr): this is a lousy fallback.
-        print("Unable to determine package for $path.");
+        print("Unable to determine package for $uriPath.");
         return mirror.uri.toString();
+      } else if (packageDir >= 0 && rest.length >= 1) {
+        // For URI: foo/bar/packages/widget/lib/sprocket.dart will return:
+        // 'package:widget/sprocket.dart'
+        return 'package:${parts[packageDir + 1]}/${rest.join('/')}';
       }
     } else {
       return mirror.uri.toString();
@@ -253,7 +265,7 @@ class ClassElement extends Element {
   List<Reference> interfaces;
   /** Whether the class implements or extends [Error] or [Exception]. */
   bool isThrowable;
-  
+
   /**
    * Constructs a [ClassElement] from a [ClassMirror].
    *
@@ -393,7 +405,7 @@ class ParameterElement extends Element {
    * Returns the initialized field, if this parameter is an initializing formal.
    */
   final Reference initializedField;
-  
+
   ParameterElement(ParameterMirror mirror)
       : super(mirror, 'param', mirror.simpleName, mirror.simpleName, null,
           null),
@@ -402,7 +414,7 @@ class ParameterElement extends Element {
         defaultValue = mirror.defaultValue,
         isNamed = _optionalBool(mirror.isNamed),
         initializedField = _optionalReference(mirror.initializedField) {
-              
+
     if (mirror.type is FunctionTypeMirror) {
       addChild(new FunctionTypeElement(mirror.type));
     }
@@ -411,7 +423,7 @@ class ParameterElement extends Element {
 
 class FunctionTypeElement extends Element {
   final Reference returnType;
- 
+
   FunctionTypeElement(FunctionTypeMirror mirror)
       : super(mirror, 'functiontype', mirror.simpleName, mirror.simpleName, null, null),
         returnType = _optionalReference(mirror.returnType) {
@@ -431,7 +443,7 @@ class FunctionTypeElement extends Element {
 class TypeParameterElement extends Element {
   /**
    * Upper bound for the parameter.
-   * 
+   *
    * In the following code sample, [:Bar:] is an upper bound:
    * [: class Bar<T extends Foo> { } :]
    */
@@ -505,7 +517,7 @@ class Reference {
       }
     }
   }
-  
+
   // TODO(jacobr): compute the referenceId correctly for the general case so
   // that this method can work with all element types not just LibraryElements.
   Reference.fromElement(LibraryElement e) : name = e.name, refId = e.id;

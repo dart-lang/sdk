@@ -18,19 +18,22 @@ library dartdoc;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
-import 'dart:json' as json;
 
+import 'classify.dart';
+import 'markdown.dart' as md;
+import 'universe_serializer.dart';
+
+import 'src/dartdoc/nav.dart';
+import 'src/json_serializer.dart' as json_serializer;
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
-import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
-import 'classify.dart';
-import 'universe_serializer.dart';
-import 'markdown.dart' as md;
-import 'src/json_serializer.dart' as json_serializer;
 import '../../libraries.dart';
-import 'src/dartdoc/nav.dart';
 
 part 'src/dartdoc/utils.dart';
 
@@ -127,21 +130,17 @@ Future copyDirectory(Path from, Path to) {
  * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
 Future compileScript(int mode, Path outputDir, Path libPath) {
+  print('Compiling client JavaScript...');
   var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
   var dartPath = libPath.append(
       'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
   var jsPath = outputDir.append('client-$clientScript.js');
 
-  var completer = new Completer<bool>();
-  Future<String> result = dart2js.compile(
-      dartPath, libPath, options: const <String>['--categories=Client,Server']);
-  result.then((jsCode) {
-    if (jsCode != null) {
+  return dart2js.compile(dartPath, libPath,
+      options: const <String>['--categories=Client,Server'])
+    .then((jsCode) {
       writeString(new File.fromPath(jsPath), jsCode);
-    }
-    completer.complete(jsCode != null);
-  });
-  return completer.future;
+    });
 }
 
 /**
@@ -290,6 +289,39 @@ class Dartdoc {
   int get totalTypes => _totalTypes;
   int get totalMembers => _totalMembers;
 
+  // Check if the compilation has started and finished.
+  bool _started = false;
+  bool _finished = false;
+
+  /**
+   * Prints the status of dartdoc.
+   *
+   * Prints whether dartdoc is running, whether dartdoc has finished
+   * succesfully or not, and how many libraries, types, and members were
+   * documented.
+   */
+  String get status {
+    // TODO(amouravski): Make this more full featured and remove all other
+    // prints and put them under verbose flag.
+    if (!_started) {
+      return 'Documentation has not yet started.';
+    } else if (!_finished) {
+      return 'Documentation in progress -- documented $_statisticsSummary so far.';
+    } else {
+      if (totals == 0) {
+        return 'Documentation complete -- warning: nothing was documented!';
+      } else {
+        return 'Documentation complete -- documented $_statisticsSummary.';
+      }
+    }
+  }
+
+  int get totals => totalLibraries + totalTypes + totalMembers;
+
+  String get _statisticsSummary =>
+      '${totalLibraries} libraries, ${totalTypes} types, and '
+      '${totalMembers} members';
+
   static const List<String> COMPILER_OPTIONS =
       const <String>['--preserve-comments', '--categories=Client,Server'];
 
@@ -376,19 +408,20 @@ class Dartdoc {
   }
 
   Future documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
-    Completer completer = new Completer();
-    Future<MirrorSystem> result = dart2js.analyze(libraryList, libPath,
-        packageRoot: pkgPath, options: COMPILER_OPTIONS);
-    result.then((MirrorSystem mirrors) {
-      _document(mirrors);
-      completer.complete(true);
-    }, onError: (AsyncError error) {
-      completer.completeError(error.error);
-    });
-    return completer.future;
+    // TODO(amouravski): make all of these print statements into logging
+    // statements.
+    print('Analyzing libraries...');
+    return dart2js.analyze(libraryList, libPath, packageRoot: pkgPath,
+        options: COMPILER_OPTIONS)
+      .then((MirrorSystem mirrors) {
+        print('Generating documentation...');
+        _document(mirrors);
+      });
   }
 
   void _document(MirrorSystem mirrors) {
+    _started = true;
+
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
         mirrors.libraries.values.where(shouldIncludeLibrary));
@@ -447,6 +480,8 @@ class Dartdoc {
     packageManifest.location = revision;
     write(json_serializer.serialize(packageManifest));
     endFile();
+
+    _finished = true;
   }
 
   MdnComment lookupMdnComment(Mirror mirror) => null;

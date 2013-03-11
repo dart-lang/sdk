@@ -17,11 +17,13 @@ library apidoc;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
+
 import 'html_diff.dart';
+
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
-import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart' as doc;
+import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/_internal/libraries.dart';
 
 HtmlDiff _diff;
@@ -29,7 +31,7 @@ HtmlDiff _diff;
 void main() {
   final args = new Options().arguments;
 
-  int mode = doc.MODE_STATIC;
+  int mode = MODE_STATIC;
   Path outputDir = new Path('docs');
   bool generateAppCache = false;
 
@@ -44,11 +46,11 @@ void main() {
 
     switch (arg) {
       case '--mode=static':
-        mode = doc.MODE_STATIC;
+        mode = MODE_STATIC;
         break;
 
       case '--mode=live-nav':
-        mode = doc.MODE_LIVE_NAV;
+        mode = MODE_LIVE_NAV;
         break;
 
       case '--generate-app-cache=true':
@@ -74,29 +76,30 @@ void main() {
     }
   }
 
-  final libPath = doc.scriptDir.append('../../sdk/');
+  final libPath = scriptDir.append('../../sdk/');
 
-  doc.cleanOutputDirectory(outputDir);
+  cleanOutputDirectory(outputDir);
 
+  print('Copying static files...');
   // The basic dartdoc-provided static content.
-  final copiedStatic = doc.copyDirectory(
-      doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/static'),
+  final copiedStatic = copyDirectory(
+      scriptDir.append('../../sdk/lib/_internal/dartdoc/static'),
       outputDir);
 
   // The apidoc-specific static content.
-  final copiedApiDocStatic = doc.copyDirectory(
-      doc.scriptDir.append('static'),
+  final copiedApiDocStatic = copyDirectory(
+      scriptDir.append('static'),
       outputDir);
 
   print('Parsing MDN data...');
-  final mdnFile = new File.fromPath(doc.scriptDir.append('mdn/database.json'));
+  final mdnFile = new File.fromPath(scriptDir.append('mdn/database.json'));
   final mdn = json.parse(mdnFile.readAsStringSync());
 
   print('Cross-referencing dart:html...');
+  // TODO(amouravski): move HtmlDiff inside of the future chain below to re-use
+  // the MirrorSystem already analyzed.
   _diff = new HtmlDiff(printWarnings:false);
   Future htmlDiff = _diff.run(libPath);
-
-  // Process libraries.
 
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
   // URIs. Perhaps Path should have a toURI() method.
@@ -108,63 +111,51 @@ void main() {
     }
   });
 
-  var lister = new Directory.fromPath(doc.scriptDir.append('../../pkg')).list();
-  lister.listen(
-      (entity) {
-        if (entity is Directory) {
-          var path = new Path(entity.path);
-          var libName = path.filename;
+  // TODO(amouravski): This code is really wonky.
+  var lister = new Directory.fromPath(scriptDir.append('../../pkg')).list();
+  lister.listen((entity) {
+    if (entity is Directory) {
+      var path = new Path(entity.path);
+      var libName = path.filename;
+      var libPath = path.append('lib/$libName.dart');
 
-          // Ignore hidden directories (like .svn) as well as pkg.xcodeproj.
-          if (libName.startsWith('.') || libName.endsWith('.xcodeproj')) {
-            return;
-          }
+      // Ignore some libraries.
+      if (excludedLibraries.contains(libName)) {
+        return;
+      }
 
-          // TODO(rnystrom): Get rid of oldStylePath support when all
-          // packages are using new layout. See #5106.
-          var oldStylePath = path.append('${libName}.dart');
-          var newStylePath = path.append('lib/${libName}.dart');
+      // Ignore hidden directories (like .svn) as well as pkg.xcodeproj.
+      if (libName.startsWith('.') || libName.endsWith('.xcodeproj')) {
+        return;
+      }
 
-          if (new File.fromPath(oldStylePath).existsSync()) {
-            apidocLibraries.add(oldStylePath);
-            includedLibraries.add(libName);
-          } else if (new File.fromPath(newStylePath).existsSync()) {
-            apidocLibraries.add(newStylePath);
-            includedLibraries.add(libName);
-          } else {
-            print('Warning: could not find package at $path');
-          }
-        }
-      },
-      onDone: () {
-        print('Generating docs...');
-        final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
-                                  excludedLibraries, version);
-        apidoc.dartdocPath =
-            doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/');
-        // Select the libraries to include in the produced documentation:
-        apidoc.includeApi = true;
-        apidoc.includedLibraries = includedLibraries;
+      if (new File.fromPath(libPath).existsSync()) {
+        apidocLibraries.add(libPath);
+        includedLibraries.add(libName);
+      } else {
+        print('Warning: could not find package at $path');
+      }
+    }
+  }, onDone: () {
+    final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
+                              excludedLibraries, version);
+    apidoc.dartdocPath =
+        scriptDir.append('../../sdk/lib/_internal/dartdoc/');
+    // Select the libraries to include in the produced documentation:
+    apidoc.includeApi = true;
+    apidoc.includedLibraries = includedLibraries;
 
-        Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff]).then((_) {
-          Future<bool> documented =
-              apidoc.documentLibraries(apidocLibraries, libPath, pkgPath);
-
-          documented.then((_) {
-            final compiled = doc.compileScript(mode, outputDir, libPath);
-
-            Future.wait([compiled]).then((_) {
-              apidoc.cleanup();
-            });
-          }, onError: (AsyncError asyncError) {
-            print('Generation failed: ${asyncError.error}');
-            apidoc.cleanup();
-          });
-        });
-      });
+    // TODO(amouravski): make apidoc use roughly the same flow as bin/dartdoc.
+    Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff])
+      .then((_) => apidoc.documentLibraries(apidocLibraries, libPath, pkgPath))
+      .then((_) => compileScript(mode, outputDir, libPath))
+      .then((_) => print(apidoc.status))
+      .catchError((e) => print('Error: generation failed: ${e.error}'))
+      .whenComplete(() => apidoc.cleanup());
+  });
 }
 
-class Apidoc extends doc.Dartdoc {
+class Apidoc extends Dartdoc {
   /** Big ball of JSON containing the scraped MDN documentation. */
   final Map mdn;
 
@@ -254,40 +245,40 @@ class Apidoc extends doc.Dartdoc {
   void docIndexLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (doc.displayName(library) == 'dart:nativewrappers') return;
+    if (displayName(library) == 'dart:nativewrappers') return;
     super.docIndexLibrary(library);
   }
 
   void docLibraryNavigationJson(LibraryMirror library, List libraryList) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (doc.displayName(library) == 'dart:nativewrappers') return;
+    if (displayName(library) == 'dart:nativewrappers') return;
     super.docLibraryNavigationJson(library, libraryList);
   }
 
   void docLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (doc.displayName(library) == 'dart:nativewrappers') return;
+    if (displayName(library) == 'dart:nativewrappers') return;
     super.docLibrary(library);
   }
 
-  doc.DocComment getLibraryComment(LibraryMirror library) {
+  DocComment getLibraryComment(LibraryMirror library) {
     return super.getLibraryComment(library);
   }
 
-  doc.DocComment getTypeComment(TypeMirror type) {
+  DocComment getTypeComment(TypeMirror type) {
     return _mergeDocs(
         includeMdnTypeComment(type), super.getTypeComment(type));
   }
 
-  doc.DocComment getMemberComment(MemberMirror member) {
+  DocComment getMemberComment(MemberMirror member) {
     return _mergeDocs(
         includeMdnMemberComment(member), super.getMemberComment(member));
   }
 
-  doc.DocComment _mergeDocs(doc.MdnComment mdnComment,
-                            doc.DocComment fileComment) {
+  DocComment _mergeDocs(MdnComment mdnComment,
+                            DocComment fileComment) {
     // Otherwise, prefer comment from the (possibly generated) Dart file.
     if (fileComment != null) return fileComment;
 
@@ -333,7 +324,7 @@ class Apidoc extends doc.Dartdoc {
     }
   }
 
-  doc.MdnComment lookupMdnComment(Mirror mirror) {
+  MdnComment lookupMdnComment(Mirror mirror) {
     if (mirror is TypeMirror) {
       return includeMdnTypeComment(mirror);
     } else if (mirror is MemberMirror) {
@@ -347,14 +338,13 @@ class Apidoc extends doc.Dartdoc {
    * Gets the MDN-scraped docs for [type], or `null` if this type isn't
    * scraped from MDN.
    */
-  doc.MdnComment includeMdnTypeComment(TypeMirror type) {
+  MdnComment includeMdnTypeComment(TypeMirror type) {
     if (_mdnTypeNamesToSkip.contains(type.simpleName)) {
-      print('Skipping MDN type ${type.simpleName}');
       return null;
     }
 
     var typeString = '';
-    if (HTML_LIBRARY_NAMES.contains(doc.displayName(type.library))) {
+    if (HTML_LIBRARY_NAMES.contains(displayName(type.library))) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
@@ -381,17 +371,17 @@ class Apidoc extends doc.Dartdoc {
     if (mdnType['summary'].trim().isEmpty) return null;
 
     // Remember which MDN page we're using so we can attribute it.
-    return new doc.MdnComment(mdnType['summary'], mdnType['srcUrl']);
+    return new MdnComment(mdnType['summary'], mdnType['srcUrl']);
   }
 
   /**
    * Gets the MDN-scraped docs for [member], or `null` if this type isn't
    * scraped from MDN.
    */
-  doc.MdnComment includeMdnMemberComment(MemberMirror member) {
+  MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
-    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
+    if (HTML_LIBRARY_NAMES.contains(displayName(library))) {
       // If it's an HTML type, try to map it to a DOM type name so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName];
@@ -434,7 +424,7 @@ class Apidoc extends doc.Dartdoc {
     if (mdnMember['help'].trim().isEmpty) return null;
 
     // Remember which MDN page we're using so we can attribute it.
-    return new doc.MdnComment(mdnMember['help'], mdnType['srcUrl']);
+    return new MdnComment(mdnMember['help'], mdnType['srcUrl']);
   }
 
   /**
