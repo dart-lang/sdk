@@ -111,7 +111,7 @@ abstract class Backend {
   // the source code.
   void addBackendRtiDependencies(World world);
 
-  void enqueueHelpers(ResolutionEnqueuer world);
+  void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
   void codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
@@ -135,22 +135,26 @@ abstract class Backend {
 
   // The following methods are hooks for the backend to register its
   // helper methods.
-  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
-  void registerStringInterpolation() {}
-  void registerCatchStatement() {}
-  void registerThrow() {}
-  void registerLazyField() {}
-  void registerTypeLiteral() {}
-  void registerStackTraceInCatch() {}
-  void registerIsCheck(DartType type, Enqueuer enqueuer) {}
-  void registerAsCheck(DartType type) {}
-  void registerThrowNoSuchMethod() {}
-  void registerThrowRuntimeError() {}
-  void registerAbstractClassInstantiation() {}
-  void registerFallThroughError() {}
-  void registerSuperNoSuchMethod() {}
-  void registerConstantMap() {}
-  void registerRuntimeType() {}
+  void registerInstantiatedClass(ClassElement cls,
+                                 Enqueuer enqueuer,
+                                 TreeElements elements) {}
+  void registerStringInterpolation(TreeElements elements) {}
+  void registerCatchStatement(TreeElements elements) {}
+  void registerThrow(TreeElements elements) {}
+  void registerLazyField(TreeElements elements) {}
+  void registerTypeLiteral(TreeElements elements) {}
+  void registerStackTraceInCatch(TreeElements elements) {}
+  void registerIsCheck(DartType type,
+                       Enqueuer enqueuer,
+                       TreeElements elements) {}
+  void registerAsCheck(DartType type, TreeElements elements) {}
+  void registerThrowNoSuchMethod(TreeElements elements) {}
+  void registerThrowRuntimeError(TreeElements elements) {}
+  void registerAbstractClassInstantiation(TreeElements elements) {}
+  void registerFallThroughError(TreeElements elements) {}
+  void registerSuperNoSuchMethod(TreeElements elements) {}
+  void registerConstantMap(TreeElements elements) {}
+  void registerRuntimeType(TreeElements elements) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
@@ -222,6 +226,15 @@ abstract class Compiler implements DiagnosticListener {
    * Map from token to the first preceeding comment token.
    */
   final TokenMap commentMap = new TokenMap();
+
+  /**
+   * Records global dependencies, that is, dependencies that don't
+   * correspond to a particular element.
+   *
+   * We should get rid of this and ensure that all dependencies are
+   * associated with a particular element.
+   */
+  final TreeElements globalDependencies = new TreeElementMapping(null);
 
   final bool enableMinification;
   final bool enableTypeAssertions;
@@ -600,6 +613,8 @@ abstract class Compiler implements DiagnosticListener {
 
     types = new Types(this, dynamicClass);
     backend.initializeHelperClasses();
+
+    dynamicClass.ensureResolved(this);
   }
 
   Element _unnamedListConstructor;
@@ -698,14 +713,14 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
 
-    deferredLoadTask.registerMainApp(mainApp);
-
     log('Resolving...');
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
       libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
     }
-    backend.enqueueHelpers(enqueuer.resolution);
+    // Elements required by enqueueHelpers are global dependencies
+    // that are not pulled in by a particular element.
+    backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -717,6 +732,8 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.
     world.populate();
+
+    deferredLoadTask.onResolutionComplete(main);
 
     log('Inferring types...');
     typesTask.onResolutionComplete(main);

@@ -1594,12 +1594,12 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitStaticFunctionGetters(CodeBuffer buffer) {
+  void emitStaticFunctionGetters(CodeBuffer eagerBuffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
-      // TODO(ahe): Defer loading of these getters.
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
 
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
@@ -2640,6 +2640,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       emitClosureClassIfNeeded(mainBuffer);
 
+      addComment('Bound closures', mainBuffer);
       // Now that we have emitted all classes, we know all the bound
       // closures that will be needed.
       for (jsAst.Node node in boundClosures) {

@@ -49,10 +49,6 @@ class SourceFileProvider {
   }
 }
 
-void silentDiagnosticHandler(Uri uri, int begin, int end, String message,
-                             api.Diagnostic kind) {
-}
-
 class FormattingDiagnosticHandler {
   final SourceFileProvider provider;
   bool showWarnings = true;

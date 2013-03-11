@@ -67,7 +67,8 @@ abstract class Enqueuer {
     // runtime type.
     if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
       compiler.enabledRuntimeType = true;
-      compiler.backend.registerRuntimeType();
+      // TODO(ahe): Record precise dependency here.
+      compiler.backend.registerRuntimeType(compiler.globalDependencies);
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
     } else if (element == compiler.invokeOnMethod) {
@@ -86,8 +87,9 @@ abstract class Enqueuer {
   // the work list'?
   bool addElementToWorkList(Element element, [TreeElements elements]);
 
-  void registerInstantiatedType(InterfaceType type) {
+  void registerInstantiatedType(InterfaceType type, TreeElements elements) {
     ClassElement cls = type.element;
+    elements.registerDependency(cls);
     cls.ensureResolved(compiler);
     universe.instantiatedTypes.add(type);
     if (universe.instantiatedClasses.contains(cls)) return;
@@ -95,12 +97,16 @@ abstract class Enqueuer {
       universe.instantiatedClasses.add(cls);
     }
     onRegisterInstantiatedClass(cls);
-    compiler.backend.registerInstantiatedClass(cls, this);
+    // We only tell the backend once that [cls] was instantiated, so
+    // any additional dependencies must be treated as global
+    // dependencies.
+    compiler.backend.registerInstantiatedClass(
+        cls, this, compiler.globalDependencies);
   }
 
-  void registerInstantiatedClass(ClassElement cls) {
+  void registerInstantiatedClass(ClassElement cls, TreeElements elements) {
     cls.ensureResolved(compiler);
-    registerInstantiatedType(cls.rawType);
+    registerInstantiatedType(cls.rawType, elements);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -153,7 +159,9 @@ abstract class Enqueuer {
         // We will emit a closure, so make sure the closure class is
         // generated.
         compiler.closureClass.ensureResolved(compiler);
-        registerInstantiatedClass(compiler.closureClass);
+        registerInstantiatedClass(compiler.closureClass,
+                                  // Precise dependency is not important here.
+                                  compiler.globalDependencies);
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
@@ -368,19 +376,19 @@ abstract class Enqueuer {
     universe.fieldSetters.add(element);
   }
 
-  void registerIsCheck(DartType type) {
+  void registerIsCheck(DartType type, TreeElements elements) {
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef());
     universe.isChecks.add(type);
-    compiler.backend.registerIsCheck(type, this);
+    compiler.backend.registerIsCheck(type, this, elements);
   }
 
-  void registerAsCheck(DartType type) {
-    registerIsCheck(type);
-    compiler.backend.registerAsCheck(type);
+  void registerAsCheck(DartType type, TreeElements elements) {
+    registerIsCheck(type, elements);
+    compiler.backend.registerAsCheck(type, elements);
   }
 
   void forEach(f(WorkItem work));
@@ -425,6 +433,9 @@ class ResolutionEnqueuer extends Enqueuer {
       element = cls.methodElement;
     }
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
+    if (owner == null) {
+      owner = element;
+    }
     return resolvedElements[owner.declaration];
   }
 
@@ -480,8 +491,10 @@ class ResolutionEnqueuer extends Enqueuer {
 
   void enableIsolateSupport(LibraryElement element) {
     compiler.isolateLibrary = element.patch;
-    addToWorkList(
-        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+    var startRootIsolate =
+        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
+    addToWorkList(startRootIsolate);
+    compiler.globalDependencies.registerDependency(startRootIsolate);
     addToWorkList(compiler.isolateHelperLibrary.find(
         const SourceString('_currentIsolate')));
     addToWorkList(compiler.isolateHelperLibrary.find(

@@ -1524,7 +1524,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           methodName = 'split';
           // Split returns a List, so we make sure the backend knows the
           // list class is instantiated.
-          world.registerInstantiatedClass(compiler.listClass);
+          world.registerInstantiatedClass(
+              compiler.listClass, work.resolutionTree);
         } else if (target == backend.jsStringConcat) {
           push(new js.Binary('+', object, arguments[0]), node);
           return;
@@ -1645,7 +1646,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerGetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     world.registerDynamicGetter(selector.name, selector);
-    world.registerInstantiatedClass(compiler.functionClass);
+    world.registerInstantiatedClass(
+        compiler.functionClass, work.resolutionTree);
     registerInvoke(node, selector);
   }
 
@@ -1773,7 +1775,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(type == HType.UNKNOWN);
       return;
     }
-    world.registerInstantiatedClass(dartType.element);
+    world.registerInstantiatedClass(dartType.element, work.resolutionTree);
   }
 
   visitForeign(HForeign node) {
@@ -1836,10 +1838,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.constant is ConstructedConstant ||
         node.constant is InterceptorConstant) {
       ConstantHandler handler = compiler.constantHandler;
-      handler.registerCompileTimeConstant(node.constant);
+      handler.registerCompileTimeConstant(node.constant, work.resolutionTree);
     }
     if (node.constant is! InterceptorConstant) {
-      world.registerInstantiatedClass(type.element);
+      world.registerInstantiatedClass(type.element, work.resolutionTree);
     }
   }
 
@@ -2049,7 +2051,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instr is !HInvokeStatic) {
         backend.registerNonCallStaticUse(node);
         if (node.element.isFunction()) {
-          world.registerInstantiatedClass(compiler.functionClass);
+          world.registerInstantiatedClass(
+              compiler.functionClass, work.resolutionTree);
         }
       } else if (instr.target != node) {
         backend.registerNonCallStaticUse(node);
@@ -2060,7 +2063,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     ClassElement cls = element.getEnclosingClass();
     if (element.isGenerativeConstructor()
         || (element.isFactoryConstructor() && cls == compiler.listClass)) {
-      world.registerInstantiatedClass(cls);
+      world.registerInstantiatedClass(cls, work.resolutionTree);
     }
     push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
   }
@@ -2116,7 +2119,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
-    world.registerInstantiatedClass(compiler.listClass);
+    world.registerInstantiatedClass(
+        compiler.listClass, work.resolutionTree);
     generateArrayLiteral(node);
   }
 
@@ -2250,7 +2254,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
-    world.registerIsCheck(type);
+    world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
     use(input);
     js.PropertyAccess field =
@@ -2312,7 +2316,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitIs(HIs node) {
     DartType type = node.typeExpression;
-    world.registerIsCheck(type);
+    world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
     if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
       compiler.unimplemented("visitIs for type variables",
@@ -2385,7 +2389,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isChecked) {
       DartType type = node.instructionType.computeType(compiler);
       Element element = type.element;
-      world.registerIsCheck(type);
+      world.registerIsCheck(type, work.resolutionTree);
 
       if (node.isArgumentTypeCheck) {
         if (element == backend.jsIntClass) {

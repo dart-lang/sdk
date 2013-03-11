@@ -42,22 +42,22 @@ class ConstantHandler extends CompilerTask {
 
   String get name => 'ConstantHandler';
 
-  void registerCompileTimeConstant(Constant constant) {
-    registerInstantiatedClass(constant.computeType(compiler).element);
+  void registerCompileTimeConstant(Constant constant, TreeElements elements) {
+    registerInstantiatedClass(constant.computeType(compiler).element, elements);
     if (constant.isFunction()) {
       FunctionConstant function = constant;
       registerGetOfStaticFunction(function.element);
     } else if (constant.isInterceptor()) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstant interceptor = constant;
-      registerInstantiatedClass(interceptor.dispatchedType.element);
+      registerInstantiatedClass(interceptor.dispatchedType.element, elements);
     }
     compiledConstants.add(constant);
   }
 
-  void registerInstantiatedClass(ClassElement element) {
+  void registerInstantiatedClass(ClassElement element, TreeElements elements) {
     if (isMetadata) return;
-    compiler.enqueuer.codegen.registerInstantiatedClass(element);
+    compiler.enqueuer.codegen.registerInstantiatedClass(element, elements);
   }
 
   void registerStaticUse(Element element) {
@@ -70,8 +70,8 @@ class ConstantHandler extends CompilerTask {
     compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
   }
 
-  void registerStringInstance() {
-    registerInstantiatedClass(compiler.stringClass);
+  void registerStringInstance(TreeElements elements) {
+    registerInstantiatedClass(compiler.stringClass, elements);
   }
 
   void registerCreateRuntimeTypeFunction() {
@@ -316,17 +316,17 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralBool(LiteralBool node) {
-    handler.registerInstantiatedClass(compiler.boolClass);
+    handler.registerInstantiatedClass(compiler.boolClass, elements);
     return constantSystem.createBool(node.value);
   }
 
   Constant visitLiteralDouble(LiteralDouble node) {
-    handler.registerInstantiatedClass(compiler.doubleClass);
+    handler.registerInstantiatedClass(compiler.doubleClass, elements);
     return constantSystem.createDouble(node.value);
   }
 
   Constant visitLiteralInt(LiteralInt node) {
-    handler.registerInstantiatedClass(compiler.intClass);
+    handler.registerInstantiatedClass(compiler.intClass, elements);
     return constantSystem.createInt(node.value);
   }
 
@@ -344,7 +344,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     compiler.listClass.computeType(compiler);
     DartType type = compiler.listClass.rawType;
     Constant constant = new ListConstant(type, arguments);
-    handler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant, elements);
     return constant;
   }
 
@@ -381,7 +381,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     compiler.listClass.computeType(compiler);
     DartType keysType = compiler.listClass.rawType;
     ListConstant keysList = new ListConstant(keysType, keys);
-    handler.registerCompileTimeConstant(keysList);
+    handler.registerCompileTimeConstant(keysList, elements);
     SourceString className = hasProtoKey
                              ? MapConstant.DART_PROTO_CLASS
                              : MapConstant.DART_CLASS;
@@ -389,9 +389,9 @@ class CompileTimeConstantEvaluator extends Visitor {
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
     DartType type = classElement.rawType;
-    handler.registerInstantiatedClass(classElement);
+    handler.registerInstantiatedClass(classElement, elements);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
-    handler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant, elements);
     return constant;
   }
 
@@ -400,7 +400,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralString(LiteralString node) {
-    handler.registerStringInstance();
+    handler.registerStringInstance(elements);
     return constantSystem.createString(node.dartString, node);
   }
 
@@ -408,7 +408,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     StringConstant left = evaluate(node.first);
     StringConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
-    handler.registerStringInstance();
+    handler.registerStringInstance(elements);
     return constantSystem.createString(
         new DartString.concat(left.value, right.value), node);
   }
@@ -436,7 +436,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
-    handler.registerStringInstance();
+    handler.registerStringInstance(elements);
     return constantSystem.createString(accumulator, node);
   }
 
@@ -448,7 +448,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     // constant emitter will generate a call to the createRuntimeType
     // helper so we register a use of that.
     handler.registerCreateRuntimeTypeFunction();
-    handler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant, elements);
     return constant;
   }
 
@@ -458,7 +458,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (send.isPropertyAccess) {
       if (Elements.isStaticOrTopLevelFunction(element)) {
         Constant constant = new FunctionConstant(element);
-        handler.registerCompileTimeConstant(constant);
+        handler.registerCompileTimeConstant(constant, elements);
         return constant;
       } else if (Elements.isStaticOrTopLevelField(element)) {
         Constant result;
@@ -664,12 +664,12 @@ class CompileTimeConstantEvaluator extends Visitor {
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
-    handler.registerInstantiatedClass(classElement);
+    handler.registerInstantiatedClass(classElement, elements);
     // TODO(floitsch): take generic types into account.
     classElement.computeType(compiler);
     DartType type = classElement.rawType;
     Constant constant = new ConstructedConstant(type, jsNewArguments);
-    handler.registerCompileTimeConstant(constant);
+    handler.registerCompileTimeConstant(constant, elements);
     return constant;
   }
 

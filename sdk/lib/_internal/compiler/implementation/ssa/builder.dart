@@ -2230,7 +2230,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.addToWorkList(callElement, elements);
     // TODO(ahe): This should be registered in codegen, not here.
-    compiler.enqueuer.codegen.registerInstantiatedClass(closureClassElement);
+    compiler.enqueuer.codegen.registerInstantiatedClass(
+        closureClassElement, work.resolutionTree);
     assert(!closureClassElement.hasLocalScopeMembers);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
@@ -2664,7 +2665,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                    runtimeType];
         instruction = new HInvokeStatic(inputs, HType.BOOLEAN);
         add(instruction);
-        compiler.enqueuer.codegen.registerIsCheck(type);
+        compiler.enqueuer.codegen.registerIsCheck(type, elements);
 
       } else if (RuntimeTypeInformation.hasTypeArguments(type)) {
 

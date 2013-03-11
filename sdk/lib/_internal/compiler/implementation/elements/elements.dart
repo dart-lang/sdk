@@ -521,6 +521,8 @@ abstract class AmbiguousElement extends Element {
 // just an interface shared by classes and libraries.
 abstract class ScopeContainerElement {
   Element localLookup(SourceString elementName);
+
+  void forEachLocalMember(f(Element element));
 }
 
 abstract class CompilationUnitElement extends Element {
@@ -588,8 +590,6 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   Element find(SourceString elementName);
   Element findLocal(SourceString elementName);
   void forEachExport(f(Element element));
-
-  void forEachLocalMember(f(Element element));
 
   bool hasLibraryName();
   String getLibraryOrScriptName();
@@ -805,7 +805,6 @@ abstract class ClassElement extends TypeDeclarationElement
                             {includeBackendMembers: false,
                              includeSuperMembers: false});
 
-  void forEachLocalMember(void f(Element member));
   void forEachBackendMember(void f(Element member));
 }
 
