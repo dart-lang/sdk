@@ -462,7 +462,7 @@ class ArrayBufferView native "*ArrayBufferView" {
 
   @DomName('ArrayBufferView.buffer')
   @DocsEditable
-  final ArrayBuffer buffer;
+  final dynamic buffer;
 
   @DomName('ArrayBufferView.byteLength')
   @DocsEditable
@@ -1799,7 +1799,7 @@ class Crypto native "*Crypto" {
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
-  ArrayBufferView getRandomValues(ArrayBufferView array) native;
+  dynamic getRandomValues(/*ArrayBufferView*/ array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5929,7 +5929,7 @@ class DataView extends ArrayBufferView native "*DataView" {
 
   @DomName('DataView.DataView')
   @DocsEditable
-  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
+  factory DataView(/*ArrayBuffer*/ buffer, [int byteOffset, int byteLength]) {
     if (?byteLength) {
       return DataView._create_1(buffer, byteOffset, byteLength);
     }
@@ -11202,7 +11202,7 @@ class FileReaderSync native "*FileReaderSync" {
 
   @DomName('FileReaderSync.readAsArrayBuffer')
   @DocsEditable
-  ArrayBuffer readAsArrayBuffer(Blob blob) native;
+  dynamic readAsArrayBuffer(Blob blob) native;
 
   @DomName('FileReaderSync.readAsBinaryString')
   @DocsEditable
@@ -25011,7 +25011,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable
-  void bufferSubData(int target, int offset, data) native;
+  void bufferSubData(int target, int offset, /*ArrayBuffer*/ data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable
@@ -25043,11 +25043,11 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, /*ArrayBufferView*/ data) native;
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, /*ArrayBufferView*/ data) native;
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable
@@ -25321,7 +25321,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable
-  void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native;
+  void readPixels(int x, int y, int width, int height, int format, int type, /*ArrayBufferView*/ pixels) native;
 
   @DomName('WebGLRenderingContext.releaseShaderCompiler')
   @DocsEditable
@@ -25369,8 +25369,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, /*ArrayBufferView*/ pixels]) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && ?pixels) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -25396,7 +25396,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable
-  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native;
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable
@@ -25424,8 +25424,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, /*ArrayBufferView*/ pixels]) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && ?pixels) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
@@ -25451,7 +25451,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native;
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable

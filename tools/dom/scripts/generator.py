@@ -391,6 +391,13 @@ class OperationInfo(object):
     if self.constructor_name:
       return rename_type(self.type_name) + '.' + self.constructor_name
     else:
+      # TODO(antonm): temporary ugly hack.
+      # While in transition phase we allow both DOM's ArrayBuffer
+      # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
+      # hence ArrayBuffer is mapped to dynamic in arguments and return
+      # values.  To compensate for that when generating ArrayBuffer itself,
+      # we need to lie a bit:
+      if self.type_name == 'ArrayBuffer': return 'ArrayBuffer'
       return rename_type(self.type_name)
 
 def ConstantOutputOrder(a, b):
@@ -1466,6 +1473,13 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'Uint8ClampedArray': TypedArrayTypeData('int'),
     'Uint16Array': TypedArrayTypeData('int'),
     'Uint32Array': TypedArrayTypeData('int'),
+    # TODO(antonm): temporary ugly hack.
+    # While in transition phase we allow both DOM's ArrayBuffer
+    # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
+    # hence ArrayBuffer is mapped to dynamic in arguments and return
+    # values.
+    'ArrayBufferView': TypeData(clazz='Interface', dart_type='dynamic'),
+    'ArrayBuffer': TypeData(clazz='Interface', dart_type='dynamic'),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
