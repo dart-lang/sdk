@@ -711,6 +711,14 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError('main cannot have parameters', parameter);
         });
       }
+
+      // In order to see if a library is deferred, we must compute the
+      // compile-time constants that are metadata.  This means adding
+      // something to the resolution queue.  So we cannot wait with
+      // this until after the resolution queue is processed.
+      // TODO(ahe): Clean this up, for example, by not enqueueing
+      // classes only used for metadata.
+      deferredLoadTask.findDeferredLibraries(mainApp);
     }
 
     log('Resolving...');

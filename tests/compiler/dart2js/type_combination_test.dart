@@ -2043,7 +2043,8 @@ void main() {
   MockCompiler compiler = new MockCompiler();
   compiler.interceptorsLibrary.forEachLocalMember((element) {
     if (element.isClass()) {
-      compiler.enqueuer.resolution.registerInstantiatedClass(element);
+      compiler.enqueuer.resolution.registerInstantiatedClass(
+          element, compiler.globalDependencies);
     }
   });
   compiler.world.populate();
