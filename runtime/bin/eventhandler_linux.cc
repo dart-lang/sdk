@@ -84,7 +84,14 @@ static void UpdateEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
       sd->set_tracked_by_epoll(true);
     }
     if (status == -1) {
-      FATAL1("Failed updating epoll instance: %s", strerror(errno));
+      // Epoll does not accept the file descriptor. It could be due to
+      // already closed file descriptor, or unuspported devices, such
+      // as /dev/null. In such case, mark the file descriptor as closed,
+      // so dart will handle it accordingly.
+      sd->set_tracked_by_epoll(false);
+      sd->ShutdownRead();
+      sd->ShutdownWrite();
+      DartUtils::PostInt32(sd->port(), 1 << kCloseEvent);
     }
   }
 }

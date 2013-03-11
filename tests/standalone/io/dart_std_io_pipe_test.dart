@@ -30,12 +30,13 @@ void checkFileContent(String fileName, String content) {
 }
 
 
-void test(String shellScript, String dartScript, String type) {
+void test(String shellScript, String dartScript, String type, bool devNull) {
   Directory dir = new Directory("").createTempSync();
 
   // The shell script will run the dart executable passed with a
   // number of different redirections of stdio.
   String pipeOutFile = "${dir.path}/pipe";
+  if (devNull) pipeOutFile = "/dev/null";
   String redirectOutFile = "${dir.path}/redirect";
   String executable = new Options().executable;
   List args =
@@ -47,21 +48,34 @@ void test(String shellScript, String dartScript, String type) {
 
       // Check the expected file contents.
       if (type == "0") {
-        checkFileContent("${pipeOutFile}", "Hello\n");
+        if (devNull) {
+          checkFileEmpty("${redirectOutFile}.stdout");
+        } else {
+          checkFileContent("${pipeOutFile}", "Hello\n");
+          checkFileContent("${redirectOutFile}.stdout", "Hello\nHello\n");
+        }
         checkFileEmpty("${redirectOutFile}.stderr");
-        checkFileContent("${redirectOutFile}.stdout", "Hello\nHello\n");
       }
       if (type == "1") {
-        checkFileContent("${pipeOutFile}", "Hello\n");
+        if (devNull) {
+          checkFileEmpty("${redirectOutFile}.stderr");
+        } else {
+          checkFileContent("${pipeOutFile}", "Hello\n");
+          checkFileContent("${redirectOutFile}.stderr", "Hello\nHello\n");
+        }
         checkFileEmpty("${redirectOutFile}.stdout");
-        checkFileContent("${redirectOutFile}.stderr", "Hello\nHello\n");
       }
       if (type == "2") {
-        checkFileContent("${pipeOutFile}", "Hello\nHello\n");
-        checkFileContent("${redirectOutFile}.stdout",
-                         "Hello\nHello\nHello\nHello\n");
-        checkFileContent("${redirectOutFile}.stderr",
-                         "Hello\nHello\nHello\nHello\n");
+        if (devNull) {
+          checkFileEmpty("${redirectOutFile}.stdout");
+          checkFileEmpty("${redirectOutFile}.stderr");
+        } else {
+          checkFileContent("${pipeOutFile}", "Hello\nHello\n");
+          checkFileContent("${redirectOutFile}.stdout",
+                           "Hello\nHello\nHello\nHello\n");
+          checkFileContent("${redirectOutFile}.stderr",
+                           "Hello\nHello\nHello\nHello\n");
+        }
       }
 
       // Cleanup test directory.
@@ -97,7 +111,10 @@ main() {
   }
 
   // Run the shell script.
-  test(shellScript.path, scriptFile.path, "0");
-  test(shellScript.path, scriptFile.path, "1");
-  test(shellScript.path, scriptFile.path, "2");
+  test(shellScript.path, scriptFile.path, "0", false);
+  test(shellScript.path, scriptFile.path, "0", true);
+  test(shellScript.path, scriptFile.path, "1", false);
+  test(shellScript.path, scriptFile.path, "1", true);
+  test(shellScript.path, scriptFile.path, "2", false);
+  test(shellScript.path, scriptFile.path, "2", true);
 }

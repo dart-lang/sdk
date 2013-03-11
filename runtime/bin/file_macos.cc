@@ -109,7 +109,8 @@ File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
-    if (!S_ISREG(st.st_mode)) {
+    // Only accept regular files and character devices.
+    if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
       return NULL;
     }
