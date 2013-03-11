@@ -15,6 +15,7 @@ import 'package:analyzer-experimental/src/generated/utilities_dart.dart';
 /**
  * Instances of the class {@code CommentAndMetadata} implement a simple data-holder for a method
  * that needs to return multiple values.
+ * @coverage dart.engine.parser
  */
 class CommentAndMetadata {
   /**
@@ -48,6 +49,7 @@ class CommentAndMetadata {
 /**
  * Instances of the class {@code FinalConstVarOrType} implement a simple data-holder for a method
  * that needs to return multiple values.
+ * @coverage dart.engine.parser
  */
 class FinalConstVarOrType {
   /**
@@ -81,6 +83,7 @@ class FinalConstVarOrType {
 /**
  * Instances of the class {@code Modifiers} implement a simple data-holder for a method that needs
  * to return multiple values.
+ * @coverage dart.engine.parser
  */
 class Modifiers {
   /**
@@ -238,6 +241,7 @@ class Modifiers {
 }
 /**
  * Instances of the class {@code Parser} are used to parse tokens into an AST structure.
+ * @coverage dart.engine.parser
  */
 class Parser {
   /**
@@ -537,8 +541,8 @@ class Parser {
     if (token == null) {
       return false;
     }
-    TokenType type20 = token.type;
-    return identical(type20, TokenType.EQ) || identical(type20, TokenType.COMMA) || identical(type20, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+    TokenType type21 = token.type;
+    return identical(type21, TokenType.EQ) || identical(type21, TokenType.COMMA) || identical(type21, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
   }
   /**
    * Return {@code true} if the current token appears to be the beginning of a switch member.
@@ -550,8 +554,8 @@ class Parser {
       token = token.next.next;
     }
     if (identical(token.type, TokenType.KEYWORD)) {
-      Keyword keyword27 = ((token as KeywordToken)).keyword;
-      return identical(keyword27, Keyword.CASE) || identical(keyword27, Keyword.DEFAULT);
+      Keyword keyword29 = ((token as KeywordToken)).keyword;
+      return identical(keyword29, Keyword.CASE) || identical(keyword29, Keyword.DEFAULT);
     }
     return false;
   }
@@ -594,14 +598,14 @@ class Parser {
    * @param keyword the keyword that is being tested for
    * @return {@code true} if the given token matches the given keyword
    */
-  bool matches3(Token token, Keyword keyword35) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword35);
+  bool matches3(Token token, Keyword keyword37) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword37);
   /**
    * Return {@code true} if the given token has the given type.
    * @param token the token being tested
    * @param type the type of token that is being tested for
    * @return {@code true} if the given token has the given type
    */
-  bool matches4(Token token, TokenType type29) => identical(token.type, type29);
+  bool matches4(Token token, TokenType type30) => identical(token.type, type30);
   /**
    * Return {@code true} if the current token has the given type. Note that this method, unlike
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
@@ -610,10 +614,10 @@ class Parser {
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
    */
-  bool matches5(TokenType type30) {
+  bool matches5(TokenType type31) {
     TokenType currentType = _currentToken.type;
-    if (currentType != type30) {
-      if (identical(type30, TokenType.GT)) {
+    if (currentType != type31) {
+      if (identical(type31, TokenType.GT)) {
         if (identical(currentType, TokenType.GT_GT)) {
           int offset6 = _currentToken.offset;
           Token first = new Token(TokenType.GT, offset6);
@@ -1347,7 +1351,7 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_6(errorFound);
+      AnalysisErrorListener listener = new AnalysisErrorListener_7(errorFound);
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
@@ -1435,10 +1439,7 @@ class Parser {
    * @return the compilation unit that was parsed
    */
   CompilationUnit parseCompilationUnit2() {
-    Token firstToken = _currentToken.precedingComments;
-    if (firstToken == null) {
-      firstToken = _currentToken;
-    }
+    Token firstToken = _currentToken;
     ScriptTag scriptTag = null;
     if (matches5(TokenType.SCRIPT_TAG)) {
       scriptTag = new ScriptTag.full(andAdvance);
@@ -1537,12 +1538,12 @@ class Parser {
       TypeName returnType = parseReturnType();
       if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null, false);
+        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
       } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
         return null;
       } else if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null, false);
+        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
       } else {
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
@@ -1554,27 +1555,27 @@ class Parser {
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
-      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null, false);
+      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
       return null;
     } else if (!matchesIdentifier()) {
       return null;
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
-      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null, false);
+      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
     }
     TypeName returnType = parseReturnType();
     if (matches(Keyword.GET) || matches(Keyword.SET)) {
       validateModifiersForTopLevelFunction(modifiers);
-      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType, false);
+      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
     } else if (!matchesIdentifier()) {
       return null;
     }
     if (matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET])) {
       validateModifiersForTopLevelFunction(modifiers);
-      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType, false);
+      return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
     }
     return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
   }
@@ -2175,7 +2176,7 @@ class Parser {
           initialization = parseExpression2();
         }
         if (matches(Keyword.IN)) {
-          SimpleFormalParameter loopParameter = null;
+          DeclaredIdentifier loopVariable = null;
           if (variableList == null) {
             reportError4(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
@@ -2187,13 +2188,13 @@ class Parser {
             if (variable.initializer != null) {
               reportError4(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
-            loopParameter = new SimpleFormalParameter.full(null, null, variableList.keyword, variableList.type, variable.name);
+            loopVariable = new DeclaredIdentifier.full(null, null, variableList.keyword, variableList.type, variable.name);
           }
           Token inKeyword = expect(Keyword.IN);
           Expression iterator = parseExpression2();
           Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
-          return new ForEachStatement.full(forKeyword, leftParenthesis, loopParameter, inKeyword, iterator, rightParenthesis, body);
+          return new ForEachStatement.full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
         }
       }
       Token leftSeparator = expect2(TokenType.SEMICOLON);
@@ -2276,7 +2277,7 @@ class Parser {
    * @param isStatement {@code true} if the function declaration is being parsed as a statement
    * @return the function declaration that was parsed
    */
-  FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType, bool isStatement) {
+  FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
     Token keyword = null;
     bool isGetter = false;
     if (matches(Keyword.GET) && !matches4(peek(), TokenType.OPEN_PAREN)) {
@@ -2298,13 +2299,11 @@ class Parser {
       reportError4(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       parseFormalParameterList();
     }
-    FunctionBody body = null;
+    FunctionBody body;
     if (externalKeyword == null) {
       body = parseFunctionBody(false, false);
-    }
-    if (!isStatement && matches5(TokenType.SEMICOLON)) {
-      reportError4(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
-      advance();
+    } else {
+      body = new EmptyFunctionBody.full(expect2(TokenType.SEMICOLON));
     }
     return new FunctionDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, returnType, keyword, name, new FunctionExpression.full(parameters, body));
   }
@@ -2328,7 +2327,7 @@ class Parser {
    * @param returnType the return type, or {@code null} if there is no return type
    * @return the function declaration statement that was parsed
    */
-  Statement parseFunctionDeclarationStatement2(CommentAndMetadata commentAndMetadata, TypeName returnType) => new FunctionDeclarationStatement.full(parseFunctionDeclaration(commentAndMetadata, null, returnType, true));
+  Statement parseFunctionDeclarationStatement2(CommentAndMetadata commentAndMetadata, TypeName returnType) => new FunctionDeclarationStatement.full(parseFunctionDeclaration(commentAndMetadata, null, returnType));
   /**
    * Parse a function expression.
    * <pre>
@@ -2897,32 +2896,32 @@ class Parser {
       }
       return parseBlock();
     } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword()) {
-      Keyword keyword28 = ((_currentToken as KeywordToken)).keyword;
-      if (identical(keyword28, Keyword.ASSERT)) {
+      Keyword keyword30 = ((_currentToken as KeywordToken)).keyword;
+      if (identical(keyword30, Keyword.ASSERT)) {
         return parseAssertStatement();
-      } else if (identical(keyword28, Keyword.BREAK)) {
+      } else if (identical(keyword30, Keyword.BREAK)) {
         return parseBreakStatement();
-      } else if (identical(keyword28, Keyword.CONTINUE)) {
+      } else if (identical(keyword30, Keyword.CONTINUE)) {
         return parseContinueStatement();
-      } else if (identical(keyword28, Keyword.DO)) {
+      } else if (identical(keyword30, Keyword.DO)) {
         return parseDoStatement();
-      } else if (identical(keyword28, Keyword.FOR)) {
+      } else if (identical(keyword30, Keyword.FOR)) {
         return parseForStatement();
-      } else if (identical(keyword28, Keyword.IF)) {
+      } else if (identical(keyword30, Keyword.IF)) {
         return parseIfStatement();
-      } else if (identical(keyword28, Keyword.RETURN)) {
+      } else if (identical(keyword30, Keyword.RETURN)) {
         return parseReturnStatement();
-      } else if (identical(keyword28, Keyword.SWITCH)) {
+      } else if (identical(keyword30, Keyword.SWITCH)) {
         return parseSwitchStatement();
-      } else if (identical(keyword28, Keyword.THROW)) {
+      } else if (identical(keyword30, Keyword.THROW)) {
         return new ExpressionStatement.full(parseThrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword28, Keyword.TRY)) {
+      } else if (identical(keyword30, Keyword.TRY)) {
         return parseTryStatement();
-      } else if (identical(keyword28, Keyword.WHILE)) {
+      } else if (identical(keyword30, Keyword.WHILE)) {
         return parseWhileStatement();
-      } else if (identical(keyword28, Keyword.VAR) || identical(keyword28, Keyword.FINAL)) {
+      } else if (identical(keyword30, Keyword.VAR) || identical(keyword30, Keyword.FINAL)) {
         return parseVariableDeclarationStatement();
-      } else if (identical(keyword28, Keyword.VOID)) {
+      } else if (identical(keyword30, Keyword.VOID)) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
           return parseFunctionDeclarationStatement2(commentAndMetadata, returnType);
@@ -2935,7 +2934,7 @@ class Parser {
           }
           return null;
         }
-      } else if (identical(keyword28, Keyword.CONST)) {
+      } else if (identical(keyword30, Keyword.CONST)) {
         if (matchesAny(peek(), [TokenType.LT, TokenType.OPEN_CURLY_BRACKET, TokenType.OPEN_SQUARE_BRACKET, TokenType.INDEX])) {
           return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
         } else if (matches4(peek(), TokenType.IDENTIFIER)) {
@@ -2947,7 +2946,7 @@ class Parser {
           }
         }
         return parseVariableDeclarationStatement();
-      } else if (identical(keyword28, Keyword.NEW) || identical(keyword28, Keyword.TRUE) || identical(keyword28, Keyword.FALSE) || identical(keyword28, Keyword.NULL) || identical(keyword28, Keyword.SUPER) || identical(keyword28, Keyword.THIS)) {
+      } else if (identical(keyword30, Keyword.NEW) || identical(keyword30, Keyword.TRUE) || identical(keyword30, Keyword.FALSE) || identical(keyword30, Keyword.NULL) || identical(keyword30, Keyword.SUPER) || identical(keyword30, Keyword.THIS)) {
         return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
         return null;
@@ -2995,9 +2994,9 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
     }
-    TypeName type21 = holder.type;
-    if (type21 != null && matches3(type21.name.beginToken, Keyword.VOID)) {
-      reportError5(ParserErrorCode.VOID_PARAMETER, type21.name.beginToken, []);
+    TypeName type22 = holder.type;
+    if (type22 != null && matches3(type22.name.beginToken, Keyword.VOID)) {
+      reportError5(ParserErrorCode.VOID_PARAMETER, type22.name.beginToken, []);
     }
     if (thisKeyword != null) {
       return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier);
@@ -4107,20 +4106,20 @@ class Parser {
    */
   Token skipStringInterpolation(Token startToken) {
     Token token = startToken;
-    TokenType type22 = token.type;
-    while (identical(type22, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type22, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-      if (identical(type22, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+    TokenType type23 = token.type;
+    while (identical(type23, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type23, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      if (identical(type23, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         token = token.next;
-        type22 = token.type;
+        type23 = token.type;
         int bracketNestingLevel = 1;
         while (bracketNestingLevel > 0) {
-          if (identical(type22, TokenType.EOF)) {
+          if (identical(type23, TokenType.EOF)) {
             return null;
-          } else if (identical(type22, TokenType.OPEN_CURLY_BRACKET)) {
+          } else if (identical(type23, TokenType.OPEN_CURLY_BRACKET)) {
             bracketNestingLevel++;
-          } else if (identical(type22, TokenType.CLOSE_CURLY_BRACKET)) {
+          } else if (identical(type23, TokenType.CLOSE_CURLY_BRACKET)) {
             bracketNestingLevel--;
-          } else if (identical(type22, TokenType.STRING)) {
+          } else if (identical(type23, TokenType.STRING)) {
             token = skipStringLiteral(token);
             if (token == null) {
               return null;
@@ -4128,10 +4127,10 @@ class Parser {
           } else {
             token = token.next;
           }
-          type22 = token.type;
+          type23 = token.type;
         }
         token = token.next;
-        type22 = token.type;
+        type23 = token.type;
       } else {
         token = token.next;
         if (token.type != TokenType.IDENTIFIER) {
@@ -4139,10 +4138,10 @@ class Parser {
         }
         token = token.next;
       }
-      type22 = token.type;
-      if (identical(type22, TokenType.STRING)) {
+      type23 = token.type;
+      if (identical(type23, TokenType.STRING)) {
         token = token.next;
-        type22 = token.type;
+        type23 = token.type;
       }
     }
     return token;
@@ -4165,8 +4164,8 @@ class Parser {
     Token token = startToken;
     while (token != null && matches4(token, TokenType.STRING)) {
       token = token.next;
-      TokenType type23 = token.type;
-      if (identical(type23, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type23, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      TokenType type24 = token.type;
+      if (identical(type24, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type24, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         token = skipStringInterpolation(token);
       }
     }
@@ -4631,9 +4630,9 @@ class Parser {
     }
   }
 }
-class AnalysisErrorListener_6 implements AnalysisErrorListener {
+class AnalysisErrorListener_7 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_6(this.errorFound);
+  AnalysisErrorListener_7(this.errorFound);
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }
@@ -4643,6 +4642,7 @@ class AnalysisErrorListener_6 implements AnalysisErrorListener {
  * parser. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
+ * @coverage dart.engine.parser
  */
 class ParserErrorCode implements ErrorCode {
   static final ParserErrorCode ABSTRACT_CLASS_MEMBER = new ParserErrorCode.con2('ABSTRACT_CLASS_MEMBER', 0, "Members of classes cannot be declared to be 'abstract'");
@@ -4747,6 +4747,7 @@ class ParserErrorCode implements ErrorCode {
   static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EXPECTED_CASE_OR_DEFAULT, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_TERMINATOR_FOR_PARAMETER_GROUP, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_PARAMETER_OUTSIDE_GROUP, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_OPERATOR, STATIC_TOP_LEVEL_DECLARATION, UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, UNEXPECTED_TOKEN, USE_OF_UNARY_PLUS_OPERATOR, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, WRONG_TERMINATOR_FOR_PARAMETER_GROUP, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
   String __name;
   int __ordinal = 0;
+  int get ordinal => __ordinal;
   /**
    * The severity of this error.
    */
@@ -4761,9 +4762,9 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con1(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_252_impl(___name, ___ordinal, severity2, message2);
+    _jtd_constructor_258_impl(___name, ___ordinal, severity2, message2);
   }
-  _jtd_constructor_252_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
+  _jtd_constructor_258_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._severity = severity2;
@@ -4774,10 +4775,10 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con2(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_253_impl(___name, ___ordinal, message);
+    _jtd_constructor_259_impl(___name, ___ordinal, message);
   }
-  _jtd_constructor_253_impl(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_252_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
+  _jtd_constructor_259_impl(String ___name, int ___ordinal, String message) {
+    _jtd_constructor_258_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
   }
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;
@@ -5006,6 +5007,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+    visit8(node.keyword, " ");
+    visit6(node.type, " ");
+    visit(node.identifier);
+    return null;
+  }
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
@@ -5076,7 +5083,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitForEachStatement(ForEachStatement node) {
     _writer.print("for (");
-    visit(node.loopParameter);
+    visit(node.loopVariable);
     _writer.print(" in ");
     visit(node.iterator);
     _writer.print(") ");

@@ -1,8 +1,8 @@
-name:  analyzer-experimental
-author: "Dart Team <misc@dartlang.org>"
-homepage: http://www.dartlang.org
+name: analyzer-experimental
+version: 0.1.5
+author: Dart Team <misc@dartlang.org>
 description: Experimental static analyzer for Dart.
-
+homepage: http://www.dartlang.org
 dependencies:
-  args: any
   unittest: any
+  args: any

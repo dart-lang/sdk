@@ -31,15 +31,22 @@ bool isInstanceOf(o, Type t) {
   if (oTypeName == tTypeName) {
     return true;
   }
-  if (oTypeName == "${tTypeName}Impl") {
-    return true;
-  }
   if (oTypeName.startsWith("HashMap") && tTypeName == "Map") {
     return true;
   }
   if (oTypeName.startsWith("List") && tTypeName == "List") {
     return true;
   }
+  // Dart Analysis Engine specific
+  if (oTypeName == "${tTypeName}Impl") {
+    return true;
+  }
+  if (tTypeName == "ExecutableElement") {
+    if (oTypeName == "MethodElementImpl" || oTypeName == "FunctionElementImpl") {
+      return true;
+    }
+  }
+  // no
   return false;
 }
 

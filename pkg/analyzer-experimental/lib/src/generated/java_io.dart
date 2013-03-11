@@ -4,7 +4,14 @@ import "dart:io";
 import "dart:uri";
 
 class JavaSystemIO {
+  static Map<String, String> _properties = new Map();
   static String getProperty(String name) {
+    {
+      String value = _properties[name];
+      if (value != null) {
+        return value;
+      }
+    }
     if (name == 'os.name') {
       return Platform.operatingSystem;
     }
@@ -14,7 +21,20 @@ class JavaSystemIO {
       }
       return '\n';
     }
+    if (name == 'com.google.dart.sdk') {
+      String exec = new Options().executable;
+      if (exec.length != 0) {
+        String sdkPath = new Path(exec).directoryPath.directoryPath.toString();
+        _properties[name] = sdkPath;
+        return sdkPath;
+      }
+    }
     return null;
+  }
+  static String setProperty(String name, String value) {
+    String oldValue = _properties[name];
+    _properties[name] = value;
+    return oldValue;
   }
   static String getenv(String name) => Platform.environment[name];
 }
@@ -32,7 +52,7 @@ class JavaFile {
   JavaFile.fromUri(Uri uri) : this(uri.path);
   int get hashCode => _path.hashCode;
   bool operator ==(other) {
-    return other is JavaFile && _path == other._path;
+    return other is JavaFile && other._path.toNativePath() == _path.toNativePath();
   }
   String getPath() => _path.toNativePath();
   String getName() => _path.filename;
@@ -42,9 +62,18 @@ class JavaFile {
   String getCanonicalPath() => _path.canonicalize().toNativePath();
   JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
   JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
-  bool exists() => _newFile().existsSync();
+  bool exists() {
+    if (_newFile().existsSync()) {
+      return true;
+    }
+    if (_newDirectory().existsSync()) {
+      return true;
+    }
+    return false;
+  }
   Uri toURI() => new Uri.fromComponents(path: _path.toString());
   String readAsStringSync() => _newFile().readAsStringSync();
   int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;
   File _newFile() => new File.fromPath(_path);
+  Directory _newDirectory() => new Directory.fromPath(_path);
 }

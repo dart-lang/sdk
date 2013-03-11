@@ -16,6 +16,7 @@ import 'element.dart' hide Annotation;
 /**
  * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
  * for a Dart program.
+ * @coverage dart.engine.ast
  */
 abstract class ASTNode {
   /**
@@ -206,6 +207,7 @@ abstract class ASTNode {
 /**
  * The interface {@code ASTVisitor} defines the behavior of objects that can be used to visit an AST
  * structure.
+ * @coverage dart.engine.ast
  */
 abstract class ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node);
@@ -232,6 +234,7 @@ abstract class ASTVisitor<R> {
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node);
   R visitConstructorName(ConstructorName node);
   R visitContinueStatement(ContinueStatement node);
+  R visitDeclaredIdentifier(DeclaredIdentifier node);
   R visitDefaultFormalParameter(DefaultFormalParameter node);
   R visitDoStatement(DoStatement node);
   R visitDoubleLiteral(DoubleLiteral node);
@@ -316,6 +319,7 @@ abstract class ASTVisitor<R> {
  * <pre>
  * adjacentStrings ::={@link StringLiteral string} {@link StringLiteral string}+
  * </pre>
+ * @coverage dart.engine.ast
  */
 class AdjacentStrings extends StringLiteral {
   /**
@@ -350,6 +354,7 @@ class AdjacentStrings extends StringLiteral {
 /**
  * The abstract class {@code AnnotatedNode} defines the behavior of nodes that can be annotated with
  * both a comment and metadata.
+ * @coverage dart.engine.ast
  */
 abstract class AnnotatedNode extends ASTNode {
   /**
@@ -462,6 +467,7 @@ abstract class AnnotatedNode extends ASTNode {
  * annotation ::=
  * '@' {@link Identifier qualified} (‚Äò.‚Äô {@link SimpleIdentifier identifier})? {@link ArgumentList arguments}?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class Annotation extends ASTNode {
   /**
@@ -606,6 +612,7 @@ class Annotation extends ASTNode {
  * <pre>
  * argumentDefinitionTest ::=
  * '?' {@link SimpleIdentifier identifier}</pre>
+ * @coverage dart.engine.ast
  */
 class ArgumentDefinitionTest extends Expression {
   /**
@@ -671,6 +678,7 @@ class ArgumentDefinitionTest extends Expression {
  * arguments ::={@link NamedExpression namedArgument} (',' {@link NamedExpression namedArgument})
  * | {@link Expression expressionList} (',' {@link NamedExpression namedArgument})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ArgumentList extends ASTNode {
   /**
@@ -788,6 +796,7 @@ class ArgumentList extends ASTNode {
  * Instances of the class {@code AsExpression} represent an 'as' expression.
  * <pre>
  * asExpression ::={@link Expression expression} 'as' {@link TypeName type}</pre>
+ * @coverage dart.engine.ast
  */
 class AsExpression extends Expression {
   /**
@@ -870,6 +879,7 @@ class AsExpression extends Expression {
  * assertStatement ::=
  * 'assert' '(' {@link Expression conditionalExpression} ')' ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class AssertStatement extends Statement {
   /**
@@ -987,6 +997,7 @@ class AssertStatement extends Statement {
  * Instances of the class {@code AssignmentExpression} represent an assignment expression.
  * <pre>
  * assignmentExpression ::={@link Expression leftHandSide} {@link Token operator} {@link Expression rightHandSide}</pre>
+ * @coverage dart.engine.ast
  */
 class AssignmentExpression extends Expression {
   /**
@@ -1087,6 +1098,7 @@ class AssignmentExpression extends Expression {
  * Instances of the class {@code BinaryExpression} represent a binary (infix) expression.
  * <pre>
  * binaryExpression ::={@link Expression leftOperand} {@link Token operator} {@link Expression rightOperand}</pre>
+ * @coverage dart.engine.ast
  */
 class BinaryExpression extends Expression {
   /**
@@ -1189,6 +1201,7 @@ class BinaryExpression extends Expression {
  * block ::=
  * '{' statement* '}'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class Block extends Statement {
   /**
@@ -1263,6 +1276,7 @@ class Block extends Statement {
  * block of statements.
  * <pre>
  * blockFunctionBody ::={@link Block block}</pre>
+ * @coverage dart.engine.ast
  */
 class BlockFunctionBody extends FunctionBody {
   /**
@@ -1306,6 +1320,7 @@ class BlockFunctionBody extends FunctionBody {
  * booleanLiteral ::=
  * 'false' | 'true'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class BooleanLiteral extends Literal {
   /**
@@ -1368,6 +1383,7 @@ class BooleanLiteral extends Literal {
  * breakStatement ::=
  * 'break' {@link SimpleIdentifier label}? ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class BreakStatement extends Statement {
   /**
@@ -1455,6 +1471,7 @@ class BreakStatement extends Statement {
  * '[ ' expression '] '
  * | identifier
  * </pre>
+ * @coverage dart.engine.ast
  */
 class CascadeExpression extends Expression {
   /**
@@ -1513,6 +1530,7 @@ class CascadeExpression extends Expression {
  * catchPart {@link Block block}| 'on' type catchPart? {@link Block block}catchPart ::=
  * 'catch' '(' {@link SimpleIdentifier exceptionParameter} (',' {@link SimpleIdentifier stackTraceParameter})? ')'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class CatchClause extends ASTNode {
   /**
@@ -1723,6 +1741,7 @@ class CatchClause extends ASTNode {
  * ({@link ExtendsClause extendsClause} {@link WithClause withClause}?)?{@link ImplementsClause implementsClause}?
  * '{' {@link ClassMember classMember}* '}'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ClassDeclaration extends CompilationUnitMember {
   /**
@@ -1949,6 +1968,7 @@ class ClassDeclaration extends CompilationUnitMember {
 /**
  * The abstract class {@code ClassMember} defines the behavior common to nodes that declare a name
  * within the scope of a class.
+ * @coverage dart.engine.ast
  */
 abstract class ClassMember extends Declaration {
   /**
@@ -1971,6 +1991,7 @@ abstract class ClassMember extends Declaration {
  * classTypeAlias ::={@link SimpleIdentifier identifier} {@link TypeParameterList typeParameters}? '=' 'abstract'? mixinApplication
  * mixinApplication ::={@link TypeName superclass} {@link WithClause withClause} {@link ImplementsClause implementsClause}? ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ClassTypeAlias extends TypeAlias {
   /**
@@ -2143,6 +2164,7 @@ class ClassTypeAlias extends TypeAlias {
  * directive.
  * <pre>
  * combinator ::={@link HideCombinator hideCombinator}| {@link ShowCombinator showCombinator}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class Combinator extends ASTNode {
   /**
@@ -2194,6 +2216,7 @@ abstract class Combinator extends ASTNode {
  * '/ **' (CHARACTER | {@link CommentReference commentReference})* '&#42;/'
  * | ('///' (CHARACTER - EOL)* EOL)+
  * </pre>
+ * @coverage dart.engine.ast
  */
 class Comment extends ASTNode {
   /**
@@ -2300,6 +2323,7 @@ class CommentType {
   static final List<CommentType> values = [END_OF_LINE, BLOCK, DOCUMENTATION];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   CommentType(this.__name, this.__ordinal) {
   }
   String toString() => __name;
@@ -2311,6 +2335,7 @@ class CommentType {
  * commentReference ::=
  * '[' 'new'? {@link Identifier identifier} ']'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class CommentReference extends ASTNode {
   /**
@@ -2353,8 +2378,8 @@ class CommentReference extends ASTNode {
    * Set the identifier being referenced to the given identifier.
    * @param identifier the identifier being referenced
    */
-  void set identifier(Identifier identifier23) {
-    identifier23 = becomeParentOf(identifier23);
+  void set identifier(Identifier identifier24) {
+    identifier24 = becomeParentOf(identifier24);
   }
   /**
    * Set the token representing the 'new' keyword to the given token.
@@ -2378,6 +2403,7 @@ class CommentReference extends ASTNode {
  * compilationUnit ::=
  * directives declarations
  * directives ::={@link ScriptTag scriptTag}? {@link LibraryDirective libraryDirective}? namespaceDirective* {@link PartDirective partDirective}| {@link PartOfDirective partOfDirective}namespaceDirective ::={@link ImportDirective importDirective}| {@link ExportDirective exportDirective}declarations ::={@link CompilationUnitMember compilationUnitMember}</pre>
+ * @coverage dart.engine.ast
  */
 class CompilationUnit extends ASTNode {
   /**
@@ -2489,20 +2515,14 @@ class CompilationUnit extends ASTNode {
     if (endToken3 == null) {
       return 0;
     }
-    return endToken3.offset + endToken3.length - beginToken.offset;
+    return endToken3.offset + endToken3.length;
   }
   /**
    * Get the {@link LineInfo} object for this compilation unit.
    * @return the associated {@link LineInfo}
    */
   LineInfo get lineInfo => _lineInfo;
-  int get offset {
-    Token beginToken4 = beginToken;
-    if (beginToken4 == null) {
-      return 0;
-    }
-    return beginToken4.offset;
-  }
+  int get offset => 0;
   /**
    * Return an array containing all of the parsing errors associated with the receiver.
    * @return an array of errors (not {@code null}, contains no {@code null}s).
@@ -2601,6 +2621,7 @@ class CompilationUnit extends ASTNode {
  * declare a name within the scope of a compilation unit.
  * <pre>
  * compilationUnitMember ::={@link ClassDeclaration classDeclaration}| {@link TypeAlias typeAlias}| {@link FunctionDeclaration functionDeclaration}| {@link MethodDeclaration getOrSetDeclaration}| {@link VariableDeclaration constantsDeclaration}| {@link VariableDeclaration variablesDeclaration}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class CompilationUnitMember extends Declaration {
   /**
@@ -2621,6 +2642,7 @@ abstract class CompilationUnitMember extends Declaration {
  * Instances of the class {@code ConditionalExpression} represent a conditional expression.
  * <pre>
  * conditionalExpression ::={@link Expression condition} '?' {@link Expression thenExpression} ':' {@link Expression elseExpression}</pre>
+ * @coverage dart.engine.ast
  */
 class ConditionalExpression extends Expression {
   /**
@@ -2754,6 +2776,7 @@ class ConditionalExpression extends Expression {
  * initializerList ::=
  * ':' {@link ConstructorInitializer initializer} (',' {@link ConstructorInitializer initializer})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ConstructorDeclaration extends ClassMember {
   /**
@@ -3048,6 +3071,7 @@ class ConstructorDeclaration extends ClassMember {
  * <pre>
  * fieldInitializer ::=
  * ('this' '.')? {@link SimpleIdentifier fieldName} '=' {@link Expression conditionalExpression cascadeSection*}</pre>
+ * @coverage dart.engine.ast
  */
 class ConstructorFieldInitializer extends ConstructorInitializer {
   /**
@@ -3177,6 +3201,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
  * occur in the initializer list of a constructor declaration.
  * <pre>
  * constructorInitializer ::={@link SuperConstructorInvocation superInvocation}| {@link ConstructorFieldInitializer fieldInitializer}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class ConstructorInitializer extends ASTNode {
 }
@@ -3186,6 +3211,7 @@ abstract class ConstructorInitializer extends ASTNode {
  * constructorName:
  * type ('.' identifier)?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ConstructorName extends ASTNode {
   /**
@@ -3295,6 +3321,7 @@ class ConstructorName extends ASTNode {
  * continueStatement ::=
  * 'continue' {@link SimpleIdentifier label}? ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ContinueStatement extends Statement {
   /**
@@ -3373,6 +3400,7 @@ class ContinueStatement extends Statement {
 /**
  * The abstract class {@code Declaration} defines the behavior common to nodes that represent the
  * declaration of a name. Each declared name is visible within a name scope.
+ * @coverage dart.engine.ast
  */
 abstract class Declaration extends AnnotatedNode {
   /**
@@ -3396,6 +3424,116 @@ abstract class Declaration extends AnnotatedNode {
   Element get element;
 }
 /**
+ * Instances of the class {@code DeclaredIdentifier} represent the declaration of a single
+ * identifier.
+ * <pre>
+ * declaredIdentifier ::=
+ * ({@link Annotation metadata} finalConstVarOrType {@link SimpleIdentifier identifier}</pre>
+ * @coverage dart.engine.ast
+ */
+class DeclaredIdentifier extends Declaration {
+  /**
+   * The token representing either the 'final', 'const' or 'var' keyword, or {@code null} if no
+   * keyword was used.
+   */
+  Token _keyword;
+  /**
+   * The name of the declared type of the parameter, or {@code null} if the parameter does not have
+   * a declared type.
+   */
+  TypeName _type;
+  /**
+   * The name of the variable being declared.
+   */
+  SimpleIdentifier _identifier;
+  /**
+   * Initialize a newly created formal parameter.
+   * @param comment the documentation comment associated with this parameter
+   * @param metadata the annotations associated with this parameter
+   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
+   * @param type the name of the declared type of the parameter
+   * @param identifier the name of the parameter being declared
+   */
+  DeclaredIdentifier.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super.full(comment, metadata) {
+    this._keyword = keyword;
+    this._type = becomeParentOf(type);
+    this._identifier = becomeParentOf(identifier);
+  }
+  /**
+   * Initialize a newly created formal parameter.
+   * @param comment the documentation comment associated with this parameter
+   * @param metadata the annotations associated with this parameter
+   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
+   * @param type the name of the declared type of the parameter
+   * @param identifier the name of the parameter being declared
+   */
+  DeclaredIdentifier({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
+  accept(ASTVisitor visitor) => visitor.visitDeclaredIdentifier(this);
+  LocalVariableElement get element {
+    SimpleIdentifier identifier11 = identifier;
+    if (identifier11 == null) {
+      return null;
+    }
+    return identifier11.element as LocalVariableElement;
+  }
+  Token get endToken => _identifier.endToken;
+  /**
+   * Return the name of the variable being declared.
+   * @return the name of the variable being declared
+   */
+  SimpleIdentifier get identifier => _identifier;
+  /**
+   * Return the token representing either the 'final', 'const' or 'var' keyword.
+   * @return the token representing either the 'final', 'const' or 'var' keyword
+   */
+  Token get keyword => _keyword;
+  /**
+   * Return the name of the declared type of the parameter, or {@code null} if the parameter does
+   * not have a declared type.
+   * @return the name of the declared type of the parameter
+   */
+  TypeName get type => _type;
+  /**
+   * Return {@code true} if this variable was declared with the 'const' modifier.
+   * @return {@code true} if this variable was declared with the 'const' modifier
+   */
+  bool isConst() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  /**
+   * Return {@code true} if this variable was declared with the 'final' modifier. Variables that are
+   * declared with the 'const' modifier will return {@code false} even though they are implicitly
+   * final.
+   * @return {@code true} if this variable was declared with the 'final' modifier
+   */
+  bool isFinal() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
+  /**
+   * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
+   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
+   */
+  void set keyword(Token keyword8) {
+    this._keyword = keyword8;
+  }
+  /**
+   * Set the name of the declared type of the parameter to the given type name.
+   * @param typeName the name of the declared type of the parameter
+   */
+  void set type(TypeName typeName) {
+    _type = becomeParentOf(typeName);
+  }
+  void visitChildren(ASTVisitor<Object> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(_type, visitor);
+    safelyVisitChild(_identifier, visitor);
+  }
+  Token get firstTokenAfterCommentAndMetadata {
+    if (_keyword != null) {
+      return _keyword;
+    } else if (_type != null) {
+      return _type.beginToken;
+    }
+    return _identifier.beginToken;
+  }
+}
+/**
  * Instances of the class {@code DefaultFormalParameter} represent a formal parameter with a default
  * value. There are two kinds of parameters that are both represented by this class: named formal
  * parameters and positional formal parameters.
@@ -3403,6 +3541,7 @@ abstract class Declaration extends AnnotatedNode {
  * defaultFormalParameter ::={@link NormalFormalParameter normalFormalParameter} ('=' {@link Expression defaultValue})?
  * defaultNamedParameter ::={@link NormalFormalParameter normalFormalParameter} (':' {@link Expression defaultValue})?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class DefaultFormalParameter extends FormalParameter {
   /**
@@ -3472,13 +3611,15 @@ class DefaultFormalParameter extends FormalParameter {
    */
   Token get separator => _separator;
   /**
-   * Return {@code true} if this parameter is a const parameter.
-   * @return {@code true} if this parameter is a const parameter
+   * Return {@code true} if this parameter was declared with the 'const' modifier.
+   * @return {@code true} if this parameter was declared with the 'const' modifier
    */
   bool isConst() => _parameter != null && _parameter.isConst();
   /**
-   * Return {@code true} if this parameter is a final parameter.
-   * @return {@code true} if this parameter is a final parameter
+   * Return {@code true} if this parameter was declared with the 'final' modifier. Parameters that
+   * are declared with the 'const' modifier will return {@code false} even though they are
+   * implicitly final.
+   * @return {@code true} if this parameter was declared with the 'final' modifier
    */
   bool isFinal() => _parameter != null && _parameter.isFinal();
   /**
@@ -3519,6 +3660,7 @@ class DefaultFormalParameter extends FormalParameter {
  * directive.
  * <pre>
  * directive ::={@link ExportDirective exportDirective}| {@link ImportDirective importDirective}| {@link LibraryDirective libraryDirective}| {@link PartDirective partDirective}| {@link PartOfDirective partOfDirective}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class Directive extends AnnotatedNode {
   /**
@@ -3566,6 +3708,7 @@ abstract class Directive extends AnnotatedNode {
  * doStatement ::=
  * 'do' {@link Statement body} 'while' '(' {@link Expression condition} ')' ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class DoStatement extends Statement {
   /**
@@ -3727,6 +3870,7 @@ class DoStatement extends Statement {
  * exponent ::=
  * ('e' | 'E') ('+' | '-')? decimalDigit+
  * </pre>
+ * @coverage dart.engine.ast
  */
 class DoubleLiteral extends Literal {
   /**
@@ -3789,6 +3933,7 @@ class DoubleLiteral extends Literal {
  * emptyFunctionBody ::=
  * ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class EmptyFunctionBody extends FunctionBody {
   /**
@@ -3832,6 +3977,7 @@ class EmptyFunctionBody extends FunctionBody {
  * emptyStatement ::=
  * ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class EmptyStatement extends Statement {
   /**
@@ -3870,6 +4016,7 @@ class EmptyStatement extends Statement {
 }
 /**
  * Ephemeral identifiers are created as needed to mimic the presence of an empty identifier.
+ * @coverage dart.engine.ast
  */
 class EphemeralIdentifier extends SimpleIdentifier {
   EphemeralIdentifier.full(ASTNode parent, int location) : super.full(new Token(TokenType.IDENTIFIER, location)) {
@@ -3882,6 +4029,7 @@ class EphemeralIdentifier extends SimpleIdentifier {
  * <pre>
  * exportDirective ::={@link Annotation metadata} 'export' {@link StringLiteral libraryUri} {@link Combinator combinator}* ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ExportDirective extends NamespaceDirective {
   /**
@@ -3917,6 +4065,7 @@ class ExportDirective extends NamespaceDirective {
  * <pre>
  * expression ::={@link AssignmentExpression assignmentExpression}| {@link ConditionalExpression conditionalExpression} cascadeSection
  * | {@link ThrowExpression throwExpression}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class Expression extends ASTNode {
   /**
@@ -3982,6 +4131,7 @@ abstract class Expression extends ASTNode {
  * expressionFunctionBody ::=
  * '=>' {@link Expression expression} ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ExpressionFunctionBody extends FunctionBody {
   /**
@@ -4070,6 +4220,7 @@ class ExpressionFunctionBody extends FunctionBody {
  * <pre>
  * expressionStatement ::={@link Expression expression}? ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ExpressionStatement extends Statement {
   /**
@@ -4139,6 +4290,7 @@ class ExpressionStatement extends Statement {
  * <pre>
  * extendsClause ::=
  * 'extends' {@link TypeName superclass}</pre>
+ * @coverage dart.engine.ast
  */
 class ExtendsClause extends ASTNode {
   /**
@@ -4181,8 +4333,8 @@ class ExtendsClause extends ASTNode {
    * Set the token representing the 'extends' keyword to the given token.
    * @param keyword the token representing the 'extends' keyword
    */
-  void set keyword(Token keyword8) {
-    this._keyword = keyword8;
+  void set keyword(Token keyword9) {
+    this._keyword = keyword9;
   }
   /**
    * Set the name of the class that is being extended to the given name.
@@ -4202,6 +4354,7 @@ class ExtendsClause extends ASTNode {
  * fieldDeclaration ::=
  * 'static'? {@link VariableDeclarationList fieldList} ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class FieldDeclaration extends ClassMember {
   /**
@@ -4268,8 +4421,8 @@ class FieldDeclaration extends ClassMember {
    * Set the token representing the 'static' keyword to the given token.
    * @param keyword the token representing the 'static' keyword
    */
-  void set keyword(Token keyword9) {
-    this._keyword = keyword9;
+  void set keyword(Token keyword10) {
+    this._keyword = keyword10;
   }
   /**
    * Set the semicolon terminating the declaration to the given token.
@@ -4294,6 +4447,7 @@ class FieldDeclaration extends ClassMember {
  * <pre>
  * fieldFormalParameter ::=
  * ('final' {@link TypeName type} | 'const' {@link TypeName type} | 'var' | {@link TypeName type})? 'this' '.' {@link SimpleIdentifier identifier}</pre>
+ * @coverage dart.engine.ast
  */
 class FieldFormalParameter extends NormalFormalParameter {
   /**
@@ -4378,8 +4532,8 @@ class FieldFormalParameter extends NormalFormalParameter {
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword
    */
-  void set keyword(Token keyword10) {
-    this._keyword = keyword10;
+  void set keyword(Token keyword11) {
+    this._keyword = keyword11;
   }
   /**
    * Set the token representing the period to the given token.
@@ -4413,6 +4567,7 @@ class FieldFormalParameter extends NormalFormalParameter {
  * <pre>
  * forEachStatement ::=
  * 'for' '(' {@link SimpleFormalParameter loopParameter} 'in' {@link Expression iterator} ')' {@link Block body}</pre>
+ * @coverage dart.engine.ast
  */
 class ForEachStatement extends Statement {
   /**
@@ -4426,7 +4581,7 @@ class ForEachStatement extends Statement {
   /**
    * The declaration of the loop variable.
    */
-  SimpleFormalParameter _loopParameter;
+  DeclaredIdentifier _loopVariable;
   /**
    * The token representing the 'in' keyword.
    */
@@ -4447,15 +4602,15 @@ class ForEachStatement extends Statement {
    * Initialize a newly created for-each statement.
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
-   * @param loopParameter the declaration of the loop variable
+   * @param loopVariable the declaration of the loop variable
    * @param iterator the expression evaluated to produce the iterator
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.full(Token forKeyword, Token leftParenthesis, SimpleFormalParameter loopParameter, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+  ForEachStatement.full(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
     this._forKeyword = forKeyword;
     this._leftParenthesis = leftParenthesis;
-    this._loopParameter = becomeParentOf(loopParameter);
+    this._loopVariable = becomeParentOf(loopVariable);
     this._inKeyword = inKeyword;
     this._iterator = becomeParentOf(iterator);
     this._rightParenthesis = rightParenthesis;
@@ -4465,12 +4620,12 @@ class ForEachStatement extends Statement {
    * Initialize a newly created for-each statement.
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
-   * @param loopParameter the declaration of the loop variable
+   * @param loopVariable the declaration of the loop variable
    * @param iterator the expression evaluated to produce the iterator
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement({Token forKeyword, Token leftParenthesis, SimpleFormalParameter loopParameter, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, loopParameter, inKeyword, iterator, rightParenthesis, body);
+  ForEachStatement({Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
   accept(ASTVisitor visitor) => visitor.visitForEachStatement(this);
   Token get beginToken => _forKeyword;
   /**
@@ -4503,7 +4658,7 @@ class ForEachStatement extends Statement {
    * Return the declaration of the loop variable.
    * @return the declaration of the loop variable
    */
-  SimpleFormalParameter get loopParameter => _loopParameter;
+  DeclaredIdentifier get loopVariable => _loopVariable;
   /**
    * Return the right parenthesis.
    * @return the right parenthesis
@@ -4545,11 +4700,11 @@ class ForEachStatement extends Statement {
     this._leftParenthesis = leftParenthesis3;
   }
   /**
-   * Set the declaration of the loop variable to the given parameter.
-   * @param parameter the declaration of the loop variable
+   * Set the declaration of the loop variable to the given variable.
+   * @param variable the declaration of the loop variable
    */
-  void set loopParameter(SimpleFormalParameter parameter) {
-    _loopParameter = becomeParentOf(parameter);
+  void set loopVariable(DeclaredIdentifier variable) {
+    _loopVariable = becomeParentOf(variable);
   }
   /**
    * Set the right parenthesis to the given token.
@@ -4559,7 +4714,7 @@ class ForEachStatement extends Statement {
     this._rightParenthesis = rightParenthesis3;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(_loopParameter, visitor);
+    safelyVisitChild(_loopVariable, visitor);
     safelyVisitChild(_iterator, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -4572,6 +4727,7 @@ class ForEachStatement extends Statement {
  * forInitializerStatement ';' {@link Expression expression}? ';' {@link Expression expressionList}?
  * forInitializerStatement ::={@link DefaultFormalParameter initializedVariableDeclaration}| {@link Expression expression}?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ForStatement extends Statement {
   /**
@@ -4787,6 +4943,7 @@ class ForStatement extends Statement {
  * parameter to a function.
  * <pre>
  * formalParameter ::={@link NormalFormalParameter normalFormalParameter}| {@link DefaultFormalParameter namedFormalParameter}| {@link DefaultFormalParameter optionalFormalParameter}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class FormalParameter extends ASTNode {
   /**
@@ -4795,11 +4952,11 @@ abstract class FormalParameter extends ASTNode {
    * @return the element representing this parameter
    */
   ParameterElement get element {
-    SimpleIdentifier identifier11 = identifier;
-    if (identifier11 == null) {
+    SimpleIdentifier identifier12 = identifier;
+    if (identifier12 == null) {
       return null;
     }
-    return identifier11.element as ParameterElement;
+    return identifier12.element as ParameterElement;
   }
   /**
    * Return the name of the parameter being declared.
@@ -4834,6 +4991,7 @@ abstract class FormalParameter extends ASTNode {
  * namedFormalParameters ::=
  * '{' {@link DefaultFormalParameter namedFormalParameter} (',' {@link DefaultFormalParameter namedFormalParameter})* '}'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class FormalParameterList extends ASTNode {
   /**
@@ -4965,6 +5123,7 @@ class FormalParameterList extends ASTNode {
  * body of a function or method.
  * <pre>
  * functionBody ::={@link BlockFunctionBody blockFunctionBody}| {@link EmptyFunctionBody emptyFunctionBody}| {@link ExpressionFunctionBody expressionFunctionBody}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class FunctionBody extends ASTNode {
 }
@@ -4975,6 +5134,7 @@ abstract class FunctionBody extends ASTNode {
  * functionDeclaration ::=
  * 'external' functionSignature
  * | functionSignature {@link FunctionBody functionBody}functionSignature ::={@link Type returnType}? ('get' | 'set')? {@link SimpleIdentifier functionName} {@link FormalParameterList formalParameterList}</pre>
+ * @coverage dart.engine.ast
  */
 class FunctionDeclaration extends CompilationUnitMember {
   /**
@@ -5114,6 +5274,7 @@ class FunctionDeclaration extends CompilationUnitMember {
 }
 /**
  * Instances of the class {@code FunctionDeclarationStatement} wrap a {@link FunctionDeclarationfunction declaration} as a statement.
+ * @coverage dart.engine.ast
  */
 class FunctionDeclarationStatement extends Statement {
   /**
@@ -5155,6 +5316,7 @@ class FunctionDeclarationStatement extends Statement {
  * Instances of the class {@code FunctionExpression} represent a function expression.
  * <pre>
  * functionExpression ::={@link FormalParameterList formalParameterList} {@link FunctionBody functionBody}</pre>
+ * @coverage dart.engine.ast
  */
 class FunctionExpression extends Expression {
   /**
@@ -5251,6 +5413,7 @@ class FunctionExpression extends Expression {
  * getters and setters are represented by either {@link PrefixedIdentifier prefixed identifier} or{@link PropertyAccess property access} nodes.
  * <pre>
  * functionExpressionInvoction ::={@link Expression function} {@link ArgumentList argumentList}</pre>
+ * @coverage dart.engine.ast
  */
 class FunctionExpressionInvocation extends Expression {
   /**
@@ -5333,6 +5496,7 @@ class FunctionExpressionInvocation extends Expression {
  * functionTypeAlias ::=
  * functionPrefix {@link TypeParameterList typeParameterList}? {@link FormalParameterList formalParameterList} ';'
  * functionPrefix ::={@link TypeName returnType}? {@link SimpleIdentifier name}</pre>
+ * @coverage dart.engine.ast
  */
 class FunctionTypeAlias extends TypeAlias {
   /**
@@ -5447,6 +5611,7 @@ class FunctionTypeAlias extends TypeAlias {
  * parameter.
  * <pre>
  * functionSignature ::={@link TypeName returnType}? {@link SimpleIdentifier identifier} {@link FormalParameterList formalParameterList}</pre>
+ * @coverage dart.engine.ast
  */
 class FunctionTypedFormalParameter extends NormalFormalParameter {
   /**
@@ -5529,6 +5694,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
  * hideCombinator ::=
  * 'hide' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class HideCombinator extends Combinator {
   /**
@@ -5566,6 +5732,7 @@ class HideCombinator extends Combinator {
  * identifier.
  * <pre>
  * identifier ::={@link SimpleIdentifier simpleIdentifier}| {@link PrefixedIdentifier prefixedIdentifier}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class Identifier extends Expression {
   /**
@@ -5595,6 +5762,7 @@ abstract class Identifier extends Expression {
  * ifStatement ::=
  * 'if' '(' {@link Expression expression} ')' {@link Statement thenStatement} ('else' {@link Statement elseStatement})?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class IfStatement extends Statement {
   /**
@@ -5764,6 +5932,7 @@ class IfStatement extends Statement {
  * implementsClause ::=
  * 'implements' {@link TypeName superclass} (',' {@link TypeName superclass})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ImplementsClause extends ASTNode {
   /**
@@ -5807,8 +5976,8 @@ class ImplementsClause extends ASTNode {
    * Set the token representing the 'implements' keyword to the given token.
    * @param keyword the token representing the 'implements' keyword
    */
-  void set keyword(Token keyword11) {
-    this._keyword = keyword11;
+  void set keyword(Token keyword12) {
+    this._keyword = keyword12;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     _interfaces.accept(visitor);
@@ -5819,6 +5988,7 @@ class ImplementsClause extends ASTNode {
  * <pre>
  * importDirective ::={@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link Combinator combinator}* ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ImportDirective extends NamespaceDirective {
   /**
@@ -5895,6 +6065,7 @@ class ImportDirective extends NamespaceDirective {
  * <pre>
  * indexExpression ::={@link Expression target} '[' {@link Expression index} ']'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class IndexExpression extends Expression {
   /**
@@ -5932,7 +6103,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forTarget_full(Expression target3, Token leftBracket4, Expression index2, Token rightBracket4) {
-    _jtd_constructor_57_impl(target3, leftBracket4, index2, rightBracket4);
+    _jtd_constructor_58_impl(target3, leftBracket4, index2, rightBracket4);
   }
   /**
    * Initialize a newly created index expression.
@@ -5942,7 +6113,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forTarget({Expression target3, Token leftBracket4, Expression index2, Token rightBracket4}) : this.forTarget_full(target3, leftBracket4, index2, rightBracket4);
-  _jtd_constructor_57_impl(Expression target3, Token leftBracket4, Expression index2, Token rightBracket4) {
+  _jtd_constructor_58_impl(Expression target3, Token leftBracket4, Expression index2, Token rightBracket4) {
     this._target = becomeParentOf(target3);
     this._leftBracket = leftBracket4;
     this._index = becomeParentOf(index2);
@@ -5956,7 +6127,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forCascade_full(Token period7, Token leftBracket5, Expression index3, Token rightBracket5) {
-    _jtd_constructor_58_impl(period7, leftBracket5, index3, rightBracket5);
+    _jtd_constructor_59_impl(period7, leftBracket5, index3, rightBracket5);
   }
   /**
    * Initialize a newly created index expression.
@@ -5966,7 +6137,7 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forCascade({Token period7, Token leftBracket5, Expression index3, Token rightBracket5}) : this.forCascade_full(period7, leftBracket5, index3, rightBracket5);
-  _jtd_constructor_58_impl(Token period7, Token leftBracket5, Expression index3, Token rightBracket5) {
+  _jtd_constructor_59_impl(Token period7, Token leftBracket5, Expression index3, Token rightBracket5) {
     this._period = period7;
     this._leftBracket = leftBracket5;
     this._index = becomeParentOf(index3);
@@ -6132,6 +6303,7 @@ class IndexExpression extends Expression {
  * <pre>
  * newExpression ::=
  * ('new' | 'const') {@link TypeName type} ('.' {@link SimpleIdentifier identifier})? {@link ArgumentList argumentList}</pre>
+ * @coverage dart.engine.ast
  */
 class InstanceCreationExpression extends Expression {
   /**
@@ -6223,8 +6395,8 @@ class InstanceCreationExpression extends Expression {
    * Set the keyword used to indicate how an object should be created to the given keyword.
    * @param keyword the keyword used to indicate how an object should be created
    */
-  void set keyword(Token keyword12) {
-    this._keyword = keyword12;
+  void set keyword(Token keyword13) {
+    this._keyword = keyword13;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_constructorName, visitor);
@@ -6243,6 +6415,7 @@ class InstanceCreationExpression extends Expression {
  * '0x' hexidecimalDigit+
  * | '0X' hexidecimalDigit+
  * </pre>
+ * @coverage dart.engine.ast
  */
 class IntegerLiteral extends Literal {
   /**
@@ -6302,6 +6475,7 @@ class IntegerLiteral extends Literal {
  * The abstract class {@code InterpolationElement} defines the behavior common to elements within a{@link StringInterpolation string interpolation}.
  * <pre>
  * interpolationElement ::={@link InterpolationExpression interpolationExpression}| {@link InterpolationString interpolationString}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class InterpolationElement extends ASTNode {
 }
@@ -6312,6 +6486,7 @@ abstract class InterpolationElement extends ASTNode {
  * interpolationExpression ::=
  * '$' {@link SimpleIdentifier identifier}| '$' '{' {@link Expression expression} '}'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class InterpolationExpression extends InterpolationElement {
   /**
@@ -6401,6 +6576,7 @@ class InterpolationExpression extends InterpolationElement {
  * interpolationString ::=
  * characters
  * </pre>
+ * @coverage dart.engine.ast
  */
 class InterpolationString extends InterpolationElement {
   /**
@@ -6460,6 +6636,7 @@ class InterpolationString extends InterpolationElement {
  * Instances of the class {@code IsExpression} represent an is expression.
  * <pre>
  * isExpression ::={@link Expression expression} 'is' '!'? {@link TypeName type}</pre>
+ * @coverage dart.engine.ast
  */
 class IsExpression extends Expression {
   /**
@@ -6561,6 +6738,7 @@ class IsExpression extends Expression {
  * <pre>
  * label ::={@link SimpleIdentifier label} ':'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class Label extends ASTNode {
   /**
@@ -6622,6 +6800,7 @@ class Label extends ASTNode {
  * with them.
  * <pre>
  * labeledStatement ::={@link Label label}+ {@link Statement statement}</pre>
+ * @coverage dart.engine.ast
  */
 class LabeledStatement extends Statement {
   /**
@@ -6683,6 +6862,7 @@ class LabeledStatement extends Statement {
  * <pre>
  * libraryDirective ::={@link Annotation metadata} 'library' {@link Identifier name} ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class LibraryDirective extends Directive {
   /**
@@ -6769,6 +6949,7 @@ class LibraryDirective extends Directive {
  * <pre>
  * libraryIdentifier ::={@link SimpleIdentifier component} ('.' {@link SimpleIdentifier component})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class LibraryIdentifier extends Identifier {
   /**
@@ -6820,6 +7001,7 @@ class LibraryIdentifier extends Identifier {
  * listLiteral ::=
  * 'const'? ('<' {@link TypeName type} '>')? '[' ({@link Expression expressionList} ','?)? ']'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ListLiteral extends TypedLiteral {
   /**
@@ -6911,6 +7093,7 @@ class ListLiteral extends TypedLiteral {
  * expression.
  * <pre>
  * literal ::={@link BooleanLiteral booleanLiteral}| {@link DoubleLiteral doubleLiteral}| {@link IntegerLiteral integerLiteral}| {@link ListLiteral listLiteral}| {@link MapLiteral mapLiteral}| {@link NullLiteral nullLiteral}| {@link StringLiteral stringLiteral}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class Literal extends Expression {
 }
@@ -6920,6 +7103,7 @@ abstract class Literal extends Expression {
  * mapLiteral ::=
  * 'const'? ('<' {@link TypeName type} '>')? '{' ({@link MapLiteralEntry entry} (',' {@link MapLiteralEntry entry})* ','?)? '}'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class MapLiteral extends TypedLiteral {
   /**
@@ -7011,6 +7195,7 @@ class MapLiteral extends TypedLiteral {
  * literal.
  * <pre>
  * mapLiteralEntry ::={@link StringLiteral key} ':' {@link Expression value}</pre>
+ * @coverage dart.engine.ast
  */
 class MapLiteralEntry extends ASTNode {
   /**
@@ -7094,6 +7279,7 @@ class MapLiteralEntry extends ASTNode {
  * methodDeclaration ::=
  * methodSignature {@link FunctionBody body}methodSignature ::=
  * 'external'? ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName{@link FormalParameterList formalParameterList}methodName ::={@link SimpleIdentifier name}| 'operator' {@link SimpleIdentifier operator}</pre>
+ * @coverage dart.engine.ast
  */
 class MethodDeclaration extends ClassMember {
   /**
@@ -7333,6 +7519,7 @@ class MethodDeclaration extends ClassMember {
  * <pre>
  * methodInvoction ::=
  * ({@link Expression target} '.')? {@link SimpleIdentifier methodName} {@link ArgumentList argumentList}</pre>
+ * @coverage dart.engine.ast
  */
 class MethodInvocation extends Expression {
   /**
@@ -7472,6 +7659,7 @@ class MethodInvocation extends Expression {
  * with it. They are used in method invocations when there are named parameters.
  * <pre>
  * namedExpression ::={@link Label name} {@link Expression expression}</pre>
+ * @coverage dart.engine.ast
  */
 class NamedExpression extends Expression {
   /**
@@ -7505,9 +7693,9 @@ class NamedExpression extends Expression {
    * @return the element representing the parameter being named by this expression
    */
   ParameterElement get element {
-    Element element19 = _name.label.element;
-    if (element19 is ParameterElement) {
-      return element19 as ParameterElement;
+    Element element20 = _name.label.element;
+    if (element20 is ParameterElement) {
+      return element20 as ParameterElement;
     }
     return null;
   }
@@ -7546,6 +7734,7 @@ class NamedExpression extends Expression {
  * a directive that impacts the namespace of a library.
  * <pre>
  * directive ::={@link ExportDirective exportDirective}| {@link ImportDirective importDirective}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class NamespaceDirective extends UriBasedDirective {
   /**
@@ -7618,6 +7807,7 @@ abstract class NamespaceDirective extends UriBasedDirective {
  * that are required (are not optional).
  * <pre>
  * normalFormalParameter ::={@link FunctionTypedFormalParameter functionSignature}| {@link FieldFormalParameter fieldFormalParameter}| {@link SimpleFormalParameter simpleFormalParameter}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class NormalFormalParameter extends FormalParameter {
   /**
@@ -7672,13 +7862,15 @@ abstract class NormalFormalParameter extends FormalParameter {
    */
   NodeList<Annotation> get metadata => _metadata;
   /**
-   * Return {@code true} if this parameter is a const parameter.
-   * @return {@code true} if this parameter is a const parameter
+   * Return {@code true} if this parameter was declared with the 'const' modifier.
+   * @return {@code true} if this parameter was declared with the 'const' modifier
    */
   bool isConst();
   /**
-   * Return {@code true} if this parameter is a final parameter.
-   * @return {@code true} if this parameter is a final parameter
+   * Return {@code true} if this parameter was declared with the 'final' modifier. Parameters that
+   * are declared with the 'const' modifier will return {@code false} even though they are
+   * implicitly final.
+   * @return {@code true} if this parameter was declared with the 'final' modifier
    */
   bool isFinal();
   /**
@@ -7737,6 +7929,7 @@ abstract class NormalFormalParameter extends FormalParameter {
  * nullLiteral ::=
  * 'null'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class NullLiteral extends Literal {
   /**
@@ -7779,6 +7972,7 @@ class NullLiteral extends Literal {
  * parenthesizedExpression ::=
  * '(' {@link Expression expression} ')'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ParenthesizedExpression extends Expression {
   /**
@@ -7859,6 +8053,7 @@ class ParenthesizedExpression extends Expression {
  * <pre>
  * partDirective ::={@link Annotation metadata} 'part' {@link StringLiteral partUri} ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class PartDirective extends UriBasedDirective {
   /**
@@ -7924,6 +8119,7 @@ class PartDirective extends UriBasedDirective {
  * <pre>
  * partOfDirective ::={@link Annotation metadata} 'part' 'of' {@link Identifier libraryName} ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class PartOfDirective extends Directive {
   /**
@@ -8028,6 +8224,7 @@ class PartOfDirective extends Directive {
  * Instances of the class {@code PostfixExpression} represent a postfix unary expression.
  * <pre>
  * postfixExpression ::={@link Expression operand} {@link Token operator}</pre>
+ * @coverage dart.engine.ast
  */
 class PostfixExpression extends Expression {
   /**
@@ -8107,6 +8304,7 @@ class PostfixExpression extends Expression {
  * Instances of the class {@code PrefixExpression} represent a prefix unary expression.
  * <pre>
  * prefixExpression ::={@link Token operator} {@link Expression operand}</pre>
+ * @coverage dart.engine.ast
  */
 class PrefixExpression extends Expression {
   /**
@@ -8188,6 +8386,7 @@ class PrefixExpression extends Expression {
  * identifier.
  * <pre>
  * prefixedIdentifier ::={@link SimpleIdentifier prefix} '.' {@link SimpleIdentifier identifier}</pre>
+ * @coverage dart.engine.ast
  */
 class PrefixedIdentifier extends Identifier {
   /**
@@ -8279,6 +8478,7 @@ class PrefixedIdentifier extends Identifier {
  * identifier.
  * <pre>
  * propertyAccess ::={@link Expression target} '.' {@link SimpleIdentifier propertyName}</pre>
+ * @coverage dart.engine.ast
  */
 class PropertyAccess extends Expression {
   /**
@@ -8397,6 +8597,7 @@ class PropertyAccess extends Expression {
  * redirectingConstructorInvocation ::=
  * 'this' ('.' identifier)? arguments
  * </pre>
+ * @coverage dart.engine.ast
  */
 class RedirectingConstructorInvocation extends ConstructorInitializer {
   /**
@@ -8499,8 +8700,8 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * Set the token for the 'this' keyword to the given token.
    * @param keyword the token for the 'this' keyword
    */
-  void set keyword(Token keyword13) {
-    this._keyword = keyword13;
+  void set keyword(Token keyword14) {
+    this._keyword = keyword14;
   }
   /**
    * Set the token for the period before the name of the constructor that is being invoked to the
@@ -8521,6 +8722,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
  * returnStatement ::=
  * 'return' {@link Expression expression}? ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ReturnStatement extends Statement {
   /**
@@ -8584,8 +8786,8 @@ class ReturnStatement extends Statement {
    * Set the token representing the 'return' keyword to the given token.
    * @param keyword the token representing the 'return' keyword
    */
-  void set keyword(Token keyword14) {
-    this._keyword = keyword14;
+  void set keyword(Token keyword15) {
+    this._keyword = keyword15;
   }
   /**
    * Set the semicolon terminating the statement to the given token.
@@ -8605,6 +8807,7 @@ class ReturnStatement extends Statement {
  * scriptTag ::=
  * '#!' (~NEWLINE)* NEWLINE
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ScriptTag extends ASTNode {
   /**
@@ -8648,6 +8851,7 @@ class ScriptTag extends ASTNode {
  * showCombinator ::=
  * 'show' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ShowCombinator extends Combinator {
   /**
@@ -8685,6 +8889,7 @@ class ShowCombinator extends Combinator {
  * <pre>
  * simpleFormalParameter ::=
  * ('final' {@link TypeName type} | 'var' | {@link TypeName type})? {@link SimpleIdentifier identifier}</pre>
+ * @coverage dart.engine.ast
  */
 class SimpleFormalParameter extends NormalFormalParameter {
   /**
@@ -8745,8 +8950,8 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword
    */
-  void set keyword(Token keyword15) {
-    this._keyword = keyword15;
+  void set keyword(Token keyword16) {
+    this._keyword = keyword16;
   }
   /**
    * Set the name of the declared type of the parameter to the given type name.
@@ -8769,6 +8974,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
  * initialCharacter ::= '_' | '$' | letter
  * internalCharacter ::= '_' | '$' | letter | digit
  * </pre>
+ * @coverage dart.engine.ast
  */
 class SimpleIdentifier extends Identifier {
   /**
@@ -8938,6 +9144,7 @@ class SimpleIdentifier extends Identifier {
  * "'" characters "'"
  * '"' characters '"'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class SimpleStringLiteral extends StringLiteral {
   /**
@@ -9014,6 +9221,7 @@ class SimpleStringLiteral extends StringLiteral {
  * statement.
  * <pre>
  * statement ::={@link Block block}| {@link VariableDeclarationStatement initializedVariableDeclaration ';'}| {@link ForStatement forStatement}| {@link ForEachStatement forEachStatement}| {@link WhileStatement whileStatement}| {@link DoStatement doStatement}| {@link SwitchStatement switchStatement}| {@link IfStatement ifStatement}| {@link TryStatement tryStatement}| {@link BreakStatement breakStatement}| {@link ContinueStatement continueStatement}| {@link ReturnStatement returnStatement}| {@link ExpressionStatement expressionStatement}| {@link FunctionDeclarationStatement functionSignature functionBody}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class Statement extends ASTNode {
 }
@@ -9024,6 +9232,7 @@ abstract class Statement extends ASTNode {
  * ''' {@link InterpolationElement interpolationElement}* '''
  * | '"' {@link InterpolationElement interpolationElement}* '"'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class StringInterpolation extends StringLiteral {
   /**
@@ -9059,6 +9268,7 @@ class StringInterpolation extends StringLiteral {
  * Instances of the class {@code StringLiteral} represent a string literal expression.
  * <pre>
  * stringLiteral ::={@link SimpleStringLiteral simpleStringLiteral}| {@link AdjacentStrings adjacentStrings}| {@link StringInterpolation stringInterpolation}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class StringLiteral extends Literal {
 }
@@ -9068,6 +9278,7 @@ abstract class StringLiteral extends Literal {
  * <pre>
  * superInvocation ::=
  * 'super' ('.' {@link SimpleIdentifier name})? {@link ArgumentList argumentList}</pre>
+ * @coverage dart.engine.ast
  */
 class SuperConstructorInvocation extends ConstructorInitializer {
   /**
@@ -9170,8 +9381,8 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * Set the token for the 'super' keyword to the given token.
    * @param keyword the token for the 'super' keyword
    */
-  void set keyword(Token keyword16) {
-    this._keyword = keyword16;
+  void set keyword(Token keyword17) {
+    this._keyword = keyword17;
   }
   /**
    * Set the token for the period before the name of the constructor that is being invoked to the
@@ -9192,6 +9403,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
  * superExpression ::=
  * 'super'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class SuperExpression extends Expression {
   /**
@@ -9222,8 +9434,8 @@ class SuperExpression extends Expression {
    * Set the token representing the keyword to the given token.
    * @param keyword the token representing the keyword
    */
-  void set keyword(Token keyword17) {
-    this._keyword = keyword17;
+  void set keyword(Token keyword18) {
+    this._keyword = keyword18;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
   }
@@ -9232,6 +9444,7 @@ class SuperExpression extends Expression {
  * Instances of the class {@code SwitchCase} represent the case in a switch statement.
  * <pre>
  * switchCase ::={@link SimpleIdentifier label}* 'case' {@link Expression expression} ':' {@link Statement statement}</pre>
+ * @coverage dart.engine.ast
  */
 class SwitchCase extends SwitchMember {
   /**
@@ -9281,6 +9494,7 @@ class SwitchCase extends SwitchMember {
  * Instances of the class {@code SwitchDefault} represent the default case in a switch statement.
  * <pre>
  * switchDefault ::={@link SimpleIdentifier label}* 'default' ':' {@link Statement statement}</pre>
+ * @coverage dart.engine.ast
  */
 class SwitchDefault extends SwitchMember {
   /**
@@ -9314,6 +9528,7 @@ class SwitchDefault extends SwitchMember {
  * switchCase
  * | switchDefault
  * </pre>
+ * @coverage dart.engine.ast
  */
 abstract class SwitchMember extends ASTNode {
   /**
@@ -9398,8 +9613,8 @@ abstract class SwitchMember extends ASTNode {
    * Set the token representing the 'case' or 'default' keyword to the given token.
    * @param keyword the token representing the 'case' or 'default' keyword
    */
-  void set keyword(Token keyword18) {
-    this._keyword = keyword18;
+  void set keyword(Token keyword19) {
+    this._keyword = keyword19;
   }
 }
 /**
@@ -9408,6 +9623,7 @@ abstract class SwitchMember extends ASTNode {
  * switchStatement ::=
  * 'switch' '(' {@link Expression expression} ')' '{' {@link SwitchCase switchCase}* {@link SwitchDefault defaultCase}? '}'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class SwitchStatement extends Statement {
   /**
@@ -9519,8 +9735,8 @@ class SwitchStatement extends Statement {
    * Set the token representing the 'switch' keyword to the given token.
    * @param keyword the token representing the 'switch' keyword
    */
-  void set keyword(Token keyword19) {
-    this._keyword = keyword19;
+  void set keyword(Token keyword20) {
+    this._keyword = keyword20;
   }
   /**
    * Set the left curly bracket to the given token.
@@ -9561,6 +9777,7 @@ class SwitchStatement extends Statement {
  * thisExpression ::=
  * 'this'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ThisExpression extends Expression {
   /**
@@ -9591,8 +9808,8 @@ class ThisExpression extends Expression {
    * Set the token representing the keyword to the given token.
    * @param keyword the token representing the keyword
    */
-  void set keyword(Token keyword20) {
-    this._keyword = keyword20;
+  void set keyword(Token keyword21) {
+    this._keyword = keyword21;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
   }
@@ -9603,6 +9820,7 @@ class ThisExpression extends Expression {
  * throwExpression ::=
  * 'throw' {@link Expression expression}? ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class ThrowExpression extends Expression {
   /**
@@ -9661,8 +9879,8 @@ class ThrowExpression extends Expression {
    * Set the token representing the 'throw' keyword to the given token.
    * @param keyword the token representing the 'throw' keyword
    */
-  void set keyword(Token keyword21) {
-    this._keyword = keyword21;
+  void set keyword(Token keyword22) {
+    this._keyword = keyword22;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_expression, visitor);
@@ -9676,6 +9894,7 @@ class ThrowExpression extends Expression {
  * ('final' | 'const') type? staticFinalDeclarationList ';'
  * | variableDeclaration ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class TopLevelVariableDeclaration extends CompilationUnitMember {
   /**
@@ -9745,6 +9964,7 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
  * 'try' {@link Block block} ({@link CatchClause catchClause}+ finallyClause? | finallyClause)
  * finallyClause ::=
  * 'finally' {@link Block block}</pre>
+ * @coverage dart.engine.ast
  */
 class TryStatement extends Statement {
   /**
@@ -9876,6 +10096,7 @@ class TryStatement extends Statement {
  * classTypeAlias
  * | functionTypeAlias
  * </pre>
+ * @coverage dart.engine.ast
  */
 abstract class TypeAlias extends CompilationUnitMember {
   /**
@@ -9920,8 +10141,8 @@ abstract class TypeAlias extends CompilationUnitMember {
    * Set the token representing the 'typedef' keyword to the given token.
    * @param keyword the token representing the 'typedef' keyword
    */
-  void set keyword(Token keyword22) {
-    this._keyword = keyword22;
+  void set keyword(Token keyword23) {
+    this._keyword = keyword23;
   }
   /**
    * Set the semicolon terminating the declaration to the given token.
@@ -9938,6 +10159,7 @@ abstract class TypeAlias extends CompilationUnitMember {
  * typeArguments ::=
  * '<' typeName (',' typeName)* '>'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class TypeArgumentList extends ASTNode {
   /**
@@ -10013,6 +10235,7 @@ class TypeArgumentList extends ASTNode {
  * <pre>
  * typeName ::={@link Identifier identifier} typeArguments?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class TypeName extends ASTNode {
   /**
@@ -10100,6 +10323,7 @@ class TypeName extends ASTNode {
  * <pre>
  * typeParameter ::={@link SimpleIdentifier name} ('extends' {@link TypeName bound})?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class TypeParameter extends Declaration {
   /**
@@ -10173,8 +10397,8 @@ class TypeParameter extends Declaration {
    * Set the token representing the 'assert' keyword to the given token.
    * @param keyword the token representing the 'assert' keyword
    */
-  void set keyword(Token keyword23) {
-    this._keyword = keyword23;
+  void set keyword(Token keyword24) {
+    this._keyword = keyword24;
   }
   /**
    * Set the name of the type parameter to the given identifier.
@@ -10196,6 +10420,7 @@ class TypeParameter extends Declaration {
  * typeParameterList ::=
  * '<' {@link TypeParameter typeParameter} (',' {@link TypeParameter typeParameter})* '>'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class TypeParameterList extends ASTNode {
   /**
@@ -10256,6 +10481,7 @@ class TypeParameterList extends ASTNode {
  * associated with them.
  * <pre>
  * listLiteral ::={@link ListLiteral listLiteral}| {@link MapLiteral mapLiteral}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class TypedLiteral extends Literal {
   /**
@@ -10319,6 +10545,7 @@ abstract class TypedLiteral extends Literal {
  * a directive that references a URI.
  * <pre>
  * uriBasedDirective ::={@link ExportDirective exportDirective}| {@link ImportDirective importDirective}| {@link PartDirective partDirective}</pre>
+ * @coverage dart.engine.ast
  */
 abstract class UriBasedDirective extends Directive {
   /**
@@ -10364,6 +10591,7 @@ abstract class UriBasedDirective extends Directive {
  * <pre>
  * variableDeclaration ::={@link SimpleIdentifier identifier} ('=' {@link Expression initialValue})?
  * </pre>
+ * @coverage dart.engine.ast
  */
 class VariableDeclaration extends Declaration {
   /**
@@ -10428,16 +10656,18 @@ class VariableDeclaration extends Declaration {
    */
   SimpleIdentifier get name => _name;
   /**
-   * Return {@code true} if this variable declaration is declared to be a const variable.
-   * @return {@code true} if this variable is declared to be a const variable
+   * Return {@code true} if this variable was declared with the 'const' modifier.
+   * @return {@code true} if this variable was declared with the 'const' modifier
    */
   bool isConst() {
     ASTNode parent10 = parent;
     return parent10 is VariableDeclarationList && ((parent10 as VariableDeclarationList)).isConst();
   }
   /**
-   * Return {@code true} if this variable declaration is declared to be a final variable.
-   * @return {@code true} if this variable is declared to be a final variable
+   * Return {@code true} if this variable was declared with the 'final' modifier. Variables that are
+   * declared with the 'const' modifier will return {@code false} even though they are implicitly
+   * final.
+   * @return {@code true} if this variable was declared with the 'final' modifier
    */
   bool isFinal() {
     ASTNode parent11 = parent;
@@ -10482,6 +10712,7 @@ class VariableDeclaration extends Declaration {
  * | 'const' {@link TypeName type}?
  * | 'var'
  * | {@link TypeName type}</pre>
+ * @coverage dart.engine.ast
  */
 class VariableDeclarationList extends ASTNode {
   /**
@@ -10543,23 +10774,23 @@ class VariableDeclarationList extends ASTNode {
    */
   NodeList<VariableDeclaration> get variables => _variables;
   /**
-   * Return {@code true} if the variable declarations in this list are declared to be const
-   * variables.
-   * @return {@code true} if the variables in this list are declared to be const variables
+   * Return {@code true} if the variables in this list were declared with the 'const' modifier.
+   * @return {@code true} if the variables in this list were declared with the 'const' modifier
    */
   bool isConst() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
   /**
-   * Return {@code true} if the variable declarations in this list are declared to be final
-   * variables.
-   * @return {@code true} if the variables in this list are declared to be final variables
+   * Return {@code true} if the variables in this list were declared with the 'final' modifier.
+   * Variables that are declared with the 'const' modifier will return {@code false} even though
+   * they are implicitly final.
+   * @return {@code true} if the variables in this list were declared with the 'final' modifier
    */
   bool isFinal() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
   /**
    * Set the token representing the 'final', 'const' or 'var' keyword to the given token.
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
    */
-  void set keyword(Token keyword24) {
-    this._keyword = keyword24;
+  void set keyword(Token keyword25) {
+    this._keyword = keyword25;
   }
   /**
    * Set the type of the variables being declared to the given type name.
@@ -10579,6 +10810,7 @@ class VariableDeclarationList extends ASTNode {
  * <pre>
  * variableDeclarationStatement ::={@link VariableDeclarationList variableList} ';'
  * </pre>
+ * @coverage dart.engine.ast
  */
 class VariableDeclarationStatement extends Statement {
   /**
@@ -10640,6 +10872,7 @@ class VariableDeclarationStatement extends Statement {
  * <pre>
  * whileStatement ::=
  * 'while' '(' {@link Expression condition} ')' {@link Statement body}</pre>
+ * @coverage dart.engine.ast
  */
 class WhileStatement extends Statement {
   /**
@@ -10733,8 +10966,8 @@ class WhileStatement extends Statement {
    * Set the token representing the 'while' keyword to the given token.
    * @param keyword the token representing the 'while' keyword
    */
-  void set keyword(Token keyword25) {
-    this._keyword = keyword25;
+  void set keyword(Token keyword26) {
+    this._keyword = keyword26;
   }
   /**
    * Set the left parenthesis to the given token.
@@ -10761,6 +10994,7 @@ class WhileStatement extends Statement {
  * withClause ::=
  * 'with' {@link TypeName mixin} (',' {@link TypeName mixin})
  * </pre>
+ * @coverage dart.engine.ast
  */
 class WithClause extends ASTNode {
   /**
@@ -10841,6 +11075,7 @@ class WithClause extends ASTNode {
  * In addition, this class defines several values that can be returned to indicate various
  * conditions encountered during evaluation. These are documented with the static field that define
  * those values.
+ * @coverage dart.engine.ast
  */
 class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   /**
@@ -10848,6 +11083,17 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
    * expressions.
    */
   static Object NOT_A_CONSTANT = new Object();
+  /**
+   * The error reporter by which errors will be reported.
+   */
+  ErrorReporter _errorReporter;
+  /**
+   * Initialize a newly created constant evaluator.
+   * @param errorReporter the error reporter by which errors will be reported
+   */
+  ConstantEvaluator(ErrorReporter errorReporter) {
+    this._errorReporter = errorReporter;
+  }
   Object visitAdjacentStrings(AdjacentStrings node) {
     JavaStringBuilder builder = new JavaStringBuilder();
     for (StringLiteral string in node.strings) {
@@ -10967,15 +11213,35 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.SLASH) {
         if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+          if (rightOperand2 != 0) {
+            return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+          } else {
+            reportDivideByZeroError(node);
+            return 0;
+          }
         } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) / ((rightOperand2 as double));
+          if (rightOperand2 != 0) {
+            return ((leftOperand2 as double)) / ((rightOperand2 as double));
+          } else {
+            reportDivideByZeroError(node);
+            return 0;
+          }
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
         if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+          if (rightOperand2 != 0) {
+            return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+          } else {
+            reportDivideByZeroError(node);
+            return 0;
+          }
         } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) ~/ ((rightOperand2 as double));
+          if (rightOperand2 != 0) {
+            return ((leftOperand2 as double)) ~/ ((rightOperand2 as double));
+          } else {
+            reportDivideByZeroError(node);
+            return 0;
+          }
         }
       }
       break;
@@ -11077,9 +11343,13 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     return NOT_A_CONSTANT;
   }
+  void reportDivideByZeroError(BinaryExpression node) {
+    _errorReporter.reportError(CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO, node, []);
+  }
 }
 /**
  * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}associated with a given {@link ASTNode AST node}.
+ * @coverage dart.engine.ast
  */
 class ElementLocator {
   /**
@@ -11132,6 +11402,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
  * for superclasses of the node to not be invoked and will cause the children of the visited node to
  * not be visited.
+ * @coverage dart.engine.ast
  */
 class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
@@ -11164,6 +11435,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   R visitConstructorName(ConstructorName node) => visitNode(node);
   R visitContinueStatement(ContinueStatement node) => visitStatement(node);
   R visitDeclaration(Declaration node) => visitAnnotatedNode(node);
+  R visitDeclaredIdentifier(DeclaredIdentifier node) => visitDeclaration(node);
   R visitDefaultFormalParameter(DefaultFormalParameter node) => visitFormalParameter(node);
   R visitDirective(Directive node) => visitAnnotatedNode(node);
   R visitDoStatement(DoStatement node) => visitStatement(node);
@@ -11263,6 +11535,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
  * source range, given the AST structure built from the source. More specifically, they will return
  * the {@link ASTNode AST node} with the shortest length whose source range completely encompasses
  * the specified range.
+ * @coverage dart.engine.ast
  */
 class NodeLocator extends GeneralizingASTVisitor<Object> {
   /**
@@ -11284,10 +11557,10 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param offset the offset used to identify the node
    */
   NodeLocator.con1(int offset) {
-    _jtd_constructor_116_impl(offset);
+    _jtd_constructor_118_impl(offset);
   }
-  _jtd_constructor_116_impl(int offset) {
-    _jtd_constructor_117_impl(offset, offset);
+  _jtd_constructor_118_impl(int offset) {
+    _jtd_constructor_119_impl(offset, offset);
   }
   /**
    * Initialize a newly created locator to locate one or more {@link ASTNode AST nodes} by locating
@@ -11297,9 +11570,9 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param end the end offset of the range used to identify the node
    */
   NodeLocator.con2(int start, int end) {
-    _jtd_constructor_117_impl(start, end);
+    _jtd_constructor_119_impl(start, end);
   }
-  _jtd_constructor_117_impl(int start, int end) {
+  _jtd_constructor_119_impl(int start, int end) {
     this._startOffset = start;
     this._endOffset = end;
   }
@@ -11358,6 +11631,7 @@ class NodeLocator_NodeFoundException extends RuntimeException {
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited node to visit its children. Failure to do so will cause the children
  * of the visited node to not be visited.
+ * @coverage dart.engine.ast
  */
 class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) {
@@ -11453,6 +11727,10 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     return null;
   }
   R visitContinueStatement(ContinueStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+  R visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.visitChildren(this);
     return null;
   }
@@ -11758,6 +12036,7 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
  * when visiting an AST node. It is intended to be a superclass for classes that use the visitor
  * pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a whole
  * structure) and that only need to visit a small number of node types.
+ * @coverage dart.engine.ast
  */
 class SimpleASTVisitor<R> implements ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => null;
@@ -11784,6 +12063,7 @@ class SimpleASTVisitor<R> implements ASTVisitor<R> {
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => null;
   R visitConstructorName(ConstructorName node) => null;
   R visitContinueStatement(ContinueStatement node) => null;
+  R visitDeclaredIdentifier(DeclaredIdentifier node) => null;
   R visitDefaultFormalParameter(DefaultFormalParameter node) => null;
   R visitDoStatement(DoStatement node) => null;
   R visitDoubleLiteral(DoubleLiteral node) => null;
@@ -11862,6 +12142,7 @@ class SimpleASTVisitor<R> implements ASTVisitor<R> {
 /**
  * Instances of the class {@code ToSourceVisitor} write a source representation of a visited AST
  * node (and all of it's children) to a writer.
+ * @coverage dart.engine.ast
  */
 class ToSourceVisitor implements ASTVisitor<Object> {
   /**
@@ -12044,6 +12325,12 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+    visit5(node.keyword, " ");
+    visit2(node.type, " ");
+    visit(node.identifier);
+    return null;
+  }
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
@@ -12113,7 +12400,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitForEachStatement(ForEachStatement node) {
     _writer.print("for (");
-    visit(node.loopParameter);
+    visit(node.loopVariable);
     _writer.print(" in ");
     visit(node.iterator);
     _writer.print(") ");

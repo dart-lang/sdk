@@ -13,6 +13,7 @@ export 'source.dart';
 
 /**
  * Instances of the class {@code FileBasedSource} implement a source that represents a file.
+ * @coverage dart.engine.source
  */
 class FileBasedSource implements Source {
   /**
@@ -35,10 +36,10 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    */
   FileBasedSource.con1(SourceFactory factory, JavaFile file) {
-    _jtd_constructor_279_impl(factory, file);
+    _jtd_constructor_285_impl(factory, file);
   }
-  _jtd_constructor_279_impl(SourceFactory factory, JavaFile file) {
-    _jtd_constructor_280_impl(factory, file, false);
+  _jtd_constructor_285_impl(SourceFactory factory, JavaFile file) {
+    _jtd_constructor_286_impl(factory, file, false);
   }
   /**
    * Initialize a newly created source object.
@@ -47,9 +48,9 @@ class FileBasedSource implements Source {
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
   FileBasedSource.con2(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
-    _jtd_constructor_280_impl(factory2, file3, inSystemLibrary2);
+    _jtd_constructor_286_impl(factory2, file3, inSystemLibrary2);
   }
-  _jtd_constructor_280_impl(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
+  _jtd_constructor_286_impl(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
     this._factory = factory2;
     this._file = file3;
     this._inSystemLibrary = inSystemLibrary2;
@@ -57,6 +58,13 @@ class FileBasedSource implements Source {
   bool operator ==(Object object) => object != null && identical(this.runtimeType, object.runtimeType) && _file == ((object as FileBasedSource))._file;
   bool exists() => _file.exists();
   void getContents(Source_ContentReceiver receiver) {
+    {
+      String contents = _factory.getContents(this);
+      if (contents != null) {
+        receiver.accept2(contents);
+        return;
+      }
+    }
     receiver.accept2(_file.readAsStringSync());
   }
   String get encoding => _file.toURI().toString();
@@ -95,6 +103,7 @@ class FileBasedSource implements Source {
 }
 /**
  * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
+ * @coverage dart.engine.source
  */
 class DartUriResolver extends UriResolver {
   /**
@@ -130,6 +139,7 @@ class DartUriResolver extends UriResolver {
 /**
  * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
  * an application.
+ * @coverage dart.engine.source
  */
 class PackageUriResolver extends UriResolver {
   /**
@@ -181,6 +191,7 @@ class PackageUriResolver extends UriResolver {
 /**
  * Instances of the class {@link DirectoryBasedSourceContainer} represent a source container that
  * contains all sources within a given directory.
+ * @coverage dart.engine.source
  */
 class DirectoryBasedSourceContainer implements SourceContainer {
   /**
@@ -205,19 +216,19 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param directory the directory (not {@code null})
    */
   DirectoryBasedSourceContainer.con1(JavaFile directory) {
-    _jtd_constructor_277_impl(directory);
+    _jtd_constructor_283_impl(directory);
   }
-  _jtd_constructor_277_impl(JavaFile directory) {
-    _jtd_constructor_278_impl(directory.getPath());
+  _jtd_constructor_283_impl(JavaFile directory) {
+    _jtd_constructor_284_impl(directory.getPath());
   }
   /**
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path3) {
-    _jtd_constructor_278_impl(path3);
+    _jtd_constructor_284_impl(path3);
   }
-  _jtd_constructor_278_impl(String path3) {
+  _jtd_constructor_284_impl(String path3) {
     this._path = appendFileSeparator(path3);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
@@ -231,6 +242,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 }
 /**
  * Instances of the class {@code FileUriResolver} resolve {@code file} URI's.
+ * @coverage dart.engine.source
  */
 class FileUriResolver extends UriResolver {
   /**

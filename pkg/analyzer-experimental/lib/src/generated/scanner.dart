@@ -12,6 +12,7 @@ import 'instrumentation.dart';
 /**
  * Instances of the abstract class {@code KeywordState} represent a state in a state machine used to
  * scan keywords.
+ * @coverage dart.engine.parser
  */
 class KeywordState {
   /**
@@ -117,6 +118,7 @@ class KeywordState {
 /**
  * The enumeration {@code ScannerErrorCode} defines the error codes used for errors detected by the
  * scanner.
+ * @coverage dart.engine.parser
  */
 class ScannerErrorCode implements ErrorCode {
   static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode('ILLEGAL_CHARACTER', 0, "Illegal character %x");
@@ -128,6 +130,7 @@ class ScannerErrorCode implements ErrorCode {
   static final List<ScannerErrorCode> values = [ILLEGAL_CHARACTER, MISSING_DIGIT, MISSING_HEX_DIGIT, MISSING_QUOTE, UNTERMINATED_MULTI_LINE_COMMENT, UNTERMINATED_STRING_LITERAL];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   /**
    * The message template used to create the message to be displayed for this error.
    */
@@ -148,6 +151,7 @@ class ScannerErrorCode implements ErrorCode {
 /**
  * Instances of the class {@code TokenWithComment} represent a string token that is preceded by
  * comments.
+ * @coverage dart.engine.parser
  */
 class StringTokenWithComment extends StringToken {
   /**
@@ -168,6 +172,7 @@ class StringTokenWithComment extends StringToken {
 }
 /**
  * The enumeration {@code Keyword} defines the keywords in the Dart programming language.
+ * @coverage dart.engine.parser
  */
 class Keyword {
   static final Keyword ASSERT = new Keyword.con1('ASSERT', 0, "assert");
@@ -219,6 +224,7 @@ class Keyword {
   static final List<Keyword> values = [ASSERT, BREAK, CASE, CATCH, CLASS, CONST, CONTINUE, DEFAULT, DO, ELSE, EXTENDS, FALSE, FINAL, FINALLY, FOR, IF, IN, IS, NEW, NULL, RETURN, SUPER, SWITCH, THIS, THROW, TRUE, TRY, VAR, VOID, WHILE, WITH, ABSTRACT, AS, DYNAMIC, EXPORT, EXTERNAL, FACTORY, GET, IMPLEMENTS, IMPORT, LIBRARY, OPERATOR, PART, SET, STATIC, TYPEDEF];
   String __name;
   int __ordinal = 0;
+  int get ordinal => __ordinal;
   /**
    * The lexeme for the keyword.
    */
@@ -249,10 +255,10 @@ class Keyword {
    * @param syntax the lexeme for the keyword
    */
   Keyword.con1(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_259_impl(___name, ___ordinal, syntax);
+    _jtd_constructor_265_impl(___name, ___ordinal, syntax);
   }
-  _jtd_constructor_259_impl(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_260_impl(___name, ___ordinal, syntax, false);
+  _jtd_constructor_265_impl(String ___name, int ___ordinal, String syntax) {
+    _jtd_constructor_266_impl(___name, ___ordinal, syntax, false);
   }
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
@@ -261,9 +267,9 @@ class Keyword {
    * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
   Keyword.con2(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
-    _jtd_constructor_260_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
+    _jtd_constructor_266_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
   }
-  _jtd_constructor_260_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
+  _jtd_constructor_266_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._syntax = syntax2;
@@ -291,6 +297,7 @@ class Keyword {
  * should be scanned as a single left-shift operator or as two left angle brackets. This scanner
  * does not have any context, so it always resolves such conflicts by scanning the longest possible
  * token.
+ * @coverage dart.engine.parser
  */
 abstract class AbstractScanner {
   /**
@@ -427,12 +434,12 @@ abstract class AbstractScanner {
       _lastComment = _lastComment.setNext(new StringToken(type, value, _tokenStart));
     }
   }
-  void appendEndToken(TokenType type31, TokenType beginType) {
+  void appendEndToken(TokenType type32, TokenType beginType) {
     Token token;
     if (_firstComment == null) {
-      token = new Token(type31, _tokenStart);
+      token = new Token(type32, _tokenStart);
     } else {
-      token = new TokenWithComment(type31, _tokenStart, _firstComment);
+      token = new TokenWithComment(type32, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -1196,6 +1203,7 @@ abstract class AbstractScanner {
 /**
  * Instances of the class {@code StringToken} represent a token whose value is independent of it's
  * type.
+ * @coverage dart.engine.parser
  */
 class StringToken extends Token {
   /**
@@ -1217,6 +1225,7 @@ class StringToken extends Token {
 /**
  * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
  * buffer. The scanning logic is in the superclass.
+ * @coverage dart.engine.parser
  */
 class CharBufferScanner extends AbstractScanner {
   /**
@@ -1260,6 +1269,7 @@ class CharBufferScanner extends AbstractScanner {
 /**
  * Instances of the class {@code TokenWithComment} represent a normal token that is preceded by
  * comments.
+ * @coverage dart.engine.parser
  */
 class TokenWithComment extends Token {
   /**
@@ -1281,6 +1291,7 @@ class TokenWithComment extends Token {
 /**
  * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
+ * @coverage dart.engine.parser
  */
 class Token {
   /**
@@ -1416,6 +1427,7 @@ class Token {
 /**
  * Instances of the class {@code StringScanner} implement a scanner that reads from a string. The
  * scanning logic is in the superclass.
+ * @coverage dart.engine.parser
  */
 class StringScanner extends AbstractScanner {
   /**
@@ -1488,6 +1500,7 @@ class StringScanner extends AbstractScanner {
 /**
  * Instances of the class {@code BeginTokenWithComment} represent a begin token that is preceded by
  * comments.
+ * @coverage dart.engine.parser
  */
 class BeginTokenWithComment extends BeginToken {
   /**
@@ -1508,6 +1521,7 @@ class BeginTokenWithComment extends BeginToken {
 }
 /**
  * Instances of the class {@code KeywordToken} represent a keyword in the language.
+ * @coverage dart.engine.parser
  */
 class KeywordToken extends Token {
   /**
@@ -1533,6 +1547,7 @@ class KeywordToken extends Token {
 /**
  * Instances of the class {@code BeginToken} represent the opening half of a grouping pair of
  * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
+ * @coverage dart.engine.parser
  */
 class BeginToken extends Token {
   /**
@@ -1562,6 +1577,7 @@ class BeginToken extends Token {
 }
 /**
  * The enumeration {@code TokenClass} represents classes (or groups) of tokens with a similar use.
+ * @coverage dart.engine.parser
  */
 class TokenClass {
   /**
@@ -1631,21 +1647,22 @@ class TokenClass {
   static final List<TokenClass> values = [NO_CLASS, ADDITIVE_OPERATOR, ASSIGNMENT_OPERATOR, BITWISE_AND_OPERATOR, BITWISE_OR_OPERATOR, BITWISE_XOR_OPERATOR, CASCADE_OPERATOR, CONDITIONAL_OPERATOR, EQUALITY_OPERATOR, LOGICAL_AND_OPERATOR, LOGICAL_OR_OPERATOR, MULTIPLICATIVE_OPERATOR, RELATIONAL_OPERATOR, SHIFT_OPERATOR, UNARY_POSTFIX_OPERATOR, UNARY_PREFIX_OPERATOR];
   String __name;
   int __ordinal = 0;
+  int get ordinal => __ordinal;
   /**
    * The precedence of tokens of this class, or {@code 0} if the such tokens do not represent an
    * operator.
    */
   int _precedence = 0;
   TokenClass.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_269_impl(___name, ___ordinal);
+    _jtd_constructor_275_impl(___name, ___ordinal);
   }
-  _jtd_constructor_269_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_270_impl(___name, ___ordinal, 0);
+  _jtd_constructor_275_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_276_impl(___name, ___ordinal, 0);
   }
   TokenClass.con2(String ___name, int ___ordinal, int precedence2) {
-    _jtd_constructor_270_impl(___name, ___ordinal, precedence2);
+    _jtd_constructor_276_impl(___name, ___ordinal, precedence2);
   }
-  _jtd_constructor_270_impl(String ___name, int ___ordinal, int precedence2) {
+  _jtd_constructor_276_impl(String ___name, int ___ordinal, int precedence2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._precedence = precedence2;
@@ -1661,6 +1678,7 @@ class TokenClass {
 /**
  * Instances of the class {@code KeywordTokenWithComment} implement a keyword token that is preceded
  * by comments.
+ * @coverage dart.engine.parser
  */
 class KeywordTokenWithComment extends KeywordToken {
   /**
@@ -1682,6 +1700,7 @@ class KeywordTokenWithComment extends KeywordToken {
 /**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
+ * @coverage dart.engine.parser
  */
 class TokenType {
   /**
@@ -1758,6 +1777,7 @@ class TokenType {
   static final List<TokenType> values = [EOF, DOUBLE, HEXADECIMAL, IDENTIFIER, INT, KEYWORD, MULTI_LINE_COMMENT, SCRIPT_TAG, SINGLE_LINE_COMMENT, STRING, AMPERSAND, AMPERSAND_AMPERSAND, AMPERSAND_EQ, AT, BANG, BANG_EQ, BAR, BAR_BAR, BAR_EQ, COLON, COMMA, CARET, CARET_EQ, CLOSE_CURLY_BRACKET, CLOSE_PAREN, CLOSE_SQUARE_BRACKET, EQ, EQ_EQ, FUNCTION, GT, GT_EQ, GT_GT, GT_GT_EQ, HASH, INDEX, INDEX_EQ, IS, LT, LT_EQ, LT_LT, LT_LT_EQ, MINUS, MINUS_EQ, MINUS_MINUS, OPEN_CURLY_BRACKET, OPEN_PAREN, OPEN_SQUARE_BRACKET, PERCENT, PERCENT_EQ, PERIOD, PERIOD_PERIOD, PLUS, PLUS_EQ, PLUS_PLUS, QUESTION, SEMICOLON, SLASH, SLASH_EQ, STAR, STAR_EQ, STRING_INTERPOLATION_EXPRESSION, STRING_INTERPOLATION_IDENTIFIER, TILDE, TILDE_SLASH, TILDE_SLASH_EQ, BACKPING, BACKSLASH, PERIOD_PERIOD_PERIOD];
   String __name;
   int __ordinal = 0;
+  int get ordinal => __ordinal;
   /**
    * The class of the token.
    */
@@ -1768,15 +1788,15 @@ class TokenType {
    */
   String _lexeme;
   TokenType.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_271_impl(___name, ___ordinal);
+    _jtd_constructor_277_impl(___name, ___ordinal);
   }
-  _jtd_constructor_271_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_272_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
+  _jtd_constructor_277_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_278_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
   }
   TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
-    _jtd_constructor_272_impl(___name, ___ordinal, tokenClass2, lexeme2);
+    _jtd_constructor_278_impl(___name, ___ordinal, tokenClass2, lexeme2);
   }
-  _jtd_constructor_272_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
+  _jtd_constructor_278_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;

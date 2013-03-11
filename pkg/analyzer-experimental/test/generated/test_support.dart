@@ -44,17 +44,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_298_impl();
+    _jtd_constructor_304_impl();
   }
-  _jtd_constructor_298_impl() {
+  _jtd_constructor_304_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_299_impl(rawSource2);
+    _jtd_constructor_305_impl(rawSource2);
   }
-  _jtd_constructor_299_impl(String rawSource2) {
+  _jtd_constructor_305_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }

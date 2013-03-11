@@ -218,6 +218,10 @@ class ASTFactory {
   static ConstructorName constructorName(TypeName type, String name) => new ConstructorName.full(type, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier2(name));
   static ContinueStatement continueStatement() => new ContinueStatement.full(TokenFactory.token(Keyword.CONTINUE), null, TokenFactory.token3(TokenType.SEMICOLON));
   static ContinueStatement continueStatement2(String label) => new ContinueStatement.full(TokenFactory.token(Keyword.CONTINUE), identifier2(label), TokenFactory.token3(TokenType.SEMICOLON));
+  static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) => declaredIdentifier2(keyword, null, identifier);
+  static DeclaredIdentifier declaredIdentifier2(Keyword keyword, TypeName type, String identifier) => new DeclaredIdentifier.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, identifier2(identifier));
+  static DeclaredIdentifier declaredIdentifier3(String identifier) => declaredIdentifier2(null, null, identifier);
+  static DeclaredIdentifier declaredIdentifier4(TypeName type, String identifier) => declaredIdentifier2(null, type, identifier);
   static DoStatement doStatement(Statement body, Expression condition) => new DoStatement.full(TokenFactory.token(Keyword.DO), body, TokenFactory.token(Keyword.WHILE), TokenFactory.token3(TokenType.OPEN_PAREN), condition, TokenFactory.token3(TokenType.CLOSE_PAREN), TokenFactory.token3(TokenType.SEMICOLON));
   static DoubleLiteral doubleLiteral(double value) => new DoubleLiteral.full(TokenFactory.token2(value.toString()), value);
   static EmptyFunctionBody emptyFunctionBody() => new EmptyFunctionBody.full(TokenFactory.token3(TokenType.SEMICOLON));
@@ -230,7 +234,7 @@ class ASTFactory {
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new FieldDeclaration.full(null, null, isStatic ? TokenFactory.token(Keyword.STATIC) : null, variableDeclarationList(keyword, type, variables), TokenFactory.token3(TokenType.SEMICOLON));
   static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword, List<VariableDeclaration> variables) => fieldDeclaration(isStatic, keyword, null, variables);
   static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier2(identifier));
-  static ForEachStatement forEachStatement(SimpleFormalParameter loopParameter, Expression iterator, Statement body) => new ForEachStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), loopParameter, TokenFactory.token(Keyword.IN), iterator, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
+  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), loopVariable, TokenFactory.token(Keyword.IN), iterator, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList.full(TokenFactory.token3(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.token3(TokenType.CLOSE_PAREN));
   static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), null, initialization, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static ForStatement forStatement2(VariableDeclarationList variableList, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), variableList, null, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
@@ -352,11 +356,11 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element50, List<TypeName> arguments) {
-    SimpleIdentifier name20 = identifier2(element50.name);
-    name20.element = element50;
-    TypeName typeName = typeName2(name20, arguments);
-    typeName.type = element50.type;
+  static TypeName typeName(ClassElement element52, List<TypeName> arguments) {
+    SimpleIdentifier name21 = identifier2(element52.name);
+    name21.element = element52;
+    TypeName typeName = typeName2(name21, arguments);
+    typeName.type = element52.type;
     return typeName;
   }
   static TypeName typeName2(Identifier name, List<TypeName> arguments) {
@@ -396,8 +400,8 @@ class ASTFactory {
 }
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier14 = ASTFactory.argumentDefinitionTest("p").identifier;
-    JUnitTestCase.assertFalse(identifier14.inDeclarationContext());
+    SimpleIdentifier identifier15 = ASTFactory.argumentDefinitionTest("p").identifier;
+    JUnitTestCase.assertFalse(identifier15.inDeclarationContext());
   }
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier = ASTFactory.catchClause("e", []).exceptionParameter;
@@ -443,8 +447,8 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_normalFormalParameter() {
-    SimpleIdentifier identifier15 = ASTFactory.simpleFormalParameter3("p").identifier;
-    JUnitTestCase.assertTrue(identifier15.inDeclarationContext());
+    SimpleIdentifier identifier16 = ASTFactory.simpleFormalParameter3("p").identifier;
+    JUnitTestCase.assertTrue(identifier16.inDeclarationContext());
   }
   void test_inDeclarationContext_typeParameter_bound() {
     TypeName bound = ASTFactory.typeName3("A", []);
@@ -632,6 +636,7 @@ class AssignmentKind {
   static final List<AssignmentKind> values = [BINARY, COMPOUND_LEFT, COMPOUND_RIGHT, POSTFIX_INC, PREFIX_DEC, PREFIX_INC, PREFIX_NOT, SIMPLE_LEFT, SIMPLE_RIGHT, NONE];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   AssignmentKind(this.__name, this.__ordinal) {
   }
   String toString() => __name;
@@ -645,6 +650,7 @@ class WrapperKind {
   static final List<WrapperKind> values = [PREFIXED_LEFT, PREFIXED_RIGHT, PROPERTY_LEFT, PROPERTY_RIGHT, NONE];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   WrapperKind(this.__name, this.__ordinal) {
   }
   String toString() => __name;
@@ -906,7 +912,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(int, value);
     JUnitTestCase.assertEquals(-42, ((value as int)));
   }
-  Object getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator());
+  Object getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator(null));
   static dartSuite() {
     _ut.group('ConstantEvaluatorTest', () {
       _ut.test('test_binary_bitAnd', () {
@@ -1380,7 +1386,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("A this.a", ASTFactory.fieldFormalParameter(null, ASTFactory.typeName3("A", []), "a"));
   }
   void test_visitForEachStatement() {
-    assertSource("for (a in b) {}", ASTFactory.forEachStatement(ASTFactory.simpleFormalParameter3("a"), ASTFactory.identifier2("b"), ASTFactory.block([])));
+    assertSource("for (a in b) {}", ASTFactory.forEachStatement(ASTFactory.declaredIdentifier3("a"), ASTFactory.identifier2("b"), ASTFactory.block([])));
   }
   void test_visitFormalParameterList_empty() {
     assertSource("()", ASTFactory.formalParameterList([]));

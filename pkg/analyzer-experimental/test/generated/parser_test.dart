@@ -27,10 +27,10 @@ import 'scanner_test.dart' show TokenFactory;
 class SimpleParserTest extends ParserTestCase {
   void fail_parseCommentReference_this() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["this", 5], "");
-    SimpleIdentifier identifier18 = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier18.token);
-    JUnitTestCase.assertEquals("a", identifier18.name);
-    JUnitTestCase.assertEquals(5, identifier18.offset);
+    SimpleIdentifier identifier19 = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
+    JUnitTestCase.assertNotNull(identifier19.token);
+    JUnitTestCase.assertEquals("a", identifier19.name);
+    JUnitTestCase.assertEquals(5, identifier19.offset);
   }
   void test_computeStringValue_emptyInterpolationPrefix() {
     JUnitTestCase.assertEquals("", computeStringValue("'''"));
@@ -263,10 +263,10 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseArgument_named() {
     NamedExpression expression = ParserTestCase.parse6("parseArgument", "n: x", []);
-    Label name21 = expression.name;
-    JUnitTestCase.assertNotNull(name21);
-    JUnitTestCase.assertNotNull(name21.label);
-    JUnitTestCase.assertNotNull(name21.colon);
+    Label name22 = expression.name;
+    JUnitTestCase.assertNotNull(name22);
+    JUnitTestCase.assertNotNull(name22.label);
+    JUnitTestCase.assertNotNull(name22.colon);
     JUnitTestCase.assertNotNull(expression.expression);
   }
   void test_parseArgument_unnamed() {
@@ -988,17 +988,17 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals("a", prefix11.name);
     JUnitTestCase.assertEquals(11, prefix11.offset);
     JUnitTestCase.assertNotNull(prefixedIdentifier.period);
-    SimpleIdentifier identifier19 = prefixedIdentifier.identifier;
-    JUnitTestCase.assertNotNull(identifier19.token);
-    JUnitTestCase.assertEquals("b", identifier19.name);
-    JUnitTestCase.assertEquals(13, identifier19.offset);
+    SimpleIdentifier identifier20 = prefixedIdentifier.identifier;
+    JUnitTestCase.assertNotNull(identifier20.token);
+    JUnitTestCase.assertEquals("b", identifier20.name);
+    JUnitTestCase.assertEquals(13, identifier20.offset);
   }
   void test_parseCommentReference_new_simple() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["new a", 5], "");
-    SimpleIdentifier identifier20 = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier20.token);
-    JUnitTestCase.assertEquals("a", identifier20.name);
-    JUnitTestCase.assertEquals(9, identifier20.offset);
+    SimpleIdentifier identifier21 = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
+    JUnitTestCase.assertNotNull(identifier21.token);
+    JUnitTestCase.assertEquals("a", identifier21.name);
+    JUnitTestCase.assertEquals(9, identifier21.offset);
   }
   void test_parseCommentReference_prefixed() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["a.b", 7], "");
@@ -1008,17 +1008,17 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals("a", prefix12.name);
     JUnitTestCase.assertEquals(7, prefix12.offset);
     JUnitTestCase.assertNotNull(prefixedIdentifier.period);
-    SimpleIdentifier identifier21 = prefixedIdentifier.identifier;
-    JUnitTestCase.assertNotNull(identifier21.token);
-    JUnitTestCase.assertEquals("b", identifier21.name);
-    JUnitTestCase.assertEquals(9, identifier21.offset);
+    SimpleIdentifier identifier22 = prefixedIdentifier.identifier;
+    JUnitTestCase.assertNotNull(identifier22.token);
+    JUnitTestCase.assertEquals("b", identifier22.name);
+    JUnitTestCase.assertEquals(9, identifier22.offset);
   }
   void test_parseCommentReference_simple() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["a", 5], "");
-    SimpleIdentifier identifier22 = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
-    JUnitTestCase.assertNotNull(identifier22.token);
-    JUnitTestCase.assertEquals("a", identifier22.name);
-    JUnitTestCase.assertEquals(5, identifier22.offset);
+    SimpleIdentifier identifier23 = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
+    JUnitTestCase.assertNotNull(identifier23.token);
+    JUnitTestCase.assertEquals("a", identifier23.name);
+    JUnitTestCase.assertEquals(5, identifier23.offset);
   }
   void test_parseCommentReferences_multiLine() {
     List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [b] zzz */", 3)];
@@ -1131,13 +1131,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.variables);
   }
   void test_parseCompilationUnitMember_function_external_noType() {
-    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external f()");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external f();");
     JUnitTestCase.assertNotNull(declaration.externalKeyword);
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNull(declaration.propertyKeyword);
   }
   void test_parseCompilationUnitMember_function_external_type() {
-    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external int f()");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external int f();");
     JUnitTestCase.assertNotNull(declaration.externalKeyword);
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNull(declaration.propertyKeyword);
@@ -1153,13 +1153,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(declaration.propertyKeyword);
   }
   void test_parseCompilationUnitMember_getter_external_noType() {
-    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external get p");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external get p;");
     JUnitTestCase.assertNotNull(declaration.externalKeyword);
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
   }
   void test_parseCompilationUnitMember_getter_external_type() {
-    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external int get p");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external int get p;");
     JUnitTestCase.assertNotNull(declaration.externalKeyword);
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
@@ -1175,13 +1175,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
   }
   void test_parseCompilationUnitMember_setter_external_noType() {
-    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external set p(v)");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external set p(v);");
     JUnitTestCase.assertNotNull(declaration.externalKeyword);
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
   }
   void test_parseCompilationUnitMember_setter_external_type() {
-    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external void set p(int v)");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "external void set p(int v);");
     JUnitTestCase.assertNotNull(declaration.externalKeyword);
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
@@ -1543,34 +1543,34 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseFinalConstVarOrType_const_noType() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "const");
-    Token keyword29 = result.keyword;
-    JUnitTestCase.assertNotNull(keyword29);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword29.type);
-    JUnitTestCase.assertEquals(Keyword.CONST, ((keyword29 as KeywordToken)).keyword);
+    Token keyword31 = result.keyword;
+    JUnitTestCase.assertNotNull(keyword31);
+    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword31.type);
+    JUnitTestCase.assertEquals(Keyword.CONST, ((keyword31 as KeywordToken)).keyword);
     JUnitTestCase.assertNull(result.type);
   }
   void test_parseFinalConstVarOrType_const_type() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "const A a");
-    Token keyword30 = result.keyword;
-    JUnitTestCase.assertNotNull(keyword30);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword30.type);
-    JUnitTestCase.assertEquals(Keyword.CONST, ((keyword30 as KeywordToken)).keyword);
+    Token keyword32 = result.keyword;
+    JUnitTestCase.assertNotNull(keyword32);
+    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword32.type);
+    JUnitTestCase.assertEquals(Keyword.CONST, ((keyword32 as KeywordToken)).keyword);
     JUnitTestCase.assertNotNull(result.type);
   }
   void test_parseFinalConstVarOrType_final_noType() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "final");
-    Token keyword31 = result.keyword;
-    JUnitTestCase.assertNotNull(keyword31);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword31.type);
-    JUnitTestCase.assertEquals(Keyword.FINAL, ((keyword31 as KeywordToken)).keyword);
+    Token keyword33 = result.keyword;
+    JUnitTestCase.assertNotNull(keyword33);
+    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword33.type);
+    JUnitTestCase.assertEquals(Keyword.FINAL, ((keyword33 as KeywordToken)).keyword);
     JUnitTestCase.assertNull(result.type);
   }
   void test_parseFinalConstVarOrType_final_type() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "final A a");
-    Token keyword32 = result.keyword;
-    JUnitTestCase.assertNotNull(keyword32);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword32.type);
-    JUnitTestCase.assertEquals(Keyword.FINAL, ((keyword32 as KeywordToken)).keyword);
+    Token keyword34 = result.keyword;
+    JUnitTestCase.assertNotNull(keyword34);
+    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword34.type);
+    JUnitTestCase.assertEquals(Keyword.FINAL, ((keyword34 as KeywordToken)).keyword);
     JUnitTestCase.assertNotNull(result.type);
   }
   void test_parseFinalConstVarOrType_type_parameterized() {
@@ -1595,10 +1595,10 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseFinalConstVarOrType_var() {
     FinalConstVarOrType result = ParserTestCase.parse("parseFinalConstVarOrType", <Object> [false], "var");
-    Token keyword33 = result.keyword;
-    JUnitTestCase.assertNotNull(keyword33);
-    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword33.type);
-    JUnitTestCase.assertEquals(Keyword.VAR, ((keyword33 as KeywordToken)).keyword);
+    Token keyword35 = result.keyword;
+    JUnitTestCase.assertNotNull(keyword35);
+    JUnitTestCase.assertEquals(TokenType.KEYWORD, keyword35.type);
+    JUnitTestCase.assertEquals(Keyword.VAR, ((keyword35 as KeywordToken)).keyword);
     JUnitTestCase.assertNull(result.type);
   }
   void test_parseFormalParameter_final_withType_named() {
@@ -1773,7 +1773,7 @@ class SimpleParserTest extends ParserTestCase {
     ForEachStatement statement = ParserTestCase.parse6("parseForStatement", "for (element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopParameter);
+    JUnitTestCase.assertNotNull(statement.loopVariable);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1783,7 +1783,7 @@ class SimpleParserTest extends ParserTestCase {
     ForEachStatement statement = ParserTestCase.parse6("parseForStatement", "for (element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopParameter);
+    JUnitTestCase.assertNotNull(statement.loopVariable);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1793,7 +1793,7 @@ class SimpleParserTest extends ParserTestCase {
     ForEachStatement statement = ParserTestCase.parse6("parseForStatement", "for (A element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopParameter);
+    JUnitTestCase.assertNotNull(statement.loopVariable);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1803,7 +1803,7 @@ class SimpleParserTest extends ParserTestCase {
     ForEachStatement statement = ParserTestCase.parse6("parseForStatement", "for (var element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
-    JUnitTestCase.assertNotNull(statement.loopParameter);
+    JUnitTestCase.assertNotNull(statement.loopVariable);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -1953,20 +1953,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_function() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, false], "f() {}");
-    JUnitTestCase.assertEquals(comment, declaration.documentationComment);
-    JUnitTestCase.assertEquals(returnType, declaration.returnType);
-    JUnitTestCase.assertNotNull(declaration.name);
-    FunctionExpression expression = declaration.functionExpression;
-    JUnitTestCase.assertNotNull(expression);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertNotNull(expression.parameters);
-    JUnitTestCase.assertNull(declaration.propertyKeyword);
-  }
-  void test_parseFunctionDeclaration_function_inStatement() {
-    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, true], "f() {};");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "f() {}");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
     JUnitTestCase.assertEquals(returnType, declaration.returnType);
     JUnitTestCase.assertNotNull(declaration.name);
@@ -1979,7 +1966,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_getter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, false], "get p => 0;");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "get p => 0;");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
     JUnitTestCase.assertEquals(returnType, declaration.returnType);
     JUnitTestCase.assertNotNull(declaration.name);
@@ -1992,7 +1979,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_setter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
-    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType, false], "set p(v) {}");
+    FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "set p(v) {}");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
     JUnitTestCase.assertEquals(returnType, declaration.returnType);
     JUnitTestCase.assertNotNull(declaration.name);
@@ -2164,11 +2151,11 @@ class SimpleParserTest extends ParserTestCase {
     TypeName type = new TypeName.full(new SimpleIdentifier.full(null), null);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [commentAndMetadata(comment, []), staticKeyword, null, type], "a = 1, b, c = 3;");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
-    VariableDeclarationList fields3 = declaration.fields;
-    JUnitTestCase.assertNotNull(fields3);
-    JUnitTestCase.assertNull(fields3.keyword);
-    JUnitTestCase.assertEquals(type, fields3.type);
-    EngineTestCase.assertSize(3, fields3.variables);
+    VariableDeclarationList fields4 = declaration.fields;
+    JUnitTestCase.assertNotNull(fields4);
+    JUnitTestCase.assertNull(fields4.keyword);
+    JUnitTestCase.assertEquals(type, fields4.type);
+    EngineTestCase.assertSize(3, fields4.variables);
     JUnitTestCase.assertEquals(staticKeyword, declaration.keyword);
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
@@ -2178,11 +2165,11 @@ class SimpleParserTest extends ParserTestCase {
     Token varKeyword = TokenFactory.token(Keyword.VAR);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [commentAndMetadata(comment, []), staticKeyword, varKeyword, null], "a = 1, b, c = 3;");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
-    VariableDeclarationList fields4 = declaration.fields;
-    JUnitTestCase.assertNotNull(fields4);
-    JUnitTestCase.assertEquals(varKeyword, fields4.keyword);
-    JUnitTestCase.assertNull(fields4.type);
-    EngineTestCase.assertSize(3, fields4.variables);
+    VariableDeclarationList fields5 = declaration.fields;
+    JUnitTestCase.assertNotNull(fields5);
+    JUnitTestCase.assertEquals(varKeyword, fields5.keyword);
+    JUnitTestCase.assertNull(fields5.type);
+    EngineTestCase.assertSize(3, fields5.variables);
     JUnitTestCase.assertEquals(staticKeyword, declaration.keyword);
     JUnitTestCase.assertNotNull(declaration.semicolon);
   }
@@ -3511,7 +3498,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_12();
+    AnalysisErrorListener listener = new AnalysisErrorListener_13();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme], null) as String;
   }
@@ -4694,10 +4681,6 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionDeclaration_function);
       });
-      _ut.test('test_parseFunctionDeclaration_function_inStatement', () {
-        final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseFunctionDeclaration_function_inStatement);
-      });
       _ut.test('test_parseFunctionDeclaration_getter', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionDeclaration_getter);
@@ -5605,7 +5588,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_12 implements AnalysisErrorListener {
+class AnalysisErrorListener_13 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -6681,18 +6664,11 @@ class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = ParserTestCase.parseExpression("super << <<", []);
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
-  void test_topLevelExternalFunction_extraSemicolon() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit("external void f(A a);", [ParserErrorCode.UNEXPECTED_TOKEN]);
-    NodeList<CompilationUnitMember> declarations3 = unit.declarations;
-    EngineTestCase.assertSize(1, declarations3);
-    FunctionDeclaration declaration = declarations3[0] as FunctionDeclaration;
-    JUnitTestCase.assertNotNull(declaration);
-  }
   void test_typedef_eof() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("typedef n", [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_TYPEDEF_PARAMETERS]);
-    NodeList<CompilationUnitMember> declarations4 = unit.declarations;
-    EngineTestCase.assertSize(1, declarations4);
-    CompilationUnitMember member = declarations4[0];
+    NodeList<CompilationUnitMember> declarations3 = unit.declarations;
+    EngineTestCase.assertSize(1, declarations3);
+    CompilationUnitMember member = declarations3[0];
     EngineTestCase.assertInstanceOf(FunctionTypeAlias, member);
   }
   static dartSuite() {
@@ -6996,10 +6972,6 @@ class RecoveryParserTest extends ParserTestCase {
       _ut.test('test_shiftExpression_super', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_shiftExpression_super);
-      });
-      _ut.test('test_topLevelExternalFunction_extraSemicolon', () {
-        final __test = new RecoveryParserTest();
-        runJUnitTest(__test, __test.test_topLevelExternalFunction_extraSemicolon);
       });
       _ut.test('test_typedef_eof', () {
         final __test = new RecoveryParserTest();
@@ -8253,7 +8225,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseFormalParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseFormalParameterList()),
   'parseForStatement_0': new MethodTrampoline(0, (Parser target) => target.parseForStatement()),
   'parseFunctionBody_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionBody(arg0, arg1)),
-  'parseFunctionDeclaration_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseFunctionDeclaration(arg0, arg1, arg2, arg3)),
+  'parseFunctionDeclaration_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionDeclaration(arg0, arg1, arg2)),
   'parseFunctionDeclarationStatement_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionDeclarationStatement()),
   'parseFunctionDeclarationStatement_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionDeclarationStatement2(arg0, arg1)),
   'parseFunctionExpression_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionExpression()),

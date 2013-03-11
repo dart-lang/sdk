@@ -13,11 +13,12 @@ import 'ast.dart' show CompilationUnit, Directive, PartOfDirective;
 import 'parser.dart' show Parser;
 import 'element.dart';
 import 'resolver.dart' show Namespace, NamespaceBuilder, LibraryResolver;
-import 'html_scanner.dart' show HtmlScanner, HtmlScanResult, HtmlParser, HtmlParseResult;
+import 'html.dart' show HtmlScanner, HtmlScanResult, HtmlParser, HtmlParseResult;
 
 /**
  * The unique instance of the class {@code AnalysisEngine} serves as the entry point for the
  * functionality provided by the analysis engine.
+ * @coverage dart.engine
  */
 class AnalysisEngine {
   /**
@@ -282,24 +283,25 @@ abstract class AnalysisContext {
 /**
  * Instances of the class {@code AnalysisException} represent an exception that occurred during the
  * analysis of one or more sources.
+ * @coverage dart.engine
  */
 class AnalysisException extends JavaException {
   /**
    * Initialize a newly created exception.
    */
   AnalysisException() : super() {
-    _jtd_constructor_119_impl();
+    _jtd_constructor_121_impl();
   }
-  _jtd_constructor_119_impl() {
+  _jtd_constructor_121_impl() {
   }
   /**
    * Initialize a newly created exception to have the given message.
    * @param message the message associated with the exception
    */
   AnalysisException.con1(String message) : super(message) {
-    _jtd_constructor_120_impl(message);
+    _jtd_constructor_122_impl(message);
   }
-  _jtd_constructor_120_impl(String message) {
+  _jtd_constructor_122_impl(String message) {
   }
   /**
    * Initialize a newly created exception to have the given message and cause.
@@ -307,29 +309,31 @@ class AnalysisException extends JavaException {
    * @param cause the underlying exception that caused this exception
    */
   AnalysisException.con2(String message, Exception cause) : super(message, cause) {
-    _jtd_constructor_121_impl(message, cause);
+    _jtd_constructor_123_impl(message, cause);
   }
-  _jtd_constructor_121_impl(String message, Exception cause) {
+  _jtd_constructor_123_impl(String message, Exception cause) {
   }
   /**
    * Initialize a newly created exception to have the given cause.
    * @param cause the underlying exception that caused this exception
    */
   AnalysisException.con3(Exception cause) : super.withCause(cause) {
-    _jtd_constructor_122_impl(cause);
+    _jtd_constructor_124_impl(cause);
   }
-  _jtd_constructor_122_impl(Exception cause) {
+  _jtd_constructor_124_impl(Exception cause) {
   }
 }
 /**
  * Instances of {@code ChangeResult} are returned by {@link AnalysisContext#changed(ChangeSet)} to
  * indicate what operations need to be performed as a result of the change.
+ * @coverage dart.engine
  */
 class ChangeResult {
 }
 /**
  * Instances of the class {@code ChangeSet} indicate what sources have been added, changed, or
  * removed.
+ * @coverage dart.engine
  */
 class ChangeSet {
   /**
@@ -442,6 +446,7 @@ class ChangeSet {
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
  * context}.
+ * @coverage dart.engine
  */
 class AnalysisContextImpl implements AnalysisContext {
   /**
@@ -774,7 +779,7 @@ class AnalysisContextImpl implements AnalysisContext {
   }
   AnalysisContextImpl_ScanResult internalScan(Source source, AnalysisErrorListener errorListener) {
     AnalysisContextImpl_ScanResult result = new AnalysisContextImpl_ScanResult();
-    Source_ContentReceiver receiver = new Source_ContentReceiver_2(source, errorListener, result);
+    Source_ContentReceiver receiver = new Source_ContentReceiver_3(source, errorListener, result);
     try {
       source.getContents(receiver);
     } on JavaException catch (exception) {
@@ -849,11 +854,11 @@ class AnalysisContextImpl_ScanResult {
   AnalysisContextImpl_ScanResult() : super() {
   }
 }
-class Source_ContentReceiver_2 implements Source_ContentReceiver {
+class Source_ContentReceiver_3 implements Source_ContentReceiver {
   Source source;
   AnalysisErrorListener errorListener;
   AnalysisContextImpl_ScanResult result;
-  Source_ContentReceiver_2(this.source, this.errorListener, this.result);
+  Source_ContentReceiver_3(this.source, this.errorListener, this.result);
   accept(CharBuffer contents) {
     CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
     result._token = scanner.tokenize();
@@ -869,6 +874,7 @@ class Source_ContentReceiver_2 implements Source_ContentReceiver {
  * Instances of the class {@code RecordingErrorListener} implement an error listener that will
  * record the errors that are reported to it in a way that is appropriate for caching those errors
  * within an analysis context.
+ * @coverage dart.engine
  */
 class RecordingErrorListener implements AnalysisErrorListener {
   /**
@@ -884,7 +890,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
     if (entrySet2.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
-    List<AnalysisError> resultList = new List<AnalysisError>(entrySet2.length);
+    List<AnalysisError> resultList = new List<AnalysisError>();
     for (MapEntry<Source, List<AnalysisError>> entry in entrySet2) {
       resultList.addAll(entry.getValue());
     }
@@ -917,6 +923,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 /**
  * Instances of the class {@code SourceInfo} maintain the information known by an analysis context
  * about an individual source.
+ * @coverage dart.engine
  */
 class SourceInfo {
   /**
@@ -928,9 +935,9 @@ class SourceInfo {
    */
   List<Source> _librarySources = null;
   SourceInfo.con1(Source source, SourceKind kind3) {
-    _jtd_constructor_151_impl(source, kind3);
+    _jtd_constructor_154_impl(source, kind3);
   }
-  _jtd_constructor_151_impl(Source source, SourceKind kind3) {
+  _jtd_constructor_154_impl(Source source, SourceKind kind3) {
     this._kind = kind3;
   }
   /**
@@ -938,9 +945,9 @@ class SourceInfo {
    * @param info the information holder used to initialize this holder
    */
   SourceInfo.con2(SourceInfo info) {
-    _jtd_constructor_152_impl(info);
+    _jtd_constructor_155_impl(info);
   }
-  _jtd_constructor_152_impl(SourceInfo info) {
+  _jtd_constructor_155_impl(SourceInfo info) {
     _kind = info._kind;
     _librarySources = new List<Source>.from(info._librarySources);
   }
@@ -994,6 +1001,7 @@ class SourceInfo {
  * information about errors within the analysis engine. Implementations usually write this
  * information to a file, but can also record the information for later use (such as during testing)
  * or even ignore the information.
+ * @coverage dart.engine.utilities
  */
 abstract class Logger {
   static Logger NULL = new Logger_NullLogger();

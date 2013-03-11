@@ -781,10 +781,10 @@ class StringScannerTest extends AbstractScannerTest {
     StringScanner scanner = new StringScanner(null, "a", listener);
     scanner.setSourceStart(3, 9, offsetDelta);
     scanner.tokenize();
-    List<int> lineStarts2 = scanner.lineStarts;
-    JUnitTestCase.assertNotNull(lineStarts2);
-    JUnitTestCase.assertEquals(3, lineStarts2.length);
-    JUnitTestCase.assertEquals(33, lineStarts2[2]);
+    List<int> lineStarts3 = scanner.lineStarts;
+    JUnitTestCase.assertNotNull(lineStarts3);
+    JUnitTestCase.assertEquals(3, lineStarts3.length);
+    JUnitTestCase.assertEquals(33, lineStarts3[2]);
   }
   Token scan(String source, GatheringErrorListener listener) {
     StringScanner scanner = new StringScanner(null, source, listener);
@@ -1442,8 +1442,8 @@ class TokenStreamValidator {
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       validateStream(builder, currentToken.precedingComments);
-      TokenType type28 = currentToken.type;
-      if (identical(type28, TokenType.OPEN_CURLY_BRACKET) || identical(type28, TokenType.OPEN_PAREN) || identical(type28, TokenType.OPEN_SQUARE_BRACKET) || identical(type28, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      TokenType type29 = currentToken.type;
+      if (identical(type29, TokenType.OPEN_CURLY_BRACKET) || identical(type29, TokenType.OPEN_PAREN) || identical(type29, TokenType.OPEN_SQUARE_BRACKET) || identical(type29, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (currentToken is! BeginToken) {
           builder.append("\r\nExpected BeginToken, found ");
           builder.append(currentToken.runtimeType.toString());

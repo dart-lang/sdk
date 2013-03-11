@@ -64,6 +64,7 @@ abstract class SdkLibrary {
 /**
  * Instances of the class {@code SdkLibrary} represent the information known about a single library
  * within the SDK.
+ * @coverage dart.engine.sdk
  */
 class SdkLibraryImpl implements SdkLibrary {
   /**
@@ -185,6 +186,7 @@ class SdkLibraryImpl implements SdkLibrary {
  * platforms: 0),
  * };
  * </pre>
+ * @coverage dart.engine.sdk
  */
 class SdkLibrariesReader {
   /**
@@ -193,7 +195,7 @@ class SdkLibrariesReader {
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_5(foundError);
+    AnalysisErrorListener errorListener = new AnalysisErrorListener_6(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, false);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
@@ -284,15 +286,16 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-class AnalysisErrorListener_5 implements AnalysisErrorListener {
+class AnalysisErrorListener_6 implements AnalysisErrorListener {
   List<bool> foundError;
-  AnalysisErrorListener_5(this.foundError);
+  AnalysisErrorListener_6(this.foundError);
   void onError(AnalysisError error) {
     foundError[0] = true;
   }
 }
 /**
  * Instances of the class {@code LibraryMap} map Dart library URI's to the {@link SdkLibraryImpllibrary}.
+ * @coverage dart.engine.sdk
  */
 class LibraryMap {
   /**
@@ -336,6 +339,7 @@ class LibraryMap {
 }
 /**
  * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
+ * @coverage dart.engine.sdk
  */
 class DartSdk {
   /**

@@ -8,6 +8,7 @@ import 'java_core.dart';
 
 /**
  * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing{@link Source source}.
+ * @coverage dart.engine.source
  */
 class SourceFactory {
   /**
@@ -24,9 +25,9 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_283_impl(contentCache2, resolvers2);
+    _jtd_constructor_289_impl(contentCache2, resolvers2);
   }
-  _jtd_constructor_283_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
+  _jtd_constructor_289_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
     this._contentCache = contentCache2;
     this._resolvers = resolvers2;
   }
@@ -35,10 +36,10 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_284_impl(resolvers);
+    _jtd_constructor_290_impl(resolvers);
   }
-  _jtd_constructor_284_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_283_impl(new ContentCache(), [resolvers]);
+  _jtd_constructor_290_impl(List<UriResolver> resolvers) {
+    _jtd_constructor_289_impl(new ContentCache(), resolvers);
   }
   /**
    * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
@@ -48,7 +49,7 @@ class SourceFactory {
    */
   Source forUri(String absoluteUri) {
     try {
-      Uri uri = new Uri.fromComponents(path: absoluteUri);
+      Uri uri = new Uri(absoluteUri);
       if (uri.isAbsolute) {
         return resolveUri2(null, uri);
       }
@@ -132,6 +133,7 @@ class SourceFactory {
  * The abstract class {@code UriResolver} defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
  * absolute URI.
+ * @coverage dart.engine.source
  */
 abstract class UriResolver {
   /**
@@ -150,6 +152,7 @@ abstract class UriResolver {
 /**
  * The interface {@code Source} defines the behavior of objects representing source code that can be
  * compiled.
+ * @coverage dart.engine.source
  */
 abstract class Source {
   /**
@@ -258,6 +261,7 @@ abstract class Source_ContentReceiver {
 /**
  * The enumeration {@code SourceKind} defines the different kinds of sources that are known to the
  * analysis engine.
+ * @coverage dart.engine.source
  */
 class SourceKind {
   /**
@@ -282,12 +286,14 @@ class SourceKind {
   static final List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   SourceKind(this.__name, this.__ordinal) {
   }
   String toString() => __name;
 }
 /**
  * A source range defines an {@link Element}'s source coordinates relative to its {@link Source}.
+ * @coverage dart.engine.utilities
  */
 class SourceRange {
   /**
@@ -313,6 +319,10 @@ class SourceRange {
    * @return <code>true</code> if <code>x</code> is in [offset, offset + length) interval.
    */
   bool contains(int x) => _offset <= x && x < _offset + _length;
+  /**
+   * @return <code>true</code> if <code>x</code> is in (offset, offset + length) interval.
+   */
+  bool containsExclusive(int x) => _offset < x && x < _offset + _length;
   /**
    * @return <code>true</code> if <code>otherRange</code> covers this {@link SourceRange}.
    */
@@ -399,6 +409,7 @@ class SourceRange {
  * sources for the purposes of accessing composite dependency information. For example, the Eclipse
  * client uses source containers to represent Eclipse projects, which allows it to easily compute
  * project-level dependencies.
+ * @coverage dart.engine.source
  */
 abstract class SourceContainer {
   /**
@@ -411,6 +422,7 @@ abstract class SourceContainer {
 /**
  * Instances of the class {@code LineInfo} encapsulate information about line and column information
  * within a source file.
+ * @coverage dart.engine.utilities
  */
 class LineInfo {
   /**
@@ -481,6 +493,7 @@ class LineInfo_Location {
 }
 /**
  * Instances of class {@code ContentCache} hold content used to override the default content of a{@link Source}.
+ * @coverage dart.engine.source
  */
 class ContentCache {
   /**

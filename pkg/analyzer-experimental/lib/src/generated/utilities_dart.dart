@@ -8,6 +8,7 @@ library engine.utilities.dart;
  * The enumeration {@code ParameterKind} defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
  * two kinds: positional optional and named optional.
+ * @coverage dart.engine.utilities
  */
 class ParameterKind {
   static final ParameterKind REQUIRED = new ParameterKind('REQUIRED', 0, false);
@@ -16,6 +17,7 @@ class ParameterKind {
   static final List<ParameterKind> values = [REQUIRED, POSITIONAL, NAMED];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   /**
    * A flag indicating whether this is an optional parameter.
    */

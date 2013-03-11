@@ -1,17 +1,19 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.html.scanner;
+library engine.html;
 
 import 'dart:collection';
 import 'java_core.dart';
 import 'source.dart';
 import 'error.dart';
 import 'instrumentation.dart';
+import 'element.dart' show HtmlElementImpl;
 
 /**
  * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
+ * @coverage dart.engine.html
  */
 class Token {
   /**
@@ -40,10 +42,10 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   Token.con1(TokenType type, int offset) {
-    _jtd_constructor_143_impl(type, offset);
+    _jtd_constructor_145_impl(type, offset);
   }
-  _jtd_constructor_143_impl(TokenType type, int offset) {
-    _jtd_constructor_144_impl(type, offset, type.lexeme);
+  _jtd_constructor_145_impl(TokenType type, int offset) {
+    _jtd_constructor_146_impl(type, offset, type.lexeme);
   }
   /**
    * Initialize a newly created token.
@@ -52,9 +54,9 @@ class Token {
    * @param value the lexeme represented by this token (not {@code null})
    */
   Token.con2(TokenType type4, int offset3, String value7) {
-    _jtd_constructor_144_impl(type4, offset3, value7);
+    _jtd_constructor_146_impl(type4, offset3, value7);
   }
-  _jtd_constructor_144_impl(TokenType type4, int offset3, String value7) {
+  _jtd_constructor_146_impl(TokenType type4, int offset3, String value7) {
     this._type = type4;
     this._value = value7;
     this._offset = offset3;
@@ -125,6 +127,7 @@ class Token {
 }
 /**
  * Instances of {@code HtmlParseResult} hold the result of parsing an HTML file.
+ * @coverage dart.engine.html
  */
 class HtmlParseResult extends HtmlScanResult {
   /**
@@ -148,6 +151,7 @@ class HtmlParseResult extends HtmlScanResult {
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited node to visit its children. Failure to do so will cause the children
  * of the visited node to not be visited.
+ * @coverage dart.engine.html
  */
 class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
   R visitHtmlUnit(HtmlUnit node) {
@@ -165,6 +169,7 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
 }
 /**
  * The abstract class {@code XmlNode} defines behavior common to all XML/HTML nodes.
+ * @coverage dart.engine.html
  */
 abstract class XmlNode {
   /**
@@ -199,12 +204,12 @@ abstract class XmlNode {
    * @return the number of characters in the node's source range
    */
   int get length {
-    Token beginToken5 = beginToken;
+    Token beginToken4 = beginToken;
     Token endToken4 = endToken;
-    if (beginToken5 == null || endToken4 == null) {
+    if (beginToken4 == null || endToken4 == null) {
       return -1;
     }
-    return endToken4.offset + endToken4.length - beginToken5.offset;
+    return endToken4.offset + endToken4.length - beginToken4.offset;
   }
   /**
    * Return the offset from the beginning of the file to the first character in the node's source
@@ -213,8 +218,8 @@ abstract class XmlNode {
    * range
    */
   int get offset {
-    Token beginToken6 = beginToken;
-    if (beginToken6 == null) {
+    Token beginToken5 = beginToken;
+    if (beginToken5 == null) {
       return -1;
     }
     return beginToken.offset;
@@ -268,8 +273,20 @@ abstract class XmlNode {
   }
 }
 /**
+ * Instances of the class {@code SimpleXmlVisitor} implement an AST visitor that will do nothing
+ * when visiting an AST node. It is intended to be a superclass for classes that use the visitor
+ * pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a whole
+ * structure) and that only need to visit a small number of node types.
+ */
+class SimpleXmlVisitor<R> implements XmlVisitor<R> {
+  R visitHtmlUnit(HtmlUnit htmlUnit) => null;
+  R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode) => null;
+  R visitXmlTagNode(XmlTagNode xmlTagNode) => null;
+}
+/**
  * The abstract class {@code AbstractScanner} implements a scanner for HTML code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
+ * @coverage dart.engine.html
  */
 abstract class AbstractScanner {
   static List<String> _NO_PASS_THROUGH_ELEMENTS = <String> [];
@@ -527,6 +544,7 @@ abstract class AbstractScanner {
 }
 /**
  * Instances of {@code HtmlScanResult} hold the result of scanning an HTML file.
+ * @coverage dart.engine.html
  */
 class HtmlScanResult {
   /**
@@ -555,6 +573,7 @@ class HtmlScanResult {
 /**
  * Instances of the class {@code StringScanner} implement a scanner that reads from a string. The
  * scanning logic is in the superclass.
+ * @coverage dart.engine.html
  */
 class StringScanner extends AbstractScanner {
   /**
@@ -601,6 +620,7 @@ class StringScanner extends AbstractScanner {
 /**
  * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
  * buffer. The scanning logic is in the superclass.
+ * @coverage dart.engine.html
  */
 class CharBufferScanner extends AbstractScanner {
   /**
@@ -644,6 +664,7 @@ class CharBufferScanner extends AbstractScanner {
 /**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
+ * @coverage dart.engine.html
  */
 class TokenType {
   /**
@@ -664,6 +685,7 @@ class TokenType {
   static final List<TokenType> values = [EOF, EQ, GT, LT_SLASH, LT, SLASH_GT, COMMENT, DECLARATION, DIRECTIVE, STRING, TAG, TEXT];
   final String __name;
   final int __ordinal;
+  int get ordinal => __ordinal;
   /**
    * The lexeme that defines this type of token, or {@code null} if there is more than one possible
    * lexeme for this type of token.
@@ -686,6 +708,7 @@ class TokenType_EOF extends TokenType {
 }
 /**
  * Instances of {@code XmlAttributeNode} represent name/value pairs owned by an {@link XmlTagNode}.
+ * @coverage dart.engine.html
  */
 class XmlAttributeNode extends XmlNode {
   Token _name;
@@ -717,6 +740,33 @@ class XmlAttributeNode extends XmlNode {
    */
   Token get name => _name;
   /**
+   * Answer the lexeme for the value token without the leading and trailing quotes.
+   * @return the text or {@code null} if the value is not specified
+   */
+  String get text {
+    if (_value == null) {
+      return null;
+    }
+    String text = _value.lexeme;
+    int len = text.length;
+    if (len > 0) {
+      if (text.codeUnitAt(0) == 0x22) {
+        if (len > 1 && text.codeUnitAt(len - 1) == 0x22) {
+          return text.substring(1, len - 1);
+        } else {
+          return text.substring(1);
+        }
+      } else if (text.codeUnitAt(0) == 0x27) {
+        if (len > 1 && text.codeUnitAt(len - 1) == 0x27) {
+          return text.substring(1, len - 1);
+        } else {
+          return text.substring(1);
+        }
+      }
+    }
+    return text;
+  }
+  /**
    * Answer the attribute value. A properly formed value will start and end with matching quote
    * characters, but the value returned may not be properly formed.
    * @return the value or {@code null} if this represents a badly formed attribute
@@ -727,6 +777,7 @@ class XmlAttributeNode extends XmlNode {
 }
 /**
  * The interface {@code XmlVisitor} defines the behavior of objects that can be used to visit an{@link XmlNode} structure.
+ * @coverage dart.engine.html
  */
 abstract class XmlVisitor<R> {
   R visitHtmlUnit(HtmlUnit htmlUnit);
@@ -741,6 +792,7 @@ abstract class XmlVisitor<R> {
  * source.getContents(scanner);
  * return scanner.getResult();
  * </pre>
+ * @coverage dart.engine.html
  */
 class HtmlScanner implements Source_ContentReceiver {
   List<String> _SCRIPT_TAG = <String> ["script"];
@@ -782,6 +834,7 @@ class HtmlScanner implements Source_ContentReceiver {
 /**
  * Instances of the class {@code XmlParser} are used to parse tokens into a AST structure comprised
  * of {@link XmlNode}s.
+ * @coverage dart.engine.html
  */
 class XmlParser {
   /**
@@ -992,6 +1045,7 @@ class XmlParser {
 }
 /**
  * Instances of {@code XmlTagNode} represent XML or HTML elements such as {@code <p>} and{@code <body foo="bar"> ... </body>}.
+ * @coverage dart.engine.html
  */
 class XmlTagNode extends XmlNode {
   /**
@@ -1184,6 +1238,7 @@ class XmlTagNode extends XmlNode {
 /**
  * Instances of the class {@code HtmlParser} are used to parse tokens into a AST structure comprised
  * of {@link XmlNode}s.
+ * @coverage dart.engine.html
  */
 class HtmlParser extends XmlParser {
   static Set<String> SELF_CLOSING = new Set<String>();
@@ -1218,6 +1273,7 @@ class HtmlParser extends XmlParser {
 }
 /**
  * Instances of the class {@code HtmlUnit} represent the contents of an HTML file.
+ * @coverage dart.engine.html
  */
 class HtmlUnit extends XmlNode {
   /**
@@ -1234,6 +1290,10 @@ class HtmlUnit extends XmlNode {
    */
   List<XmlTagNode> _tagNodes;
   /**
+   * The element associated with this HTML unit or {@code null} if the receiver is not resolved.
+   */
+  HtmlElementImpl _element;
+  /**
    * Construct a new instance representing the content of an HTML file.
    * @param beginToken the first token in the file (not {@code null})
    * @param tagNodes child tag nodes of the receiver (not {@code null}, contains no {@code null}s)
@@ -1246,6 +1306,11 @@ class HtmlUnit extends XmlNode {
   }
   accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
   Token get beginToken => _beginToken;
+  /**
+   * Return the element associated with this HTML unit.
+   * @return the element or {@code null} if the receiver is not resolved
+   */
+  HtmlElementImpl get element => _element;
   Token get endToken => _endToken;
   /**
    * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
@@ -1253,6 +1318,13 @@ class HtmlUnit extends XmlNode {
    * @return the children (not {@code null}, contains no {@code null}s)
    */
   List<XmlTagNode> get tagNodes => _tagNodes;
+  /**
+   * Set the element associated with this HTML unit.
+   * @param element the element
+   */
+  void set element(HtmlElementImpl element18) {
+    this._element = element18;
+  }
   void visitChildren(XmlVisitor<Object> visitor) {
     for (XmlTagNode node in _tagNodes) {
       node.accept(visitor);
