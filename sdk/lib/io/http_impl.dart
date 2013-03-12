@@ -428,8 +428,9 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     bool asGZip = false;
     bool isServerSide = this is _HttpResponse;
     if (isServerSide && headers.chunkedTransferEncoding) {
+      _HttpResponse response = this as _HttpResponse;
       List acceptEncodings =
-          _httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
+          response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
       List contentEncoding = headers[HttpHeaders.CONTENT_ENCODING];
       if (acceptEncodings != null &&
           acceptEncodings.any((encoding) => encoding.toLowerCase() == "gzip") &&
