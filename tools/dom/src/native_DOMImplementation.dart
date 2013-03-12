@@ -10,7 +10,7 @@ class _Utils {
   static DateTime doubleToDateTime(double dateTime) {
     try {
       return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
-    } catch {
+    } catch(_) {
       // TODO(antonnm): treat exceptions properly in bindings and
       // find out how to treat NaNs.
       return null;
