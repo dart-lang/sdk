@@ -5,7 +5,6 @@
 library mirrors;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:uri';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
