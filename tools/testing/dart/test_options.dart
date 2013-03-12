@@ -77,9 +77,12 @@ is 'dart file.dart' and you specify special command
          safari, ie9, ie10, firefox, opera, none (compile only)),
 
    dartc: Perform static analysis on Dart code by running dartc.
+          (only valid with the following runtimes: none),
+
+   new_analyzer: Perform static analysis on Dart code by running the analyzer.
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2dart', 'dart2js', 'dartc'],
+              ['none', 'dart2dart', 'dart2js', 'dartc', 'new_analyzer'],
               'none'),
           new _TestOptionSpecification(
               'runtime',
@@ -432,6 +435,7 @@ Note: currently only implemented for dart2js.''',
                                'opera'];
         break;
       case 'dartc':
+      case 'new_analyzer':
         validRuntimes = const ['none'];
         break;
       case 'none':
@@ -508,8 +512,10 @@ Note: currently only implemented for dart2js.''',
       configuration['runtime'] == 'ff';
     }
 
+    String compiler = configuration['compiler'];
     configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
-
+    configuration['analyzer'] = TestUtils.isCommandLineAnalyzer(compiler);
+    
     // Set the javascript command line flag for less verbose status files.
     configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
 
@@ -577,6 +583,7 @@ Note: currently only implemented for dart2js.''',
       var timeout = 60;
       switch (configuration['compiler']) {
         case 'dartc':
+        case 'new_analyzer':
           timeout *= 4;
           break;
         case 'dart2js':

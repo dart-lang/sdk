@@ -530,7 +530,7 @@ class CommandOutputImpl implements CommandOutput {
                                           stderr,
                                           time,
                                           compilationSkipped);
-    } else if (testCase.configuration['compiler'] == 'dartc') {
+    } else if (testCase.configuration['analyzer']) {
       return new AnalysisCommandOutputImpl(testCase,
                                            command,
                                            exitCode,
@@ -1204,7 +1204,9 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> BATCH')) {
           // ignore
         } else if (line.startsWith('>>> ')) {
-          throw new Exception('Unexpected command from dartc batch runner.');
+          throw new Exception(
+               'Unexpected command from ${testCase.configuration['compiler']} '
+               'batch runner.');
         } else {
           buffer.addAll(encodeUtf8(line));
           buffer.addAll("\n".charCodes);
@@ -1618,15 +1620,17 @@ class ProcessQueue {
 
       eventStartTestCase(test);
 
-      // Dartc and browser test commands can be run by a [BatchRunnerProcess]
+      // Analyzer and browser test commands can be run by a [BatchRunnerProcess]
       var nextCommandIndex = test.commandOutputs.keys.length;
       var numberOfCommands = test.commands.length;
-      var useBatchRunnerForDartc = test.configuration['compiler'] == 'dartc' &&
-                                   test.displayName != 'dartc/junit_tests';
+        
+      var useBatchRunnerForAnalyzer = 
+          test.configuration['analyzer'] &&
+          test.displayName != 'dartc/junit_tests';
       var isWebdriverCommand = nextCommandIndex == (numberOfCommands - 1) &&
                                test.usesWebDriver &&
                                !test.configuration['noBatch'];
-      if (useBatchRunnerForDartc || isWebdriverCommand) {
+      if (useBatchRunnerForAnalyzer || isWebdriverCommand) {
         TestCaseEvent oldCallback = test.completedHandler;
         void testCompleted(TestCase test_arg) {
           _numProcesses--;

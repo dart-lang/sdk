@@ -142,6 +142,7 @@ abstract class TestSuite {
     var name;
     switch (configuration['compiler']) {
       case 'dartc':
+      case 'new_analyzer':
         name = executablePath;
       case 'dart2js':
       case 'dart2dart':
@@ -181,6 +182,9 @@ abstract class TestSuite {
         return '$buildDir/dart$suffix';
       case 'dartc':
         return '$buildDir/analyzer/bin/dart_analyzer$suffix';
+      case 'new_analyzer':
+        var prefix = 'sdk/bin/';
+        return '$prefix/analyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -699,8 +703,8 @@ class StandardTestSuite extends TestSuite {
       isNegative = true;
     }
 
-    if (configuration['compiler'] == 'dartc') {
-      // dartc can detect static type warnings by the
+    if (configuration['analyzer']) {
+      // An analyzer can detect static type warnings by the
       // format of the error line
       if (info.hasFatalTypeErrors) {
         isNegative = true;
@@ -775,6 +779,7 @@ class StandardTestSuite extends TestSuite {
 
     case 'none':
     case 'dartc':
+    case 'new_analyzer':
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
       return <Command>[new Command(dartShellFileName, arguments)];
@@ -1163,6 +1168,7 @@ class StandardTestSuite extends TestSuite {
       case 'dart2dart':
         return 'application/dart';
       case 'dart2js':
+      case 'new_analyzer':
       case 'dartc':
         return 'text/javascript';
       default:
@@ -1223,7 +1229,7 @@ class StandardTestSuite extends TestSuite {
       args.add(packageRoot);
     }
     args.addAll(additionalOptions(filePath));
-    if (configuration['compiler'] == 'dartc') {
+    if (configuration['analyzer']) {
       args.add('--error_format');
       args.add('machine');
     }
@@ -1599,7 +1605,7 @@ class JUnitTestSuite extends TestSuite {
     doTest = onTest;
     doDone = onDone;
 
-    if (configuration['compiler'] != 'dartc') {
+    if (!configuration['analyzer']) {
       // Do nothing. Asynchronously report that the suite is enqueued.
       asynchronously(doDone);
       return;
@@ -1852,6 +1858,9 @@ class TestUtils {
 
   static bool isJsCommandLineRuntime(String runtime) =>
       const ['d8', 'jsshell'].contains(runtime);
+
+  static bool isCommandLineAnalyzer(String compiler) =>
+      compiler == 'dartc' || compiler == 'new_analyzer';
 
   static String buildDir(Map configuration) {
     // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'

@@ -144,7 +144,7 @@ main() {
         // vm tests contain both cc tests (added here) and dart tests (added in
         // [TEST_SUITE_DIRECTORIES]).
         testSuites.add(new VMTestSuite(conf));
-      } else if (conf['compiler'] == 'dartc') {
+      } else if (conf['analyzer']) {
         if (key == 'dartc') {
           testSuites.add(new SamplesDartcTestSuite(conf));
           testSuites.add(new JUnitDartcTestSuite(conf));
