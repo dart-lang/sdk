@@ -1345,12 +1345,18 @@ void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  if (IsCatchEntry()) {
-    compiler->AddExceptionHandler(catch_try_index(),
-                                  try_index(),
-                                  compiler->assembler()->CodeSize(),
-                                  catch_handler_types_);
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
+}
+
+
+void CatchBlockEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  compiler->AddExceptionHandler(catch_try_index(),
+                                try_index(),
+                                compiler->assembler()->CodeSize(),
+                                catch_handler_types_);
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -1386,6 +1392,17 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
 
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
+LocationSummary* CatchBlockEntryInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

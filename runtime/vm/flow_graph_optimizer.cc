@@ -3703,6 +3703,13 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 }
 
 
+void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+
 void ConstantPropagator::VisitParallelMove(ParallelMoveInstr* instr) {
   // Parallel moves have not yet been inserted in the graph.
   UNREACHABLE();

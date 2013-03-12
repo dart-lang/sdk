@@ -649,12 +649,16 @@ void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[target", block_id());
-  if (IsCatchEntry()) {
-    f->Print(" catch %"Pd"]", catch_try_index());
-  } else {
-    f->Print("]");
+  f->Print("B%"Pd"[target]", block_id());
+  if (HasParallelMove()) {
+    f->Print(" ");
+    parallel_move()->PrintTo(f);
   }
+}
+
+
+void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%"Pd"[target catch %"Pd"]", block_id(), catch_try_index());
   if (HasParallelMove()) {
     f->Print(" ");
     parallel_move()->PrintTo(f);

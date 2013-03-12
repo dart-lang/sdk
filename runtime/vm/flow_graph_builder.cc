@@ -57,7 +57,7 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
     graph_entry_(NULL) { }
 
 
-void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
+void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
   graph_entry_->AddCatchEntry(entry);
 }
 
@@ -3040,10 +3040,11 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
     catch_block->Visit(&for_catch_block);
-    TargetEntryInstr* catch_entry =
-        new TargetEntryInstr(owner()->AllocateBlockId(), old_try_index);
-    catch_entry->set_catch_try_index(try_index);
-    catch_entry->set_catch_handler_types(catch_block->handler_types());
+    CatchBlockEntryInstr* catch_entry =
+        new CatchBlockEntryInstr(owner()->AllocateBlockId(),
+                                 old_try_index,
+                                 catch_block->handler_types(),
+                                 try_index);
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     AppendFragment(catch_entry, for_catch_block);

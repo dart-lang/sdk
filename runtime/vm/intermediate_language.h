@@ -17,6 +17,7 @@ namespace dart {
 class BitVector;
 class BlockEntryInstr;
 class BufferFormatter;
+class CatchBlockEntryInstr;
 class ComparisonInstr;
 class ControlInstruction;
 class Definition;
@@ -413,6 +414,7 @@ class EmbeddedArray<T, 0> {
   M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
+  M(CatchBlockEntry)                                                           \
   M(Phi)                                                                       \
   M(Parameter)                                                                 \
   M(ParallelMove)                                                              \
@@ -1086,7 +1088,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
+  void AddCatchEntry(CatchBlockEntryInstr* entry) { catch_entries_.Add(entry); }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
@@ -1115,7 +1117,7 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   const ParsedFunction& parsed_function_;
   TargetEntryInstr* normal_entry_;
-  GrowableArray<TargetEntryInstr*> catch_entries_;
+  GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;
   intptr_t spill_slot_count_;
 
@@ -1196,10 +1198,7 @@ class PhiIterator : public ValueObject {
 class TargetEntryInstr : public BlockEntryInstr {
  public:
   TargetEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index),
-        predecessor_(NULL),
-        catch_try_index_(CatchClauseNode::kInvalidTryIndex),
-        catch_handler_types_(Array::ZoneHandle()) { }
+      : BlockEntryInstr(block_id, try_index), predecessor_(NULL) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -1209,22 +1208,6 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
-  }
-
-  // Returns true if this Block is an entry of a catch handler.
-  bool IsCatchEntry() const {
-    return catch_try_index_ != CatchClauseNode::kInvalidTryIndex;
-  }
-
-  // Returns try index for the try block to which this catch handler
-  // corresponds.
-  intptr_t catch_try_index() const {
-    ASSERT(IsCatchEntry());
-    return catch_try_index_;
-  }
-  void set_catch_try_index(intptr_t index) { catch_try_index_ = index; }
-  void set_catch_handler_types(const Array& handler_types) {
-    catch_handler_types_ = handler_types.raw();
   }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
@@ -1241,10 +1224,56 @@ class TargetEntryInstr : public BlockEntryInstr {
   }
 
   BlockEntryInstr* predecessor_;
-  intptr_t catch_try_index_;
-  Array& catch_handler_types_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
+};
+
+
+class CatchBlockEntryInstr : public BlockEntryInstr {
+ public:
+  CatchBlockEntryInstr(intptr_t block_id,
+                       intptr_t try_index,
+                       const Array& handler_types,
+                       intptr_t catch_try_index)
+      : BlockEntryInstr(block_id, try_index),
+        predecessor_(NULL),
+        catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
+        catch_try_index_(catch_try_index) { }
+
+  DECLARE_INSTRUCTION(CatchBlockEntry)
+
+  virtual intptr_t PredecessorCount() const {
+    return (predecessor_ == NULL) ? 0 : 1;
+  }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    ASSERT((index == 0) && (predecessor_ != NULL));
+    return predecessor_;
+  }
+
+  // Returns try index for the try block to which this catch handler
+  // corresponds.
+  intptr_t catch_try_index() const {
+    return catch_try_index_;
+  }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+  virtual void PrintTo(BufferFormatter* f) const;
+
+ private:
+  friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
+
+  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
+
+  BlockEntryInstr* predecessor_;
+  const Array& catch_handler_types_;
+  const intptr_t catch_try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
 
 

@@ -107,7 +107,7 @@ class FlowGraphBuilder: public ValueObject {
   void set_try_index(intptr_t value) { try_index_ = value; }
   intptr_t try_index() const { return try_index_; }
 
-  void AddCatchEntry(TargetEntryInstr* entry);
+  void AddCatchEntry(CatchBlockEntryInstr* entry);
 
   intptr_t num_copied_params() const {
     return num_copied_params_;
