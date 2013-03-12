@@ -791,6 +791,16 @@ class JavaScriptBackend extends Backend {
         && interceptedElements[element.name] != null;
   }
 
+  bool fieldHasInterceptedGetter(Element element) {
+    assert(element.isField());
+    return interceptedElements[element.name] != null;
+  }
+
+  bool fieldHasInterceptedSetter(Element element) {
+    assert(element.isField());
+    return interceptedElements[element.name] != null;
+  }
+
   bool isInterceptedName(SourceString name) {
     return interceptedElements[name] != null;
   }

@@ -181,62 +181,82 @@ class CodeEmitterTask extends CompilerTask {
   String get lazyInitializerName
       => '${namer.isolateName}.\$lazy';
 
-  // Property name suffixes.  If the accessors are renaming then the format
-  // is <accessorName>:<fieldName><suffix>.  We use the suffix to know whether
-  // to look for the ':' separator in order to avoid doing the indexOf operation
-  // on every single property (they are quite rare).  None of these characters
-  // are legal in an identifier and they are related by bit patterns.
-  // setter          <          0x3c
-  // both            =          0x3d
-  // getter          >          0x3e
-  // renaming setter |          0x7c
-  // renaming both   }          0x7d
-  // renaming getter ~          0x7e
-  const SUFFIX_MASK = 0x3f;
-  const FIRST_SUFFIX_CODE = 0x3c;
-  const SETTER_CODE = 0x3c;
-  const GETTER_SETTER_CODE = 0x3d;
-  const GETTER_CODE = 0x3e;
-  const RENAMING_FLAG = 0x40;
-  String needsGetterCode(String variable) => '($variable & 3) > 0';
-  String needsSetterCode(String variable) => '($variable & 2) == 0';
-  String isRenaming(String variable) => '($variable & $RENAMING_FLAG) != 0';
+  // Compact field specifications.  The format of the field specification is
+  // <accessorName>:<fieldName><suffix> where the suffix and accessor name
+  // prefix are optional.  The suffix directs the generation of getter and
+  // setter methods.  Each of the getter and setter has two bits to determine
+  // the calling convention.  Setter listed below, getter is similar.
+  //
+  //     00: no setter
+  //     01: function(value) { this.field = value; }
+  //     10: function(receiver, value) { receiver.field = value; }
+  //     11: function(receiver, value) { this.field = value; }
+  //
+  // The suffix encodes 4 bits using three ASCII ranges of non-identifier
+  // characters.
+  static const FIELD_CODE_CHARACTERS = r"<=>?@{|}~%&'()*";
+  static const NO_FIELD_CODE = 0;
+  static const FIRST_FIELD_CODE = 1;
+  static const RANGE1_FIRST = 0x3c;   //  <=>?@    encodes 1..5
+  static const RANGE1_LAST = 0x40;
+  static const RANGE2_FIRST = 0x7b;   //  {|}~     encodes 6..9
+  static const RANGE2_LAST = 0x7e;
+  static const RANGE3_FIRST = 0x25;   //  %&'()*+  encodes 10..16
+  static const RANGE3_LAST = 0x2b;
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
+    const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
+    const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
+    const RANGE1_ADJUST = - (FIRST_FIELD_CODE - RANGE1_FIRST);
+    const RANGE2_ADJUST = - (FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
+    const RANGE3_ADJUST =
+        - (FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
+
+    String receiverParamName = compiler.enableMinification ? "r" : "receiver";
+    String valueParamName = compiler.enableMinification ? "v" : "value";
+
     // function generateAccessor(field, prototype) {
     jsAst.Fun fun = js.fun(['field', 'prototype'], [
       js['var len = field.length'],
-      js['var lastCharCode = field.charCodeAt(len - 1)'],
-      js['var needsAccessor = '
-                '(lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE'],
+      js['var code = field.charCodeAt(len - 1)'],
+      js['code = ((code >= $RANGE1_FIRST) && (code <= $RANGE1_LAST))'
+          '    ? code - $RANGE1_ADJUST'
+          '    : ((code >= $RANGE2_FIRST) && (code <= $RANGE2_LAST))'
+          '      ? code - $RANGE2_ADJUST'
+          '      : ((code >= $RANGE3_FIRST) && (code <= $RANGE3_LAST))'
+          '        ? code - $RANGE3_ADJUST'
+          '        : $NO_FIELD_CODE'],
 
       // if (needsAccessor) {
-      js.if_('needsAccessor', [
-        js['var needsGetter = ${needsGetterCode("lastCharCode")}'],
-        js['var needsSetter = ${needsSetterCode("lastCharCode")}'],
-        js['var renaming = ${isRenaming("lastCharCode")}'],
+      js.if_('code', [
+        js['var getterCode = code & 3'],
+        js['var setterCode = code >> 2'],
         js['var accessorName = field = field.substring(0, len - 1)'],
 
-        // if (renaming) {
-        js.if_('renaming', [
-          js['var divider = field.indexOf(":")'],
+        js['var divider = field.indexOf(":")'],
+        js.if_('divider > 0', [  // Colon never in first position.
           js['accessorName = field.substring(0, divider)'],
           js['field = field.substring(divider + 1)']
         ]),
 
         // if (needsGetter) {
-        js.if_('needsGetter', [
-          js['var getterString = "return this." + field'],
+        js.if_('getterCode', [
+          js['var args = (getterCode & 2) ? "$receiverParamName" : ""'],
+          js['var receiver = (getterCode & 1) ? "this" : "$receiverParamName"'],
+          js['var body = "return " + receiver + "." + field'],
           js['prototype["${namer.getterPrefix}" + accessorName] = '
-                 'new Function(getterString)']
+                 'new Function(args, body)']
         ]),
 
         // if (needsSetter) {
-        js.if_('needsSetter', [
-          // var setterString = "this." + field + " = v;";
-          js['var setterString = "this." + field + "$_=${_}v"'],
+        js.if_('setterCode', [
+          js['var args = (setterCode & 2)'
+              '  ? "$receiverParamName,${_}$valueParamName"'
+              '  : "$valueParamName"'],
+          js['var receiver = (setterCode & 1) ? "this" : "$receiverParamName"'],
+          js['var body = receiver + "." + field + "$_=$_$valueParamName"'],
           js['prototype["${namer.setterPrefix}" + accessorName] = '
-                 'new Function("v", setterString)']
+                 'new Function(args, body)']
         ]),
 
       ]),
@@ -1112,9 +1132,6 @@ class CodeEmitterTask extends CompilerTask {
               && canGenerateCheckedSetter(member)) {
             needsCheckedSetter = true;
             needsSetter = false;
-          } else if (backend.isInterceptedMethod(member)) {
-            // The [addField] will take care of generating the setter.
-            needsSetter = false;
           }
         }
         // Getters and setters with suffixes will be generated dynamically.
@@ -1153,21 +1170,26 @@ class CodeEmitterTask extends CompilerTask {
 
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
-    assert(!backend.isInterceptorClass(member));
     String getterName = namer.getterNameFromAccessorName(accessorName);
+    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
+        ? 'receiver' : 'this';
+    List<String> args = backend.isInterceptedMethod(member)
+        ? ['receiver']
+        : [];
     builder.addProperty(getterName,
-        js.fun([], js.return_(js['this'][fieldName])));
+        js.fun(args, js.return_(js[receiver][fieldName])));
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
-    assert(!backend.isInterceptorClass(member));
     String setterName = namer.setterNameFromAccessorName(accessorName);
+    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
+        ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member)
         ? ['receiver', 'v']
         : ['v'];
     builder.addProperty(setterName,
-        js.fun(args, js['this'][fieldName].assign('v')));
+        js.fun(args, js[receiver][fieldName].assign('v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -1198,11 +1220,14 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
+    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
+        ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member)
         ? ['receiver', 'v']
         : ['v'];
     builder.addProperty(setterName,
-        js.fun(args, js['this'][fieldName].assign(js[helperName](arguments))));
+        js.fun(args,
+            js[receiver][fieldName].assign(js[helperName](arguments))));
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -1217,7 +1242,7 @@ class CodeEmitterTask extends CompilerTask {
                        ClassBuilder builder,
                        { String superClass: "",
                          bool classIsNative: false }) {
-    bool isFirstField = true;
+    String separator = '';
     StringBuffer buffer = new StringBuffer();
     if (!classIsNative) {
       buffer.write('$superClass;');
@@ -1235,13 +1260,8 @@ class CodeEmitterTask extends CompilerTask {
       // constructors, so we don't need the fields unless we are generating
       // accessors at runtime.
       if (!classIsNative || needsAccessor) {
-        // Emit correct commas.
-        if (isFirstField) {
-          isFirstField = false;
-        } else {
-          buffer.write(',');
-        }
-        int flag = 0;
+        buffer.write(separator);
+        separator = ',';
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -1254,15 +1274,31 @@ class CodeEmitterTask extends CompilerTask {
             buffer.write(':$name');
             // Only the native classes can have renaming accessors.
             assert(classIsNative);
-            flag = RENAMING_FLAG;
           }
-        }
-        if (needsGetter && needsSetter) {
-          buffer.writeCharCode(GETTER_SETTER_CODE + flag);
-        } else if (needsGetter) {
-          buffer.writeCharCode(GETTER_CODE + flag);
-        } else if (needsSetter) {
-          buffer.writeCharCode(SETTER_CODE + flag);
+
+          int getterCode = 0;
+          if (needsGetter) {
+            // 01:  function() { return this.field; }
+            // 10:  function(receiver) { return receiver.field; }
+            // 11:  function(receiver) { return this.field; }
+            getterCode += backend.fieldHasInterceptedGetter(member) ? 2 : 0;
+            getterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
+            // TODO(sra): 'isInterceptorClass' might not be the correct test for
+            // methods forced to use the interceptor convention because the
+            // method's class was elsewhere mixed-in to an interceptor.
+            assert(getterCode != 0);
+          }
+          int setterCode = 0;
+          if (needsSetter) {
+            // 01:  function(value) { this.field = value; }
+            // 10:  function(receiver, value) { receiver.field = value; }
+            // 11:  function(receiver, value) { this.field = value; }
+            setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
+            setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
+            assert(setterCode != 0);
+          }
+          int code = getterCode + (setterCode << 2);
+          buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
         }
       }
     });
@@ -1286,13 +1322,6 @@ class CodeEmitterTask extends CompilerTask {
         if (needsCheckedSetter) {
           assert(!needsSetter);
           generateCheckedSetter(member, name, accessorName, builder);
-        }
-        if (backend.isInterceptedMethod(member)
-            && instanceFieldNeedsSetter(member)) {
-          // The caller of this method sets [needsSetter] as false
-          // when the setter is intercepted.
-          assert(!needsSetter);
-          generateSetter(member, name, accessorName, builder);
         }
         if (!getterAndSetterCanBeImplementedByFieldSpec) {
           if (needsGetter) {
