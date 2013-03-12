@@ -14,7 +14,7 @@ import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
 
 class ClosureNamer {
   SourceString getClosureVariableName(SourceString name, int id) {
-    return new SourceString("${name.slowToString()}_$id");    
+    return new SourceString("${name.slowToString()}_$id");
   }
 }
 

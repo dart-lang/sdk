@@ -13,6 +13,11 @@ abstract class HType {
    * primitive type.
    */
   factory HType.fromMask(TypeMask mask, Compiler compiler) {
+    bool isNullable = mask.isNullable;
+    if (mask.isEmpty) {
+      return isNullable ? HType.NULL : HType.CONFLICTING;
+    }
+
     Element element = mask.base.element;
     if (element.kind == ElementKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Can we do better here?
@@ -21,7 +26,6 @@ abstract class HType {
       return new HBoundedType(mask);
     }
 
-    bool isNullable = mask.isNullable;
     JavaScriptBackend backend = compiler.backend;
     if (element == compiler.intClass || element == backend.jsIntClass) {
       return isNullable ? HType.INTEGER_OR_NULL : HType.INTEGER;
@@ -37,10 +41,15 @@ abstract class HType {
     } else if (element == compiler.boolClass
                || element == backend.jsBoolClass) {
       return isNullable ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
-    } else if (element == compiler.nullClass
-               || element == backend.jsNullClass) {
-      return HType.NULL;
-    } else if (!isNullable) {
+    }
+
+    if (isNullable) {
+      // TODO(kasperl): A lot of the code in the system currently
+      // expects the top type to be 'unknown'. I'll rework this.
+      if (element == compiler.objectClass || element == compiler.dynamicClass) {
+        return HType.UNKNOWN;
+      }
+    } else {
       if (element == backend.jsIndexableClass) {
         return HType.INDEXABLE_PRIMITIVE;
       } else if (element == backend.jsArrayClass) {
@@ -124,6 +133,8 @@ abstract class HType {
           compiler.objectClass.computeType(compiler), compiler);
     } else if (type == native.SpecialType.JsArray) {
       return HType.READABLE_ARRAY;
+    } else if (type.element == compiler.nullClass) {
+      return HType.NULL;
     } else {
       return new HType.nonNullSubclass(type, compiler);
     }
@@ -140,26 +151,6 @@ abstract class HType {
     }
     assert(!ssaType.isConflicting());
     return ssaType;
-  }
-
-  factory HType.readableArrayOrNull(Compiler compiler) {
-    return new HBoundedType(
-        READABLE_ARRAY.computeMask(compiler).nullable());
-  }
-
-  factory HType.mutableArrayOrNull(Compiler compiler) {
-    return new HBoundedType(
-        MUTABLE_ARRAY.computeMask(compiler).nullable());
-  }
-
-  factory HType.fixedArrayOrNull(Compiler compiler) {
-    return new HBoundedType(
-        FIXED_ARRAY.computeMask(compiler).nullable());
-  }
-
-  factory HType.extendableArrayOrNull(Compiler compiler) {
-    return new HBoundedType(
-        EXTENDABLE_ARRAY.computeMask(compiler).nullable());
   }
 
   static const HType CONFLICTING = const HConflictingType();
@@ -222,7 +213,7 @@ abstract class HType {
     TypeMask mask = computeMask(compiler);
     // TODO(kasperl): Should we check if the refinement really is more
     // specialized than the starting point?
-    if (mask == null || mask.base.isMalformed) return selector;
+    if (!mask.isEmpty && mask.base.isMalformed) return selector;
     return new TypedSelector(mask, selector);
   }
 
@@ -244,17 +235,6 @@ abstract class HType {
    * intersection with [CONFLICTING] returns [CONFLICTING].
    */
   HType intersection(HType other, Compiler compiler) {
-    HType oldType = intersectionOld(other, compiler);
-    if (useOldIntersection() || other.useOldIntersection()) return oldType;
-    HType newType = intersectionNew(other, compiler);
-    if (oldType == newType) return newType;
-    // print('intersection($this, $other) :: $oldType ==> $newType');
-    return newType;
-  }
-
-  bool useOldIntersection() => false;
-
-  HType intersectionNew(HType other, Compiler compiler) {
     TypeMask mask = computeMask(compiler);
     TypeMask otherMask = other.computeMask(compiler);
     TypeMask intersection = mask.intersection(otherMask, compiler);
@@ -265,9 +245,6 @@ abstract class HType {
         ? HType.NULL
         : HType.CONFLICTING;
   }
-
-  HType intersectionOld(HType other, Compiler compiler);
-
 
   /**
    * The union of two types is the union of its values. For example:
@@ -282,17 +259,6 @@ abstract class HType {
    * A union of [CONFLICTING] with any other types returns the other type.
    */
   HType union(HType other, Compiler compiler) {
-    HType oldType = unionOld(other, compiler);
-    if (useOldUnion() || other.useOldUnion()) return oldType;
-    HType newType = unionNew(other, compiler);
-    if (oldType == newType) return newType;
-    // print('union($this, $other) :: $oldType ==> $newType');
-    return newType;
-  }
-
-  bool useOldUnion() => false;
-
-  HType unionNew(HType other, Compiler compiler) {
     TypeMask mask = computeMask(compiler);
     TypeMask otherMask = other.computeMask(compiler);
     TypeMask union = mask.union(otherMask, compiler);
@@ -301,8 +267,6 @@ abstract class HType {
         ? new HType.fromMask(union, compiler)
         : HType.UNKNOWN;
   }
-
-  HType unionOld(HType other, Compiler compiler);
 }
 
 /** Used to represent [HType.UNKNOWN] and [HType.CONFLICTING]. */
@@ -310,12 +274,6 @@ abstract class HAnalysisType extends HType {
   final String name;
   const HAnalysisType(this.name);
   String toString() => name;
-
-  DartType computeType(Compiler compiler) => null;
-  TypeMask computeMask(Compiler compiler) => null;
-
-  bool useOldIntersection() => true;
-  bool useOldUnion() => true;
 }
 
 class HUnknownType extends HAnalysisType {
@@ -326,17 +284,25 @@ class HUnknownType extends HAnalysisType {
   bool canBePrimitiveString(Compiler compiler) => true;
   bool canBePrimitiveArray(Compiler compiler) => true;
 
-  HType unionOld(HType other, Compiler compiler) => this;
-  HType intersectionOld(HType other, Compiler compiler) => other;
+  DartType computeType(Compiler compiler) {
+    return compiler.objectClass.computeType(compiler);
+  }
+
+  TypeMask computeMask(Compiler compiler) {
+    return new TypeMask.subclass(computeType(compiler));
+  }
 }
 
 class HConflictingType extends HAnalysisType {
   const HConflictingType() : super("conflicting");
   bool canBePrimitive(Compiler compiler) => true;
-  bool canBeNull() => true;
+  bool canBeNull() => false;
 
-  HType unionOld(HType other, Compiler compiler) => other;
-  HType intersectionOld(HType other, Compiler compiler) => this;
+  DartType computeType(Compiler compiler) => null;
+
+  TypeMask computeMask(Compiler compiler) {
+    return new TypeMask.nonNullEmpty();
+  }
 }
 
 abstract class HPrimitiveType extends HType {
@@ -359,31 +325,7 @@ class HNullType extends HPrimitiveType {
   }
 
   TypeMask computeMask(Compiler compiler) {
-    return new TypeMask.exact(computeType(compiler));
-  }
-
-  bool useOldIntersection() => true;
-  bool useOldUnion() => true;
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.NULL;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isString()) return HType.STRING_OR_NULL;
-    if (other.isInteger()) return HType.INTEGER_OR_NULL;
-    if (other.isDouble()) return HType.DOUBLE_OR_NULL;
-    if (other.isNumber()) return HType.NUMBER_OR_NULL;
-    if (other.isBoolean()) return HType.BOOLEAN_OR_NULL;
-    // TODO(ngeoffray): Deal with the type of null more generally.
-    if (other.isReadableArray()) return other.union(this, compiler);
-    if (!other.canBeNull()) return HType.UNKNOWN;
-    return other;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isUnknown()) return HType.NULL;
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (!other.canBeNull()) return HType.CONFLICTING;
-    return HType.NULL;
+    return new TypeMask.empty();
   }
 }
 
@@ -407,27 +349,6 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.exact(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.BOOLEAN_OR_NULL;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
-    if (other.isBoolean()) return HType.BOOLEAN_OR_NULL;
-    if (other.isNull()) return HType.BOOLEAN_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
-    if (other.isBoolean()) return HType.BOOLEAN;
-    if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
-    if (other.isTop(compiler)) {
-      return other.canBeNull() ? this : HType.BOOLEAN;
-    }
-    if (other.canBeNull()) return HType.NULL;
-    return HType.CONFLICTING;
-  }
 }
 
 class HBooleanType extends HPrimitiveType {
@@ -445,24 +366,6 @@ class HBooleanType extends HPrimitiveType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.BOOLEAN;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isBoolean()) return HType.BOOLEAN;
-    if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
-    if (other.isNull()) return HType.BOOLEAN_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.BOOLEAN;
-    if (other.isBooleanOrNull()) return HType.BOOLEAN;
-    if (other.isBoolean()) return HType.BOOLEAN;
-    if (other.isTop(compiler)) return HType.BOOLEAN;
-    return HType.CONFLICTING;
-  }
 }
 
 class HNumberOrNullType extends HPrimitiveOrNullType {
@@ -478,31 +381,6 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.subclass(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.NUMBER_OR_NULL;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isNumber()) return HType.NUMBER_OR_NULL;
-    if (other.isNull()) return HType.NUMBER_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.NUMBER_OR_NULL;
-    if (other.isInteger()) return HType.INTEGER;
-    if (other.isDouble()) return HType.DOUBLE;
-    if (other.isNumber()) return HType.NUMBER;
-    if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.canBePrimitiveNumber(compiler)) {
-      return other.canBeNull() ? this : HType.NUMBER;
-    }
-    if (other.canBeNull()) return HType.NULL;
-    return HType.CONFLICTING;
   }
 }
 
@@ -521,26 +399,6 @@ class HNumberType extends HPrimitiveType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullSubclass(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.NUMBER;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isNumber()) return HType.NUMBER;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isNull()) return HType.NUMBER_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.NUMBER;
-    if (other.isNumber()) return other;
-    if (other.isIntegerOrNull()) return HType.INTEGER;
-    if (other.isDoubleOrNull()) return HType.DOUBLE;
-    if (other.isNumberOrNull()) return HType.NUMBER;
-    if (other.canBePrimitiveNumber(compiler)) return HType.NUMBER;
-    return HType.CONFLICTING;
-  }
 }
 
 class HIntegerOrNullType extends HNumberOrNullType {
@@ -555,33 +413,6 @@ class HIntegerOrNullType extends HNumberOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.exact(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.INTEGER_OR_NULL;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.isInteger()) return HType.INTEGER_OR_NULL;
-    if (other.isNumber()) return HType.NUMBER_OR_NULL;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isNull()) return HType.INTEGER_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.INTEGER_OR_NULL;
-    if (other.isInteger()) return HType.INTEGER;
-    if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.isDouble()) return HType.CONFLICTING;
-    if (other.isDoubleOrNull()) return HType.NULL;
-    if (other.isNumber()) return HType.INTEGER;
-    if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.canBePrimitiveNumber(compiler)) {
-      return other.canBeNull() ? this : HType.INTEGER;
-    }
-    if (other.canBeNull()) return HType.NULL;
-    return HType.CONFLICTING;
   }
 }
 
@@ -600,30 +431,6 @@ class HIntegerType extends HNumberType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.INTEGER;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isInteger()) return HType.INTEGER;
-    if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.isNumber()) return HType.NUMBER;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isNull()) return HType.INTEGER_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.INTEGER;
-    if (other.isIntegerOrNull()) return HType.INTEGER;
-    if (other.isInteger()) return HType.INTEGER;
-    if (other.isDouble()) return HType.CONFLICTING;
-    if (other.isDoubleOrNull()) return HType.CONFLICTING;
-    if (other.isNumber()) return HType.INTEGER;
-    if (other.isNumberOrNull()) return HType.INTEGER;
-    if (other.canBePrimitiveNumber(compiler)) return HType.INTEGER;
-    return HType.CONFLICTING;
-  }
 }
 
 class HDoubleOrNullType extends HNumberOrNullType {
@@ -638,33 +445,6 @@ class HDoubleOrNullType extends HNumberOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.exact(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.DOUBLE_OR_NULL;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.isDouble()) return HType.DOUBLE_OR_NULL;
-    if (other.isNumber()) return HType.NUMBER_OR_NULL;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isNull()) return HType.DOUBLE_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.DOUBLE_OR_NULL;
-    if (other.isInteger()) return HType.CONFLICTING;
-    if (other.isIntegerOrNull()) return HType.NULL;
-    if (other.isDouble()) return HType.DOUBLE;
-    if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.isNumber()) return HType.DOUBLE;
-    if (other.isNumberOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.canBePrimitiveNumber(compiler)) {
-      return other.canBeNull() ? this : HType.DOUBLE;
-    }
-    if (other.canBeNull()) return HType.NULL;
-    return HType.CONFLICTING;
   }
 }
 
@@ -683,30 +463,6 @@ class HDoubleType extends HNumberType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.DOUBLE;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isDouble()) return HType.DOUBLE;
-    if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.isNumber()) return HType.NUMBER;
-    if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.isNull()) return HType.DOUBLE_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.DOUBLE;
-    if (other.isIntegerOrNull()) return HType.CONFLICTING;
-    if (other.isInteger()) return HType.CONFLICTING;
-    if (other.isDouble()) return HType.DOUBLE;
-    if (other.isDoubleOrNull()) return HType.DOUBLE;
-    if (other.isNumber()) return HType.DOUBLE;
-    if (other.isNumberOrNull()) return HType.DOUBLE;
-    if (other.canBePrimitiveNumber(compiler)) return HType.DOUBLE;
-    return HType.CONFLICTING;
-  }
 }
 
 class HIndexablePrimitiveType extends HPrimitiveType {
@@ -721,30 +477,6 @@ class HIndexablePrimitiveType extends HPrimitiveType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullSubtype(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.canBePrimitiveString(compiler)) {
-      // TODO(ngeoffray): Represent union types.
-      return HType.UNKNOWN;
-    }
-    if (other.canBePrimitiveArray(compiler)) {
-      // TODO(ngeoffray): Represent union types.
-      return HType.UNKNOWN;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.isIndexablePrimitive()) return other;
-    if (other.canBePrimitiveString(compiler)) return HType.STRING;
-    if (other.canBePrimitiveArray(compiler)) return HType.READABLE_ARRAY;
-    return HType.CONFLICTING;
   }
 }
 
@@ -761,45 +493,6 @@ class HStringOrNullType extends HPrimitiveOrNullType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.exact(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.STRING_OR_NULL;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isString()) return HType.STRING_OR_NULL;
-    if (other.isStringOrNull()) return HType.STRING_OR_NULL;
-    if (other.isIndexablePrimitive()) {
-      // We don't have a type that represents the nullable indexable
-      // primitive.
-      return HType.UNKNOWN;
-    }
-    if (other.canBePrimitiveString(compiler)) {
-      if (other.canBeNull()) {
-        return other;
-      } else {
-        TypeMask otherMask = other.computeMask(compiler);
-        return new HType.fromMask(otherMask.nullable(), compiler);
-      }
-    }
-    if (other.isNull()) return HType.STRING_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.STRING_OR_NULL;
-    if (other.isString()) return HType.STRING;
-    if (other.isStringOrNull()) return HType.STRING_OR_NULL;
-    if (other.isArray()) return HType.CONFLICTING;
-    if (other.isIndexablePrimitive()) return HType.STRING;
-    if (other.canBePrimitiveString(compiler)) {
-      return other.canBeNull() ? HType.STRING_OR_NULL : HType.STRING;
-    }
-    if (other.isTop(compiler)) {
-      return other.canBeNull() ? this : HType.STRING;
-    }
-    if (other.canBeNull()) return HType.NULL;
-    return HType.CONFLICTING;
   }
 }
 
@@ -819,28 +512,6 @@ class HStringType extends HIndexablePrimitiveType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.STRING;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isString()) return HType.STRING;
-    if (other.isStringOrNull()) return HType.STRING_OR_NULL;
-    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.canBePrimitiveString(compiler)) return other;
-    if (other.isNull()) return HType.STRING_OR_NULL;
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.STRING;
-    if (other.isString()) return HType.STRING;
-    if (other.isArray()) return HType.CONFLICTING;
-    if (other.isIndexablePrimitive()) return HType.STRING;
-    if (other.isStringOrNull()) return HType.STRING;
-    if (other.canBePrimitiveString(compiler)) return HType.STRING;
-    return HType.CONFLICTING;
-  }
 }
 
 class HReadableArrayType extends HIndexablePrimitiveType {
@@ -857,26 +528,6 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullSubclass(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.READABLE_ARRAY;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isReadableArray()) return HType.READABLE_ARRAY;
-    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.canBePrimitiveArray(compiler)) return other;
-    if (other.isNull()) return new HType.readableArrayOrNull(compiler);
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.READABLE_ARRAY;
-    if (other.isString()) return HType.CONFLICTING;
-    if (other.isReadableArray()) return other;
-    if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
-    if (other.canBePrimitiveArray(compiler)) return HType.READABLE_ARRAY;
-    return HType.CONFLICTING;
-  }
 }
 
 class HMutableArrayType extends HReadableArrayType {
@@ -891,27 +542,6 @@ class HMutableArrayType extends HReadableArrayType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullSubclass(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.MUTABLE_ARRAY;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isMutableArray()) return HType.MUTABLE_ARRAY;
-    if (other.isReadableArray()) return HType.READABLE_ARRAY;
-    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.canBePrimitiveArray(compiler)) return other;
-    if (other.isNull()) return new HType.mutableArrayOrNull(compiler);
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.MUTABLE_ARRAY;
-    if (other.isMutableArray()) return other;
-    if (other.isString()) return HType.CONFLICTING;
-    if (other.isIndexablePrimitive()) return HType.MUTABLE_ARRAY;
-    if (other.canBePrimitiveArray(compiler)) return HType.MUTABLE_ARRAY;
-    return HType.CONFLICTING;
   }
 }
 
@@ -929,29 +559,6 @@ class HFixedArrayType extends HMutableArrayType {
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
   }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.FIXED_ARRAY;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isFixedArray()) return HType.FIXED_ARRAY;
-    if (other.isMutableArray()) return HType.MUTABLE_ARRAY;
-    if (other.isReadableArray()) return HType.READABLE_ARRAY;
-    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.canBePrimitiveArray(compiler)) return other;
-    if (other.isNull()) return new HType.fixedArrayOrNull(compiler);
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.FIXED_ARRAY;
-    if (other.isFixedArray()) return HType.FIXED_ARRAY;
-    if (other.isExtendableArray()) return HType.CONFLICTING;
-    if (other.isString()) return HType.CONFLICTING;
-    if (other.isIndexablePrimitive()) return HType.FIXED_ARRAY;
-    if (other.canBePrimitiveArray(compiler)) return HType.FIXED_ARRAY;
-    return HType.CONFLICTING;
-  }
 }
 
 class HExtendableArrayType extends HMutableArrayType {
@@ -967,29 +574,6 @@ class HExtendableArrayType extends HMutableArrayType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.nonNullExact(computeType(compiler));
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.EXTENDABLE_ARRAY;
-    if (other.isUnknown()) return HType.UNKNOWN;
-    if (other.isExtendableArray()) return HType.EXTENDABLE_ARRAY;
-    if (other.isMutableArray()) return HType.MUTABLE_ARRAY;
-    if (other.isReadableArray()) return HType.READABLE_ARRAY;
-    if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
-    if (other.canBePrimitiveArray(compiler)) return other;
-    if (other.isNull()) return new HType.extendableArrayOrNull(compiler);
-    return HType.UNKNOWN;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (other.isUnknown()) return HType.EXTENDABLE_ARRAY;
-    if (other.isExtendableArray()) return HType.EXTENDABLE_ARRAY;
-    if (other.isString()) return HType.CONFLICTING;
-    if (other.isFixedArray()) return HType.CONFLICTING;
-    if (other.isIndexablePrimitive()) return HType.EXTENDABLE_ARRAY;
-    if (other.canBePrimitiveArray(compiler)) return HType.EXTENDABLE_ARRAY;
-    return HType.CONFLICTING;
   }
 }
 
@@ -1037,64 +621,6 @@ class HBoundedType extends HType {
     if (other is !HBoundedType) return false;
     HBoundedType bounded = other;
     return mask == bounded.mask;
-  }
-
-  HType intersectionOld(HType other, Compiler compiler) {
-    if (this == other) return this;
-    if (other.isConflicting()) return HType.CONFLICTING;
-    if (isTop(compiler)) return other;
-    if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
-
-    if (canBePrimitiveArray(compiler)) {
-      if (other.isArray()) return other;
-      if (other.isStringOrNull()) {
-        return other.isString() ? HType.CONFLICTING : HType.NULL;
-      }
-      if (other.isIndexablePrimitive()) return HType.READABLE_ARRAY;
-    }
-
-    if (canBePrimitiveString(compiler)) {
-      if (other.isArray()) return HType.CONFLICTING;
-      if (other.isString()) return HType.STRING;
-      if (other.isStringOrNull()) {
-        return canBeNull() ? HType.STRING_OR_NULL : HType.STRING;
-      }
-      if (other.isIndexablePrimitive()) return HType.STRING;
-    }
-
-    TypeMask otherMask = other.computeMask(compiler);
-    if (otherMask != null) {
-      TypeMask intersection = mask.intersection(otherMask, compiler);
-      if (intersection != null) {
-        if (intersection == mask) return this;
-        return new HType.fromMask(intersection, compiler);
-      }
-    }
-    if (other.isUnknown()) return this;
-    if (other.canBeNull() && canBeNull()) return HType.NULL;
-    return HType.CONFLICTING;
-  }
-
-  HType unionOld(HType other, Compiler compiler) {
-    if (this == other) return this;
-    if (isTop(compiler)) return this;
-    if (other.isNull()) {
-      if (canBeNull()) {
-        return this;
-      } else {
-        return new HType.fromMask(mask.nullable(), compiler);
-      }
-    }
-
-    TypeMask otherMask = other.computeMask(compiler);
-    if (otherMask != null) {
-      TypeMask union = mask.union(otherMask, compiler);
-      if (union == null) return HType.UNKNOWN;
-      if (union == mask) return this;
-      return new HType.fromMask(union, compiler);
-    }
-    if (other.isConflicting()) return this;
-    return HType.UNKNOWN;
   }
 
   String toString() {

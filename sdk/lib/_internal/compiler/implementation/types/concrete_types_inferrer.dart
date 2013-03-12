@@ -1183,7 +1183,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
         compiler.listClass.lookupConstructor(
             new Selector.callConstructor(const SourceString(''),
                                          compiler.listClass.getLibrary()));
-    nullTypeMask = new TypeMask.exact(compiler.nullClass.computeType(compiler));
+    nullTypeMask = new TypeMask.empty();
   }
 
   /**

@@ -1624,7 +1624,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
-      assert(selector.mask != null);
       world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;
@@ -1739,8 +1738,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
     String name = _fieldPropertyName(element);
-    DartType type = node.receiver.instructionType.computeType(compiler);
-    if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
+    if (!node.receiver.instructionType.isUnknown()) {
       // Field setters in the generative constructor body are handled in a
       // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {

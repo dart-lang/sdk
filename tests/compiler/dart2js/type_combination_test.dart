@@ -351,7 +351,7 @@ void testUnion(MockCompiler compiler) {
                 INDEXABLE_PRIMITIVE.union(DOUBLE_OR_NULL, compiler));
   Expect.equals(jsIndexableOrNull,
                 INDEXABLE_PRIMITIVE.union(STRING_OR_NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 INDEXABLE_PRIMITIVE.union(NULL, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 INDEXABLE_PRIMITIVE.union(FIXED_ARRAY, compiler));
@@ -951,7 +951,7 @@ void testUnion(MockCompiler compiler) {
                 NULL.union(INTEGER, compiler));
   Expect.equals(DOUBLE_OR_NULL,
                 NULL.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(jsIndexableOrNull,
                 NULL.union(INDEXABLE_PRIMITIVE, compiler));
   Expect.equals(STRING_OR_NULL,
                 NULL.union(STRING, compiler));
@@ -961,10 +961,8 @@ void testUnion(MockCompiler compiler) {
                 NULL.union(MUTABLE_ARRAY, compiler));
   Expect.equals(jsExtendableArrayOrNull,
                 NULL.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
-                NULL.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
-                NULL.union(nonPrimitive2, compiler));
+  Expect.isTrue(NULL.union(nonPrimitive1, compiler).canBeNull());
+  Expect.isTrue(NULL.union(nonPrimitive2, compiler).canBeNull());
   Expect.equals(potentialArray,
                 NULL.union(potentialArray, compiler));
   Expect.equals(potentialString,
@@ -2047,6 +2045,7 @@ void main() {
           element, compiler.globalDependencies);
     }
   });
+  compiler.enqueuer.resolution.registerInstantiatedClass(compiler.mapClass);
   compiler.world.populate();
 
   // Grab hold of a supertype for String so we can produce potential

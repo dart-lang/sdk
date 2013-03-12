@@ -11,9 +11,10 @@ part of types;
  */
 class TypeMask {
 
-  static const int EXACT    = 0;
-  static const int SUBCLASS = 1;
-  static const int SUBTYPE  = 2;
+  static const int EMPTY    = 0;
+  static const int EXACT    = 1;
+  static const int SUBCLASS = 2;
+  static const int SUBTYPE  = 3;
 
   final DartType base;
   final int flags;
@@ -21,6 +22,8 @@ class TypeMask {
   TypeMask(DartType base, int kind, bool isNullable)
       : this.internal(base, (kind << 1) | (isNullable ? 1 : 0));
 
+  const TypeMask.empty()
+      : this.internal(null, (EMPTY << 1) | 1);
   const TypeMask.exact(DartType base)
       : this.internal(base, (EXACT << 1) | 1);
   const TypeMask.subclass(DartType base)
@@ -28,6 +31,8 @@ class TypeMask {
   const TypeMask.subtype(DartType base)
       : this.internal(base, (SUBTYPE << 1) | 1);
 
+  const TypeMask.nonNullEmpty()
+      : this.internal(null, EMPTY << 1);
   const TypeMask.nonNullExact(DartType base)
       : this.internal(base, EXACT << 1);
   const TypeMask.nonNullSubclass(DartType base)
@@ -37,14 +42,17 @@ class TypeMask {
 
   const TypeMask.internal(this.base, this.flags);
 
-  bool get isNullable => (flags & 1) != 0;
+  bool get isEmpty => (flags >> 1) == EMPTY;
   bool get isExact => (flags >> 1) == EXACT;
+  bool get isNullable => (flags & 1) != 0;
 
   // TODO(kasperl): Get rid of these. They should not be a visible
   // part of the implementation because they make it hard to add
   // proper union types if we ever want to.
   bool get isSubclass => (flags >> 1) == SUBCLASS;
   bool get isSubtype => (flags >> 1) == SUBTYPE;
+
+  DartType get exactType => isExact ? base : null;
 
   /**
    * Returns a nullable variant of [this] type mask.
@@ -53,13 +61,20 @@ class TypeMask {
     return isNullable ? this : new TypeMask.internal(base, flags | 1);
   }
 
-  DartType get exactType => isExact ? base : null;
+  /**
+   * Returns a non-nullable variant of [this] type mask.
+   */
+  TypeMask nonNullable() {
+    return isNullable ? new TypeMask.internal(base, flags & ~1) : this;
+  }
 
   /**
    * Returns whether or not this type mask contains the given type.
    */
   bool contains(DartType type, Compiler compiler) {
-    if (identical(base.element, type.element)) {
+    if (isEmpty) {
+      return false;
+    } else if (identical(base.element, type.element)) {
       return true;
     } else if (isExact) {
       return false;
@@ -71,20 +86,23 @@ class TypeMask {
     }
   }
 
-  // TODO(kasperl): Try to get rid of this method. It shouldn't really
+// TODO(kasperl): Try to get rid of this method. It shouldn't really
   // be necessary.
   bool containsAll(Compiler compiler) {
+    if (isEmpty || isExact) return false;
     // TODO(kasperl): Do this error handling earlier.
     if (base.kind != TypeKind.INTERFACE) return false;
-    // TODO(kasperl): Should we take nullability into account here?
-    if (isExact) return false;
     ClassElement baseElement = base.element;
     return identical(baseElement, compiler.objectClass)
         || identical(baseElement, compiler.dynamicClass);
   }
 
   TypeMask union(TypeMask other, Compiler compiler) {
-    if (base.asRaw() == other.base.asRaw()) {
+    if (isEmpty) {
+      return isNullable ? other.nullable() : other;
+    } else if (other.isEmpty) {
+      return other.isNullable ? nullable() : this;
+    } else if (base.asRaw() == other.base.asRaw()) {
       return unionSame(other, compiler);
     } else if (isSubclassOf(other.base, base, compiler)) {
       return unionSubclass(other, compiler);
@@ -204,7 +222,11 @@ class TypeMask {
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
-    if (base.asRaw() == other.base.asRaw()) {
+    if (isEmpty) {
+      return other.isNullable ? this : nonNullable();
+    } else if (other.isEmpty) {
+      return isNullable ? other : other.nonNullable();
+    } else if (base.asRaw() == other.base.asRaw()) {
       return intersectionSame(other, compiler);
     } else if (isSubclassOf(other.base, base, compiler)) {
       return intersectionSubclass(other, compiler);
@@ -337,6 +359,7 @@ class TypeMask {
   }
 
   String toString() {
+    if (isEmpty) return isNullable ? '[null]' : '[empty]';
     StringBuffer buffer = new StringBuffer();
     if (isNullable) buffer.write('null|');
     if (isExact) buffer.write('exact=');

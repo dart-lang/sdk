@@ -2043,6 +2043,9 @@ class CodeEmitterTask extends CompilerTask {
         ClassElement receiverClass = objectClass;
         TypeMask mask = selector.mask;
         if (mask != null) {
+          // If the mask is empty it doesn't contain a noSuchMethod
+          // handler -- not even if it is nullable.
+          if (mask.isEmpty) continue;
           receiverClass = mask.base.element;
         }
 

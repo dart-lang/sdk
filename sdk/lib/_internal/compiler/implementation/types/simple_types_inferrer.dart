@@ -334,11 +334,9 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   void initializeTypes() {
-    // TODO(ngeoffray): Is that the right type?
-    Backend backend = compiler.backend;
-    nullType = new TypeMask.exact(
-        backend.nullImplementation.computeType(compiler));
+    nullType = new TypeMask.empty();
 
+    Backend backend = compiler.backend;
     intType = new TypeMask.nonNullExact(
         rawTypeOf(backend.intImplementation));
     doubleType = new TypeMask.nonNullExact(
@@ -663,10 +661,6 @@ class SimpleTypesInferrer extends TypesInferrer {
       return secondType;
     } else if (isDynamicType(firstType)) {
       return firstType;
-    } else if (firstType == nullType) {
-      return secondType.nullable();
-    } else if (secondType == nullType) {
-      return firstType.nullable();
     } else {
       TypeMask union = firstType.union(secondType, compiler);
       return union == null ? giveUpType : union;

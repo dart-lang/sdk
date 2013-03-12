@@ -459,7 +459,7 @@ class TypedSelector extends Selector {
               selector.argumentCount,
               selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
-    assert(!identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
+    assert(mask.isEmpty || !identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
     assert(asUntyped.mask == null);
   }
 
@@ -502,6 +502,12 @@ class TypedSelector extends Selector {
     ClassElement other = element.getEnclosingClass();
     if (identical(other.superclass, compiler.closureClass)) {
       return appliesUntyped(element, compiler);
+    }
+
+    if (mask.isEmpty) {
+      if (!mask.isNullable) return false;
+      return hasElementIn(compiler.backend.jsNullClass, element)
+          && appliesUntyped(element, compiler);
     }
 
     // TODO(kasperl): Can't we just avoid creating typed selectors
