@@ -304,7 +304,8 @@ void ActivationFrame::GetVarDescriptors() {
 
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
-  if (context_level_ < 0) {
+  if (context_level_ < 0 && !ctx_.IsNull()) {
+    ASSERT(!code_.is_optimized());
     context_level_ = 0;
     intptr_t pc_desc_idx = PcDescIndex();
     ASSERT(!pc_desc_.IsNull());
@@ -493,13 +494,13 @@ void ActivationFrame::VariableAt(intptr_t i,
   if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
     *value = GetLocalVarValue(var_info.index);
   } else {
-    // TODO(tball): enable context variables once problem with VariableAt() is
-    // fixed, where frame_ctx_level is sometimes off by 1 (issues 8593 and 8594)
-    /*
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
-    ASSERT(!ctx_.IsNull());
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
+    if (ctx_.IsNull()) {
+      *value = Symbols::New("<unknown>");
+      return;
+    }
     // The context level of the variable.
     intptr_t var_ctx_level = var_info.scope_id;
     intptr_t level_diff = frame_ctx_level - var_ctx_level;
@@ -516,8 +517,7 @@ void ActivationFrame::VariableAt(intptr_t i,
       }
       ASSERT(!ctx.IsNull());
       *value = ctx.At(ctx_slot);
-    } */
-    *value = Symbols::New("<unknown>");
+    }
   }
 }
 
@@ -877,6 +877,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
   bool get_saved_context = false;
+  bool optimized_frame_found = false;
   while (frame != NULL) {
     ASSERT(frame->IsValid());
     if (frame->IsDartFrame()) {
@@ -885,10 +886,16 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                                                         frame->fp(),
                                                         frame->sp(),
                                                         code);
-      if (get_saved_context && !activation->code().is_optimized()) {
-        ctx = activation->GetSavedContext();
+      if (optimized_frame_found || code.is_optimized()) {
+        // Set context to null, to avoid returning bad context variable values.
+        activation->SetContext(Context::Handle());
+        optimized_frame_found = true;
+      } else {
+        if (get_saved_context) {
+          ctx = activation->GetSavedContext();
+        }
+        activation->SetContext(ctx);
       }
-      activation->SetContext(ctx);
       stack_trace->AddActivation(activation);
       get_saved_context = activation->function().IsClosureFunction();
     } else if (frame->IsEntryFrame()) {
