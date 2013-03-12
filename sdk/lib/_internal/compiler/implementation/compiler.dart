@@ -262,6 +262,11 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool preserveComments;
 
+  /**
+   * Is the compiler in verbose mode.
+   */
+  final bool verbose;
+
   final api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -395,6 +400,7 @@ abstract class Compiler implements DiagnosticListener {
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
             this.preserveComments: false,
+            this.verbose: false,
             outputProvider,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
@@ -1112,12 +1118,15 @@ class CompilerTask {
   final Compiler compiler;
   final Stopwatch watch;
 
-  CompilerTask(this.compiler) : watch = new Stopwatch();
+  CompilerTask(Compiler compiler)
+      : this.compiler = compiler,
+        watch = (compiler.verbose) ? new Stopwatch() : null;
 
   String get name => 'Unknown task';
-  int get timing => watch.elapsedMilliseconds;
+  int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
 
   measure(action()) {
+    if (watch == null) return action();
     CompilerTask previous = compiler.measuredTask;
     if (identical(this, previous)) return action();
     compiler.measuredTask = this;

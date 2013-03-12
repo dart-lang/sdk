@@ -128,6 +128,11 @@ void compile(List<String> argv) {
     passThrough(argument);
   }
 
+  setVerbose(_) {
+    diagnosticHandler.verbose = true;
+    passThrough('--verbose');
+  }
+
   setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
     Set<String> allowedCategories =
@@ -156,7 +161,7 @@ void compile(List<String> argv) {
     for (var shortOption in shortOptions) {
       switch (shortOption) {
         case 'v':
-          diagnosticHandler.verbose = true;
+          setVerbose(null);
           break;
         case 'h':
         case '?':
@@ -179,7 +184,7 @@ void compile(List<String> argv) {
     new OptionHandler('--suppress-warnings',
                       (_) => diagnosticHandler.showWarnings = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
-    new OptionHandler('--verbose', (_) => diagnosticHandler.verbose = true),
+    new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
