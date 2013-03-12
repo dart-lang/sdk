@@ -549,6 +549,19 @@ abstract class Compiler implements DiagnosticListener {
     } on CompilerCancelledException catch (exception) {
       log('Error: $exception');
       return false;
+    } catch (exception) {
+      try {
+        if (!hasCrashed) {
+          hasCrashed = true;
+          reportDiagnostic(new SourceSpan(uri, 0, 0),
+                           MessageKind.COMPILER_CRASHED.error().toString(),
+                           api.Diagnostic.CRASH);
+          pleaseReportCrash();
+        }
+      } catch (doubleFault) {
+        // Ignoring exceptions in exception handling.
+      }
+      throw;
     } finally {
       tracer.close();
       totalCompileTime.stop();
