@@ -36,5 +36,4 @@ void main() {
 
   checkFieldTypeInClass('A', 'intField', typesInferrer.intType);
   checkFieldTypeInClass('A', 'stringField', typesInferrer.stringType);
-
 }
