@@ -312,35 +312,17 @@ class LineProgressIndicator extends EventListener {
 }
 
 class TestFailurePrinter extends EventListener {
-  var _failureSummary = <String>[];
   var _formatter;
 
   TestFailurePrinter([this._formatter = const Formatter()]);
 
   void done(TestCase test) {
     if (test.lastCommandOutput.unexpectedOutput) {
-      _printFailureOutput(test);
+      for (var line in _buildFailureOutput(test, _formatter)) {
+        print(line);
+      }
+      print('');
     }
-  }
-
-  void allDone() {
-    _printFailureSummary();
-  }
-
-  void _printFailureOutput(TestCase test) {
-    var failureOutput = _buildFailureOutput(test, _formatter);
-    for (var line in failureOutput) {
-      print(line);
-    }
-    print('');
-    _failureSummary.addAll(failureOutput);
-  }
-
-  void _printFailureSummary() {
-    for (String line in _failureSummary) {
-      print(line);
-    }
-    print('');
   }
 }
 
@@ -480,8 +462,16 @@ class VerboseProgressIndicator extends ProgressIndicator {
 
 class BuildbotProgressIndicator extends ProgressIndicator {
   static String stepName;
+  var _failureSummary = <String>[];
 
   BuildbotProgressIndicator(Date startTime) : super(startTime);
+
+  void done(TestCase test) {
+    super.done(test);
+    if (test.lastCommandOutput.unexpectedOutput) {
+      _failureSummary.addAll(_buildFailureOutput(test));
+    }
+  }
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
@@ -495,9 +485,13 @@ class BuildbotProgressIndicator extends ProgressIndicator {
   }
 
   void allDone() {
-    if (_failedTests > 0) {
+    if (!_failureSummary.isEmpty && stepName != null) {
       print('@@@STEP_FAILURE@@@');
       print('@@@BUILD_STEP $stepName failures@@@');
+      for (String line in _failureSummary) {
+        print(line);
+      }
+      print('');
     }
     super.allDone();
   }
