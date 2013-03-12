@@ -10,7 +10,7 @@
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
-import "dart:scalarlist";
+import "dart:typeddata";
 import "dart:uri";
 
 const String CERT_NAME = 'localhost_cert';

@@ -958,7 +958,7 @@ static void TestDirectAccess(Dart_Handle lib,
 
 TEST_CASE(TypedDataDirectAccess1) {
   const char* kScriptChars =
-      "import 'dart:scalarlist';\n"
+      "import 'dart:typeddata';\n"
       "void setMain(var a) {"
       "  for (var i = 0; i < 10; i++) {"
       "    a[i] = i;"
@@ -1000,7 +1000,6 @@ static void ExternalTypedDataAccessTests(Dart_Handle obj,
                                          uint8_t data[],
                                          intptr_t data_length) {
   EXPECT_VALID(obj);
-  EXPECT_EQ(expected_type, Dart_GetTypeOfTypedData(obj));
   EXPECT_EQ(expected_type, Dart_GetTypeOfExternalTypedData(obj));
   EXPECT(Dart_IsList(obj));
 

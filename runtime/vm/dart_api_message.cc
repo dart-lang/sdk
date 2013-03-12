@@ -430,7 +430,8 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       ::free(utf16);
       return object;
     }
-    case kUint8ArrayCid: {
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* object = AllocateDartCObjectUint8Array(len);
       AddBackRef(object_id, object, kIsDeserialized);
@@ -846,8 +847,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteIndexedObject(kUint8ArrayCid);
-      WriteIntptrValue(0);
+      WriteIndexedObject(kTypedDataUint8ArrayCid);
+      WriteIntptrValue(RawObject::ClassIdTag::update(
+          kTypedDataUint8ArrayCid, 0));
       uint8_t* bytes = object->value.as_byte_array.values;
       intptr_t len = object->value.as_byte_array.length;
       WriteSmi(len);
@@ -865,8 +867,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tag information.
-      WriteIndexedObject(kExternalUint8ArrayCid);
-      WriteIntptrValue(0);
+      WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
+      WriteIntptrValue(RawObject::ClassIdTag::update(
+          kExternalTypedDataUint8ArrayCid, 0));
       int length = object->value.as_external_byte_array.length;
       uint8_t* data = object->value.as_external_byte_array.data;
       void* peer = object->value.as_external_byte_array.peer;

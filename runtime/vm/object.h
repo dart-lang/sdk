@@ -4935,6 +4935,11 @@ class TypedData : public Instance {
     return (ElementSizeInBytes(cid) * Length());
   }
 
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
+  }
+
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
     return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
@@ -4989,11 +4994,6 @@ class TypedData : public Instance {
  private:
   static const intptr_t element_size[];
 
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
-  }
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, Instance);
   friend class Class;
   friend class ExternalTypedData;
@@ -5015,6 +5015,15 @@ class ExternalTypedData : public Instance {
   intptr_t LengthInBytes() const {
     intptr_t cid = raw()->GetClassId();
     return (ElementSizeInBytes(cid) * Length());
+  }
+
+  void* GetPeer() const {
+    return raw_ptr()->peer_;
+  }
+
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
   }
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
@@ -5079,11 +5088,6 @@ class ExternalTypedData : public Instance {
   }
 
  private:
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
-  }
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData, Instance);
   friend class Class;
 };

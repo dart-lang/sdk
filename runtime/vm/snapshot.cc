@@ -318,6 +318,10 @@ RawObject* SnapshotReader::ReadObjectRef() {
     case kTypedData##clazz##Cid: {                                             \
       obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);                \
       break;                                                                   \
+    }                                                                          \
+    case kExternalTypedData##clazz##Cid: {                                     \
+      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);        \
+      break;                                                                   \
     }
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
@@ -796,6 +800,10 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case kTypedData##clazz##Cid: {                                             \
       obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);                \
+      break;                                                                   \
+    }                                                                          \
+    case kExternalTypedData##clazz##Cid: {                                     \
+      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);        \
       break;                                                                   \
     }
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ)

@@ -35,6 +35,6 @@ patch class _RandomAccessFile {
   /* patch */ static _flush(int id) native "File_Flush";
 }
 
-List<int> _makeUint8ListView(List<int> source, int from, int to) {
-  return new Uint8List.view(source.asByteArray(), from, to);
+Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
+  return new Uint8List.view(source.buffer, offsetInBytes, length);
 }

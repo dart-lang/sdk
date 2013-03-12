@@ -21,7 +21,7 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:uri';
 import 'dart:utf';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 part 'base64.dart';
 part 'buffer_list.dart';

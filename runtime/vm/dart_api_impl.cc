@@ -2331,48 +2331,48 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
     case kByteArrayCid :
       type = kByteData;
       break;
-    case kInt8ArrayCid :
-    case kExternalInt8ArrayCid :
+    case kTypedDataInt8ArrayCid :
+    case kExternalTypedDataInt8ArrayCid :
       type = kInt8;
       break;
-    case kUint8ArrayCid :
-    case kExternalUint8ArrayCid :
+    case kTypedDataUint8ArrayCid :
+    case kExternalTypedDataUint8ArrayCid :
       type = kUint8;
       break;
-    case kUint8ClampedArrayCid :
-    case kExternalUint8ClampedArrayCid :
+    case kTypedDataUint8ClampedArrayCid :
+    case kExternalTypedDataUint8ClampedArrayCid :
       type = kUint8Clamped;
       break;
-    case kInt16ArrayCid :
-    case kExternalInt16ArrayCid :
+    case kTypedDataInt16ArrayCid :
+    case kExternalTypedDataInt16ArrayCid :
       type = kInt16;
       break;
-    case kUint16ArrayCid :
-    case kExternalUint16ArrayCid :
+    case kTypedDataUint16ArrayCid :
+    case kExternalTypedDataUint16ArrayCid :
       type = kUint16;
       break;
-    case kInt32ArrayCid :
-    case kExternalInt32ArrayCid :
+    case kTypedDataInt32ArrayCid :
+    case kExternalTypedDataInt32ArrayCid :
       type = kInt32;
       break;
-    case kUint32ArrayCid :
-    case kExternalUint32ArrayCid :
+    case kTypedDataUint32ArrayCid :
+    case kExternalTypedDataUint32ArrayCid :
       type = kUint32;
       break;
-    case kInt64ArrayCid :
-    case kExternalInt64ArrayCid :
+    case kTypedDataInt64ArrayCid :
+    case kExternalTypedDataInt64ArrayCid :
       type = kInt64;
       break;
-    case kUint64ArrayCid :
-    case kExternalUint64ArrayCid :
+    case kTypedDataUint64ArrayCid :
+    case kExternalTypedDataUint64ArrayCid :
       type = kUint64;
       break;
-    case kFloat32ArrayCid :
-    case kExternalFloat32ArrayCid :
+    case kTypedDataFloat32ArrayCid :
+    case kExternalTypedDataFloat32ArrayCid :
       type = kFloat32;
       break;
-    case kFloat64ArrayCid :
-    case kExternalFloat64ArrayCid :
+    case kTypedDataFloat64ArrayCid :
+    case kExternalTypedDataFloat64ArrayCid :
       type = kFloat64;
       break;
     default:
@@ -2385,6 +2385,9 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
   intptr_t class_id = Api::ClassId(object);
+  if (!RawObject::IsTypedDataClassId(class_id)) {
+    return kInvalid;
+  }
   return GetType(class_id);
 }
 
@@ -2392,29 +2395,32 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
     Dart_Handle object) {
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsExternalByteArrayClassId(class_id)) {
+  if (!RawObject::IsExternalTypedDataClassId(class_id)) {
     return kInvalid;
   }
   return GetType(class_id);
 }
 
 
-template<typename type>
-static Dart_Handle NewTypedData(Isolate* isolate, intptr_t length) {
-  CHECK_LENGTH(length, type::kMaxElements);
-  return Api::NewHandle(isolate, type::New(length));
+static Dart_Handle NewTypedData(Isolate* isolate,
+                                intptr_t cid,
+                                intptr_t length) {
+  CHECK_LENGTH(length, TypedData::MaxElements(cid));
+  return Api::NewHandle(isolate, TypedData::New(cid, length));
 }
 
 
-template<typename type, typename datatype>
 static Dart_Handle NewExternalTypedData(
+    intptr_t cid,
     void* data,
     intptr_t length,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
-  CHECK_LENGTH(length, type::kMaxElements);
-  const type& obj =
-      type::Handle(type::New(reinterpret_cast<datatype*>(data), length));
+  CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
+  const ExternalTypedData& obj = ExternalTypedData::Handle(
+      ExternalTypedData::New(cid,
+                             reinterpret_cast<uint8_t*>(data),
+                             length));
   return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
 }
 
@@ -2429,27 +2435,27 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
       // TODO(asiva): Add a new ByteArray::New() method.
       break;
     case kInt8 :
-      return NewTypedData<Int8Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataInt8ArrayCid, length);
     case kUint8 :
-      return NewTypedData<Uint8Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataUint8ArrayCid, length);
     case kUint8Clamped :
-      return NewTypedData<Uint8ClampedArray>(isolate, length);
+      return NewTypedData(isolate, kTypedDataUint8ClampedArrayCid, length);
     case kInt16 :
-      return NewTypedData<Int16Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataInt16ArrayCid, length);
     case kUint16 :
-      return NewTypedData<Uint16Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataUint16ArrayCid, length);
     case kInt32 :
-      return NewTypedData<Int32Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataInt32ArrayCid, length);
     case kUint32 :
-      return NewTypedData<Uint32Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataUint32ArrayCid, length);
     case kInt64 :
-      return NewTypedData<Int64Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataInt64ArrayCid, length);
     case kUint64 :
-      return NewTypedData<Uint64Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataUint64ArrayCid, length);
     case kFloat32 :
-      return NewTypedData<Float32Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataFloat32ArrayCid,  length);
     case kFloat64 :
-      return NewTypedData<Float64Array>(isolate, length);
+      return NewTypedData(isolate, kTypedDataFloat64ArrayCid, length);
     default:
       return Api::NewError("%s expects argument 'type' to be of 'TypedData'",
                            CURRENT_FUNC);
@@ -2476,60 +2482,71 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
       // TODO(asiva): Allocate external ByteData object.
       break;
     case kInt8 :
-      return NewExternalTypedData<ExternalInt8Array, int8_t>(data,
-                                                             length,
-                                                             peer,
-                                                             callback);
+      return NewExternalTypedData(kExternalTypedDataInt8ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kUint8 :
-      return NewExternalTypedData<ExternalUint8Array, uint8_t>(data,
-                                                               length,
-                                                               peer,
-                                                               callback);
+      return NewExternalTypedData(kExternalTypedDataUint8ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kUint8Clamped :
-      return NewExternalTypedData<ExternalUint8ClampedArray, uint8_t>(data,
-                                                                      length,
-                                                                      peer,
-                                                                      callback);
+      return NewExternalTypedData(kExternalTypedDataUint8ClampedArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kInt16 :
-      return NewExternalTypedData<ExternalInt16Array, int16_t>(data,
-                                                               length,
-                                                               peer,
-                                                               callback);
+      return NewExternalTypedData(kExternalTypedDataInt16ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kUint16 :
-      return NewExternalTypedData<ExternalUint16Array, uint16_t>(data,
-                                                                 length,
-                                                                 peer,
-                                                                 callback);
+      return NewExternalTypedData(kExternalTypedDataUint16ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kInt32 :
-      return NewExternalTypedData<ExternalInt32Array, int32_t>(data,
-                                                               length,
-                                                               peer,
-                                                               callback);
+      return NewExternalTypedData(kExternalTypedDataInt32ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kUint32 :
-      return NewExternalTypedData<ExternalUint32Array, uint32_t>(data,
-                                                                 length,
-                                                                 peer,
-                                                                 callback);
+      return NewExternalTypedData(kExternalTypedDataUint32ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kInt64 :
-      return NewExternalTypedData<ExternalInt64Array, int64_t>(data,
-                                                               length,
-                                                               peer,
-                                                               callback);
+      return NewExternalTypedData(kExternalTypedDataInt64ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kUint64 :
-      return NewExternalTypedData<ExternalUint64Array, uint64_t>(data,
-                                                                 length,
-                                                                 peer,
-                                                                 callback);
+      return NewExternalTypedData(kExternalTypedDataUint64ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kFloat32 :
-      return NewExternalTypedData<ExternalFloat32Array, float>(data,
-                                                               length,
-                                                               peer,
-                                                               callback);
+      return NewExternalTypedData(kExternalTypedDataFloat32ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     case kFloat64 :
-      return NewExternalTypedData<ExternalFloat64Array, double>(data,
-                                                                length,
-                                                                peer,
-                                                                callback);
+      return NewExternalTypedData(kExternalTypedDataFloat64ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
     default:
       return Api::NewError("%s expects argument 'type' to be of"
                            " 'external TypedData'", CURRENT_FUNC);
@@ -2543,10 +2560,10 @@ DART_EXPORT Dart_Handle Dart_ExternalTypedDataGetPeer(Dart_Handle object,
                                                       void** peer) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const ByteArray& array =
-      Api::UnwrapByteArrayHandle(isolate, object);
+  const ExternalTypedData& array =
+      Api::UnwrapExternalTypedDataHandle(isolate, object);
   if (array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, ByteArray);
+    RETURN_TYPE_ERROR(isolate, object, ExternalTypedData);
   }
   if (peer == NULL) {
     RETURN_NULL_ERROR(peer);
@@ -2563,7 +2580,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsByteArrayClassId(class_id)) {
+  if (!RawObject::IsExternalTypedDataClassId(class_id) &&
+      !RawObject::IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
   if (type == NULL) {
@@ -2577,17 +2595,21 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   }
   // Get the type of typed data object.
   *type = GetType(class_id);
-  const ByteArray& obj = Api::UnwrapByteArrayHandle(isolate, object);
-  ASSERT(!obj.IsNull());
-  *len = obj.Length();
   // If it is an external typed data object just return the data field.
-  if (RawObject::IsExternalByteArrayClassId(class_id)) {
-    *data = reinterpret_cast<void*>(obj.ByteAddr(0));
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+    const ExternalTypedData& obj =
+        Api::UnwrapExternalTypedDataHandle(isolate, object);
+    ASSERT(!obj.IsNull());
+    *len = obj.Length();
+    *data = reinterpret_cast<void*>(obj.DataAddr(0));
   } else {
     // Regular typed data object, set up some GC and API callback guards.
+    const TypedData& obj = Api::UnwrapTypedDataHandle(isolate, object);
+    ASSERT(!obj.IsNull());
+    *len = obj.Length();
     isolate->IncrementNoGCScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
-    *data = reinterpret_cast<void*>(obj.ByteAddr(0));
+    *data = reinterpret_cast<void*>(obj.DataAddr(0));
   }
   return Api::Success(isolate);
 }
@@ -2597,10 +2619,11 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsByteArrayClassId(class_id)) {
+  if (!RawObject::IsExternalTypedDataClassId(class_id) &&
+      !RawObject::IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
-  if (!RawObject::IsExternalByteArrayClassId(class_id)) {
+  if (!RawObject::IsExternalTypedDataClassId(class_id)) {
     isolate->DecrementNoGCScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
   }

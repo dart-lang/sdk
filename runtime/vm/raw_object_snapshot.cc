@@ -2468,8 +2468,18 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,
                                                   Snapshot::Kind kind) {
-  UNIMPLEMENTED();
-  return ExternalTypedData::null();
+  ASSERT(kind != Snapshot::kFull);
+  intptr_t cid = RawObject::ClassIdTag::decode(tags);
+  intptr_t length = reader->ReadSmiValue();
+  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadIntptrValue());
+  const ExternalTypedData& obj = ExternalTypedData::Handle(
+      ExternalTypedData::New(cid, data, length));
+  void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());
+  Dart_WeakPersistentHandleFinalizer callback =
+      reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
+          reader->ReadIntptrValue());
+  obj.AddFinalizer(peer, callback);
+  return obj.raw();
 }
 
 

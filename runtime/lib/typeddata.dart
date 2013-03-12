@@ -436,7 +436,7 @@ abstract class _TypedListBase {
 
   List getRange(int start, int length) {
     _rangeCheck(this.length, start, length);
-    List result = _new(length);
+    List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
   }
@@ -559,6 +559,10 @@ class _Int8Array extends _TypedList implements Int8List {
 
   // Internal utility methods.
 
+  _Int8Array _createList(int length) {
+    return _new(length);
+  }
+
   static _Int8Array _new(int length) native "TypedData_Int8Array_new";
 }
 
@@ -610,7 +614,12 @@ class _Uint8Array extends _TypedList implements Uint8List {
     return Uint8List.BYTES_PER_ELEMENT;
   }
 
+
   // Internal utility methods.
+
+  _Uint8Array _createList(int length) {
+    return _new(length);
+  }
 
   static _Uint8Array _new(int length) native "TypedData_Uint8Array_new";
 }
@@ -666,6 +675,10 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
 
 
   // Internal utility methods.
+
+  _Uint8ClampedArray _createList(int length) {
+    return _new(length);
+  }
 
   static _Uint8ClampedArray _new(int length)
       native "TypedData_Uint8ClampedArray_new";
@@ -725,6 +738,10 @@ class _Int16Array extends _TypedList implements Int16List {
 
   // Internal utility methods.
 
+  _Int16Array _createList(int length) {
+    return _new(length);
+  }
+
   static _Int16Array _new(int length) native "TypedData_Int16Array_new";
 }
 
@@ -781,6 +798,10 @@ class _Uint16Array extends _TypedList implements Uint16List {
 
 
   // Internal utility methods.
+
+  _Uint16Array _createList(int length) {
+    return _new(length);
+  }
 
   static _Uint16Array _new(int length) native "TypedData_Uint16Array_new";
 }
@@ -839,6 +860,10 @@ class _Int32Array extends _TypedList implements Int32List {
 
   // Internal utility methods.
 
+  _Int32Array _createList(int length) {
+    return _new(length);
+  }
+
   static _Int32Array _new(int length) native "TypedData_Int32Array_new";
 }
 
@@ -895,6 +920,10 @@ class _Uint32Array extends _TypedList implements Uint32List {
 
 
   // Internal utility methods.
+
+  _Uint32Array _createList(int length) {
+    return _new(length);
+  }
 
   static _Uint32Array _new(int length) native "TypedData_Uint32Array_new";
 }
@@ -953,6 +982,10 @@ class _Int64Array extends _TypedList implements Int64List {
 
   // Internal utility methods.
 
+  _Int64Array _createList(int length) {
+    return _new(length);
+  }
+
   static _Int64Array _new(int length) native "TypedData_Int64Array_new";
 }
 
@@ -1009,6 +1042,10 @@ class _Uint64Array extends _TypedList implements Uint64List {
 
 
   // Internal utility methods.
+
+  _Uint64Array _createList(int length) {
+    return _new(length);
+  }
 
   static _Uint64Array _new(int length) native "TypedData_Uint64Array_new";
 }
@@ -1067,6 +1104,10 @@ class _Float32Array extends _TypedList implements Float32List {
 
   // Internal utility methods.
 
+  _Float32Array _createList(int length) {
+    return _new(length);
+  }
+
   static _Float32Array _new(int length) native "TypedData_Float32Array_new";
 }
 
@@ -1124,6 +1165,10 @@ class _Float64Array extends _TypedList implements Float64List {
 
   // Internal utility methods.
 
+  _Float64Array _createList(int length) {
+    return _new(length);
+  }
+
   static _Float64Array _new(int length) native "TypedData_Float64Array_new";
 }
 
@@ -1170,6 +1215,10 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
 
 
   // Internal utility methods.
+
+  Int8List _createList(int length) {
+    return new Int8List(length);
+  }
 
   static _ExternalInt8Array _new(int length) native
       "ExternalTypedData_Int8Array_new";
@@ -1220,6 +1269,10 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
 
   // Internal utility methods.
 
+  Uint8List _createList(int length) {
+    return new Uint8List(length);
+  }
+
   static _ExternalUint8Array _new(int length) native
       "ExternalTypedData_Uint8Array_new";
 }
@@ -1268,6 +1321,10 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
 
 
   // Internal utility methods.
+
+  Uint8ClampedList _createList(int length) {
+    return new Uint8ClampedList(length);
+  }
 
   static _ExternalUint8ClampedArray _new(int length) native
       "ExternalTypedData_Uint8ClampedArray_new";
@@ -1318,6 +1375,10 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
 
   // Internal utility methods.
 
+  Int16List _createList(int length) {
+    return new Int16List(length);
+  }
+
   static _ExternalInt16Array _new(int length) native
       "ExternalTypedData_Int16Array_new";
 }
@@ -1366,6 +1427,10 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
 
 
   // Internal utility methods.
+
+  Uint16List _createList(int length) {
+    return new Uint16List(length);
+  }
 
   static _ExternalUint16Array _new(int length) native
       "ExternalTypedData_Uint16Array_new";
@@ -1416,6 +1481,10 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
 
   // Internal utility methods.
 
+  Int32List _createList(int length) {
+    return new Int32List(length);
+  }
+
   static _ExternalInt32Array _new(int length) native
       "ExternalTypedData_Int32Array_new";
 }
@@ -1464,6 +1533,10 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
 
 
   // Internal utility methods.
+
+  Uint32List _createList(int length) {
+    return new Uint32List(length);
+  }
 
   static _ExternalUint32Array _new(int length) native
       "ExternalTypedData_Uint32Array_new";
@@ -1514,6 +1587,10 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
 
   // Internal utility methods.
 
+  Int64List _createList(int length) {
+    return new Int64List(length);
+  }
+
   static _ExternalInt64Array _new(int length) native
       "ExternalTypedData_Int64Array_new";
 }
@@ -1555,6 +1632,10 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
 
 
   // Method(s) implementing the TypedData interface.
+
+  Uint64List _createList(int length) {
+    return new Uint64List(length);
+  }
 
   int get elementSizeInBytes {
     return Uint64List.BYTES_PER_ELEMENT;
@@ -1612,6 +1693,10 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
 
   // Internal utility methods.
 
+  Float32List _createList(int length) {
+    return new Float32List(length);
+  }
+
   static _ExternalFloat32Array _new(int length) native
       "ExternalTypedData_Float32Array_new";
 }
@@ -1660,6 +1745,10 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
 
 
   // Internal utility methods.
+
+  Float64List _createList(int length) {
+    return new Float64List(length);
+  }
 
   static _ExternalFloat64Array _new(int length) native
       "ExternalTypedData_Float64Array_new";
@@ -1725,8 +1814,8 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
                            ((buffer.lengthInBytes - _offsetInBytes) ~/
                             Int8List.BYTES_PER_ELEMENT))) {
     _rangeCheck(buffer.lengthInBytes,
-                offsetInBytes,
-                length * Int8List.BYTES_PER_ELEMENT);
+                _offsetInBytes,
+                _length * Int8List.BYTES_PER_ELEMENT);
   }
 
 
@@ -1771,8 +1860,8 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
                            ((buffer.lengthInBytes - _offsetInBytes) ~/
                             Uint8List.BYTES_PER_ELEMENT))) {
     _rangeCheck(buffer.lengthInBytes,
-                offsetInBytes,
-                length * Uint8List.BYTES_PER_ELEMENT);
+                _offsetInBytes,
+                _length * Uint8List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2397,4 +2486,5 @@ int _defaultIfNull(object, value) {
   if (object == null) {
     return value;
   }
+  return object;
 }
