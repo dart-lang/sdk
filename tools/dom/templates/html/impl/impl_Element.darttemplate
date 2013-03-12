@@ -616,25 +616,6 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   /**
-   * Finds the first descendant element of this element that matches the
-   * specified group of selectors.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *
-   *     // Gets the first descendant with the class 'classname'
-   *     var element = element.query('.className');
-   *     // Gets the element with id 'id'
-   *     var element = element.query('#id');
-   *     // Gets the first descendant [ImageElement]
-   *     var img = element.query('img');
-   *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
-   */
-  Element query(String selectors) => $dom_querySelector(selectors);
-
-  /**
    * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *

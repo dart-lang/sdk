@@ -6607,32 +6607,27 @@ class Document extends Node  native "*Document"
   @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
-  @JSName('getElementById')
-  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.getElementById')
   @DocsEditable
-  Element $dom_getElementById(String elementId) native;
+  Element getElementById(String elementId) native;
 
-  @JSName('getElementsByClassName')
   @DomName('Document.getElementsByClassName')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> $dom_getElementsByClassName(String tagname) native;
+  List<Node> getElementsByClassName(String tagname) native;
 
-  @JSName('getElementsByName')
   @DomName('Document.getElementsByName')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> $dom_getElementsByName(String elementName) native;
+  List<Node> getElementsByName(String elementName) native;
 
-  @JSName('getElementsByTagName')
   @DomName('Document.getElementsByTagName')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> $dom_getElementsByTagName(String tagname) native;
+  List<Node> getElementsByTagName(String tagname) native;
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable
@@ -6655,10 +6650,24 @@ class Document extends Node  native "*Document"
   String queryCommandValue(String command) native;
 
   @JSName('querySelector')
-  /// Deprecated: renamed to the shorter name [query].
+  /**
+ * Finds the first descendant element of this document that matches the
+ * specified group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level query
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *     var element1 = document.query('.className');
+ *     var element2 = document.query('#id');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
   @DomName('Document.querySelector')
   @DocsEditable
-  Element $dom_querySelector(String selectors) native;
+  Element query(String selectors) native;
 
   @JSName('querySelectorAll')
   /// Deprecated: use query("#$elementId") instead.
@@ -6893,30 +6902,6 @@ class Document extends Node  native "*Document"
 
 
   /**
-   * Finds the first descendant element of this document that matches the
-   * specified group of selectors.
-   *
-   * Unless your webpage contains multiple documents, the top-level query
-   * method behaves the same as this method, so you should use it instead to
-   * save typing a few characters.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *     var element1 = document.query('.className');
-   *     var element2 = document.query('#id');
-   *
-   * For details about CSS selector syntax, see the
-   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
-   */
-  Element query(String selectors) {
-    // It is fine for our RegExp to detect element id query selectors to have
-    // false negatives but not false positives.
-    if (new RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
-      return $dom_getElementById(selectors.substring(1));
-    }
-    return $dom_querySelector(selectors);
-  }
-
-  /**
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
    *
@@ -6931,26 +6916,7 @@ class Document extends Node  native "*Document"
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   List<Element> queryAll(String selectors) {
-    if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByName(
-          selectors.substring(7,selectors.length - 2));
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByTagName(selectors);
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else {
-      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
-    }
+    return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -8657,25 +8623,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   }
 
   /**
-   * Finds the first descendant element of this element that matches the
-   * specified group of selectors.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *
-   *     // Gets the first descendant with the class 'classname'
-   *     var element = element.query('.className');
-   *     // Gets the element with id 'id'
-   *     var element = element.query('#id');
-   *     // Gets the first descendant [ImageElement]
-   *     var img = element.query('img');
-   *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
-   */
-  Element query(String selectors) => $dom_querySelector(selectors);
-
-  /**
    * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *
@@ -9440,12 +9387,11 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('_ClientRectList')
   List<Rect> getClientRects() native;
 
-  @JSName('getElementsByClassName')
   @DomName('Element.getElementsByClassName')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> $dom_getElementsByClassName(String name) native;
+  List<Node> getElementsByClassName(String name) native;
 
   @JSName('getElementsByTagName')
   @DomName('Element.getElementsByTagName')
@@ -9465,9 +9411,26 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native;
 
   @JSName('querySelector')
+  /**
+ * Finds the first descendant element of this element that matches the
+ * specified group of selectors.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     // Gets the first descendant with the class 'classname'
+ *     var element = element.query('.className');
+ *     // Gets the element with id 'id'
+ *     var element = element.query('#id');
+ *     // Gets the first descendant [ImageElement]
+ *     var img = element.query('img');
+ *
+ * See also:
+ *
+ * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+ */
   @DomName('Element.querySelector')
   @DocsEditable
-  Element $dom_querySelector(String selectors) native;
+  Element query(String selectors) native;
 
   @JSName('querySelectorAll')
   @DomName('Element.querySelectorAll')
@@ -20190,24 +20153,21 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   @DocsEditable
   Element elementFromPoint(int x, int y) native;
 
-  @JSName('getElementById')
   @DomName('ShadowRoot.getElementById')
   @DocsEditable
-  Element $dom_getElementById(String elementId) native;
+  Element getElementById(String elementId) native;
 
-  @JSName('getElementsByClassName')
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> $dom_getElementsByClassName(String className) native;
+  List<Node> getElementsByClassName(String className) native;
 
-  @JSName('getElementsByTagName')
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> $dom_getElementsByTagName(String tagName) native;
+  List<Node> getElementsByTagName(String tagName) native;
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable

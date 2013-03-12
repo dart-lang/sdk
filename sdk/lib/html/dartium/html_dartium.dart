@@ -7295,22 +7295,21 @@ class Document extends Node
   @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
-  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.getElementById')
   @DocsEditable
-  Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
+  Element getElementById(String elementId) native "Document_getElementById_Callback";
 
   @DomName('Document.getElementsByClassName')
   @DocsEditable
-  List<Node> $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
 
   @DomName('Document.getElementsByName')
   @DocsEditable
-  List<Node> $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
+  List<Node> getElementsByName(String elementName) native "Document_getElementsByName_Callback";
 
   @DomName('Document.getElementsByTagName')
   @DocsEditable
-  List<Node> $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
+  List<Node> getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable
@@ -7332,10 +7331,24 @@ class Document extends Node
   @DocsEditable
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
-  /// Deprecated: renamed to the shorter name [query].
+  /**
+ * Finds the first descendant element of this document that matches the
+ * specified group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level query
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *     var element1 = document.query('.className');
+ *     var element2 = document.query('#id');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
   @DomName('Document.querySelector')
   @DocsEditable
-  Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
+  Element query(String selectors) native "Document_querySelector_Callback";
 
   /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
@@ -7564,30 +7577,6 @@ class Document extends Node
 
 
   /**
-   * Finds the first descendant element of this document that matches the
-   * specified group of selectors.
-   *
-   * Unless your webpage contains multiple documents, the top-level query
-   * method behaves the same as this method, so you should use it instead to
-   * save typing a few characters.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *     var element1 = document.query('.className');
-   *     var element2 = document.query('#id');
-   *
-   * For details about CSS selector syntax, see the
-   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
-   */
-  Element query(String selectors) {
-    // It is fine for our RegExp to detect element id query selectors to have
-    // false negatives but not false positives.
-    if (new RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
-      return $dom_getElementById(selectors.substring(1));
-    }
-    return $dom_querySelector(selectors);
-  }
-
-  /**
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
    *
@@ -7602,26 +7591,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   List<Element> queryAll(String selectors) {
-    if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByName(
-          selectors.substring(7,selectors.length - 2));
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByTagName(selectors);
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else {
-      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
-    }
+    return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -9394,25 +9364,6 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   /**
-   * Finds the first descendant element of this element that matches the
-   * specified group of selectors.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *
-   *     // Gets the first descendant with the class 'classname'
-   *     var element = element.query('.className');
-   *     // Gets the element with id 'id'
-   *     var element = element.query('#id');
-   *     // Gets the first descendant [ImageElement]
-   *     var img = element.query('img');
-   *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
-   */
-  Element query(String selectors) => $dom_querySelector(selectors);
-
-  /**
    * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *
@@ -10011,7 +9962,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.getElementsByClassName')
   @DocsEditable
-  List<Node> $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
   @DomName('Element.getElementsByTagName')
   @DocsEditable
@@ -10025,9 +9976,26 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
+  /**
+ * Finds the first descendant element of this element that matches the
+ * specified group of selectors.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     // Gets the first descendant with the class 'classname'
+ *     var element = element.query('.className');
+ *     // Gets the element with id 'id'
+ *     var element = element.query('#id');
+ *     // Gets the first descendant [ImageElement]
+ *     var img = element.query('img');
+ *
+ * See also:
+ *
+ * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+ */
   @DomName('Element.querySelector')
   @DocsEditable
-  Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
+  Element query(String selectors) native "Element_querySelector_Callback";
 
   @DomName('Element.querySelectorAll')
   @DocsEditable
@@ -21937,15 +21905,15 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.getElementById')
   @DocsEditable
-  Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
+  Element getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable
-  List<Node> $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable
-  List<Node> $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
+  List<Node> getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable

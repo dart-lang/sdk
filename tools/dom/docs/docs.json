@@ -109,9 +109,6 @@
         "getCSSCanvasContext": [
           "/// Moved to [HtmlDocument]."
         ],
-        "getElementById": [
-          "/// Deprecated: use query(\"#$elementId\") instead."
-        ],
         "head": [
           "/// Moved to [HtmlDocument]."
         ],
@@ -119,7 +116,21 @@
           "/// Moved to [HtmlDocument]."
         ],
         "querySelector": [
-          "/// Deprecated: renamed to the shorter name [query]."
+          "/**",
+          " * Finds the first descendant element of this document that matches the",
+          " * specified group of selectors.",
+          " *",
+          " * Unless your webpage contains multiple documents, the top-level query",
+          " * method behaves the same as this method, so you should use it instead to",
+          " * save typing a few characters.",
+          " *",
+          " * [selectors] should be a string using CSS selector syntax.",
+          " *     var element1 = document.query('.className');",
+          " *     var element2 = document.query('#id');",
+          " *",
+          " * For details about CSS selector syntax, see the",
+          " * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).",
+          " */"
         ],
         "querySelectorAll": [
           "/// Deprecated: use query(\"#$elementId\") instead."
@@ -156,6 +167,29 @@
         ],
         "webkitPointerLockElement": [
           "/// Moved to [HtmlDocument]."
+        ]
+      }
+    },
+    "Element": {
+      "members": {
+        "querySelector": [
+          "/**",
+          " * Finds the first descendant element of this element that matches the",
+          " * specified group of selectors.",
+          " *",
+          " * [selectors] should be a string using CSS selector syntax.",
+          " *",
+          " *     // Gets the first descendant with the class 'classname'",
+          " *     var element = element.query('.className');",
+          " *     // Gets the element with id 'id'",
+          " *     var element = element.query('#id');",
+          " *     // Gets the first descendant [ImageElement]",
+          " *     var img = element.query('img');",
+          " *",
+          " * See also:",
+          " *",
+          " * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)",
+          " */"
         ]
       }
     },
