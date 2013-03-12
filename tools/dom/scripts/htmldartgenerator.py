@@ -263,7 +263,7 @@ class HtmlDartGenerator(object):
 
     # TODO: Optimize the dispatch to avoid repeated checks.
     if len(signatures) > 1:
-      swapped = False
+      index_swaps = {}
       for signature_index, signature in enumerate(signatures):
         for argument_position, argument in enumerate(signature):
           if argument.type.id != 'ArrayBuffer':
@@ -275,14 +275,14 @@ class HtmlDartGenerator(object):
               continue
             if candidate[argument_position].type.id != 'ArrayBufferView':
               continue
-            if swapped:
+            if len(index_swaps):
               raise Exception('Cannot deal with more than a single swap')
-            swapped = True
-            signatures = signatures[:]
-            signatures[candidate_index], signatures[signature_index] =\
-                signature, candidate
+            index_swaps[candidate_index] = signature_index
+            index_swaps[signature_index] = candidate_index
 
-      for signature_index, signature in enumerate(signatures):
+      for signature_index in range(len(signatures)):
+        signature_index = index_swaps.get(signature_index, signature_index)
+        signature = signatures[signature_index]
         for argument_position, argument in enumerate(signature):
           if is_optional(signature_index, argument):
             GenerateChecksAndCall(signature_index, argument_position)
