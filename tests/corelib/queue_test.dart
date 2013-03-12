@@ -117,6 +117,7 @@ abstract class QueueTest {
     Expect.isTrue(queue.isEmpty);
 
     testAddAll();
+    testLengthChanges();
     testLarge();
     testFromListToList();
   }
@@ -198,7 +199,7 @@ abstract class QueueTest {
     }
 
     for (int i = 1; i <= 10; i++) {
-      queue.addFirst(i);
+      queue.addFirst(11 - i);
       testLength(10 + i, queue);
     }
 
@@ -229,10 +230,10 @@ abstract class QueueTest {
     queue.retainAll([1, 3, 5, 7, 9, 10]);  // Remove 2 and 8.
     testLength(17, queue);
 
-    queue.removeMatching((x) = x == 7);
+    queue.removeMatching((x) => x == 7);
     testLength(14, queue);
 
-    queue.retainMatching((x) = x != 3);
+    queue.retainMatching((x) => x != 3);
     testLength(11, queue);
 
     Expect.listEquals([9, 1, 5, 9, 10, 1, 5, 9, 10, 1, 5], queue.toList());
