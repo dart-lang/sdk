@@ -19,7 +19,7 @@ import '../scheduled_test.dart';
 /// This differs from the `completes` matcher in `unittest` in that it pipes any
 /// errors in the Future to [currentSchedule], rather than reporting them in the
 /// [expect]'s error message.
-Matcher completes = const _ScheduledCompletes(null);
+Matcher completes = const _ScheduledCompletes(null, null);
 
 /// Matches a [Future] that completes succesfully with a value that matches
 /// [matcher]. Note that this creates an asynchronous expectation. The call to
@@ -29,22 +29,40 @@ Matcher completes = const _ScheduledCompletes(null);
 /// To test that a Future completes with an exception, you can use [throws] and
 /// [throwsA].
 ///
+/// [description] is an optional tag that can be used to identify the completion
+/// matcher in error messages.
+///
 /// This differs from the `completion` matcher in `unittest` in that it pipes
 /// any errors in the Future to [currentSchedule], rather than reporting them in
 /// the [expect]'s error message.
-Matcher completion(matcher) => new _ScheduledCompletes(wrapMatcher(matcher));
+Matcher completion(matcher, [String description]) =>
+    new _ScheduledCompletes(wrapMatcher(matcher), description);
 
 class _ScheduledCompletes extends BaseMatcher {
   final Matcher _matcher;
+  final String _description;
 
-  const _ScheduledCompletes(this._matcher);
+  const _ScheduledCompletes(this._matcher, this._description);
 
   bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
 
-    wrapFuture(item.then((value) {
+    // TODO(nweiz): parse the stack, figure out on what line these were called,
+    // and include that in their descriptions
+    var description = _description;
+    if (description == null) {
+      if (_matcher == null) {
+        description = 'expect(..., completes)';
+      } else {
+        var matcherDescription = new StringDescription();
+        _matcher.describe(matcherDescription);
+        description = 'expect(..., completion($matcherDescription))';
+      }
+    }
+
+    currentSchedule.wrapFuture(item.then((value) {
       if (_matcher != null) expect(value, _matcher);
-    }));
+    }), description);
 
     return true;
   }

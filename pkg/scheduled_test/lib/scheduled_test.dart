@@ -317,13 +317,13 @@ void _setUpScheduledTest([void setUpFn()]) {
 /// initialized.
 void _ensureInitialized() {
   unittest.ensureInitialized();
-  unittest.wrapAsync = (f, [id = '']) {
+  unittest.wrapAsync = (f, [description]) {
     if (currentSchedule == null) {
       throw new StateError("Unexpected call to wrapAsync with no current "
           "schedule.");
     }
 
-    return currentSchedule.wrapAsync(f);
+    return currentSchedule.wrapAsync(f, description);
   };
 }
 
@@ -333,11 +333,14 @@ void _ensureInitialized() {
 /// a single callback.
 ///
 /// The returned [Future] completes to the same value or error as [future].
-Future wrapFuture(Future future) {
+///
+/// [description] provides an optional description of the future, which is
+/// used when generating error messages.
+Future wrapFuture(Future future, [String description]) {
   if (currentSchedule == null) {
     throw new StateError("Unexpected call to wrapFuture with no current "
         "schedule.");
   }
 
-  return currentSchedule.wrapFuture(future);
+  return currentSchedule.wrapFuture(future, description);
 }

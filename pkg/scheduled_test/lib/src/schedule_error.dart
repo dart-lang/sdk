@@ -23,6 +23,10 @@ class ScheduleError extends AsyncError {
   /// `null` if there was no such queue.
   final TaskQueue queue;
 
+  /// The descriptions of out-of-band callbacks that were pending when this
+  /// error occurred.
+  final Collection<String> pendingCallbacks;
+
   /// The state of the schedule at the time the error was detected.
   final ScheduleState _stateWhenDetected;
 
@@ -49,10 +53,12 @@ class ScheduleError extends AsyncError {
 
   ScheduleError(Schedule schedule, error, stackTrace, AsyncError cause)
       : super.withCause(error, stackTrace, cause),
-        this.schedule = schedule,
-        this.task = schedule.currentTask,
-        this.queue = schedule.currentQueue,
-        this._stateWhenDetected = schedule.state;
+        schedule = schedule,
+        task = schedule.currentTask,
+        queue = schedule.currentQueue,
+        pendingCallbacks = schedule.currentQueue == null ? <String>[]
+            : schedule.currentQueue.pendingCallbacks.toList(),
+        _stateWhenDetected = schedule.state;
 
   bool operator ==(other) => other is ScheduleError && task == other.task &&
       queue == other.queue && _stateWhenDetected == other._stateWhenDetected &&
@@ -88,6 +94,14 @@ class ScheduleError extends AsyncError {
       result.write('Error detected before the schedule started running.');
     }
 
-    return result.toString();
+    if (!pendingCallbacks.isEmpty) {
+      result.write("\n\n");
+      result.writeln("Pending out-of-band callbacks:");
+      for (var callback in pendingCallbacks) {
+        result.writeln("* $callback");
+      }
+    }
+
+    return result.toString().trim();
   }
 }

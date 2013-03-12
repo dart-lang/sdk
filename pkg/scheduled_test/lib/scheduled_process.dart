@@ -121,7 +121,7 @@ class ScheduledProcess {
 
     _process = new ValueFuture(schedule(() {
       if (!_endScheduled) {
-        throw new StateError("Scheduled process '${this.description}' must "
+        throw new StateError("Scheduled process '$description' must "
             "have shouldExit() or kill() called before the test is run.");
       }
 
@@ -142,7 +142,7 @@ class ScheduledProcess {
           return process;
         });
       });
-    }, "starting process '${this.description}'"));
+    }, "starting process '$description'"));
   }
 
   /// Listens for [_process] to exit and passes the exit code to
@@ -169,10 +169,11 @@ class ScheduledProcess {
         exitCodeCompleter.complete(exitCode);
 
         if (!_endExpected) {
-          throw "Process '${this.description}' ended earlier than scheduled "
+          throw "Process '$description' ended earlier than scheduled "
             "with exit code $exitCode.";
         }
-      }));
+      }), "waiting to reach shouldExit() or kill() for process "
+          "'$description'");
     });
   }
 
@@ -202,7 +203,8 @@ class ScheduledProcess {
         _process.value.kill();
         // Ensure that the onException queue waits for the process to actually
         // exit after being killed.
-        wrapFuture(_process.value.exitCode);
+        wrapFuture(_process.value.exitCode, "waiting for process "
+            "'$description' to die");
       }
 
       return Future.wait([
@@ -216,14 +218,14 @@ class ScheduledProcess {
             ? "Process was killed prematurely."
             : "Process exited with exit code ${_exitCode.value}.";
         currentSchedule.addDebugInfo(
-            "Results of running '${this.description}':\n"
+            "Results of running '$description':\n"
             "$exitDescription\n"
             "Standard output:\n"
             "${prefixLines(stdout)}\n"
             "Standard error:\n"
             "${prefixLines(stderr)}");
       });
-    }, "cleaning up process '${this.description}'");
+    }, "cleaning up process '$description'");
   }
 
   /// Reads the next line of stdout from the process.
