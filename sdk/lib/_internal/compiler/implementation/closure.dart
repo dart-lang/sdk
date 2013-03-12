@@ -82,8 +82,11 @@ class ClosureFieldElement extends ElementX {
 class ClosureClassElement extends ClassElementX {
   DartType rawType;
   DartType thisType;
+  /// Node that corresponds to this closure, used for source position.
+  final FunctionExpression node;
 
-  ClosureClassElement(SourceString name,
+  ClosureClassElement(this.node,
+                      SourceString name,
                       Compiler compiler,
                       this.methodElement,
                       Element enclosingElement)
@@ -102,6 +105,8 @@ class ClosureClassElement extends ClassElementX {
   }
 
   bool isClosure() => true;
+
+  Token position() => node.getBeginToken();
 
   /**
    * The most outer method this closure is declared into.
@@ -584,7 +589,7 @@ class ClosureTranslator extends Visitor {
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
     SourceString closureName = new SourceString(computeClosureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
-        closureName, compiler, element, element.getCompilationUnit());
+        node, closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
         new FunctionElementX.from(Compiler.CALL_OPERATOR_NAME,
                                   element,

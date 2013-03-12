@@ -365,6 +365,7 @@ function(cls, desc) {
       walk(classElement);
 
       if (!subtags.isEmpty) {
+        subtags.sort();
         expressions.add(js.string(subtags.join('|')));
       }
       jsAst.Expression expression;

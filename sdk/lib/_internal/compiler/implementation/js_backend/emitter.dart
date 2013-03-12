@@ -1713,7 +1713,8 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       ClassElement closureClassElement = new ClosureClassElement(
-          new SourceString(name), compiler, member, member.getCompilationUnit());
+          null, new SourceString(name), compiler, member,
+          member.getCompilationUnit());
       String mangledName = namer.getName(closureClassElement);
       String superName = namer.getName(closureClassElement.superclass);
       needsClosureClass = true;
@@ -2314,13 +2315,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     }
 
     // Finally, sort the classes.
-    List<ClassElement> sortedClasses = neededClasses.toList();
-    sortedClasses.sort((ClassElement class1, ClassElement class2) {
-      // We sort by the ids of the classes. There is no guarantee that these
-      // ids are meaningful (or even deterministic), but in the current
-      // implementation they are increasing within a source file.
-      return class1.id - class2.id;
-    });
+    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     // If we need noSuchMethod support, we run through all needed
     // classes to figure out if we need the support on any native
