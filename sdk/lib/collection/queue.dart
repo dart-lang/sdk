@@ -162,6 +162,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
  */
 class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
+  int _elementCount = 0;
 
   DoubleLinkedQueue() {
     _sentinel = new _DoubleLinkedQueueEntrySentinel<E>();
@@ -175,30 +176,40 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
     return list;
   }
 
+  int get length => _elementCount;
+
   void addLast(E value) {
     _sentinel.prepend(value);
+    _elementCount++;
   }
 
   void addFirst(E value) {
     _sentinel.append(value);
+    _elementCount++;
   }
 
   void add(E value) {
-    addLast(value);
+    _sentinel.prepend(value);
+    _elementCount++;
   }
 
   void addAll(Iterable<E> iterable) {
-    for (final e in iterable) {
-      add(e);
+    for (final E value in iterable) {
+      _sentinel.prepend(value);
+      _elementCount++;
     }
   }
 
   E removeLast() {
-    return _sentinel._previous.remove();
+    E result = _sentinel._previous.remove();
+    _elementCount--;
+    return result;
   }
 
   E removeFirst() {
-    return _sentinel._next.remove();
+    E result = _sentinel._next.remove();
+    _elementCount--;
+    return result;
   }
 
   void remove(Object o) {
@@ -206,6 +217,7 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
     while (!identical(entry, _sentinel)) {
       if (entry.element == o) {
         entry.remove();
+        _elementCount--;
         return;
       }
       entry = entry._next;
@@ -223,6 +235,7 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
       DoubleLinkedQueueEntry<E> next = entry._next;
       if (test(entry.element)) {
         entry.remove();
+        _elementCount--;
       }
       entry = next;
     }
@@ -234,6 +247,7 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
       DoubleLinkedQueueEntry<E> next = entry._next;
       if (!test(entry.element)) {
         entry.remove();
+        _elementCount--;
       }
       entry = next;
     }
@@ -270,6 +284,7 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
   void clear() {
     _sentinel._next = _sentinel;
     _sentinel._previous = _sentinel;
+    _elementCount = 0;
   }
 
   void forEachEntry(void f(DoubleLinkedQueueEntry<E> element)) {

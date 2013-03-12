@@ -41,6 +41,7 @@ void testCollection(Collection collection, n) {
 }
 
 void testList(List list, n) {
+  // Works even if list is fixed-length.
   for (int i = 0; i < n; i++) {
     list[i] = i;
   }
@@ -68,8 +69,8 @@ main() {
   testCollection(new HashSet(), N);
   testCollection(new LinkedHashSet(), N);
   testCollection(new ListQueue(), N);
+  testCollection(new DoubleLinkedQueue(), N);
   testList(new List()..length = N, N);
   testList(new List(N), N);
   testString(N);
-  // DoubleLinkedQueue has linear length, but fast isEmpty.
 }

@@ -131,20 +131,27 @@ abstract class QueueTest {
     Expect.equals(expectedSum, sum);
   }
 
+  testLength(int length, Queue queue) {
+    Expect.equals(length, queue.length);
+    ((length == 0) ? Expect.isTrue : Expect.isFalse)(queue.isEmpty);
+  }
+
   void testAddAll() {
     Set<int> set = new Set<int>.from([1, 2, 4]);
+    Expect.equals(3, set.length);
 
     Queue queue1 = newQueueFrom(set);
     Queue queue2 = newQueue();
     Queue queue3 = newQueue();
+    testLength(3, queue1);
+    testLength(0, queue2);
+    testLength(0, queue3);
 
     queue2.addAll(set);
-    queue3.addAll(queue1);
+    testLength(3, queue2);
 
-    Expect.equals(3, set.length);
-    Expect.equals(3, queue1.length);
-    Expect.equals(3, queue2.length);
-    Expect.equals(3, queue3.length);
+    queue3.addAll(queue1);
+    testLength(3, queue3);
 
     int sum = 0;
     void f(e) { sum += e; };
@@ -177,6 +184,58 @@ abstract class QueueTest {
     Expect.equals(0, queue1.length);
     Expect.equals(0, queue2.length);
     Expect.equals(0, queue3.length);
+  }
+
+  void testLengthChanges() {
+    // Test that the length property is updated properly by
+    // modifications;
+    Queue queue = newQueue();
+    testLength(0, queue);
+
+    for (int i = 1; i <= 10; i++) {
+      queue.add(i);
+      testLength(i, queue);
+    }
+
+    for (int i = 1; i <= 10; i++) {
+      queue.addFirst(i);
+      testLength(10 + i, queue);
+    }
+
+    for (int i = 1; i <= 10; i++) {
+      queue.addLast(i);
+      testLength(20 + i, queue);
+    }
+
+    queue.addAll([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    testLength(40, queue);
+
+    for (int i = 1; i <= 5; i++) {
+      Expect.equals(i, queue.removeFirst());
+      testLength(40 - i, queue);
+    }
+
+    for (int i = 1; i <= 5; i++) {
+      Expect.equals(11 - i, queue.removeLast());
+      testLength(35 - i, queue);
+    }
+
+    queue.remove(10);
+    testLength(29, queue);
+
+    queue.removeAll([4, 6]);
+    testLength(23, queue);
+
+    queue.retainAll([1, 3, 5, 7, 9, 10]);  // Remove 2 and 8.
+    testLength(17, queue);
+
+    queue.removeMatching((x) = x == 7);
+    testLength(14, queue);
+
+    queue.retainMatching((x) = x != 3);
+    testLength(11, queue);
+
+    Expect.listEquals([9, 1, 5, 9, 10, 1, 5, 9, 10, 1, 5], queue.toList());
   }
 
   void testLarge() {
@@ -262,6 +321,62 @@ abstract class QueueTest {
 class ListQueueTest extends QueueTest {
   Queue newQueue() => new ListQueue();
   Queue newQueueFrom(Iterable elements) => new ListQueue.from(elements);
+
+  void testMain() {
+    super.testMain();
+    trickyTest();
+  }
+
+  void trickyTest() {
+    // Test behavior around the know growing capacities of a ListQueue.
+    Queue q = new ListQueue();
+
+    for (int i = 0; i < 255; i++) {
+      q.add(i);
+    }
+    for (int i = 0; i < 128; i++) {
+      Expect.equals(i, q.removeFirst());
+    }
+    q.add(255);
+    for (int i = 0; i < 127; i++) {
+      q.add(i);
+    }
+
+    Expect.equals(255, q.length);
+
+    // Remove element at end of internal buffer.
+    q.removeMatching((v) => v == 255);
+    // Remove element at beginning of internal buffer.
+    q.removeMatching((v) => v == 0);
+    // Remove element at both ends of internal buffer.
+    q.removeMatching((v) => v == 254 || v == 1);
+
+    Expect.equals(251, q.length);
+
+    Iterable i255 = new Iterable.generate(255, (x) => x);
+
+    q = new ListQueue();
+    q.addAll(i255);
+    Expect.listEquals(i255.toList(), q.toList());
+
+    q = new ListQueue();
+    q.addAll(i255.toList());
+    Expect.listEquals(i255.toList(), q.toList());
+
+    q = new ListQueue.from(i255);
+    for (int i = 0; i < 128; i++) q.removeFirst();
+    q.add(256);
+    q.add(0);
+    q.addAll(i255.toList());
+    Expect.equals(129 + 255, q.length);
+
+    // Test addAll that requires the queue to grow.
+    q = new ListQueue();
+    q.addAll(i255.take(35));
+    q.addAll(i255.skip(35).take(96));
+    q.addAll(i255.skip(35 + 96));
+    Expect.listEquals(i255.toList(), q.toList());
+  }
 }
 
 class DoubleLinkedQueueTest extends QueueTest {
@@ -290,58 +405,8 @@ class DoubleLinkedQueueTest extends QueueTest {
   }
 }
 
-void trickyTest() {
-  Queue q = new ListQueue();
-
-  for (int i = 0; i < 255; i++) {
-    q.add(i);
-  }
-  for (int i = 0; i < 128; i++) {
-    Expect.equals(i, q.removeFirst());
-  }
-  q.add(255);
-  for (int i = 0; i < 127; i++) {
-    q.add(i);
-  }
-
-  Expect.equals(255, q.length);
-
-  // Remove element at end of internal buffer.
-  q.removeMatching((v) => v == 255);
-  // Remove element at beginning of internal buffer.
-  q.removeMatching((v) => v == 0);
-  // Remove element at both ends of internal buffer.
-  q.removeMatching((v) => v == 254 || v == 1);
-
-  Expect.equals(251, q.length);
-
-  Iterable i255 = new Iterable.generate(255, (x) => x);
-
-  q = new ListQueue();
-  q.addAll(i255);
-  Expect.listEquals(i255.toList(), q.toList());
-
-  q = new ListQueue();
-  q.addAll(i255.toList());
-  Expect.listEquals(i255.toList(), q.toList());
-
-  q = new ListQueue.from(i255);
-  for (int i = 0; i < 128; i++) q.removeFirst();
-  q.add(256);
-  q.add(0);
-  q.addAll(i255.toList());
-  Expect.equals(129 + 255, q.length);
-
-  // Test addAll that requires the queue to grow.
-  q = new ListQueue();
-  q.addAll(i255.take(35));
-  q.addAll(i255.skip(35).take(96));
-  q.addAll(i255.skip(35 + 96));
-  Expect.listEquals(i255.toList(), q.toList());
-}
 
 main() {
   new DoubleLinkedQueueTest().testMain();
   new ListQueueTest().testMain();
-  trickyTest();
 }
