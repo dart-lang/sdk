@@ -1768,11 +1768,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerForeignType(HType type) {
+    // TODO(kasperl): This looks shaky. It makes sense if the type is
+    // exact, but otherwise we should be registering more types as
+    // instantiated. We should find a way of using something along the
+    // lines of the NativeEnqueuerBase.processNativeBehavior method.
+    if (type.isUnknown()) return;
     DartType dartType = type.computeType(compiler);
-    if (dartType == null) {
-      assert(type == HType.UNKNOWN);
-      return;
-    }
     world.registerInstantiatedClass(dartType.element, work.resolutionTree);
   }
 
