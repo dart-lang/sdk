@@ -1315,6 +1315,7 @@ class ProcessQueue {
   int _maxProcesses;
   int _numBrowserProcesses = 0;
   int _maxBrowserProcesses;
+  int _numFailedTests = 0;
   bool _allTestsWereEnqueued = false;
 
   /** The number of tests we allow to actually fail before we stop retrying. */
@@ -1323,7 +1324,7 @@ class ProcessQueue {
   bool _listTests;
   Function _allDone;
   Queue<TestCase> _tests;
-  ProgressIndicator _progress;
+  List<EventListener> _eventListener;
 
   // For dartc/selenium batch processing we keep a list of batch processes.
   Map<String, List<BatchRunnerProcess>> _batchProcesses;
@@ -1353,19 +1354,15 @@ class ProcessQueue {
 
   ProcessQueue(this._maxProcesses,
                this._maxBrowserProcesses,
-               String progress,
                Date startTime,
-               bool printTiming,
                testSuites,
+               this._eventListener,
                this._allDone,
                [bool verbose = false,
                 bool listTests = false])
       : _verbose = verbose,
         _listTests = listTests,
         _tests = new Queue<TestCase>(),
-        _progress = new ProgressIndicator.fromName(progress,
-                                                   startTime,
-                                                   printTiming),
         _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
         _testCache = new Map<String, List<TestInformation>>() {
     _runTests(testSuites);
@@ -1380,7 +1377,7 @@ class ProcessQueue {
     if (browserUsed != '' && _seleniumServer != null) {
       _seleniumServer.kill();
     }
-    _progress.allDone();
+    eventAllTestsDone();
   }
 
   void _checkDone() {
@@ -1399,7 +1396,7 @@ class ProcessQueue {
     void enqueueNextSuite() {
       if (!iterator.moveNext()) {
         _allTestsWereEnqueued = true;
-        _progress.allTestsKnown();
+        eventAllTestsKnown();
         _checkDone();
       } else {
         iterator.current.forEachTest(_runTest, _testCache, enqueueNextSuite);
@@ -1476,7 +1473,7 @@ class ProcessQueue {
       browserUsed = test.configuration['browser'];
       if (_needsSelenium) _ensureSeleniumServerRunning();
     }
-    _progress.testAdded();
+    eventTestAdded(test);
     _tests.add(test);
     _tryRunTest();
   }
@@ -1619,7 +1616,7 @@ class ProcessQueue {
         return;
       }
 
-      _progress.start(test);
+      eventStartTestCase(test);
 
       // Dartc and browser test commands can be run by a [BatchRunnerProcess]
       var nextCommandIndex = test.commandOutputs.keys.length;
@@ -1636,7 +1633,7 @@ class ProcessQueue {
           if (isBrowserCommand) {
             _numBrowserProcesses--;
           }
-          _progress.done(test_arg);
+          eventFinishedTestCase(test_arg);
           if (test_arg is BrowserTestCase) test_arg.notifyObservers();
           oldCallback(test_arg);
           _tryRunTest();
@@ -1651,7 +1648,7 @@ class ProcessQueue {
         // the developer doesn't waste his or her time trying to fix a bunch of
         // tests that appear to be broken but were actually just flakes that
         // didn't get retried because there had already been one failure.
-        bool allowRetry = _MAX_FAILED_NO_RETRY > _progress.numFailedTests;
+        bool allowRetry = _MAX_FAILED_NO_RETRY > _numFailedTests;
         runNextCommandWithRetries(test, allowRetry).then((TestCase testCase) {
           _numProcesses--;
           if (isBrowserCommand) {
@@ -1659,7 +1656,7 @@ class ProcessQueue {
           }
           if (isTestCaseFinished(testCase)) {
             testCase.completed();
-            _progress.done(testCase);
+            eventFinishedTestCase(testCase);
             if (testCase is BrowserTestCase) testCase.notifyObservers();
           } else {
             _tests.addFirst(testCase);
@@ -1750,6 +1747,39 @@ class ProcessQueue {
     runCommand();
 
     return completer.future;
+  }
+
+  void eventStartTestCase(TestCase testCase) {
+    for (var listener in _eventListener) {
+      listener.start(testCase);
+    }
+  }
+
+  void eventFinishedTestCase(TestCase testCase) {
+    if (testCase.lastCommandOutput.unexpectedOutput) {
+      _numFailedTests++;
+    }
+    for (var listener in _eventListener) {
+      listener.done(testCase);
+    }
+  }
+
+  void eventTestAdded(TestCase testCase) {
+    for (var listener in _eventListener) {
+      listener.testAdded();
+    }
+  }
+
+  void eventAllTestsKnown() {
+    for (var listener in _eventListener) {
+      listener.allTestsKnown();
+    }
+  }
+
+  void eventAllTestsDone() {
+    for (var listener in _eventListener) {
+      listener.allDone();
+    }
   }
 }
 

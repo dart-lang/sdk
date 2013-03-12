@@ -99,14 +99,43 @@ main() {
 
   var maxBrowserProcesses = maxProcesses;
 
+  var eventListener = [];
+  if (progressIndicator != 'silent') {
+    var printFailures = true;
+    var formatter = new Formatter();
+    if (progressIndicator == 'color') {
+      progressIndicator = 'compact';
+      formatter = new ColorFormatter();
+    }
+    if (progressIndicator == 'diff') {
+      progressIndicator = 'compact';
+      formatter = new ColorFormatter();
+      printFailures = false;
+      eventListener.add(new StatusFileUpdatePrinter());
+    }
+    eventListener.add(new SummaryPrinter());
+    eventListener.add(new FlakyLogWriter());
+    if (printFailures) {
+      eventListener.add(new TestFailurePrinter(formatter));
+    }
+    eventListener.add(new ProgressIndicator.fromName(progressIndicator,
+                                                     startTime,
+                                                     formatter));
+    if (printTiming) {
+      eventListener.add(new TimingPrinter(startTime));
+    }
+    eventListener.add(new SkippedCompilationsPrinter());
+    eventListener.add(new LeftOverTempDirPrinter());
+  }
+  eventListener.add(new ExitCodeSetter());
+
   // Start process queue.
   new ProcessQueue(
       maxProcesses,
       maxBrowserProcesses,
-      progressIndicator,
       startTime,
-      printTiming,
       testSuites,
+      eventListener,
       allTestsFinished,
       verbose,
       listTests);
