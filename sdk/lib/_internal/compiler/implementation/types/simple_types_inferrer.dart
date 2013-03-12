@@ -1154,6 +1154,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
 
   void checkIfExposesThis(Selector selector) {
+    if (isThisExposed) return;
     inferrer.iterateOverElements(selector, (element) {
       // We have to check if the selector is a setter, otherwise a
       // property access on [:this:] would be considered as not escaping
@@ -1667,12 +1668,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     bool changed = false;
     visit(node.expression);
     if (!isThisExposed && node.expression.isThis()) {
-      isThisExposed = checkIfExposesThis(
-          new TypedSelector(thisType, elements.getIteratorSelector(node)));
-      isThisExposed = isThisExposed || checkIfExposesThis(
-          new TypedSelector(thisType, elements.getMoveNextSelector(node)));
-      isThisExposed = isThisExposed || checkIfExposesThis(
-          new TypedSelector(thisType, elements.getCurrentSelector(node)));
+      Selector iteratorSelector = elements.getIteratorSelector(node);
+      checkIfExposesThis(new TypedSelector(thisType, iteratorSelector));
+      TypeMask iteratorType = inferrer.typeOfSelector(iteratorSelector);
+
+      checkIfExposesThis(
+          new TypedSelector(iteratorType, elements.getMoveNextSelector(node)));
+      checkIfExposesThis(
+          new TypedSelector(iteratorType, elements.getCurrentSelector(node)));
     }
     Element variable;
     if (node.declaredIdentifier.asSend() != null) {

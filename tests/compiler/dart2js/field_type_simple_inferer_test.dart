@@ -330,6 +330,35 @@ const String TEST_19 = r"""
   }
 """;
 
+const String TEST_20 = r"""
+  class A {
+    var f;
+    A(x) {
+      for (var i in this) {
+      }
+      f = 42;
+    }
+  }
+  main() {
+    new A();
+  }
+""";
+
+const String TEST_21 = r"""
+  class A {
+    var f;
+    A(x) {
+      for (var i in this) {
+      }
+      f = 42;
+    }
+    get iterator => null;
+  }
+  main() {
+    new A();
+  }
+""";
+
 void doTest(String test, bool disableInlining, Map<String, Function> fields) {
   fields.forEach((String name, Function f) {
     compileAndFind(
@@ -392,6 +421,8 @@ void test() {
   runTest(TEST_19, {'f1': (inferrer) => inferrer.intType,
                     'f2': (inferrer) => inferrer.stringType,
                     'f3': (inferrer) => inferrer.dynamicType});
+  runTest(TEST_20, {'f': (inferrer) => inferrer.intType});
+  runTest(TEST_21, {'f': (inferrer) => inferrer.intType.nullable()});
 }
 
 void main() {
