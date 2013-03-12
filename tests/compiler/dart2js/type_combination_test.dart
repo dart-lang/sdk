@@ -2045,7 +2045,8 @@ void main() {
           element, compiler.globalDependencies);
     }
   });
-  compiler.enqueuer.resolution.registerInstantiatedClass(compiler.mapClass);
+  compiler.enqueuer.resolution.registerInstantiatedClass(
+      compiler.mapClass, compiler.globalDependencies);
   compiler.world.populate();
 
   // Grab hold of a supertype for String so we can produce potential
