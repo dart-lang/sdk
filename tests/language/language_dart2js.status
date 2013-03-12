@@ -171,8 +171,6 @@ function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
-function_type_parameter2_test: Fail # Internal Error: expected optional parameters
-function_type_parameter_test: Fail # Internal Error: expected optional parameters
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/00: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
 get_set_syntax_test/01: Fail # Fixed by https://chromiumcodereview.appspot.com/10915111
