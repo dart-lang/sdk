@@ -90,8 +90,11 @@ class Task {
 
     // catchError makes sure any error thrown by fn isn't top-leveled by virtue
     // of being passed to the result future.
-    result.whenComplete(() {
-      _state = TaskState.DONE;
+    result.then((_) {
+      _state = TaskState.SUCCESS;
+    }).catchError((e) {
+      _state = TaskState.ERROR;
+      throw e;
     }).catchError((_) {});
   }
 
@@ -125,11 +128,18 @@ class TaskState {
   /// The task is currently running.
   static const RUNNING = const TaskState._("RUNNING");
 
-  /// The task has finished running, either successfully or with an error.
-  static const DONE = const TaskState._("DONE");
+  /// The task has finished running successfully.
+  static const SUCCESS = const TaskState._("SUCCESS");
+
+  /// The task has finished running with an error.
+  static const ERROR = const TaskState._("ERROR");
 
   /// The name of the state.
   final String name;
+
+  /// Whether the state indicates that the task has finished running. This is
+  /// true for both the [SUCCESS] and [ERROR] states.
+  bool get isDone => this == SUCCESS || this == ERROR;
 
   const TaskState._(this.name);
 

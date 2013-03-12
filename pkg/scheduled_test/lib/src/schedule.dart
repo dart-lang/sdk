@@ -13,6 +13,7 @@ import 'mock_clock.dart' as mock_clock;
 import 'schedule_error.dart';
 import 'substitute_future.dart';
 import 'task.dart';
+import 'value_future.dart';
 
 /// The schedule of tasks to run for a single test. This has three separate task
 /// queues: [tasks], [onComplete], and [onException]. It also provides
@@ -532,6 +533,22 @@ class TaskQueue {
           "> ${lines.first}" : "* ${lines.first}";
       lines = new List.from(lines.skip(1).map((line) => "| $line"));
       lines.insertRange(0, 1, firstLine);
+
+      if (task == highlight && !task.children.isEmpty) {
+        for (var child in task.children) {
+          var prefix = ">";
+          if (child.state == TaskState.ERROR) {
+            prefix = "X";
+          } else if (child.state == TaskState.SUCCESS) {
+            prefix = "*";
+          }
+
+          var childLines = child.toString().split("\n");
+          lines.add("  $prefix ${childLines.first}");
+          lines.addAll(childLines.skip(1).map((line) => "  | $line"));
+        }
+      }
+
       return lines.join("\n");
     }).join("\n");
   }
