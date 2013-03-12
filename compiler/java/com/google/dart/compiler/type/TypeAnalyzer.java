@@ -378,6 +378,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         FunctionType methodType = getMethodType(lhsType, member, methodName, diagnosticNode);
         checkDeprecated(problemTarget, element);
         Type returnType = checkInvocation(Collections.<DartExpression> singletonList(rhs),
+            Collections.<Type> singletonList(rhsType),
             diagnosticNode, methodName, methodType, null);
         // tweak return type for int/int and int/double operators
         {
@@ -2794,6 +2795,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
         Type argumentType = getInvocationArgumentType(argumentNode);
         argumentTypes.add(argumentType);
       }
+      return checkInvocation(argumentNodes, argumentTypes, diagnosticNode, name, type, parameters);
+    }
+
+    private Type checkInvocation(List<DartExpression> argumentNodes, List<Type> argumentTypes,
+        DartNode diagnosticNode, String name, Type type, List<VariableElement> parameters) {
       // Check that argument types are compatible with type of invoked object.
       try {
         switch (TypeKind.of(type)) {
