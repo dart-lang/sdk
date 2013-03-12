@@ -175,14 +175,14 @@ library scheduled_test;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart' as unittest;
+import '../../../pkg/unittest/lib/unittest.dart' as unittest;
 
 import 'src/schedule.dart';
 import 'src/schedule_error.dart';
 import 'src/utils.dart';
 
-export 'package:unittest/matcher.dart' hide completes, completion;
-export 'package:unittest/unittest.dart' show
+export '../../../pkg/unittest/lib/matcher.dart' hide completes, completion;
+export '../../../pkg/unittest/lib/unittest.dart' show
     config, configure, Configuration, logMessage, expectThrow;
 
 export 'src/schedule.dart';

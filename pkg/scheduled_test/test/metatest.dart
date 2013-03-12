@@ -12,8 +12,8 @@ library metatest;
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:pathos/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import '../../../pkg/pathos/lib/path.dart' as path;
+import '../../../pkg/unittest/lib/unittest.dart';
 
 import 'utils.dart';
 

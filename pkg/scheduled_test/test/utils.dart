@@ -6,10 +6,10 @@ library test_utils;
 
 import 'dart:async';
 
-import 'package:scheduled_test/src/utils.dart';
-import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
+import '../lib/src/utils.dart';
+import '../lib/src/mock_clock.dart' as mock_clock;
 
-export 'package:scheduled_test/src/utils.dart';
+export '../lib/src/utils.dart';
 
 /// Wraps [input] to provide a timeout. If [input] completes before
 /// [milliseconds] have passed, then the return value completes in the same way.

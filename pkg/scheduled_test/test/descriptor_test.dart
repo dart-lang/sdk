@@ -7,9 +7,9 @@ library descriptor_test;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
-import 'package:scheduled_test/descriptor.dart' as d;
-import 'package:scheduled_test/scheduled_test.dart';
+import '../../../pkg/pathos/lib/path.dart' as path;
+import '../lib/descriptor.dart' as d;
+import '../lib/scheduled_test.dart';
 
 import 'metatest.dart';
 import 'utils.dart';

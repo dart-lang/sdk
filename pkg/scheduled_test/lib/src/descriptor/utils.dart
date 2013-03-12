@@ -6,7 +6,7 @@ library descriptor.utils;
 
 import 'dart:io';
 
-import 'package:pathos/path.dart' as path;
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 /// Returns a single filesystem entry within [parent] whose name matches
 /// [pattern]. If [pattern] is a string, looks for an exact match; otherwise,

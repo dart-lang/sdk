@@ -6,8 +6,8 @@ library substitute_future_test;
 
 import 'dart:async';
 
-import 'package:scheduled_test/src/substitute_future.dart';
-import 'package:unittest/unittest.dart';
+import '../lib/src/substitute_future.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 void main() {
   group('with no substitution, works like a normal Future for', () {
