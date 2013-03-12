@@ -20897,11 +20897,11 @@ class RtcDataChannel extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
-    if ((data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
+    if ((data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
       _send_1(data);
       return;
     }
-    if ((data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
+    if ((data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
       _send_2(data);
       return;
     }
@@ -27201,11 +27201,11 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
   void bufferData(int target, data_OR_size, int usage) {
-    if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size is _typeddata.ByteBuffer || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((target is int || target == null) && (data_OR_size is ArrayBufferView || data_OR_size is _typeddata.TypedData || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target == null) && (data_OR_size is ArrayBufferView || data_OR_size is _typeddata.TypedData || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size is _typeddata.ByteBuffer || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_2(target, data_OR_size, usage);
       return;
     }
@@ -27229,11 +27229,11 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
   void bufferSubData(int target, int offset, /*ArrayBuffer*/ data) {
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
     }
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
       _bufferSubData_2(target, offset, data);
       return;
     }
