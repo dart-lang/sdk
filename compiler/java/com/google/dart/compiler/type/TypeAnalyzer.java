@@ -1299,7 +1299,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         for (int i = 0; i < arguments.size(); i++) {
           Type t = bounds.get(i);
           Type s = arguments.get(i);
-          if (!types.isAssignable(t, s)) {
+          if (!types.isSubtype(s, t)) {
             onError(diagnosticNodes.get(i),
                 TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
           }

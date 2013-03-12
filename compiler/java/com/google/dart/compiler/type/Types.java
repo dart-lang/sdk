@@ -344,6 +344,21 @@ public class Types {
         return isSubtype(tBound, sv);
       }
     }
+    // May be concrete InterfaceType.
+    if (t.getKind() == TypeKind.INTERFACE) {
+      InterfaceType ti = (InterfaceType) t;
+      Type sBound = sv.getTypeVariableElement().getBound();
+      if (sBound == null) {
+        return true;
+      }
+      // Prevent cycle.
+      if (sBound.equals(sv)) {
+        return false;
+      }
+      if (sBound.getKind() == TypeKind.INTERFACE) {
+        return isSubtype(ti, sBound);
+      }
+    }
     // no
     return false;
   }

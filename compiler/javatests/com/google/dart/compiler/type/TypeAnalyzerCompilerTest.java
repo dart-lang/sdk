@@ -2012,6 +2012,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
 
+  /**
+   * <p>
+   * https://codereview.chromium.org/12787002/
+   */
+  public void test_typeVariableBounds_12787002() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A<T> {",
+            "  m() {",
+            "    B a = this;",
+            "  }",
+            "}",
+            "class B extends A<String> {}");
+    assertErrors(result.getErrors());
+  }
+
   public void test_typeVariableBoundsMismatch() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(
