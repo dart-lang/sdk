@@ -67,8 +67,64 @@ update_() {
 // Event handling. This is very kludgy for now, especially the
 // bare-bones Stream stuff!
 
+typedef void EventListener(Event event);
+
+class EventTarget {
+  static Map<EventTarget, Map<String, List<EventListener>>>
+      _listeners = new Map();
+
+  static get listeners => _listeners;
+
+  bool dispatchEvent(Event event) {
+    if (!_listeners.containsKey(this)) return false;
+    var listeners = _listeners[this];
+    if (!listeners.containsKey(event.type)) return false;
+    var eventListeners = listeners[event.type];
+    for (var eventListener in eventListeners) {
+      if (eventListener != null) {
+        eventListener(event);
+      }
+    }
+    return true;
+  }
+
+  void addListener(String eventType, EventListener handler) {
+    if (!_listeners.containsKey(this)) {
+      _listeners[this] = new Map();
+    }
+    var listeners = _listeners[this];
+    if (!listeners.containsKey(eventType)) {
+      listeners[eventType] = new List();
+    }
+    var event_listeners = listeners[eventType];
+    for (var i = 0; i < event_listeners.length; i++) {
+      if (event_listeners[i] == null) {
+        event_listeners[i] = handler;
+        return;
+      }
+    }
+    event_listeners.add(handler);
+  }
+
+  void removeListener(String eventType, EventListener handler) {
+    if (_listeners.containsKey(this)) {
+      var listeners = _listeners[this];
+      if (listeners.containsKey(eventType)) {
+        var event_listeners = listeners[eventType];
+        for (var i = 0; i < event_listeners.length; i++) {
+          if (event_listeners[i] == handler) {
+            event_listeners[i] = null;
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
 class Event {
   final String type;
+  EventTarget target;
   Event(String type) : this.type = type;
 }
 
@@ -100,13 +156,10 @@ class MouseEvent extends Event {
   }
 }
 
-typedef void EventListener(Event event);
-
-Map<String,List<Function>> _listeners = new Map();
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
-  Object _target;
+  EventTarget _target;
   final String _eventType;
   var _onData;
 
@@ -171,31 +224,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !_paused) {
-      if (!_listeners.containsKey(_eventType)) {
-        _listeners[_eventType] = new List();
-      }
-      var event_listeners = _listeners[_eventType];
-      for (var i = 0; i < event_listeners.length; i++) {
-        if (event_listeners[i] == null) {
-          event_listeners[i] = _onData;
-          return;
-        }
-      }
-      event_listeners.add(_onData);
+      _target.addListener(_eventType, _onData);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      if (!_listeners.containsKey(_eventType)) {
-        var event_listeners = _listeners[_eventType];
-        for (var i = 0; i < event_listeners.length; i++) {
-          if (event_listeners[i] == _onData) {
-            event_listeners[i] = null;
-            break;
-          }
-        }
-      }
+      _target.removeListener(_eventType, _onData);
     }
   }
 }
@@ -220,7 +255,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   }
 }
 
-class Node {
+class Node extends EventTarget {
   Stream<KeyEvent> get onKeyDown => new _EventStream(this, 'keydown');
   Stream<KeyEvent> get onKeyUp => new _EventStream(this, 'keyup');
   Stream<MouseEvent> get onMouseDown => new _EventStream(this, 'mousedown');
@@ -229,22 +264,26 @@ class Node {
 }
 
 // TODO(gram): If we support more than one on-screen canvas, we will
-// need to filter dispatched events by the target Node.
-_dispatchEvent(String event_type, Event e) {
-  if (!_listeners.containsKey(event_type)) return;
-  var event_listeners = _listeners[event_type];
-  for (var i = 0; i < event_listeners.length; i++) {
-    if (event_listeners[i] != null) {
-      event_listeners[i](e);
+// need to filter dispatched mouse and key events by the target Node
+// with more granularity; right now we just iterate through DOM nodes
+// until we find one that handles the event.
+_dispatchEvent(Event event) {
+  assert(document.body.nodes.length <= 1);
+  for (var target in document.body.nodes) {
+    event.target = target;
+    if (target.dispatchEvent(event)) {
+      break;
     }
   }
 }
 
-_dispatchKeyEvent(String type, int keyCode, bool alt, bool ctrl, bool shift) =>
-    _dispatchEvent(type, new KeyEvent(type, keyCode, alt, ctrl, shift));
+_dispatchKeyEvent(String type, int keyCode, bool alt, bool ctrl, bool shift) {
+  _dispatchEvent(new KeyEvent(type, keyCode, alt, ctrl, shift));
+}
 
-_dispatchMouseEvent(String type, double x, double y) =>
-    _dispatchEvent(type, new MouseEvent(type, x.toInt(), y.toInt()));
+_dispatchMouseEvent(String type, double x, double y) {
+  _dispatchEvent(new MouseEvent(type, x.toInt(), y.toInt()));
+}
 
 // These next few are called by vmglue.cc.
 onKeyDown_(int when, int keyCode, bool alt, bool ctrl, bool shift, int repeat)
@@ -607,15 +646,9 @@ void C2DTranslate(int handle, double x, double y)
 void C2DCreateNativeContext(int handle, int width, int height)
     native "C2DCreateNativeContext";
 
-class ElementEvents {
-  final List load;
-  ElementEvents()
-    : load =new List() {
-  }
-}
+class ImageElement extends Node {
+  Stream<Event> get onLoad => new _EventStream(this, 'load');
 
-class ImageElement {
-  ElementEvents on;
   String _src;
   int _width;
   int _height;
@@ -623,9 +656,9 @@ class ImageElement {
   get src => _src;
   set src(String v) {
     _src = v;
-    for (var e in on.load) {
-      e(this);
-    }
+    var e = new Event('load');
+    e.target = this;
+    dispatchEvent(e);
   }
 
   get width => _width;
@@ -635,8 +668,7 @@ class ImageElement {
   set height(int heightp) => _height = heightp;
 
   ImageElement({String srcp, int widthp, int heightp})
-    : on = new ElementEvents(),
-      _src = srcp,
+    : _src = srcp,
       _width = widthp,
       _height = heightp {
   }
