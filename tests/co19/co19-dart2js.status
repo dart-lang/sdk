@@ -45,7 +45,6 @@ Language/07_Classes/6_Constructors_A01_t05: Fail # TODO(ahe): Please triage this
 Language/07_Classes/6_Constructors_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t02: Fail # TODO(ahe): Please triage this failure.
@@ -136,6 +135,9 @@ LibTest/core/StringBuffer/clear_A02_t01: Fail, OK # co19 issue 355
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially implemented rediriecting constructors makes this fail.
 
 Language/09_Generics/09_Generics_A04_t03: Fail # dart2js does not treat 2.0 as a double; dartbug.com/1533
+
+[ $compiler == dart2js && $unchecked ]
+Language/11_Expressions/01_Constants_A20_t03: Fail # dartbug.com/9076
 
 [ $compiler == dart2js && $runtime == ie9 ]
 Language/11_Expressions/03_Numbers_A01_t06: Fail # Issue: 8920
