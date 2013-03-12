@@ -17316,12 +17316,12 @@ class _ChildNodeListLazy implements List {
 
 
   Node get first {
-    Node result = JS('Node', '#.firstChild', _this);
+    Node result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
   Node get last {
-    Node result = JS('Node', '#.lastChild', _this);
+    Node result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -17329,7 +17329,7 @@ class _ChildNodeListLazy implements List {
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this);
   }
 
   Node min([int compare(Node a, Node b)]) {

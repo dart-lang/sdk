@@ -106,6 +106,11 @@ main() {
     test('first', () {
       var node = makeNodeWithChildren();
       expect(node.nodes.first, isText);
+
+      node = new DivElement();
+      expect(() {
+        node = node.nodes.first;
+      }, throwsStateError);
     });
 
     test('last', () {
