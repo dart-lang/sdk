@@ -301,6 +301,7 @@ LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
 
 [ $compiler == dart2js ]
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.

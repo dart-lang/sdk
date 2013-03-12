@@ -42,9 +42,7 @@ class ValidatorVisitor extends Visitor {
     final arguments = node.arguments;
 
     expect(node, arguments != null);
-    expect(node,
-           selector is Identifier || selector is FunctionExpression,
-           'selector is not assignable');
+    expect(node, selector is Identifier, 'selector is not assignable');
     if (identical(name, '++') || identical(name, '--')) {
       expect(node, node.assignmentOperator is Operator);
       if (node.isIndex) {
