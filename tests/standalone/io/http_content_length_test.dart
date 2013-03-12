@@ -130,6 +130,9 @@ void testBody(int totalConnections, bool useHeader) {
                   if (++clientCount == totalConnections) {
                     client.close();
                   }
+                },
+                onError: (error) {
+                  // Undefined what server response sends.
                 });
           });
     }

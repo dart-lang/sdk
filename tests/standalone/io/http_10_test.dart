@@ -45,7 +45,6 @@ void testHttp10NoKeepAlive() {
                 count++;
                 socket.destroy();
                 String s = new String.fromCharCodes(response).toLowerCase();
-                Expect.equals("z", s[s.length - 1]);
                 Expect.isTrue(s.indexOf("\r\ncontent-length: 1\r\n") > 0);
                 Expect.equals(-1, s.indexOf("keep-alive"));
                 if (count < 10) {
@@ -70,17 +69,19 @@ void testHttp10ServerClose() {
         (HttpRequest request) {
           Expect.isNull(request.headers.value('content-length'));
           Expect.equals(-1, request.contentLength);
-          var response = request.response;
-          Expect.equals("1.0", request.protocolVersion);
-          response.write("Z");
-          response.close();
+          request.listen((_) {}, onDone: () {
+            var response = request.response;
+            Expect.equals("1.0", request.protocolVersion);
+            response.write("Z");
+            response.close();
+          });
         },
         onError: (e) => Expect.fail("Unexpected error $e"));
 
     int count = 0;
     makeRequest() {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-        socket.write("GET / HTTP/1.0\r\n\r\n");
+        socket.write("GET / HTTP/1.0\r\n");
         socket.write("Connection: Keep-Alive\r\n\r\n");
 
         List<int> response = [];
@@ -90,7 +91,6 @@ void testHttp10ServerClose() {
               socket.destroy();
               count++;
               String s = new String.fromCharCodes(response).toLowerCase();
-              print(s);
               Expect.equals("z", s[s.length - 1]);
               Expect.equals(-1, s.indexOf("content-length:"));
               Expect.equals(-1, s.indexOf("keep-alive"));
@@ -206,8 +206,7 @@ void testHttp10KeepAliveServerCloses() {
 
 void main() {
   testHttp10NoKeepAlive();
-  // TODO(8871): This test fails with short socket writes.
-  //testHttp10ServerClose();
+  testHttp10ServerClose();
   testHttp10KeepAlive();
   testHttp10KeepAliveServerCloses();
 }

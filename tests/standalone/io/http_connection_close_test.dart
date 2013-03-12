@@ -51,11 +51,15 @@ void testHttp11Close(bool closeRequest) {
 void testStreamResponse() {
   HttpServer.bind().then((server) {
     server.listen((request) {
-      // TODO(ajohnsen): Use timer (see old version).
-      for (int i = 0; i < 10; i++) {
+      var timer = new Timer.repeating(const Duration(milliseconds: 0), (_) {
         request.response.write(
             'data:${new DateTime.now().millisecondsSinceEpoch}\n\n');
-      }
+      });
+      request.response.done
+          .whenComplete(() {
+            timer.cancel();
+          })
+          .catchError((_) {});
     });
 
     var client = new HttpClient();

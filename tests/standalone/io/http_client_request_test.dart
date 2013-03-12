@@ -47,6 +47,7 @@ void testBadResponseAdd() {
     var port = new ReceivePort();
     request.contentLength = 0;
     request.writeBytes([0]);
+    request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
@@ -58,6 +59,7 @@ void testBadResponseAdd() {
     request.contentLength = 5;
     request.writeBytes([0, 0, 0]);
     request.writeBytes([0, 0, 0]);
+    request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
@@ -70,6 +72,7 @@ void testBadResponseAdd() {
     request.writeBytes(new Uint8List(64 * 1024));
     request.writeBytes(new Uint8List(64 * 1024));
     request.writeBytes(new Uint8List(64 * 1024));
+    request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);

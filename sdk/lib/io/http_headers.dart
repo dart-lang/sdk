@@ -344,56 +344,31 @@ class _HttpHeaders implements HttpHeaders {
     _mutable = false;
   }
 
-  _write(IOSink sink) {
+  _write(_BufferList buffer) {
     final COLONSP = const [_CharCode.COLON, _CharCode.SP];
     final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
     final CRLF = const [_CharCode.CR, _CharCode.LF];
 
-    var bufferSize = 16 * 1024;
-    var buffer = new Uint8List(bufferSize);
-    var bufferPos = 0;
-
-    void writeBuffer() {
-      sink.writeBytes(buffer.getRange(0, bufferPos));
-      bufferPos = 0;
-    }
-
     // Format headers.
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
-      List<int> nameData;
-      nameData = name.codeUnits;
-      int nameDataLen = nameData.length;
-      if (nameDataLen + 2 > bufferSize - bufferPos) writeBuffer();
-      buffer.setRange(bufferPos, nameDataLen, nameData);
-      bufferPos += nameDataLen;
-      buffer[bufferPos++] = _CharCode.COLON;
-      buffer[bufferPos++] = _CharCode.SP;
+      var nameData = name.codeUnits;
+      buffer.add(nameData);
+      buffer.add(const [_CharCode.COLON, _CharCode.SP]);
       for (int i = 0; i < values.length; i++) {
-        List<int> data = values[i].codeUnits;
-        int dataLen = data.length;
-        // Worst case here is writing the name, value and 6 additional bytes.
-        if (nameDataLen + dataLen + 6 > bufferSize - bufferPos) writeBuffer();
         if (i > 0) {
           if (fold) {
-            buffer[bufferPos++] = _CharCode.COMMA;
-            buffer[bufferPos++] = _CharCode.SP;
+            buffer.add(const [_CharCode.COMMA, _CharCode.SP]);
           } else {
-            buffer[bufferPos++] = _CharCode.CR;
-            buffer[bufferPos++] = _CharCode.LF;
-            buffer.setRange(bufferPos, nameDataLen, nameData);
-            bufferPos += nameDataLen;
-            buffer[bufferPos++] = _CharCode.COLON;
-            buffer[bufferPos++] = _CharCode.SP;
+            buffer.add(const [_CharCode.CR, _CharCode.LF]);
+            buffer.add(nameData);
+            buffer.add(const [_CharCode.COLON, _CharCode.SP]);
           }
         }
-        buffer.setRange(bufferPos, dataLen, data);
-        bufferPos += dataLen;
+        buffer.add(values[i].codeUnits);
       }
-      buffer[bufferPos++] = _CharCode.CR;
-      buffer[bufferPos++] = _CharCode.LF;
+      buffer.add(const [_CharCode.CR, _CharCode.LF]);
     });
-    writeBuffer();
   }
 
   String toString() {

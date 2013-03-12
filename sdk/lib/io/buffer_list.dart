@@ -66,7 +66,8 @@ class _BufferList {
    * Read [count] bytes from the buffer list. If the number of bytes
    * requested is not available null will be returned.
    */
-  List<int> readBytes(int count) {
+  List<int> readBytes([int count]) {
+    if (count == null) count = length;
     List<int> result;
     if (_length == 0 || _length < count) return null;
     if (_index == 0 && _buffers.first.length == count) {

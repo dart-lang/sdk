@@ -88,6 +88,7 @@ void testBadResponseAdd() {
   testServerRequest((server, request) {
     request.response.contentLength = 0;
     request.response.writeBytes([0]);
+    request.response.close();
     request.response.done.catchError((error) {
       server.close();
     }, test: (e) => e is HttpException);
@@ -97,6 +98,7 @@ void testBadResponseAdd() {
     request.response.contentLength = 5;
     request.response.writeBytes([0, 0, 0]);
     request.response.writeBytes([0, 0, 0]);
+    request.response.close();
     request.response.done.catchError((error) {
       server.close();
     }, test: (e) => e is HttpException);
@@ -107,6 +109,7 @@ void testBadResponseAdd() {
     request.response.writeBytes(new Uint8List(64 * 1024));
     request.response.writeBytes(new Uint8List(64 * 1024));
     request.response.writeBytes(new Uint8List(64 * 1024));
+    request.response.close();
     request.response.done.catchError((error) {
       server.close();
     }, test: (e) => e is HttpException);
