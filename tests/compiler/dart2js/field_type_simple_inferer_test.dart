@@ -345,7 +345,7 @@ void doTest(String test, bool disableInlining, Map<String, Function> fields) {
   });
 }
 
-void runTest(String test, Map<String, HType> fields) {
+void runTest(String test, Map<String, Function> fields) {
   doTest(test, false, fields);
   doTest(test, true, fields);
 }
