@@ -42,6 +42,7 @@
 #include "core/SkCanvas.h"
 #include "core/SkGraphics.h"
 #include "core/SkPaint.h"
+#include "core/SkTypeface.h"
 #include "effects/SkBlurDrawLooper.h"
 #include "effects/SkDashPathEffect.h"
 #include "gpu/SkGpuDevice.h"
