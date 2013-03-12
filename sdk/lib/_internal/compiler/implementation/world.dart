@@ -12,6 +12,10 @@ class World {
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
   final FullFunctionSet allFunctions;
 
+  // The set of classes that use one of their type variables as expressions
+  // to get the runtime type.
+  final Set<ClassElement> classesUsingTypeVariableExpression;
+
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
   final Map<ClassElement, Set<ClassElement>> subclasses =
@@ -30,6 +34,7 @@ class World {
         classesNeedingRti = new Set<ClassElement>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
         allFunctions = new FullFunctionSet(compiler),
+            classesUsingTypeVariableExpression = new Set<ClassElement>(),
         this.compiler = compiler;
 
   void populate() {
@@ -130,6 +135,9 @@ class World {
         potentiallyAddForRti(variable.enclosingElement);
       }
     });
+    // Add the classes that need RTI because they use a type variable as
+    // expression.
+    classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
   }
 
   Iterable<ClassElement> commonSupertypesOf(ClassElement x, ClassElement y) {
@@ -177,6 +185,10 @@ class World {
     Set<ClassElement> classes =
         rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
     classes.add(dependency);
+  }
+
+  void registerClassUsingVariableExpression(ClassElement cls) {
+    classesUsingTypeVariableExpression.add(cls);
   }
 
   bool needsRti(ClassElement cls) {

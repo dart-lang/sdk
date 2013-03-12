@@ -2198,6 +2198,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
               warnAndCreateErroneousElement(node.selector, field.name,
                                             MessageKind.CANNOT_RESOLVE_GETTER);
         }
+      } else if (target.isTypeVariable()) {
+        ClassElement cls = target.getEnclosingClass();
+        assert(enclosingElement.getEnclosingClass() == cls);
+        compiler.world.registerClassUsingVariableExpression(cls);
+        compiler.backend.registerTypeVariableExpression(mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
         compiler.backend.registerTypeLiteral(mapping);
       }

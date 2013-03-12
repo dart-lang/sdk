@@ -376,9 +376,6 @@ call_nonexistent_constructor_test: Fail
 
 bad_override_test/01: Fail
 bad_override_test/02: Fail
-illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
-illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
-illegal_invocation_test/05: Fail, OK # Type variables are expressions now.
 
 first_class_types_constants_test: Fail # Issue 6282
 
@@ -414,7 +411,6 @@ final_syntax_test/03: Fail # http://dartbug.com/5519
 final_syntax_test/04: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 getter_no_setter2_test/01: Fail # http://dartbug.com/5519
-illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 method_override2_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519

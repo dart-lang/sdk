@@ -3073,7 +3073,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // the [:noSuchMethod:] implementation does an [:invokeOn:] on
       // the invocation mirror.
       compiler.enqueuer.codegen.registerSelectorUse(selector);
-    }   
+    }
     HStatic target = new HStatic(element);
     add(target);
     HInstruction self = localsHandler.readThis();
@@ -3160,6 +3160,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
+   * Generate code to extract the type arguments from the object, substitute
+   * them as an instance of the type we are testing against (if necessary), and
+   * extract the type argument by the index of the variable in the list of type
+   * variables for that class.
+   */
+  HInstruction readTypeVariable(ClassElement cls,
+                                TypeVariableElement variable) {
+    int index = RuntimeTypeInformation.getTypeVariableIndex(variable);
+    String substitutionNameString = backend.namer.substitutionName(cls);
+    HInstruction substitutionName = graph.addConstantString(
+        new LiteralDartString(substitutionNameString), null, constantSystem);
+    HInstruction target = localsHandler.readThis();
+    HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
+        <HInstruction>[target, substitutionName]);
+    add(substitution);
+    pushInvokeHelper3(backend.getGetRuntimeTypeArgument(),
+                      target,
+                      substitution,
+                      graph.addConstantInt(index, constantSystem),
+                      HType.UNKNOWN);
+    return pop();
+  }
+
+  /**
    * Helper to create an instruction that gets the value of a type variable.
    */
   HInstruction addTypeVariableReference(TypeVariableType type) {
@@ -3175,26 +3199,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {
-      // The type variable is stored on the object.  Generate code to extract
-      // the type arguments from the object, substitute them as an instance
-      // of the type we are testing against (if necessary), and extract the
-      // type argument by the index of the variable in the list of type
-      // variables for that class.
-      int index = RuntimeTypeInformation.getTypeVariableIndex(type);
-      HInstruction thisObject = localsHandler.readThis();
-      String substitutionNameString =
-          backend.namer.substitutionName(member.getEnclosingClass());
-      HInstruction substitutionName = graph.addConstantString(
-          new LiteralDartString(substitutionNameString), null, constantSystem);
-      HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
-          <HInstruction>[thisObject, substitutionName]);
-      add(substitution);
-      pushInvokeHelper3(backend.getGetRuntimeTypeArgument(),
-                        thisObject,
-                        substitution,
-                        graph.addConstantInt(index, constantSystem),
-                        HType.UNKNOWN);
-      return pop();
+      // The type variable is stored on the object.
+      return readTypeVariable(member.getEnclosingClass(),
+                              type.element);
     } else {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
@@ -3422,8 +3429,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else if (element.isTypeVariable()) {
-      // TODO(6248): implement support for type variables.
-      compiler.unimplemented('first class type for type variable', node: node);
+      HInstruction value = readTypeVariable(currentElement.getEnclosingClass(),
+                                            element);
+      pushInvokeHelper1(backend.getRuntimeTypeToString(),
+                        value, HType.STRING);
+      pushInvokeHelper1(backend.getCreateRuntimeType(),
+                        pop(), HType.UNKNOWN);
     } else {
       internalError('unexpected element kind $element', node: node);
     }

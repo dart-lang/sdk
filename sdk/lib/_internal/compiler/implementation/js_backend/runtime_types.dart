@@ -229,12 +229,12 @@ class RuntimeTypeInformation {
     return false;
   }
 
-  static int getTypeVariableIndex(TypeVariableType variable) {
-    ClassElement classElement = variable.element.getEnclosingClass();
+  static int getTypeVariableIndex(TypeVariableElement variable) {
+    ClassElement classElement = variable.getEnclosingClass();
     Link<DartType> variables = classElement.typeVariables;
     for (int index = 0; !variables.isEmpty;
          index++, variables = variables.tail) {
-      if (variables.head == variable) return index;
+      if (variables.head.element == variable) return index;
     }
   }
 }

@@ -126,13 +126,10 @@ call_nonexistent_constructor_test: Fail
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
 getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
-illegal_invocation_test/03: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 
 constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
-illegal_invocation_test/01: Fail, OK # Typedef literals are expressions now.
-illegal_invocation_test/04: Fail, OK # Class literals are expressions now.
 
 throw_expr_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
@@ -141,7 +138,6 @@ positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js
 
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 canonical_const_test: Fail # We don't take the generic type into account yet.
-type_parameter_literal_test: Fail # Type parameters aren't supported as literals yet.
 
 # Support for optional parameters not conform to latest spec.
 function_type_alias_test: Fail

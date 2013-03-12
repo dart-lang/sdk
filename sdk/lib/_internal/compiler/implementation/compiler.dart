@@ -142,6 +142,7 @@ abstract class Backend {
   void registerCatchStatement(TreeElements elements) {}
   void registerThrow(TreeElements elements) {}
   void registerLazyField(TreeElements elements) {}
+  void registerTypeVariableExpression(TreeElements elements) {}
   void registerTypeLiteral(TreeElements elements) {}
   void registerStackTraceInCatch(TreeElements elements) {}
   void registerIsCheck(DartType type,

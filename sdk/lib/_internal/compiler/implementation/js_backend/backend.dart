@@ -1068,6 +1068,12 @@ class JavaScriptBackend extends Backend {
         compiler.listClass, elements);
   }
 
+  void registerTypeVariableExpression(TreeElements elements) {
+    registerRuntimeType(elements);
+    enqueueInResolution(getRuntimeTypeToString(), elements);
+    enqueueInResolution(getCreateRuntimeType(), elements);
+  }
+
   void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
     world.registerInstantiatedClass(compiler.boolClass, elements);
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
@@ -1537,6 +1543,10 @@ class JavaScriptBackend extends Backend {
 
   Element getGetRuntimeTypeArgument() {
     return compiler.findHelper(const SourceString('getRuntimeTypeArgument'));
+  }
+
+  Element getRuntimeTypeToString() {
+    return compiler.findHelper(const SourceString('runtimeTypeToString'));
   }
 
   Element getCheckArguments() {
