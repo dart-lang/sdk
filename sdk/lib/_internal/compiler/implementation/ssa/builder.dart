@@ -3167,6 +3167,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   HInstruction readTypeVariable(ClassElement cls,
                                 TypeVariableElement variable) {
+    assert(currentElement.isInstanceMember());
     int index = RuntimeTypeInformation.getTypeVariableIndex(variable);
     String substitutionNameString = backend.namer.substitutionName(cls);
     HInstruction substitutionName = graph.addConstantString(
@@ -3429,8 +3430,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
     } else if (element.isTypeVariable()) {
-      HInstruction value = readTypeVariable(currentElement.getEnclosingClass(),
-                                            element);
+      HInstruction value =
+          addTypeVariableReference(element.computeType(compiler));
       pushInvokeHelper1(backend.getRuntimeTypeToString(),
                         value, HType.STRING);
       pushInvokeHelper1(backend.getCreateRuntimeType(),
