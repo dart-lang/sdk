@@ -506,7 +506,7 @@ class TypedSelector extends Selector {
 
     if (mask.isEmpty) {
       if (!mask.isNullable) return false;
-      return hasElementIn(compiler.backend.jsNullClass, element)
+      return hasElementIn(compiler.backend.nullImplementation, element)
           && appliesUntyped(element, compiler);
     }
 
