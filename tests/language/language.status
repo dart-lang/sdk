@@ -483,8 +483,6 @@ function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
 function_type_alias7_test/00: Fail
-function_type_parameter2_test: Fail
-function_type_parameter_test: Fail
 implicit_scope_test: Fail
 instanceof3_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502

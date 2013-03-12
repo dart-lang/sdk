@@ -3582,11 +3582,15 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     Element element;
     if (node.receiver != null) {
       element = visitSend(node);
-    } else if (node.selector.asIdentifier() != null) {
+    } else if (node.selector.asIdentifier() != null ||
+               node.selector.asFunctionExpression() != null) {
       Element variables = new VariableListElementX.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new VariableElementX(node.selector.asIdentifier().source,
-          variables, ElementKind.PARAMETER, node);
+      SourceString source = node.selector.asIdentifier() != null ?
+          node.selector.asIdentifier().source :
+          node.selector.asFunctionExpression().name.asIdentifier().source;
+      element = new VariableElementX(source, variables,
+          ElementKind.PARAMETER, node);
     }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
