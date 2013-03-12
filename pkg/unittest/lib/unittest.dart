@@ -689,7 +689,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests.retainMatching(filterFunction);
+  _tests.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */

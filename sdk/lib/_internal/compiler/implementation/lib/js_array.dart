@@ -51,14 +51,14 @@ class JSArray<E> implements List<E>, JSIndexable {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     // This could, and should, be optimized.
-    IterableMixinWorkaround.removeMatchingList(this, test);
+    IterableMixinWorkaround.removeWhereList(this, test);
   }
 
-  void retainMatching(bool test(E element)) {
-    IterableMixinWorkaround.removeMatchingList(this,
-                                               (E element) => !test(element));
+  void retainWhere(bool test(E element)) {
+    IterableMixinWorkaround.removeWhereList(this,
+                                            (E element) => !test(element));
   }
 
   Iterable<E> where(bool f(E element)) {
@@ -121,16 +121,16 @@ class JSArray<E> implements List<E>, JSIndexable {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  E firstWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  E lastWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  E singleWhere(bool test(E value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   E elementAt(int index) {

@@ -79,7 +79,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     return false;
   }
 
-  E firstMatching(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), { E orElse() }) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = elementAt(i);
@@ -92,7 +92,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     throw new StateError("No matching element");
   }
 
-  E lastMatching(bool test(E element), { E orElse() }) {
+  E lastWhere(bool test(E element), { E orElse() }) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = elementAt(i);
@@ -105,7 +105,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     throw new StateError("No matching element");
   }
 
-  E singleMatching(bool test(E element)) {
+  E singleWhere(bool test(E element)) {
     int length = this.length;
     E match = null;
     bool matchFound = false;
@@ -644,17 +644,17 @@ class EmptyIterable<E> extends Iterable<E> {
 
   bool any(bool test(E element)) => false;
 
-  E firstMatching(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), { E orElse() }) {
     if (orElse != null) return orElse();
     throw new StateError("No matching element");
   }
 
-  E lastMatching(bool test(E element), { E orElse() }) {
+  E lastWhere(bool test(E element), { E orElse() }) {
     if (orElse != null) return orElse();
     throw new StateError("No matching element");
   }
 
-  E singleMatching(bool test(E element), { E orElse() }) {
+  E singleWhere(bool test(E element), { E orElse() }) {
     if (orElse != null) return orElse();
     throw new StateError("No matching element");
   }

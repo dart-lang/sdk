@@ -7856,16 +7856,16 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  DomMimeType firstWhere(bool test(DomMimeType value), { DomMimeType orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  DomMimeType lastWhere(bool test(DomMimeType value), {DomMimeType orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  DomMimeType singleMatching(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  DomMimeType singleWhere(bool test(DomMimeType value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   DomMimeType elementAt(int index) {
@@ -7953,11 +7953,11 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(DomMimeType element)) {
+  void removeWhere(bool test(DomMimeType element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(DomMimeType element)) {
+  void retainWhere(bool test(DomMimeType element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8129,16 +8129,16 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  DomPlugin firstWhere(bool test(DomPlugin value), { DomPlugin orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  DomPlugin lastWhere(bool test(DomPlugin value), {DomPlugin orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  DomPlugin singleMatching(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  DomPlugin singleWhere(bool test(DomPlugin value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   DomPlugin elementAt(int index) {
@@ -8226,11 +8226,11 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(DomPlugin element)) {
+  void removeWhere(bool test(DomPlugin element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(DomPlugin element)) {
+  void retainWhere(bool test(DomPlugin element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8520,16 +8520,16 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  String firstMatching(bool test(String value), { String orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  String firstWhere(bool test(String value), { String orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  String lastMatching(bool test(String value), {String orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  String lastWhere(bool test(String value), {String orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  String singleMatching(bool test(String value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  String singleWhere(bool test(String value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   String elementAt(int index) {
@@ -8617,11 +8617,11 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(String element)) {
+  void removeWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(String element)) {
+  void retainWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8811,16 +8811,16 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -8897,12 +8897,12 @@ class _ChildrenElementList implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Element element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Element element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Element element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Element element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -9054,16 +9054,16 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -9156,11 +9156,11 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void removeMatching(bool test(Element element)) {
+  void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
-  void retainMatching(bool test(Element element)) {
+  void retainWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
@@ -11520,16 +11520,16 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  File firstMatching(bool test(File value), { File orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  File firstWhere(bool test(File value), { File orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  File lastMatching(bool test(File value), {File orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  File lastWhere(bool test(File value), {File orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  File singleMatching(bool test(File value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  File singleWhere(bool test(File value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   File elementAt(int index) {
@@ -11617,11 +11617,11 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(File element)) {
+  void removeWhere(bool test(File element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(File element)) {
+  void retainWhere(bool test(File element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12136,16 +12136,16 @@ class Float32Array extends ArrayBufferView implements List<num> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  num firstMatching(bool test(num value), { num orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  num firstWhere(bool test(num value), { num orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  num lastMatching(bool test(num value), {num orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  num lastWhere(bool test(num value), {num orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  num singleMatching(bool test(num value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  num singleWhere(bool test(num value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   num elementAt(int index) {
@@ -12233,11 +12233,11 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(num element)) {
+  void removeWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(num element)) {
+  void retainWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12376,16 +12376,16 @@ class Float64Array extends ArrayBufferView implements List<num> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  num firstMatching(bool test(num value), { num orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  num firstWhere(bool test(num value), { num orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  num lastMatching(bool test(num value), {num orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  num lastWhere(bool test(num value), {num orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  num singleMatching(bool test(num value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  num singleWhere(bool test(num value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   num elementAt(int index) {
@@ -12473,11 +12473,11 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(num element)) {
+  void removeWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(num element)) {
+  void retainWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -13065,16 +13065,16 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -13162,11 +13162,11 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -13279,16 +13279,16 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -13376,11 +13376,11 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -15604,16 +15604,16 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -15701,11 +15701,11 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -15844,16 +15844,16 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -15941,11 +15941,11 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -16084,16 +16084,16 @@ class Int8Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -16181,11 +16181,11 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -18857,12 +18857,12 @@ class _ChildNodeListLazy implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Node node)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Node node)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Node node)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Node node)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void clear() {
@@ -18930,16 +18930,16 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -19335,16 +19335,16 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -19432,11 +19432,11 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22034,16 +22034,16 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SourceBuffer firstWhere(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SourceBuffer lastWhere(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SourceBuffer singleMatching(bool test(SourceBuffer value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SourceBuffer singleWhere(bool test(SourceBuffer value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SourceBuffer elementAt(int index) {
@@ -22131,11 +22131,11 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SourceBuffer element)) {
+  void removeWhere(bool test(SourceBuffer element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SourceBuffer element)) {
+  void retainWhere(bool test(SourceBuffer element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22357,16 +22357,16 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SpeechGrammar firstWhere(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SpeechGrammar lastWhere(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SpeechGrammar singleWhere(bool test(SpeechGrammar value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SpeechGrammar elementAt(int index) {
@@ -22454,11 +22454,11 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SpeechGrammar element)) {
+  void removeWhere(bool test(SpeechGrammar element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SpeechGrammar element)) {
+  void retainWhere(bool test(SpeechGrammar element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24045,16 +24045,16 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  TextTrackCue firstWhere(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  TextTrackCue lastWhere(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  TextTrackCue singleMatching(bool test(TextTrackCue value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  TextTrackCue singleWhere(bool test(TextTrackCue value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   TextTrackCue elementAt(int index) {
@@ -24142,11 +24142,11 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(TextTrackCue element)) {
+  void removeWhere(bool test(TextTrackCue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(TextTrackCue element)) {
+  void retainWhere(bool test(TextTrackCue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24259,16 +24259,16 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  TextTrack firstWhere(bool test(TextTrack value), { TextTrack orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  TextTrack lastWhere(bool test(TextTrack value), {TextTrack orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  TextTrack singleMatching(bool test(TextTrack value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  TextTrack singleWhere(bool test(TextTrack value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   TextTrack elementAt(int index) {
@@ -24356,11 +24356,11 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(TextTrack element)) {
+  void removeWhere(bool test(TextTrack element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(TextTrack element)) {
+  void retainWhere(bool test(TextTrack element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24690,16 +24690,16 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Touch firstWhere(bool test(Touch value), { Touch orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Touch lastWhere(bool test(Touch value), {Touch orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Touch singleMatching(bool test(Touch value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Touch singleWhere(bool test(Touch value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Touch elementAt(int index) {
@@ -24787,11 +24787,11 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Touch element)) {
+  void removeWhere(bool test(Touch element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Touch element)) {
+  void retainWhere(bool test(Touch element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25204,16 +25204,16 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -25301,11 +25301,11 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25444,16 +25444,16 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -25541,11 +25541,11 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25684,16 +25684,16 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -25781,11 +25781,11 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25922,16 +25922,16 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -26019,11 +26019,11 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29774,16 +29774,16 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Rect firstMatching(bool test(Rect value), { Rect orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Rect firstWhere(bool test(Rect value), { Rect orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Rect lastMatching(bool test(Rect value), {Rect orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Rect lastWhere(bool test(Rect value), {Rect orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Rect singleMatching(bool test(Rect value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Rect singleWhere(bool test(Rect value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Rect elementAt(int index) {
@@ -29871,11 +29871,11 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Rect element)) {
+  void removeWhere(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Rect element)) {
+  void retainWhere(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29980,16 +29980,16 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  CssRule firstWhere(bool test(CssRule value), { CssRule orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  CssRule lastWhere(bool test(CssRule value), {CssRule orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  CssRule singleMatching(bool test(CssRule value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  CssRule singleWhere(bool test(CssRule value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   CssRule elementAt(int index) {
@@ -30077,11 +30077,11 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(CssRule element)) {
+  void removeWhere(bool test(CssRule element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(CssRule element)) {
+  void retainWhere(bool test(CssRule element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30186,16 +30186,16 @@ class _CssValueList extends CssValue implements List<CssValue> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  CssValue firstWhere(bool test(CssValue value), { CssValue orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  CssValue lastWhere(bool test(CssValue value), {CssValue orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  CssValue singleMatching(bool test(CssValue value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  CssValue singleWhere(bool test(CssValue value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   CssValue elementAt(int index) {
@@ -30283,11 +30283,11 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(CssValue element)) {
+  void removeWhere(bool test(CssValue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(CssValue element)) {
+  void retainWhere(bool test(CssValue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30535,16 +30535,16 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Entry firstWhere(bool test(Entry value), { Entry orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Entry lastWhere(bool test(Entry value), {Entry orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Entry singleMatching(bool test(Entry value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Entry singleWhere(bool test(Entry value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Entry elementAt(int index) {
@@ -30632,11 +30632,11 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Entry element)) {
+  void removeWhere(bool test(Entry element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Entry element)) {
+  void retainWhere(bool test(Entry element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30741,16 +30741,16 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  EntrySync firstWhere(bool test(EntrySync value), { EntrySync orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  EntrySync lastWhere(bool test(EntrySync value), {EntrySync orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  EntrySync singleMatching(bool test(EntrySync value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  EntrySync singleWhere(bool test(EntrySync value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   EntrySync elementAt(int index) {
@@ -30838,11 +30838,11 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(EntrySync element)) {
+  void removeWhere(bool test(EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(EntrySync element)) {
+  void retainWhere(bool test(EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30947,16 +30947,16 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Gamepad firstWhere(bool test(Gamepad value), { Gamepad orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Gamepad lastWhere(bool test(Gamepad value), {Gamepad orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Gamepad singleMatching(bool test(Gamepad value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Gamepad singleWhere(bool test(Gamepad value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Gamepad elementAt(int index) {
@@ -31044,11 +31044,11 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Gamepad element)) {
+  void removeWhere(bool test(Gamepad element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Gamepad element)) {
+  void retainWhere(bool test(Gamepad element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31244,16 +31244,16 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -31341,11 +31341,11 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31474,16 +31474,16 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SpeechInputResult firstWhere(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SpeechInputResult lastWhere(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SpeechInputResult singleWhere(bool test(SpeechInputResult value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SpeechInputResult elementAt(int index) {
@@ -31571,11 +31571,11 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SpeechInputResult element)) {
+  void removeWhere(bool test(SpeechInputResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SpeechInputResult element)) {
+  void retainWhere(bool test(SpeechInputResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31680,16 +31680,16 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SpeechRecognitionResult firstWhere(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SpeechRecognitionResult lastWhere(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SpeechRecognitionResult singleWhere(bool test(SpeechRecognitionResult value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SpeechRecognitionResult elementAt(int index) {
@@ -31777,11 +31777,11 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SpeechRecognitionResult element)) {
+  void removeWhere(bool test(SpeechRecognitionResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SpeechRecognitionResult element)) {
+  void retainWhere(bool test(SpeechRecognitionResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31886,16 +31886,16 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  StyleSheet firstWhere(bool test(StyleSheet value), { StyleSheet orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  StyleSheet lastWhere(bool test(StyleSheet value), {StyleSheet orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  StyleSheet singleMatching(bool test(StyleSheet value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  StyleSheet singleWhere(bool test(StyleSheet value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   StyleSheet elementAt(int index) {
@@ -31983,11 +31983,11 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(StyleSheet element)) {
+  void removeWhere(bool test(StyleSheet element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(StyleSheet element)) {
+  void retainWhere(bool test(StyleSheet element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -32484,12 +32484,12 @@ abstract class CssClassSet implements Set<String> {
     _modify((s) => s.retainAll(iterable));
   }
 
-  void removeMatching(bool test(String name)) {
-    _modify((s) => s.removeMatching(test));
+  void removeWhere(bool test(String name)) {
+    _modify((s) => s.removeWhere(test));
   }
 
-  void retainMatching(bool test(String name)) {
-    _modify((s) => s.retainMatching(test));
+  void retainWhere(bool test(String name)) {
+    _modify((s) => s.retainWhere(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -32517,12 +32517,12 @@ abstract class CssClassSet implements Set<String> {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  String firstMatching(bool test(String value), { String orElse() }) =>
-      readClasses().firstMatching(test, orElse: orElse);
-  String lastMatching(bool test(String value), {String orElse()}) =>
-      readClasses().lastMatching(test, orElse: orElse);
-  String singleMatching(bool test(String value)) =>
-      readClasses().singleMatching(test);
+  String firstWhere(bool test(String value), { String orElse() }) =>
+      readClasses().firstWhere(test, orElse: orElse);
+  String lastWhere(bool test(String value), {String orElse()}) =>
+      readClasses().lastWhere(test, orElse: orElse);
+  String singleWhere(bool test(String value)) =>
+      readClasses().singleWhere(test);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
@@ -34223,13 +34223,13 @@ class _WrappedList<E> implements List<E> {
 
   E get single => _list.single;
 
-  E firstMatching(bool test(E value), { E orElse() }) =>
-      _list.firstMatching(test, orElse: orElse);
+  E firstWhere(bool test(E value), { E orElse() }) =>
+      _list.firstWhere(test, orElse: orElse);
 
-  E lastMatching(bool test(E value), {E orElse()}) =>
-      _list.lastMatching(test, orElse: orElse);
+  E lastWhere(bool test(E value), {E orElse()}) =>
+      _list.lastWhere(test, orElse: orElse);
 
-  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+  E singleWhere(bool test(E value)) => _list.singleWhere(test);
 
   E elementAt(int index) => _list.elementAt(index);
 
@@ -34245,9 +34245,9 @@ class _WrappedList<E> implements List<E> {
 
   void retainAll(Iterable elements) { _list.retainAll(elements); }
 
-  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+  void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 
-  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+  void retainWhere(bool test(E element)) { _list.retainWhere(test); }
 
   void clear() { _list.clear(); }
 

@@ -115,12 +115,12 @@ $endif
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Node node)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Node node)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Node node)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Node node)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void clear() {
@@ -188,16 +188,16 @@ $endif
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {

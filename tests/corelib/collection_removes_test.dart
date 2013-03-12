@@ -45,15 +45,15 @@ testRetainAll(Collection base, Iterable retains) {
   }
 }
 
-testRemoveMatching(Collection base, bool test(value)) {
+testRemoveWhere(Collection base, bool test(value)) {
   Set retained = new Set();
   for (var element in base) {
     if (!test(element)) {
       retained.add(element);
     }
   }
-  String name = "$base.removeMatching(...) -> $retained";
-  base.removeMatching(test);
+  String name = "$base.removeWhere(...) -> $retained";
+  base.removeWhere(test);
   for (var value in base) {
     Expect.isFalse(test(value), "$name: Found $value");
   }
@@ -62,15 +62,15 @@ testRemoveMatching(Collection base, bool test(value)) {
   }
 }
 
-testRetainMatching(Collection base, bool test(value)) {
+testRetainWhere(Collection base, bool test(value)) {
   Set retained = new Set();
   for (var element in base) {
     if (test(element)) {
       retained.add(element);
     }
   }
-  String name = "$base.retainMatching(...) -> $retained";
-  base.retainMatching(test);
+  String name = "$base.retainWhere(...) -> $retained";
+  base.retainWhere(test);
   for (var value in base) {
     Expect.isTrue(test(value), "$name: Found $value");
   }
@@ -94,16 +94,16 @@ void main() {
       testRemoveAll(base.toList(), deltaSet);
       testRetainAll(base.toList(), delta);
       testRetainAll(base.toList(), deltaSet);
-      testRemoveMatching(base.toList(), deltaSet.contains);
-      testRetainMatching(base.toList(),
+      testRemoveWhere(base.toList(), deltaSet.contains);
+      testRetainWhere(base.toList(),
                          (e) => !deltaSet.contains(e));
 
       testRemoveAll(base.toSet(), delta);
       testRemoveAll(base.toSet(), deltaSet);
       testRetainAll(base.toSet(), delta);
       testRetainAll(base.toSet(), deltaSet);
-      testRemoveMatching(base.toSet(), deltaSet.contains);
-      testRetainMatching(base.toSet(), (e) => !deltaSet.contains(e));
+      testRemoveWhere(base.toSet(), deltaSet.contains);
+      testRetainWhere(base.toSet(), (e) => !deltaSet.contains(e));
     }
   }
 }

@@ -63,13 +63,13 @@ class _WrappedList<E> implements List<E> {
 
   E get single => _list.single;
 
-  E firstMatching(bool test(E value), { E orElse() }) =>
-      _list.firstMatching(test, orElse: orElse);
+  E firstWhere(bool test(E value), { E orElse() }) =>
+      _list.firstWhere(test, orElse: orElse);
 
-  E lastMatching(bool test(E value), {E orElse()}) =>
-      _list.lastMatching(test, orElse: orElse);
+  E lastWhere(bool test(E value), {E orElse()}) =>
+      _list.lastWhere(test, orElse: orElse);
 
-  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+  E singleWhere(bool test(E value)) => _list.singleWhere(test);
 
   E elementAt(int index) => _list.elementAt(index);
 
@@ -85,9 +85,9 @@ class _WrappedList<E> implements List<E> {
 
   void retainAll(Iterable elements) { _list.retainAll(elements); }
 
-  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+  void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 
-  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+  void retainWhere(bool test(E element)) { _list.retainWhere(test); }
 
   void clear() { _list.clear(); }
 

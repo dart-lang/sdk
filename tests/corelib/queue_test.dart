@@ -230,10 +230,10 @@ abstract class QueueTest {
     queue.retainAll([1, 3, 5, 7, 9, 10]);  // Remove 2 and 8.
     testLength(17, queue);
 
-    queue.removeMatching((x) => x == 7);
+    queue.removeWhere((x) => x == 7);
     testLength(14, queue);
 
-    queue.retainMatching((x) => x != 3);
+    queue.retainWhere((x) => x != 3);
     testLength(11, queue);
 
     Expect.listEquals([9, 1, 5, 9, 10, 1, 5, 9, 10, 1, 5], queue.toList());
@@ -346,11 +346,11 @@ class ListQueueTest extends QueueTest {
     Expect.equals(255, q.length);
 
     // Remove element at end of internal buffer.
-    q.removeMatching((v) => v == 255);
+    q.removeWhere((v) => v == 255);
     // Remove element at beginning of internal buffer.
-    q.removeMatching((v) => v == 0);
+    q.removeWhere((v) => v == 0);
     // Remove element at both ends of internal buffer.
-    q.removeMatching((v) => v == 254 || v == 1);
+    q.removeWhere((v) => v == 254 || v == 1);
 
     Expect.equals(251, q.length);
 

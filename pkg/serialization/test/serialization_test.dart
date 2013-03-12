@@ -48,7 +48,7 @@ main() {
     // actually writing.
     var w = new Writer(s);
     w.write(p1);
-    var personRule = s.rules.firstMatching(
+    var personRule = s.rules.firstWhere(
         (x) => x is BasicRule && x.type == reflect(p1).type);
     var flatPerson = w.states[personRule.number].first;
     var primStates = w.states.first;
@@ -56,7 +56,7 @@ main() {
     expect(flatPerson["name"], "Alice");
     var ref = flatPerson["address"];
     expect(ref is Reference, true);
-    var addressRule = s.rules.firstMatching(
+    var addressRule = s.rules.firstWhere(
         (x) => x is BasicRule && x.type == reflect(a1).type);
     expect(ref.ruleNumber, addressRule.number);
     expect(ref.objectNumber, 0);
@@ -213,7 +213,7 @@ main() {
     w.write(n1);
     expect(w.states.length, 5); // prims, lists, essential lists, basic
     var children = 0, name = 1, parent = 2;
-    var nodeRule = s.rules.firstMatching((x) => x is BasicRule);
+    var nodeRule = s.rules.firstWhere((x) => x is BasicRule);
     List rootNode = w.states[nodeRule.number].where(
         (x) => x[name] == "1").toList();
     rootNode = rootNode.first;
@@ -476,8 +476,8 @@ main() {
       var reader = s.newReader(eachFormat);
       var input = reader.read(output);
       expect(input["simple data"], data["simple data"]);
-      var p2 = input.keys.firstMatching((x) => x is Person);
-      var a2 = input.keys.firstMatching((x) => x is Address);
+      var p2 = input.keys.firstWhere((x) => x is Person);
+      var a2 = input.keys.firstWhere((x) => x is Address);
       if (eachFormat is SimpleJsonFormat) {
         // JSON doesn't handle cycles, so these won't be identical.
         expect(input[p2] is Address, isTrue);
@@ -502,7 +502,7 @@ main() {
     var data = {"abc" : 1, "def" : "ghi"};
     data["person"] = new Person()..name = "Foo";
     var output = s.write(data, new SimpleMapFormat());
-    var mapRule = s.rules.firstMatching((x) => x is MapRule);
+    var mapRule = s.rules.firstWhere((x) => x is MapRule);
     var map = output["data"][mapRule.number][0];
     expect(map is Map, isTrue);
     expect(map["abc"], 1);

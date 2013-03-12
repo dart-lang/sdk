@@ -99,16 +99,16 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -185,12 +185,12 @@ class _ChildrenElementList implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Element element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Element element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Element element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Element element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -342,16 +342,16 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -444,11 +444,11 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void removeMatching(bool test(Element element)) {
+  void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
-  void retainMatching(bool test(Element element)) {
+  void retainWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 

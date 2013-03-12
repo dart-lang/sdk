@@ -61,16 +61,16 @@ $endif
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  $E firstMatching(bool test($E value), { $E orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  $E firstWhere(bool test($E value), { $E orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  $E lastMatching(bool test($E value), {$E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  $E lastWhere(bool test($E value), {$E orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  $E singleMatching(bool test($E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  $E singleWhere(bool test($E value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   $E elementAt(int index) {
@@ -164,11 +164,11 @@ $endif
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test($E element)) {
+  void removeWhere(bool test($E element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test($E element)) {
+  void retainWhere(bool test($E element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

@@ -306,16 +306,16 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Map firstMatching(bool test(Map value), { Map orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Map firstWhere(bool test(Map value), { Map orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Map lastMatching(bool test(Map value), {Map orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Map lastWhere(bool test(Map value), {Map orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Map singleMatching(bool test(Map value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Map singleWhere(bool test(Map value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Map elementAt(int index) {
@@ -403,11 +403,11 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Map element)) {
+  void removeWhere(bool test(Map element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Map element)) {
+  void retainWhere(bool test(Map element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

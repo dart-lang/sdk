@@ -45,12 +45,12 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
   }
@@ -140,16 +140,16 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.any(this, f);
   }
 
-  E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  E firstWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  E lastWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  E singleWhere(bool test(E value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   E elementAt(int index) {
@@ -285,12 +285,12 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }
@@ -378,16 +378,16 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.any(this, f);
   }
 
-  E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  E firstWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  E lastWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  E singleWhere(bool test(E value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   E elementAt(int index) {

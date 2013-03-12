@@ -74,13 +74,13 @@ class IterableMixinWorkaround {
     } else {
       setToRemove = elementsToRemove.toSet();
     }
-    collection.removeMatching(setToRemove.contains);
+    collection.removeWhere(setToRemove.contains);
   }
 
   /**
    * Simple implemenation for [Collection.retainAll].
    *
-   * This implementation assumes that [Collecton.retainMatching] on [collection]
+   * This implementation assumes that [Collecton.retainWhere] on [collection]
    * is efficient.
    */
   static void retainAll(Collection collection, Iterable elementsToRetain) {
@@ -94,16 +94,16 @@ class IterableMixinWorkaround {
       collection.clear();
       return;
     }
-    collection.retainMatching(lookup.contains);
+    collection.retainWhere(lookup.contains);
   }
 
   /**
-   * Simple implemenation for [Collection.removeMatching].
+   * Simple implemenation for [Collection.removeWhere].
    *
    * This implementation assumes that [Collecton.removeAll] on [collection] is
    * efficient.
    */
-  static void removeMatching(Collection collection, bool test(var element)) {
+  static void removeWhere(Collection collection, bool test(var element)) {
     List elementsToRemove = [];
     for (var element in collection) {
       if (test(element)) elementsToRemove.add(element);
@@ -118,7 +118,7 @@ class IterableMixinWorkaround {
    * to the [test] function. First the elements to retain are found, and then
    * the original list is updated to contain those elements.
    */
-  static void removeMatchingList(List list, bool test(var element)) {
+  static void removeWhereList(List list, bool test(var element)) {
     List retained = [];
     int length = list.length;
     for (int i = 0; i < length; i++) {
@@ -138,12 +138,12 @@ class IterableMixinWorkaround {
   }
 
   /**
-   * Simple implemenation for [Collection.retainMatching].
+   * Simple implemenation for [Collection.retainWhere].
    *
    * This implementation assumes that [Collecton.removeAll] on [collection] is
    * efficient.
    */
-  static void retainMatching(Collection collection, bool test(var element)) {
+  static void retainWhere(Collection collection, bool test(var element)) {
     List elementsToRemove = [];
     for (var element in collection) {
       if (!test(element)) elementsToRemove.add(element);
@@ -209,7 +209,7 @@ class IterableMixinWorkaround {
     return result;
   }
 
-  static dynamic firstMatching(Iterable iterable,
+  static dynamic firstWhere(Iterable iterable,
                                bool test(dynamic value),
                                dynamic orElse()) {
     for (dynamic element in iterable) {
@@ -219,9 +219,9 @@ class IterableMixinWorkaround {
     throw new StateError("No matching element");
   }
 
-  static dynamic lastMatching(Iterable iterable,
-                              bool test(dynamic value),
-                              dynamic orElse()) {
+  static dynamic lastWhere(Iterable iterable,
+                           bool test(dynamic value),
+                           dynamic orElse()) {
     dynamic result = null;
     bool foundMatching = false;
     for (dynamic element in iterable) {
@@ -235,9 +235,9 @@ class IterableMixinWorkaround {
     throw new StateError("No matching element");
   }
 
-  static dynamic lastMatchingInList(List list,
-                                    bool test(dynamic value),
-                                    dynamic orElse()) {
+  static dynamic lastWhereList(List list,
+                               bool test(dynamic value),
+                               dynamic orElse()) {
     // TODO(floitsch): check that arguments are of correct type?
     for (int i = list.length - 1; i >= 0; i--) {
       dynamic element = list[i];
@@ -247,7 +247,7 @@ class IterableMixinWorkaround {
     throw new StateError("No matching element");
   }
 
-  static dynamic singleMatching(Iterable iterable, bool test(dynamic value)) {
+  static dynamic singleWhere(Iterable iterable, bool test(dynamic value)) {
     dynamic result = null;
     bool foundMatching = false;
     for (dynamic element in iterable) {

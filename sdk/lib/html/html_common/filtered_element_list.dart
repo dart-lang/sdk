@@ -133,12 +133,12 @@ class FilteredElementList implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Element element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Element element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Element element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Element element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   dynamic reduce(dynamic initialValue,
@@ -150,16 +150,16 @@ class FilteredElementList implements List {
   List<Element> toList({ bool growable: true }) =>
       new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return _filtered.firstMatching(test, orElse: orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return _filtered.firstWhere(test, orElse: orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return _filtered.lastMatching(test, orElse: orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return _filtered.lastWhere(test, orElse: orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return _filtered.singleMatching(test);
+  Element singleWhere(bool test(Element value)) {
+    return _filtered.singleWhere(test);
   }
 
   Element elementAt(int index) {

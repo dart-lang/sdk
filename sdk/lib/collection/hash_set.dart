@@ -55,7 +55,7 @@ class HashSet<E> extends Collection<E> implements Set<E> {
     IterableMixinWorkaround.retainAll(this, objectsToRetain);
   }
 
-  void _filterMatching(bool test(E element), bool removeMatching) {
+  void _filterWhere(bool test(E element), bool removeMatching) {
     int entrySize = _table._entrySize;
     int length = _table._table.length;
     for (int offset =  0; offset < length; offset += entrySize) {
@@ -73,12 +73,12 @@ class HashSet<E> extends Collection<E> implements Set<E> {
     _table._checkCapacity();
   }
 
-  void removeMatching(bool test(E element)) {
-    _filterMatching(test, true);
+  void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
   }
 
-  void retainMatching(bool test(E element)) {
-    _filterMatching(test, false);
+  void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
   }
 
   void clear() {

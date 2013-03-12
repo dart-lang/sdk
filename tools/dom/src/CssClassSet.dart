@@ -94,12 +94,12 @@ abstract class CssClassSet implements Set<String> {
     _modify((s) => s.retainAll(iterable));
   }
 
-  void removeMatching(bool test(String name)) {
-    _modify((s) => s.removeMatching(test));
+  void removeWhere(bool test(String name)) {
+    _modify((s) => s.removeWhere(test));
   }
 
-  void retainMatching(bool test(String name)) {
-    _modify((s) => s.retainMatching(test));
+  void retainWhere(bool test(String name)) {
+    _modify((s) => s.retainWhere(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -127,12 +127,12 @@ abstract class CssClassSet implements Set<String> {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  String firstMatching(bool test(String value), { String orElse() }) =>
-      readClasses().firstMatching(test, orElse: orElse);
-  String lastMatching(bool test(String value), {String orElse()}) =>
-      readClasses().lastMatching(test, orElse: orElse);
-  String singleMatching(bool test(String value)) =>
-      readClasses().singleMatching(test);
+  String firstWhere(bool test(String value), { String orElse() }) =>
+      readClasses().firstWhere(test, orElse: orElse);
+  String lastWhere(bool test(String value), {String orElse()}) =>
+      readClasses().lastWhere(test, orElse: orElse);
+  String singleWhere(bool test(String value)) =>
+      readClasses().singleWhere(test);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {

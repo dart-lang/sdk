@@ -110,12 +110,12 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
         "Cannot remove from a fixed-length list");
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -191,12 +191,12 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
         "Cannot remove from an unmodifiable list");
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }

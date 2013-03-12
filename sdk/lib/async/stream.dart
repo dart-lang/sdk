@@ -643,7 +643,7 @@ abstract class Stream<T> {
    * with no [defaultValue] function provided, the future will receive an
    * error.
    */
-  Future<T> firstMatching(bool test(T value), {T defaultValue()}) {
+  Future<T> firstWhere(bool test(T value), {T defaultValue()}) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
@@ -677,11 +677,11 @@ abstract class Stream<T> {
   /**
    * Finds the last element in this stream matching [test].
    *
-   * As [firstMatching], except that the last matching element is found.
+   * As [firstWhere], except that the last matching element is found.
    * That means that the result cannot be provided before this stream
    * is done.
    */
-  Future<T> lastMatching(bool test(T value), {T defaultValue()}) {
+  Future<T> lastWhere(bool test(T value), {T defaultValue()}) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     T result = null;
     bool foundResult = false;
@@ -724,7 +724,7 @@ abstract class Stream<T> {
    * Like [lastMatch], except that it is an error if more than one
    * matching element occurs in the stream.
    */
-  Future<T> singleMatching(bool test(T value)) {
+  Future<T> singleWhere(bool test(T value)) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     T result = null;
     bool foundResult = false;

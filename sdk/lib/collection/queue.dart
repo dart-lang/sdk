@@ -225,11 +225,11 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
   }
 
   void removeAll(Iterable elements) {
-    // Use this method when remove is slow and removeMatching more efficient.
+    // Use this method when remove is slow and removeWhere more efficient.
     IterableMixinWorkaround.removeAllList(this, elements);
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     DoubleLinkedQueueEntry<E> entry = firstEntry();
     while (!identical(entry, _sentinel)) {
       DoubleLinkedQueueEntry<E> next = entry._next;
@@ -241,7 +241,7 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
     }
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     DoubleLinkedQueueEntry<E> entry = firstEntry();
     while (!identical(entry, _sentinel)) {
       DoubleLinkedQueueEntry<E> next = entry._next;
@@ -342,7 +342,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
  *
  * The structure is efficient for any queue or stack usage.
  *
- * Collection operations like [removeAll] and [removeMatching] are very
+ * Collection operations like [removeAll] and [removeWhere] are very
  * inefficient. If those are needed, use a [DoubleLinkedQueue] instead.
  */
 class ListQueue<E> extends Collection<E> implements Queue<E>{
@@ -489,7 +489,7 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
     IterableMixinWorkaround.retainAll(this, objectsToRetain);
   }
 
-  void _filterMatching(bool test(E element), bool removeMatching) {
+  void _filterWhere(bool test(E element), bool removeMatching) {
     int index = _head;
     int modificationCount = _modificationCount;
     int i = _head;
@@ -512,8 +512,8 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
    * This method is inefficient since it works by repeatedly removing single
    * elements, each of which can take linear time.
    */
-  void removeMatching(bool test(E element)) {
-    _filterMatching(test, true);
+  void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
   }
 
   /**
@@ -522,8 +522,8 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
    * This method is inefficient since it works by repeatedly removing single
    * elements, each of which can take linear time.
    */
-  void retainMatching(bool test(E element)) {
-    _filterMatching(test, false);
+  void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
   }
 
   void clear() {

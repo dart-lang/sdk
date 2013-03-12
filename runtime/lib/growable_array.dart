@@ -38,13 +38,13 @@ class _GrowableObjectArray<T> implements List<T> {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(T element)) {
-    IterableMixinWorkaround.removeMatchingList(this, test);
+  void removeWhere(bool test(T element)) {
+    IterableMixinWorkaround.removeWhereList(this, test);
   }
 
-  void retainMatching(bool test(T element)) {
-    IterableMixinWorkaround.removeMatchingList(this,
-                                               (T element) => !test(element));
+  void retainWhere(bool test(T element)) {
+    IterableMixinWorkaround.removeWhereList(this,
+                                            (T element) => !test(element));
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
@@ -278,16 +278,16 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.any(this, f);
   }
 
-  T firstMatching(bool test(T value), {T orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  T firstWhere(bool test(T value), {T orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  T lastMatching(bool test(T value), {T orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  T lastWhere(bool test(T value), {T orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  T singleMatching(bool test(T value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  T singleWhere(bool test(T value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   T elementAt(int index) {

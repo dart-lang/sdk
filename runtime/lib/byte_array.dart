@@ -274,16 +274,16 @@ abstract class _ByteArrayBase {
     return IterableMixinWorkaround.any(this, f);
   }
 
-  int firstMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -357,12 +357,12 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
@@ -2030,12 +2030,12 @@ class _ByteArrayViewBase extends Collection<int> {
         "Cannot remove from a non-extendable array");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }

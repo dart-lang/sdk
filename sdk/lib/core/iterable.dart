@@ -323,7 +323,7 @@ abstract class Iterable<E> {
    * returned. By default, when [orElse] is `null`, a [StateError] is
    * thrown.
    */
-  E firstMatching(bool test(E value), { E orElse() }) {
+  E firstWhere(bool test(E value), { E orElse() }) {
     // TODO(floitsch): check that arguments are of correct type?
     for (E element in this) {
       if (test(element)) return element;
@@ -339,7 +339,7 @@ abstract class Iterable<E> {
    * returned. By default, when [orElse] is [:null:], a [StateError] is
    * thrown.
    */
-  E lastMatching(bool test(E value), {E orElse()}) {
+  E lastWhere(bool test(E value), {E orElse()}) {
     // TODO(floitsch): check that arguments are of correct type?
     E result = null;
     bool foundMatching = false;
@@ -358,7 +358,7 @@ abstract class Iterable<E> {
    * Returns the single element that satisfies [f]. If no or more than one
    * element match then a [StateError] is thrown.
    */
-  E singleMatching(bool test(E value)) {
+  E singleWhere(bool test(E value)) {
     // TODO(floitsch): check that argument is of correct type?
     E result = null;
     bool foundMatching = false;
