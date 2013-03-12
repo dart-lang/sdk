@@ -99,7 +99,8 @@ void testHttp10ServerClose() {
               } else {
                 server.close();
               }
-                      },onError: (e) => print(e));
+            },
+            onError: (e) => print(e));
       });
     }
     makeRequest();

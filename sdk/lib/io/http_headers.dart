@@ -320,7 +320,7 @@ class _HttpHeaders implements HttpHeaders {
     return true;
   }
 
-  void _finalize() {
+  void _synchronize() {
     // If the content length is not known make sure chunked transfer
     // encoding is used for HTTP 1.1.
     if (contentLength < 0) {
@@ -337,6 +337,10 @@ class _HttpHeaders implements HttpHeaders {
         protocolVersion == "1.1") {
       contentLength = -1;
     }
+  }
+
+  void _finalize() {
+    _synchronize();
     _mutable = false;
   }
 

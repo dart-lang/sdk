@@ -137,7 +137,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
 
   Future<T> get done {
     _controller;
-    return _pipeFuture.then((_) => this);
+    return _pipeFuture;
   }
 
   void _completeWriteStreamCompleter([error]) {
@@ -160,7 +160,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
       var future = _controller.stream.pipe(_target);
       future.then((_) => _completeWriteStreamCompleter(),
                   onError: (error) => _completeWriteStreamCompleter(error));
-      _pipeFuture = future.then((_) => this);
+      _pipeFuture = future.then((value) => value);
     }
     return _controllerInstance;
   }
@@ -228,7 +228,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
     if (unbind) {
       return _writeStreamCompleter.future;
     } else {
-      return _pipeFuture.then((_) => this);
+      return _pipeFuture;
     }
   }
 }
