@@ -856,9 +856,9 @@ $if DART2JS
 
   static String _determineTransitionEventType(EventTarget e) {
     // Unfortunately the normal 'ontransitionend' style checks don't work here.
-    if (_Device.isWebKit) {
+    if (Device.isWebKit) {
       return 'webkitTransitionEnd';
-    } else if (_Device.isOpera) {
+    } else if (Device.isOpera) {
       return 'oTransitionEnd';
     }
     return 'transitionend';
@@ -1024,7 +1024,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];

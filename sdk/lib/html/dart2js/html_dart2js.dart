@@ -2319,41 +2319,6 @@ class CssRule native "*CSSRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-String _cachedBrowserPrefix;
-
-String get _browserPrefix {
-  if (_cachedBrowserPrefix == null) {
-    if (_Device.isFirefox) {
-      _cachedBrowserPrefix = '-moz-';
-    } else if (_Device.isIE) {
-      _cachedBrowserPrefix = '-ms-';
-    } else if (_Device.isOpera) {
-      _cachedBrowserPrefix = '-o-';
-    } else {
-      _cachedBrowserPrefix = '-webkit-';
-    }
-  }
-  return _cachedBrowserPrefix;
-}
-
-String _cachedBrowserPropertyPrefix;
-
-/// Prefix as used for JS property names.
-String get _browserPropertyPrefix {
-  if (_cachedBrowserPropertyPrefix == null) {
-    if (_Device.isFirefox) {
-      _cachedBrowserPropertyPrefix = 'moz';
-    } else if (_Device.isIE) {
-      _cachedBrowserPropertyPrefix = 'ms';
-    } else if (_Device.isOpera) {
-      _cachedBrowserPropertyPrefix = 'o';
-    } else {
-      _cachedBrowserPropertyPrefix = 'webkit';
-    }
-  }
-  return _cachedBrowserPropertyPrefix;
-}
-
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration native "*CSSStyleDeclaration" {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
@@ -2427,153 +2392,153 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
     if (JS('bool', '"transition" in document.body.style')) {
       return true;
     }
-    var propertyName = '${_browserPropertyPrefix}Transition';
+    var propertyName = '${Device.propertyPrefix}Transition';
     return JS('bool', '# in document.body.style', propertyName);
   }
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
   String get alignContent =>
-    getPropertyValue('${_browserPrefix}align-content');
+    getPropertyValue('${Device.cssPrefix}align-content');
 
   /** Sets the value of "align-content" */
   void set alignContent(String value) {
-    setProperty('${_browserPrefix}align-content', value, '');
+    setProperty('${Device.cssPrefix}align-content', value, '');
   }
 
   /** Gets the value of "align-items" */
   String get alignItems =>
-    getPropertyValue('${_browserPrefix}align-items');
+    getPropertyValue('${Device.cssPrefix}align-items');
 
   /** Sets the value of "align-items" */
   void set alignItems(String value) {
-    setProperty('${_browserPrefix}align-items', value, '');
+    setProperty('${Device.cssPrefix}align-items', value, '');
   }
 
   /** Gets the value of "align-self" */
   String get alignSelf =>
-    getPropertyValue('${_browserPrefix}align-self');
+    getPropertyValue('${Device.cssPrefix}align-self');
 
   /** Sets the value of "align-self" */
   void set alignSelf(String value) {
-    setProperty('${_browserPrefix}align-self', value, '');
+    setProperty('${Device.cssPrefix}align-self', value, '');
   }
 
   /** Gets the value of "animation" */
   String get animation =>
-    getPropertyValue('${_browserPrefix}animation');
+    getPropertyValue('${Device.cssPrefix}animation');
 
   /** Sets the value of "animation" */
   void set animation(String value) {
-    setProperty('${_browserPrefix}animation', value, '');
+    setProperty('${Device.cssPrefix}animation', value, '');
   }
 
   /** Gets the value of "animation-delay" */
   String get animationDelay =>
-    getPropertyValue('${_browserPrefix}animation-delay');
+    getPropertyValue('${Device.cssPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
   void set animationDelay(String value) {
-    setProperty('${_browserPrefix}animation-delay', value, '');
+    setProperty('${Device.cssPrefix}animation-delay', value, '');
   }
 
   /** Gets the value of "animation-direction" */
   String get animationDirection =>
-    getPropertyValue('${_browserPrefix}animation-direction');
+    getPropertyValue('${Device.cssPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
   void set animationDirection(String value) {
-    setProperty('${_browserPrefix}animation-direction', value, '');
+    setProperty('${Device.cssPrefix}animation-direction', value, '');
   }
 
   /** Gets the value of "animation-duration" */
   String get animationDuration =>
-    getPropertyValue('${_browserPrefix}animation-duration');
+    getPropertyValue('${Device.cssPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
   void set animationDuration(String value) {
-    setProperty('${_browserPrefix}animation-duration', value, '');
+    setProperty('${Device.cssPrefix}animation-duration', value, '');
   }
 
   /** Gets the value of "animation-fill-mode" */
   String get animationFillMode =>
-    getPropertyValue('${_browserPrefix}animation-fill-mode');
+    getPropertyValue('${Device.cssPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
   void set animationFillMode(String value) {
-    setProperty('${_browserPrefix}animation-fill-mode', value, '');
+    setProperty('${Device.cssPrefix}animation-fill-mode', value, '');
   }
 
   /** Gets the value of "animation-iteration-count" */
   String get animationIterationCount =>
-    getPropertyValue('${_browserPrefix}animation-iteration-count');
+    getPropertyValue('${Device.cssPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
   void set animationIterationCount(String value) {
-    setProperty('${_browserPrefix}animation-iteration-count', value, '');
+    setProperty('${Device.cssPrefix}animation-iteration-count', value, '');
   }
 
   /** Gets the value of "animation-name" */
   String get animationName =>
-    getPropertyValue('${_browserPrefix}animation-name');
+    getPropertyValue('${Device.cssPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
   void set animationName(String value) {
-    setProperty('${_browserPrefix}animation-name', value, '');
+    setProperty('${Device.cssPrefix}animation-name', value, '');
   }
 
   /** Gets the value of "animation-play-state" */
   String get animationPlayState =>
-    getPropertyValue('${_browserPrefix}animation-play-state');
+    getPropertyValue('${Device.cssPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
   void set animationPlayState(String value) {
-    setProperty('${_browserPrefix}animation-play-state', value, '');
+    setProperty('${Device.cssPrefix}animation-play-state', value, '');
   }
 
   /** Gets the value of "animation-timing-function" */
   String get animationTimingFunction =>
-    getPropertyValue('${_browserPrefix}animation-timing-function');
+    getPropertyValue('${Device.cssPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
   void set animationTimingFunction(String value) {
-    setProperty('${_browserPrefix}animation-timing-function', value, '');
+    setProperty('${Device.cssPrefix}animation-timing-function', value, '');
   }
 
   /** Gets the value of "app-region" */
   String get appRegion =>
-    getPropertyValue('${_browserPrefix}app-region');
+    getPropertyValue('${Device.cssPrefix}app-region');
 
   /** Sets the value of "app-region" */
   void set appRegion(String value) {
-    setProperty('${_browserPrefix}app-region', value, '');
+    setProperty('${Device.cssPrefix}app-region', value, '');
   }
 
   /** Gets the value of "appearance" */
   String get appearance =>
-    getPropertyValue('${_browserPrefix}appearance');
+    getPropertyValue('${Device.cssPrefix}appearance');
 
   /** Sets the value of "appearance" */
   void set appearance(String value) {
-    setProperty('${_browserPrefix}appearance', value, '');
+    setProperty('${Device.cssPrefix}appearance', value, '');
   }
 
   /** Gets the value of "aspect-ratio" */
   String get aspectRatio =>
-    getPropertyValue('${_browserPrefix}aspect-ratio');
+    getPropertyValue('${Device.cssPrefix}aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
   void set aspectRatio(String value) {
-    setProperty('${_browserPrefix}aspect-ratio', value, '');
+    setProperty('${Device.cssPrefix}aspect-ratio', value, '');
   }
 
   /** Gets the value of "backface-visibility" */
   String get backfaceVisibility =>
-    getPropertyValue('${_browserPrefix}backface-visibility');
+    getPropertyValue('${Device.cssPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
   void set backfaceVisibility(String value) {
-    setProperty('${_browserPrefix}backface-visibility', value, '');
+    setProperty('${Device.cssPrefix}backface-visibility', value, '');
   }
 
   /** Gets the value of "background" */
@@ -2614,11 +2579,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "background-composite" */
   String get backgroundComposite =>
-    getPropertyValue('${_browserPrefix}background-composite');
+    getPropertyValue('${Device.cssPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
   void set backgroundComposite(String value) {
-    setProperty('${_browserPrefix}background-composite', value, '');
+    setProperty('${Device.cssPrefix}background-composite', value, '');
   }
 
   /** Gets the value of "background-image" */
@@ -2704,11 +2669,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "blend-mode" */
   String get blendMode =>
-    getPropertyValue('${_browserPrefix}blend-mode');
+    getPropertyValue('${Device.cssPrefix}blend-mode');
 
   /** Sets the value of "blend-mode" */
   void set blendMode(String value) {
-    setProperty('${_browserPrefix}blend-mode', value, '');
+    setProperty('${Device.cssPrefix}blend-mode', value, '');
   }
 
   /** Gets the value of "border" */
@@ -2722,74 +2687,74 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "border-after" */
   String get borderAfter =>
-    getPropertyValue('${_browserPrefix}border-after');
+    getPropertyValue('${Device.cssPrefix}border-after');
 
   /** Sets the value of "border-after" */
   void set borderAfter(String value) {
-    setProperty('${_browserPrefix}border-after', value, '');
+    setProperty('${Device.cssPrefix}border-after', value, '');
   }
 
   /** Gets the value of "border-after-color" */
   String get borderAfterColor =>
-    getPropertyValue('${_browserPrefix}border-after-color');
+    getPropertyValue('${Device.cssPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
   void set borderAfterColor(String value) {
-    setProperty('${_browserPrefix}border-after-color', value, '');
+    setProperty('${Device.cssPrefix}border-after-color', value, '');
   }
 
   /** Gets the value of "border-after-style" */
   String get borderAfterStyle =>
-    getPropertyValue('${_browserPrefix}border-after-style');
+    getPropertyValue('${Device.cssPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
   void set borderAfterStyle(String value) {
-    setProperty('${_browserPrefix}border-after-style', value, '');
+    setProperty('${Device.cssPrefix}border-after-style', value, '');
   }
 
   /** Gets the value of "border-after-width" */
   String get borderAfterWidth =>
-    getPropertyValue('${_browserPrefix}border-after-width');
+    getPropertyValue('${Device.cssPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
   void set borderAfterWidth(String value) {
-    setProperty('${_browserPrefix}border-after-width', value, '');
+    setProperty('${Device.cssPrefix}border-after-width', value, '');
   }
 
   /** Gets the value of "border-before" */
   String get borderBefore =>
-    getPropertyValue('${_browserPrefix}border-before');
+    getPropertyValue('${Device.cssPrefix}border-before');
 
   /** Sets the value of "border-before" */
   void set borderBefore(String value) {
-    setProperty('${_browserPrefix}border-before', value, '');
+    setProperty('${Device.cssPrefix}border-before', value, '');
   }
 
   /** Gets the value of "border-before-color" */
   String get borderBeforeColor =>
-    getPropertyValue('${_browserPrefix}border-before-color');
+    getPropertyValue('${Device.cssPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
   void set borderBeforeColor(String value) {
-    setProperty('${_browserPrefix}border-before-color', value, '');
+    setProperty('${Device.cssPrefix}border-before-color', value, '');
   }
 
   /** Gets the value of "border-before-style" */
   String get borderBeforeStyle =>
-    getPropertyValue('${_browserPrefix}border-before-style');
+    getPropertyValue('${Device.cssPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
   void set borderBeforeStyle(String value) {
-    setProperty('${_browserPrefix}border-before-style', value, '');
+    setProperty('${Device.cssPrefix}border-before-style', value, '');
   }
 
   /** Gets the value of "border-before-width" */
   String get borderBeforeWidth =>
-    getPropertyValue('${_browserPrefix}border-before-width');
+    getPropertyValue('${Device.cssPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
   void set borderBeforeWidth(String value) {
-    setProperty('${_browserPrefix}border-before-width', value, '');
+    setProperty('${Device.cssPrefix}border-before-width', value, '');
   }
 
   /** Gets the value of "border-bottom" */
@@ -2866,56 +2831,56 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "border-end" */
   String get borderEnd =>
-    getPropertyValue('${_browserPrefix}border-end');
+    getPropertyValue('${Device.cssPrefix}border-end');
 
   /** Sets the value of "border-end" */
   void set borderEnd(String value) {
-    setProperty('${_browserPrefix}border-end', value, '');
+    setProperty('${Device.cssPrefix}border-end', value, '');
   }
 
   /** Gets the value of "border-end-color" */
   String get borderEndColor =>
-    getPropertyValue('${_browserPrefix}border-end-color');
+    getPropertyValue('${Device.cssPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
   void set borderEndColor(String value) {
-    setProperty('${_browserPrefix}border-end-color', value, '');
+    setProperty('${Device.cssPrefix}border-end-color', value, '');
   }
 
   /** Gets the value of "border-end-style" */
   String get borderEndStyle =>
-    getPropertyValue('${_browserPrefix}border-end-style');
+    getPropertyValue('${Device.cssPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
   void set borderEndStyle(String value) {
-    setProperty('${_browserPrefix}border-end-style', value, '');
+    setProperty('${Device.cssPrefix}border-end-style', value, '');
   }
 
   /** Gets the value of "border-end-width" */
   String get borderEndWidth =>
-    getPropertyValue('${_browserPrefix}border-end-width');
+    getPropertyValue('${Device.cssPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
   void set borderEndWidth(String value) {
-    setProperty('${_browserPrefix}border-end-width', value, '');
+    setProperty('${Device.cssPrefix}border-end-width', value, '');
   }
 
   /** Gets the value of "border-fit" */
   String get borderFit =>
-    getPropertyValue('${_browserPrefix}border-fit');
+    getPropertyValue('${Device.cssPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
   void set borderFit(String value) {
-    setProperty('${_browserPrefix}border-fit', value, '');
+    setProperty('${Device.cssPrefix}border-fit', value, '');
   }
 
   /** Gets the value of "border-horizontal-spacing" */
   String get borderHorizontalSpacing =>
-    getPropertyValue('${_browserPrefix}border-horizontal-spacing');
+    getPropertyValue('${Device.cssPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
   void set borderHorizontalSpacing(String value) {
-    setProperty('${_browserPrefix}border-horizontal-spacing', value, '');
+    setProperty('${Device.cssPrefix}border-horizontal-spacing', value, '');
   }
 
   /** Gets the value of "border-image" */
@@ -3064,38 +3029,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "border-start" */
   String get borderStart =>
-    getPropertyValue('${_browserPrefix}border-start');
+    getPropertyValue('${Device.cssPrefix}border-start');
 
   /** Sets the value of "border-start" */
   void set borderStart(String value) {
-    setProperty('${_browserPrefix}border-start', value, '');
+    setProperty('${Device.cssPrefix}border-start', value, '');
   }
 
   /** Gets the value of "border-start-color" */
   String get borderStartColor =>
-    getPropertyValue('${_browserPrefix}border-start-color');
+    getPropertyValue('${Device.cssPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
   void set borderStartColor(String value) {
-    setProperty('${_browserPrefix}border-start-color', value, '');
+    setProperty('${Device.cssPrefix}border-start-color', value, '');
   }
 
   /** Gets the value of "border-start-style" */
   String get borderStartStyle =>
-    getPropertyValue('${_browserPrefix}border-start-style');
+    getPropertyValue('${Device.cssPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
   void set borderStartStyle(String value) {
-    setProperty('${_browserPrefix}border-start-style', value, '');
+    setProperty('${Device.cssPrefix}border-start-style', value, '');
   }
 
   /** Gets the value of "border-start-width" */
   String get borderStartWidth =>
-    getPropertyValue('${_browserPrefix}border-start-width');
+    getPropertyValue('${Device.cssPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
   void set borderStartWidth(String value) {
-    setProperty('${_browserPrefix}border-start-width', value, '');
+    setProperty('${Device.cssPrefix}border-start-width', value, '');
   }
 
   /** Gets the value of "border-style" */
@@ -3163,11 +3128,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "border-vertical-spacing" */
   String get borderVerticalSpacing =>
-    getPropertyValue('${_browserPrefix}border-vertical-spacing');
+    getPropertyValue('${Device.cssPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
   void set borderVerticalSpacing(String value) {
-    setProperty('${_browserPrefix}border-vertical-spacing', value, '');
+    setProperty('${Device.cssPrefix}border-vertical-spacing', value, '');
   }
 
   /** Gets the value of "border-width" */
@@ -3190,92 +3155,92 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "box-align" */
   String get boxAlign =>
-    getPropertyValue('${_browserPrefix}box-align');
+    getPropertyValue('${Device.cssPrefix}box-align');
 
   /** Sets the value of "box-align" */
   void set boxAlign(String value) {
-    setProperty('${_browserPrefix}box-align', value, '');
+    setProperty('${Device.cssPrefix}box-align', value, '');
   }
 
   /** Gets the value of "box-decoration-break" */
   String get boxDecorationBreak =>
-    getPropertyValue('${_browserPrefix}box-decoration-break');
+    getPropertyValue('${Device.cssPrefix}box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
   void set boxDecorationBreak(String value) {
-    setProperty('${_browserPrefix}box-decoration-break', value, '');
+    setProperty('${Device.cssPrefix}box-decoration-break', value, '');
   }
 
   /** Gets the value of "box-direction" */
   String get boxDirection =>
-    getPropertyValue('${_browserPrefix}box-direction');
+    getPropertyValue('${Device.cssPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
   void set boxDirection(String value) {
-    setProperty('${_browserPrefix}box-direction', value, '');
+    setProperty('${Device.cssPrefix}box-direction', value, '');
   }
 
   /** Gets the value of "box-flex" */
   String get boxFlex =>
-    getPropertyValue('${_browserPrefix}box-flex');
+    getPropertyValue('${Device.cssPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
   void set boxFlex(String value) {
-    setProperty('${_browserPrefix}box-flex', value, '');
+    setProperty('${Device.cssPrefix}box-flex', value, '');
   }
 
   /** Gets the value of "box-flex-group" */
   String get boxFlexGroup =>
-    getPropertyValue('${_browserPrefix}box-flex-group');
+    getPropertyValue('${Device.cssPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
   void set boxFlexGroup(String value) {
-    setProperty('${_browserPrefix}box-flex-group', value, '');
+    setProperty('${Device.cssPrefix}box-flex-group', value, '');
   }
 
   /** Gets the value of "box-lines" */
   String get boxLines =>
-    getPropertyValue('${_browserPrefix}box-lines');
+    getPropertyValue('${Device.cssPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
   void set boxLines(String value) {
-    setProperty('${_browserPrefix}box-lines', value, '');
+    setProperty('${Device.cssPrefix}box-lines', value, '');
   }
 
   /** Gets the value of "box-ordinal-group" */
   String get boxOrdinalGroup =>
-    getPropertyValue('${_browserPrefix}box-ordinal-group');
+    getPropertyValue('${Device.cssPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
   void set boxOrdinalGroup(String value) {
-    setProperty('${_browserPrefix}box-ordinal-group', value, '');
+    setProperty('${Device.cssPrefix}box-ordinal-group', value, '');
   }
 
   /** Gets the value of "box-orient" */
   String get boxOrient =>
-    getPropertyValue('${_browserPrefix}box-orient');
+    getPropertyValue('${Device.cssPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
   void set boxOrient(String value) {
-    setProperty('${_browserPrefix}box-orient', value, '');
+    setProperty('${Device.cssPrefix}box-orient', value, '');
   }
 
   /** Gets the value of "box-pack" */
   String get boxPack =>
-    getPropertyValue('${_browserPrefix}box-pack');
+    getPropertyValue('${Device.cssPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
   void set boxPack(String value) {
-    setProperty('${_browserPrefix}box-pack', value, '');
+    setProperty('${Device.cssPrefix}box-pack', value, '');
   }
 
   /** Gets the value of "box-reflect" */
   String get boxReflect =>
-    getPropertyValue('${_browserPrefix}box-reflect');
+    getPropertyValue('${Device.cssPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
   void set boxReflect(String value) {
-    setProperty('${_browserPrefix}box-reflect', value, '');
+    setProperty('${Device.cssPrefix}box-reflect', value, '');
   }
 
   /** Gets the value of "box-shadow" */
@@ -3325,11 +3290,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "clip-path" */
   String get clipPath =>
-    getPropertyValue('${_browserPrefix}clip-path');
+    getPropertyValue('${Device.cssPrefix}clip-path');
 
   /** Sets the value of "clip-path" */
   void set clipPath(String value) {
-    setProperty('${_browserPrefix}clip-path', value, '');
+    setProperty('${Device.cssPrefix}clip-path', value, '');
   }
 
   /** Gets the value of "color" */
@@ -3343,137 +3308,137 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "color-correction" */
   String get colorCorrection =>
-    getPropertyValue('${_browserPrefix}color-correction');
+    getPropertyValue('${Device.cssPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
   void set colorCorrection(String value) {
-    setProperty('${_browserPrefix}color-correction', value, '');
+    setProperty('${Device.cssPrefix}color-correction', value, '');
   }
 
   /** Gets the value of "column-axis" */
   String get columnAxis =>
-    getPropertyValue('${_browserPrefix}column-axis');
+    getPropertyValue('${Device.cssPrefix}column-axis');
 
   /** Sets the value of "column-axis" */
   void set columnAxis(String value) {
-    setProperty('${_browserPrefix}column-axis', value, '');
+    setProperty('${Device.cssPrefix}column-axis', value, '');
   }
 
   /** Gets the value of "column-break-after" */
   String get columnBreakAfter =>
-    getPropertyValue('${_browserPrefix}column-break-after');
+    getPropertyValue('${Device.cssPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
   void set columnBreakAfter(String value) {
-    setProperty('${_browserPrefix}column-break-after', value, '');
+    setProperty('${Device.cssPrefix}column-break-after', value, '');
   }
 
   /** Gets the value of "column-break-before" */
   String get columnBreakBefore =>
-    getPropertyValue('${_browserPrefix}column-break-before');
+    getPropertyValue('${Device.cssPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
   void set columnBreakBefore(String value) {
-    setProperty('${_browserPrefix}column-break-before', value, '');
+    setProperty('${Device.cssPrefix}column-break-before', value, '');
   }
 
   /** Gets the value of "column-break-inside" */
   String get columnBreakInside =>
-    getPropertyValue('${_browserPrefix}column-break-inside');
+    getPropertyValue('${Device.cssPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
   void set columnBreakInside(String value) {
-    setProperty('${_browserPrefix}column-break-inside', value, '');
+    setProperty('${Device.cssPrefix}column-break-inside', value, '');
   }
 
   /** Gets the value of "column-count" */
   String get columnCount =>
-    getPropertyValue('${_browserPrefix}column-count');
+    getPropertyValue('${Device.cssPrefix}column-count');
 
   /** Sets the value of "column-count" */
   void set columnCount(String value) {
-    setProperty('${_browserPrefix}column-count', value, '');
+    setProperty('${Device.cssPrefix}column-count', value, '');
   }
 
   /** Gets the value of "column-gap" */
   String get columnGap =>
-    getPropertyValue('${_browserPrefix}column-gap');
+    getPropertyValue('${Device.cssPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
   void set columnGap(String value) {
-    setProperty('${_browserPrefix}column-gap', value, '');
+    setProperty('${Device.cssPrefix}column-gap', value, '');
   }
 
   /** Gets the value of "column-progression" */
   String get columnProgression =>
-    getPropertyValue('${_browserPrefix}column-progression');
+    getPropertyValue('${Device.cssPrefix}column-progression');
 
   /** Sets the value of "column-progression" */
   void set columnProgression(String value) {
-    setProperty('${_browserPrefix}column-progression', value, '');
+    setProperty('${Device.cssPrefix}column-progression', value, '');
   }
 
   /** Gets the value of "column-rule" */
   String get columnRule =>
-    getPropertyValue('${_browserPrefix}column-rule');
+    getPropertyValue('${Device.cssPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
   void set columnRule(String value) {
-    setProperty('${_browserPrefix}column-rule', value, '');
+    setProperty('${Device.cssPrefix}column-rule', value, '');
   }
 
   /** Gets the value of "column-rule-color" */
   String get columnRuleColor =>
-    getPropertyValue('${_browserPrefix}column-rule-color');
+    getPropertyValue('${Device.cssPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
   void set columnRuleColor(String value) {
-    setProperty('${_browserPrefix}column-rule-color', value, '');
+    setProperty('${Device.cssPrefix}column-rule-color', value, '');
   }
 
   /** Gets the value of "column-rule-style" */
   String get columnRuleStyle =>
-    getPropertyValue('${_browserPrefix}column-rule-style');
+    getPropertyValue('${Device.cssPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
   void set columnRuleStyle(String value) {
-    setProperty('${_browserPrefix}column-rule-style', value, '');
+    setProperty('${Device.cssPrefix}column-rule-style', value, '');
   }
 
   /** Gets the value of "column-rule-width" */
   String get columnRuleWidth =>
-    getPropertyValue('${_browserPrefix}column-rule-width');
+    getPropertyValue('${Device.cssPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
   void set columnRuleWidth(String value) {
-    setProperty('${_browserPrefix}column-rule-width', value, '');
+    setProperty('${Device.cssPrefix}column-rule-width', value, '');
   }
 
   /** Gets the value of "column-span" */
   String get columnSpan =>
-    getPropertyValue('${_browserPrefix}column-span');
+    getPropertyValue('${Device.cssPrefix}column-span');
 
   /** Sets the value of "column-span" */
   void set columnSpan(String value) {
-    setProperty('${_browserPrefix}column-span', value, '');
+    setProperty('${Device.cssPrefix}column-span', value, '');
   }
 
   /** Gets the value of "column-width" */
   String get columnWidth =>
-    getPropertyValue('${_browserPrefix}column-width');
+    getPropertyValue('${Device.cssPrefix}column-width');
 
   /** Sets the value of "column-width" */
   void set columnWidth(String value) {
-    setProperty('${_browserPrefix}column-width', value, '');
+    setProperty('${Device.cssPrefix}column-width', value, '');
   }
 
   /** Gets the value of "columns" */
   String get columns =>
-    getPropertyValue('${_browserPrefix}columns');
+    getPropertyValue('${Device.cssPrefix}columns');
 
   /** Sets the value of "columns" */
   void set columns(String value) {
-    setProperty('${_browserPrefix}columns', value, '');
+    setProperty('${Device.cssPrefix}columns', value, '');
   }
 
   /** Gets the value of "content" */
@@ -3514,11 +3479,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "dashboard-region" */
   String get dashboardRegion =>
-    getPropertyValue('${_browserPrefix}dashboard-region');
+    getPropertyValue('${Device.cssPrefix}dashboard-region');
 
   /** Sets the value of "dashboard-region" */
   void set dashboardRegion(String value) {
-    setProperty('${_browserPrefix}dashboard-region', value, '');
+    setProperty('${Device.cssPrefix}dashboard-region', value, '');
   }
 
   /** Gets the value of "direction" */
@@ -3550,74 +3515,74 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "filter" */
   String get filter =>
-    getPropertyValue('${_browserPrefix}filter');
+    getPropertyValue('${Device.cssPrefix}filter');
 
   /** Sets the value of "filter" */
   void set filter(String value) {
-    setProperty('${_browserPrefix}filter', value, '');
+    setProperty('${Device.cssPrefix}filter', value, '');
   }
 
   /** Gets the value of "flex" */
   String get flex =>
-    getPropertyValue('${_browserPrefix}flex');
+    getPropertyValue('${Device.cssPrefix}flex');
 
   /** Sets the value of "flex" */
   void set flex(String value) {
-    setProperty('${_browserPrefix}flex', value, '');
+    setProperty('${Device.cssPrefix}flex', value, '');
   }
 
   /** Gets the value of "flex-basis" */
   String get flexBasis =>
-    getPropertyValue('${_browserPrefix}flex-basis');
+    getPropertyValue('${Device.cssPrefix}flex-basis');
 
   /** Sets the value of "flex-basis" */
   void set flexBasis(String value) {
-    setProperty('${_browserPrefix}flex-basis', value, '');
+    setProperty('${Device.cssPrefix}flex-basis', value, '');
   }
 
   /** Gets the value of "flex-direction" */
   String get flexDirection =>
-    getPropertyValue('${_browserPrefix}flex-direction');
+    getPropertyValue('${Device.cssPrefix}flex-direction');
 
   /** Sets the value of "flex-direction" */
   void set flexDirection(String value) {
-    setProperty('${_browserPrefix}flex-direction', value, '');
+    setProperty('${Device.cssPrefix}flex-direction', value, '');
   }
 
   /** Gets the value of "flex-flow" */
   String get flexFlow =>
-    getPropertyValue('${_browserPrefix}flex-flow');
+    getPropertyValue('${Device.cssPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
   void set flexFlow(String value) {
-    setProperty('${_browserPrefix}flex-flow', value, '');
+    setProperty('${Device.cssPrefix}flex-flow', value, '');
   }
 
   /** Gets the value of "flex-grow" */
   String get flexGrow =>
-    getPropertyValue('${_browserPrefix}flex-grow');
+    getPropertyValue('${Device.cssPrefix}flex-grow');
 
   /** Sets the value of "flex-grow" */
   void set flexGrow(String value) {
-    setProperty('${_browserPrefix}flex-grow', value, '');
+    setProperty('${Device.cssPrefix}flex-grow', value, '');
   }
 
   /** Gets the value of "flex-shrink" */
   String get flexShrink =>
-    getPropertyValue('${_browserPrefix}flex-shrink');
+    getPropertyValue('${Device.cssPrefix}flex-shrink');
 
   /** Sets the value of "flex-shrink" */
   void set flexShrink(String value) {
-    setProperty('${_browserPrefix}flex-shrink', value, '');
+    setProperty('${Device.cssPrefix}flex-shrink', value, '');
   }
 
   /** Gets the value of "flex-wrap" */
   String get flexWrap =>
-    getPropertyValue('${_browserPrefix}flex-wrap');
+    getPropertyValue('${Device.cssPrefix}flex-wrap');
 
   /** Sets the value of "flex-wrap" */
   void set flexWrap(String value) {
-    setProperty('${_browserPrefix}flex-wrap', value, '');
+    setProperty('${Device.cssPrefix}flex-wrap', value, '');
   }
 
   /** Gets the value of "float" */
@@ -3631,20 +3596,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "flow-from" */
   String get flowFrom =>
-    getPropertyValue('${_browserPrefix}flow-from');
+    getPropertyValue('${Device.cssPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
   void set flowFrom(String value) {
-    setProperty('${_browserPrefix}flow-from', value, '');
+    setProperty('${Device.cssPrefix}flow-from', value, '');
   }
 
   /** Gets the value of "flow-into" */
   String get flowInto =>
-    getPropertyValue('${_browserPrefix}flow-into');
+    getPropertyValue('${Device.cssPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
   void set flowInto(String value) {
-    setProperty('${_browserPrefix}flow-into', value, '');
+    setProperty('${Device.cssPrefix}flow-into', value, '');
   }
 
   /** Gets the value of "font" */
@@ -3667,20 +3632,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "font-feature-settings" */
   String get fontFeatureSettings =>
-    getPropertyValue('${_browserPrefix}font-feature-settings');
+    getPropertyValue('${Device.cssPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
   void set fontFeatureSettings(String value) {
-    setProperty('${_browserPrefix}font-feature-settings', value, '');
+    setProperty('${Device.cssPrefix}font-feature-settings', value, '');
   }
 
   /** Gets the value of "font-kerning" */
   String get fontKerning =>
-    getPropertyValue('${_browserPrefix}font-kerning');
+    getPropertyValue('${Device.cssPrefix}font-kerning');
 
   /** Sets the value of "font-kerning" */
   void set fontKerning(String value) {
-    setProperty('${_browserPrefix}font-kerning', value, '');
+    setProperty('${Device.cssPrefix}font-kerning', value, '');
   }
 
   /** Gets the value of "font-size" */
@@ -3694,20 +3659,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "font-size-delta" */
   String get fontSizeDelta =>
-    getPropertyValue('${_browserPrefix}font-size-delta');
+    getPropertyValue('${Device.cssPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
   void set fontSizeDelta(String value) {
-    setProperty('${_browserPrefix}font-size-delta', value, '');
+    setProperty('${Device.cssPrefix}font-size-delta', value, '');
   }
 
   /** Gets the value of "font-smoothing" */
   String get fontSmoothing =>
-    getPropertyValue('${_browserPrefix}font-smoothing');
+    getPropertyValue('${Device.cssPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
   void set fontSmoothing(String value) {
-    setProperty('${_browserPrefix}font-smoothing', value, '');
+    setProperty('${Device.cssPrefix}font-smoothing', value, '');
   }
 
   /** Gets the value of "font-stretch" */
@@ -3739,11 +3704,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "font-variant-ligatures" */
   String get fontVariantLigatures =>
-    getPropertyValue('${_browserPrefix}font-variant-ligatures');
+    getPropertyValue('${Device.cssPrefix}font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
   void set fontVariantLigatures(String value) {
-    setProperty('${_browserPrefix}font-variant-ligatures', value, '');
+    setProperty('${Device.cssPrefix}font-variant-ligatures', value, '');
   }
 
   /** Gets the value of "font-weight" */
@@ -3757,38 +3722,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "grid-column" */
   String get gridColumn =>
-    getPropertyValue('${_browserPrefix}grid-column');
+    getPropertyValue('${Device.cssPrefix}grid-column');
 
   /** Sets the value of "grid-column" */
   void set gridColumn(String value) {
-    setProperty('${_browserPrefix}grid-column', value, '');
+    setProperty('${Device.cssPrefix}grid-column', value, '');
   }
 
   /** Gets the value of "grid-columns" */
   String get gridColumns =>
-    getPropertyValue('${_browserPrefix}grid-columns');
+    getPropertyValue('${Device.cssPrefix}grid-columns');
 
   /** Sets the value of "grid-columns" */
   void set gridColumns(String value) {
-    setProperty('${_browserPrefix}grid-columns', value, '');
+    setProperty('${Device.cssPrefix}grid-columns', value, '');
   }
 
   /** Gets the value of "grid-row" */
   String get gridRow =>
-    getPropertyValue('${_browserPrefix}grid-row');
+    getPropertyValue('${Device.cssPrefix}grid-row');
 
   /** Sets the value of "grid-row" */
   void set gridRow(String value) {
-    setProperty('${_browserPrefix}grid-row', value, '');
+    setProperty('${Device.cssPrefix}grid-row', value, '');
   }
 
   /** Gets the value of "grid-rows" */
   String get gridRows =>
-    getPropertyValue('${_browserPrefix}grid-rows');
+    getPropertyValue('${Device.cssPrefix}grid-rows');
 
   /** Sets the value of "grid-rows" */
   void set gridRows(String value) {
-    setProperty('${_browserPrefix}grid-rows', value, '');
+    setProperty('${Device.cssPrefix}grid-rows', value, '');
   }
 
   /** Gets the value of "height" */
@@ -3802,56 +3767,56 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "highlight" */
   String get highlight =>
-    getPropertyValue('${_browserPrefix}highlight');
+    getPropertyValue('${Device.cssPrefix}highlight');
 
   /** Sets the value of "highlight" */
   void set highlight(String value) {
-    setProperty('${_browserPrefix}highlight', value, '');
+    setProperty('${Device.cssPrefix}highlight', value, '');
   }
 
   /** Gets the value of "hyphenate-character" */
   String get hyphenateCharacter =>
-    getPropertyValue('${_browserPrefix}hyphenate-character');
+    getPropertyValue('${Device.cssPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
   void set hyphenateCharacter(String value) {
-    setProperty('${_browserPrefix}hyphenate-character', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-character', value, '');
   }
 
   /** Gets the value of "hyphenate-limit-after" */
   String get hyphenateLimitAfter =>
-    getPropertyValue('${_browserPrefix}hyphenate-limit-after');
+    getPropertyValue('${Device.cssPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
   void set hyphenateLimitAfter(String value) {
-    setProperty('${_browserPrefix}hyphenate-limit-after', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-limit-after', value, '');
   }
 
   /** Gets the value of "hyphenate-limit-before" */
   String get hyphenateLimitBefore =>
-    getPropertyValue('${_browserPrefix}hyphenate-limit-before');
+    getPropertyValue('${Device.cssPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
   void set hyphenateLimitBefore(String value) {
-    setProperty('${_browserPrefix}hyphenate-limit-before', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-limit-before', value, '');
   }
 
   /** Gets the value of "hyphenate-limit-lines" */
   String get hyphenateLimitLines =>
-    getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
+    getPropertyValue('${Device.cssPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
   void set hyphenateLimitLines(String value) {
-    setProperty('${_browserPrefix}hyphenate-limit-lines', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-limit-lines', value, '');
   }
 
   /** Gets the value of "hyphens" */
   String get hyphens =>
-    getPropertyValue('${_browserPrefix}hyphens');
+    getPropertyValue('${Device.cssPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
   void set hyphens(String value) {
-    setProperty('${_browserPrefix}hyphens', value, '');
+    setProperty('${Device.cssPrefix}hyphens', value, '');
   }
 
   /** Gets the value of "image-orientation" */
@@ -3883,11 +3848,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "justify-content" */
   String get justifyContent =>
-    getPropertyValue('${_browserPrefix}justify-content');
+    getPropertyValue('${Device.cssPrefix}justify-content');
 
   /** Sets the value of "justify-content" */
   void set justifyContent(String value) {
-    setProperty('${_browserPrefix}justify-content', value, '');
+    setProperty('${Device.cssPrefix}justify-content', value, '');
   }
 
   /** Gets the value of "left" */
@@ -3910,47 +3875,47 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "line-align" */
   String get lineAlign =>
-    getPropertyValue('${_browserPrefix}line-align');
+    getPropertyValue('${Device.cssPrefix}line-align');
 
   /** Sets the value of "line-align" */
   void set lineAlign(String value) {
-    setProperty('${_browserPrefix}line-align', value, '');
+    setProperty('${Device.cssPrefix}line-align', value, '');
   }
 
   /** Gets the value of "line-box-contain" */
   String get lineBoxContain =>
-    getPropertyValue('${_browserPrefix}line-box-contain');
+    getPropertyValue('${Device.cssPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
   void set lineBoxContain(String value) {
-    setProperty('${_browserPrefix}line-box-contain', value, '');
+    setProperty('${Device.cssPrefix}line-box-contain', value, '');
   }
 
   /** Gets the value of "line-break" */
   String get lineBreak =>
-    getPropertyValue('${_browserPrefix}line-break');
+    getPropertyValue('${Device.cssPrefix}line-break');
 
   /** Sets the value of "line-break" */
   void set lineBreak(String value) {
-    setProperty('${_browserPrefix}line-break', value, '');
+    setProperty('${Device.cssPrefix}line-break', value, '');
   }
 
   /** Gets the value of "line-clamp" */
   String get lineClamp =>
-    getPropertyValue('${_browserPrefix}line-clamp');
+    getPropertyValue('${Device.cssPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
   void set lineClamp(String value) {
-    setProperty('${_browserPrefix}line-clamp', value, '');
+    setProperty('${Device.cssPrefix}line-clamp', value, '');
   }
 
   /** Gets the value of "line-grid" */
   String get lineGrid =>
-    getPropertyValue('${_browserPrefix}line-grid');
+    getPropertyValue('${Device.cssPrefix}line-grid');
 
   /** Sets the value of "line-grid" */
   void set lineGrid(String value) {
-    setProperty('${_browserPrefix}line-grid', value, '');
+    setProperty('${Device.cssPrefix}line-grid', value, '');
   }
 
   /** Gets the value of "line-height" */
@@ -3964,11 +3929,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "line-snap" */
   String get lineSnap =>
-    getPropertyValue('${_browserPrefix}line-snap');
+    getPropertyValue('${Device.cssPrefix}line-snap');
 
   /** Sets the value of "line-snap" */
   void set lineSnap(String value) {
-    setProperty('${_browserPrefix}line-snap', value, '');
+    setProperty('${Device.cssPrefix}line-snap', value, '');
   }
 
   /** Gets the value of "list-style" */
@@ -4009,29 +3974,29 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "locale" */
   String get locale =>
-    getPropertyValue('${_browserPrefix}locale');
+    getPropertyValue('${Device.cssPrefix}locale');
 
   /** Sets the value of "locale" */
   void set locale(String value) {
-    setProperty('${_browserPrefix}locale', value, '');
+    setProperty('${Device.cssPrefix}locale', value, '');
   }
 
   /** Gets the value of "logical-height" */
   String get logicalHeight =>
-    getPropertyValue('${_browserPrefix}logical-height');
+    getPropertyValue('${Device.cssPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
   void set logicalHeight(String value) {
-    setProperty('${_browserPrefix}logical-height', value, '');
+    setProperty('${Device.cssPrefix}logical-height', value, '');
   }
 
   /** Gets the value of "logical-width" */
   String get logicalWidth =>
-    getPropertyValue('${_browserPrefix}logical-width');
+    getPropertyValue('${Device.cssPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
   void set logicalWidth(String value) {
-    setProperty('${_browserPrefix}logical-width', value, '');
+    setProperty('${Device.cssPrefix}logical-width', value, '');
   }
 
   /** Gets the value of "margin" */
@@ -4045,38 +4010,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "margin-after" */
   String get marginAfter =>
-    getPropertyValue('${_browserPrefix}margin-after');
+    getPropertyValue('${Device.cssPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
   void set marginAfter(String value) {
-    setProperty('${_browserPrefix}margin-after', value, '');
+    setProperty('${Device.cssPrefix}margin-after', value, '');
   }
 
   /** Gets the value of "margin-after-collapse" */
   String get marginAfterCollapse =>
-    getPropertyValue('${_browserPrefix}margin-after-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
   void set marginAfterCollapse(String value) {
-    setProperty('${_browserPrefix}margin-after-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-after-collapse', value, '');
   }
 
   /** Gets the value of "margin-before" */
   String get marginBefore =>
-    getPropertyValue('${_browserPrefix}margin-before');
+    getPropertyValue('${Device.cssPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
   void set marginBefore(String value) {
-    setProperty('${_browserPrefix}margin-before', value, '');
+    setProperty('${Device.cssPrefix}margin-before', value, '');
   }
 
   /** Gets the value of "margin-before-collapse" */
   String get marginBeforeCollapse =>
-    getPropertyValue('${_browserPrefix}margin-before-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
   void set marginBeforeCollapse(String value) {
-    setProperty('${_browserPrefix}margin-before-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-before-collapse', value, '');
   }
 
   /** Gets the value of "margin-bottom" */
@@ -4090,29 +4055,29 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "margin-bottom-collapse" */
   String get marginBottomCollapse =>
-    getPropertyValue('${_browserPrefix}margin-bottom-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
   void set marginBottomCollapse(String value) {
-    setProperty('${_browserPrefix}margin-bottom-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-bottom-collapse', value, '');
   }
 
   /** Gets the value of "margin-collapse" */
   String get marginCollapse =>
-    getPropertyValue('${_browserPrefix}margin-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
   void set marginCollapse(String value) {
-    setProperty('${_browserPrefix}margin-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-collapse', value, '');
   }
 
   /** Gets the value of "margin-end" */
   String get marginEnd =>
-    getPropertyValue('${_browserPrefix}margin-end');
+    getPropertyValue('${Device.cssPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
   void set marginEnd(String value) {
-    setProperty('${_browserPrefix}margin-end', value, '');
+    setProperty('${Device.cssPrefix}margin-end', value, '');
   }
 
   /** Gets the value of "margin-left" */
@@ -4135,11 +4100,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "margin-start" */
   String get marginStart =>
-    getPropertyValue('${_browserPrefix}margin-start');
+    getPropertyValue('${Device.cssPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
   void set marginStart(String value) {
-    setProperty('${_browserPrefix}margin-start', value, '');
+    setProperty('${Device.cssPrefix}margin-start', value, '');
   }
 
   /** Gets the value of "margin-top" */
@@ -4153,236 +4118,236 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "margin-top-collapse" */
   String get marginTopCollapse =>
-    getPropertyValue('${_browserPrefix}margin-top-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
   void set marginTopCollapse(String value) {
-    setProperty('${_browserPrefix}margin-top-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-top-collapse', value, '');
   }
 
   /** Gets the value of "marquee" */
   String get marquee =>
-    getPropertyValue('${_browserPrefix}marquee');
+    getPropertyValue('${Device.cssPrefix}marquee');
 
   /** Sets the value of "marquee" */
   void set marquee(String value) {
-    setProperty('${_browserPrefix}marquee', value, '');
+    setProperty('${Device.cssPrefix}marquee', value, '');
   }
 
   /** Gets the value of "marquee-direction" */
   String get marqueeDirection =>
-    getPropertyValue('${_browserPrefix}marquee-direction');
+    getPropertyValue('${Device.cssPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
   void set marqueeDirection(String value) {
-    setProperty('${_browserPrefix}marquee-direction', value, '');
+    setProperty('${Device.cssPrefix}marquee-direction', value, '');
   }
 
   /** Gets the value of "marquee-increment" */
   String get marqueeIncrement =>
-    getPropertyValue('${_browserPrefix}marquee-increment');
+    getPropertyValue('${Device.cssPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
   void set marqueeIncrement(String value) {
-    setProperty('${_browserPrefix}marquee-increment', value, '');
+    setProperty('${Device.cssPrefix}marquee-increment', value, '');
   }
 
   /** Gets the value of "marquee-repetition" */
   String get marqueeRepetition =>
-    getPropertyValue('${_browserPrefix}marquee-repetition');
+    getPropertyValue('${Device.cssPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
   void set marqueeRepetition(String value) {
-    setProperty('${_browserPrefix}marquee-repetition', value, '');
+    setProperty('${Device.cssPrefix}marquee-repetition', value, '');
   }
 
   /** Gets the value of "marquee-speed" */
   String get marqueeSpeed =>
-    getPropertyValue('${_browserPrefix}marquee-speed');
+    getPropertyValue('${Device.cssPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
   void set marqueeSpeed(String value) {
-    setProperty('${_browserPrefix}marquee-speed', value, '');
+    setProperty('${Device.cssPrefix}marquee-speed', value, '');
   }
 
   /** Gets the value of "marquee-style" */
   String get marqueeStyle =>
-    getPropertyValue('${_browserPrefix}marquee-style');
+    getPropertyValue('${Device.cssPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
   void set marqueeStyle(String value) {
-    setProperty('${_browserPrefix}marquee-style', value, '');
+    setProperty('${Device.cssPrefix}marquee-style', value, '');
   }
 
   /** Gets the value of "mask" */
   String get mask =>
-    getPropertyValue('${_browserPrefix}mask');
+    getPropertyValue('${Device.cssPrefix}mask');
 
   /** Sets the value of "mask" */
   void set mask(String value) {
-    setProperty('${_browserPrefix}mask', value, '');
+    setProperty('${Device.cssPrefix}mask', value, '');
   }
 
   /** Gets the value of "mask-attachment" */
   String get maskAttachment =>
-    getPropertyValue('${_browserPrefix}mask-attachment');
+    getPropertyValue('${Device.cssPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
   void set maskAttachment(String value) {
-    setProperty('${_browserPrefix}mask-attachment', value, '');
+    setProperty('${Device.cssPrefix}mask-attachment', value, '');
   }
 
   /** Gets the value of "mask-box-image" */
   String get maskBoxImage =>
-    getPropertyValue('${_browserPrefix}mask-box-image');
+    getPropertyValue('${Device.cssPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
   void set maskBoxImage(String value) {
-    setProperty('${_browserPrefix}mask-box-image', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image', value, '');
   }
 
   /** Gets the value of "mask-box-image-outset" */
   String get maskBoxImageOutset =>
-    getPropertyValue('${_browserPrefix}mask-box-image-outset');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
   void set maskBoxImageOutset(String value) {
-    setProperty('${_browserPrefix}mask-box-image-outset', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-outset', value, '');
   }
 
   /** Gets the value of "mask-box-image-repeat" */
   String get maskBoxImageRepeat =>
-    getPropertyValue('${_browserPrefix}mask-box-image-repeat');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
   void set maskBoxImageRepeat(String value) {
-    setProperty('${_browserPrefix}mask-box-image-repeat', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-repeat', value, '');
   }
 
   /** Gets the value of "mask-box-image-slice" */
   String get maskBoxImageSlice =>
-    getPropertyValue('${_browserPrefix}mask-box-image-slice');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
   void set maskBoxImageSlice(String value) {
-    setProperty('${_browserPrefix}mask-box-image-slice', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-slice', value, '');
   }
 
   /** Gets the value of "mask-box-image-source" */
   String get maskBoxImageSource =>
-    getPropertyValue('${_browserPrefix}mask-box-image-source');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
   void set maskBoxImageSource(String value) {
-    setProperty('${_browserPrefix}mask-box-image-source', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-source', value, '');
   }
 
   /** Gets the value of "mask-box-image-width" */
   String get maskBoxImageWidth =>
-    getPropertyValue('${_browserPrefix}mask-box-image-width');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
   void set maskBoxImageWidth(String value) {
-    setProperty('${_browserPrefix}mask-box-image-width', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-width', value, '');
   }
 
   /** Gets the value of "mask-clip" */
   String get maskClip =>
-    getPropertyValue('${_browserPrefix}mask-clip');
+    getPropertyValue('${Device.cssPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
   void set maskClip(String value) {
-    setProperty('${_browserPrefix}mask-clip', value, '');
+    setProperty('${Device.cssPrefix}mask-clip', value, '');
   }
 
   /** Gets the value of "mask-composite" */
   String get maskComposite =>
-    getPropertyValue('${_browserPrefix}mask-composite');
+    getPropertyValue('${Device.cssPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
   void set maskComposite(String value) {
-    setProperty('${_browserPrefix}mask-composite', value, '');
+    setProperty('${Device.cssPrefix}mask-composite', value, '');
   }
 
   /** Gets the value of "mask-image" */
   String get maskImage =>
-    getPropertyValue('${_browserPrefix}mask-image');
+    getPropertyValue('${Device.cssPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
   void set maskImage(String value) {
-    setProperty('${_browserPrefix}mask-image', value, '');
+    setProperty('${Device.cssPrefix}mask-image', value, '');
   }
 
   /** Gets the value of "mask-origin" */
   String get maskOrigin =>
-    getPropertyValue('${_browserPrefix}mask-origin');
+    getPropertyValue('${Device.cssPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
   void set maskOrigin(String value) {
-    setProperty('${_browserPrefix}mask-origin', value, '');
+    setProperty('${Device.cssPrefix}mask-origin', value, '');
   }
 
   /** Gets the value of "mask-position" */
   String get maskPosition =>
-    getPropertyValue('${_browserPrefix}mask-position');
+    getPropertyValue('${Device.cssPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
   void set maskPosition(String value) {
-    setProperty('${_browserPrefix}mask-position', value, '');
+    setProperty('${Device.cssPrefix}mask-position', value, '');
   }
 
   /** Gets the value of "mask-position-x" */
   String get maskPositionX =>
-    getPropertyValue('${_browserPrefix}mask-position-x');
+    getPropertyValue('${Device.cssPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
   void set maskPositionX(String value) {
-    setProperty('${_browserPrefix}mask-position-x', value, '');
+    setProperty('${Device.cssPrefix}mask-position-x', value, '');
   }
 
   /** Gets the value of "mask-position-y" */
   String get maskPositionY =>
-    getPropertyValue('${_browserPrefix}mask-position-y');
+    getPropertyValue('${Device.cssPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
   void set maskPositionY(String value) {
-    setProperty('${_browserPrefix}mask-position-y', value, '');
+    setProperty('${Device.cssPrefix}mask-position-y', value, '');
   }
 
   /** Gets the value of "mask-repeat" */
   String get maskRepeat =>
-    getPropertyValue('${_browserPrefix}mask-repeat');
+    getPropertyValue('${Device.cssPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
   void set maskRepeat(String value) {
-    setProperty('${_browserPrefix}mask-repeat', value, '');
+    setProperty('${Device.cssPrefix}mask-repeat', value, '');
   }
 
   /** Gets the value of "mask-repeat-x" */
   String get maskRepeatX =>
-    getPropertyValue('${_browserPrefix}mask-repeat-x');
+    getPropertyValue('${Device.cssPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
   void set maskRepeatX(String value) {
-    setProperty('${_browserPrefix}mask-repeat-x', value, '');
+    setProperty('${Device.cssPrefix}mask-repeat-x', value, '');
   }
 
   /** Gets the value of "mask-repeat-y" */
   String get maskRepeatY =>
-    getPropertyValue('${_browserPrefix}mask-repeat-y');
+    getPropertyValue('${Device.cssPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
   void set maskRepeatY(String value) {
-    setProperty('${_browserPrefix}mask-repeat-y', value, '');
+    setProperty('${Device.cssPrefix}mask-repeat-y', value, '');
   }
 
   /** Gets the value of "mask-size" */
   String get maskSize =>
-    getPropertyValue('${_browserPrefix}mask-size');
+    getPropertyValue('${Device.cssPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
   void set maskSize(String value) {
-    setProperty('${_browserPrefix}mask-size', value, '');
+    setProperty('${Device.cssPrefix}mask-size', value, '');
   }
 
   /** Gets the value of "max-height" */
@@ -4396,20 +4361,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "max-logical-height" */
   String get maxLogicalHeight =>
-    getPropertyValue('${_browserPrefix}max-logical-height');
+    getPropertyValue('${Device.cssPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
   void set maxLogicalHeight(String value) {
-    setProperty('${_browserPrefix}max-logical-height', value, '');
+    setProperty('${Device.cssPrefix}max-logical-height', value, '');
   }
 
   /** Gets the value of "max-logical-width" */
   String get maxLogicalWidth =>
-    getPropertyValue('${_browserPrefix}max-logical-width');
+    getPropertyValue('${Device.cssPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
   void set maxLogicalWidth(String value) {
-    setProperty('${_browserPrefix}max-logical-width', value, '');
+    setProperty('${Device.cssPrefix}max-logical-width', value, '');
   }
 
   /** Gets the value of "max-width" */
@@ -4441,20 +4406,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "min-logical-height" */
   String get minLogicalHeight =>
-    getPropertyValue('${_browserPrefix}min-logical-height');
+    getPropertyValue('${Device.cssPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
   void set minLogicalHeight(String value) {
-    setProperty('${_browserPrefix}min-logical-height', value, '');
+    setProperty('${Device.cssPrefix}min-logical-height', value, '');
   }
 
   /** Gets the value of "min-logical-width" */
   String get minLogicalWidth =>
-    getPropertyValue('${_browserPrefix}min-logical-width');
+    getPropertyValue('${Device.cssPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
   void set minLogicalWidth(String value) {
-    setProperty('${_browserPrefix}min-logical-width', value, '');
+    setProperty('${Device.cssPrefix}min-logical-width', value, '');
   }
 
   /** Gets the value of "min-width" */
@@ -4477,11 +4442,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "nbsp-mode" */
   String get nbspMode =>
-    getPropertyValue('${_browserPrefix}nbsp-mode');
+    getPropertyValue('${Device.cssPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
   void set nbspMode(String value) {
-    setProperty('${_browserPrefix}nbsp-mode', value, '');
+    setProperty('${Device.cssPrefix}nbsp-mode', value, '');
   }
 
   /** Gets the value of "opacity" */
@@ -4495,11 +4460,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "order" */
   String get order =>
-    getPropertyValue('${_browserPrefix}order');
+    getPropertyValue('${Device.cssPrefix}order');
 
   /** Sets the value of "order" */
   void set order(String value) {
-    setProperty('${_browserPrefix}order', value, '');
+    setProperty('${Device.cssPrefix}order', value, '');
   }
 
   /** Gets the value of "orientation" */
@@ -4576,11 +4541,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "overflow-scrolling" */
   String get overflowScrolling =>
-    getPropertyValue('${_browserPrefix}overflow-scrolling');
+    getPropertyValue('${Device.cssPrefix}overflow-scrolling');
 
   /** Sets the value of "overflow-scrolling" */
   void set overflowScrolling(String value) {
-    setProperty('${_browserPrefix}overflow-scrolling', value, '');
+    setProperty('${Device.cssPrefix}overflow-scrolling', value, '');
   }
 
   /** Gets the value of "overflow-wrap" */
@@ -4621,20 +4586,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "padding-after" */
   String get paddingAfter =>
-    getPropertyValue('${_browserPrefix}padding-after');
+    getPropertyValue('${Device.cssPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
   void set paddingAfter(String value) {
-    setProperty('${_browserPrefix}padding-after', value, '');
+    setProperty('${Device.cssPrefix}padding-after', value, '');
   }
 
   /** Gets the value of "padding-before" */
   String get paddingBefore =>
-    getPropertyValue('${_browserPrefix}padding-before');
+    getPropertyValue('${Device.cssPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
   void set paddingBefore(String value) {
-    setProperty('${_browserPrefix}padding-before', value, '');
+    setProperty('${Device.cssPrefix}padding-before', value, '');
   }
 
   /** Gets the value of "padding-bottom" */
@@ -4648,11 +4613,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "padding-end" */
   String get paddingEnd =>
-    getPropertyValue('${_browserPrefix}padding-end');
+    getPropertyValue('${Device.cssPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
   void set paddingEnd(String value) {
-    setProperty('${_browserPrefix}padding-end', value, '');
+    setProperty('${Device.cssPrefix}padding-end', value, '');
   }
 
   /** Gets the value of "padding-left" */
@@ -4675,11 +4640,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "padding-start" */
   String get paddingStart =>
-    getPropertyValue('${_browserPrefix}padding-start');
+    getPropertyValue('${Device.cssPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
   void set paddingStart(String value) {
-    setProperty('${_browserPrefix}padding-start', value, '');
+    setProperty('${Device.cssPrefix}padding-start', value, '');
   }
 
   /** Gets the value of "padding-top" */
@@ -4729,38 +4694,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "perspective" */
   String get perspective =>
-    getPropertyValue('${_browserPrefix}perspective');
+    getPropertyValue('${Device.cssPrefix}perspective');
 
   /** Sets the value of "perspective" */
   void set perspective(String value) {
-    setProperty('${_browserPrefix}perspective', value, '');
+    setProperty('${Device.cssPrefix}perspective', value, '');
   }
 
   /** Gets the value of "perspective-origin" */
   String get perspectiveOrigin =>
-    getPropertyValue('${_browserPrefix}perspective-origin');
+    getPropertyValue('${Device.cssPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
   void set perspectiveOrigin(String value) {
-    setProperty('${_browserPrefix}perspective-origin', value, '');
+    setProperty('${Device.cssPrefix}perspective-origin', value, '');
   }
 
   /** Gets the value of "perspective-origin-x" */
   String get perspectiveOriginX =>
-    getPropertyValue('${_browserPrefix}perspective-origin-x');
+    getPropertyValue('${Device.cssPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
   void set perspectiveOriginX(String value) {
-    setProperty('${_browserPrefix}perspective-origin-x', value, '');
+    setProperty('${Device.cssPrefix}perspective-origin-x', value, '');
   }
 
   /** Gets the value of "perspective-origin-y" */
   String get perspectiveOriginY =>
-    getPropertyValue('${_browserPrefix}perspective-origin-y');
+    getPropertyValue('${Device.cssPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
   void set perspectiveOriginY(String value) {
-    setProperty('${_browserPrefix}perspective-origin-y', value, '');
+    setProperty('${Device.cssPrefix}perspective-origin-y', value, '');
   }
 
   /** Gets the value of "pointer-events" */
@@ -4783,11 +4748,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "print-color-adjust" */
   String get printColorAdjust =>
-    getPropertyValue('${_browserPrefix}print-color-adjust');
+    getPropertyValue('${Device.cssPrefix}print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
   void set printColorAdjust(String value) {
-    setProperty('${_browserPrefix}print-color-adjust', value, '');
+    setProperty('${Device.cssPrefix}print-color-adjust', value, '');
   }
 
   /** Gets the value of "quotes" */
@@ -4801,38 +4766,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "region-break-after" */
   String get regionBreakAfter =>
-    getPropertyValue('${_browserPrefix}region-break-after');
+    getPropertyValue('${Device.cssPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
   void set regionBreakAfter(String value) {
-    setProperty('${_browserPrefix}region-break-after', value, '');
+    setProperty('${Device.cssPrefix}region-break-after', value, '');
   }
 
   /** Gets the value of "region-break-before" */
   String get regionBreakBefore =>
-    getPropertyValue('${_browserPrefix}region-break-before');
+    getPropertyValue('${Device.cssPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
   void set regionBreakBefore(String value) {
-    setProperty('${_browserPrefix}region-break-before', value, '');
+    setProperty('${Device.cssPrefix}region-break-before', value, '');
   }
 
   /** Gets the value of "region-break-inside" */
   String get regionBreakInside =>
-    getPropertyValue('${_browserPrefix}region-break-inside');
+    getPropertyValue('${Device.cssPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
   void set regionBreakInside(String value) {
-    setProperty('${_browserPrefix}region-break-inside', value, '');
+    setProperty('${Device.cssPrefix}region-break-inside', value, '');
   }
 
   /** Gets the value of "region-overflow" */
   String get regionOverflow =>
-    getPropertyValue('${_browserPrefix}region-overflow');
+    getPropertyValue('${Device.cssPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
   void set regionOverflow(String value) {
-    setProperty('${_browserPrefix}region-overflow', value, '');
+    setProperty('${Device.cssPrefix}region-overflow', value, '');
   }
 
   /** Gets the value of "resize" */
@@ -4855,47 +4820,47 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "rtl-ordering" */
   String get rtlOrdering =>
-    getPropertyValue('${_browserPrefix}rtl-ordering');
+    getPropertyValue('${Device.cssPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
   void set rtlOrdering(String value) {
-    setProperty('${_browserPrefix}rtl-ordering', value, '');
+    setProperty('${Device.cssPrefix}rtl-ordering', value, '');
   }
 
   /** Gets the value of "shape-inside" */
   String get shapeInside =>
-    getPropertyValue('${_browserPrefix}shape-inside');
+    getPropertyValue('${Device.cssPrefix}shape-inside');
 
   /** Sets the value of "shape-inside" */
   void set shapeInside(String value) {
-    setProperty('${_browserPrefix}shape-inside', value, '');
+    setProperty('${Device.cssPrefix}shape-inside', value, '');
   }
 
   /** Gets the value of "shape-margin" */
   String get shapeMargin =>
-    getPropertyValue('${_browserPrefix}shape-margin');
+    getPropertyValue('${Device.cssPrefix}shape-margin');
 
   /** Sets the value of "shape-margin" */
   void set shapeMargin(String value) {
-    setProperty('${_browserPrefix}shape-margin', value, '');
+    setProperty('${Device.cssPrefix}shape-margin', value, '');
   }
 
   /** Gets the value of "shape-outside" */
   String get shapeOutside =>
-    getPropertyValue('${_browserPrefix}shape-outside');
+    getPropertyValue('${Device.cssPrefix}shape-outside');
 
   /** Sets the value of "shape-outside" */
   void set shapeOutside(String value) {
-    setProperty('${_browserPrefix}shape-outside', value, '');
+    setProperty('${Device.cssPrefix}shape-outside', value, '');
   }
 
   /** Gets the value of "shape-padding" */
   String get shapePadding =>
-    getPropertyValue('${_browserPrefix}shape-padding');
+    getPropertyValue('${Device.cssPrefix}shape-padding');
 
   /** Sets the value of "shape-padding" */
   void set shapePadding(String value) {
-    setProperty('${_browserPrefix}shape-padding', value, '');
+    setProperty('${Device.cssPrefix}shape-padding', value, '');
   }
 
   /** Gets the value of "size" */
@@ -4945,11 +4910,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "tap-highlight-color" */
   String get tapHighlightColor =>
-    getPropertyValue('${_browserPrefix}tap-highlight-color');
+    getPropertyValue('${Device.cssPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
   void set tapHighlightColor(String value) {
-    setProperty('${_browserPrefix}tap-highlight-color', value, '');
+    setProperty('${Device.cssPrefix}tap-highlight-color', value, '');
   }
 
   /** Gets the value of "text-align" */
@@ -4963,20 +4928,20 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "text-align-last" */
   String get textAlignLast =>
-    getPropertyValue('${_browserPrefix}text-align-last');
+    getPropertyValue('${Device.cssPrefix}text-align-last');
 
   /** Sets the value of "text-align-last" */
   void set textAlignLast(String value) {
-    setProperty('${_browserPrefix}text-align-last', value, '');
+    setProperty('${Device.cssPrefix}text-align-last', value, '');
   }
 
   /** Gets the value of "text-combine" */
   String get textCombine =>
-    getPropertyValue('${_browserPrefix}text-combine');
+    getPropertyValue('${Device.cssPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
   void set textCombine(String value) {
-    setProperty('${_browserPrefix}text-combine', value, '');
+    setProperty('${Device.cssPrefix}text-combine', value, '');
   }
 
   /** Gets the value of "text-decoration" */
@@ -4990,74 +4955,74 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "text-decoration-line" */
   String get textDecorationLine =>
-    getPropertyValue('${_browserPrefix}text-decoration-line');
+    getPropertyValue('${Device.cssPrefix}text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
   void set textDecorationLine(String value) {
-    setProperty('${_browserPrefix}text-decoration-line', value, '');
+    setProperty('${Device.cssPrefix}text-decoration-line', value, '');
   }
 
   /** Gets the value of "text-decoration-style" */
   String get textDecorationStyle =>
-    getPropertyValue('${_browserPrefix}text-decoration-style');
+    getPropertyValue('${Device.cssPrefix}text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
   void set textDecorationStyle(String value) {
-    setProperty('${_browserPrefix}text-decoration-style', value, '');
+    setProperty('${Device.cssPrefix}text-decoration-style', value, '');
   }
 
   /** Gets the value of "text-decorations-in-effect" */
   String get textDecorationsInEffect =>
-    getPropertyValue('${_browserPrefix}text-decorations-in-effect');
+    getPropertyValue('${Device.cssPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
   void set textDecorationsInEffect(String value) {
-    setProperty('${_browserPrefix}text-decorations-in-effect', value, '');
+    setProperty('${Device.cssPrefix}text-decorations-in-effect', value, '');
   }
 
   /** Gets the value of "text-emphasis" */
   String get textEmphasis =>
-    getPropertyValue('${_browserPrefix}text-emphasis');
+    getPropertyValue('${Device.cssPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
   void set textEmphasis(String value) {
-    setProperty('${_browserPrefix}text-emphasis', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis', value, '');
   }
 
   /** Gets the value of "text-emphasis-color" */
   String get textEmphasisColor =>
-    getPropertyValue('${_browserPrefix}text-emphasis-color');
+    getPropertyValue('${Device.cssPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
   void set textEmphasisColor(String value) {
-    setProperty('${_browserPrefix}text-emphasis-color', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis-color', value, '');
   }
 
   /** Gets the value of "text-emphasis-position" */
   String get textEmphasisPosition =>
-    getPropertyValue('${_browserPrefix}text-emphasis-position');
+    getPropertyValue('${Device.cssPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
   void set textEmphasisPosition(String value) {
-    setProperty('${_browserPrefix}text-emphasis-position', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis-position', value, '');
   }
 
   /** Gets the value of "text-emphasis-style" */
   String get textEmphasisStyle =>
-    getPropertyValue('${_browserPrefix}text-emphasis-style');
+    getPropertyValue('${Device.cssPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
   void set textEmphasisStyle(String value) {
-    setProperty('${_browserPrefix}text-emphasis-style', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis-style', value, '');
   }
 
   /** Gets the value of "text-fill-color" */
   String get textFillColor =>
-    getPropertyValue('${_browserPrefix}text-fill-color');
+    getPropertyValue('${Device.cssPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
   void set textFillColor(String value) {
-    setProperty('${_browserPrefix}text-fill-color', value, '');
+    setProperty('${Device.cssPrefix}text-fill-color', value, '');
   }
 
   /** Gets the value of "text-indent" */
@@ -5116,11 +5081,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "text-orientation" */
   String get textOrientation =>
-    getPropertyValue('${_browserPrefix}text-orientation');
+    getPropertyValue('${Device.cssPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
   void set textOrientation(String value) {
-    setProperty('${_browserPrefix}text-orientation', value, '');
+    setProperty('${Device.cssPrefix}text-orientation', value, '');
   }
 
   /** Gets the value of "text-overflow" */
@@ -5188,11 +5153,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "text-security" */
   String get textSecurity =>
-    getPropertyValue('${_browserPrefix}text-security');
+    getPropertyValue('${Device.cssPrefix}text-security');
 
   /** Sets the value of "text-security" */
   void set textSecurity(String value) {
-    setProperty('${_browserPrefix}text-security', value, '');
+    setProperty('${Device.cssPrefix}text-security', value, '');
   }
 
   /** Gets the value of "text-shadow" */
@@ -5206,38 +5171,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "text-size-adjust" */
   String get textSizeAdjust =>
-    getPropertyValue('${_browserPrefix}text-size-adjust');
+    getPropertyValue('${Device.cssPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
   void set textSizeAdjust(String value) {
-    setProperty('${_browserPrefix}text-size-adjust', value, '');
+    setProperty('${Device.cssPrefix}text-size-adjust', value, '');
   }
 
   /** Gets the value of "text-stroke" */
   String get textStroke =>
-    getPropertyValue('${_browserPrefix}text-stroke');
+    getPropertyValue('${Device.cssPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
   void set textStroke(String value) {
-    setProperty('${_browserPrefix}text-stroke', value, '');
+    setProperty('${Device.cssPrefix}text-stroke', value, '');
   }
 
   /** Gets the value of "text-stroke-color" */
   String get textStrokeColor =>
-    getPropertyValue('${_browserPrefix}text-stroke-color');
+    getPropertyValue('${Device.cssPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
   void set textStrokeColor(String value) {
-    setProperty('${_browserPrefix}text-stroke-color', value, '');
+    setProperty('${Device.cssPrefix}text-stroke-color', value, '');
   }
 
   /** Gets the value of "text-stroke-width" */
   String get textStrokeWidth =>
-    getPropertyValue('${_browserPrefix}text-stroke-width');
+    getPropertyValue('${Device.cssPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
   void set textStrokeWidth(String value) {
-    setProperty('${_browserPrefix}text-stroke-width', value, '');
+    setProperty('${Device.cssPrefix}text-stroke-width', value, '');
   }
 
   /** Gets the value of "text-transform" */
@@ -5305,56 +5270,56 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "transform" */
   String get transform =>
-    getPropertyValue('${_browserPrefix}transform');
+    getPropertyValue('${Device.cssPrefix}transform');
 
   /** Sets the value of "transform" */
   void set transform(String value) {
-    setProperty('${_browserPrefix}transform', value, '');
+    setProperty('${Device.cssPrefix}transform', value, '');
   }
 
   /** Gets the value of "transform-origin" */
   String get transformOrigin =>
-    getPropertyValue('${_browserPrefix}transform-origin');
+    getPropertyValue('${Device.cssPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
   void set transformOrigin(String value) {
-    setProperty('${_browserPrefix}transform-origin', value, '');
+    setProperty('${Device.cssPrefix}transform-origin', value, '');
   }
 
   /** Gets the value of "transform-origin-x" */
   String get transformOriginX =>
-    getPropertyValue('${_browserPrefix}transform-origin-x');
+    getPropertyValue('${Device.cssPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
   void set transformOriginX(String value) {
-    setProperty('${_browserPrefix}transform-origin-x', value, '');
+    setProperty('${Device.cssPrefix}transform-origin-x', value, '');
   }
 
   /** Gets the value of "transform-origin-y" */
   String get transformOriginY =>
-    getPropertyValue('${_browserPrefix}transform-origin-y');
+    getPropertyValue('${Device.cssPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
   void set transformOriginY(String value) {
-    setProperty('${_browserPrefix}transform-origin-y', value, '');
+    setProperty('${Device.cssPrefix}transform-origin-y', value, '');
   }
 
   /** Gets the value of "transform-origin-z" */
   String get transformOriginZ =>
-    getPropertyValue('${_browserPrefix}transform-origin-z');
+    getPropertyValue('${Device.cssPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
   void set transformOriginZ(String value) {
-    setProperty('${_browserPrefix}transform-origin-z', value, '');
+    setProperty('${Device.cssPrefix}transform-origin-z', value, '');
   }
 
   /** Gets the value of "transform-style" */
   String get transformStyle =>
-    getPropertyValue('${_browserPrefix}transform-style');
+    getPropertyValue('${Device.cssPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
   void set transformStyle(String value) {
-    setProperty('${_browserPrefix}transform-style', value, '');
+    setProperty('${Device.cssPrefix}transform-style', value, '');
   }
 
   /** Gets the value of "transition" */
@@ -5363,7 +5328,7 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
-    getPropertyValue('${_browserPrefix}transition');
+    getPropertyValue('${Device.cssPrefix}transition');
 
   /** Sets the value of "transition" */
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -5371,43 +5336,43 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
-    setProperty('${_browserPrefix}transition', value, '');
+    setProperty('${Device.cssPrefix}transition', value, '');
   }
 
   /** Gets the value of "transition-delay" */
   String get transitionDelay =>
-    getPropertyValue('${_browserPrefix}transition-delay');
+    getPropertyValue('${Device.cssPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
   void set transitionDelay(String value) {
-    setProperty('${_browserPrefix}transition-delay', value, '');
+    setProperty('${Device.cssPrefix}transition-delay', value, '');
   }
 
   /** Gets the value of "transition-duration" */
   String get transitionDuration =>
-    getPropertyValue('${_browserPrefix}transition-duration');
+    getPropertyValue('${Device.cssPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
   void set transitionDuration(String value) {
-    setProperty('${_browserPrefix}transition-duration', value, '');
+    setProperty('${Device.cssPrefix}transition-duration', value, '');
   }
 
   /** Gets the value of "transition-property" */
   String get transitionProperty =>
-    getPropertyValue('${_browserPrefix}transition-property');
+    getPropertyValue('${Device.cssPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
   void set transitionProperty(String value) {
-    setProperty('${_browserPrefix}transition-property', value, '');
+    setProperty('${Device.cssPrefix}transition-property', value, '');
   }
 
   /** Gets the value of "transition-timing-function" */
   String get transitionTimingFunction =>
-    getPropertyValue('${_browserPrefix}transition-timing-function');
+    getPropertyValue('${Device.cssPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
   void set transitionTimingFunction(String value) {
-    setProperty('${_browserPrefix}transition-timing-function', value, '');
+    setProperty('${Device.cssPrefix}transition-timing-function', value, '');
   }
 
   /** Gets the value of "unicode-bidi" */
@@ -5430,29 +5395,29 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "user-drag" */
   String get userDrag =>
-    getPropertyValue('${_browserPrefix}user-drag');
+    getPropertyValue('${Device.cssPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
   void set userDrag(String value) {
-    setProperty('${_browserPrefix}user-drag', value, '');
+    setProperty('${Device.cssPrefix}user-drag', value, '');
   }
 
   /** Gets the value of "user-modify" */
   String get userModify =>
-    getPropertyValue('${_browserPrefix}user-modify');
+    getPropertyValue('${Device.cssPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
   void set userModify(String value) {
-    setProperty('${_browserPrefix}user-modify', value, '');
+    setProperty('${Device.cssPrefix}user-modify', value, '');
   }
 
   /** Gets the value of "user-select" */
   String get userSelect =>
-    getPropertyValue('${_browserPrefix}user-select');
+    getPropertyValue('${Device.cssPrefix}user-select');
 
   /** Sets the value of "user-select" */
   void set userSelect(String value) {
-    setProperty('${_browserPrefix}user-select', value, '');
+    setProperty('${Device.cssPrefix}user-select', value, '');
   }
 
   /** Gets the value of "user-zoom" */
@@ -5538,38 +5503,38 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
   /** Gets the value of "wrap" */
   String get wrap =>
-    getPropertyValue('${_browserPrefix}wrap');
+    getPropertyValue('${Device.cssPrefix}wrap');
 
   /** Sets the value of "wrap" */
   void set wrap(String value) {
-    setProperty('${_browserPrefix}wrap', value, '');
+    setProperty('${Device.cssPrefix}wrap', value, '');
   }
 
   /** Gets the value of "wrap-flow" */
   String get wrapFlow =>
-    getPropertyValue('${_browserPrefix}wrap-flow');
+    getPropertyValue('${Device.cssPrefix}wrap-flow');
 
   /** Sets the value of "wrap-flow" */
   void set wrapFlow(String value) {
-    setProperty('${_browserPrefix}wrap-flow', value, '');
+    setProperty('${Device.cssPrefix}wrap-flow', value, '');
   }
 
   /** Gets the value of "wrap-through" */
   String get wrapThrough =>
-    getPropertyValue('${_browserPrefix}wrap-through');
+    getPropertyValue('${Device.cssPrefix}wrap-through');
 
   /** Sets the value of "wrap-through" */
   void set wrapThrough(String value) {
-    setProperty('${_browserPrefix}wrap-through', value, '');
+    setProperty('${Device.cssPrefix}wrap-through', value, '');
   }
 
   /** Gets the value of "writing-mode" */
   String get writingMode =>
-    getPropertyValue('${_browserPrefix}writing-mode');
+    getPropertyValue('${Device.cssPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
   void set writingMode(String value) {
-    setProperty('${_browserPrefix}writing-mode', value, '');
+    setProperty('${Device.cssPrefix}writing-mode', value, '');
   }
 
   /** Gets the value of "z-index" */
@@ -7065,10 +7030,10 @@ class DomException native "*DOMException" {
     var errorName = JS('String', '#.name', this);
     // Although Safari nightly has updated the name to SecurityError, Safari 5
     // and 6 still return SECURITY_ERR.
-    if (_Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
+    if (Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
     // Chrome release still uses old string, remove this line when Chrome stable
     // also prints out SyntaxError.
-    if (_Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
+    if (Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
     return errorName;
   }
 
@@ -8858,9 +8823,9 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   static String _determineTransitionEventType(EventTarget e) {
     // Unfortunately the normal 'ontransitionend' style checks don't work here.
-    if (_Device.isWebKit) {
+    if (Device.isWebKit) {
       return 'webkitTransitionEnd';
-    } else if (_Device.isOpera) {
+    } else if (Device.isOpera) {
       return 'oTransitionEnd';
     }
     return 'transitionend';
@@ -9749,7 +9714,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -10285,18 +10250,6 @@ class Event native "*Event" {
   @DocsEditable
   void stopPropagation() native;
 
-
-  /**
-   * Checks to see if the event class is supported by the current platform.
-   */
-  static bool _isTypeSupported(String eventType) {
-    // Browsers throw for unsupported event names.
-    try {
-      var e = document.$dom_createEvent(eventType);
-      return e is Event;
-    } catch (_) { }
-    return false;
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12117,7 +12070,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
   }
 
   /// Checks if this type is supported on the current platform.
-  static bool get supported => Event._isTypeSupported('HashChangeEvent');
+  static bool get supported => Device.isEventTypeSupported('HashChangeEvent');
 
   @JSName('newURL')
   @DomName('HashChangeEvent.newURL')
@@ -13346,7 +13299,7 @@ class HttpRequestException native "*XMLHttpRequestException" {
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
   /// Checks if this type is supported on the current platform.
-  static bool get supported => Event._isTypeSupported('XMLHttpRequestProgressEvent');
+  static bool get supported => Device.isEventTypeSupported('XMLHttpRequestProgressEvent');
 
   @DomName('XMLHttpRequestProgressEvent.position')
   @DocsEditable
@@ -16386,7 +16339,7 @@ class MediaStream extends EventTarget native "*MediaStream" {
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
   /// Checks if this type is supported on the current platform.
-  static bool get supported => Event._isTypeSupported('MediaStreamEvent');
+  static bool get supported => Device.isEventTypeSupported('MediaStreamEvent');
 
   @DomName('MediaStreamEvent.stream')
   @DocsEditable
@@ -16473,7 +16426,7 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
   /// Checks if this type is supported on the current platform.
-  static bool get supported => Event._isTypeSupported('MediaStreamTrackEvent');
+  static bool get supported => Device.isEventTypeSupported('MediaStreamTrackEvent');
 
   @DomName('MediaStreamTrackEvent.track')
   @DocsEditable
@@ -19356,7 +19309,7 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
-        '${_browserPropertyPrefix}RTCPeerConnection');
+        '${Device.propertyPrefix}RTCPeerConnection');
     if (?mediaConstraints) {
       return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
           convertDartToNative_SerializedScriptValue(rtcIceServers),
@@ -19368,17 +19321,17 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   }
 
   /**
-   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on
    * the current platform.
    */
   static bool get supported {
     // Currently in Firefox some of the RTC elements are defined but throw an
-    // error unless the user has specifically enabled them in their 
+    // error unless the user has specifically enabled them in their
     // about:config. So we have to construct an element to actually test if RTC
     // is supported at at the given time.
     try {
       var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
-      return c is RtcPeerConnection; 
+      return c is RtcPeerConnection;
     } catch (_) {}
     return false;
   }
@@ -22571,7 +22524,7 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
    */
   static bool get supported {
     if (JS('bool', '"ontouchstart" in window')) {
-      return Event._isTypeSupported('TouchEvent');
+      return Device.isEventTypeSupported('TouchEvent');
     }
     return false;
   }
@@ -25885,7 +25838,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
       view = window;
     }
     var eventType = 'WheelEvent';
-    if (_Device.isFirefox) {
+    if (Device.isFirefox) {
       eventType = 'MouseScrollEvents';
     }
     final event = document.$dom_createEvent(eventType);
@@ -30289,42 +30242,6 @@ abstract class CssClassSet implements Set<String> {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Utils for device detection.
- */
-class _Device {
-  /**
-   * Gets the browser's user agent. Using this function allows tests to inject
-   * the user agent.
-   * Returns the user agent.
-   */
-  static String get userAgent => window.navigator.userAgent;
-
-  /**
-   * Determines if the current device is running Opera.
-   */
-  static bool get isOpera => userAgent.contains("Opera", 0);
-
-  /**
-   * Determines if the current device is running Internet Explorer.
-   */
-  static bool get isIE => !isOpera && userAgent.contains("MSIE", 0);
-
-  /**
-   * Determines if the current device is running Firefox.
-   */
-  static bool get isFirefox => userAgent.contains("Firefox", 0);
-
-  /**
-   * Determines if the current device is running WebKit.
-   */
-  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 typedef void EventListener(Event event);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30753,11 +30670,11 @@ class KeyboardEventController {
    * Returns true if the key fires a keypress event in the current browser.
    */
   bool _firesKeyPressEvent(KeyEvent event) {
-    if (!_Device.isIE && !_Device.isWebKit) {
+    if (!Device.isIE && !Device.isWebKit) {
       return true;
     }
 
-    if (_Device.userAgent.contains('Mac') && event.altKey) {
+    if (Device.userAgent.contains('Mac') && event.altKey) {
       return KeyCode.isCharacterKey(event.keyCode);
     }
 
@@ -30770,13 +30687,13 @@ class KeyboardEventController {
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
          _keyDownList.last.keyCode == KeyCode.ALT ||
-         _Device.userAgent.contains('Mac') &&
+         Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
 
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
-    if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
+    if (Device.isWebKit && event.ctrlKey && event.shiftKey && (
         event.keyCode == KeyCode.BACKSLASH ||
         event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
         event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
@@ -30792,9 +30709,9 @@ class KeyboardEventController {
     switch (event.keyCode) {
       case KeyCode.ENTER:
         // IE9 does not fire keypress on ENTER.
-        return !_Device.isIE;
+        return !Device.isIE;
       case KeyCode.ESC:
-        return !_Device.isWebKit;
+        return !Device.isWebKit;
     }
 
     return KeyCode.isCharacterKey(event.keyCode);
@@ -30806,7 +30723,7 @@ class KeyboardEventController {
    */
   int _normalizeKeyCodes(KeyboardEvent event) {
     // Note: This may change once we get input about non-US keyboards.
-    if (_Device.isFirefox) {
+    if (Device.isFirefox) {
       switch(event.keyCode) {
         case KeyCode.FF_EQUALS:
           return KeyCode.EQUALS;
@@ -30829,7 +30746,7 @@ class KeyboardEventController {
     if (_keyDownList.length > 0 &&
         (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
          _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
-         _Device.userAgent.contains('Mac') &&
+         Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
       _keyDownList = [];
     }
@@ -30856,13 +30773,13 @@ class KeyboardEventController {
     var e = new KeyEvent(event);
     // IE reports the character code in the keyCode field for keypress events.
     // There are two exceptions however, Enter and Escape.
-    if (_Device.isIE) {
+    if (Device.isIE) {
       if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
         e._shadowCharCode = 0;
       } else {
         e._shadowCharCode = e.keyCode;
       }
-    } else if (_Device.isOpera) {
+    } else if (Device.isOpera) {
       // Opera reports the character code in the keyCode field.
       e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
@@ -30908,9 +30825,9 @@ class KeyboardEventController {
 
 
 /**
- * Defines the keycode values for keys that are returned by 
+ * Defines the keycode values for keys that are returned by
  * KeyboardEvent.keyCode.
- * 
+ *
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -30918,7 +30835,7 @@ class KeyboardEventController {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -31113,12 +31030,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
- 
+
     // Safari sends zero key code for non-latin characters.
-    if (_Device.isWebKit && keyCode == 0) {
+    if (Device.isWebKit && keyCode == 0) {
       return true;
     }
- 
+
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||

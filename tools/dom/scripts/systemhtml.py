@@ -365,10 +365,10 @@ js_support_checks = dict({
     'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
     'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
     'FormData': "JS('bool', '!!(window.FormData)')",
-    'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
+    'HashChangeEvent': "Device.isEventTypeSupported('HashChangeEvent')",
     'HTMLShadowElement': ElemSupportStr('shadow'),
-    'MediaStreamEvent': "Event._isTypeSupported('MediaStreamEvent')",
-    'MediaStreamTrackEvent': "Event._isTypeSupported('MediaStreamTrackEvent')",
+    'MediaStreamEvent': "Device.isEventTypeSupported('MediaStreamEvent')",
+    'MediaStreamTrackEvent': "Device.isEventTypeSupported('MediaStreamTrackEvent')",
     'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
     'Performance': "JS('bool', '!!(window.performance)')",
     'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
@@ -382,7 +382,7 @@ js_support_checks = dict({
         "element, element)"),
     'TouchList': "JS('bool', '!!document.createTouchList')",
     'XMLHttpRequestProgressEvent':
-        "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
+        "Device.isEventTypeSupported('XMLHttpRequestProgressEvent')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
     'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
     'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",

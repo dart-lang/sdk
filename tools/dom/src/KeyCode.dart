@@ -5,9 +5,9 @@
 part of html;
 
 /**
- * Defines the keycode values for keys that are returned by 
+ * Defines the keycode values for keys that are returned by
  * KeyboardEvent.keyCode.
- * 
+ *
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -15,7 +15,7 @@ part of html;
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -210,12 +210,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
- 
+
     // Safari sends zero key code for non-latin characters.
-    if (_Device.isWebKit && keyCode == 0) {
+    if (Device.isWebKit && keyCode == 0) {
       return true;
     }
- 
+
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||

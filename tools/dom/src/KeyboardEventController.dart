@@ -259,11 +259,11 @@ class KeyboardEventController {
    * Returns true if the key fires a keypress event in the current browser.
    */
   bool _firesKeyPressEvent(KeyEvent event) {
-    if (!_Device.isIE && !_Device.isWebKit) {
+    if (!Device.isIE && !Device.isWebKit) {
       return true;
     }
 
-    if (_Device.userAgent.contains('Mac') && event.altKey) {
+    if (Device.userAgent.contains('Mac') && event.altKey) {
       return KeyCode.isCharacterKey(event.keyCode);
     }
 
@@ -276,13 +276,13 @@ class KeyboardEventController {
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
          _keyDownList.last.keyCode == KeyCode.ALT ||
-         _Device.userAgent.contains('Mac') &&
+         Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
 
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
-    if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
+    if (Device.isWebKit && event.ctrlKey && event.shiftKey && (
         event.keyCode == KeyCode.BACKSLASH ||
         event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
         event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
@@ -298,9 +298,9 @@ class KeyboardEventController {
     switch (event.keyCode) {
       case KeyCode.ENTER:
         // IE9 does not fire keypress on ENTER.
-        return !_Device.isIE;
+        return !Device.isIE;
       case KeyCode.ESC:
-        return !_Device.isWebKit;
+        return !Device.isWebKit;
     }
 
     return KeyCode.isCharacterKey(event.keyCode);
@@ -312,7 +312,7 @@ class KeyboardEventController {
    */
   int _normalizeKeyCodes(KeyboardEvent event) {
     // Note: This may change once we get input about non-US keyboards.
-    if (_Device.isFirefox) {
+    if (Device.isFirefox) {
       switch(event.keyCode) {
         case KeyCode.FF_EQUALS:
           return KeyCode.EQUALS;
@@ -335,7 +335,7 @@ class KeyboardEventController {
     if (_keyDownList.length > 0 &&
         (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
          _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
-         _Device.userAgent.contains('Mac') &&
+         Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
       _keyDownList = [];
     }
@@ -362,13 +362,13 @@ class KeyboardEventController {
     var e = new KeyEvent(event);
     // IE reports the character code in the keyCode field for keypress events.
     // There are two exceptions however, Enter and Escape.
-    if (_Device.isIE) {
+    if (Device.isIE) {
       if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
         e._shadowCharCode = 0;
       } else {
         e._shadowCharCode = e.keyCode;
       }
-    } else if (_Device.isOpera) {
+    } else if (Device.isOpera) {
       // Opera reports the character code in the keyCode field.
       e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }

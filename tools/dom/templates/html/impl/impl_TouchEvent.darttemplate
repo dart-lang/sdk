@@ -31,14 +31,14 @@ $!MEMBERS
   static bool get supported {
 $if DART2JS
     if (JS('bool', '"ontouchstart" in window')) {
-      return Event._isTypeSupported('TouchEvent');
+      return Device.isEventTypeSupported('TouchEvent');
     }
     return false;
 $else
     // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
     // Basically, this is a fairly common check and it'd be great if it did not
     // throw exceptions.
-    return Event._isTypeSupported('TouchEvent');
+    return Device.isEventTypeSupported('TouchEvent');
 $endif
   }
 }

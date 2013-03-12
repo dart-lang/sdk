@@ -34,16 +34,4 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e;
   }
 $!MEMBERS
-
-  /**
-   * Checks to see if the event class is supported by the current platform.
-   */
-  static bool _isTypeSupported(String eventType) {
-    // Browsers throw for unsupported event names.
-    try {
-      var e = document.$dom_createEvent(eventType);
-      return e is Event;
-    } catch (_) { }
-    return false;
-  }
 }
