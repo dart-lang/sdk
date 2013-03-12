@@ -2571,20 +2571,24 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
+  /**
+   * If [argument] has type variables or is a type variable, this
+   * method registers a RTI dependency between the class where the
+   * type variable is defined (that is the enclosing class of the
+   * current element being resolved) and the class of [annotation].
+   * If the class of [annotation] requires RTI, then the class of
+   * the type variable does too.
+   */
   void analyzeTypeArgument(DartType annotation, DartType argument) {
     if (argument == null) return;
     if (argument.element.isTypeVariable()) {
-      // Register a dependency between the class where the type
-      // variable is, and the annotation. If the annotation requires
-      // runtime type information, then the class of the type variable
-      // does too.
-      compiler.world.registerRtiDependency(
-          annotation.element,
-          argument.element.enclosingElement);
+      ClassElement enclosing = argument.element.getEnclosingClass();
+      assert(enclosing == enclosingElement.getEnclosingClass());
+      compiler.world.registerRtiDependency(annotation.element, enclosing);
     } else if (argument is InterfaceType) {
       InterfaceType type = argument;
       type.typeArguments.forEach((DartType argument) {
-        analyzeTypeArgument(type, argument);
+        analyzeTypeArgument(annotation, argument);
       });
     }
   }
