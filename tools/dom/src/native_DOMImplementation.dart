@@ -7,8 +7,15 @@ part of html;
 class _Utils {
   static double dateTimeToDouble(DateTime dateTime) =>
       dateTime.millisecondsSinceEpoch.toDouble();
-  static DateTime doubleToDateTime(double dateTime) =>
-      new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+  static DateTime doubleToDateTime(double dateTime) {
+    try {
+      return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+    } catch {
+      // TODO(antonnm): treat exceptions properly in bindings and
+      // find out how to treat NaNs.
+      return null;
+    }
+  }
 
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
