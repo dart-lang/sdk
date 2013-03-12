@@ -112,6 +112,26 @@ abstract class DartType {
    */
   bool get isVoid => false;
 
+  /**
+   * Returns an occurrence of a type variable within this type, if any.
+   */
+  TypeVariableType get typeVariableOccurrence => null;
+
+  TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
+    for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
+      TypeVariableType typeVariable = link.head.typeVariableOccurrence;
+      if (typeVariable != null) {
+        return typeVariable;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Is [: true :] if this type contains any type variables.
+   */
+  bool get containsTypeVariables => typeVariableOccurrence != null;
+
   accept(DartTypeVisitor visitor, var argument);
 }
 
@@ -170,6 +190,8 @@ class TypeVariableType extends DartType {
   }
 
   DartType unalias(Compiler compiler) => this;
+
+  DartType get typeVariableOccurrence => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitTypeVariableType(this, argument);
@@ -368,6 +390,10 @@ abstract class GenericType extends DartType {
       }
     }
     return true;
+  }
+
+  TypeVariableType get typeVariableOccurrence {
+    return _findTypeVariableOccurrence(typeArguments);
   }
 
   String toString() {
@@ -619,6 +645,19 @@ class FunctionType extends DartType {
   }
 
   DartType unalias(Compiler compiler) => this;
+
+  DartType get typeVariableOccurrence {
+    TypeVariableType typeVariableType = returnType.typeVariableOccurrence;
+    if (typeVariableType != null) return typeVariableType;
+
+    typeVariableType = _findTypeVariableOccurrence(parameterTypes);
+    if (typeVariableType != null) return typeVariableType;
+
+    typeVariableType = _findTypeVariableOccurrence(optionalParameterTypes);
+    if (typeVariableType != null) return typeVariableType;
+
+    return _findTypeVariableOccurrence(namedParameterTypes);
+  }
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitFunctionType(this, argument);
@@ -1068,5 +1107,15 @@ class Types {
       return true;
     });
     return reasons.join(', ');
+  }
+
+  /**
+   * Returns the [ClassElement] which declares the type variables occurring in
+   * [type], or [:null:] if [type] does not contain type variables.
+   */
+  static ClassElement getClassContext(DartType type) {
+    TypeVariableType typeVariable = type.typeVariableOccurrence;
+    if (typeVariable == null) return null;
+    return typeVariable.element.enclosingElement;
   }
 }
