@@ -49,8 +49,15 @@ class MutexData {
 
 
 class MonitorWaitData {
+ public:
+  static void ThreadExit();
+
  private:
   explicit MonitorWaitData(HANDLE event) : event_(event), next_(NULL) {}
+  ~MonitorWaitData() {
+    CloseHandle(event_);
+    ASSERT(next_ == NULL);
+  }
 
   // ThreadLocalKey used to fetch and store the MonitorWaitData object
   // for a given thread.

@@ -360,10 +360,10 @@ class ClientSocket : public SocketHandle {
 class EventHandlerImplementation {
  public:
   EventHandlerImplementation();
-  virtual ~EventHandlerImplementation() {}
+  virtual ~EventHandlerImplementation();
 
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data);
-  void Start();
+  void Start(EventHandler* handler);
   void Shutdown();
 
   static void EventHandlerEntry(uword args);

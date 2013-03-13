@@ -133,6 +133,7 @@ EventHandlerImplementation::EventHandlerImplementation()
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
+  TEMP_FAILURE_RETRY(close(epoll_fd_));
   TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
@@ -375,12 +376,12 @@ void EventHandlerImplementation::HandleTimeout() {
 void EventHandlerImplementation::Poll(uword args) {
   static const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
-  EventHandlerImplementation* handler =
-      reinterpret_cast<EventHandlerImplementation*>(args);
-  ASSERT(handler != NULL);
-  while (!handler->shutdown_) {
-    intptr_t millis = handler->GetTimeout();
-    intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler->epoll_fd_,
+  EventHandler* handler = reinterpret_cast<EventHandler*>(args);
+  EventHandlerImplementation* handler_impl = &handler->delegate_;
+  ASSERT(handler_impl != NULL);
+  while (!handler_impl->shutdown_) {
+    intptr_t millis = handler_impl->GetTimeout();
+    intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler_impl->epoll_fd_,
                                                     events,
                                                     kMaxEvents,
                                                     millis));
@@ -390,16 +391,17 @@ void EventHandlerImplementation::Poll(uword args) {
         perror("Poll failed");
       }
     } else {
-      handler->HandleTimeout();
-      handler->HandleEvents(events, result);
+      handler_impl->HandleTimeout();
+      handler_impl->HandleEvents(events, result);
     }
   }
+  delete handler;
 }
 
 
-void EventHandlerImplementation::Start() {
+void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = dart::Thread::Start(&EventHandlerImplementation::Poll,
-                                   reinterpret_cast<uword>(this));
+                                   reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

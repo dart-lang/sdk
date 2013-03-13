@@ -889,6 +889,11 @@ EventHandlerImplementation::EventHandlerImplementation() {
 }
 
 
+EventHandlerImplementation::~EventHandlerImplementation() {
+  CloseHandle(completion_port_);
+}
+
+
 DWORD EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
@@ -914,15 +919,15 @@ void EventHandlerImplementation::SendData(intptr_t id,
 
 
 void EventHandlerImplementation::EventHandlerEntry(uword args) {
-  EventHandlerImplementation* handler =
-      reinterpret_cast<EventHandlerImplementation*>(args);
-  ASSERT(handler != NULL);
-  while (!handler->shutdown_) {
+  EventHandler* handler = reinterpret_cast<EventHandler*>(args);
+  EventHandlerImplementation* handler_impl = &handler->delegate_;
+  ASSERT(handler_impl != NULL);
+  while (!handler_impl->shutdown_) {
     DWORD bytes;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    intptr_t millis = handler->GetTimeout();
-    BOOL ok = GetQueuedCompletionStatus(handler->completion_port(),
+    intptr_t millis = handler_impl->GetTimeout();
+    BOOL ok = GetQueuedCompletionStatus(handler_impl->completion_port(),
                                         &bytes,
                                         &key,
                                         &overlapped,
@@ -934,7 +939,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
         UNREACHABLE();
       } else {
         // Timeout is signalled by false result and NULL in overlapped.
-        handler->HandleTimeout();
+        handler_impl->HandleTimeout();
       }
     } else if (!ok) {
       // Treat ERROR_CONNECTION_ABORTED as connection closed.
@@ -948,26 +953,27 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
           last_error == ERROR_NETNAME_DELETED ||
           last_error == ERROR_BROKEN_PIPE) {
         ASSERT(bytes == 0);
-        handler->HandleIOCompletion(bytes, key, overlapped);
+        handler_impl->HandleIOCompletion(bytes, key, overlapped);
       } else {
         ASSERT(bytes == 0);
-        handler->HandleIOCompletion(-1, key, overlapped);
+        handler_impl->HandleIOCompletion(-1, key, overlapped);
       }
     } else if (key == NULL) {
       // A key of NULL signals an interrupt message.
       InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(overlapped);
-      handler->HandleInterrupt(msg);
+      handler_impl->HandleInterrupt(msg);
       delete msg;
     } else {
-      handler->HandleIOCompletion(bytes, key, overlapped);
+      handler_impl->HandleIOCompletion(bytes, key, overlapped);
     }
   }
+  delete handler;
 }
 
 
-void EventHandlerImplementation::Start() {
+void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = dart::Thread::Start(EventHandlerEntry,
-                                   reinterpret_cast<uword>(this));
+                                   reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

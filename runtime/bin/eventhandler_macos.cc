@@ -146,6 +146,7 @@ EventHandlerImplementation::EventHandlerImplementation()
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
+  VOID_TEMP_FAILURE_RETRY(close(kqueue_fd_));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
@@ -370,11 +371,11 @@ void EventHandlerImplementation::HandleTimeout() {
 void EventHandlerImplementation::EventHandlerEntry(uword args) {
   static const intptr_t kMaxEvents = 16;
   struct kevent events[kMaxEvents];
-  EventHandlerImplementation* handler =
-      reinterpret_cast<EventHandlerImplementation*>(args);
-  ASSERT(handler != NULL);
-  while (!handler->shutdown_) {
-    intptr_t millis = handler->GetTimeout();
+  EventHandler* handler = reinterpret_cast<EventHandler*>(args);
+  EventHandlerImplementation* handler_impl = &handler->delegate_;
+  ASSERT(handler_impl != NULL);
+  while (!handler_impl->shutdown_) {
+    intptr_t millis = handler_impl->GetTimeout();
     // NULL pointer timespec for infinite timeout.
     ASSERT(kInfinityTimeout < 0);
     struct timespec* timeout = NULL;
@@ -384,7 +385,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
       ts.tv_nsec = (millis - (ts.tv_sec * 1000)) * 1000000;
       timeout = &ts;
     }
-    intptr_t result = TEMP_FAILURE_RETRY(kevent(handler->kqueue_fd_,
+    intptr_t result = TEMP_FAILURE_RETRY(kevent(handler_impl->kqueue_fd_,
                                                 NULL,
                                                 0,
                                                 events,
@@ -393,17 +394,18 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (result == -1) {
       FATAL1("kevent failed %s\n", strerror(errno));
     } else {
-      handler->HandleTimeout();
-      handler->HandleEvents(events, result);
+      handler_impl->HandleTimeout();
+      handler_impl->HandleEvents(events, result);
     }
   }
+  delete handler;
 }
 
 
-void EventHandlerImplementation::Start() {
+void EventHandlerImplementation::Start(EventHandler* handler) {
   int result =
       dart::Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
-                          reinterpret_cast<uword>(this));
+                          reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }
