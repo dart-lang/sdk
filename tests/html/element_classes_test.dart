@@ -144,20 +144,20 @@ main() {
 
   test('isSubsetOf', () {
     final classes = makeClassSet();
-    expect(classes.isSubsetOf(['foo', 'bar', 'baz']), isTrue);
-    expect(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux']), isTrue);
-    expect(classes.isSubsetOf(['foo', 'bar', 'qux']), isFalse);
+    expect(classes.isSubsetOf(['foo', 'bar', 'baz'].toSet()), isTrue);
+    expect(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux'].toSet()), isTrue);
+    expect(classes.isSubsetOf(['foo', 'bar', 'qux'].toSet()), isFalse);
   });
 
   test('containsAll', () {
     final classes = makeClassSet();
-    expect(classes.containsAll(['foo', 'baz']), isTrue);
-    expect(classes.containsAll(['foo', 'qux']), isFalse);
+    expect(classes.containsAll(['foo', 'baz'].toSet()), isTrue);
+    expect(classes.containsAll(['foo', 'qux'].toSet()), isFalse);
   });
 
   test('intersection', () {
     final classes = makeClassSet();
-    expect(classes.intersection(['foo', 'qux', 'baz']),
+    expect(classes.intersection(['foo', 'qux', 'baz'].toSet()),
         unorderedEquals(['foo', 'baz']));
   });
 
