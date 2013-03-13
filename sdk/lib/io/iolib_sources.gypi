@@ -22,6 +22,7 @@
     'http_utils.dart',
     'io_sink.dart',
     'mime_multipart_parser.dart',
+    'options.dart',
     'path.dart',
     'path_impl.dart',
     'platform.dart',

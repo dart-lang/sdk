@@ -27,7 +27,6 @@ part "list.dart";
 part "map.dart";
 part "num.dart";
 part "object.dart";
-part "options.dart";
 part "pattern.dart";
 part "print.dart";
 part "regexp.dart";

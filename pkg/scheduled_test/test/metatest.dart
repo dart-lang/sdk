@@ -9,6 +9,7 @@
 /// isolate, then reporting the results back to the parent isolate.
 library metatest;
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:isolate';
 

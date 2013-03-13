@@ -41,6 +41,7 @@ part 'http_session.dart';
 part 'http_utils.dart';
 part 'io_sink.dart';
 part 'mime_multipart_parser.dart';
+part 'options.dart';
 part 'path.dart';
 part 'path_impl.dart';
 part 'platform.dart';

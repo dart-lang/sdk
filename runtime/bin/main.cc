@@ -379,13 +379,13 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
       return result;
     }
   }
-  Dart_Handle core_lib_url = DartUtils::NewString("dart:core");
-  if (Dart_IsError(core_lib_url)) {
-    return core_lib_url;
+  Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
+  if (Dart_IsError(io_lib_url)) {
+    return io_lib_url;
   }
-  Dart_Handle core_lib = Dart_LookupLibrary(core_lib_url);
-  if (Dart_IsError(core_lib)) {
-    return core_lib;
+  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
+  if (Dart_IsError(io_lib)) {
+    return io_lib;
   }
   Dart_Handle runtime_options_class_name =
       DartUtils::NewString("_OptionsImpl");
@@ -393,7 +393,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return runtime_options_class_name;
   }
   Dart_Handle runtime_options_class = Dart_GetClass(
-      core_lib, runtime_options_class_name);
+      io_lib, runtime_options_class_name);
   if (Dart_IsError(runtime_options_class)) {
     return runtime_options_class;
   }

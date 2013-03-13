@@ -26,7 +26,6 @@
     'list.dart',
     'num.dart',
     'object.dart',
-    'options.dart',
     'pattern.dart',
     'print.dart',
     'regexp.dart',

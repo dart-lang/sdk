@@ -4,6 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library BenchmarkTests;
+import 'dart:io';
 import 'dart:math' as Math;
 import '../../../lib/utf/utf.dart' as SE;
 part 'benchmark_runner.dart';

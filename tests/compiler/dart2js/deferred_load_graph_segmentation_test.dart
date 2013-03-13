@@ -8,6 +8,7 @@
 
 import 'dart:async' show Future;
 import 'dart:uri' show Uri;
+import 'dart:io';
 
 import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart'
        show Compiler;

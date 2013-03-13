@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of BenchmarkTests;
+
 /**
  * The results of a single block of tests (count times run, overall time).
  */
