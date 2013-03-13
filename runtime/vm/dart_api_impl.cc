@@ -4,6 +4,7 @@
 
 #include "include/dart_api.h"
 
+#include "platform/assert.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -4192,17 +4193,16 @@ DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
 }
 
 
-// This function has friend access to SetReturnUnsafe.
-void SetReturnValueHelper(Dart_NativeArguments args, Dart_Handle retval) {
-  NoGCScope no_gc_scope;
-  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  arguments->SetReturnUnsafe(Api::UnwrapHandle(retval));
-}
-
-
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
-  SetReturnValueHelper(args, retval);
+  const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
+  if (!ret_obj.IsNull() && !ret_obj.IsInstance()) {
+    FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
+           ret_obj.ToCString());
+  }
+  NoGCScope no_gc_scope;
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  arguments->SetReturn(ret_obj);
 }
 
 

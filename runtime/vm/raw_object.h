@@ -341,6 +341,10 @@ class RawObject {
     ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
   }
 
+  bool IsDartInstance() {
+    return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
+  }
+
   intptr_t Size() const {
     uword tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
