@@ -1865,7 +1865,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 }
 
 
-int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                     char* human_buffer, intptr_t human_size,
                                     int* out_instr_len, uword pc) {
   ASSERT(hex_size > 0);
