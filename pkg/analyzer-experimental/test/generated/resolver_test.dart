@@ -5113,7 +5113,7 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 main() {
-  ElementResolverTest.dartSuite();
+  /*ElementResolverTest.dartSuite();
   LibraryElementBuilderTest.dartSuite();
   LibraryTest.dartSuite();
   StaticTypeAnalyzerTest.dartSuite();
@@ -5127,5 +5127,5 @@ main() {
   ErrorResolverTest.dartSuite();
   SimpleResolverTest.dartSuite();
   StaticTypeWarningCodeTest.dartSuite();
-  StaticWarningCodeTest.dartSuite();
+  StaticWarningCodeTest.dartSuite();*/
 }
