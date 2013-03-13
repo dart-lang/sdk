@@ -642,13 +642,16 @@ class _HttpParser
             List<int> data;
             if (_remainingContent == null ||
                 dataAvailable <= _remainingContent) {
-              data = new Uint8List(dataAvailable);
-              data.setRange(0, dataAvailable, _buffer, _index);
+              if (_index == 0) {
+                data = _buffer;
+              } else {
+                data = new Uint8List(dataAvailable);
+                data.setRange(0, dataAvailable, _buffer, _index);
+              }
             } else {
               data = new Uint8List(_remainingContent);
               data.setRange(0, _remainingContent, _buffer, _index);
             }
-
             _bodyController.add(data);
             if (_remainingContent != null) {
               _remainingContent -= data.length;
