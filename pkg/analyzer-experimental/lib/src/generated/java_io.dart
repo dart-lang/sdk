@@ -24,7 +24,17 @@ class JavaSystemIO {
     if (name == 'com.google.dart.sdk') {
       String exec = new Options().executable;
       if (exec.length != 0) {
-        String sdkPath = new Path(exec).directoryPath.directoryPath.toString();
+        String sdkPath;
+        // may be "xcodebuild/ReleaseIA32/dart" with "dart-sdk" sibling
+        {
+          sdkPath = new Path(exec).directoryPath.append("dart-sdk").toNativePath();
+          if (new Directory(sdkPath).existsSync()) {
+            _properties[name] = sdkPath;
+            return sdkPath;
+          }
+        }
+        // probably be "dart-sdk/bin/dart"
+        sdkPath = new Path(exec).directoryPath.directoryPath.toString();
         _properties[name] = sdkPath;
         return sdkPath;
       }
