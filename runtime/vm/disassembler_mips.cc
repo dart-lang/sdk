@@ -15,14 +15,19 @@ class MIPSDecoder : public ValueObject {
   MIPSDecoder(char* buffer, size_t buffer_size)
       : buffer_(buffer),
         buffer_size_(buffer_size),
-        buffer_pos_(0) {
+        buffer_pos_(0),
+        decode_failure_(false) {
     buffer_[buffer_pos_] = '\0';
   }
 
   ~MIPSDecoder() {}
 
   // Writes one disassembled instruction into 'buffer' (0-terminated).
+  // Returns true if the instruction was successfully decoded, false otherwise.
   void InstructionDecode(Instr* instr);
+
+  void set_decode_failure(bool b) { decode_failure_ = b; }
+  bool decode_failure() const { return decode_failure_; }
 
  private:
   // Bottleneck functions to print into the out_buffer.
@@ -34,10 +39,10 @@ class MIPSDecoder : public ValueObject {
   int FormatRegister(Instr* instr, const char* format);
   int FormatOption(Instr* instr, const char* format);
   void Format(Instr* instr, const char* format);
+  void Unknown(Instr* instr);
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
-  void DecodeSpecial3(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -47,6 +52,8 @@ class MIPSDecoder : public ValueObject {
   char* buffer_;  // Decode instructions into this buffer.
   size_t buffer_size_;  // The size of the character buffer.
   size_t buffer_pos_;  // Current character position in buffer.
+
+  bool decode_failure_;  // Set to true when a failure to decode is detected.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MIPSDecoder);
@@ -114,10 +121,25 @@ int MIPSDecoder::FormatRegister(Instr* instr, const char* format) {
 // characters that were consumed from the formatting string.
 int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
   switch (format[0]) {
+    case 'c': {
+      ASSERT(STRING_STARTS_WITH(format, "code"));
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                remaining_size_in_buffer(),
+                                "%d", instr->BreakCodeField());
+      return 4;
+    }
     case 'h': {
       ASSERT(STRING_STARTS_WITH(format, "hint"));
-      if (instr->SaField() != 0) {
-        UNIMPLEMENTED();
+      if (instr->SaField() == 0x10) {
+        // The high bit of the SA field is the only one that means something for
+        // JALR and JR. TODO(zra): Fill in the other cases for PREF if needed.
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                   remaining_size_in_buffer(),
+                                   ".hb");
+      } else if (instr->SaField() != 0) {
+        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                           remaining_size_in_buffer(),
+                           ".unknown");
       }
       return 4;
     }
@@ -176,6 +198,14 @@ void MIPSDecoder::Format(Instr* instr, const char* format) {
 }
 
 
+// For currently unimplemented decodings the disassembler calls Unknown(instr)
+// which will just print "unknown" of the instruction bits.
+void MIPSDecoder::Unknown(Instr* instr) {
+  Format(instr, "unknown");
+  set_decode_failure(true);
+}
+
+
 void MIPSDecoder::DecodeSpecial(Instr* instr) {
   ASSERT(instr->OpcodeField() == SPECIAL);
   switch (instr->FunctionField()) {
@@ -185,6 +215,10 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
     }
     case AND: {
       Format(instr, "and 'rd, 'rs, 'rt");
+      break;
+    }
+    case BREAK: {
+      Format(instr, "break 'code");
       break;
     }
     case DIV: {
@@ -214,14 +248,11 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       break;
     }
     case JR: {
-      ASSERT(instr->RtField() == R0);
-      ASSERT(instr->RdField() == R0);
       Format(instr, "jr'hint 'rs");
       break;
     }
     default: {
-      OS::PrintErr("DecodeSpecial: 0x%x\n", instr->InstructionBits());
-      UNREACHABLE();
+      Unknown(instr);
       break;
     }
   }
@@ -240,20 +271,7 @@ void MIPSDecoder::DecodeSpecial2(Instr* instr) {
       break;
     }
     default: {
-      OS::PrintErr("DecodeSpecial2: 0x%x\n", instr->InstructionBits());
-      UNREACHABLE();
-      break;
-    }
-  }
-}
-
-
-void MIPSDecoder::DecodeSpecial3(Instr* instr) {
-  ASSERT(instr->OpcodeField() == SPECIAL3);
-  switch (instr->FunctionField()) {
-    default: {
-      OS::PrintErr("DecodeSpecial3: 0x%x\n", instr->InstructionBits());
-      UNREACHABLE();
+      Unknown(instr);
       break;
     }
   }
@@ -268,10 +286,6 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
     }
     case SPECIAL2: {
       DecodeSpecial2(instr);
-      break;
-    }
-    case SPECIAL3: {
-      DecodeSpecial3(instr);
       break;
     }
     case ADDIU: {
@@ -319,30 +333,33 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       break;
     }
     default: {
-      OS::PrintErr("Undecoded instruction: 0x%x\n", instr->InstructionBits());
-      UNREACHABLE();
+      Unknown(instr);
       break;
     }
   }
 }
 
 
-int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                     char* human_buffer, intptr_t human_size,
-                                    uword pc) {
+                                    int *out_instr_len, uword pc) {
   MIPSDecoder decoder(human_buffer, human_size);
   Instr* instr = Instr::At(pc);
   decoder.InstructionDecode(instr);
   OS::SNPrint(hex_buffer, hex_size, "%08x", instr->InstructionBits());
-  return Instr::kInstrSize;
+  if (out_instr_len) {
+    *out_instr_len = Instr::kInstrSize;
+  }
+  return !decoder.decode_failure();
 }
 
 
-void Disassembler::Disassemble(uword start,
+bool Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
   ASSERT(formatter != NULL);
+  bool success = true;
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
@@ -356,11 +373,13 @@ void Disassembler::Disassemble(uword start,
           String::Handle(comments.CommentAt(comment_finger)).ToCString());
       comment_finger++;
     }
-    int instruction_length = DecodeInstruction(hex_buffer,
-                                               sizeof(hex_buffer),
-                                               human_buffer,
-                                               sizeof(human_buffer),
-                                               pc);
+    int instruction_length;
+    bool res = DecodeInstruction(hex_buffer, sizeof(hex_buffer),
+                                 human_buffer, sizeof(human_buffer),
+                                 &instruction_length, pc);
+    if (!res) {
+      success = false;
+    }
     formatter->ConsumeInstruction(hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
@@ -368,6 +387,8 @@ void Disassembler::Disassemble(uword start,
                                   pc);
     pc += instruction_length;
   }
+
+  return success;
 }
 
 }  // namespace dart

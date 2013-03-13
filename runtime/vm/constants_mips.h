@@ -48,12 +48,15 @@ enum Register {
   // Register aliases.
   ZR = R0,
   AT = R1,
+
   V0 = R2,
   V1 = R3,
+
   A0 = R4,
   A1 = R5,
   A2 = R6,
   A3 = R7,
+
   T0 = R8,
   T1 = R9,
   T2 = R10,
@@ -62,17 +65,22 @@ enum Register {
   T5 = R13,
   T6 = R14,
   T7 = R15,
+
   S0 = R16,
   S1 = R17,
-  S3 = R18,
-  S4 = R19,
-  S5 = R20,
-  S6 = R21,
-  S7 = R22,
+  S2 = R18,
+  S3 = R19,
+  S4 = R20,
+  S5 = R21,
+  S6 = R22,
+  S7 = R23,
+
   T8 = R24,
   T9 = R25,
+
   K0 = R26,
   K1 = R27,
+
   GP = R28,
   SP = R29,
   FP = R30,
@@ -159,6 +167,8 @@ enum InstructionFields {
   kImmBits = 16,
   kInstrShift = 0,
   kInstrBits = 26,
+  kBreakCodeShift = 5,
+  kBreakCodeBits = 20,
 };
 
 
@@ -295,7 +305,12 @@ class Instr {
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {
-    return reinterpret_cast<int32_t>(this);
+    return *reinterpret_cast<const int32_t*>(this);
+  }
+
+  // Set the raw instruction bits to value.
+  inline void SetInstructionBits(int32_t value) {
+    *reinterpret_cast<int32_t*>(this) = value;
   }
 
   // Read one particular bit out of the instruction bits.
@@ -338,17 +353,23 @@ class Instr {
     return (Bits(kImmShift, kImmBits) << (32 - kImmBits)) >> (32 - kImmBits);
   }
 
+  inline int32_t BreakCodeField() const {
+    return Bits(kBreakCodeShift, kBreakCodeBits);
+  }
+
   inline SpecialFunction FunctionField() const {
     return static_cast<SpecialFunction>(Bits(kFunctionShift, kFunctionBits));
+  }
+
+  inline bool IsBreakPoint() {
+    return (OpcodeField() == SPECIAL) && (FunctionField() == BREAK);
   }
 
   // Instructions are read out of a code stream. The only way to get a
   // reference to an instruction is to convert a pc. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(uword pc) {
-    return reinterpret_cast<Instr*>(*reinterpret_cast<int32_t*>(pc));
-  }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();

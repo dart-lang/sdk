@@ -35,6 +35,13 @@ class Simulator {
   void set_register(Register reg, int32_t value);
   int32_t get_register(Register reg) const;
 
+  // Accessors for floating point register state.
+  void set_fregister(FRegister freg, double value);
+  double get_fregister(FRegister) const;
+
+  // Accessor for the pc.
+  int32_t get_pc() const { return pc_; }
+
   // Accessors for hi, lo registers.
   void set_hi_register(int32_t value) { hi_reg_ = value; }
   void set_lo_register(int32_t value) { lo_reg_ = value; }
@@ -68,6 +75,7 @@ class Simulator {
   int32_t lo_reg_;
 
   int32_t registers_[kNumberOfCpuRegisters];
+  double fregisters_[kNumberOfFRegisters];
   uword pc_;
 
   // Simulator support.
@@ -75,10 +83,18 @@ class Simulator {
   int icount_;
   bool delay_slot_;
 
+  // Registered breakpoints.
+  Instr* break_pc_;
+  int32_t break_instr_;
+
   // Illegal memory access support.
   static bool IsIllegalAddress(uword addr) {
     return addr < 64*1024;
   }
+  void HandleIllegalAccess(uword addr, Instr* instr);
+
+  // Read and write memory.
+  void UnalignedAccess(const char* msg, uword addr, Instr* instr);
 
   bool OverflowFrom(int32_t alu_out,
                     int32_t left,
@@ -101,11 +117,12 @@ class Simulator {
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
-  void DecodeSpecial3(Instr *instr);
   void InstructionDecode(Instr* instr);
 
   void Execute();
   void ExecuteDelaySlot();
+
+  friend class SimulatorDebugger;
 };
 
 }  // namespace dart

@@ -245,6 +245,13 @@ class Assembler : public ValueObject {
     EmitIType(ANDI, rs, rt, imm_value);
   }
 
+  void break_(int32_t code) {
+    ASSERT(Utils::IsUint(20, code));
+    Emit(SPECIAL << kOpcodeShift |
+         code << kBreakCodeShift |
+         BREAK << kFunctionShift);
+  }
+
   void clo(Register rd, Register rs) {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLO);
   }

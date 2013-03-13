@@ -293,6 +293,7 @@ void SimulatorDebugger::RedoBreakpoints() {
 void SimulatorDebugger::Debug() {
   intptr_t last_pc = -1;
   bool done = false;
+  bool decoded = true;
 
 #define COMMAND_SIZE 63
 #define ARG_SIZE 255
@@ -316,7 +317,7 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      decoded = Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {
@@ -346,14 +347,26 @@ void SimulatorDebugger::Debug() {
                   "pd/printdouble <dreg or *addr> -- print double value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
-                  "unstop -- if current pc is a stop instr make it a nop\n");
+                  "unstop -- if current pc is a stop instr make it a nop\n"
+                  "q/quit -- Quit the debugger and exit the program\n");
+      } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
+        OS::Print("Quitting\n");
+        OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
-        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        if (decoded) {
+          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        } else {
+          OS::Print("Instruction could not be decoded. Stepping disabled.\n");
+        }
       } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
-        // Execute the one instruction we broke at with breakpoints disabled.
-        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-        // Leave the debugger shell.
-        done = true;
+        if (decoded) {
+          // Execute the one instruction we broke at with breakpoints disabled.
+          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+          // Leave the debugger shell.
+          done = true;
+        } else {
+          OS::Print("Instruction could not be decoded. Cannot continue.\n");
+        }
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint32_t value;

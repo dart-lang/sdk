@@ -1867,7 +1867,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 
 int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                     char* human_buffer, intptr_t human_size,
-                                    uword pc) {
+                                    int* out_instr_len, uword pc) {
   ASSERT(hex_size > 0);
   ASSERT(human_size > 0);
   DisassemblerX64 decoder(human_buffer, human_size);
@@ -1881,11 +1881,14 @@ int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
     remaining_size -= 2;
   }
   hex_buffer[hex_index] = '\0';
-  return instruction_length;
+  if (out_instr_len) {
+    *out_instr_len = instruction_length;
+  }
+  return true;
 }
 
 
-void Disassembler::Disassemble(uword start,
+bool Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
@@ -1903,11 +1906,12 @@ void Disassembler::Disassemble(uword start,
           String::Handle(comments.CommentAt(comment_finger)).ToCString());
       comment_finger++;
     }
-    int instruction_length = DecodeInstruction(hex_buffer,
-                                               sizeof(hex_buffer),
-                                               human_buffer,
-                                               sizeof(human_buffer),
-                                               pc);
+    int instruction_length;
+    DecodeInstruction(hex_buffer,
+                      sizeof(hex_buffer),
+                      human_buffer,
+                      sizeof(human_buffer),
+                      &instruction_length, pc);
     formatter->ConsumeInstruction(hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
@@ -1915,6 +1919,8 @@ void Disassembler::Disassemble(uword start,
                                   pc);
     pc += instruction_length;
   }
+
+  return true;
 }
 
 }  // namespace dart
