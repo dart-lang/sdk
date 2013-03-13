@@ -130,6 +130,8 @@ abstract class Backend {
     return new ItemCompilationContext();
   }
 
+  bool needsRti(ClassElement cls);
+
   // The following methods are hooks for the backend to register its
   // helper methods.
   void registerInstantiatedClass(ClassElement cls,
