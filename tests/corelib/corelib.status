@@ -68,9 +68,6 @@ map_keys2_test: Fail # Generic types aren't right.
 [ $compiler == dart2js ]
 map_values2_test: Fail # Generic types aren't right
 
-[ $compiler == dart2js && $unchecked ]
-set_test: Fail # Issue 9105
-
 ## Tests failing after merge of experimental library branch.
 [ $compiler == dart2js ]
 # Tests fail due to bug in generics on constants, issue 6827
