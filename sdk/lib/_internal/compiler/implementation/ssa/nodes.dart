@@ -1526,14 +1526,18 @@ class HLocalSet extends HFieldAccess {
 class HForeign extends HInstruction {
   final DartString code;
   final bool isStatement;
+  final bool isSideEffectFree;
 
   HForeign(this.code,
            HType type,
            List<HInstruction> inputs,
-           {this.isStatement: false})
+           {this.isStatement: false,
+            this.isSideEffectFree: false})
       : super(inputs) {
-    setAllSideEffects();
-    setDependsOnSomething();
+    if (!isSideEffectFree) {
+      setAllSideEffects();
+      setDependsOnSomething();
+    }
     instructionType = type;
   }
 
@@ -1543,7 +1547,7 @@ class HForeign extends HInstruction {
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() => true;
+  bool canThrow() => !isSideEffectFree;
 }
 
 class HForeignNew extends HForeign {

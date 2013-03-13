@@ -2592,8 +2592,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
-  HForeign createForeign(String code, HType type, List<HInstruction> inputs) {
-    return new HForeign(new LiteralDartString(code), type, inputs);
+  HForeign createForeign(String code,
+                         HType type,
+                         List<HInstruction> inputs,
+                         {bool isSideEffectFree: false}) {
+    return new HForeign(new LiteralDartString(code),
+                        type,
+                        inputs,
+                        isSideEffectFree: isSideEffectFree);
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
@@ -3237,7 +3243,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(addTypeVariableReference(variable));
     });
 
-    HInstruction result = createForeign(template, HType.STRING, inputs);
+    HInstruction result = createForeign(
+        template, HType.STRING, inputs, isSideEffectFree: true);
     add(result);
     return result;
   }
