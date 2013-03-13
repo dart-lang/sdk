@@ -109,15 +109,15 @@ testEarlyClose2() {
     server.listen(
       (request) {
         String name = new Options().script;
-        new File(name).openRead().pipe(request.response);
-      },
-      onError: (e) { /* ignore */ });
+        new File(name).openRead().pipe(request.response)
+            .catchError((e) { /* ignore */ });
+      });
 
     var count = 0;
     makeRequest() {
       Socket.connect("127.0.0.1", server.port).then((socket) {
-        var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n".codeUnits;
-        socket.add(data);
+        var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
+        socket.write(data);
         socket.close();
         socket.done.then((_) {
           socket.destroy();
@@ -133,7 +133,32 @@ testEarlyClose2() {
   });
 }
 
+void testEarlyClose3() {
+  HttpServer.bind().then((server) {
+    server.listen((request) {
+      var subscription;
+      subscription = request.listen(
+          (_) {},
+          onError: (error) {
+            // subscription.cancel should not trigger an error.
+            subscription.cancel();
+            server.close();
+          });
+    });
+    Socket.connect("localhost", server.port)
+        .then((socket) {
+          socket.write("GET / HTTP/1.1\r\n");
+          socket.write("Content-Length: 10\r\n");
+          socket.write("\r\n");
+          socket.write("data");
+          socket.close();
+          socket.listen((_) {});
+        });
+  });
+}
+
 void main() {
   testEarlyClose1();
-//  testEarlyClose2();
+  testEarlyClose2();
+  testEarlyClose3();
 }

@@ -882,7 +882,8 @@ class _HttpParser
   }
 
   void _closeIncoming() {
-    assert(_incoming != null);
+    // Ignore multiple close (can happend in re-entrance).
+    if (_incoming == null) return;
     var tmp = _incoming;
     _incoming = null;
     tmp.close();
