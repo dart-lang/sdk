@@ -9,7 +9,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
        show Element, ClassElement;
 import '../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend.dart'
-       show TypeRepresentation;
+       show TypeRepresentationGenerator;
 
 void main() {
   testTypeRepresentations();
@@ -31,7 +31,8 @@ void testTypeRepresentations() {
       m10(void f(int a, [b])) {}
       """);
 
-  TypeRepresentation typeRepresentation = new TypeRepresentation(env.compiler);
+  TypeRepresentationGenerator typeRepresentation =
+      new TypeRepresentationGenerator(env.compiler);
   String onVariable(TypeVariableType type) => type.name.slowToString();
 
   void expect(String expectedRepresentation, DartType type) {
