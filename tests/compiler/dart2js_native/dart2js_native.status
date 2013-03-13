@@ -7,3 +7,4 @@
 
 [ $compiler == dart2js ]
 native_null_closure_frog_test: Fail
+field_type_test: Fail   # Issue 9125
