@@ -661,9 +661,9 @@ class CodeEmitterTask extends CompilerTask {
     }
     if (parameters.optionalParametersAreNamed
         && selector.namedArgumentCount == parameters.optionalParameterCount) {
-      // If the selector has the same number of named arguments as
-      // the element, we don't need to add a stub. The call site will
-      // hit the method directly.
+      // If the selector has the same number of named arguments as the element,
+      // we don't need to add a stub. The call site will hit the method
+      // directly.
       return;
     }
     ConstantHandler handler = compiler.constantHandler;
@@ -675,8 +675,7 @@ class CodeEmitterTask extends CompilerTask {
 
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
-    // If the method is intercepted, we need to also pass
-    // the actual receiver.
+    // If the method is intercepted, we need to also pass the actual receiver.
     int extraArgumentCount = isInterceptedMethod ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
     // '$receiver' works because [:namer.safeName:] used for getting parameter
@@ -698,14 +697,16 @@ class CodeEmitterTask extends CompilerTask {
       argumentsBuffer[0] = js[receiverArgumentName];
     }
 
-    int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
+    int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
+    // Includes extra receiver argument when using interceptor convention
+    int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
+
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
     parameters.orderedForEachParameter((Element element) {
       String jsName = backend.namer.safeName(element.name.slowToString());
       assert(jsName != receiverArgumentName);
-      int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
         argumentsBuffer[count] = js[jsName];
@@ -741,7 +742,8 @@ class CodeEmitterTask extends CompilerTask {
     List body;
     if (member.hasFixedBackendName()) {
       body = nativeEmitter.generateParameterStubStatements(
-          member, invocationName, parametersBuffer, argumentsBuffer,
+          member, isInterceptedMethod, invocationName,
+          parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else {
       body = [js.return_(js['this'][namer.getName(member)](argumentsBuffer))];
@@ -2246,7 +2248,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       else if (cls == backend.jsNumberClass) hasNumber = true;
       else if (cls == backend.jsStringClass) hasString = true;
       else {
-        assert(cls == compiler.objectClass);
+        // TODO(sra): The set of classes includes classes mixed-in to
+        // interceptor classes.
+        // assert(cls == compiler.objectClass || cls.isNative());
       }
     }
     if (hasDouble) {

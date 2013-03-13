@@ -699,11 +699,16 @@ class JavaScriptBackend extends Backend {
   final Map<String, Selector> oneShotInterceptors;
 
   /**
-   * The members of instantiated interceptor classes: maps a member
-   * name to the list of members that have that name. This map is used
-   * by the codegen to know whether a send must be intercepted or not.
+   * The members of instantiated interceptor classes: maps a member name to the
+   * list of members that have that name. This map is used by the codegen to
+   * know whether a send must be intercepted or not.
    */
   final Map<SourceString, Set<Element>> interceptedElements;
+  // TODO(sra): Not all methods in the Set always require an interceptor.  A
+  // method may be mixed into a true interceptor *and* a plain class. For the
+  // method to work on the interceptor class it needs to use the explicit
+  // receiver.  This constrains the call on a known plain receiver to pass the
+  // explicit receiver.  https://code.google.com/p/dart/issues/detail?id=8942
 
   /**
    * A map of specialized versions of the [getInterceptorMethod].
@@ -767,8 +772,9 @@ class JavaScriptBackend extends Backend {
         new Namer(compiler);
   }
 
-  bool isInterceptorClass(Element element) {
+  bool isInterceptorClass(ClassElement element) {
     if (element == null) return false;
+    if (element.isNative()) return true;
     return interceptedClasses.contains(element);
   }
 
@@ -820,7 +826,8 @@ class JavaScriptBackend extends Backend {
       // determine if the given selector applies to them.
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
-        result.add(element.getEnclosingClass());
+        ClassElement classElement = element.getEnclosingClass();
+        result.add(classElement);
       }
       return result;
     });
@@ -900,6 +907,19 @@ class JavaScriptBackend extends Backend {
     specialOperatorEqClasses
         ..add(jsNullClass)
         ..add(jsNumberClass);
+  }
+
+  void addInterceptorsForNativeClassMembers(
+      ClassElement cls, Enqueuer enqueuer) {
+    if (enqueuer.isResolutionQueue) {
+      cls.ensureResolved(compiler);
+      cls.forEachMember((ClassElement classElement, Element member) {
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
+          set.add(member);
+        },
+        includeSuperMembers: true);
+    }
   }
 
   void addInterceptors(ClassElement cls,
@@ -998,6 +1018,8 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
     } else if (cls == compiler.mapClass) {
+    } else if (cls.isNative()) {
+      addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
 
     if (compiler.enableTypeAssertions) {
