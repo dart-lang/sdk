@@ -381,6 +381,48 @@ class IterableMixinWorkaround {
   static Map<int, dynamic> asMapList(List l) {
     return new ListMapView(l);
   }
+
+  static bool isSubsetOfSet(Set set, Set other) {
+    if (set.length > other.length) return false;
+    for (var element in set) {
+      if (!other.contains(element)) return false;
+    }
+    return true;
+  }
+
+
+  static Set setIntersection(Set set, Set other, Set result) {
+    Set smaller;
+    Set larger;
+    if (set.length < other.length) {
+      smaller = set;
+      larger = other;
+    } else {
+      smaller = other;
+      larger = set;
+    }
+    for (var element in smaller) {
+      if (larger.contains(element)) {
+        result.add(element);
+      }
+    }
+    return result;
+  }
+
+  static Set setUnion(Set set, Set other, Set result) {
+    result.addAll(set);
+    result.addAll(other);
+    return result;
+  }
+
+  static Set setDifference(Set set, Set other, Set result) {
+    for (var element in set) {
+      if (!other.contains(element)) {
+        result.add(element);
+      }
+    }
+    return result;
+  }
 }
 
 class Collections {

@@ -86,32 +86,26 @@ class HashSet<E> extends Collection<E> implements Set<E> {
   }
 
   // Set.
-  bool isSubsetOf(Collection<E> collection) {
-    Set otherSet;
-    if (collection is Set) {
-      otherSet = collection;
-    } else {
-      otherSet = collection.toSet();
-    }
-    return otherSet.containsAll(this);
+  bool isSubsetOf(Set<E> other) {
+    return IterableMixinWorkaround.isSubsetOfSet(this, other);
   }
 
-  bool containsAll(Collection<E> collection) {
-    for (E element in collection) {
-      if (!this.contains(element)) return false;
-    }
-    return true;
+  bool containsAll(Set<E> other) {
+    return IterableMixinWorkaround.isSubsetOfSet(other, this);
   }
 
-  Set<E> intersection(Collection<E> other) {
-    Set<E> result = new HashSet<E>();
-    for (E element in other) {
-      if (this.contains(element)) {
-        result.add(element);
-      }
-    }
-    return result;
+  Set<E> intersection(Set<E> other) {
+    return IterableMixinWorkaround.setIntersection(
+        this, other, new HashSet<E>());
   }
 
-  String toString() =>  Collections.collectionToString(this);
+  Set<E> union(Set<E> other) {
+    return IterableMixinWorkaround.setUnion(this, other, new HashSet<E>());
+  }
+
+  Set<E> difference(Set<E> other) {
+    return IterableMixinWorkaround.setDifference(this, other, new HashSet<E>());
+  }
+
+  String toString() => Collections.collectionToString(this);
 }

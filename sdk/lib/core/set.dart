@@ -35,22 +35,29 @@ abstract class Set<E> extends Collection<E> {
   bool remove(Object value);
 
   /**
-   * Returns true if [collection] contains all the elements of this
-   * collection.
+   * Returns true if [other] contains all the elements of this Set.
    */
-  bool isSubsetOf(Collection<E> collection);
+  bool isSubsetOf(Set<E> other);
 
   /**
-   * Returns true if this collection contains all the elements of
-   * [collection].
+   * Returns true if this Set contains all the elements of [other].
    */
-  bool containsAll(Collection<E> collection);
+  bool containsAll(Set<E> other);
 
   /**
-   * Returns a new set which is the intersection between this set and
-   * the given collection.
+   * Returns a new set which is the intersection between this set and [other].
    */
-  Set<E> intersection(Collection<E> other);
+  Set<E> intersection(Set<E> other);
+
+  /**
+   * Returns a new set which contains all the elements of this set and [other].
+   */
+  Set<E> union(Set<E> other);
+
+  /**
+   * Returns a new set with the the elements of this that are not in [other].
+   */
+  Set<E> difference(Set<E> other);
 
   /**
    * Removes all elements in the set.
