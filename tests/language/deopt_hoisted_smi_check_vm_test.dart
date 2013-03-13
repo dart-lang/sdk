@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization on an optimistically hoisted smi check.
@@ -13,7 +13,20 @@ sum(a, b) {
   return sum;
 }
 
+mask(x) {
+  for (var i = 0; i < 10; i++) {
+    if (i == 1) {
+      return x;
+    }
+    x = x & 0xFF;
+  }
+}
+
 main() {
-  for (var i = 0; i < 2000; i++) Expect.equals(9, sum(1, 2));
+  for (var i = 0; i < 2000; i++) {
+    Expect.equals(9, sum(1, 2));
+    Expect.equals(0xAB, mask(0xAB));
+  }
   Expect.equals(9, sum(1.0, 2.0));  // Passing double causes deoptimization.
+  Expect.equals(0xAB, mask(0x1000000AB));
 }

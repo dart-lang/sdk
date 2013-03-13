@@ -259,6 +259,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
 
       // The final canonicalization pass before the code generation.
+      if (FLAG_propagate_types) {
+        // Recompute types after code movement was done to ensure correct
+        // reaching types for hoisted values.
+        FlowGraphTypePropagator propagator(flow_graph);
+        propagator.Propagate();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      }
       optimizer.Canonicalize();
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
