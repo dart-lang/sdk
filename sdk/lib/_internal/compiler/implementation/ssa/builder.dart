@@ -1477,12 +1477,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
 
       FunctionSignature functionSignature = body.computeSignature(compiler);
+      // Provide the parameters to the generative constructor body.
       functionSignature.orderedForEachParameter((parameter) {
-        // if [parameter] is boxed, it will be a field in the box passed as the
-        // last parameter. So no need to direclty pass it.
+        // If [parameter] is boxed, it will be a field in the box passed as the
+        // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
           bodyCallInputs.add(localsHandler.readLocal(parameter));
         }
+      });
+
+      // Provide the parameter checks to the generative constructor
+      // body.
+      functionSignature.orderedForEachParameter((parameter) {
         // If [parameter] is checked, we pass the already computed
         // boolean to the constructor body.
         if (elements.isParameterChecked(parameter)) {
