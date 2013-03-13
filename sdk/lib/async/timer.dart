@@ -36,8 +36,8 @@ abstract class Timer {
    * The [callback] is invoked repeatedly with [duration] intervals until
    * canceled. A negative duration is treated similar to a duration of 0.
    */
-  external factory Timer.repeating(Duration duration,
-                                   void callback(Timer timer));
+  external factory Timer.periodic(Duration duration,
+                                  void callback(Timer timer));
 
   /**
    * Runs the given [callback] asynchronously as soon as possible.

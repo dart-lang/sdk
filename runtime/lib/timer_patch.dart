@@ -12,8 +12,8 @@ patch class Timer {
     return _TimerFactory._factory(milliseconds, (_) { callback(); }, false);
   }
 
-  /* patch */ factory Timer.repeating(Duration duration,
-                                      void callback(Timer timer)) {
+  /* patch */ factory Timer.periodic(Duration duration,
+                                     void callback(Timer timer)) {
     if (_TimerFactory._factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
     }

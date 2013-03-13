@@ -1318,7 +1318,7 @@ class TimerImpl implements Timer {
     }
   }
 
-  TimerImpl.repeating(int milliseconds, void callback(Timer timer))
+  TimerImpl.periodic(int milliseconds, void callback(Timer timer))
       : _once = false {
     if (hasTimer()) {
       _globalState.topEventLoop.activeTimerCount++;
@@ -1327,7 +1327,7 @@ class TimerImpl implements Timer {
                    convertDartClosureToJS(() { callback(this); }, 0),
                    milliseconds);
     } else {
-      throw new UnsupportedError("Repeating timer.");
+      throw new UnsupportedError("Periodic timer.");
     }
   }
 

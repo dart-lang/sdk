@@ -51,7 +51,7 @@ void testHttp11Close(bool closeRequest) {
 void testStreamResponse() {
   HttpServer.bind().then((server) {
     server.listen((request) {
-      var timer = new Timer.repeating(const Duration(milliseconds: 0), (_) {
+      var timer = new Timer.periodic(const Duration(milliseconds: 0), (_) {
         request.response.write(
             'data:${new DateTime.now().millisecondsSinceEpoch}\n\n');
       });

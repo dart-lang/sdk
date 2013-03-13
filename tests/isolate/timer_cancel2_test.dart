@@ -16,7 +16,7 @@ main() {
       cancelTimer.cancel();
     }
 
-    cancelTimer = new Timer.repeating(const Duration(milliseconds: 1),
-                                      expectAsync1(cancelHandler));
+    cancelTimer = new Timer.periodic(const Duration(milliseconds: 1),
+                                     expectAsync1(cancelHandler));
   });
 }

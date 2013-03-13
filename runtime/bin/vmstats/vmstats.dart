@@ -18,7 +18,7 @@ DivElement _statusText;
 IsolateListModel _isolates;
 Timer _updater;
 
-final int _POLL_INTERVAL_IN_MS = 1000;
+final int _POLL_INTERVAL = const Duration(seconds: 1);
 
 void main() {
   DivElement dashBoard = query('#dashboard');
@@ -33,8 +33,7 @@ void main() {
   _isolates = new IsolateListModel();
   _isolates.addListener(onUpdateStatus, onRequestFailed);
   _isolates.update();
-  _updater =
-      new Timer.repeating(_POLL_INTERVAL_IN_MS, (timer) => _isolates.update());
+  _updater = new Timer.periodic(_POLL_INTERVAL, (timer) => _isolates.update());
 }
 
 void onUpdateStatus(IsolateListModel model) {

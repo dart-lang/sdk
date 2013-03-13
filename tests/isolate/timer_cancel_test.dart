@@ -33,7 +33,7 @@ main() {
     new Timer(ms * 1000, expectAsync0(handler));
     cancelTimer = new Timer(ms * 2000, expectAsync0(unreachable, count: 0));
     repeatTimer = 0;
-    new Timer.repeating(ms * 1500, expectAsync1(repeatHandler));
+    new Timer.periodic(ms * 1500, expectAsync1(repeatHandler));
   });
 
   test("cancel timer with same time", () {

@@ -120,7 +120,7 @@ void test4() {
 
   server.listen((var request) {
     request.listen((_) {}, onDone: () {
-      new Timer.repeating(new Duration(milliseconds: 100), (timer) {
+      new Timer.periodic(new Duration(milliseconds: 100), (timer) {
         if (server.connectionsInfo().total == 0) {
           server.close();
           timer.cancel();
@@ -175,7 +175,7 @@ void test5(int totalConnections) {
         .catchError((e) { }, test: (e) => e is HttpParserException);
     }
     bool clientClosed = false;
-    new Timer.repeating(new Duration(milliseconds: 100), (timer) {
+    new Timer.periodic(new Duration(milliseconds: 100), (timer) {
       if (!clientClosed) {
         if (server.connectionsInfo().total == totalConnections) {
           clientClosed = true;

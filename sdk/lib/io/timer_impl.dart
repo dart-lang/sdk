@@ -32,7 +32,7 @@ class _Timer implements Timer {
     return _createTimer(callback, milliSeconds, false);
   }
 
-  factory _Timer.repeating(int milliSeconds, void callback(Timer timer)) {
+  factory _Timer.periodic(int milliSeconds, void callback(Timer timer)) {
     return _createTimer(callback, milliSeconds, true);
   }
 
@@ -193,7 +193,7 @@ class _Timer implements Timer {
 _getTimerFactoryClosure() {
   return (int milliSeconds, void callback(Timer timer), bool repeating) {
     if (repeating) {
-      return new _Timer.repeating(milliSeconds, callback);
+      return new _Timer.periodic(milliSeconds, callback);
     }
     return new _Timer(milliSeconds, callback);
   };
