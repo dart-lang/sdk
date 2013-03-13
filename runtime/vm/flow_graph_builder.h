@@ -16,14 +16,13 @@ class FlowGraph;
 class Instruction;
 class ParsedFunction;
 
-// An abstraction of the graph context in which an inlined call occurs.
-class InliningContext: public ZoneAllocated {
+// An InliningContext collects the exits from an inlined function during
+// graph construction so they can be plugged into the caller's flow graph.
+class InliningContext: public ValueObject {
  public:
-  // Create the appropriate inlining context for the flow graph context of a
-  // call.
-  static InliningContext* Create(Definition* call);
+  InliningContext() : exits_(4) { }
 
-  virtual void AddExit(ReturnInstr* exit) = 0;
+  void AddExit(ReturnInstr* exit);
 
   // Inline a flow graph at a call site.
   //
@@ -33,35 +32,19 @@ class InliningContext: public ZoneAllocated {
   //
   // After inlining the caller graph will correctly have adjusted the
   // pre/post orders, the dominator tree and the use lists.
-  virtual void ReplaceCall(FlowGraph* caller_graph,
-                           Definition* call,
-                           FlowGraph* callee_graph) = 0;
-
- protected:
-  static void PrepareGraphs(FlowGraph* caller_graph,
-                            Definition* call,
-                            FlowGraph* callee_graph);
-};
-
-
-// The context of a call inlined for its value (including calls inlined for
-// their effects, i.e., when the value is ignored).  Collects normal exit
-// blocks and return values.
-class ValueInliningContext: public InliningContext {
- public:
-  ValueInliningContext() : exits_(4) { }
-
-  virtual void AddExit(ReturnInstr* exit);
-
-  virtual void ReplaceCall(FlowGraph* caller_graph,
-                           Definition* call,
-                           FlowGraph* callee_graph);
+  void ReplaceCall(FlowGraph* caller_graph,
+                   Definition* call,
+                   FlowGraph* callee_graph);
 
  private:
   struct Data {
     BlockEntryInstr* exit_block;
     ReturnInstr* exit_return;
   };
+
+  static void PrepareGraphs(FlowGraph* caller_graph,
+                            Definition* call,
+                            FlowGraph* callee_graph);
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
     ASSERT(exits_[i].exit_block != NULL);

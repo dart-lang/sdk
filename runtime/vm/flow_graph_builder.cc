@@ -62,11 +62,6 @@ void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
 }
 
 
-InliningContext* InliningContext::Create(Definition* call) {
-  return new ValueInliningContext();
-}
-
-
 void InliningContext::PrepareGraphs(FlowGraph* caller_graph,
                                     Definition* call,
                                     FlowGraph* callee_graph) {
@@ -97,18 +92,18 @@ void InliningContext::PrepareGraphs(FlowGraph* caller_graph,
 }
 
 
-void ValueInliningContext::AddExit(ReturnInstr* exit) {
+void InliningContext::AddExit(ReturnInstr* exit) {
   Data data = { NULL, exit };
   exits_.Add(data);
 }
 
 
-int ValueInliningContext::LowestBlockIdFirst(const Data* a, const Data* b) {
+int InliningContext::LowestBlockIdFirst(const Data* a, const Data* b) {
   return (a->exit_block->block_id() - b->exit_block->block_id());
 }
 
 
-void ValueInliningContext::SortExits() {
+void InliningContext::SortExits() {
   // Assign block entries here because we did not necessarily know them when
   // the return exit was added to the array.
   for (int i = 0; i < exits_.length(); ++i) {
@@ -118,9 +113,9 @@ void ValueInliningContext::SortExits() {
 }
 
 
-void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
-                                       Definition* call,
-                                       FlowGraph* callee_graph) {
+void InliningContext::ReplaceCall(FlowGraph* caller_graph,
+                                  Definition* call,
+                                  FlowGraph* callee_graph) {
   ASSERT(call->previous() != NULL);
   ASSERT(call->next() != NULL);
   PrepareGraphs(caller_graph, call, callee_graph);
