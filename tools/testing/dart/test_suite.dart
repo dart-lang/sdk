@@ -183,7 +183,7 @@ abstract class TestSuite {
       case 'dartc':
         return '$buildDir/analyzer/bin/dart_analyzer$suffix';
       case 'new_analyzer':
-        var prefix = 'sdk/bin/';
+        var prefix = 'sdk/bin';
         return '$prefix/analyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
@@ -1230,8 +1230,7 @@ class StandardTestSuite extends TestSuite {
     }
     args.addAll(additionalOptions(filePath));
     if (configuration['analyzer']) {
-      args.add('--error_format');
-      args.add('machine');
+      args.add('--machine');
     }
 
     bool isMultitest = optionsFromFile["isMultitest"];

@@ -18,8 +18,10 @@ if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32
 
 set arguments=%*
 
+set "SDK_DIR=%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\dart-sdk"
+
 set "JAR_DIR=%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\new_analyzer"
 
 set "JAR_FILE=%JAR_DIR%\new_analyzer.jar"
 
-java -jar %JAR_FILE% %arguments%"
+java -jar %JAR_FILE% --dart-sdk %SDK_DIR% %arguments%
