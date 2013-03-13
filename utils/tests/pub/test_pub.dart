@@ -1173,7 +1173,8 @@ class TarFileDescriptor extends Descriptor {
   }
 }
 
-/// A descriptor that validates that no file exists with the given name.
+/// A descriptor that validates that no file or directory exists with the given
+/// name.
 class NothingDescriptor extends Descriptor {
   NothingDescriptor(String name) : super(name);
 
@@ -1183,7 +1184,7 @@ class NothingDescriptor extends Descriptor {
   Future validate(String dir) {
     return defer(() {
       if (entryExists(path.join(dir, name))) {
-        throw new TestFailure('File $name in $dir should not exist.');
+        throw new TestFailure('Entry $name in $dir should not exist.');
       }
     });
   }

@@ -283,8 +283,8 @@ class ChangeVersion implements WorkItem {
       Version version) {
     // If there is no version, it means no package, so no dependencies.
     if (version == null) {
-      return
-          new Future<Map<String, PackageRef>>.immediate(<String, PackageRef>{});
+      return new Future<Map<String, PackageRef>>.immediate(
+          <String, PackageRef>{});
     }
 
     var id = new PackageId(package, source, version, description);
@@ -293,6 +293,14 @@ class ChangeVersion implements WorkItem {
       for (var dependency in pubspec.dependencies) {
         dependencies[dependency.name] = dependency;
       }
+
+      // Include dev dependencies only from the root package.
+      if (id.isRoot) {
+        for (var dependency in pubspec.devDependencies) {
+          dependencies[dependency.name] = dependency;
+        }
+      }
+
       return dependencies;
     });
   }

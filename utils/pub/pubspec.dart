@@ -25,6 +25,9 @@ class Pubspec {
   /// The packages this package depends on.
   final List<PackageRef> dependencies;
 
+  /// The packages this package depends on when it is the root package.
+  final List<PackageRef> devDependencies;
+
   /// The environment-related metadata.
   final PubspecEnvironment environment;
 
@@ -55,14 +58,15 @@ class Pubspec {
     }
   }
 
-  Pubspec(this.name, this.version, this.dependencies, this.environment,
-      [Map<String, Object> fields])
+  Pubspec(this.name, this.version, this.dependencies, this.devDependencies,
+          this.environment, [Map<String, Object> fields])
     : this.fields = fields == null ? {} : fields;
 
   Pubspec.empty()
     : name = null,
       version = Version.none,
       dependencies = <PackageRef>[],
+      devDependencies = <PackageRef>[],
       environment = new PubspecEnvironment(),
       fields = {};
 
@@ -104,6 +108,42 @@ class Pubspec {
 
     var dependencies = _parseDependencies(filePath, sources,
         parsedPubspec['dependencies']);
+
+    var devDependencies = _parseDependencies(filePath, sources,
+        parsedPubspec['dev_dependencies']);
+
+    // Make sure the same package doesn't appear as both a regular and dev
+    // dependency.
+    var dependencyNames = dependencies.map((dep) => dep.name).toSet();
+    var collisions = dependencyNames.intersection(
+        devDependencies.map((dep) => dep.name).toSet());
+
+    if (!collisions.isEmpty) {
+      var packageNames;
+      if (collisions.length == 1) {
+        packageNames = 'Package "${collisions.first}"';
+      } else {
+        var names = collisions.toList();
+        names.sort();
+        var buffer = new StringBuffer();
+        buffer.write("Packages ");
+        for (var i = 0; i < names.length; i++) {
+          buffer.write('"');
+          buffer.write(names[i]);
+          buffer.write('"');
+          if (i == names.length - 2) {
+            buffer.write(", ");
+          } else if (i == names.length - 1) {
+            buffer.write(", and ");
+          }
+        }
+
+        packageNames = buffer.toString();
+      }
+      throw new FormatException(
+          '$packageNames cannot appear in both "dependencies" and '
+          '"dev_dependencies".');
+    }
 
     var environmentYaml = parsedPubspec['environment'];
     var sdkConstraint = VersionConstraint.any;
@@ -169,7 +209,8 @@ class Pubspec {
       }
     }
 
-    return new Pubspec(name, version, dependencies, environment, parsedPubspec);
+    return new Pubspec(name, version, dependencies, devDependencies,
+        environment, parsedPubspec);
   }
 }
 
