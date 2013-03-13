@@ -290,18 +290,18 @@ class AnalysisException extends JavaException {
    * Initialize a newly created exception.
    */
   AnalysisException() : super() {
-    _jtd_constructor_121_impl();
+    _jtd_constructor_123_impl();
   }
-  _jtd_constructor_121_impl() {
+  _jtd_constructor_123_impl() {
   }
   /**
    * Initialize a newly created exception to have the given message.
    * @param message the message associated with the exception
    */
   AnalysisException.con1(String message) : super(message) {
-    _jtd_constructor_122_impl(message);
+    _jtd_constructor_124_impl(message);
   }
-  _jtd_constructor_122_impl(String message) {
+  _jtd_constructor_124_impl(String message) {
   }
   /**
    * Initialize a newly created exception to have the given message and cause.
@@ -309,18 +309,18 @@ class AnalysisException extends JavaException {
    * @param cause the underlying exception that caused this exception
    */
   AnalysisException.con2(String message, Exception cause) : super(message, cause) {
-    _jtd_constructor_123_impl(message, cause);
+    _jtd_constructor_125_impl(message, cause);
   }
-  _jtd_constructor_123_impl(String message, Exception cause) {
+  _jtd_constructor_125_impl(String message, Exception cause) {
   }
   /**
    * Initialize a newly created exception to have the given cause.
    * @param cause the underlying exception that caused this exception
    */
   AnalysisException.con3(Exception cause) : super.withCause(cause) {
-    _jtd_constructor_124_impl(cause);
+    _jtd_constructor_126_impl(cause);
   }
-  _jtd_constructor_124_impl(Exception cause) {
+  _jtd_constructor_126_impl(Exception cause) {
   }
 }
 /**
@@ -935,9 +935,9 @@ class SourceInfo {
    */
   List<Source> _librarySources = null;
   SourceInfo.con1(Source source, SourceKind kind3) {
-    _jtd_constructor_154_impl(source, kind3);
+    _jtd_constructor_161_impl(source, kind3);
   }
-  _jtd_constructor_154_impl(Source source, SourceKind kind3) {
+  _jtd_constructor_161_impl(Source source, SourceKind kind3) {
     this._kind = kind3;
   }
   /**
@@ -945,9 +945,9 @@ class SourceInfo {
    * @param info the information holder used to initialize this holder
    */
   SourceInfo.con2(SourceInfo info) {
-    _jtd_constructor_155_impl(info);
+    _jtd_constructor_162_impl(info);
   }
-  _jtd_constructor_155_impl(SourceInfo info) {
+  _jtd_constructor_162_impl(SourceInfo info) {
     _kind = info._kind;
     _librarySources = new List<Source>.from(info._librarySources);
   }

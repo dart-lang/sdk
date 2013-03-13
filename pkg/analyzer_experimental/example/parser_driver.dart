@@ -4,29 +4,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer-experimental/src/generated/ast.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/parser.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/parser.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
 
 import 'dart:io';
 
 
 main() {
-  
+
   print('working dir ${new File('.').fullPathSync()}');
-  
+
   var args = new Options().arguments;
   if (args.length == 0) {
     print('Usage: parser_driver [files_to_parse]');
     exit(0);
   }
-  
+
   for (var arg in args) {
     _parse(new File(arg));
   }
-  
+
 }
 
 _parse(File file) {
@@ -36,10 +36,10 @@ _parse(File file) {
   var token = scanner.tokenize();
   var parser = new Parser(null, errorListener);
   var unit = parser.parseCompilationUnit(token);
-  
+
   var visitor = new _ASTVisitor();
   unit.accept(visitor);
-  
+
   for (var error in errorListener.errors) {
     print(error);
   }

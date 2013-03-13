@@ -185,6 +185,18 @@ class InstrumentationLevel {
   final String __name;
   final int __ordinal;
   int get ordinal => __ordinal;
+  static InstrumentationLevel fromString(String str) {
+    if (str == "EVERYTHING") {
+      return InstrumentationLevel.EVERYTHING;
+    }
+    if (str == "METRICS") {
+      return InstrumentationLevel.METRICS;
+    }
+    if (str == "OFF") {
+      return InstrumentationLevel.OFF;
+    }
+    throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
+  }
   InstrumentationLevel(this.__name, this.__ordinal) {
   }
   String toString() => __name;

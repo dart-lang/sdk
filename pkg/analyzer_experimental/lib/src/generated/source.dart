@@ -25,9 +25,9 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_289_impl(contentCache2, resolvers2);
+    _jtd_constructor_300_impl(contentCache2, resolvers2);
   }
-  _jtd_constructor_289_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
+  _jtd_constructor_300_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
     this._contentCache = contentCache2;
     this._resolvers = resolvers2;
   }
@@ -36,10 +36,10 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_290_impl(resolvers);
+    _jtd_constructor_301_impl(resolvers);
   }
-  _jtd_constructor_290_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_289_impl(new ContentCache(), resolvers);
+  _jtd_constructor_301_impl(List<UriResolver> resolvers) {
+    _jtd_constructor_300_impl(new ContentCache(), resolvers);
   }
   /**
    * Return a source object representing the given absolute URI, or {@code null} if the URI is not a

@@ -9,12 +9,12 @@ import 'java_core.dart';
 import 'java_io.dart';
 import 'java_engine.dart';
 import 'java_engine_io.dart';
-import 'package:analyzer-experimental/src/generated/source_io.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
-import 'package:analyzer-experimental/src/generated/parser.dart';
-import 'package:analyzer-experimental/src/generated/ast.dart';
-import 'package:analyzer-experimental/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer_experimental/src/generated/source_io.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/parser.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisEngine;
 
 /**
  * Represents a single library in the SDK
@@ -256,8 +256,8 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     Expression value9 = node.value;
     if (value9 is InstanceCreationExpression) {
       SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments6 = ((value9 as InstanceCreationExpression)).argumentList.arguments;
-      for (Expression argument in arguments6) {
+      List<Expression> arguments7 = ((value9 as InstanceCreationExpression)).argumentList.arguments;
+      for (Expression argument in arguments7) {
         if (argument is SimpleStringLiteral) {
           library.path = ((argument as SimpleStringLiteral)).value;
         } else if (argument is NamedExpression) {

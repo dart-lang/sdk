@@ -52,7 +52,7 @@
             '--version=<!@(["python", "../../tools/print_version.py"])',
             '--pkg=<(PRODUCT_DIR)/packages',
             '--mode=static',
-            '--exclude-lib=analyzer-experimental',
+            '--exclude-lib=analyzer_experimental',
             '--exclude-lib=browser',
             '--exclude-lib=dartdoc',
             '--exclude-lib=http',

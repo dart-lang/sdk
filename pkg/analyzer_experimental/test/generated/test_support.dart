@@ -5,13 +5,13 @@ library engine.test_support;
 
 import 'dart:collection';
 import 'dart:uri';
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/java_engine.dart';
-import 'package:analyzer-experimental/src/generated/java_junit.dart';
-import 'package:analyzer-experimental/src/generated/source.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
-import 'package:analyzer-experimental/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/java_engine.dart';
+import 'package:analyzer_experimental/src/generated/java_junit.dart';
+import 'package:analyzer_experimental/src/generated/source.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
@@ -44,17 +44,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_304_impl();
+    _jtd_constructor_315_impl();
   }
-  _jtd_constructor_304_impl() {
+  _jtd_constructor_315_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_305_impl(rawSource2);
+    _jtd_constructor_316_impl(rawSource2);
   }
-  _jtd_constructor_305_impl(String rawSource2) {
+  _jtd_constructor_316_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
@@ -208,9 +208,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param errorCode the error code being searched for
    * @return {@code true} if an error with the given error code has been gathered
    */
-  bool hasError(ErrorCode errorCode4) {
+  bool hasError(ErrorCode errorCode5) {
     for (AnalysisError error in _errors) {
-      if (identical(error.errorCode, errorCode4)) {
+      if (identical(error.errorCode, errorCode5)) {
         return true;
       }
     }

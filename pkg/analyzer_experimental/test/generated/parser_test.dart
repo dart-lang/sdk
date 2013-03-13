@@ -4,15 +4,15 @@
 library engine.parser_test;
 
 import 'dart:collection';
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/java_engine.dart';
-import 'package:analyzer-experimental/src/generated/java_junit.dart';
-import 'package:analyzer-experimental/src/generated/source.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
-import 'package:analyzer-experimental/src/generated/ast.dart';
-import 'package:analyzer-experimental/src/generated/parser.dart';
-import 'package:analyzer-experimental/src/generated/utilities_dart.dart';
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/java_engine.dart';
+import 'package:analyzer_experimental/src/generated/java_junit.dart';
+import 'package:analyzer_experimental/src/generated/source.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/parser.dart';
+import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
@@ -281,23 +281,23 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseArgumentList_empty() {
     ArgumentList argumentList = ParserTestCase.parse6("parseArgumentList", "()", []);
-    NodeList<Expression> arguments7 = argumentList.arguments;
-    EngineTestCase.assertSize(0, arguments7);
+    NodeList<Expression> arguments8 = argumentList.arguments;
+    EngineTestCase.assertSize(0, arguments8);
   }
   void test_parseArgumentList_mixed() {
     ArgumentList argumentList = ParserTestCase.parse6("parseArgumentList", "(w, x, y: y, z: z)", []);
-    NodeList<Expression> arguments8 = argumentList.arguments;
-    EngineTestCase.assertSize(4, arguments8);
+    NodeList<Expression> arguments9 = argumentList.arguments;
+    EngineTestCase.assertSize(4, arguments9);
   }
   void test_parseArgumentList_noNamed() {
     ArgumentList argumentList = ParserTestCase.parse6("parseArgumentList", "(x, y, z)", []);
-    NodeList<Expression> arguments9 = argumentList.arguments;
-    EngineTestCase.assertSize(3, arguments9);
+    NodeList<Expression> arguments10 = argumentList.arguments;
+    EngineTestCase.assertSize(3, arguments10);
   }
   void test_parseArgumentList_onlyNamed() {
     ArgumentList argumentList = ParserTestCase.parse6("parseArgumentList", "(x: x, y: y)", []);
-    NodeList<Expression> arguments10 = argumentList.arguments;
-    EngineTestCase.assertSize(2, arguments10);
+    NodeList<Expression> arguments11 = argumentList.arguments;
+    EngineTestCase.assertSize(2, arguments11);
   }
   void test_parseAssertStatement() {
     AssertStatement statement = ParserTestCase.parse6("parseAssertStatement", "assert (x);", []);
@@ -3533,7 +3533,7 @@ class SimpleParserTest extends ParserTestCase {
    */
   bool isFunctionDeclaration(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return ParserTestCase.invokeParserMethod2("isFunctionDeclaration", source, listener);
+    return ParserTestCase.invokeParserMethod2("isFunctionDeclaration", source, listener) as bool;
   }
   /**
    * Invoke the method {@link Parser#isFunctionExpression()} with the parser set to the token stream
@@ -3558,7 +3558,7 @@ class SimpleParserTest extends ParserTestCase {
    */
   bool isInitializedVariableDeclaration(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return ParserTestCase.invokeParserMethod2("isInitializedVariableDeclaration", source, listener);
+    return ParserTestCase.invokeParserMethod2("isInitializedVariableDeclaration", source, listener) as bool;
   }
   /**
    * Invoke the method {@link Parser#isSwitchMember()} with the parser set to the token stream
@@ -3569,7 +3569,7 @@ class SimpleParserTest extends ParserTestCase {
    */
   bool isSwitchMember(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return ParserTestCase.invokeParserMethod2("isSwitchMember", source, listener);
+    return ParserTestCase.invokeParserMethod2("isSwitchMember", source, listener) as bool;
   }
   /**
    * Invoke a "skip" method in {@link Parser}. The method is assumed to take a token as it's
@@ -6519,6 +6519,21 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(SimpleIdentifier, syntheticExpression);
     JUnitTestCase.assertTrue(syntheticExpression.isSynthetic());
   }
+  void test_isExpression_noType() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}", [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_STATEMENT]);
+    ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
+    MethodDeclaration method = declaration.members[0] as MethodDeclaration;
+    BlockFunctionBody body5 = method.body as BlockFunctionBody;
+    IfStatement ifStatement = body5.block.statements[1] as IfStatement;
+    IsExpression expression = ifStatement.condition as IsExpression;
+    JUnitTestCase.assertNotNull(expression.expression);
+    JUnitTestCase.assertNotNull(expression.isOperator);
+    JUnitTestCase.assertNotNull(expression.notOperator);
+    TypeName type29 = expression.type;
+    JUnitTestCase.assertNotNull(type29);
+    JUnitTestCase.assertTrue(type29.name.isSynthetic());
+    EngineTestCase.assertInstanceOf(EmptyStatement, ifStatement.thenStatement);
+  }
   void test_logicalAndExpression_missing_LHS() {
     BinaryExpression expression = ParserTestCase.parseExpression("&& y", []);
     EngineTestCase.assertInstanceOf(SimpleIdentifier, expression.leftOperand);
@@ -6856,6 +6871,10 @@ class RecoveryParserTest extends ParserTestCase {
       _ut.test('test_expressionList_multiple_start', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_expressionList_multiple_start);
+      });
+      _ut.test('test_isExpression_noType', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_isExpression_noType);
       });
       _ut.test('test_logicalAndExpression_missing_LHS', () {
         final __test = new RecoveryParserTest();

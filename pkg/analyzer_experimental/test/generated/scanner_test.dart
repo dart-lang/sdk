@@ -4,12 +4,12 @@
 library engine.scanner_test;
 
 import 'dart:collection';
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/java_engine.dart';
-import 'package:analyzer-experimental/src/generated/java_junit.dart';
-import 'package:analyzer-experimental/src/generated/source.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/java_engine.dart';
+import 'package:analyzer_experimental/src/generated/java_junit.dart';
+import 'package:analyzer_experimental/src/generated/source.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 
@@ -1442,8 +1442,8 @@ class TokenStreamValidator {
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       validateStream(builder, currentToken.precedingComments);
-      TokenType type29 = currentToken.type;
-      if (identical(type29, TokenType.OPEN_CURLY_BRACKET) || identical(type29, TokenType.OPEN_PAREN) || identical(type29, TokenType.OPEN_SQUARE_BRACKET) || identical(type29, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      TokenType type30 = currentToken.type;
+      if (identical(type30, TokenType.OPEN_CURLY_BRACKET) || identical(type30, TokenType.OPEN_PAREN) || identical(type30, TokenType.OPEN_SQUARE_BRACKET) || identical(type30, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (currentToken is! BeginToken) {
           builder.append("\r\nExpected BeginToken, found ");
           builder.append(currentToken.runtimeType.toString());

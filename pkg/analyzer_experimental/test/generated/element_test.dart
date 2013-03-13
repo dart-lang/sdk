@@ -5,17 +5,17 @@ library engine.element_test;
 
 import 'dart:collection';
 import 'dart:io';
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/java_engine.dart';
-import 'package:analyzer-experimental/src/generated/java_engine_io.dart';
-import 'package:analyzer-experimental/src/generated/java_junit.dart';
-import 'package:analyzer-experimental/src/generated/source_io.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
-import 'package:analyzer-experimental/src/generated/utilities_dart.dart';
-import 'package:analyzer-experimental/src/generated/ast.dart' hide Annotation;
-import 'package:analyzer-experimental/src/generated/element.dart' hide Annotation;
-import 'package:analyzer-experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/java_engine.dart';
+import 'package:analyzer_experimental/src/generated/java_engine_io.dart';
+import 'package:analyzer_experimental/src/generated/java_junit.dart';
+import 'package:analyzer_experimental/src/generated/source_io.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart' hide Annotation;
+import 'package:analyzer_experimental/src/generated/element.dart' hide Annotation;
+import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
@@ -1041,18 +1041,18 @@ class ElementFactory {
     spec.combinators = combinators4;
     return spec;
   }
-  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type33) {
+  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type34) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier2(name));
-    field.const2 = isConst;
+    field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;
-    field.type = type33;
+    field.type = type34;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     getter.synthetic = true;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type33;
+    getterType.returnType = type34;
     getter.type = getterType;
     if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
@@ -1060,7 +1060,7 @@ class ElementFactory {
       setter.synthetic = true;
       field.setter = setter;
       FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
-      setterType.normalParameterTypes = <Type2> [type33];
+      setterType.normalParameterTypes = <Type2> [type34];
       setterType.returnType = VoidTypeImpl.instance;
       setter.type = setterType;
     }
@@ -1128,16 +1128,16 @@ class ElementFactory {
     }
     return _objectElement;
   }
-  static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type34) {
+  static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type35) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier2(name));
     field.static = isStatic;
     field.synthetic = true;
-    field.type = type34;
+    field.type = type35;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type34;
+    getterType.returnType = type35;
     getter.type = getterType;
     return getter;
   }
@@ -1192,23 +1192,23 @@ class ElementFactory {
     parameter.parameterKind = ParameterKind.REQUIRED;
     return parameter;
   }
-  static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type35) {
+  static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type36) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier2(name));
     field.static = isStatic;
     field.synthetic = true;
-    field.type = type35;
+    field.type = type36;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type35;
+    getterType.returnType = type36;
     getter.type = getterType;
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
     setter.setter = true;
     setter.synthetic = true;
     field.setter = setter;
     FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
-    setterType.normalParameterTypes = <Type2> [type35];
+    setterType.normalParameterTypes = <Type2> [type36];
     setterType.returnType = VoidTypeImpl.instance;
     setter.type = setterType;
     return setter;

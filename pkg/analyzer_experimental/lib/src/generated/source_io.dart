@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:uri';
 import 'java_core.dart';
 import 'java_io.dart';
-import 'package:analyzer-experimental/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer_experimental/src/generated/sdk.dart' show DartSdk;
 export 'source.dart';
 
 /**
@@ -36,10 +36,10 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    */
   FileBasedSource.con1(SourceFactory factory, JavaFile file) {
-    _jtd_constructor_285_impl(factory, file);
+    _jtd_constructor_296_impl(factory, file);
   }
-  _jtd_constructor_285_impl(SourceFactory factory, JavaFile file) {
-    _jtd_constructor_286_impl(factory, file, false);
+  _jtd_constructor_296_impl(SourceFactory factory, JavaFile file) {
+    _jtd_constructor_297_impl(factory, file, false);
   }
   /**
    * Initialize a newly created source object.
@@ -48,9 +48,9 @@ class FileBasedSource implements Source {
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
   FileBasedSource.con2(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
-    _jtd_constructor_286_impl(factory2, file3, inSystemLibrary2);
+    _jtd_constructor_297_impl(factory2, file3, inSystemLibrary2);
   }
-  _jtd_constructor_286_impl(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
+  _jtd_constructor_297_impl(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
     this._factory = factory2;
     this._file = file3;
     this._inSystemLibrary = inSystemLibrary2;
@@ -216,19 +216,19 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param directory the directory (not {@code null})
    */
   DirectoryBasedSourceContainer.con1(JavaFile directory) {
-    _jtd_constructor_283_impl(directory);
+    _jtd_constructor_294_impl(directory);
   }
-  _jtd_constructor_283_impl(JavaFile directory) {
-    _jtd_constructor_284_impl(directory.getPath());
+  _jtd_constructor_294_impl(JavaFile directory) {
+    _jtd_constructor_295_impl(directory.getPath());
   }
   /**
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path3) {
-    _jtd_constructor_284_impl(path3);
+    _jtd_constructor_295_impl(path3);
   }
-  _jtd_constructor_284_impl(String path3) {
+  _jtd_constructor_295_impl(String path3) {
     this._path = appendFileSeparator(path3);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);

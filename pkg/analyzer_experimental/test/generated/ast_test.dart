@@ -4,15 +4,15 @@
 library engine.ast_test;
 
 import 'dart:collection';
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/java_engine.dart';
-import 'package:analyzer-experimental/src/generated/java_junit.dart';
-import 'package:analyzer-experimental/src/generated/source.dart';
-import 'package:analyzer-experimental/src/generated/error.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
-import 'package:analyzer-experimental/src/generated/ast.dart';
-import 'package:analyzer-experimental/src/generated/utilities_dart.dart';
-import 'package:analyzer-experimental/src/generated/element.dart' show ClassElement;
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/java_engine.dart';
+import 'package:analyzer_experimental/src/generated/java_junit.dart';
+import 'package:analyzer_experimental/src/generated/source.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
+import 'package:analyzer_experimental/src/generated/element.dart' show ClassElement;
 import 'package:unittest/unittest.dart' as _ut;
 import 'parser_test.dart' show ParserTestCase;
 import 'test_support.dart';
@@ -356,11 +356,11 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element52, List<TypeName> arguments) {
-    SimpleIdentifier name21 = identifier2(element52.name);
-    name21.element = element52;
+  static TypeName typeName(ClassElement element55, List<TypeName> arguments) {
+    SimpleIdentifier name21 = identifier2(element55.name);
+    name21.element = element55;
     TypeName typeName = typeName2(name21, arguments);
-    typeName.type = element52.type;
+    typeName.type = element55.type;
     return typeName;
   }
   static TypeName typeName2(Identifier name, List<TypeName> arguments) {

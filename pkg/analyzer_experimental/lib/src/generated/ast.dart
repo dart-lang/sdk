@@ -5547,7 +5547,7 @@ class FunctionTypeAlias extends TypeAlias {
    */
   FunctionTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon}) : this.full(comment, metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
   accept(ASTVisitor visitor) => visitor.visitFunctionTypeAlias(this);
-  TypeAliasElement get element => _name != null ? (_name.element as TypeAliasElement) : null;
+  FunctionTypeAliasElement get element => _name != null ? (_name.element as FunctionTypeAliasElement) : null;
   /**
    * Return the name of the function type being declared.
    * @return the name of the function type being declared
@@ -7570,6 +7570,8 @@ class MethodInvocation extends Expression {
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
+    } else if (_period != null) {
+      return _period;
     }
     return _methodName.beginToken;
   }

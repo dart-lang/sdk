@@ -4,25 +4,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer-experimental/src/generated/java_core.dart';
-import 'package:analyzer-experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/java_core.dart';
+import 'package:analyzer_experimental/src/generated/scanner.dart';
 
 import 'dart:io';
 
 main() {
-  
+
   print('working dir ${new File('.').fullPathSync()}');
-  
+
   var args = new Options().arguments;
   if (args.length == 0) {
     print('Usage: scanner_driver [files_to_scan]');
     exit(0);
   }
-  
+
   for (var arg in args) {
     _scan(new File(arg));
   }
-  
+
 }
 
 _scan(File file) {

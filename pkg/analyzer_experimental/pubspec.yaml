@@ -1,4 +1,4 @@
-name: analyzer-experimental
+name: analyzer_experimental
 version: 0.1.5
 author: Dart Team <misc@dartlang.org>
 description: Experimental static analyzer for Dart.

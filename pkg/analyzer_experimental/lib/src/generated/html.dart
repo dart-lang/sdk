@@ -42,10 +42,10 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   Token.con1(TokenType type, int offset) {
-    _jtd_constructor_145_impl(type, offset);
+    _jtd_constructor_147_impl(type, offset);
   }
-  _jtd_constructor_145_impl(TokenType type, int offset) {
-    _jtd_constructor_146_impl(type, offset, type.lexeme);
+  _jtd_constructor_147_impl(TokenType type, int offset) {
+    _jtd_constructor_148_impl(type, offset, type.lexeme);
   }
   /**
    * Initialize a newly created token.
@@ -54,9 +54,9 @@ class Token {
    * @param value the lexeme represented by this token (not {@code null})
    */
   Token.con2(TokenType type4, int offset3, String value7) {
-    _jtd_constructor_146_impl(type4, offset3, value7);
+    _jtd_constructor_148_impl(type4, offset3, value7);
   }
-  _jtd_constructor_146_impl(TokenType type4, int offset3, String value7) {
+  _jtd_constructor_148_impl(TokenType type4, int offset3, String value7) {
     this._type = type4;
     this._value = value7;
     this._offset = offset3;

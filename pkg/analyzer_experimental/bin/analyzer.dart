@@ -10,7 +10,7 @@ library analyzer;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer-experimental/options.dart';
+import 'package:analyzer_experimental/options.dart';
 
 // Exit status codes.
 const OK_EXIT = 0;

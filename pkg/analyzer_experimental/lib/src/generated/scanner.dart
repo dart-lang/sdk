@@ -255,10 +255,10 @@ class Keyword {
    * @param syntax the lexeme for the keyword
    */
   Keyword.con1(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_265_impl(___name, ___ordinal, syntax);
+    _jtd_constructor_276_impl(___name, ___ordinal, syntax);
   }
-  _jtd_constructor_265_impl(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_266_impl(___name, ___ordinal, syntax, false);
+  _jtd_constructor_276_impl(String ___name, int ___ordinal, String syntax) {
+    _jtd_constructor_277_impl(___name, ___ordinal, syntax, false);
   }
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
@@ -267,9 +267,9 @@ class Keyword {
    * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
   Keyword.con2(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
-    _jtd_constructor_266_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
+    _jtd_constructor_277_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
   }
-  _jtd_constructor_266_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
+  _jtd_constructor_277_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._syntax = syntax2;
@@ -434,12 +434,12 @@ abstract class AbstractScanner {
       _lastComment = _lastComment.setNext(new StringToken(type, value, _tokenStart));
     }
   }
-  void appendEndToken(TokenType type32, TokenType beginType) {
+  void appendEndToken(TokenType type33, TokenType beginType) {
     Token token;
     if (_firstComment == null) {
-      token = new Token(type32, _tokenStart);
+      token = new Token(type33, _tokenStart);
     } else {
-      token = new TokenWithComment(type32, _tokenStart, _firstComment);
+      token = new TokenWithComment(type33, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -1654,15 +1654,15 @@ class TokenClass {
    */
   int _precedence = 0;
   TokenClass.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_275_impl(___name, ___ordinal);
+    _jtd_constructor_286_impl(___name, ___ordinal);
   }
-  _jtd_constructor_275_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_276_impl(___name, ___ordinal, 0);
+  _jtd_constructor_286_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_287_impl(___name, ___ordinal, 0);
   }
   TokenClass.con2(String ___name, int ___ordinal, int precedence2) {
-    _jtd_constructor_276_impl(___name, ___ordinal, precedence2);
+    _jtd_constructor_287_impl(___name, ___ordinal, precedence2);
   }
-  _jtd_constructor_276_impl(String ___name, int ___ordinal, int precedence2) {
+  _jtd_constructor_287_impl(String ___name, int ___ordinal, int precedence2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._precedence = precedence2;
@@ -1788,15 +1788,15 @@ class TokenType {
    */
   String _lexeme;
   TokenType.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_277_impl(___name, ___ordinal);
+    _jtd_constructor_288_impl(___name, ___ordinal);
   }
-  _jtd_constructor_277_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_278_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
+  _jtd_constructor_288_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_289_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
   }
   TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
-    _jtd_constructor_278_impl(___name, ___ordinal, tokenClass2, lexeme2);
+    _jtd_constructor_289_impl(___name, ___ordinal, tokenClass2, lexeme2);
   }
-  _jtd_constructor_278_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
+  _jtd_constructor_289_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;
