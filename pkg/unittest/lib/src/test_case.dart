@@ -1,15 +1,14 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 part of unittest;
 
 /**
- * testcase.dart: this file is sourced by unittest.dart. It defines [TestCase]
- * and assumes unittest defines the type [TestFunction].
+ * Represents the state for an individual unit test.
+ *
+ * Create by calling [test] or [solo_test].
  */
-
-/** Summarizes information about a single test case. */
 class TestCase {
   /** Identifier for this test. */
   final int id;
@@ -18,43 +17,42 @@ class TestCase {
   final String description;
 
   /** The setup function to call before the test, if any. */
-  Function _setUp;
-
-  Function get setUp => _setUp;
-  set setUp(Function value) => _setUp = value;
+  Function setUp;
 
   /** The teardown function to call after the test, if any. */
-  Function _tearDown;
-
-  Function get tearDown => _tearDown;
-  set tearDown(Function value) => _tearDown = value;
+  Function tearDown;
 
   /** The body of the test case. */
-  TestFunction test;
+  TestFunction testFunction;
 
   /**
    * Remaining number of callbacks functions that must reach a 'done' state
    * to wait for before the test completes.
    */
-  int callbackFunctionsOutstanding;
+  int _callbackFunctionsOutstanding = 0;
 
+  String _message = '';
   /** Error or failure message. */
-  String message = '';
+  String get message => _message;
 
+  String _result;
   /**
    * One of [PASS], [FAIL], [ERROR], or [null] if the test hasn't run yet.
    */
-  String result;
+  String get result => _result;
 
-  /** Stack trace associated with this test, or null if it succeeded. */
-  String stackTrace;
+  String _stackTrace;
+  /** Stack trace associated with this test, or [null] if it succeeded. */
+  String get stackTrace => _stackTrace;
 
   /** The group (or groups) under which this test is running. */
   final String currentGroup;
 
-  DateTime startTime;
+  DateTime _startTime;
+  DateTime get startTime => _startTime;
 
-  Duration runningTime;
+  Duration _runningTime;
+  Duration get runningTime => _runningTime;
 
   bool enabled = true;
 
@@ -62,18 +60,17 @@ class TestCase {
 
   Completer _testComplete;
 
-  TestCase(this.id, this.description, this.test,
-           this.callbackFunctionsOutstanding)
+  TestCase._internal(this.id, this.description, this.testFunction)
   : currentGroup = _currentGroup,
-    _setUp = _testSetup,
-    _tearDown = _testTeardown;
+    setUp = _testSetup,
+    tearDown = _testTeardown;
 
   bool get isComplete => !enabled || result != null;
 
   void _prepTest() {
     _config.onTestStart(this);
-    startTime = new DateTime.now();
-    runningTime = null;
+    _startTime = new DateTime.now();
+    _runningTime = null;
   }
 
   Future _runTest() {
@@ -81,9 +78,9 @@ class TestCase {
     // Increment/decrement callbackFunctionsOutstanding to prevent
     // synchronous 'async' callbacks from causing the  test to be
     // marked as complete before the body is completely executed.
-    ++callbackFunctionsOutstanding;
-    var f = test();
-    --callbackFunctionsOutstanding;
+    ++_callbackFunctionsOutstanding;
+    var f = testFunction();
+    --_callbackFunctionsOutstanding;
     if (f is Future) {
       f.then((_) => _finishTest())
        .catchError((e) => fail("${e.error}"));
@@ -95,24 +92,24 @@ class TestCase {
   }
 
   void _finishTest() {
-    if (result == null && callbackFunctionsOutstanding == 0) {
+    if (result == null && _callbackFunctionsOutstanding == 0) {
       pass();
     }
   }
 
   /**
-   * Perform any associated [setUp] function and run the test. Returns
+   * Perform any associated [_setUp] function and run the test. Returns
    * a [Future] that can be used to schedule the next test. If the test runs
-   * to completion synchronously, or is disabled, we return null, to
+   * to completion synchronously, or is disabled, null is returned, to
    * tell unittest to schedule the next test immediately.
    */
-  Future run() {
+  Future _run() {
     if (!enabled) return null;
 
-    result = stackTrace = null;
-    message = '';
+    _result = _stackTrace = null;
+    _message = '';
     _doneTeardown = false;
-    var rtn = _setUp == null ? null : _setUp();
+    var rtn = setUp == null ? null : setUp();
     if (rtn is Future) {
       rtn.then((_) => _runTest())
          .catchError((e) {
@@ -147,13 +144,13 @@ class TestCase {
   // Set the results, notify the config, and return true if this
   // is the first time the result is being set.
   void _setResult(String testResult, String messageText, String stack) {
-    message = messageText;
-    stackTrace = stack;
+    _message = messageText;
+    _stackTrace = stack;
     if (result == null) {
-      result = testResult;
+      _result = testResult;
       _config.onTestResult(this);
     } else {
-      result = testResult;
+      _result = testResult;
       _config.onTestResultChanged(this);
     }
   }
@@ -162,13 +159,13 @@ class TestCase {
                 [String messageText = '',
                  String stack = '']) {
     if (runningTime == null) {
-      runningTime = new DateTime.now().difference(startTime);
+      _runningTime = new DateTime.now().difference(startTime);
     }
     _setResult(testResult, messageText, stack);
     if (!_doneTeardown) {
       _doneTeardown = true;
-      if (_tearDown != null) {
-        var rtn = _tearDown();
+      if (tearDown != null) {
+        var rtn = tearDown();
         if (rtn is Future) {
           rtn.then((_) {
             _notifyComplete();
@@ -207,8 +204,8 @@ class TestCase {
     _complete(ERROR, messageText, stack);
   }
 
-  void markCallbackComplete() {
-    if (--callbackFunctionsOutstanding == 0 && !isComplete) {
+  void _markCallbackComplete() {
+    if (--_callbackFunctionsOutstanding == 0 && !isComplete) {
       pass();
     }
   }

@@ -246,7 +246,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     if (!_doneWrap) {
       _doneWrap = true;
       for (int i = 0; i < testCases.length; i++) {
-        testCases[i].test = wrapTest(testCases[i]);
+        testCases[i].testFunction = wrapTest(testCases[i]);
         testCases[i].setUp = null;
         testCases[i].tearDown = null;
       }

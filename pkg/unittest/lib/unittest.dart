@@ -5,8 +5,8 @@
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, install the 
- * [unittest package](http://pub.dartlang.org/packages/unittest) via the pub 
+ * To import this library, install the
+ * [unittest package](http://pub.dartlang.org/packages/unittest) via the pub
  * package manager. See the [Getting Started](http://pub.dartlang.org/doc)
  * guide for more details.
  *
@@ -252,7 +252,7 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _tests.add(new TestCase(_tests.length + 1, _fullSpec(spec), body, 0));
+  _tests.add(new TestCase._internal(_tests.length + 1, _fullSpec(spec), body));
 }
 
 /**
@@ -274,7 +274,7 @@ void solo_test(String spec, TestFunction body) {
 
   ensureInitialized();
 
-  _soloTest = new TestCase(_tests.length + 1, _fullSpec(spec), body, 0);
+  _soloTest = new TestCase._internal(_tests.length + 1, _fullSpec(spec), body);
   _tests.add(_soloTest);
 }
 
@@ -320,7 +320,7 @@ class _SpreadArgsHelper {
            _tests[_currentTest] != null);
     testCase = _tests[_currentTest];
     if (isDone != null || minExpected > 0) {
-      testCase.callbackFunctionsOutstanding++;
+      testCase._callbackFunctionsOutstanding++;
       complete = false;
     } else {
       complete = true;
@@ -376,7 +376,7 @@ class _SpreadArgsHelper {
       // Mark this callback as complete and remove it from the testcase
       // oustanding callback count; if that hits zero the testcase is done.
       complete = true;
-      testCase.markCallbackComplete();
+      testCase._markCallbackComplete();
     }
   }
 
@@ -762,7 +762,7 @@ _nextBatch() {
       break;
     }
     final testCase = _tests[_currentTest];
-    var f = _guardAsync(testCase.run, null, _currentTest);
+    var f = _guardAsync(testCase._run, null, _currentTest);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
