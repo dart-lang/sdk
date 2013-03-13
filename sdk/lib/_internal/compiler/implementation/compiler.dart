@@ -106,11 +106,6 @@ abstract class Backend {
     });
   }
 
-  // TODO(karlklose): get rid of this and add a factory constructor to [List]
-  // that creates an instance of JSArray to make the dependency visible in from
-  // the source code.
-  void addBackendRtiDependencies(World world);
-
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
   void codegen(CodegenWorkItem work);
 
@@ -125,6 +120,8 @@ abstract class Backend {
 
   void assembleProgram();
   List<CompilerTask> get tasks;
+
+  void onResolutionComplete() {}
 
   // TODO(ahe,karlklose): rename this?
   void dumpInferredTypes() {}
@@ -156,6 +153,9 @@ abstract class Backend {
   void registerSuperNoSuchMethod(TreeElements elements) {}
   void registerConstantMap(TreeElements elements) {}
   void registerRuntimeType(TreeElements elements) {}
+
+  void registerRequiredType(DartType type, Element enclosingElement) {}
+  void registerClassUsingVariableExpression(ClassElement cls) {}
 
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
@@ -760,6 +760,9 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.
     world.populate();
+    // Compute whole-program-knowledge that the backend needs. (This might
+    // require the information computed in [world.populate].)
+    backend.onResolutionComplete();
 
     deferredLoadTask.onResolutionComplete(main);
 

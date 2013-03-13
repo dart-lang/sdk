@@ -523,7 +523,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // raw type.
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
-               && !RuntimeTypeInformation.hasTypeArguments(type)) {
+               && !RuntimeTypes.hasTypeArguments(type)) {
       var receiverType = expressionType.computeType(compiler);
       if (receiverType != null) {
         if (!receiverType.isMalformed &&

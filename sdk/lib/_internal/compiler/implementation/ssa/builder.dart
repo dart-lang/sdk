@@ -794,7 +794,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
   Map<Element, HInstruction> parameters;
-  final RuntimeTypeInformation rti;
+  final RuntimeTypes rti;
   HParameterValue lastAddedParameter;
 
   Map<TargetElement, JumpHandler> jumpTargets;
@@ -1058,7 +1058,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (function.isConstructor()) {
       ClassElement enclosing = function.getEnclosingClass();
-      if (compiler.world.needsRti(enclosing)) {
+      if (backend.needsRti(enclosing)) {
         assert(currentNode is NewExpression);
         InterfaceType type = elements.getType(currentNode);
         Link<DartType> typeVariable = enclosing.typeVariables;
@@ -1204,7 +1204,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       ClassElement superclass = constructor.getEnclosingClass();
-      if (compiler.world.needsRti(superclass)) {
+      if (backend.needsRti(superclass)) {
         // If [superclass] needs RTI, we have to give a value to its
         // type parameters. Those values are in the [supertype]
         // declaration of [subclass].
@@ -1453,7 +1453,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(newObject);
 
     // Create the runtime type information, if needed.
-    if (compiler.world.needsRti(classElement)) {
+    if (backend.needsRti(classElement)) {
       List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         rtiInputs.add(localsHandler.readLocal(typeVariable.element));
@@ -1499,7 +1499,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       });
 
       ClassElement currentClass = constructor.getEnclosingClass();
-      if (compiler.world.needsRti(currentClass)) {
+      if (backend.needsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
         currentClass.typeVariables.forEach((DartType argument) {
@@ -1639,7 +1639,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // method.
     var enclosing = element.enclosingElement;
     if ((element.isConstructor() || element.isGenerativeConstructorBody())
-        && compiler.world.needsRti(enclosing)) {
+        && backend.needsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = addParameter(typeVariable.element);
         localsHandler.directLocals[typeVariable.element] = param;
@@ -2673,7 +2673,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         add(instruction);
         compiler.enqueuer.codegen.registerIsCheck(type, elements);
 
-      } else if (RuntimeTypeInformation.hasTypeArguments(type)) {
+      } else if (RuntimeTypes.hasTypeArguments(type)) {
 
         void argumentsCheck() {
           HInstruction typeInfo = getRuntimeTypeInfo(expression);
@@ -3174,7 +3174,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction readTypeVariable(ClassElement cls,
                                 TypeVariableElement variable) {
     assert(currentElement.isInstanceMember());
-    int index = RuntimeTypeInformation.getTypeVariableIndex(variable);
+    int index = RuntimeTypes.getTypeVariableIndex(variable);
     String substitutionNameString = backend.namer.substitutionName(cls);
     HInstruction substitutionName = graph.addConstantString(
         new LiteralDartString(substitutionNameString), null, constantSystem);
@@ -3245,7 +3245,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void handleListConstructor(InterfaceType type,
                              Node currentNode,
                              HInstruction newObject) {
-    if (!compiler.world.needsRti(type.element)) return;
+    if (!backend.needsRti(type.element)) return;
     if (!type.isRaw) {
       List<HInstruction> inputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
@@ -3258,7 +3258,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void callSetRuntimeTypeInfo(ClassElement element,
                               List<HInstruction> rtiInputs,
                               HInstruction newObject) {
-    if (!compiler.world.needsRti(element) || element.typeVariables.isEmpty) {
+    if (!backend.needsRti(element) || element.typeVariables.isEmpty) {
       return;
     }
 
@@ -3329,7 +3329,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       generateAbstractClassInstantiationError(node, cls.name.slowToString());
       return;
     }
-    if (compiler.world.needsRti(cls)) {
+    if (backend.needsRti(cls)) {
       Link<DartType> typeVariable = cls.typeVariables;
       type.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument, node));
@@ -3351,7 +3351,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isListConstructor && compiler.world.needsRti(compiler.listClass)) {
+    if (isListConstructor && backend.needsRti(compiler.listClass)) {
       handleListConstructor(type, node, newInstance);
     }
   }

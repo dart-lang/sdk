@@ -2201,7 +2201,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else if (target.isTypeVariable()) {
         ClassElement cls = target.getEnclosingClass();
         assert(enclosingElement.getEnclosingClass() == cls);
-        compiler.world.registerClassUsingVariableExpression(cls);
+        compiler.backend.registerClassUsingVariableExpression(cls);
         compiler.backend.registerTypeVariableExpression(mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
         compiler.backend.registerTypeLiteral(mapping);
@@ -2576,28 +2576,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
-  /**
-   * If [argument] has type variables or is a type variable, this
-   * method registers a RTI dependency between the class where the
-   * type variable is defined (that is the enclosing class of the
-   * current element being resolved) and the class of [annotation].
-   * If the class of [annotation] requires RTI, then the class of
-   * the type variable does too.
-   */
-  void analyzeTypeArgument(DartType annotation, DartType argument) {
-    if (argument == null) return;
-    if (argument.element.isTypeVariable()) {
-      ClassElement enclosing = argument.element.getEnclosingClass();
-      assert(enclosing == enclosingElement.getEnclosingClass());
-      compiler.world.registerRtiDependency(annotation.element, enclosing);
-    } else if (argument is InterfaceType) {
-      InterfaceType type = argument;
-      type.typeArguments.forEach((DartType argument) {
-        analyzeTypeArgument(annotation, argument);
-      });
-    }
-  }
-
   DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
     DartType type = typeResolver.resolveTypeAnnotation(
@@ -2608,13 +2586,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       compiler.enqueuer.resolution.registerIsCheck(type, mapping);
     }
     if (typeRequired || inCheckContext) {
-      if (type is InterfaceType) {
-        InterfaceType itf = type;
-        itf.typeArguments.forEach((DartType argument) {
-          analyzeTypeArgument(type, argument);
-        });
-      }
-      // TODO(ngeoffray): Also handle T a (in checked mode).
+      compiler.backend.registerRequiredType(type, enclosingElement);
     }
     return type;
   }

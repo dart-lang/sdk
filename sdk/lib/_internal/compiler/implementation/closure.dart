@@ -4,6 +4,7 @@
 
 library closureToClassMapper;
 
+import "js_backend/js_backend.dart" show JavaScriptBackend;
 import "elements/elements.dart";
 import "dart2jslib.dart";
 import "dart_types.dart";
@@ -471,8 +472,9 @@ class ClosureTranslator extends Visitor {
         }
       }
     }
+    JavaScriptBackend backend = compiler.backend;
     if (outermostElement.isMember() &&
-        compiler.world.needsRti(outermostElement.getEnclosingClass())) {
+        backend.needsRti(outermostElement.getEnclosingClass())) {
       if (outermostElement.isConstructor() || outermostElement.isField()) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember()) {
@@ -635,8 +637,9 @@ class ClosureTranslator extends Visitor {
         declareLocal(element);
       }
 
-      if (currentElement.isFactoryConstructor()
-          && compiler.world.needsRti(currentElement.enclosingElement)) {
+      JavaScriptBackend backend = compiler.backend;
+      if (currentElement.isFactoryConstructor() &&
+          backend.needsRti(currentElement.enclosingElement)) {
         // Declare the type parameters in the scope. Generative
         // constructors just use 'this'.
         ClassElement cls = currentElement.enclosingElement;

@@ -975,7 +975,7 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     void generateSubstitution(Element other, {bool emitNull: false}) {
-      RuntimeTypeInformation rti = backend.rti;
+      RuntimeTypes rti = backend.rti;
       // TODO(karlklose): support typedefs with variables.
       jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
@@ -1011,7 +1011,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
-    RuntimeTypeInformation rti = backend.rti;
+    RuntimeTypes rti = backend.rti;
     TypeChecks typeChecks = rti.getRequiredChecks();
 
     /// Classes that are not instantiated and native classes need a holder
@@ -1414,7 +1414,7 @@ class CodeEmitterTask extends CompilerTask {
       emitSubstitution(cls);
     }
 
-    RuntimeTypeInformation rti = backend.rti;
+    RuntimeTypes rti = backend.rti;
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
@@ -1431,7 +1431,7 @@ class CodeEmitterTask extends CompilerTask {
       Set<ClassElement> emitted = new Set<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
-      if (compiler.world.needsRti(cls)) {
+      if (backend.needsRti(cls)) {
         emitSubstitution(superclass, emitNull: true);
         emitted.add(superclass);
       }

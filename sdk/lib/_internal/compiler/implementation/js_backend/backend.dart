@@ -737,7 +737,7 @@ class JavaScriptBackend extends Backend {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
-  final RuntimeTypeInformation rti;
+  final RuntimeTypes rti;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
@@ -746,7 +746,7 @@ class JavaScriptBackend extends Backend {
         usedInterceptors = new Set<Selector>(),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
-        rti = new RuntimeTypeInformation(compiler),
+        rti = new RuntimeTypes(compiler),
         specializedGetInterceptors =
             new Map<String, Collection<ClassElement>>(),
         interceptedClasses = new Set<ClassElement>(),
@@ -1014,12 +1014,6 @@ class JavaScriptBackend extends Backend {
     return new JavaScriptItemCompilationContext();
   }
 
-  void addBackendRtiDependencies(World world) {
-    if (jsArrayClass != null) {
-      world.registerRtiDependency(jsArrayClass, compiler.listClass);
-    }
-  }
-
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements) {
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
@@ -1037,6 +1031,8 @@ class JavaScriptBackend extends Backend {
       if (e != null) world.addToWorkList(e);
     }
   }
+
+  onResolutionComplete() => rti.computeClassesNeedingRti();
 
   void registerStringInterpolation(TreeElements elements) {
     enqueueInResolution(getStringInterpolationHelper(), elements);
@@ -1146,6 +1142,46 @@ class JavaScriptBackend extends Backend {
         elements);
     compiler.enqueuer.resolution.registerInstantiatedClass(
         compiler.listClass, elements);
+  }
+
+  void registerRequiredType(DartType type, Element enclosingElement) {
+    /**
+     * If [argument] has type variables or is a type variable, this
+     * method registers a RTI dependency between the class where the
+     * type variable is defined (that is the enclosing class of the
+     * current element being resolved) and the class of [annotation].
+     * If the class of [annotation] requires RTI, then the class of
+     * the type variable does too.
+     */
+    void analyzeTypeArgument(DartType annotation, DartType argument) {
+      if (argument == null) return;
+      if (argument.element.isTypeVariable()) {
+        ClassElement enclosing = argument.element.getEnclosingClass();
+        assert(enclosing == enclosingElement.getEnclosingClass());
+        rti.registerRtiDependency(annotation.element, enclosing);
+      } else if (argument is InterfaceType) {
+        InterfaceType type = argument;
+        type.typeArguments.forEach((DartType argument) {
+          analyzeTypeArgument(annotation, argument);
+        });
+      }
+    }
+
+    if (type is InterfaceType) {
+      InterfaceType itf = type;
+      itf.typeArguments.forEach((DartType argument) {
+        analyzeTypeArgument(type, argument);
+      });
+    }
+    // TODO(ngeoffray): Also handle T a (in checked mode).
+  }
+
+  void registerClassUsingVariableExpression(ClassElement cls) {
+    rti.classesUsingTypeVariableExpression.add(cls);
+  }
+
+  bool needsRti(ClassElement cls) {
+    return rti.classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
   }
 
   void enqueueInResolution(Element e, TreeElements elements) {

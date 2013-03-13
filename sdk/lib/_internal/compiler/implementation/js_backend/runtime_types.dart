@@ -12,13 +12,24 @@ abstract class TypeChecks {
   Iterator<ClassElement> get iterator;
 }
 
-class RuntimeTypeInformation {
+class RuntimeTypes {
   final Compiler compiler;
-  final TypeRepresentation typeRepresentation;
+  final TypeRepresentationGenerator representationGenerator;
 
-  RuntimeTypeInformation(Compiler compiler)
+  final Map<ClassElement, Set<ClassElement>> rtiDependencies;
+  final Set<ClassElement> classesNeedingRti;
+  // The set of classes that use one of their type variables as expressions
+  // to get the runtime type.
+  final Set<ClassElement> classesUsingTypeVariableExpression;
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  RuntimeTypes(Compiler compiler)
       : this.compiler = compiler,
-        typeRepresentation = new TypeRepresentation(compiler);
+        representationGenerator = new TypeRepresentationGenerator(compiler),
+        classesNeedingRti = new Set<ClassElement>(),
+        rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
+        classesUsingTypeVariableExpression = new Set<ClassElement>();
 
   /// Contains the classes of all arguments that have been used in
   /// instantiations and checks.
@@ -31,6 +42,76 @@ class RuntimeTypeInformation {
             element == compiler.doubleClass ||
             element == compiler.stringClass ||
             element == compiler.listClass);
+  }
+
+  void registerRtiDependency(Element element, Element dependency) {
+    // We're not dealing with typedef for now.
+    if (!element.isClass() || !dependency.isClass()) return;
+    Set<ClassElement> classes =
+        rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
+    classes.add(dependency);
+  }
+
+  void computeClassesNeedingRti() {
+    // Find the classes that need runtime type information. Such
+    // classes are:
+    // (1) used in a is check with type variables,
+    // (2) dependencies of classes in (1),
+    // (3) subclasses of (2) and (3).
+    void potentiallyAddForRti(ClassElement cls) {
+      if (cls.typeVariables.isEmpty) return;
+      if (classesNeedingRti.contains(cls)) return;
+      classesNeedingRti.add(cls);
+
+      // TODO(ngeoffray): This should use subclasses, not subtypes.
+      Set<ClassElement> classes = compiler.world.subtypes[cls];
+      if (classes != null) {
+        classes.forEach((ClassElement sub) {
+          potentiallyAddForRti(sub);
+        });
+      }
+
+      Set<ClassElement> dependencies = rtiDependencies[cls];
+      if (dependencies != null) {
+        dependencies.forEach((ClassElement other) {
+          potentiallyAddForRti(other);
+        });
+      }
+    }
+
+    Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
+    compiler.resolverWorld.isChecks.forEach((DartType type) {
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        classesUsingTypeVariableTests.add(variable.enclosingElement);
+      }
+    });
+    // Add is-checks that result from classes using type variables in checks.
+    compiler.resolverWorld.addImplicitChecks(classesUsingTypeVariableTests);
+    // Add the rti dependencies that are implicit in the way the backend
+    // generates code: when we create a new [List], we actually create
+    // a JSArray in the backend and we need to add type arguments to
+    // the calls of the list constructor whenever we determine that
+    // JSArray needs type arguments.
+    // TODO(karlklose): make this dependency visible from code.
+    if (backend.jsArrayClass != null) {
+      registerRtiDependency(backend.jsArrayClass, compiler.listClass);
+    }
+    // Compute the set of all classes that need runtime type information.
+    compiler.resolverWorld.isChecks.forEach((DartType type) {
+      if (type.kind == TypeKind.INTERFACE) {
+        InterfaceType itf = type;
+        if (!itf.isRaw) {
+          potentiallyAddForRti(itf.element);
+        }
+      } else if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        potentiallyAddForRti(variable.enclosingElement);
+      }
+    });
+    // Add the classes that need RTI because they use a type variable as
+    // expression.
+    classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
   }
 
   TypeChecks cachedRequiredChecks;
@@ -218,7 +299,7 @@ class RuntimeTypeInformation {
 
   // TODO(karlklose): rewrite to use js.Expressions.
   String _getTypeRepresentation(DartType type, String onVariable(variable)) {
-    return typeRepresentation.getTypeRepresentation(type, onVariable);
+    return representationGenerator.getTypeRepresentation(type, onVariable);
   }
 
   static bool hasTypeArguments(DartType type) {
@@ -241,18 +322,12 @@ class RuntimeTypeInformation {
 
 typedef String OnVariableCallback(TypeVariableType type);
 
-class TypeRepresentation extends DartTypeVisitor {
+class TypeRepresentationGenerator extends DartTypeVisitor {
   final Compiler compiler;
   OnVariableCallback onVariable;
   StringBuffer builder;
 
-  TypeRepresentation(Compiler this.compiler);
-
-  String getJsName(Element element) {
-    JavaScriptBackend backend = compiler.backend;
-    Namer namer = backend.namer;
-    return namer.isolateAccess(element);
-  }
+  TypeRepresentationGenerator(Compiler this.compiler);
 
   /**
    * Creates a type representation for [type]. [onVariable] is called to provide
@@ -266,6 +341,12 @@ class TypeRepresentation extends DartTypeVisitor {
     builder = null;
     this.onVariable = null;
     return typeRepresentation;
+  }
+
+  String getJsName(Element element) {
+    JavaScriptBackend backend = compiler.backend;
+    Namer namer = backend.namer;
+    return namer.isolateAccess(element);
   }
 
   visit(DartType type) {
