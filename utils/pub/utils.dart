@@ -318,6 +318,8 @@ bool urisEqual(Uri uri1, Uri uri2) =>
 
 /// Return [uri] with redundant port information removed.
 Uri canonicalizeUri(Uri uri) {
+  if (uri == null) return null;
+
   var sansPort = new Uri.fromComponents(
       scheme: uri.scheme, userInfo: uri.userInfo, domain: uri.domain,
       path: uri.path, query: uri.query, fragment: uri.fragment);
