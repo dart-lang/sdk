@@ -36,7 +36,7 @@ main() {
   var generated = compile(TEST_ONE, entry: 'foo');
   // Check that the one shot interceptor got converted to a direct
   // call to the interceptor object.
-  Expect.isTrue(generated.contains('CONSTANT.get\$toString(a + 42);'));
+  Expect.isTrue(generated.contains('JSNumber_methods.get\$toString(a + 42);'));
 
   // Check that one-shot interceptors preserve variable names, see
   // https://code.google.com/p/dart/issues/detail?id=8106.
