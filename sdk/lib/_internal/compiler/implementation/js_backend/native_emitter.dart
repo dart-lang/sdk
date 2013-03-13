@@ -191,6 +191,7 @@ function(cls, desc) {
 
   List<jsAst.Statement> generateParameterStubStatements(
       Element member,
+      bool isInterceptedMethod,
       String invocationName,
       List<jsAst.Parameter> stubParameters,
       List<jsAst.Expression> argumentsBuffer,
@@ -211,6 +212,7 @@ function(cls, desc) {
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
 
     String target;
+    jsAst.Expression receiver;
     List<jsAst.Expression> arguments;
 
     if (!nativeMethods.contains(member)) {
@@ -222,12 +224,18 @@ function(cls, desc) {
       // When calling a JS method, we call it with the native name, and only the
       // arguments up until the last one provided.
       target = member.fixedBackendName();
-      arguments = argumentsBuffer.getRange(
-          0, indexOfLastOptionalArgumentInParameters + 1);
+
+      if (isInterceptedMethod) {
+        receiver = argumentsBuffer[0];
+        arguments = argumentsBuffer.getRange(1,
+            indexOfLastOptionalArgumentInParameters);
+      } else {
+        receiver = new jsAst.VariableUse('this');
+        arguments = argumentsBuffer.getRange(0,
+            indexOfLastOptionalArgumentInParameters + 1);
+      }
     }
-    statements.add(
-        new jsAst.Return(
-            new jsAst.VariableUse('this')[target](arguments)));
+    statements.add(new jsAst.Return(receiver[target](arguments)));
 
     if (!overriddenMethods.contains(member)) {
       // Call the method directly.

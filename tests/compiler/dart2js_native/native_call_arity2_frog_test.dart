@@ -13,8 +13,8 @@ class B extends A native "*B" {
   int foo([x, y]) native;
 }
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+makeA() native;
+makeB() native;
 
 void setup() native """
 function inherits(child, parent) {
@@ -37,7 +37,6 @@ inherits(B, A);
 makeA = function(){return new A;};
 makeB = function(){return new B;};
 """;
-
 
 testDynamicContext() {
   var things = [makeA(), makeB()];
