@@ -18,6 +18,7 @@ import 'command_lish.dart';
 import 'command_update.dart';
 import 'command_uploader.dart';
 import 'command_version.dart';
+import 'command_cache.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
@@ -35,13 +36,14 @@ import 'version.dart';
 /// The commands that Pub understands.
 Map<String, PubCommand> get pubCommands {
   var commands = {
+    'cache': new CacheCommand(),
     'help': new HelpCommand(),
     'install': new InstallCommand(),
     'publish': new LishCommand(),
     'update': new UpdateCommand(),
     'uploader': new UploaderCommand(),
     'version': new VersionCommand()
-  };
+   };
   for (var command in commands.values.toList()) {
     for (var alias in command.aliases) {
       commands[alias] = command;

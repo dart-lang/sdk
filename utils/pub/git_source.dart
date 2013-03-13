@@ -116,6 +116,8 @@ class GitSource extends Source {
     });
   }
 
+  // TODO(keertip): Implement getCachedPackages().
+  
   /// Ensure that the canonical clone of the repository referred to by [id] (the
   /// one in `<system cache>/git/cache`) exists and is up-to-date. Returns a
   /// future that completes once this is finished and throws an exception if it

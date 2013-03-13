@@ -215,6 +215,11 @@ abstract class Source {
   ///
   /// By default, this just returns [id].
   Future<PackageId> resolveId(PackageId id) => new Future.immediate(id);
+  
+  /// Returns the [Package]s that have been installed in the system cache.
+  Future<List<Package>> getCachedPackages() {
+    if (shouldCache) throw "Source $name must implement this.";
+  }
 
   /// Returns the source's name.
   String toString() => name;
