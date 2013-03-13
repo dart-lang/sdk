@@ -16,6 +16,7 @@
 #import("testing/dart/test_suite.dart");
 #import("testing/dart/http_server.dart");
 #import("testing/dart/utils.dart");
+import "testing/dart/test_progress.dart";
 
 #import("../tests/co19/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
