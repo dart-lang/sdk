@@ -160,12 +160,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ''');
 
-  # TODO(jmesserly): this is a hack to make analyzer-experimental work.
-  if pkgName.endswith('-experimental'):
-    pkgReplace = (pkgName, pkgName.replace('-', '_'))
-    replaceInDart.append(pkgReplace)
-    replaceInPubspec.append(pkgReplace)
-
   replaceInDart.append(
     (r'(import|part)(\s+)(\'|")(\.\./)+pkg/([^/]+/)lib/', r'\1\2\3package:\5'))
 
