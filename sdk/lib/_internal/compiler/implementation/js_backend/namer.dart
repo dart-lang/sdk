@@ -246,7 +246,12 @@ class Namer implements ClosureNamer {
           longName = "C";
         }
       } else {
-        longName = "CONSTANT";
+        if (constant.isInterceptor()) {
+          String typeName = constant.dispatchedType.element.name.slowToString();
+          longName = typeName + '_methods';
+        } else {
+          longName = "CONSTANT";
+        }
       }
       result = getFreshName(longName, usedGlobalNames, suggestedGlobalNames,
                             ensureSafe: true);
