@@ -43,7 +43,7 @@ abstract class String implements Comparable<String>, Pattern {
   }
 
   /**
-   * Gets the character (as [String]) at the given [index].
+   * Gets the character (as a single-code-unit [String]) at the given [index].
    *
    * The returned string represents exactly one UTF-16 code unit which may be
    * half of a surrogate pair. For example the Unicode character for a
@@ -84,17 +84,18 @@ abstract class String implements Comparable<String>, Pattern {
   /**
    * Returns whether the two strings are equal.
    *
-   * This method compares each individual code unit of the strings. It does not
-   * check for Unicode equivalence. For example the two following strings both
-   * represent the string "Amélie" but, due to their different encoding will
-   * not return equal.
+   * This method compares each individual code unit of the strings.
+   * Equivalently (for strings that are well-formed UTF-16) it compares each
+   * individual rune (code point).  It does not check for Unicode equivalence.
+   * For example the two following strings both represent the string "Amélie"
+   * but, due to their different encoding will not return equal.
    *
    *     "Am\xe9lie"
    *     "Ame\u{301}lie"
    *
-   * In the first string the "é" is encoded as a single unicode code unit,
-   * whereas the second string encodes it as "e" with the combining
-   * accent character "◌́".
+   * In the first string the "é" is encoded as a single unicode code unit (also
+   * a single rune), whereas the second string encodes it as "e" with the
+   * combining accent character "◌́".
    */
   bool operator ==(var other);
 
@@ -270,7 +271,7 @@ abstract class String implements Comparable<String>, Pattern {
 }
 
 /**
- * The runes of a [String].
+ * The runes (integer Unicode code points) of a [String].
  */
 class Runes extends Iterable<int> {
   final String string;
@@ -306,7 +307,9 @@ int _combineSurrogatePair(int start, int end) {
   return 0x10000 + ((start & 0x3FF) << 10) + (end & 0x3FF);
 }
 
-/** [Iterator] for reading Unicode code points out of a Dart string. */
+/** [Iterator] for reading runes (integer Unicode code points) out of a Dart
+  * string.
+  */
 class RuneIterator implements BidirectionalIterator<int> {
   /** String being iterated. */
   final String string;
@@ -397,7 +400,9 @@ class RuneIterator implements BidirectionalIterator<int> {
     _currentCodePoint = null;
   }
 
-  /** The rune starting at the current position in the string. */
+  /** The rune (integer Unicode code point) starting at the current position in
+   *  the string.
+   */
   int get current => _currentCodePoint;
 
   /**
@@ -411,7 +416,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    * A string containing the current rune.
    *
    * For runes outside the basic multilingual plane, this will be
-   * a two-character String.
+   * a String of length 2, containing two code units.
    *
    * Returns null if [current] is null.
    */
