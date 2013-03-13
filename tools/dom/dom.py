@@ -42,11 +42,12 @@ def analyze():
   ])
 
 def build():
-  ''' Builds the SDK '''
+  ''' Builds the Dart binary '''
   call([
     os.path.join('tools', 'build.py'),
     '--mode=release',
     '--arch=ia32',
+    'runtime',
   ])
 
 def dart2js():
