@@ -2377,35 +2377,35 @@ class _ByteDataView implements ByteData {
     return _typeddata._getUint32(_offset + byteOffset);
   }
   void setUint32(int byteOffset, int value) {
-    _typedata._setUint32(_offset + byteOffset, value);
+    _typeddata._setUint32(_offset + byteOffset, value);
   }
 
   int getInt64(int byteOffset) {
-    return _typedata._getInt64(_offset + byteOffset);
+    return _typeddata._getInt64(_offset + byteOffset);
   }
   void setInt64(int byteOffset, int value) {
-    _typedata._setInt64(_offset + byteOffset, value);
+    _typeddata._setInt64(_offset + byteOffset, value);
   }
 
   int getUint64(int byteOffset) {
-    return _typedata._getUint64(_offset + byteOffset);
+    return _typeddata._getUint64(_offset + byteOffset);
   }
   void setUint64(int byteOffset, int value) {
-    _typedata._setUint64(_offset + byteOffset, value);
+    _typeddata._setUint64(_offset + byteOffset, value);
   }
 
   double getFloat32(int byteOffset) {
-    return _typedata._getFloat32(_offset + byteOffset);
+    return _typeddata._getFloat32(_offset + byteOffset);
   }
   void setFloat32(int byteOffset, double value) {
-    _typedata._setFloat32(_offset + byteOffset, value);
+    _typeddata._setFloat32(_offset + byteOffset, value);
   }
 
   double getFloat64(int byteOffset) {
-    return _typedata._getFloat64(_offset + byteOffset);
+    return _typeddata._getFloat64(_offset + byteOffset);
   }
   void setFloat64(int byteOffset, double value) {
-    _typedata._setFloat64(_offset + byteOffset, value);
+    _typeddata._setFloat64(_offset + byteOffset, value);
   }
 
   final TypedData _typeddata;

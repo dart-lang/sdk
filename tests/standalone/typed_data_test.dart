@@ -57,7 +57,6 @@ void testCreateExternalClampedUint8TypedData() {
 
   typed_data[0] = -1;
   Expect.equals(0, typed_data[0]);
-  
 
   for (int i = 0; i < 10; i++) {
     typed_data[i] = i + 250;
@@ -213,10 +212,73 @@ void testIndexOfHelper(list) {
 }
 
 void testIndexOf() {
-  testIndexOfHelper(new Uint8List(10));
   testIndexOfHelper(new Uint8List.transferable(10));
   testIndexOfHelper(new Uint8ClampedList(10));
   testIndexOfHelper(new Uint8ClampedList.transferable(10));
+}
+
+void testGetAtIndex() {
+  var list = new Uint8List(8);
+  for (int i = 0; i < list.length; i++) {
+    list[i] = 42;
+  }
+  var bdata = new ByteData.view(list);
+  for (int i = 0; i < list.length; i++) {
+    Expect.equals(42, bdata.getUint8(i));
+    Expect.equals(42, bdata.getInt8(i));
+  }
+  for (int i = 0; i < list.length ~/ 2; i++) {
+    Expect.equals(10794, bdata.getUint16(i));
+    Expect.equals(10794, bdata.getInt16(i));
+  }
+  for (int i = 0; i < list.length ~/ 4; i++) {
+    Expect.equals(707406378, bdata.getUint32(i));
+    Expect.equals(707406378, bdata.getInt32(i));
+    Expect.equals(1.511366173271439e-13, bdata.getFloat32(i));
+  }
+  for (int i = 0; i < list.length ~/ 8; i++) {
+    Expect.equals(3038287259199220266, bdata.getUint64(i));
+    Expect.equals(3038287259199220266, bdata.getInt64(i));
+    Expect.equals(1.4260258159703532e-105, bdata.getFloat64(i));
+  }
+}
+
+void testSetAtIndex() {
+  var list = new Uint8List(8);
+  void validate() {
+    for (int i = 0; i < list.length; i++) {
+      Expect.equals(42, list[i]);
+    }
+  }
+  var bdata = new ByteData.view(list);
+  for (int i = 0; i < list.length; i++) bdata.setUint8(i, 42);
+  validate();
+  for (int i = 0; i < list.length; i++) bdata.setInt8(i, 42);
+  validate();
+  for (int i = 0; i < list.length ~/ 2; i++) bdata.setUint16(i, 10794);
+  validate();
+  for (int i = 0; i < list.length ~/ 2; i++) bdata.setInt16(i, 10794);
+  validate();
+  for (int i = 0; i < list.length ~/ 4; i++) bdata.setUint32(i, 707406378);
+  validate();
+  for (int i = 0; i < list.length ~/ 4; i++) bdata.setInt32(i, 707406378);
+  validate();
+  for (int i = 0; i < list.length ~/ 4; i++) {
+    bdata.setFloat32(i, 1.511366173271439e-13);
+  }
+  validate();
+  for (int i = 0; i < list.length ~/ 8; i++) {
+    bdata.setUint64(i, 3038287259199220266);
+  }
+  validate();
+  for (int i = 0; i < list.length ~/ 8; i++) {
+    bdata.setInt64(i, 3038287259199220266);
+  }
+  validate();
+  for (int i = 0; i < list.length ~/ 8; i++) {
+    bdata.setFloat64(i, 1.4260258159703532e-105);
+  }
+  validate();
 }
 
 main() {
@@ -231,6 +293,8 @@ main() {
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
+    testGetAtIndex();
+    testSetAtIndex();
   }
   testTypedDataRange(true);
   testUnsignedTypedDataRange(true);
