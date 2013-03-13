@@ -553,6 +553,16 @@ def FindConversion(idl_type, direction, interface, member):
 
 dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
+    'ArrayBuffer': [
+      "@Creates('ArrayBuffer')",
+      "@Returns('ArrayBuffer|Null')",
+    ],
+
+    'ArrayBufferView': [
+      "@Creates('ArrayBufferView')",
+      "@Returns('ArrayBufferView|Null')",
+    ],
+
     'CanvasRenderingContext2D.createImageData': [
       "@Creates('ImageData|=Object')",
     ],
@@ -610,7 +620,6 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
       "@Creates('Element|Document')",
       "@Returns('Element|Document')",
     ],
-
 
     'FileReader.result': ["@Creates('String|ArrayBuffer|Null')"],
 

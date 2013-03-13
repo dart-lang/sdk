@@ -462,6 +462,8 @@ class ArrayBufferView native "*ArrayBufferView" {
 
   @DomName('ArrayBufferView.buffer')
   @DocsEditable
+  @Creates('ArrayBuffer')
+  @Returns('ArrayBuffer|Null')
   final dynamic buffer;
 
   @DomName('ArrayBufferView.byteLength')
@@ -1799,6 +1801,8 @@ class Crypto native "*Crypto" {
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
+  @Creates('ArrayBufferView')
+  @Returns('ArrayBufferView|Null')
   dynamic getRandomValues(/*ArrayBufferView*/ array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11103,6 +11107,8 @@ class FileReaderSync native "*FileReaderSync" {
 
   @DomName('FileReaderSync.readAsArrayBuffer')
   @DocsEditable
+  @Creates('ArrayBuffer')
+  @Returns('ArrayBuffer|Null')
   dynamic readAsArrayBuffer(Blob blob) native;
 
   @DomName('FileReaderSync.readAsBinaryString')
