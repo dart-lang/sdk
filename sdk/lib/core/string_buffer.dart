@@ -40,10 +40,7 @@ class StringBuffer implements StringSink {
 
   /**
    * Clears the string buffer.
-   *
-   * *Deprecated*.
    */
-  @deprecated
   external void clear();
 
   /// Returns the contents of buffer as a concatenated string.
