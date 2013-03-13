@@ -1,9 +1,9 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * A configuration for running layoutr tests with testrunner.
+ * A configuration for running layout tests with testrunner.
  * This configuration is similar to the interactive_html_config
  * as it runs each test in its own IFrame. However, where the former
  * recreated the IFrame for each test, here the IFrames are preserved.
@@ -11,6 +11,7 @@
  */
 library html_layout_config;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 import 'unittest.dart';
@@ -64,8 +65,8 @@ class _Message {
  */
 class ChildHtmlConfiguration extends Configuration {
   get name => 'ChildHtmlConfiguration';
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
+
+  StreamSubscription _errorSubscription;
 
   /** The window to which results must be posted. */
   Window parentWindow;
@@ -80,16 +81,13 @@ class ChildHtmlConfiguration extends Configuration {
   get autoStart => false;
 
   void onInit() {
-    _onErrorClosure =
-        (e) => handleExternalError(e, '(DOM callback has errors)');
-
     /**
      *  The parent posts a 'start' message to kick things off,
      *  which is handled by this handler. It saves the parent
      *  window, gets the test ID from the query parameter in the
      *  IFrame URL, sets that as a solo test and starts test execution.
      */
-    window.on.message.add((MessageEvent e) {
+    window.onMessage.listen((MessageEvent e) {
       var m = new _Message.fromString(e.data);
       if (m.messageType == _Message.START) {
         parentWindow = e.source;
@@ -104,8 +102,9 @@ class ChildHtmlConfiguration extends Configuration {
   }
 
   void onStart() {
-    // Listen for uncaught errors.
-    window.on.error.add(_onErrorClosure);
+    _errorSubscription = window.onError.listen((e) {
+      handleExternalError(e, '(DOM callback has errors)');
+    });
   }
 
   /** Record the start time of the test. */
@@ -153,7 +152,9 @@ class ChildHtmlConfiguration extends Configuration {
   }
 
   void onDone(bool success) {
-    window.on.error.remove(_onErrorClosure);
+    assert(_errorSubscription != null);
+    _errorSubscription.cancel();
+    _errorSubscription = null;
   }
 }
 
@@ -165,8 +166,6 @@ class ParentHtmlConfiguration extends Configuration {
   get autoStart => false;
   get name => 'ParentHtmlConfiguration';
   Map<int,DateTime> _testStarts;
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
 
   /** The stack that was posted back from the child, if any. */
   String _stack;
@@ -179,11 +178,7 @@ class ParentHtmlConfiguration extends Configuration {
    */
   bool _doneWrap = false;
 
-  /**
-   * We use this to make a single closure from _handleMessage so we
-   * can remove the handler later.
-   */
-  Function _messageHandler;
+  StreamSubscription _messageSubscription, _errorSubscription;
 
   ParentHtmlConfiguration() :
       _testStarts = new Map<int,DateTime>();
@@ -207,7 +202,7 @@ class ParentHtmlConfiguration extends Configuration {
       childDiv.nodes.add(child);
       completeTest = expectAsync0((){ });
       // Kick off the test when the IFrame is loaded.
-      child.on.load.add((e) {
+      child.onLoad.listen((e) {
         child.contentWindow.postMessage(_Message.text(_Message.START), '*');
       });
     };
@@ -234,14 +229,15 @@ class ParentHtmlConfiguration extends Configuration {
   }
 
   void onInit() {
-    _messageHandler = _handleMessage; // We need to make just one closure.
-    _onErrorClosure =
-        (e) => handleExternalError(e, '(DOM callback has errors)');
   }
 
   void onStart() {
     // Listen for uncaught errors.
-    window.on.error.add(_onErrorClosure);
+    assert(_errorSubscription == null);
+    _errorSubscription = window.onError.listen((e) {
+      handleExternalError(e, '(DOM callback has errors)');
+    });
+
     if (!_doneWrap) {
       _doneWrap = true;
       for (int i = 0; i < testCases.length; i++) {
@@ -250,7 +246,8 @@ class ParentHtmlConfiguration extends Configuration {
         testCases[i].tearDown = null;
       }
     }
-    window.on.message.add(_messageHandler);
+
+    _messageSubscription = window.onMessage.listen(_handleMessage);
   }
 
   void onTestStart(TestCase testCase) {
@@ -281,8 +278,12 @@ class ParentHtmlConfiguration extends Configuration {
       String uncaughtError) {
   }
   void onDone(bool success) {
-    window.on.message.remove(_messageHandler);
-    window.on.error.remove(_onErrorClosure);
+    _messageSubscription.cancel();
+    _messageSubscription = null;
+
+    _errorSubscription.cancel();
+    _errorSubscription = null;
+
     window.postMessage('done', '*'); // Unblock DRT
   }
 }

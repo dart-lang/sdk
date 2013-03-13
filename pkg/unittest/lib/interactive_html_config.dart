@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,6 +15,7 @@ library unittest_interactive_html_config;
 // IFrame for failed tests/keep IFrame for all tests.
 
 import 'dart:html';
+import 'dart:async';
 import 'dart:math';
 import 'unittest.dart';
 
@@ -53,22 +54,20 @@ class _Message {
 
 
 class HtmlConfiguration extends Configuration {
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
+  StreamSubscription _errorSubscription;
 
   void _installErrorHandler() {
-    if (_onErrorClosure == null) {
-      _onErrorClosure =
-          (e) => handleExternalError(e, '(DOM callback has errors)');
-      // Listen for uncaught errors.
-      window.on.error.add(_onErrorClosure);
+    if (_errorSubscription == null) {
+      _errorSubscription = window.onError.listen((e) {
+        handleExternalError(e, '(DOM callback has errors)');
+      });
     }
   }
 
   void _uninstallErrorHandler() {
-    if (_onErrorClosure != null) {
-      window.on.error.remove(_onErrorClosure);
-      _onErrorClosure = null;
+    if (_errorSubscription != null) {
+      _errorSubscription.cancel();
+      _errorSubscription = null;
     }
   }
 }
@@ -82,7 +81,7 @@ class HtmlConfiguration extends Configuration {
 class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
 
   /** The window to which results must be posted. */
-  Window parentWindow;
+  WindowBase parentWindow;
 
   /** The time at which tests start. */
   Map<int,DateTime> _testStarts;
@@ -102,7 +101,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
      *  window, gets the test ID from the query parameter in the
      *  IFrame URL, sets that as a solo test and starts test execution.
      */
-    window.on.message.add((MessageEvent e) {
+    window.onMessage.listen((MessageEvent e) {
       // Get the result, do any logging, then do a pass/fail.
       var m = new _Message.fromString(e.data);
       if (m.messageType == _Message.START) {
@@ -188,11 +187,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
    */
   bool _doneWrap = false;
 
-  /**
-   * We use this to make a single closure from _handleMessage so we
-   * can remove the handler later.
-   */
-  Function _messageHandler;
+  StreamSubscription _messageSubscription;
 
   ParentInteractiveHtmlConfiguration() :
       _testStarts = new Map<int,DateTime>();
@@ -214,7 +209,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
       childDiv.nodes.add(child);
       completeTest = expectAsync0((){ });
       // Kick off the test when the IFrame is loaded.
-      child.on.load.add((e) {
+      child.onLoad.listen((e) {
         child.contentWindow.postMessage(_Message.text(_Message.START), '*');
       });
     };
@@ -243,7 +238,6 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
 
   void onInit() {
     _installErrorHandler();
-    _messageHandler = _handleMessage; // We need to make just one closure.
     document.query('#group-divs').innerHtml = "";
   }
 
@@ -257,7 +251,8 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
         testCases[i].tearDown = null;
       }
     }
-    window.on.message.add(_messageHandler);
+    assert(_messageSubscription == null);
+    _messageSubscription = window.onMessage.listen(_handleMessage);
   }
 
   static final _notAlphaNumeric = new RegExp('[^a-z0-9A-Z]');
@@ -297,12 +292,12 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
             </ul>
           </div>""");
       document.query('#group-divs').nodes.add(groupDiv);
-      groupDiv.query('.groupselect').on.click.add((e) {
+      groupDiv.query('.groupselect').onClick.listen((e) {
         var parent = document.query('#$groupId');
         InputElement cb = parent.query('.groupselect');
         var state = cb.checked;
         var tests = parent.query('.tests');
-        for (Element t in tests.elements) {
+        for (Element t in tests.children) {
           cb = t.query('.testselect') as InputElement;
           cb.checked = state;
           var testId = int.parse(t.id.substring(_testIdPrefix.length));
@@ -335,11 +330,11 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
             </div>
           </li>""");
       list.nodes.add(testItem);
-      testItem.query('#$_selectedIdPrefix$id').on.change.add((e) {
+      testItem.query('#$_selectedIdPrefix$id').onChange.listen((e) {
         InputElement cb = testItem.query('#$_selectedIdPrefix$id');
         testCase.enabled = cb.checked;
       });
-      testItem.query('.test-label').on.click.add((e) {
+      testItem.query('.test-label').onClick.listen((e) {
         var _testItem = document.query('#$_testIdPrefix$id');
         var _actions = _testItem.query('#$_actionIdPrefix$id');
         var _label = _testItem.query('.test-name');
@@ -414,7 +409,9 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
   }
 
   void onDone(bool success) {
-    window.on.message.remove(_messageHandler);
+    assert(_messageSubscription != null);
+    _messageSubscription.cancel();
+    _messageSubscription = null;
     _uninstallErrorHandler();
     document.query('#busy').style.display = 'none';
     InputElement startButton = document.query('#start');
@@ -440,7 +437,7 @@ void _prepareDom() {
         "<div id='control'>"
             "<input id='start' disabled='true' type='button' value='Run'>"
         "</div>"));
-    document.query('#start').on.click.add((e) {
+    document.query('#start').onClick.listen((e) {
       InputElement startButton = document.query('#start');
       startButton.disabled = true;
       rerunTests();
@@ -466,7 +463,7 @@ void _prepareDom() {
 
 /**
  * Allocate a Configuration. We allocate either a parent or
- * child, depedning on whether the URL has a search part.
+ * child, depending on whether the URL has a search part.
  */
 void useInteractiveHtmlConfiguration() {
   if (config != null) return;

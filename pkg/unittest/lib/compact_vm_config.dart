@@ -88,7 +88,7 @@ class CompactVMConfiguration extends VMConfiguration {
       [String color = _NONE]) {
     var duration = (new DateTime.now()).difference(startTime);
     var buffer = new StringBuffer();
-    // \r moves back to the beginnig of the current line.
+    // \r moves back to the beginning of the current line.
     buffer.write('\r${_timeString(duration)} ');
     buffer.write(_GREEN);
     buffer.write('+');
@@ -121,7 +121,7 @@ class CompactVMConfiguration extends VMConfiguration {
         _lastLength--;
       }
     }
-    stdout.addString(buffer.toString());
+    stdout.write(buffer.toString());
   }
 
   String _padTime(int time) =>
