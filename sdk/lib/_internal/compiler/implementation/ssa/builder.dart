@@ -321,9 +321,8 @@ class LocalsHandler {
         type = HType.UNKNOWN;
       } else if (cls != compiler.objectClass) {
         JavaScriptBackend backend = compiler.backend;
-        if (!backend.isInterceptorClass(cls)) {
-          name = const SourceString('_');
-        }
+        assert(!backend.isInterceptorClass(cls));
+        name = const SourceString('_');
       }
       Element parameter = new InterceptedElement(type, name, element);
       HParameterValue value = new HParameterValue(parameter);

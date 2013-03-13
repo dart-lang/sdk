@@ -552,16 +552,9 @@ class Namer implements ClosureNamer {
       if (cls == backend.jsBoolClass) return "b";
       return cls.name.slowToString();
     }
-    List<String> names = classes
-        .where((cls) => !cls.isNative())
-        .map(abbreviate)
-        .toList();
-    // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => cls.isNative())) {
-      names.add("x");
-    }
     // Sort the names of the classes after abbreviating them to ensure
     // the suffix is stable and predictable for the suggested names.
+    List<String> names = classes.map(abbreviate).toList();
     names.sort();
     return names.join();
   }
