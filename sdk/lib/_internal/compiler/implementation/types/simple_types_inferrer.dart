@@ -1156,10 +1156,22 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   void checkIfExposesThis(Selector selector) {
     if (isThisExposed) return;
     inferrer.iterateOverElements(selector, (element) {
-      // We have to check if the selector is a setter, otherwise a
-      // property access on [:this:] would be considered as not escaping
-      // [:this:].
-      if (element.isField() && selector.isSetter()) return true;
+      if (element.isField()) {
+        if (!selector.isSetter()
+            && element.getEnclosingClass() ==
+                    outermostElement.getEnclosingClass()
+            && !element.modifiers.isFinal()
+            && locals.fieldsInitializedInConstructor[element] == null
+            && element.parseNode(compiler).asSendSet() == null) {
+          // If the field is being used before this constructor
+          // actually had a chance to initialize it, say it can be
+          // null.
+          inferrer.recordNonFinalFieldElementType(
+              analyzedElement.parseNode(compiler), element, inferrer.nullType);
+        }
+        // Accessing a field does not expose [:this:].
+        return true;
+      }
       // TODO(ngeoffray): We could do better here if we knew what we
       // are calling does not expose this.
       isThisExposed = true;

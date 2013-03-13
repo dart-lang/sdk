@@ -347,12 +347,28 @@ const String TEST_20 = r"""
 const String TEST_21 = r"""
   class A {
     var f;
-    A(x) {
+    A() {
       for (var i in this) {
       }
       f = 42;
     }
     get iterator => null;
+  }
+  main() {
+    new A();
+  }
+""";
+
+const String TEST_22 = r"""
+  class A {
+    var f1;
+    var f2;
+    var f3;
+    A() {
+      f1 = 42;
+      f2 = f1 == null ? 42 : f3 == null ? 41: 43;
+      f3 = 'foo';
+    }
   }
   main() {
     new A();
@@ -423,6 +439,10 @@ void test() {
                     'f3': (inferrer) => inferrer.dynamicType});
   runTest(TEST_20, {'f': (inferrer) => inferrer.intType});
   runTest(TEST_21, {'f': (inferrer) => inferrer.intType.nullable()});
+
+  runTest(TEST_22, {'f1': (inferrer) => inferrer.intType,
+                    'f2': (inferrer) => inferrer.intType,
+                    'f3': (inferrer) => inferrer.stringType.nullable()});
 }
 
 void main() {
