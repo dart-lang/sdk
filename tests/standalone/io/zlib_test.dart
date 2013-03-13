@@ -48,6 +48,23 @@ void testZLibDeflate() {
 }
 
 
+void testZLibDeflateEmpty() {
+  var port = new ReceivePort();
+  var controller = new StreamController();
+  controller.stream.transform(new ZLibDeflater(gzip: false, level: 6))
+      .reduce([], (buffer, data) {
+        buffer.addAll(data);
+        return buffer;
+      })
+      .then((data) {
+        print(data);
+        Expect.listEquals([120, 156, 2, 0, 0, 0, 255, 255], data);
+        port.close();
+      });
+  controller.close();
+}
+
+
 void testZLibDeflateGZip() {
   var port = new ReceivePort();
   var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -121,6 +138,7 @@ void testZLibInflate() {
 
 void main() {
   testZLibDeflate();
+  testZLibDeflateEmpty();
   testZLibDeflateGZip();
   testZLibDeflateInvalidLevel();
   testZLibInflate();

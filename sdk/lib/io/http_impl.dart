@@ -405,7 +405,9 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   }
 
   void close() {
-    if (!_headersWritten && !_ignoreBody && headers.chunkedTransferEncoding) {
+    // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
+    // persistentConnection is not guaranteed to be in sync.
+    if (!_headersWritten && !_ignoreBody && headers.contentLength == -1) {
       // If no body was written, _ignoreBody is false (it's not a HEAD
       // request) and the content-length is unspecified, set contentLength to 0.
       headers.chunkedTransferEncoding = false;
@@ -433,7 +435,9 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
           response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
       List contentEncoding = headers[HttpHeaders.CONTENT_ENCODING];
       if (acceptEncodings != null &&
-          acceptEncodings.any((encoding) => encoding.toLowerCase() == "gzip") &&
+          acceptEncodings
+              .expand((list) => list.split(","))
+              .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
           contentEncoding == null) {
         headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
         asGZip = true;
@@ -805,7 +809,7 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
   }
 
   void handleDone(EventSink<List<int>> sink) {
-    handleData([], sink);
+    handleData(const [], sink);
     sink.close();
   }
 

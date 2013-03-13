@@ -20,7 +20,7 @@ void testServerCompress() {
       var client = new HttpClient();
       client.get("localhost", server.port, "/")
           .then((request) {
-            request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+            request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
             return request.close();
           })
           .then((response) {
@@ -47,6 +47,47 @@ void testServerCompress() {
   test(longBuffer);
 }
 
+void testAcceptEncodingHeader() {
+  void test(String encoding, bool valid) {
+    HttpServer.bind().then((server) {
+      server.listen((request) {
+        request.response.write("data");
+        request.response.close();
+      });
+      var client = new HttpClient();
+      client.get("localhost", server.port, "/")
+          .then((request) {
+            request.headers.set(HttpHeaders.ACCEPT_ENCODING, encoding);
+            return request.close();
+          })
+          .then((response) {
+            Expect.equals(
+              valid,
+              ("gzip" == response.headers.value(HttpHeaders.CONTENT_ENCODING)));
+            response.listen(
+                (_) {},
+                onDone: () {
+                  server.close();
+                  client.close();
+                });
+          });
+    });
+  }
+  test('gzip', true);
+  test('deflate', false);
+  test('gzip, deflate', true);
+  test('gzip ,deflate', true);
+  test('gzip  ,  deflate', true);
+  test('deflate,gzip', true);
+  test('deflate, gzip', true);
+  test('deflate ,gzip', true);
+  test('deflate  ,  gzip', true);
+  test('abc,deflate  ,  gzip,def,,,ghi  ,jkl', true);
+  test('xgzip', false);
+  test('gzipx;', false);
+}
+
 void main() {
   testServerCompress();
+  testAcceptEncodingHeader();
 }

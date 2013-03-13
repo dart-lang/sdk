@@ -36,12 +36,14 @@ abstract class _Filter {
 class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
   final _Filter _filter;
   bool _closed = false;
+  bool _empty = true;
 
   _FilterTransformer(_Filter this._filter);
 
   void handleData(List<int> data, EventSink<List<int>> sink) {
     if (_closed) return;
     try {
+      _empty = false;
       _filter.process(data);
       var out;
       while ((out = _filter.processed(flush: false)) != null) {
@@ -56,6 +58,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
 
   void handleDone(EventSink<List<int>> sink) {
     if (_closed) return;
+    if (_empty) _filter.process(const []);
     try {
       var out;
       while ((out = _filter.processed()) != null) {
@@ -66,6 +69,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
       _closed = true;
     }
     if (!_closed) _filter.end();
+    _closed = true;
     sink.close();
   }
 }
