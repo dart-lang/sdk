@@ -775,8 +775,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     } else if (isDynamicType(firstType)) {
       return firstType;
     } else {
-      TypeMask union = firstType.union(secondType, compiler);
-      return union == null ? giveUpType : union;
+      return firstType.union(secondType, compiler);
     }
   }
 }

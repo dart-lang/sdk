@@ -212,7 +212,6 @@ abstract class HType {
 
   // TODO(kasperl): Try to get rid of these.
   DartType computeType(Compiler compiler);
-  bool isTop(Compiler compiler) => false;
 
   /**
    * The intersection of two types is the intersection of its values. For
@@ -231,12 +230,7 @@ abstract class HType {
     TypeMask mask = computeMask(compiler);
     TypeMask otherMask = other.computeMask(compiler);
     TypeMask intersection = mask.intersection(otherMask, compiler);
-    if (intersection != null) return new HType.fromMask(intersection, compiler);
-    // TODO(kasperl): See if we can move the nullability check into
-    // the type mask intersection computation.
-    return (mask.isNullable && otherMask.isNullable)
-        ? HType.NULL
-        : HType.CONFLICTING;
+    return new HType.fromMask(intersection, compiler);
   }
 
   /**
@@ -255,10 +249,7 @@ abstract class HType {
     TypeMask mask = computeMask(compiler);
     TypeMask otherMask = other.computeMask(compiler);
     TypeMask union = mask.union(otherMask, compiler);
-    // TODO(kasperl): It would be nice if the union was never null.
-    return (union != null)
-        ? new HType.fromMask(union, compiler)
-        : HType.UNKNOWN;
+    return new HType.fromMask(union, compiler);
   }
 }
 
@@ -575,7 +566,6 @@ class HBoundedType extends HType {
   const HBoundedType(this.mask);
 
   bool isExact() => mask.isExact;
-  bool isTop(Compiler compiler) => mask.containsAll(compiler);
 
   bool canBeNull() => mask.isNullable;
 
