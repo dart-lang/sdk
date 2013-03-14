@@ -51,6 +51,10 @@ void _showResultsInPage(int passed, int failed, int errors,
     }
     newBody.write("</tbody></table>");
     document.body.innerHtml = newBody.toString();
+
+    window.onHashChange.listen((_) {
+      window.location.reload();
+    });
   }
 }
 
@@ -68,7 +72,7 @@ String _toHtml(TestCase test_) {
       <tr>
         <td>${test_.id}</td>
         <td class="unittest-${test_.result}">${test_.result.toUpperCase()}</td>
-        <td>Expectation: ${test_.description}. ${_htmlEscape(test_.message)}</td>
+        <td>Expectation: <a href="#testFilter=${test_.description}">${test_.description}</a>. ${_htmlEscape(test_.message)}</td>
       </tr>''';
 
   if (test_.stackTrace != null) {
@@ -124,6 +128,23 @@ class HtmlConfiguration extends Configuration {
   void onInit() {
     _installHandlers();
     window.postMessage('unittest-suite-wait-for-done', '*');
+  }
+
+  void onStart() {
+    // If the URL has a #testFilter=testName then filter tests to that.
+    // This is used to make it easy to run a single test- but is only intended
+    // for interactive debugging scenarios.
+    var hash = window.location.hash;
+    if (hash != null && hash.length > 1) {
+      var params = hash.substring(1).split('&');
+      for (var param in params) {
+        var parts = param.split('=');
+        if (parts.length == 2 && parts[0] == 'testFilter') {
+          filterTests('^${parts[1]}');
+        }
+      }
+    }
+    super.onStart();
   }
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
