@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import
+    '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
+    show TypeMask;
+
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 
@@ -56,7 +60,13 @@ returnInt3(a) {
   throw 42;
 }
 
+get topLevelGetter => 42;
+returnDynamic() => topLevelGetter(42);
+
 class A {
+  factory A() = A.generative;
+  A.generative();
+
   get myField => 42;
   set myField(a) {}
   returnNum1() => ++myField;
@@ -70,6 +80,7 @@ class A {
 }
 
 class B extends A {
+  B() : super.generative();
   returnNum1() => ++new A().myField;
   returnNum2() => new A().myField += 4;
   returnNum3() => ++new A()[0];
@@ -91,6 +102,7 @@ main() {
   returnNum3();
   returnNum4();
   returnIntOrNull(true);
+  returnDynamic();
   new A()..returnNum1()
          ..returnNum2()
          ..returnNum3()
@@ -129,6 +141,7 @@ void main() {
   checkReturn('returnNum4', typesInferrer.numType);
   checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
   checkReturn('returnInt3', typesInferrer.intType);
+  checkReturn('returnDynamic', typesInferrer.dynamicType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
@@ -151,4 +164,12 @@ void main() {
   checkReturnInClass('B', 'returnNum6', typesInferrer.numType);
   checkReturnInClass('B', 'returnNum7', typesInferrer.numType);
   checkReturnInClass('B', 'returnNum8', typesInferrer.numType);
+
+  checkFactoryConstructor(String className) {
+    var cls = findElement(compiler, className);
+    var element = cls.localLookup(buildSourceString(className));
+    Expect.equals(new TypeMask.nonNullExact(cls.rawType),
+                  typesInferrer.returnTypeOf[element]);
+  }
+  checkFactoryConstructor('A');
 }

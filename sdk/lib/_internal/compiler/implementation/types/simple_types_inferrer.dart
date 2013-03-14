@@ -616,20 +616,10 @@ class SimpleTypesInferrer extends TypesInferrer {
     assert(isNotClosure(caller));
     if (analyzeCount.containsKey(caller)) return;
     callee = callee.implementation;
-    Set<Element> callers = callersOf.putIfAbsent(
-        callee, () => new Set<Element>());
-    callers.add(caller);
+    addCaller(caller, callee);
   }
 
-  /**
-   * Registers that [caller] accesses [callee] through a property
-   * access.
-   */
-  void registerGetterOnElement(Element caller,
-                               Element callee) {
-    assert(isNotClosure(caller));
-    if (analyzeCount.containsKey(caller)) return;
-    callee = callee.implementation;
+  void addCaller(Element caller, Element callee) {
     Set<Element> callers = callersOf.putIfAbsent(
         callee, () => new Set<Element>());
     callers.add(caller);
@@ -646,9 +636,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
-      Set<Element> callers = callersOf.putIfAbsent(
-          element, () => new Set<Element>());
-      callers.add(caller);
+      registerCalledElement(caller, element, arguments);
       return true;
     });
   }
@@ -1405,7 +1393,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     // are calling does not expose this.
     isThisExposed = true;
     if (node.isPropertyAccess) {
-      inferrer.registerGetterOnElement(outermostElement, element);
+      inferrer.registerCalledElement(outermostElement, element, null);
       return inferrer.typeOfElement(element);
     } else if (element.isFunction()) {
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -1424,13 +1412,20 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       isConstructorRedirect = true;
     }
     Element element = elements[node];
-    if (Elements.isUnresolved(element)) {
-      return inferrer.dynamicType;
-    }
     if (element.isForeign(compiler)) {
       return handleForeignSend(node);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    if (Elements.isUnresolved(element)
+        || element.isGetter()
+        || element.isField()) {
+      if (element.isGetter()) {
+        inferrer.registerCalledElement(outermostElement, element, null);
+      }
+      return inferrer.dynamicType;
+    }
+
+    Selector selector = elements.getSelector(node);
     inferrer.registerCalledElement(outermostElement, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.growableListType;
@@ -1556,7 +1551,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitGetterSend(Send node) {
     Element element = elements[node];
     if (Elements.isStaticOrTopLevelField(element)) {
-      inferrer.registerGetterOnElement(outermostElement, element);
+      inferrer.registerCalledElement(outermostElement, element, null);
       return inferrer.typeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
@@ -1630,10 +1625,24 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitReturn(Return node) {
-    Node expression = node.expression;
-    recordReturnType(expression == null
-        ? inferrer.nullType
-        : expression.accept(this));
+    if (node.isRedirectingFactoryBody) {
+      Element element = elements[node.expression];
+      if (Elements.isErroneousElement(element)) {
+        recordReturnType(inferrer.dynamicType);
+      } else {
+        element = element.implementation;
+        // Call [:addCaller:] directly and not
+        // [:registerCalledElement:] because we should actually pass
+        // the parameters.
+        inferrer.addCaller(analyzedElement, element);
+        recordReturnType(inferrer.returnTypeOfElement(element));
+      }
+    } else {
+      Node expression = node.expression;
+      recordReturnType(expression == null
+          ? inferrer.nullType
+          : expression.accept(this));
+    }
     locals.seenReturn = true;
     return inferrer.dynamicType;
   }
