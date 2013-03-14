@@ -109,18 +109,16 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 #define TYPED_DATA_GETTER(getter, object)                                      \
 DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));         \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    return object::New(array.getter(offsetInBytes));                           \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    return object::New(array.getter(offsetInBytes.Value()));                   \
   }                                                                            \
   if (instance.IsExternalTypedData()) {                                        \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    return object::New(array.getter(offsetInBytes));                           \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    return object::New(array.getter(offsetInBytes.Value()));                   \
   }                                                                            \
   const String& error = String::Handle(String::NewFormatted(                   \
       "Expected a TypedData object but found %s", instance.ToCString()));      \
@@ -134,18 +132,16 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
 #define TYPED_DATA_SETTER(setter, object, get_object_value)                    \
 DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));         \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
   GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));      \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    array.setter(offsetInBytes, value.get_object_value());                     \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    array.setter(offsetInBytes.Value(), value.get_object_value());             \
   } else if (instance.IsExternalTypedData()) {                                 \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    array.setter(offsetInBytes, value.get_object_value());                     \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    array.setter(offsetInBytes.Value(), value.get_object_value());             \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \
@@ -160,18 +156,16 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
 #define TYPED_DATA_UINT64_GETTER(getter, object)                               \
 DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));         \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
   uint64_t value = 0;                                                          \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    value = array.getter(offsetInBytes);                                       \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    value = array.getter(offsetInBytes.Value());                               \
   } else if (instance.IsExternalTypedData()) {                                 \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    value = array.getter(offsetInBytes);                                       \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    value = array.getter(offsetInBytes.Value());                               \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \
@@ -196,7 +190,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
 #define TYPED_DATA_UINT64_SETTER(setter, object)                               \
 DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));         \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, offsetInBytes, arguments->NativeArgAt(1)); \
   GET_NON_NULL_NATIVE_ARGUMENT(object, value, arguments->NativeArgAt(2));      \
   uint64_t object_value;                                                       \
   if (value.IsBigint()) {                                                      \
@@ -209,14 +203,12 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
   }                                                                            \
   if (instance.IsTypedData()) {                                                \
     const TypedData& array = TypedData::Cast(instance);                        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    array.setter(offsetInBytes, object_value);                                 \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    array.setter(offsetInBytes.Value(), object_value);                         \
   } else if (instance.IsExternalTypedData()) {                                 \
     const ExternalTypedData& array = ExternalTypedData::Cast(instance);        \
-    intptr_t offsetInBytes = index.Value() * array.ElementSizeInBytes();       \
-    ASSERT(RangeCheck(offsetInBytes, array.LengthInBytes()));                  \
-    array.setter(offsetInBytes, object_value);                                 \
+    ASSERT(RangeCheck(offsetInBytes.Value(), array.LengthInBytes()));          \
+    array.setter(offsetInBytes.Value(), object_value);                         \
   } else {                                                                     \
     const String& error = String::Handle(String::NewFormatted(                 \
         "Expected a TypedData object but found %s", instance.ToCString()));    \

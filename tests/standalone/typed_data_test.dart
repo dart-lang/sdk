@@ -217,68 +217,66 @@ void testIndexOf() {
   testIndexOfHelper(new Uint8ClampedList.transferable(10));
 }
 
-void testGetAtIndex() {
-  var list = new Uint8List(8);
-  for (int i = 0; i < list.length; i++) {
-    list[i] = 42;
-  }
+void testGetAtIndex(TypedData list, num initial_value) {
   var bdata = new ByteData.view(list);
-  for (int i = 0; i < list.length; i++) {
+  for (int i = 0; i < bdata.lengthInBytes; i++) {
     Expect.equals(42, bdata.getUint8(i));
     Expect.equals(42, bdata.getInt8(i));
   }
-  for (int i = 0; i < list.length ~/ 2; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
     Expect.equals(10794, bdata.getUint16(i));
     Expect.equals(10794, bdata.getInt16(i));
   }
-  for (int i = 0; i < list.length ~/ 4; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
     Expect.equals(707406378, bdata.getUint32(i));
     Expect.equals(707406378, bdata.getInt32(i));
     Expect.equals(1.511366173271439e-13, bdata.getFloat32(i));
   }
-  for (int i = 0; i < list.length ~/ 8; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
     Expect.equals(3038287259199220266, bdata.getUint64(i));
     Expect.equals(3038287259199220266, bdata.getInt64(i));
     Expect.equals(1.4260258159703532e-105, bdata.getFloat64(i));
   }
 }
 
-void testSetAtIndex() {
-  var list = new Uint8List(8);
-  void validate() {
+void testSetAtIndex(TypedData list,
+                    num initial_value, [bool use_double = false]) {
+  void validate([reinit = true]) {
     for (int i = 0; i < list.length; i++) {
-      Expect.equals(42, list[i]);
+      Expect.equals(initial_value, list[i]);
+      if (reinit) list[i] = use_double? 0.0 : 0;
     }
   }
   var bdata = new ByteData.view(list);
-  for (int i = 0; i < list.length; i++) bdata.setUint8(i, 42);
+  for (int i = 0; i < bdata.lengthInBytes; i++) bdata.setUint8(i, 42);
   validate();
-  for (int i = 0; i < list.length; i++) bdata.setInt8(i, 42);
+  for (int i = 0; i < bdata.lengthInBytes; i++) bdata.setInt8(i, 42);
   validate();
-  for (int i = 0; i < list.length ~/ 2; i++) bdata.setUint16(i, 10794);
+  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) bdata.setUint16(i, 10794);
   validate();
-  for (int i = 0; i < list.length ~/ 2; i++) bdata.setInt16(i, 10794);
+  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) bdata.setInt16(i, 10794);
   validate();
-  for (int i = 0; i < list.length ~/ 4; i++) bdata.setUint32(i, 707406378);
+  for (int i = 0; i < bdata.lengthInBytes-3; i+=4)
+    bdata.setUint32(i, 707406378);
   validate();
-  for (int i = 0; i < list.length ~/ 4; i++) bdata.setInt32(i, 707406378);
+  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) bdata.setInt32(i, 707406378);
   validate();
-  for (int i = 0; i < list.length ~/ 4; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
     bdata.setFloat32(i, 1.511366173271439e-13);
   }
   validate();
-  for (int i = 0; i < list.length ~/ 8; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
     bdata.setUint64(i, 3038287259199220266);
   }
   validate();
-  for (int i = 0; i < list.length ~/ 8; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
     bdata.setInt64(i, 3038287259199220266);
   }
   validate();
-  for (int i = 0; i < list.length ~/ 8; i++) {
+  for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
     bdata.setFloat64(i, 1.4260258159703532e-105);
   }
-  validate();
+  validate(false);
 }
 
 main() {
@@ -293,8 +291,46 @@ main() {
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
-    testGetAtIndex();
-    testSetAtIndex();
+
+    var int8list = new Int8List(128);
+    testSetAtIndex(int8list, 42);
+    testGetAtIndex(int8list, 42);
+
+    var uint8list = new Uint8List(128);
+    testSetAtIndex(uint8list, 42);
+    testGetAtIndex(uint8list, 42);
+
+    var int16list = new Int16List(64);
+    testSetAtIndex(int16list, 10794);
+    testGetAtIndex(int16list, 10794);
+
+    var uint16list = new Uint16List(64);
+    testSetAtIndex(uint16list, 10794);
+    testGetAtIndex(uint16list, 10794);
+
+    var int32list = new Int32List(32);
+    testSetAtIndex(int32list, 707406378);
+    testGetAtIndex(int32list, 707406378);
+
+    var uint32list = new Uint32List(32);
+    testSetAtIndex(uint32list, 707406378);
+    testGetAtIndex(uint32list, 707406378);
+
+    var int64list = new Int64List(16);
+    testSetAtIndex(int64list, 3038287259199220266);
+    testGetAtIndex(int64list, 3038287259199220266);
+
+    var uint64list = new Uint64List(16);
+    testSetAtIndex(uint64list, 3038287259199220266);
+    testGetAtIndex(uint64list, 3038287259199220266);
+
+    var float32list = new Float32List(32);
+    testSetAtIndex(float32list, 1.511366173271439e-13, true);
+    testGetAtIndex(float32list, 1.511366173271439e-13);
+
+    var float64list = new Float64List(16);
+    testSetAtIndex(float64list, 1.4260258159703532e-105, true);
+    testGetAtIndex(float64list, 1.4260258159703532e-105);
   }
   testTypedDataRange(true);
   testUnsignedTypedDataRange(true);
