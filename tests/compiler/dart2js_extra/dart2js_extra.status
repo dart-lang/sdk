@@ -10,7 +10,7 @@ no_such_method_test: Fail # Wrong InvocationMirror.memberName.
 
 deferred_semantics_test/none: Fail # TODO(ahe): Multitest cannot use import.
 
-[ $runtime == ffx ]
+[ $runtime == ff ]
 deferred/deferred_constant_test: Pass, Crash # Issue 9158
 deferred/deferred_class_test: Pass, Crash # Issue 9158
 
