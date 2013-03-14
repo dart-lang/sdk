@@ -10,4 +10,5 @@ description: >
 
 dependencies:
   unittest: any
+  http: ">=0.4.1 <1.0.0"
   pathos: ">=0.3.2 <1.0.0"
