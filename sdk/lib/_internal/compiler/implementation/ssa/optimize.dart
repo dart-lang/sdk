@@ -701,8 +701,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (type.isNumber()) {
       // If the method being intercepted is not defined in [int] or
       // [double] we can safely use the number interceptor.
-      if (!intercepted.contains(compiler.intClass)
-          && !intercepted.contains(compiler.doubleClass)) {
+      if (!intercepted.contains(backend.jsIntClass)
+          && !intercepted.contains(backend.jsDoubleClass)) {
         constantInterceptor = backend.jsNumberClass;
       }
     }
