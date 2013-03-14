@@ -1333,7 +1333,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
         uword external = redirection->external_function();
         if (FLAG_trace_sim) {
-          OS::Print("Call to host function at 0x%d\n", external);
+          OS::Print("Call to host function at 0x%"Pd"\n", external);
         }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;
