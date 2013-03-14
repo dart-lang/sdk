@@ -32,6 +32,24 @@ main() {
       var parser = new ArgParser();
       throwsIllegalArg(() => parser.addFlag('flummox', abbr: 'flu'));
     });
+
+    test('throws ArgumentError if a flag name is invalid', () {
+      var parser = new ArgParser();
+
+      for(var name in _INVALID_OPTIONS) {
+        var reason = '${Error.safeToString(name)} is not valid';
+        throwsIllegalArg(() => parser.addFlag(name), reason: reason);
+      }
+    });
+
+    test('accepts valid flag names', () {
+      var parser = new ArgParser();
+
+      for(var name in _VALID_OPTIONS) {
+        var reason = '${Error.safeToString(name)} is valid';
+        expect(() => parser.addFlag(name), returnsNormally, reason: reason);
+      }
+    });
   });
 
   group('ArgParser.addOption()', () {
@@ -57,6 +75,46 @@ main() {
          'than one character', () {
       var parser = new ArgParser();
       throwsIllegalArg(() => parser.addOption('flummox', abbr: 'flu'));
+    });
+
+    test('throws ArgumentError if the abbreviation is empty', () {
+      var parser = new ArgParser();
+      throwsIllegalArg(() => parser.addOption('flummox', abbr: ''));
+    });
+
+    test('throws ArgumentError if the abbreviation is an invalid value', () {
+      var parser = new ArgParser();
+      for(var name in _INVALID_OPTIONS.where((v) => v != null)) {
+        throwsIllegalArg(() => parser.addOption('flummox', abbr: name));
+      }
+    });
+
+    test('throws ArgumentError if the abbreviation is a dash', () {
+      var parser = new ArgParser();
+      throwsIllegalArg(() => parser.addOption('flummox', abbr: '-'));
+    });
+
+    test('allows explict null value for "abbr"', () {
+      var parser = new ArgParser();
+      expect(() => parser.addOption('flummox', abbr: null), returnsNormally);
+    });
+
+    test('throws ArgumentError if an option name is invalid', () {
+      var parser = new ArgParser();
+
+      for(var name in _INVALID_OPTIONS) {
+        var reason = '${Error.safeToString(name)} is not valid';
+        throwsIllegalArg(() => parser.addOption(name), reason: reason);
+      }
+    });
+
+    test('accepts valid option names', () {
+      var parser = new ArgParser();
+
+      for(var name in _VALID_OPTIONS) {
+        var reason = '${Error.safeToString(name)} is valid';
+        expect(() => parser.addOption(name), returnsNormally, reason: reason);
+      }
     });
   });
 
@@ -155,10 +213,33 @@ main() {
   });
 }
 
-throwsIllegalArg(function) {
-  expect(function, throwsArgumentError);
+throwsIllegalArg(function, {String reason: null}) {
+  expect(function, throwsArgumentError, reason: reason);
 }
 
 throwsFormat(ArgParser parser, List<String> args) {
   expect(() => parser.parse(args), throwsFormatException);
 }
+
+const _INVALID_OPTIONS = const [
+ ' ', '', '-', '--', '--foo',
+ ' with space',
+ 'with\ttab',
+ 'with\rcarriage\rreturn',
+ 'with\nline\nfeed',
+ "'singlequotes'",
+ '"doublequotes"',
+ 'back\\slash',
+ 'forward/slash'
+];
+
+const _VALID_OPTIONS = const [
+ 'a' // one char
+ 'contains-dash',
+ 'contains_underscore',
+ 'ends-with-dash-',
+ 'contains--doubledash--',
+ '1starts-with-number',
+ 'contains-a-1number',
+ 'ends-with-a-number8'
+];
