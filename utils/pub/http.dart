@@ -90,21 +90,23 @@ class PubHttpClient extends http.BaseClient {
       var contentTypeString = request.headers[HttpHeaders.CONTENT_TYPE];
       if (contentTypeString == null) contentTypeString = '';
       var contentType = new ContentType.fromString(contentTypeString);
-      if (contentType.value == 'application/x-www-form-urlencoded') {
-        requestLog.writeln('');
-        requestLog.writeln("Body fields:");
-        request.bodyFields.forEach((name, value) =>
-            requestLog.writeln(_logField(name, value)));
-      } else if (contentType.value == 'text/plain' ||
-          contentType.value == 'application/json') {
-        requestLog.write(request.body);
-      } else if (request is http.MultipartRequest) {
+      if (request is http.MultipartRequest) {
         requestLog.writeln('');
         requestLog.writeln("Body fields:");
         request.fields.forEach((name, value) =>
             requestLog.writeln(_logField(name, value)));
 
         // TODO(nweiz): make MultipartRequest.files readable, and log them?
+      } else if (request is http.Request) {
+        if (contentType.value == 'application/x-www-form-urlencoded') {
+          requestLog.writeln('');
+          requestLog.writeln("Body fields:");
+          request.bodyFields.forEach((name, value) =>
+              requestLog.writeln(_logField(name, value)));
+        } else if (contentType.value == 'text/plain' ||
+            contentType.value == 'application/json') {
+          requestLog.write(request.body);
+        }
       }
     }
 
