@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -101,11 +101,12 @@ class TestingServers {
    *   "Access-Control-Allow-Origin: client:port1
    *   "Access-Control-Allow-Credentials: true"
    */
-  void startServers(String host, {int port: 0, int crossOriginPort: 0}) {
-    _startHttpServer(host, port: port);
-    _startHttpServer(host,
-                     port: crossOriginPort,
-                     allowedPort:_serverList[0].port);
+  Future startServers(String host, {int port: 0, int crossOriginPort: 0}) {
+    return _startHttpServer(host, port: port).then((_) {
+      _startHttpServer(host,
+                       port: crossOriginPort,
+                       allowedPort:_serverList[0].port);
+    });
   }
 
   String httpServerCommandline() {
@@ -125,25 +126,27 @@ class TestingServers {
     }
   }
 
-  void _startHttpServer(String host, {int port: 0, int allowedPort: -1}) {
-    var httpServer = new HttpServer();
-    httpServer.onError = (e) {
-      DebugLogger.error('HttpServer: an error occured: $e');
-    };
-    httpServer.defaultRequestHandler = (request, response) {
-      _handleFileOrDirectoryRequest(request, response, allowedPort);
-    };
-    httpServer.addRequestHandler(
-        (req) => req.path == "/echo", _handleEchoRequest);
-
-    httpServer.listen(host, port);
-    _serverList.add(httpServer);
+  Future _startHttpServer(String host, {int port: 0, int allowedPort: -1}) {
+    return HttpServer.bind(host, port).then((HttpServer httpServer) {
+      httpServer.listen((HttpRequest request) {
+        if (request.uri.path == "/echo") {
+          _handleEchoRequest(request, request.response);
+        } else {
+          _handleFileOrDirectoryRequest(
+              request, request.response, allowedPort);
+        }
+      },
+      onError: (e) {
+        DebugLogger.error('HttpServer: an error occured: $e');
+      });
+      _serverList.add(httpServer);
+    });
   }
 
   void _handleFileOrDirectoryRequest(HttpRequest request,
                                      HttpResponse response,
                                      int allowedPort) {
-    var path = _getFilePathFromRequestPath(request.path);
+    var path = _getFilePathFromRequestPath(request.uri.path);
     if (path != null) {
       var file = new File.fromPath(path);
       file.exists().then((exists) {
@@ -163,7 +166,7 @@ class TestingServers {
         }
       });
     } else {
-      if (request.path == '/') {
+      if (request.uri.path == '/') {
         var entries = [new _Entry('root_dart', 'root_dart/'),
                        new _Entry('root_build', 'root_build/'),
                        new _Entry('echo', 'echo')];
@@ -176,7 +179,10 @@ class TestingServers {
 
   void _handleEchoRequest(HttpRequest request, HttpResponse response) {
     response.headers.set("Access-Control-Allow-Origin", "*");
-    request.inputStream.pipe(response.outputStream);
+    request.pipe(response).catchError((e) {
+      DebugLogger.warning(
+          'HttpServer: error while closing the response stream: $e');
+    });
   }
 
   Path _getFilePathFromRequestPath(String urlRequestPath) {
@@ -215,18 +221,18 @@ class TestingServers {
     var completer = new Completer();
     var entries = [];
 
-    directory.list()
-      ..onFile = (filepath) {
-        var filename = new Path(filepath).filename;
-        entries.add(new _Entry(filename, filename));
-      }
-      ..onDir = (dirpath) {
-        var filename = new Path(dirpath).filename;
-        entries.add(new _Entry(filename, '$filename/'));
-      }
-      ..onDone = (_) {
+    directory.list().listen(
+      (FileSystemEntity fse) {
+        var filename = new Path(fse.path).filename;
+        if (fse is File) {
+          entries.add(new _Entry(filename, filename));
+        } else if (fse is Directory) {
+          entries.add(new _Entry(filename, '$filename/'));
+        }
+      },
+      onDone: () {
         completer.complete(entries);
-      };
+      });
     return completer.future;
   }
 
@@ -237,11 +243,11 @@ class TestingServers {
     var header = '''<!DOCTYPE html>
     <html>
     <head>
-      <title>${request.path}</title>
+      <title>${request.uri.path}</title>
     </head>
     <body>
       <code>
-        <div>${request.path}</div>
+        <div>${request.uri.path}</div>
         <hr/>
         <ul>''';
     var footer = '''
@@ -252,14 +258,18 @@ class TestingServers {
 
 
     entries.sort();
-    response.outputStream.writeString(header);
+    response.write(header);
     for (var entry in entries) {
-      response.outputStream.writeString(
-          '<li><a href="${new Path(request.path).append(entry.name)}">'
+      response.write(
+          '<li><a href="${new Path(request.uri.path).append(entry.name)}">'
           '${entry.displayName}</a></li>');
     }
-    response.outputStream.writeString(footer);
-    response.outputStream.close();
+    response.write(footer);
+    response.close();
+    response.done.catchError((e) {
+      DebugLogger.warning(
+          'HttpServer: error while closing the response stream: $e');
+    });
   }
 
   void _sendFileContent(HttpRequest request,
@@ -296,26 +306,26 @@ class TestingServers {
     } else if (path.filename.endsWith('.dart')) {
       response.headers.set('Content-Type', 'application/dart');
     }
-    file.openInputStream().pipe(response.outputStream);
+    file.openRead().pipe(response).catchError((e) {
+      DebugLogger.warning(
+          'HttpServer: error while closing the response stream: $e');
+    });
   }
 
   void _sendNotFound(HttpRequest request, HttpResponse response) {
     // NOTE: Since some tests deliberately try to access non-existent files.
     // We might want to remove this warning (otherwise it will show
     // up in the debug.log every time).
-    DebugLogger.warning('HttpServer: could not find file for request path: '
-                        '"${request.path}"');
-    response.statusCode = HttpStatus.NOT_FOUND;
-    try {
-      response.outputStream.close();
-    } catch (e) {
-      if (e is StreamException) {
-        DebugLogger.warning('HttpServer: error while closing the response '
-                            'stream: $e');
-      } else {
-        throw e;
-      }
+    if (request.uri.path != "/favicon.ico") {
+      DebugLogger.warning('HttpServer: could not find file for request path: '
+                          '"${request.uri.path}"');
     }
+    response.statusCode = HttpStatus.NOT_FOUND;
+    response.close();
+    response.done.catchError((e) {
+      DebugLogger.warning(
+          'HttpServer: error while closing the response stream: $e');
+    });
   }
 }
 

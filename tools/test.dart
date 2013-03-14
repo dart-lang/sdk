@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,6 +24,7 @@
 
 library test;
 
+import "dart:async";
 import "dart:io";
 import "testing/dart/test_runner.dart";
 import "testing/dart/test_options.dart";
@@ -71,7 +72,7 @@ final TEST_SUITE_DIRECTORIES = [
 ];
 
 main() {
-  var startTime = new Date.now();
+  var startTime = new DateTime.now();
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null || configurations.length == 0) return;
@@ -105,7 +106,7 @@ main() {
         ['Test configurations:'] : ['Test configuration:'];
     for (Map conf in configurations) {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
-          .mappedBy((name) => conf[name]).toList();
+          .map((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
       output_words.add(settings.join('_'));
     }
@@ -116,6 +117,7 @@ main() {
     return TestUtils.isBrowserRuntime(config['runtime']);
   });
 
+  List<Future> serverFutures = [];
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
@@ -126,7 +128,7 @@ main() {
       // getCrossOriginPortNumber().
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
                                        useContentSecurityPolicy);
-      servers.startServers('127.0.0.1');
+      serverFutures.add(servers.startServers('127.0.0.1'));
       conf['_servers_'] = servers;
     }
 
@@ -203,13 +205,22 @@ main() {
   }
   eventListener.add(new ExitCodeSetter());
 
-  // Start process queue.
-  new ProcessQueue(maxProcesses,
-                   maxBrowserProcesses,
-                   startTime,
-                   testSuites,
-                   eventListener,
-                   allTestsFinished,
-                   verbose,
-                   listTests);
+  void startProcessQueue() {
+    // Start process queue.
+    new ProcessQueue(maxProcesses,
+                     maxBrowserProcesses,
+                     startTime,
+                     testSuites,
+                     eventListener,
+                     allTestsFinished,
+                     verbose,
+                     listTests);
+  }
+
+  // Start all the HTTP servers required before starting the process queue.
+  if (serverFutures.isEmpty) {
+    startProcessQueue();
+  } else {
+    Future.wait(serverFutures).then((_) => startProcessQueue());
+  }
 }
