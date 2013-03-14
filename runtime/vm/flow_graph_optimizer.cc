@@ -1647,48 +1647,48 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (ic_data.NumberOfChecks() == 1)) {
     // For elements that may not fit into a smi on all platforms, check if
     // elements fit into a smi or the platform supports unboxed mints.
-    if ((recognized_kind == MethodRecognizer::kTypedListGetInt32) ||
-        (recognized_kind == MethodRecognizer::kTypedListGetUint32) ||
-        (recognized_kind == MethodRecognizer::kTypedListSetInt32) ||
-        (recognized_kind == MethodRecognizer::kTypedListSetUint32)) {
+    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetInt32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseGetUint32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetInt32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetUint32)) {
       if (!CanUnboxInt32()) return false;
     }
 
     switch (recognized_kind) {
       // ByteArray getters.
-      case MethodRecognizer::kTypedListGetInt8:
+      case MethodRecognizer::kByteArrayBaseGetInt8:
         return BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
-      case MethodRecognizer::kTypedListGetUint8:
+      case MethodRecognizer::kByteArrayBaseGetUint8:
         return BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
-      case MethodRecognizer::kTypedListGetInt16:
+      case MethodRecognizer::kByteArrayBaseGetInt16:
         return BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
-      case MethodRecognizer::kTypedListGetUint16:
+      case MethodRecognizer::kByteArrayBaseGetUint16:
         return BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
-      case MethodRecognizer::kTypedListGetInt32:
+      case MethodRecognizer::kByteArrayBaseGetInt32:
         return BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
-      case MethodRecognizer::kTypedListGetUint32:
+      case MethodRecognizer::kByteArrayBaseGetUint32:
         return BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
-      case MethodRecognizer::kTypedListGetFloat32:
+      case MethodRecognizer::kByteArrayBaseGetFloat32:
         return BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
-      case MethodRecognizer::kTypedListGetFloat64:
+      case MethodRecognizer::kByteArrayBaseGetFloat64:
         return BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
 
       // ByteArray setters.
-      case MethodRecognizer::kTypedListSetInt8:
+      case MethodRecognizer::kByteArrayBaseSetInt8:
         return BuildByteArrayViewStore(call, class_ids[0], kInt8ArrayCid);
-      case MethodRecognizer::kTypedListSetUint8:
+      case MethodRecognizer::kByteArrayBaseSetUint8:
         return BuildByteArrayViewStore(call, class_ids[0], kUint8ArrayCid);
-      case MethodRecognizer::kTypedListSetInt16:
+      case MethodRecognizer::kByteArrayBaseSetInt16:
         return BuildByteArrayViewStore(call, class_ids[0], kInt16ArrayCid);
-      case MethodRecognizer::kTypedListSetUint16:
+      case MethodRecognizer::kByteArrayBaseSetUint16:
         return BuildByteArrayViewStore(call, class_ids[0], kUint16ArrayCid);
-      case MethodRecognizer::kTypedListSetInt32:
+      case MethodRecognizer::kByteArrayBaseSetInt32:
         return BuildByteArrayViewStore(call, class_ids[0], kInt32ArrayCid);
-      case MethodRecognizer::kTypedListSetUint32:
+      case MethodRecognizer::kByteArrayBaseSetUint32:
         return BuildByteArrayViewStore(call, class_ids[0], kUint32ArrayCid);
-      case MethodRecognizer::kTypedListSetFloat32:
+      case MethodRecognizer::kByteArrayBaseSetFloat32:
         return BuildByteArrayViewStore(call, class_ids[0], kFloat32ArrayCid);
-      case MethodRecognizer::kTypedListSetFloat64:
+      case MethodRecognizer::kByteArrayBaseSetFloat64:
         return BuildByteArrayViewStore(call, class_ids[0], kFloat64ArrayCid);
       default:
         // Unsupported method.
