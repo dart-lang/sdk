@@ -39,22 +39,22 @@ class Range;
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
   V(_TypedList, get:length, TypedDataLength, 231908172)                        \
   V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
-  V(_ByteArrayBase, _getInt8, ByteArrayBaseGetInt8, 261365835)                 \
-  V(_ByteArrayBase, _getUint8, ByteArrayBaseGetUint8, 261365835)               \
-  V(_ByteArrayBase, _getInt16, ByteArrayBaseGetInt16, 261365835)               \
-  V(_ByteArrayBase, _getUint16, ByteArrayBaseGetUint16, 261365835)             \
-  V(_ByteArrayBase, _getInt32, ByteArrayBaseGetInt32, 261365835)               \
-  V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
-  V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
-  V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
-  V(_ByteArrayBase, _setInt8, ByteArrayBaseSetInt8, 501962848)                 \
-  V(_ByteArrayBase, _setUint8, ByteArrayBaseSetUint8, 501962848)               \
-  V(_ByteArrayBase, _setInt16, ByteArrayBaseSetInt16, 501962848)               \
-  V(_ByteArrayBase, _setUint16, ByteArrayBaseSetUint16, 501962848)             \
-  V(_ByteArrayBase, _setInt32, ByteArrayBaseSetInt32, 501962848)               \
-  V(_ByteArrayBase, _setUint32, ByteArrayBaseSetUint32, 501962848)             \
-  V(_ByteArrayBase, _setFloat32, ByteArrayBaseSetFloat32, 864506525)           \
-  V(_ByteArrayBase, _setFloat64, ByteArrayBaseSetFloat64, 864506525)           \
+  V(_TypedList, _getInt8, TypedListGetInt8, 380843687)                         \
+  V(_TypedList, _getUint8, TypedListGetUint8, 380843687)                       \
+  V(_TypedList, _getInt16, TypedListGetInt16, 380843687)                       \
+  V(_TypedList, _getUint16, TypedListGetUint16, 380843687)                     \
+  V(_TypedList, _getInt32, TypedListGetInt32, 380843687)                       \
+  V(_TypedList, _getUint32, TypedListGetUint32, 380843687)                     \
+  V(_TypedList, _getFloat32, TypedListGetFloat32, 979971573)                   \
+  V(_TypedList, _getFloat64, TypedListGetFloat64, 979971573)                   \
+  V(_TypedList, _setInt8, TypedListSetInt8, 287047804)                         \
+  V(_TypedList, _setUint8, TypedListSetUint8, 287047804)                       \
+  V(_TypedList, _setInt16, TypedListSetInt16, 287047804)                       \
+  V(_TypedList, _setUint16, TypedListSetUint16, 287047804)                     \
+  V(_TypedList, _setInt32, TypedListSetInt32, 287047804)                       \
+  V(_TypedList, _setUint32, TypedListSetUint32, 287047804)                     \
+  V(_TypedList, _setFloat32, TypedListSetFloat32, 1032541114)                  \
+  V(_TypedList, _setFloat64, TypedListSetFloat64, 1032541114)                  \
   V(_Float32Array, _getIndexed, Float32ArrayGetIndexed, 734006846)             \
   V(_Float64Array, _getIndexed, Float64ArrayGetIndexed, 498074772)             \
   V(_Int8Array, _getIndexed, Int8ArrayGetIndexed, 712069760)                   \
