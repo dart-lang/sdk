@@ -1024,7 +1024,7 @@ TEST_CASE(Debug_LookupSourceLine) {
   }
 
   Dart_Handle lib_url = NewString(TestCase::url());
-  Dart_Handle source = Dart_GetScriptSource(lib_url, lib_url);
+  Dart_Handle source = Dart_ScriptGetSource((num_libs - 1), lib_url);
   EXPECT(Dart_IsString(source));
   char const* source_chars;
   Dart_StringToCString(source, &source_chars);
