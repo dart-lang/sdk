@@ -219,7 +219,7 @@ class _ChildrenElementList implements List {
       throw new RangeError.range(index, 0, length);
     }
     if (index == length) {
-      _element.$dom_appendChild(element);
+      _element.append(element);
     } else {
       throw new UnimplementedError("insert on ElementLists");
     }

@@ -89,7 +89,7 @@ $endif
       throw new RangeError.range(index, 0, length);
     }
     if (index == length) {
-      _this.$dom_appendChild(node);
+      _this.append(node);
     } else {
       this_.insertBefore(node, this[index]);
     }

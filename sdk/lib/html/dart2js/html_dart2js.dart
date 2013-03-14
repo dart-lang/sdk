@@ -8206,7 +8206,7 @@ class _ChildrenElementList implements List {
       throw new RangeError.range(index, 0, length);
     }
     if (index == length) {
-      _element.$dom_appendChild(element);
+      _element.append(element);
     } else {
       throw new UnimplementedError("insert on ElementLists");
     }
@@ -17431,7 +17431,7 @@ class _ChildNodeListLazy implements List {
       throw new RangeError.range(index, 0, length);
     }
     if (index == length) {
-      _this.$dom_appendChild(node);
+      _this.append(node);
     } else {
       this_.insertBefore(node, this[index]);
     }
