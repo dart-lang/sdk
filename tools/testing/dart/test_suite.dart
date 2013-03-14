@@ -183,8 +183,7 @@ abstract class TestSuite {
       case 'dartc':
         return '$buildDir/analyzer/bin/dart_analyzer$suffix';
       case 'new_analyzer':
-        var prefix = 'sdk/bin';
-        return '$prefix/analyzer$suffix';
+        return 'sdk/bin/analyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }

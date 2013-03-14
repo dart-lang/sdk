@@ -145,9 +145,12 @@ main() {
         // [TEST_SUITE_DIRECTORIES]).
         testSuites.add(new VMTestSuite(conf));
       } else if (conf['analyzer']) {
-        if (key == 'dartc') {
-          testSuites.add(new SamplesDartcTestSuite(conf));
+        if (key == 'dartc' && conf['compiler'] == 'dartc') {
           testSuites.add(new JUnitDartcTestSuite(conf));
+        }
+        // TODO(devoncarew): get these running with the new analyzer
+        if (key == 'dartc' && conf['compiler'] == 'dartc') {
+          testSuites.add(new SamplesDartcTestSuite(conf));
         }
         if (key == 'analyze_library') {
           testSuites.add(new AnalyzeLibraryTestSuite(conf));
