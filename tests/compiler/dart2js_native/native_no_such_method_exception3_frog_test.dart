@@ -6,7 +6,7 @@ class GetName {
   foo(x, y, [z]) => "foo";
 }
 
-static String getName(im) => im.invokeOn(new GetName());
+String getName(im) => im.invokeOn(new GetName());
 
 class A native "*A" {
   bar() => 42;
