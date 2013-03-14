@@ -46,7 +46,7 @@ class _Path implements Path {
 
   Path relativeTo(Path base) {
     // Returns a path "relative" such that
-    //    base.join(relative) == this.canonicalize.
+    // base.join(relative) == this.canonicalize.
     // Throws exception if an impossible case is reached.
     if (base.isAbsolute != isAbsolute ||
         base.isWindowsShare != isWindowsShare) {
@@ -57,6 +57,37 @@ class _Path implements Path {
     }
 
     var basePath = base.toString();
+    // Handle drive letters specially on Windows.
+    if (base.isAbsolute && Platform.operatingSystem == 'windows') {
+      bool baseHasDrive =
+          basePath.length >= 4 && basePath[2] == ':' && basePath[3] == '/';
+      bool pathHasDrive =
+          _path.length >= 4 && _path[2] == ':' && _path[3] == '/';
+      if (baseHasDrive && pathHasDrive) {
+        int baseDrive = basePath.codeUnitAt(1) | 32;  // Convert to uppercase.
+        if (baseDrive >= 'a'.codeUnitAt(0) &&
+            baseDrive <= 'z'.codeUnitAt(0) &&
+            baseDrive == (_path.codeUnitAt(1) | 32)) {
+          if(basePath[1] != _path[1]) {
+            // Replace the drive letter in basePath with that from _path.
+            basePath = '/${_path[1]}:/${basePath.substring(4)}';
+            base = new Path(basePath);
+          }
+        } else {
+          throw new ArgumentError(
+              "Invalid case of Path.relativeTo(base):\n"
+              "  Base path and target path are on different Windows drives.\n"
+              "  Arguments: $_path.relativeTo($base)");
+        }
+      } else if (baseHasDrive != pathHasDrive) {
+        throw new ArgumentError(
+            "Invalid case of Path.relativeTo(base):\n"
+            "  Base path must start with a drive letter if and "
+            "only if target path does.\n"
+            "  Arguments: $_path.relativeTo($base)");
+      }
+
+    }
     if (_path.startsWith(basePath)) {
       if (_path == basePath) return new Path('.');
       // There must be a '/' at the end of the match, or immediately after.
@@ -88,7 +119,7 @@ class _Path implements Path {
     if (common < baseSegments.length && baseSegments[common] == '..') {
       throw new ArgumentError(
           "Invalid case of Path.relativeTo(base):\n"
-          "  Base path has more '..'s than path does."
+          "  Base path has more '..'s than path does.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
     for (int i = common; i < baseSegments.length; i++) {

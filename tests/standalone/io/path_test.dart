@@ -13,6 +13,7 @@ void main() {
   testJoinAppend();
   testRelativeTo();
   testWindowsShare();
+  testWindowsDrive();
 }
 
 void testBaseFunctions() {
@@ -300,4 +301,33 @@ void testWindowsShare() {
   var directoryPath = canonical.directoryPath;
   Expect.isTrue(directoryPath.isAbsolute);
   Expect.isTrue(directoryPath.isWindowsShare);
+}
+
+// Test that Windows drive information is handled correctly in relative
+// Path operations.
+void testWindowsDrive() {
+  // Windows drive information only makes sense on Windows.
+  if (Platform.operatingSystem != 'windows') return;
+  // Test that case of drive letters is ignored, and that drive letters
+  // are treated specially.
+  var CPath = new Path(r'C:\a\b\..\c');
+  var cPath = new Path(r'c:\a\b\d');
+  var C2Path = new Path(r'C:\a\b\d');
+  var C3Path = new Path(r'C:\a\b');
+  var C4Path = new Path(r'C:\');
+  var DPath = new Path(r'D:\a\b\d\e');
+  var NoPath = new Path(r'\a\b\c\.');
+
+  Expect.throws(() => CPath.relativeTo(DPath));
+  Expect.throws(() => CPath.relativeTo(NoPath));
+  Expect.throws(() => NoPath.relativeTo(CPath));
+  Expect.equals('../../c', CPath.relativeTo(cPath).toString());
+  Expect.equals('../b/d', cPath.relativeTo(CPath).toString());
+  Expect.equals('.', DPath.relativeTo(DPath).toString());
+  Expect.equals('.', NoPath.relativeTo(NoPath).toString());
+  Expect.equals('.', C2Path.relativeTo(cPath).toString());
+  Expect.equals('..', C3Path.relativeTo(cPath).toString());
+  Expect.equals('d', cPath.relativeTo(C3Path).toString());
+  Expect.equals('a/b/d', cPath.relativeTo(C4Path).toString());
+  Expect.equals('../../../', C4Path.relativeTo(cPath).toString());
 }
