@@ -1112,31 +1112,19 @@ abstract class HInstruction implements Spannable {
     return false;
   }
 
-
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (type == null) return this;
-
-    // TODO(kasperl): This needs cleaning up. We shouldn't be creating
-    // HType objects for malformed types.
-    if (kind == HTypeConversion.CHECKED_MODE_CHECK && type.isMalformed) {
-      kind = HTypeConversion.MALFORMED_CHECKED_MODE_CHECK;
-      return new HTypeConversion(new HType.subtype(type, compiler), this, kind);
-    }
-
     if (identical(type.element, compiler.dynamicClass)) return this;
     if (identical(type.element, compiler.objectClass)) return this;
-
-    // If the original can't be null, type conversion also can't produce null.
-    bool canBeNull = instructionType.canBeNull();
-    HType convertedType = new HType.subtype(type, compiler);
-
-    // No need to convert if we know the instruction has
-    // [convertedType] as a bound.
-    if (instructionType == convertedType) {
-      return this;
+    if (type.isMalformed || type.kind != TypeKind.INTERFACE) {
+      return new HTypeConversion(type, kind, HType.UNKNOWN, this);
+    } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
+      // Boolean conversion checks work on non-nullable booleans.
+      return new HTypeConversion(type, kind, HType.BOOLEAN, this);
+    } else {
+      HType subtype = new HType.subtype(type, compiler);
+      return new HTypeConversion(type, kind, subtype, this);
     }
-
-    return new HTypeConversion(convertedType, this, kind);
   }
 
     /**
@@ -2195,6 +2183,7 @@ class HIs extends HInstruction {
 }
 
 class HTypeConversion extends HCheck {
+  final DartType typeExpression;
   final int kind;
 
   static const int NO_CHECK = 0;
@@ -2202,31 +2191,22 @@ class HTypeConversion extends HCheck {
   static const int ARGUMENT_TYPE_CHECK = 2;
   static const int CAST_TYPE_CHECK = 3;
   static const int BOOLEAN_CONVERSION_CHECK = 4;
-  static const int MALFORMED_CHECKED_MODE_CHECK = 5;
 
-  HTypeConversion(HType type, HInstruction input, [this.kind = NO_CHECK])
+  HTypeConversion(this.typeExpression, this.kind,
+                  HType type, HInstruction input)
       : super(<HInstruction>[input]) {
-    assert(type != null);
     sourceElement = input.sourceElement;
     instructionType = type;
   }
-  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
-      : this(type, input, CHECKED_MODE_CHECK);
-  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
-      : this(type, input, ARGUMENT_TYPE_CHECK);
-  HTypeConversion.castCheck(HType type, HInstruction input)
-      : this(type, input, CAST_TYPE_CHECK);
 
   bool get isChecked => kind != NO_CHECK;
   bool get isCheckedModeCheck {
     return kind == CHECKED_MODE_CHECK
-        || kind == BOOLEAN_CONVERSION_CHECK
-        || kind == MALFORMED_CHECKED_MODE_CHECK;
+        || kind == BOOLEAN_CONVERSION_CHECK;
   }
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
   bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
-  bool get isMalformedCheckedModeCheck => kind == MALFORMED_CHECKED_MODE_CHECK;
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
@@ -2236,8 +2216,11 @@ class HTypeConversion extends HCheck {
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeConversion;
+
   bool dataEquals(HTypeConversion other) {
-    return instructionType == other.instructionType && kind == other.kind;
+    return kind == other.kind
+        && typeExpression == other.typeExpression
+        && instructionType == other.instructionType;
   }
 }
 

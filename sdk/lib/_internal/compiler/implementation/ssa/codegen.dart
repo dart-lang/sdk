@@ -2386,15 +2386,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isChecked) {
-      DartType type = node.instructionType.computeType(compiler);
-      Element element = type.element;
-      world.registerIsCheck(type, work.resolutionTree);
-
       if (node.isArgumentTypeCheck) {
-        if (element == backend.jsIntClass) {
+        if (node.isInteger()) {
           checkInt(node.checkedInput, '!==');
         } else {
-          assert(element == backend.jsNumberClass);
+          assert(node.isNumber());
           checkNum(node.checkedInput, '!==');
         }
         js.Expression test = pop();
@@ -2407,7 +2403,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         pushStatement(new js.If.noElse(test, body), node);
         return;
       }
+
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
+      DartType type = node.typeExpression;
+      world.registerIsCheck(type, work.resolutionTree);
+
+      // TODO(kasperl): For now, we ignore type checks against type
+      // variables. This is clearly wrong.
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        use(node.checkedInput);
+        return;
+      }
 
       FunctionElement helperElement;
       if (node.isBooleanConversionCheck) {
@@ -2429,7 +2435,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // 2 arguments implies that the method is either [propertyTypeCheck]
         // or [propertyTypeCast].
         assert(!type.isMalformed);
-        String additionalArgument = backend.namer.operatorIs(element);
+        String additionalArgument = backend.namer.operatorIs(type.element);
         arguments.add(js.string(additionalArgument));
       } else if (parameterCount == 3) {
         // 3 arguments implies that the method is [malformedTypeCheck].

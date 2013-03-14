@@ -22,25 +22,41 @@ class TypeMask {
   TypeMask(DartType base, int kind, bool isNullable)
       : this.internal(base, (kind << 1) | (isNullable ? 1 : 0));
 
-  const TypeMask.empty()
+  TypeMask.empty()
       : this.internal(null, (EMPTY << 1) | 1);
-  const TypeMask.exact(DartType base)
+  TypeMask.exact(DartType base)
       : this.internal(base, (EXACT << 1) | 1);
-  const TypeMask.subclass(DartType base)
+  TypeMask.subclass(DartType base)
       : this.internal(base, (SUBCLASS << 1) | 1);
-  const TypeMask.subtype(DartType base)
+  TypeMask.subtype(DartType base)
       : this.internal(base, (SUBTYPE << 1) | 1);
 
-  const TypeMask.nonNullEmpty()
+  TypeMask.nonNullEmpty()
       : this.internal(null, EMPTY << 1);
-  const TypeMask.nonNullExact(DartType base)
+  TypeMask.nonNullExact(DartType base)
       : this.internal(base, EXACT << 1);
-  const TypeMask.nonNullSubclass(DartType base)
+  TypeMask.nonNullSubclass(DartType base)
       : this.internal(base, SUBCLASS << 1);
-  const TypeMask.nonNullSubtype(DartType base)
+  TypeMask.nonNullSubtype(DartType base)
       : this.internal(base, SUBTYPE << 1);
 
-  const TypeMask.internal(this.base, this.flags);
+  TypeMask.internal(DartType base, this.flags)
+      : this.base = transformBase(base);
+
+  // TODO(kasperl): We temporarily transform the base to be the raw
+  // variant of the type. Long term, we're going to keep the class
+  // element corresponding to the type in the mask instead.
+  static DartType transformBase(DartType base) {
+    if (base == null) {
+      return null;
+    } else if (base.kind != TypeKind.INTERFACE) {
+      assert(base.kind == TypeKind.INTERFACE);
+      return null;
+    } else {
+      assert(!base.isMalformed);
+      return base.asRaw();
+    }
+  }
 
   bool get isEmpty => (flags >> 1) == EMPTY;
   bool get isExact => (flags >> 1) == EXACT;
@@ -90,8 +106,6 @@ class TypeMask {
   // be necessary.
   bool containsAll(Compiler compiler) {
     if (isEmpty || isExact) return false;
-    // TODO(kasperl): Do this error handling earlier.
-    if (base.kind != TypeKind.INTERFACE) return false;
     ClassElement baseElement = base.element;
     return identical(baseElement, compiler.objectClass)
         || identical(baseElement, compiler.dynamicClass);
@@ -102,7 +116,7 @@ class TypeMask {
       return isNullable ? other.nullable() : other;
     } else if (other.isEmpty) {
       return other.isNullable ? nullable() : this;
-    } else if (base.asRaw() == other.base.asRaw()) {
+    } else if (base == other.base) {
       return unionSame(other, compiler);
     } else if (isSubclassOf(other.base, base, compiler)) {
       return unionSubclass(other, compiler);
@@ -118,7 +132,7 @@ class TypeMask {
   }
 
   TypeMask unionSame(TypeMask other, Compiler compiler) {
-    assert(base.asRaw() == other.base.asRaw());
+    assert(base == other.base);
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
@@ -167,12 +181,9 @@ class TypeMask {
   }
 
   TypeMask unionDisjoint(TypeMask other, Compiler compiler) {
-    assert(base.asRaw() != other.base.asRaw());
+    assert(base != other.base);
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
-    // TODO(kasperl): Do this error handling earlier.
-    if (base.kind != TypeKind.INTERFACE) return null;
-    if (other.base.kind != TypeKind.INTERFACE) return null;
     // If either type mask is a subtype type mask, we cannot use a
     // subclass type mask to represent their union.
     bool useSubclass = !isSubtype && !other.isSubtype;
@@ -226,7 +237,7 @@ class TypeMask {
       return other.isNullable ? this : nonNullable();
     } else if (other.isEmpty) {
       return isNullable ? other : other.nonNullable();
-    } else if (base.asRaw() == other.base.asRaw()) {
+    } else if (base == other.base) {
       return intersectionSame(other, compiler);
     } else if (isSubclassOf(other.base, base, compiler)) {
       return intersectionSubclass(other, compiler);
@@ -242,7 +253,7 @@ class TypeMask {
   }
 
   TypeMask intersectionSame(TypeMask other, Compiler compiler) {
-    assert(base.asRaw() == other.base.asRaw());
+    assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
     // are nullable, will the result be nullable too.
@@ -291,12 +302,9 @@ class TypeMask {
   }
 
   TypeMask intersectionDisjoint(TypeMask other, Compiler compiler) {
-    assert(base.asRaw() != other.base.asRaw());
+    assert(base != other.base);
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
-    // TODO(kasperl): Do this error handling earlier.
-    if (base.kind != TypeKind.INTERFACE) return null;
-    if (other.base.kind != TypeKind.INTERFACE) return null;
     // If one of the masks are exact or if both of them are subclass
     // masks, then the intersection is empty.
     if (isExact || other.isExact) return null;
@@ -350,12 +358,7 @@ class TypeMask {
   bool operator ==(var other) {
     if (other is !TypeMask) return false;
     TypeMask otherMask = other;
-    if (flags != otherMask.flags) return false;
-    if (base == null || otherMask.base == null) {
-      return base == otherMask.base;
-    } else {
-      return base.asRaw() == otherMask.base.asRaw();
-    }
+    return (flags == otherMask.flags) && (base == otherMask.base);
   }
 
   String toString() {
@@ -370,9 +373,6 @@ class TypeMask {
   }
 
   static bool isSubclassOf(DartType x, DartType y, Compiler compiler) {
-    // TODO(kasperl): Do this error handling earlier.
-    if (x.kind != TypeKind.INTERFACE) return false;
-    if (y.kind != TypeKind.INTERFACE) return false;
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
     Set<ClassElement> subclasses = compiler.world.subclasses[yElement];
@@ -380,9 +380,6 @@ class TypeMask {
   }
 
   static bool isSubtypeOf(DartType x, DartType y, Compiler compiler) {
-    // TODO(kasperl): Do this error handling earlier.
-    if (x.kind != TypeKind.INTERFACE) return false;
-    if (y.kind != TypeKind.INTERFACE) return false;
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
     Set<ClassElement> subtypes = compiler.world.subtypes[yElement];

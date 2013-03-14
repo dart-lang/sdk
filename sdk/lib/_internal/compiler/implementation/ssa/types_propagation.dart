@@ -173,8 +173,8 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
   }
 
   void convertInput(HInstruction instruction, HInstruction input, HType type) {
-    HTypeConversion converted =
-        new HTypeConversion.argumentTypeCheck(type, input);
+    HTypeConversion converted = new HTypeConversion(
+        null, HTypeConversion.ARGUMENT_TYPE_CHECK, type, input);
     instruction.block.addBefore(instruction, converted);
     Set<HInstruction> dominatedUsers = input.dominatedUsers(instruction);
     for (HInstruction user in dominatedUsers) {

@@ -19,13 +19,6 @@ abstract class HType {
     }
 
     Element element = mask.base.element;
-    if (element.kind == ElementKind.TYPE_VARIABLE) {
-      // TODO(ngeoffray): Can we do better here?
-      DartType base = compiler.objectClass.computeType(compiler);
-      mask = new TypeMask.internal(base, mask.flags);
-      return new HBoundedType(mask);
-    }
-
     JavaScriptBackend backend = compiler.backend;
     if (element == compiler.intClass || element == backend.jsIntClass) {
       return isNullable ? HType.INTEGER_OR_NULL : HType.INTEGER;

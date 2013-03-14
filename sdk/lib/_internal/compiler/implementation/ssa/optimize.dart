@@ -463,7 +463,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Element element = type.element;
     if (element.isTypeVariable()) {
       compiler.unimplemented("visitIs for type variables");
-    } if (element.isTypedef()) {
+    } else if (element.isTypedef()) {
       return node;
     }
 
@@ -539,20 +539,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    // TODO(kasperl): This needs cleaning up. We shouldn't be creating
-    // HType objects for malformed types.
-    if (node.isMalformedCheckedModeCheck) return node;
     HInstruction value = node.inputs[0];
-    DartType type = node.instructionType.computeType(compiler);
-    if (identical(type.element, compiler.dynamicClass)
-        || identical(type.element, compiler.objectClass)) {
-      return value;
-    }
-    if (value.instructionType.canBeNull() && node.isBooleanConversionCheck) {
-      return node;
-    }
-    HType combinedType =
-        value.instructionType.intersection(node.instructionType, compiler);
+    DartType type = node.typeExpression;
+    if (type != null && !type.isRaw) return node;
+    HType convertedType = node.instructionType;
+    if (convertedType.isUnknown()) return node;
+    HType combinedType = value.instructionType.intersection(
+        convertedType, compiler);
     return (combinedType == value.instructionType) ? value : node;
   }
 
@@ -1259,7 +1252,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
     Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
-    HTypeConversion newInput = new HTypeConversion(convertedType, input);
+    HTypeConversion newInput = new HTypeConversion(
+        null, HTypeConversion.NO_CHECK, convertedType, input);
     dominator.addBefore(dominator.first, newInput);
     dominatedUsers.forEach((HInstruction user) {
       user.changeUse(input, newInput);
@@ -1267,13 +1261,16 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   void visitIs(HIs instruction) {
-    HInstruction input = instruction.expression;
-    HType convertedType = new HType.nonNullSubtype(
-        instruction.typeExpression, compiler);
+    DartType type = instruction.typeExpression;
+    Element element = type.element;
+    if (element.isTypeVariable()) {
+      compiler.unimplemented("visitIs for type variables");
+    } else if (element.isTypedef()) {
+      return;
+    }
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];
-
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
         ifUsers.add(user);
@@ -1286,6 +1283,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
+    HType convertedType = new HType.nonNullSubtype(type, compiler);
+    HInstruction input = instruction.expression;
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the else block on a HType
