@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -37,7 +37,7 @@ void TestReadStatusFile(String filePath) {
   File file = new File(fixedFilePath(filePath));
   if (file.existsSync()) {
     List<Section> sections = new List<Section>();
-    ReadConfigurationInto(file.name, sections, () {
+    ReadConfigurationInto(file.path, sections, () {
       Expect.isTrue(sections.length > 0);
     });
   }

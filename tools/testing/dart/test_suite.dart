@@ -52,9 +52,7 @@ Future asynchronously(function()) {
   if (function == null) return new Future.immediate(null);
 
   var completer = new Completer();
-  new Timer(0, (_) {
-    completer.complete(function());
-  });
+  Timer.run(() => completer.complete(function()));
 
   return completer.future;
 }
@@ -81,7 +79,7 @@ class FutureGroup {
     _pending++;
     var handledTaskFuture = task.catchError((e) {
       if (!wasCompleted) {
-        _completer.completeError(e.error, task.stackTrace);
+        _completer.completeError(e.error, e.stackTrace);
         wasCompleted = true;
       }
     }).then((_) {
@@ -144,6 +142,7 @@ abstract class TestSuite {
       case 'dartc':
       case 'new_analyzer':
         name = executablePath;
+        break;
       case 'dart2js':
       case 'dart2dart':
         var prefix = 'sdk/bin/';
@@ -257,10 +256,12 @@ abstract class TestSuite {
 void ccTestLister() {
   port.receive((String runnerPath, SendPort replyTo) {
     Future processFuture = Process.start(runnerPath, ["--list"]);
-    processFuture.then((p) {
+    processFuture.then((Process p) {
       // Drain stderr to not leak resources.
-      p.stderr.onData = p.stderr.read;
-      StringInputStream stdoutStream = new StringInputStream(p.stdout);
+      p.stderr.listen((_) { });
+      Stream<String> stdoutStream =
+          p.stdout.transform(new StringDecoder())
+                  .transform(new LineTransformer());
       var streamDone = false;
       var processExited = false;
       checkDone() {
@@ -268,15 +269,15 @@ void ccTestLister() {
           replyTo.send("");
         }
       }
-      stdoutStream.onLine = () {
-        String line = stdoutStream.readLine();
+      stdoutStream.listen((String line) {
         replyTo.send(line);
-      };
-      stdoutStream.onClosed = () {
+      },
+      onDone: () {
         streamDone = true;
         checkDone();
-      };
-      p.onExit = (code) {
+      });
+
+      p.exitCode.then((code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
           replyTo.send("");
@@ -284,7 +285,7 @@ void ccTestLister() {
           processExited = true;
           checkDone();
         }
-      };
+      });
       port.close();
     }).catchError((e) {
       print("Failed to list tests: $runnerPath --list");
@@ -586,9 +587,11 @@ class StandardTestSuite extends TestSuite {
     var listCompleter = new Completer();
     group.add(listCompleter.future);
 
-    var lister = dir.list(recursive: listRecursively);
-    lister.onFile = (file) => enqueueFile(file, group);
-    lister.onDone = listCompleter.complete;
+    var lister = dir.list(recursive: listRecursively)
+        .listen((FileSystemEntity fse) {
+          if (fse is File) enqueueFile(fse.path, group);
+        },
+        onDone: listCompleter.complete);
   }
 
   void enqueueFile(String filename, FutureGroup group) {
@@ -834,10 +837,10 @@ class StandardTestSuite extends TestSuite {
       return "/$PREFIX_DARTDIR/$fileRelativeToDartDir";
     }
     // Unreachable
-    Except.fail('This should be unreachable.');
+    Expect.fail('This should be unreachable.');
   }
 
-  void _getUriForBrowserTest(TestInformation info,
+  String _getUriForBrowserTest(TestInformation info,
                             String pathComponent,
                             subtestNames,
                             subtestIndex) {
@@ -1501,8 +1504,8 @@ class StandardTestSuite extends TestSuite {
 
       // Using stderr.writeString to avoid breaking dartc/junit_tests
       // which parses the output of the --list option.
-      stderr.writeString(
-          "Warning: deprecated @dynamic-type-error tag used in $filePath\n");
+      stderr.writeln(
+          "Warning: deprecated @dynamic-type-error tag used in $filePath");
     }
 
     return {
@@ -1626,9 +1629,10 @@ class JUnitTestSuite extends TestSuite {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
-    var lister = dir.list(recursive: true);
-    lister.onFile = processFile;
-    lister.onDone = createTest;
+    dir.list(recursive: true).listen((FileSystemEntity fse) {
+      if (fse is File) processFile(fse.path);
+    },
+    onDone: createTest);
   }
 
   void processFile(String filename) {
@@ -1644,7 +1648,7 @@ class JUnitTestSuite extends TestSuite {
     }
   }
 
-  void createTest(successIgnored) {
+  void createTest() {
     var sdkDir = "$buildDir/dart-sdk".trim();
     List<String> args = <String>[
         '-ea',
@@ -1690,7 +1694,7 @@ class JUnitTestSuite extends TestSuite {
 }
 
 class LastModifiedCache {
-  Map<String, Date> _cache = <String, Date>{};
+  Map<String, DateTime> _cache = <String, DateTime>{};
 
   /**
    * Returns the last modified date of the given [uri].
@@ -1701,7 +1705,7 @@ class LastModifiedCache {
    * In case [uri] is not a local file, this method will always return
    * the current date.
    */
-  Date getLastModified(Uri uri) {
+  DateTime getLastModified(Uri uri) {
     if (uri.scheme == "file") {
       if (_cache.containsKey(uri.path)) {
         return _cache[uri.path];
@@ -1759,11 +1763,8 @@ class TestUtils {
    * Assumes that the directory for [dest] already exists.
    */
   static Future copyFile(Path source, Path dest) {
-    var output = new File.fromPath(dest).openOutputStream();
-    new File.fromPath(source).openInputStream().pipe(output);
-    var completer = new Completer();
-    output.onClosed = (){ completer.complete(null); };
-    return completer.future;
+    return new File.fromPath(source).openRead()
+        .pipe(new File.fromPath(dest).openWrite());
   }
 
   static Path debugLogfile() {
