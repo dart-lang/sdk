@@ -786,6 +786,7 @@ class LocalsHandler {
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
   final bool inTryBlock;
   bool isThisExposed;
+  bool seenReturn = false;
 
   LocalsHandler(this.inferrer)
       : locals = new Map<Element, TypeMask>(),
@@ -893,6 +894,7 @@ class LocalsHandler {
       fieldsInitializedInConstructor.remove(element);
     });
     isThisExposed = isThisExposed || other.isThisExposed;
+    seenReturn = seenReturn && other.seenReturn;
 
     return changed;
   }
@@ -1018,6 +1020,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       if (returnType == null) {
         // No return in the body.
         returnType = inferrer.nullType;
+      } else if (!locals.seenReturn) {
+        // We haven't seen returns on all branches. So the method may
+        // also return null.
+        returnType = returnType.nullable();
       }
     }
 
@@ -1596,6 +1602,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     recordReturnType(expression == null
         ? inferrer.nullType
         : expression.accept(this));
+    locals.seenReturn = true;
     return inferrer.dynamicType;
   }
 
@@ -1721,6 +1728,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
     visit(node.finallyBlock);
     return inferrer.dynamicType;
+  }
+
+  TypeMask visitThrow(Throw node) {
+    node.visitChildren(this);
+    locals.seenReturn = true;
   }
 
   void internalError(String reason, {Node node}) {

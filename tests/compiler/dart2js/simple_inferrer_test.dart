@@ -47,6 +47,15 @@ returnNum4() {
   return a;
 }
 
+returnIntOrNull(a) {
+  if (a) return 42;
+}
+
+returnInt3(a) {
+  if (a) return 42;
+  throw 42;
+}
+
 class A {
   get myField => 42;
   set myField(a) {}
@@ -76,10 +85,12 @@ main() {
   returnNum2(true);
   returnInt1(true);
   returnInt2(true);
+  returnInt3(true);
   returnDouble(true);
   returnGiveUp(true);
   returnNum3();
   returnNum4();
+  returnIntOrNull(true);
   new A()..returnNum1()
          ..returnNum2()
          ..returnNum3()
@@ -116,6 +127,8 @@ void main() {
   checkReturn('returnGiveUp', typesInferrer.giveUpType);
   checkReturn('returnNum3', typesInferrer.numType);
   checkReturn('returnNum4', typesInferrer.numType);
+  checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
+  checkReturn('returnInt3', typesInferrer.intType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
