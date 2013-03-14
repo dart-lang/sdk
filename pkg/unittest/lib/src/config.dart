@@ -158,8 +158,8 @@ class Configuration {
   /** Handle errors that happen outside the tests. */
   // TODO(vsm): figure out how to expose the stack trace here
   // Currently e.message works in dartium, but not in dartc.
-  void handleExternalError(e, String message) =>
-      _reportTestError('$message\nCaught $e', '');
+  void handleExternalError(e, String message, [String stack = '']) =>
+      _reportTestError('$message\nCaught $e', stack);
 
   _postMessage(String message) {
     // In dart2js browser tests, the JavaScript-based test controller

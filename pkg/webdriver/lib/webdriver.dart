@@ -34,18 +34,18 @@ part 'src/base64decoder.dart';
  *     String id;
  *     WebDriverSession session;
  *     Future f = web_driver.newSession('chrome');
- *     f.chain((_session) {
+ *     f.then((_session) {
  *       session = _session;
  *       return session.setUrl('http://my.web.site.com');
- *    }).chain((_) {
+ *    }).then((_) {
  *      return session.findElement('id', 'username');
- *    }).chain((element) {
+ *    }).then((element) {
  *      id = element['ELEMENT'];
  *      return session.sendKeyStrokesToElement(id,
  *          [ 'j', 'o', 'e', ' ', 'u', 's', 'e', 'r' ]);
- *    }).chain((_) {
+ *    }).then((_) {
  *      return session.submit(id);
- *    }).chain((_) {
+ *    }).then((_) {
  *      return session.close();
  *    }).then((_) {
  *      session = null;
@@ -215,6 +215,12 @@ class WebDriverBase {
     _url = 'http://$_host:$_port$_path';
   }
 
+  void _failRequest(Completer completer, error, StackTrace stackTrace) {
+    if (completer != null) {
+      completer.completeError(new WebDriverError(-1, error), stackTrace);
+    }
+  }
+
   /**
    * Execute a request to the WebDriver server. [http_method] should be
    * one of 'GET', 'POST', or 'DELETE'. [command] is the text to append
@@ -223,7 +229,7 @@ class WebDriverBase {
    * If a number or string, "/params" is appended to the URL.
    */
   void _serverRequest(String http_method, String command, Completer completer,
-                      [List successCodes, Map params, Function customHandler]) {
+                      {List successCodes, params, Function customHandler}) {
     var status = 0;
     var results = null;
     var message = null;
@@ -231,110 +237,106 @@ class WebDriverBase {
       successCodes = [ 200, 204 ];
     }
     try {
-      if (params != null && params is List && http_method != 'POST') {
-        throw new Exception(
-          'The http method called for ${command} is ${http_method} but it has '
-          'to be POST if you want to pass the JSON params '
-          '${json.stringify(params)}');
-      }
-
       var path = command;
-      if (params != null && (params is num || params is String)) {
-        path = '$path/$params';
+      if (params != null) {
+        if (params is num || params is String) {
+          path = '$path/$params';
+          params = null;
+        } else if (http_method != 'POST') {
+          throw new Exception(
+            'The http method called for ${command} is ${http_method} but it '
+            'must be POST if you want to pass the JSON params '
+            '${json.stringify(params)}');
+        }
       }
 
       var client = new HttpClient();
-      var connection = client.open(http_method, _host, _port, path);
-
-      connection.onRequest = (r) {
-        r.headers.add(HttpHeaders.ACCEPT, "application/json");
-        r.headers.add(
+      client.open(http_method, _host, _port, path).then((req) {
+        req.followRedirects = false;
+        req.headers.add(HttpHeaders.ACCEPT, "application/json");
+        req.headers.add(
             HttpHeaders.CONTENT_TYPE, 'application/json;charset=UTF-8');
-        OutputStream s = r.outputStream;
-        if (params != null && params is Map) {
-          s.writeString(json.stringify(params));
+        if (params != null) {
+          var body = json.stringify(params);
+          req.write(body);
         }
-        s.close();
-      };
-      connection.onError = (e) {
-        if (completer != null) {
-          completer.completeError(new WebDriverError(-1, e));
+        req.close().then((rsp) {
+          List<int> body = new List<int>();
+          rsp.listen(body.addAll, onDone: () {
+            var value = null;
+            // For some reason we get a bunch of NULs on the end
+            // of the text and the json.parse blows up on these, so
+            // strip them with trim().
+            // These NULs can be seen in the TCP packet, so it is not
+            // an issue with character encoding; it seems to be a bug
+            // in WebDriver stack.
+            results = new String.fromCharCodes(body).trim();
+            if (!successCodes.contains(rsp.statusCode)) {
+              _failRequest(completer, 
+                  'Unexpected response ${rsp.statusCode}; $results', null);
+              completer = null;
+              return;
+            }
+            if (status == 0 && results.length > 0) {
+              // 4xx responses send plain text; others send JSON.
+              if (rsp.statusCode < 400) {
+                results = json.parse(results);
+                status = results['status'];
+              }
+              if (results is Map && (results as Map).containsKey('value')) {
+                value = results['value'];
+              }
+              if (value is Map && value.containsKey('message')) {
+                message = value['message'];
+              }
+            }
+            if (status == 0) {
+              if (customHandler != null) {
+                customHandler(rsp, value);
+              } else if (completer != null) {
+                completer.complete(value);
+              }
+            }
+          }, onError: (e) {
+            _failRequest(completer, e.error, e.stackTrace);
+            completer = null;
+          });
+        })
+        .catchError((e) {
+          _failRequest(completer, e.error, e.stackTrace);
           completer = null;
-        }
-      };
-      connection.followRedirects = false;
-      connection.onResponse = (r) {
-        StringInputStream s = new StringInputStream(r.inputStream);
-        StringBuffer sbuf = new StringBuffer();
-        s.onData = () {
-          var data = s.read();
-          if (data != null) {
-            sbuf.write(data);
-          }
-        };
-        s.onClosed = () {
-          var value = null;
-          results  = sbuf.toString().trim();
-          // For some reason we get a bunch of NULs on the end
-          // of the text and the json.parse blows up on these, so
-          // strip them.
-          // These NULs can be seen in the TCP packet, so it is not
-          // an issue with character encoding; it seems to be a bug
-          // in WebDriver stack.
-          for (var i = results.length; --i >= 0;) {
-            var code = results.codeUnitAt(i);
-            if (code != 0) {
-              results = results.substring(0, i + 1);
-              break;
-            }
-          }
-          if (successCodes.indexOf(r.statusCode) < 0) {
-            throw 'Unexpected response ${r.statusCode}';
-          }
-          if (status == 0 && results.length > 0) {
-            // 4xx responses send plain text; others send JSON.
-            if (r.statusCode < 400) {
-              results = json.parse(results);
-              status = results['status'];
-            }
-            if (results is Map && (results as Map).containsKey('value')) {
-              value = results['value'];
-            }
-            if (value is Map && value.containsKey('message')) {
-              message = value['message'];
-            }
-          }
-          if (status == 0) {
-            if (customHandler != null) {
-              customHandler(r, value);
-            } else if (completer != null) {
-              completer.complete(value);
-            }
-          }
-        };
-      };
+        });
+      })
+      .catchError((e) {
+        _failRequest(completer, e.error, e.stackTrace);
+        completer = null;
+      });
     } catch (e, s) {
-      completer.completeError(
-          new WebDriverError(-1, e), s);
+      _failRequest(completer, e, s);
       completer = null;
     }
   }
 
-  Future _simpleCommand(method, extraPath, [successCodes, params]) {
-    var completer = new Completer();
-    _serverRequest(method, '${_path}/$extraPath', completer,
-          successCodes, params: params);
+  Future _get(String extraPath,
+      [Completer completer, Function customHandler]) {
+    if (completer == null) completer = new Completer();
+    _serverRequest('GET', '${_path}/$extraPath', completer,
+        customHandler: customHandler);
     return completer.future;
   }
 
-  Future _get(extraPath, [successCodes]) =>
-      _simpleCommand('GET', extraPath, successCodes);
+  Future _post(String extraPath, [params]) {
+    var completer = new Completer();
+    _serverRequest('POST', '${_path}/$extraPath', completer,
+        params: params);
+    return completer.future;
+  }
 
-  Future _post(extraPath, [successCodes, params]) =>
-      _simpleCommand('POST', extraPath, successCodes, params);
-
-  Future _delete(extraPath, [successCodes]) =>
-      _simpleCommand('DELETE', extraPath, successCodes);
+  Future _delete(String extraPath) {
+    var completer = new Completer();
+    _serverRequest('DELETE', '${_path}/$extraPath', completer);
+    return completer.future;
+  }
 }
 
 class WebDriver extends WebDriverBase {
@@ -433,27 +435,29 @@ class WebDriver extends WebDriverBase {
 
     additional_capabilities['browserName'] = browser;
 
-    _serverRequest('POST', '${_path}/session', null, [ 302 ],
+    _serverRequest('POST', '${_path}/session', completer,
+        successCodes: [ 302 ],
         customHandler: (r, v) {
           var url = r.headers.value(HttpHeaders.LOCATION);
           var session = new WebDriverSession.fromUrl(url);
           completer.complete(session);
-        }, params: { 'desiredCapabilities': additional_capabilities });
+        },
+        params: { 'desiredCapabilities': additional_capabilities });
     return completer.future;
   }
 
   /** Get the set of currently active sessions. */
   Future<List<WebDriverSession>> getSessions() {
     var completer = new Completer();
-    _get('sessions', (result) {
+    return _get('sessions', completer, (r, v) {
       var _sessions = [];
-      for (var session in result) {
-        _sessions.add(new WebDriverSession.fromUrl(
-          '${this._path}/session/${session["id"]}'));
+      for (var session in v) {
+        var url = 'http://${this._host}:${this._port}${this._path}/'
+            'session/${session["id"]}';
+        _sessions.add(new WebDriverSession.fromUrl(url));
       }
       completer.complete(_sessions);
     });
-    return completer.future;
   }
 
   /** Query the server's current status. */
@@ -467,24 +471,26 @@ class WebDriverWindow extends WebDriverBase {
   Future<Map> getSize() => _get('size');
 
   /**
-   * Set the window size.
+   * Set the window size. Note that this is flaky and often
+   * has no effect.
    *
    * Potential Errors:
    *   NoSuchWindow - If the specified window cannot be found.
    */
   Future<String> setSize(int width, int height) =>
-      _post('size', params: { 'width': width, 'height': height });
+      _post('size', { 'width': width, 'height': height });
 
   /** Get the window position. */
   Future<Map> getPosition() => _get('position');
 
   /**
-   * Set the window position.
+   * Set the window position. Note that this is flaky and often
+   * has no effect.
    *
    * Potential Errors: NoSuchWindow.
    */
   Future setPosition(int x, int y) =>
-      _post('position', params: { 'x': x, 'y': y });
+      _post('position', { 'x': x, 'y': y });
 
   /** Maximize the specified window if not already maximized. */
   Future maximize() => _post('maximize');
@@ -504,7 +510,7 @@ class WebDriverSession extends WebDriverBase {
    * for before it is aborted and a Timeout error is returned to the client.
    */
   Future setScriptTimeout(t) =>
-      _post('timeouts', params: { 'type': 'script', 'ms': t });
+      _post('timeouts', { 'type': 'script', 'ms': t });
 
   /*Future<String> setImplicitWaitTimeout(t) =>
       simplePost('timeouts', { 'type': 'implicit', 'ms': t });*/
@@ -514,7 +520,7 @@ class WebDriverSession extends WebDriverBase {
    * before it is aborted and a Timeout error is returned to the client.
    */
   Future setPageLoadTimeout(t) =>
-      _post('timeouts', params: { 'type': 'page load', 'ms': t });
+      _post('timeouts', { 'type': 'page load', 'ms': t });
 
   /**
    * Set the amount of time, in milliseconds, that asynchronous scripts
@@ -522,7 +528,7 @@ class WebDriverSession extends WebDriverBase {
    * before they are aborted and a Timeout error is returned to the client.
    */
   Future setAsyncScriptTimeout(t) =>
-      _post('timeouts/async_script', params: { 'ms': t });
+      _post('timeouts/async_script', { 'ms': t });
 
   /**
    * Set the amount of time the driver should wait when searching for elements.
@@ -536,7 +542,7 @@ class WebDriverSession extends WebDriverBase {
    * wait of 0ms.
    */
   Future setImplicitWaitTimeout(t) =>
-      _post('timeouts/implicit_wait', params: { 'ms': t });
+      _post('timeouts/implicit_wait', { 'ms': t });
 
   /**
    * Retrieve the current window handle.
@@ -570,7 +576,7 @@ class WebDriverSession extends WebDriverBase {
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future setUrl(String url) => _post('url', params: { 'url': url });
+  Future setUrl(String url) => _post('url', { 'url': url });
 
   /**
    * Navigate forwards in the browser history, if possible.
@@ -612,8 +618,10 @@ class WebDriverSession extends WebDriverBase {
    *
    * Potential Errors: NoSuchWindow, StaleElementReference, JavaScriptError.
    */
-  Future execute(String script, [List args]) =>
-      _post('execute', params: { 'script': script, 'args': args });
+  Future execute(String script, [List args]) {
+    if (args == null) args = [];
+    return _post('execute', { 'script': script, 'args': args });
+  }
 
   /**
    * Inject a snippet of JavaScript into the page for execution in the context
@@ -641,8 +649,10 @@ class WebDriverSession extends WebDriverBase {
    * by the [setAsyncScriptTimeout] command), JavaScriptError (if the script
    * callback is not invoked before the timout expires).
    */
-  Future executeAsync(String script, [List args]) =>
-      _post('execute_async', params: { 'script': script, 'args': args });
+  Future executeAsync(String script, [List args]) {
+    if (args == null) args = [];
+    return _post('execute_async', { 'script': script, 'args': args });
+  }
 
   /**
    * Take a screenshot of the current page (PNG).
@@ -651,15 +661,13 @@ class WebDriverSession extends WebDriverBase {
    */
   Future<List<int>> getScreenshot([fname]) {
     var completer = new Completer();
-    var result = _serverRequest('GET', '$_path/screenshot', completer,
-        customHandler: (r, v) {
+    return _get('screenshot', completer, (r, v) {
       var image = Base64Decoder.decode(v);
       if (fname != null) {
         writeBytesToFile(fname, image);
       }
       completer.complete(image);
     });
-    return completer.future;
   }
 
   /**
@@ -705,7 +713,7 @@ class WebDriverSession extends WebDriverBase {
    * Potential Errors: ImeActivationFailedException, ImeNotAvailableException.
    */
   Future activateIme(String engine) =>
-      _post('ime/activate', params: { 'engine': engine });
+      _post('ime/activate', { 'engine': engine });
 
   /**
    * Change focus to another frame on the page. If the frame id is null,
@@ -715,7 +723,7 @@ class WebDriverSession extends WebDriverBase {
    *
    * Potential Errors: NoSuchWindow, NoSuchFrame.
    */
-  Future setFrameFocus(id) => _post('frame', params: { 'id': id });
+  Future setFrameFocus(id) => _post('frame', { 'id': id });
 
   /**
    * Change focus to another window. The window to change focus to may be
@@ -724,8 +732,7 @@ class WebDriverSession extends WebDriverBase {
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future setWindowFocus(name) =>
-      _post('window', params: { 'name': name });
+  Future setWindowFocus(name) => _post('window', { 'name': name });
 
   /**
    * Close the current window.
@@ -763,8 +770,7 @@ class WebDriverSession extends WebDriverBase {
    * current page's domain. See [getCookies] for the structure of a cookie
    * Map.
    */
-  Future setCookie(Map cookie) =>
-      _post('cookie', params: { 'cookie': cookie });
+  Future setCookie(Map cookie) => _post('cookie', { 'cookie': cookie });
 
   /**
    * Delete all cookies visible to the current page.
@@ -828,7 +834,7 @@ class WebDriverSession extends WebDriverBase {
    * using XPath and the input expression is invalid).
    */
   Future<String> findElement(String strategy, String searchValue) =>
-      _post('element', params: { 'using': strategy, 'value' : searchValue });
+      _post('element', { 'using': strategy, 'value' : searchValue });
 
   /**
    * Search for multiple elements on the page, starting from the document root.
@@ -839,7 +845,7 @@ class WebDriverSession extends WebDriverBase {
    * Potential Errors: NoSuchWindow, XPathLookupError.
    */
   Future<List<String>> findElements(String strategy, String searchValue) =>
-      _post('elements', params: { 'using': strategy, 'value' : searchValue });
+      _post('elements', { 'using': strategy, 'value' : searchValue });
 
   /**
    * Get the element on the page that currently has focus. The element will
@@ -858,8 +864,7 @@ class WebDriverSession extends WebDriverBase {
    */
   Future<String>
       findElementFromId(String id, String strategy, String searchValue) {
-    _post('element/$id/element',
-              params: { 'using': strategy, 'value' : searchValue });
+    _post('element/$id/element', { 'using': strategy, 'value' : searchValue });
   }
 
   /**
@@ -1003,7 +1008,7 @@ class WebDriverSession extends WebDriverBase {
    * Potential Errors: NoSuchWindow, StaleElementReference, ElementNotVisible.
    */
   Future sendKeyStrokesToElement(String id, List<String> keys) =>
-      _post('element/$id/value', params: { 'value': keys });
+      _post('element/$id/value', { 'value': keys });
 
   /**
    * Send a sequence of key strokes to the active element. This command is
@@ -1014,8 +1019,7 @@ class WebDriverSession extends WebDriverBase {
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future sendKeyStrokes(List<String> keys) =>
-      _post('keys', params: { 'value': keys });
+  Future sendKeyStrokes(List<String> keys) => _post('keys', { 'value': keys });
 
   /**
    * Query for an element's tag name, as a lower-case string.
@@ -1120,7 +1124,7 @@ class WebDriverSession extends WebDriverBase {
    * Potential Errors: NoAlertPresent.
    */
   Future sendKeyStrokesToPrompt(String text) =>
-      _post('alert_text', params: { 'text': text });
+      _post('alert_text', { 'text': text });
 
   /**
    * Accepts the currently displayed alert dialog. Usually, this is equivalent
@@ -1147,7 +1151,7 @@ class WebDriverSession extends WebDriverBase {
    * into view.
    */
   Future moveTo(String id, int x, int y) =>
-      _post('moveto', params: { 'element': id, 'xoffset': x, 'yoffset' : y});
+      _post('moveto', { 'element': id, 'xoffset': x, 'yoffset' : y});
 
   /**
    * Click a mouse button (at the coordinates set by the last [moveTo] command).
@@ -1157,8 +1161,7 @@ class WebDriverSession extends WebDriverBase {
    *
    * [button] should be 0 for left, 1 for middle, or 2 for right.
    */
-  Future clickMouse([button = 0]) =>
-      _post('click', params: { 'button' : button });
+  Future clickMouse([button = 0]) => _post('click', { 'button' : button });
 
   /**
    * Click and hold the left mouse button (at the coordinates set by the last
@@ -1168,8 +1171,7 @@ class WebDriverSession extends WebDriverBase {
    *
    * [button] should be 0 for left, 1 for middle, or 2 for right.
    */
-  Future buttonDown([button = 0]) =>
-      _post('click', params: { 'button' : button });
+  Future buttonDown([button = 0]) => _post('click', { 'button' : button });
 
   /**
    * Releases the mouse button previously held (where the mouse is currently
@@ -1179,27 +1181,22 @@ class WebDriverSession extends WebDriverBase {
    *
    * [button] should be 0 for left, 1 for middle, or 2 for right.
    */
-  Future buttonUp([button = 0]) =>
-      _post('click', params: { 'button' : button });
+  Future buttonUp([button = 0]) => _post('click', { 'button' : button });
 
   /** Double-clicks at the current mouse coordinates (set by [moveTo]). */
   Future doubleClick() => _post('doubleclick');
 
   /** Single tap on the touch enabled device on the element with id [id]. */
-  Future touchClick(String id) =>
-      _post('touch/click', params: { 'element': id });
+  Future touchClick(String id) => _post('touch/click', { 'element': id });
 
   /** Finger down on the screen. */
-  Future touchDown(int x, int y) =>
-      _post('touch/down', params: { 'x': x, 'y': y });
+  Future touchDown(int x, int y) => _post('touch/down', { 'x': x, 'y': y });
 
   /** Finger up on the screen. */
-  Future touchUp(int x, int y) =>
-      _post('touch/up', params: { 'x': x, 'y': y });
+  Future touchUp(int x, int y) => _post('touch/up', { 'x': x, 'y': y }); 
 
   /** Finger move on the screen. */
-  Future touchMove(int x, int y) =>
-      _post('touch/move', params: { 'x': x, 'y': y });
+  Future touchMove(int x, int y) => _post('touch/move', { 'x': x, 'y': y });
 
   /**
    * Scroll on the touch screen using finger based motion events. If [id] is
@@ -1207,21 +1204,20 @@ class WebDriverSession extends WebDriverBase {
    */
   Future touchScroll(int xOffset, int yOffset, [String id = null]) {
     if (id == null) {
-      return _post('touch/scroll',
-          params: { 'xoffset': xOffset, 'yoffset': yOffset });
+      return _post('touch/scroll', { 'xoffset': xOffset, 'yoffset': yOffset });
     } else {
       return _post('touch/scroll',
-          params: { 'element': id, 'xoffset': xOffset, 'yoffset': yOffset });
+          { 'element': id, 'xoffset': xOffset, 'yoffset': yOffset });
     }
   }
 
   /** Double tap on the touch screen using finger motion events. */
   Future touchDoubleClick(String id) =>
-      _post('touch/doubleclick', params: { 'element': id });
+      _post('touch/doubleclick', { 'element': id });
 
   /** Long press on the touch screen using finger motion events. */
   Future touchLongClick(String id) =>
-      _post('touch/longclick', params: { 'element': id });
+      _post('touch/longclick', { 'element': id });
 
   /**
    * Flick on the touch screen using finger based motion events, starting
@@ -1229,7 +1225,7 @@ class WebDriverSession extends WebDriverBase {
    */
   Future touchFlickFrom(String id, int xOffset, int yOffset, int speed) =>
           _post('touch/flick',
-              params: { 'element': id, 'xoffset': xOffset, 'yoffset': yOffset,
+              { 'element': id, 'xoffset': xOffset, 'yoffset': yOffset,
                         'speed': speed });
 
   /**
@@ -1237,7 +1233,7 @@ class WebDriverSession extends WebDriverBase {
    * instead of [touchFlickFrom] if you don'tr care where the flick starts.
    */
   Future touchFlick(int xSpeed, int ySpeed) =>
-      _post('touch/flick', params: { 'xSpeed': xSpeed, 'ySpeed': ySpeed });
+      _post('touch/flick', { 'xSpeed': xSpeed, 'ySpeed': ySpeed });
 
   /**
    * Get the current geo location. Returns a [Map] with latitude,
@@ -1247,10 +1243,18 @@ class WebDriverSession extends WebDriverBase {
 
   /** Set the current geo location. */
   Future setLocation(double latitude, double longitude, double altitude) =>
-          _post('location', params:
+          _post('location',
               { 'latitude': latitude,
                 'longitude': longitude,
                 'altitude': altitude });
+
+  /**
+   * Only a few drivers actually support the JSON storage commands.
+   * Currently it looks like this is the Android and iPhone drivers only.
+   * For the rest, we can achieve a similar effect with Javascript
+   * execution. The flag below is used to control whether to do this.
+   */
+  bool useJavascriptForStorageAPIs = true;
 
   /**
    * Get all keys of the local storage. Completes with [null] if there
@@ -1258,92 +1262,177 @@ class WebDriverSession extends WebDriverBase {
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future<List<String>> getLocalStorageKeys() => _get('local_storage');
+  Future<List<String>> getLocalStorageKeys() {
+    if (useJavascriptForStorageAPIs) {
+      return execute(
+          'var rtn = [];'
+          'for (var i = 0; i < window.localStorage.length; i++)'
+          '  rtn.push(window.localStorage.key(i));'
+          'return rtn;'); 
+    } else {
+      return _get('local_storage');
+    }
+  }
 
   /**
    * Set the local storage item for the given key.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future setLocalStorageItem(String key, String value) =>
-      _post('local_storage', params: { 'key': key, 'value': value });
+  Future setLocalStorageItem(String key, String value) {
+    if (useJavascriptForStorageAPIs) {
+      return execute('window.localStorage.setItem(arguments[0], arguments[1]);',
+          [key, value]); 
+    } else {
+      return _post('local_storage', { 'key': key, 'value': value });
+    }
+  }
 
   /**
    * Clear the local storage.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future clearLocalStorage() => _delete('local_storage');
+  Future clearLocalStorage() {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.localStorage.clear();');
+    } else {
+      return _delete('local_storage');
+    }
+  }
 
   /**
    * Get the local storage item for the given key.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future<String> getLocalStorageValue(String key) =>
-      _get('local_storage/key/$key');
+  Future<String> getLocalStorageValue(String key) {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.localStorage.getItem(arguments[0]);',
+          [key]); 
+    } else {
+      return _get('local_storage/key/$key');
+    }
+  }
 
   /**
    * Delete the local storage item for the given key.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future deleteLocalStorageValue(String key) =>
-      _delete('local_storage/key/$key');
+  Future deleteLocalStorageValue(String key) {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.localStorage.removeItem(arguments[0]);',
+          [key]); 
+    } else {
+      return _delete('local_storage/key/$key');
+    }
+  }
 
   /**
    * Get the number of items in the local storage.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future<int> getLocalStorageCount() => _get('local_storage/size');
+  Future<int> getLocalStorageCount() {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.localStorage.length;'); 
+    } else {
+      return _get('local_storage/size');
+    }
+  }
 
   /**
    * Get all keys of the session storage.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future<List<String>> getSessionStorageKeys() => _get('session_storage');
+  Future<List<String>> getSessionStorageKeys() {
+    if (useJavascriptForStorageAPIs) {
+      return execute(
+          'var rtn = [];'
+          'for (var i = 0; i < window.sessionStorage.length; i++)'
+          '  rtn.push(window.sessionStorage.key(i));'
+          'return rtn;'); 
+    } else {
+      return _get('session_storage');
+    }
+  }
 
   /**
    * Set the sessionstorage item for the given key.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future setSessionStorageItem(String key, String value) =>
-      _post('session_storage', params: { 'key': key, 'value': value });
+  Future setSessionStorageItem(String key, String value) {
+    if (useJavascriptForStorageAPIs) {
+      return execute(
+          'window.sessionStorage.setItem(arguments[0], arguments[1]);',
+              [key, value]); 
+    } else {
+      return _post('session_storage', { 'key': key, 'value': value });
+    }
+  }
 
   /**
    * Clear the session storage.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future clearSessionStorage() => _delete('session_storage');
+  Future clearSessionStorage() {
+    if (useJavascriptForStorageAPIs) {
+      return execute('window.sessionStorage.clear();');
+    } else {
+      return _delete('session_storage');
+    }
+  }
 
   /**
    * Get the session storage item for the given key.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future<String> getSessionStorageValue(String key) =>
-      _get('session_storage/key/$key');
+  Future<String> getSessionStorageValue(String key) {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.sessionStorage.getItem(arguments[0]);',
+          [key]); 
+    } else {
+      return _get('session_storage/key/$key');
+    }
+  }
 
   /**
    * Delete the session storage item for the given key.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future deleteSessionStorageValue(String key) =>
-      _delete('session_storage/key/$key');
+  Future deleteSessionStorageValue(String key) {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.sessionStorage.removeItem(arguments[0]);',
+          [key]); 
+    } else {
+      return _delete('session_storage/key/$key');
+    }
+  }
 
   /**
    * Get the number of items in the session storage.
    *
    * Potential Errors: NoSuchWindow.
    */
-  Future<String> getSessionStorageCount() => _get('session_storage/size');
+  Future<String> getSessionStorageCount() {
+    if (useJavascriptForStorageAPIs) {
+      return execute('return window.sessionStorage.length;');
+    } else {
+      return _get('session_storage/size');
+    }
+  }
 
-  /** Get available log types ('client', 'driver', 'browser', 'server'). */
+  /**
+   * Get available log types ('client', 'driver', 'browser', 'server').
+   * This works with Firefox but Chrome returns a 500 response due to a 
+   * bad cast.
+   */
   Future<List<String>> getLogTypes() => _get('log/types');
 
   /**
@@ -1353,7 +1442,9 @@ class WebDriverSession extends WebDriverBase {
    * 'timestamp' (int) - The timestamp of the entry.
    * 'level' (String) - The log level of the entry, for example, "INFO".
    * 'message' (String) - The log message.
+   *
+   * This works with Firefox but Chrome returns a 500 response due to a 
+   * bad cast.
    */
-  Future<List<Map>> getLogs(String type) =>
-      _post('log', params: { 'type': type });
+  Future<List<Map>> getLogs(String type) => _post('log', { 'type': type });
 }

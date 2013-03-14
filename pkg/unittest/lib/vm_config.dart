@@ -15,6 +15,7 @@ class VMConfiguration extends Configuration {
   void onDone(bool success) {
     try {
       super.onDone(success);
+      exit(0);
     } catch (ex) {
       // A non-zero exit code is used by the test infrastructure to detect
       // failure.

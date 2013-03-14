@@ -12,6 +12,11 @@ fixnum/test/int_64_vm_test: Skip
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 
+# WebDriver tests have 3rd party dependencies (we need to run
+# selenium_standalone.jar), so we skip these in our automated
+# testing.
+webdriver/test/webdriver_test: Skip
+
 [$compiler == dart2dart]
 *: Skip
 
