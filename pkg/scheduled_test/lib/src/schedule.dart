@@ -157,6 +157,21 @@ class Schedule {
     });
   }
 
+  /// Stop the current [TaskQueue] after the current task and any out-of-band
+  /// tasks stop executing. If this is called before [this] has started running,
+  /// no tasks in the [tasks] queue will be run.
+  ///
+  /// This won't cause an error, but any errors that are otherwise signaled will
+  /// still cause the test to fail.
+  void abort() {
+    if (_state == ScheduleState.DONE) {
+      throw new StateError("Called abort() after the schedule has finished "
+          "running.");
+    }
+
+    currentQueue._abort();
+  }
+
   /// Signals that an out-of-band error has occurred. Using [wrapAsync] along
   /// with `throw` is usually preferable to calling this directly.
   ///
@@ -342,6 +357,9 @@ class TaskQueue {
   /// [this].
   int _totalCallbacks = 0;
 
+  /// Whether to stop running after the current task.
+  bool _aborted = false;
+
   // TODO(nweiz): make this a read-only view when issue 8321 is fixed.
   /// The descriptions of all callbacks that are blocking the completion of
   /// [this].
@@ -418,6 +436,7 @@ class TaskQueue {
     return Future.forEach(_contents, (task) {
       _schedule._currentTask = task;
       if (_error != null) throw _error;
+      if (_aborted) return;
 
       _taskFuture = new SubstituteFuture(task.fn());
       return _taskFuture.whenComplete(() {
@@ -449,6 +468,13 @@ class TaskQueue {
       // recent error.
       if (_error != null) throw _error;
     });
+  }
+
+  /// Stops this queue after the current task and any out-of-band callbacks
+  /// finish running.
+  void _abort() {
+    assert(_schedule.state == ScheduleState.SET_UP || isRunning);
+    _aborted = true;
   }
 
   /// Returns a function wrapping [fn] that pipes any errors into the schedule
