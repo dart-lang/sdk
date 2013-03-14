@@ -4854,6 +4854,9 @@ RawString* TokenStream::GenerateSource() const {
             escape_characters = true;
           }
         }
+        if ((literal.CharAt(i) == '$')) {
+          escape_characters = true;
+        }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
         if (is_raw_string) {
@@ -11483,6 +11486,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i)) ||
+          (!raw_str && (*CharAddr(str, i) == '$')) ||
           (!raw_str && (*CharAddr(str, i) == '\\'))) {
         num_escapes += 1;
       }
@@ -11493,6 +11497,10 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
         *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(str, i) == '$')) {
+        *(CharAddr(dststr, index)) = '\\';
+        *(CharAddr(dststr, index + 1)) = '$';
         index += 2;
       } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
         *(CharAddr(dststr, index)) = '\\';

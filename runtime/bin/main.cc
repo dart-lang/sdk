@@ -863,17 +863,17 @@ int main(int argc, char** argv) {
       if (Dart_IsError(result)) {
         return ErrorExit("%s\n", Dart_GetError(result));
       }
-    }
-
-    // Lookup and invoke the top level main function.
-    result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
-    if (Dart_IsError(result)) {
-      return ErrorExit("%s\n", Dart_GetError(result));
-    }
-    // Keep handling messages until the last active receive port is closed.
-    result = Dart_RunLoop();
-    if (Dart_IsError(result)) {
-      return ErrorExit("%s\n", Dart_GetError(result));
+    } else {
+      // Lookup and invoke the top level main function.
+      result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
+      if (Dart_IsError(result)) {
+        return ErrorExit("%s\n", Dart_GetError(result));
+      }
+      // Keep handling messages until the last active receive port is closed.
+      result = Dart_RunLoop();
+      if (Dart_IsError(result)) {
+        return ErrorExit("%s\n", Dart_GetError(result));
+      }
     }
   }
 
