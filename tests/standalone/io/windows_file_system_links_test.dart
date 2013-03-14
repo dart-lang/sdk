@@ -5,24 +5,13 @@
 import "dart:io";
 import "dart:isolate";
 
-createJunction(String dst, String link, void callback()) {
-  Process.run("cmd.exe", ["/c", "mklink /J $link $dst"]).then((result) {
-    if (result.exitCode == 0) {
-      callback();
-    } else {
-      throw new Exception('link creation failed');
-    }
-  });
-}
-
-
 testJunctionTypeDelete() {
   var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
 
   new Directory(x).createSync();
-  createJunction(x, y, () {
+  new Link(y).create(x).then((_) {
     Expect.isTrue(new Directory(y).existsSync());
     Expect.isTrue(new Directory(x).existsSync());
     Expect.isTrue(FileSystemEntity.isLinkSync(y));
@@ -37,7 +26,6 @@ testJunctionTypeDelete() {
                   FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.DIRECTORY,
                   FileSystemEntity.typeSync(x, followLinks: false));
-
     // Test Junction pointing to a missing directory.
     new Directory(x).deleteSync();
     Expect.isTrue(new Directory(y).existsSync());
@@ -62,7 +50,7 @@ testJunctionTypeDelete() {
                   FileSystemEntity.typeSync(y));
 
     new Directory(x).createSync();
-    createJunction(x, y, () {
+    new Link(y).create(x).then((_) {
       Expect.equals(FileSystemEntityType.LINK,
                     FileSystemEntity.typeSync(y, followLinks: false));
       Expect.equals(FileSystemEntityType.DIRECTORY,

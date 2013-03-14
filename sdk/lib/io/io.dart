@@ -40,6 +40,7 @@ part 'http_parser.dart';
 part 'http_session.dart';
 part 'http_utils.dart';
 part 'io_sink.dart';
+part 'link.dart';
 part 'mime_multipart_parser.dart';
 part 'options.dart';
 part 'path.dart';

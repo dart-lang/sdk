@@ -425,6 +425,29 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
+      Dart_IsString(Dart_GetNativeArgument(args, 1))) {
+    const char* name =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+    const char* target =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+    if (!File::CreateLink(name, target)) {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    }
+  } else  {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =

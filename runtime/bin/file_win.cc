@@ -12,6 +12,7 @@
 #include <stdio.h>  // NOLINT
 #include <string.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
+#include <WinIoCtl.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -154,6 +155,107 @@ bool File::Create(const char* name) {
 }
 
 
+// This structure is needed for creating and reading Junctions.
+typedef struct _REPARSE_DATA_BUFFER {
+    ULONG  ReparseTag;
+    USHORT ReparseDataLength;
+    USHORT Reserved;
+
+    union {
+        struct {
+            USHORT  SubstituteNameOffset;
+            USHORT  SubstituteNameLength;
+            USHORT  PrintNameOffset;
+            USHORT  PrintNameLength;
+            WCHAR   PathBuffer[1];
+        } SymbolicLinkReparseBuffer;
+
+        struct {
+            USHORT  SubstituteNameOffset;
+            USHORT  SubstituteNameLength;
+            USHORT  PrintNameOffset;
+            USHORT  PrintNameLength;
+            WCHAR   PathBuffer[1];
+        } MountPointReparseBuffer;
+
+        struct {
+            UCHAR   DataBuffer[1];
+        } GenericReparseBuffer;
+    };
+} REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
+
+
+static const int kReparseDataHeaderSize = sizeof ULONG + 2 * sizeof USHORT;
+static const int kMountPointHeaderSize = 4 * sizeof USHORT;
+
+
+bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
+  const wchar_t* name = StringUtils::Utf8ToWide(utf8_name);
+  int create_status = CreateDirectoryW(name, NULL);
+  // If the directory already existed, treat it as a success.
+  if (create_status == 0 &&
+      (GetLastError() != ERROR_ALREADY_EXISTS ||
+       (GetFileAttributesW(name) & FILE_ATTRIBUTE_DIRECTORY) != 0)) {
+    free(const_cast<wchar_t*>(name));
+    return false;
+  }
+
+  HANDLE dir_handle = CreateFileW(
+      name,
+      GENERIC_READ | GENERIC_WRITE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      NULL,
+      OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+      NULL);
+  free(const_cast<wchar_t*>(name));
+  if (dir_handle == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+
+  const wchar_t* target = StringUtils::Utf8ToWide(utf8_target);
+  int target_len = wcslen(target);
+  if (target_len > MAX_PATH - 1) {
+    free(const_cast<wchar_t*>(target));
+    CloseHandle(dir_handle);
+    return false;
+  }
+
+  int reparse_data_buffer_size =
+      sizeof REPARSE_DATA_BUFFER + 2 * MAX_PATH * sizeof WCHAR;
+  REPARSE_DATA_BUFFER* reparse_data_buffer =
+      static_cast<REPARSE_DATA_BUFFER*>(calloc(reparse_data_buffer_size, 1));
+  reparse_data_buffer->ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
+  wcscpy(reparse_data_buffer->MountPointReparseBuffer.PathBuffer, target);
+  wcscpy(
+      reparse_data_buffer->MountPointReparseBuffer.PathBuffer + target_len + 1,
+      target);
+  reparse_data_buffer->MountPointReparseBuffer.SubstituteNameOffset = 0;
+  reparse_data_buffer->MountPointReparseBuffer.SubstituteNameLength =
+      target_len * sizeof WCHAR;
+  reparse_data_buffer->MountPointReparseBuffer.PrintNameOffset =
+      (target_len + 1) * sizeof WCHAR;
+  reparse_data_buffer->MountPointReparseBuffer.PrintNameLength =
+      target_len * sizeof WCHAR;
+  reparse_data_buffer->ReparseDataLength =
+      (target_len + 1) * 2 * sizeof WCHAR + kMountPointHeaderSize;
+  DWORD dummy_received_bytes;
+  int result = DeviceIoControl(
+      dir_handle,
+      FSCTL_SET_REPARSE_POINT,
+      reparse_data_buffer,
+      reparse_data_buffer->ReparseDataLength + kReparseDataHeaderSize,
+      NULL,
+      0,
+      &dummy_received_bytes,
+      NULL);
+  if (CloseHandle(dir_handle) == 0) return false;
+  free(const_cast<wchar_t*>(target));
+  free(reparse_data_buffer);
+  return (result != 0);
+}
+
+
 bool File::Delete(const char* name) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
   int status = _wremove(system_name);
@@ -279,6 +381,7 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
     // TODO(whesse): Distinguish other errors from does not exist.
     return File::kDoesNotExist;
   }
+  FindClose(find_handle);
   DWORD attributes = file_data.dwFileAttributes;
   if (!follow_links && (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     DWORD reparse_tag = file_data.dwReserved0;
