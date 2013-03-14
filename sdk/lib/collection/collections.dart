@@ -382,14 +382,12 @@ class IterableMixinWorkaround {
     return new ListMapView(l);
   }
 
-  static bool isSubsetOfSet(Set set, Set other) {
-    if (set.length > other.length) return false;
-    for (var element in set) {
-      if (!other.contains(element)) return false;
+  static bool setContainsAll(Set set, Iterable other) {
+    for (var element in other) {
+      if (!set.contains(element)) return false;
     }
     return true;
   }
-
 
   static Set setIntersection(Set set, Set other, Set result) {
     Set smaller;

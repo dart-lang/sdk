@@ -36,13 +36,17 @@ abstract class Set<E> extends Collection<E> {
 
   /**
    * Returns true if [other] contains all the elements of this Set.
+   *
+   * *Deprecated*. Use `other.containsAll(thisSet)` instead if [other]
+   * is a Set, and convert `other` to a Set if it isn't.
    */
-  bool isSubsetOf(Set<E> other);
+  @deprecated
+  bool isSubsetOf(Iterable<E> other);
 
   /**
    * Returns true if this Set contains all the elements of [other].
    */
-  bool containsAll(Set<E> other);
+  bool containsAll(Iterable<E> other);
 
   /**
    * Returns a new set which is the intersection between this set and [other].
