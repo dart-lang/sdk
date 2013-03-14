@@ -32,6 +32,7 @@ import '../../pub/hosted_source.dart';
 import '../../pub/http.dart';
 import '../../pub/io.dart';
 import '../../pub/path_source.dart';
+import '../../pub/safe_http_server.dart';
 import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
@@ -102,7 +103,7 @@ void serve([List<Descriptor> contents]) {
 
   _schedule((_) {
     return _closeServer().then((_) {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         _server = server;
         server.listen((request) {
           var response = request.response;
@@ -1510,7 +1511,7 @@ class ScheduledServer {
   factory ScheduledServer() {
     var scheduledServer;
     scheduledServer = new ScheduledServer._(_scheduleValue((_) {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         server.listen(scheduledServer._awaitHandle);
         _scheduleCleanup((_) => server.close());
         return server;

@@ -12,6 +12,7 @@ import 'dart:uri';
 import 'scheduled_test.dart';
 import 'src/utils.dart';
 import 'src/scheduled_server/handler.dart';
+import 'src/scheduled_server/safe_http_server.dart';
 
 typedef Future ScheduledHandler(HttpRequest request);
 
@@ -47,7 +48,7 @@ class ScheduledServer {
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         server.listen(scheduledServer._handleRequest,
             onError: (e) => currentSchedule.signalError(e));
         currentSchedule.onComplete.schedule(server.close);
