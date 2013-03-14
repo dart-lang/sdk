@@ -105,21 +105,8 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: F
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
 
-
-LibTest/core/Set/add_A01_t06: Fail # issue 390
-LibTest/core/Set/containsAll_A01_t01: Fail # issue 390
-LibTest/core/Set/containsAll_A01_t02: Fail # issue 390
-LibTest/core/Set/every_A01_t01: Fail # issue 390
-LibTest/core/Set/every_A01_t03: Fail # issue 390
-LibTest/core/Set/forEach_A01_t05: Fail # issue 390
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Pass # issue 390
-LibTest/core/Set/isSubsetOf_A01_t01: Fail # issue 390
-LibTest/core/Set/isSubsetOf_A01_t02: Fail # issue 390
-LibTest/core/Set/removeAll_A01_t01: Fail # issue 390
-LibTest/core/Set/remove_A01_t01: Fail # issue 390
-LibTest/core/Set/remove_A01_t03: Fail # issue 390
-
 
 Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip # testing framework or VM issue 7388 (dies on Turkish character)
 

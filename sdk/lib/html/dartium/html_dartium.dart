@@ -32495,11 +32495,17 @@ abstract class CssClassSet implements Set<String> {
   bool isSubsetOf(Collection<String> collection) =>
     readClasses().isSubsetOf(collection);
 
-  bool containsAll(Collection<String> collection) =>
+  bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
 
   Set<String> intersection(Collection<String> other) =>
     readClasses().intersection(other);
+
+  Set<String> union(Collection<String> other) =>
+    readClasses().union(other);
+
+  Set<String> difference(Collection<String> other) =>
+    readClasses().difference(other);
 
   String get first => readClasses().first;
   String get last => readClasses().last;
@@ -35264,6 +35270,7 @@ class _Utils {
 
   static window() native "Utils_window";
   static print(String message) native "Utils_print";
+  static forwardingPrint(String message) native "Utils_forwardingPrint";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
@@ -35343,3 +35350,5 @@ get _printClosure => (s) {
     _Utils.print(s);
   }
 };
+
+final _forwardingPrintClosure = _Utils.forwardingPrint;

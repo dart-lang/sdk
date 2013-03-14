@@ -105,11 +105,17 @@ abstract class CssClassSet implements Set<String> {
   bool isSubsetOf(Collection<String> collection) =>
     readClasses().isSubsetOf(collection);
 
-  bool containsAll(Collection<String> collection) =>
+  bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
 
   Set<String> intersection(Collection<String> other) =>
     readClasses().intersection(other);
+
+  Set<String> union(Collection<String> other) =>
+    readClasses().union(other);
+
+  Set<String> difference(Collection<String> other) =>
+    readClasses().difference(other);
 
   String get first => readClasses().first;
   String get last => readClasses().last;
