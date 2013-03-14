@@ -102,6 +102,15 @@ class TypeMask {
     }
   }
 
+// TODO(kasperl): Try to get rid of this method. It shouldn't really
+  // be necessary.
+  bool containsAll(Compiler compiler) {
+    if (isEmpty || isExact) return false;
+    ClassElement baseElement = base.element;
+    return identical(baseElement, compiler.objectClass)
+        || identical(baseElement, compiler.dynamicClass);
+  }
+
   TypeMask union(TypeMask other, Compiler compiler) {
     if (isEmpty) {
       return isNullable ? other.nullable() : other;
@@ -183,13 +192,7 @@ class TypeMask {
     ClassElement otherElement = other.base.element;
     Iterable<ClassElement> candidates =
         compiler.world.commonSupertypesOf(thisElement, otherElement);
-    if (candidates.isEmpty) {
-      // TODO(kasperl): Get rid of this check. It can only happen when
-      // at least one of the two base types is 'unseen'.
-      return new TypeMask(compiler.objectClass.rawType,
-                          SUBCLASS,
-                          isNullable || other.isNullable);
-    }
+    if (candidates.isEmpty) return null;
     // Compute the best candidate and its kind.
     ClassElement bestElement;
     int bestKind;
@@ -221,6 +224,9 @@ class TypeMask {
         bestKind = kind;
       }
     }
+    // TODO(kasperl): Get rid of this hack when the rest of the system
+    // is ready for not using HType.UNKNOWN everywhere.
+    if (bestElement == compiler.objectClass) return null;
     return new TypeMask(bestElement.computeType(compiler),
                         bestKind,
                         isNullable || other.isNullable);
@@ -267,7 +273,7 @@ class TypeMask {
     assert(isSubclassOf(other.base, base, compiler));
     // If this mask isn't at least a subclass mask, then the
     // intersection with the other mask is empty.
-    if (isExact) return intersectionEmpty(other);
+    if (isExact) return null;
     // Only the other mask puts constraints on the intersection mask,
     // so base the combined flags on the other mask. Only if both
     // masks are nullable, will the result be nullable too.
@@ -283,7 +289,7 @@ class TypeMask {
     assert(isSubtypeOf(other.base, base, compiler));
     // If this mask isn't a subtype mask, then the intersection with
     // the other mask is empty.
-    if (!isSubtype) return intersectionEmpty(other);
+    if (!isSubtype) return null;
     // Only the other mask puts constraints on the intersection mask,
     // so base the combined flags on the other mask. Only if both
     // masks are nullable, will the result be nullable too.
@@ -301,13 +307,13 @@ class TypeMask {
     assert(!isSubtypeOf(other.base, base, compiler));
     // If one of the masks are exact or if both of them are subclass
     // masks, then the intersection is empty.
-    if (isExact || other.isExact) return intersectionEmpty(other);
-    if (isSubclass && other.isSubclass) return intersectionEmpty(other);
+    if (isExact || other.isExact) return null;
+    if (isSubclass && other.isSubclass) return null;
     assert(isSubtype || other.isSubtype);
     int kind = (isSubclass || other.isSubclass) ? SUBCLASS : SUBTYPE;
     // Compute the set of classes that are contained in both type masks.
     Set<ClassElement> common = commonContainedClasses(this, other, compiler);
-    if (common == null || common.isEmpty) return intersectionEmpty(other);
+    if (common == null || common.isEmpty) return null;
     // Narrow down the candidates by only looking at common classes
     // that do not have a superclass or supertype that will be a
     // better candidate.
@@ -335,10 +341,6 @@ class TypeMask {
       result = (result == null) ? mask : result.union(mask, compiler);
     }
     return result;
-  }
-
-  TypeMask intersectionEmpty(TypeMask other) {
-    return new TypeMask(null, EMPTY, isNullable && other.isNullable);
   }
 
   Set<ClassElement> containedClasses(Compiler compiler) {
