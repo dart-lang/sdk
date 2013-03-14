@@ -89,8 +89,7 @@ class AnalysisResult {
   ConcreteType concreteFrom(List<BaseType> baseTypes) {
     ConcreteType result = inferrer.emptyConcreteType;
     for (final baseType in baseTypes) {
-      result = result.union(compiler.maxConcreteTypeSize,
-          inferrer.singletonConcreteType(baseType));
+      result = result.union(inferrer.singletonConcreteType(baseType));
     }
     // We make sure the concrete types expected by the tests don't default to
     // dynamic because of widening.
@@ -142,13 +141,18 @@ class AnalysisResult {
 const String CORELIB = r'''
   print(var obj) {}
   abstract class num { 
-    operator +(x);
-    operator *(x);
-    operator -(x);
+    num operator +(num x);
+    num operator *(num x);
+    num operator -(num x);
     operator ==(x);
+    num floor();
   }
-  abstract class int extends num { }
-  abstract class double extends num { }
+  abstract class int extends num {
+    bool get isEven;
+  }
+  abstract class double extends num {
+    bool get isNaN;
+  }
   class bool {}
   class String {}
   class Object {}
@@ -1148,6 +1152,38 @@ testSeenClasses() {
   result.checkNodeHasType('foo', [result.int]);
 }
 
+testGoodGuys() {
+  final String source = r"""
+      main() {
+        var a = 1.isEven;
+        var b = 3.14.isNaN;
+        var c = 1.floor();
+        var d = 3.14.floor();
+        a; b; c; d;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('a', [result.bool]);
+  result.checkNodeHasType('b', [result.bool]);
+  result.checkNodeHasType('c', [result.num]);
+  result.checkNodeHasType('d', [result.num]);
+}
+
+testIntDoubleNum() {
+  final String source = r"""
+      main() {
+        var a = 1;
+        var b = 1.0;
+        var c = true ? 1 : 1.0;
+        a; b; c;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('a', [result.int]);
+  result.checkNodeHasType('b', [result.double]);
+  result.checkNodeHasType('c', [result.num]);
+}
+
 void main() {
   testDynamicBackDoor();
   testLiterals();
@@ -1193,4 +1229,6 @@ void main() {
   testJsCall();
   testIsCheck();
   testSeenClasses();
+  testGoodGuys();
+  testIntDoubleNum();
 }
