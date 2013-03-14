@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -655,24 +655,24 @@ Note: currently only implemented for dart2js.''',
       for (var name in option.keys) {
         assert(name.startsWith('-'));
         var buffer = new StringBuffer();;
-        buffer.write(name);
+        buffer.add(name);
         if (option.type == 'bool') {
           assert(option.values.isEmpty);
         } else {
-          buffer.write(name.startsWith('--') ? '=' : ' ');
+          buffer.add(name.startsWith('--') ? '=' : ' ');
           if (option.type == 'int') {
             assert(option.values.isEmpty);
-            buffer.write('n (default: ${option.defaultValue})');
+            buffer.add('n (default: ${option.defaultValue})');
           } else {
-            buffer.write('[');
+            buffer.add('[');
             bool first = true;
             for (var value in option.values) {
-              if (!first) buffer.write(", ");
-              if (value == option.defaultValue) buffer.write('*');
-              buffer.write(value);
+              if (!first) buffer.add(", ");
+              if (value == option.defaultValue) buffer.add('*');
+              buffer.add(value);
               first = false;
             }
-            buffer.write(']');
+            buffer.add(']');
           }
         }
         print(buffer.toString());

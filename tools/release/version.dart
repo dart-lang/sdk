@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,10 +62,9 @@ class Version {
         completeError("No VERSION file");
         return;
       }
-      Stream<String> stream =
-          f.openRead().transform(new StringDecoder())
-                      .transform(new LineTransformer());
-      stream.listen((String line) {
+      StringInputStream input = new StringInputStream(f.openInputStream());
+      input.onLine = () {
+        var line = input.readLine().trim();
         if (line == null) {
           completeError(
               "VERSION input file seems to be in the wrong format");
@@ -102,8 +101,8 @@ class Version {
                             "contain one of {MAJOR, MINOR, BUILD, PATCH}");
             return;
         }
-      },
-      onDone: () {
+      };
+      input.onClosed = () {
         // Only complete if we did not already complete with a failure.
         if (!wasCompletedWithError) {
           getRevision().then((revision) {
@@ -118,7 +117,7 @@ class Version {
             return;
           });
         }
-      });
+      };
     });
     return c.future;
   }

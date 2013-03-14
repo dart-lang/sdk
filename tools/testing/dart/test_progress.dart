@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,9 +15,9 @@ import "utils.dart";
 String _pad(String s, int length) {
   StringBuffer buffer = new StringBuffer();
   for (int i = s.length; i < length; i++) {
-    buffer.write(' ');
+    buffer.add(' ');
   }
-  buffer.write(s);
+  buffer.add(s);
   return buffer.toString();
 }
 
@@ -66,9 +66,9 @@ List<String> _buildFailureOutput(TestCase test,
   output.add(formatter.failed('FAILED: ${test.configurationString}'
                               ' ${test.displayName}'));
   StringBuffer expected = new StringBuffer();
-  expected.write('Expected: ');
+  expected.add('Expected: ');
   for (var expectation in test.expectedOutcomes) {
-    expected.write('$expectation ');
+    expected.add('$expectation ');
   }
   output.add(expected.toString());
   output.add('Actual: ${test.lastCommandOutput.result}');
@@ -143,7 +143,7 @@ class FlakyLogWriter extends EventListener {
     if (test.isFlaky && test.lastCommandOutput.result != PASS) {
       var buf = new StringBuffer();
       for (var l in _buildFailureOutput(test)) {
-        buf.write("$l\n");
+        buf.add("$l\n");
       }
       _appendToFlakyFile(buf.toString());
     }
@@ -167,7 +167,7 @@ class SummaryPrinter extends EventListener {
 
 class TimingPrinter extends EventListener {
   List<TestCase> _tests = <TestCase>[];
-  DateTime _startTime;
+  Date _startTime;
 
   TimingPrinter(this._startTime);
 
@@ -177,7 +177,7 @@ class TimingPrinter extends EventListener {
 
   void allDone() {
     // TODO: We should take all the commands into account
-    Duration d = (new DateTime.now()).difference(_startTime);
+    Duration d = (new Date.now()).difference(_startTime);
     print('\n--- Total time: ${_timeString(d)} ---');
     _tests.sort((a, b) {
       Duration aDuration = a.lastCommandOutput.time;
@@ -287,19 +287,17 @@ class LeftOverTempDirPrinter extends EventListener {
   }
 
   void allDone() {
-    var count = 0;
+    var tempDirs = [];
     var systemTempDir = _tempDir();
-    var lister = new Directory.fromPath(systemTempDir).list().listen(
-        (FileSystemEntity fse) {
-          if (fse is Directory) count++;
-        },
-        onDone: () {
-          if (count > MIN_NUMBER_OF_TEMP_DIRS) {
-            DebugLogger.warning("There are ${count} directories "
-                                "in the system tempdir ('$systemTempDir')! "
-                                "Maybe left over directories?\n");
+    var lister = new Directory.fromPath(systemTempDir).list();
+    lister.onDir = (path) => tempDirs.add(path);
+    lister.onDone = (_) {
+      if (tempDirs.length > MIN_NUMBER_OF_TEMP_DIRS) {
+        DebugLogger.warning("There are ${tempDirs.length} directories "
+                            "in the system tempdir ('$systemTempDir')! "
+                            "Maybe left over directories?\n");
       }
-    });
+    };
   }
 }
 
@@ -332,7 +330,7 @@ class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
   factory ProgressIndicator.fromName(String name,
-                                     DateTime startTime,
+                                     Date startTime,
                                      Formatter formatter) {
     switch (name) {
       case 'compact':
@@ -398,15 +396,15 @@ class ProgressIndicator extends EventListener {
   int _passedTests = 0;
   int _failedTests = 0;
   bool _allTestsKnown = false;
-  DateTime _startTime;
+  Date _startTime;
 }
 
 abstract class CompactIndicator extends ProgressIndicator {
-  CompactIndicator(DateTime startTime)
+  CompactIndicator(Date startTime)
       : super(startTime);
 
   void allDone() {
-    stdout.writeln('');
+    stdout.write('\n'.charCodes);
     if (_failedTests > 0) {
       // We may have printed many failure logs, so reprint the summary data.
       _printProgress();
@@ -426,7 +424,7 @@ abstract class CompactIndicator extends ProgressIndicator {
 class CompactProgressIndicator extends CompactIndicator {
   Formatter _formatter;
 
-  CompactProgressIndicator(DateTime startTime, this._formatter)
+  CompactProgressIndicator(Date startTime, this._formatter)
       : super(startTime);
 
   void _printProgress() {
@@ -434,18 +432,18 @@ class CompactProgressIndicator extends CompactIndicator {
     var progressPadded = _pad(_allTestsKnown ? percent : '--', 3);
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
-    Duration d = (new DateTime.now()).difference(_startTime);
+    Duration d = (new Date.now()).difference(_startTime);
     var progressLine =
         '\r[${_timeString(d)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
-    stdout.write(progressLine);
+    stdout.write(progressLine.charCodes);
   }
 }
 
 
 class VerboseProgressIndicator extends ProgressIndicator {
-  VerboseProgressIndicator(DateTime startTime)
+  VerboseProgressIndicator(Date startTime)
       : super(startTime);
 
   void _printStartProgress(TestCase test) {
@@ -466,7 +464,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
   static String stepName;
   var _failureSummary = <String>[];
 
-  BuildbotProgressIndicator(DateTime startTime) : super(startTime);
+  BuildbotProgressIndicator(Date startTime) : super(startTime);
 
   void done(TestCase test) {
     super.done(test);
@@ -498,3 +496,4 @@ class BuildbotProgressIndicator extends ProgressIndicator {
     super.allDone();
   }
 }
+

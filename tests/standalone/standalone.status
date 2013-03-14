@@ -4,6 +4,19 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+[ $runtime == vm ]
+# Temporarily disabled until the test scripts are rewritten for
+# dart:io v2.
+io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
+io/status_file_parser_test: fail
+io/test_runner_exit_code_test: fail
+io/test_runner_test: fail
+
+[ $compiler == dartc ]
+io/skipping_dart2js_compilations_test: Fail  # Date-to-DateTime renaming. Also fails on VM above.
+io/test_runner_test: Fail  # Date-to-DateTime renaming. Also fails on vm above.
+
+
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_socket_test: Pass, Fail # Issue 8901
 io/http_shutdown_test: Pass, Fail # Issue  9101
