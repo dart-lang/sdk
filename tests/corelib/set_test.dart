@@ -78,7 +78,7 @@ void testMain(Set create()) {
 
   // Test Set.filter.
   testFilter(int val) {
-    return val % 2 == 0;
+    return val.isEven;
   }
 
   Set filtered = set.where(testFilter).toSet();
@@ -145,14 +145,14 @@ void testMain(Set create()) {
   Set union = twice.union(thrice);
   Expect.equals(11, union.length);
   for (int i = 0; i < 16; i++) {
-    Expect.equals((i % 2) == 0 || (i % 3) == 0, union.contains(i));
+    Expect.equals(i.isEven || (i % 3) == 0, union.contains(i));
   }
 
   // Test Set.difference.
   Set difference = twice.difference(thrice);
   Expect.equals(5, difference.length);
   for (int i = 0; i < 16; i++) {
-    Expect.equals((i % 2) == 0 && (i % 3) != 0, difference.contains(i));
+    Expect.equals(i.isEven && (i % 3) != 0, difference.contains(i));
   }
   Expect.isTrue(twice.difference(thrice).difference(twice).isEmpty);
 
