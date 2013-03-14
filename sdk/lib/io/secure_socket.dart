@@ -483,6 +483,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   X509Certificate get peerCertificate => _secureFilter.peerCertificate;
 
+  bool setOption(SocketOption option, bool enabled) {
+    if (_socket == null) return false;
+    return _socket.setOption(option, enabled);
+  }
+
   void _writeHandler() {
     if (_status == CLOSED) return;
     _writeEncryptedData();

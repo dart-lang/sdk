@@ -310,4 +310,15 @@ bool Socket::SetBlocking(intptr_t fd) {
   return SetBlockingHelper(fd, true);
 }
 
+
+bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int on = enabled ? 1 : 0;
+  return setsockopt(fd,
+                    IPPROTO_TCP,
+                    TCP_NODELAY,
+                    reinterpret_cast<char *>(&on),
+                    sizeof(on)) == 0;
+}
+
 #endif  // defined(TARGET_OS_WINDOWS)

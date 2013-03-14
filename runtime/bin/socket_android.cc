@@ -10,6 +10,7 @@
 #include <stdlib.h>  // NOLINT
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#include <netinet/tcp.h>  // NOLINT
 
 #include "bin/socket.h"
 #include "bin/fdutils.h"
@@ -272,6 +273,16 @@ bool Socket::SetNonBlocking(intptr_t fd) {
 
 bool Socket::SetBlocking(intptr_t fd) {
   return FDUtils::SetBlocking(fd);
+}
+
+
+bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
+  int on = enabled ? 1 : 0;
+  return TEMP_FAILURE_RETRY(setsockopt(fd,
+                                       SOL_TCP,
+                                       TCP_NODELAY,
+                                       reinterpret_cast<char *>(&on),
+                                       sizeof(on))) == 0;
 }
 
 #endif  // defined(TARGET_OS_ANDROID)

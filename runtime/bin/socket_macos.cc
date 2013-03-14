@@ -11,6 +11,7 @@
 #include <string.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#include <netinet/tcp.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -270,6 +271,16 @@ bool Socket::SetNonBlocking(intptr_t fd) {
 
 bool Socket::SetBlocking(intptr_t fd) {
   return FDUtils::SetBlocking(fd);
+}
+
+
+bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
+  int on = enabled ? 1 : 0;
+  return TEMP_FAILURE_RETRY(setsockopt(fd,
+                                       IPPROTO_TCP,
+                                       TCP_NODELAY,
+                                       reinterpret_cast<char *>(&on),
+                                       sizeof(on))) == 0;
 }
 
 #endif  // defined(TARGET_OS_MACOS)

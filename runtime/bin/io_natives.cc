@@ -48,6 +48,7 @@
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_NewServicePort, 0)                                                  \
   V(Socket_GetType, 1)                                                         \
+  V(Socket_SetOption, 3)                                                       \
   V(SecureSocket_Connect, 8)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_Handshake, 1)                                                 \

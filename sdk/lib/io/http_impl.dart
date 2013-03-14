@@ -1226,6 +1226,7 @@ class _HttpClient implements HttpClient {
                                          sendClientCertificate: true)
                   : Socket.connect(host, port))
         .then((socket) {
+          socket.setOption(SocketOption.TCP_NODELAY, true);
           var connection = new _HttpClientConnection(key, socket, this);
           _activeConnections.add(connection);
           return new _ConnnectionInfo(connection, proxy);
@@ -1388,6 +1389,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
                                          bool unsubscribeOnError}) {
     _serverSocket.listen(
         (Socket socket) {
+          socket.setOption(SocketOption.TCP_NODELAY, true);
           // Accept the client connection.
           _HttpConnection connection = new _HttpConnection(socket, this);
           _connections.add(connection);

@@ -392,6 +392,12 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     close();
   }
 
+  bool setOption(SocketOption option, bool enabled) {
+    if (option is! SocketOption) throw new ArgumentError(options);
+    if (enabled is! bool) throw new ArgumentError(enabled);
+    return nativeSetOption(option._value, enabled);
+  }
+
   nativeAvailable() native "Socket_Available";
   nativeRead(int len) native "Socket_Read";
   nativeWrite(List<int> buffer, int offset, int bytes)
@@ -403,6 +409,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   int nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   OSError nativeGetError() native "Socket_GetError";
+  bool nativeSetOption(int option, bool enabled) native "Socket_SetOption";
 
   static SendPort newServicePort() native "Socket_NewServicePort";
 }
@@ -570,6 +577,9 @@ class _RawSocket extends Stream<RawSocketEvent>
       if (!_controller.isPaused) _resume();
     }
   }
+
+  bool setOption(SocketOption option, bool enabled) =>
+      _socket.setOption(option, enabled);
 
   _pause() {
     _socket.setListening(read: false, write: false);
@@ -798,6 +808,11 @@ class _Socket extends Stream<List<int>> implements Socket {
     _closeRawSocket();
     _controllerClosed = true;
     _controller.close();
+  }
+
+  bool setOption(SocketOption option, bool enabled) {
+    if (_raw == null) return false;
+    return _raw.setOption(option, enabled);
   }
 
   int get port => _raw.port;

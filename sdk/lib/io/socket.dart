@@ -86,6 +86,24 @@ class SocketDirection {
 }
 
 /**
+ * The [SocketOption] is used as a parameter to [Socket.setOption] and
+ * [RawSocket.setOption] to set customize the behaviour of the underlying
+ * socket.
+ */
+class SocketOption {
+  /**
+   * Enable or disable no-delay on the socket. If TCP_NODELAY is enabled, the
+   * socket will not buffer data internally, but instead write each data chunk
+   * as an invidual TCP packet.
+   *
+   * TCP_NODELAY is disabled by default.
+   */
+  static const SocketOption TCP_NODELAY = const SocketOption._(0);
+  const SocketOption._(this._value);
+  final _value;
+}
+
+/**
  * Events for the [RawSocket].
  */
 class RawSocketEvent {
@@ -179,6 +197,14 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * to true again to receive another write event.
    */
   bool writeEventsEnabled;
+
+  /**
+   * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
+   * available options.
+   *
+   * Returns [true] if the option was set successfully, false otherwise.
+   */
+  bool setOption(SocketOption option, bool enabled);
 }
 
 /**
@@ -204,6 +230,15 @@ abstract class Socket implements Stream<List<int>>,
    * for sending data.
    */
   void destroy();
+
+  /**
+   * Enable or disable no-delay on the socket. If no-delay is enabled, the
+   * socket will not buffer data internally, but instead write each data chunk
+   * as an invidual TCP packet.
+   *
+   * No-delay is disabled by default.
+   */
+  bool setNoDelay([bool enabled = true]);
 
   int get port;
   String get remoteHost;
