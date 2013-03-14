@@ -1502,13 +1502,11 @@ void FlowGraphOptimizer::ReplaceWithMathCFunction(
 }
 
 
-static bool IsSupportedByteArrayCid(intptr_t cid) {
+static bool IsSupportedByteArrayViewCid(intptr_t cid) {
   switch (cid) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kInt32ArrayCid:
@@ -1643,7 +1641,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (IsSupportedByteArrayCid(class_ids[0]) &&
+  if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
     // For elements that may not fit into a smi on all platforms, check if
     // elements fit into a smi or the platform supports unboxed mints.
