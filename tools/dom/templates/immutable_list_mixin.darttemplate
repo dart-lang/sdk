@@ -144,6 +144,10 @@ $endif
   $E max([int compare($E a, $E b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, $E element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   $E removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }

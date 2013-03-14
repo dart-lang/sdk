@@ -2010,6 +2010,11 @@ class _ByteArrayViewBase extends Collection<int> {
         "Cannot remove from a non-extendable array");
   }
 
+  void insert(int index, int element) {
+    throw new UnsupportedError(
+        "Cannot add to a non-extendable array");
+  }
+
   int removeAt(int index) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");

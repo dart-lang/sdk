@@ -383,6 +383,10 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   Map max([int compare(Map a, Map b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Map element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }

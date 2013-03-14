@@ -24,6 +24,11 @@ class _ObjectArray<E> implements List<E> {
                             int count)
       native "ObjectArray_copyFromObjectArray";
 
+  void insert(int index, E element) {
+    throw new UnsupportedError(
+        "Cannot add to a non-extendable array");
+  }
+
   E removeAt(int index) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
@@ -264,6 +269,11 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   int get length native "ObjectArray_getLength";
+
+  void insert(int index, E element) {
+    throw new UnsupportedError(
+        "Cannot add to an immutable array");
+  }
 
   E removeAt(int index) {
     throw new UnsupportedError(

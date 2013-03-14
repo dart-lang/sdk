@@ -90,6 +90,11 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
         "Cannot add to a fixed-length list");
   }
 
+  void insert(int index, E value) {
+    throw new UnsupportedError(
+        "Cannot add to a fixed-length list");
+  }
+
   void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to a fixed-length list");
@@ -167,6 +172,11 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
   }
 
   void addLast(E value) {
+    throw new UnsupportedError(
+        "Cannot add to an unmodifiable list");
+  }
+
+  E insert(int index, E value) {
     throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }
@@ -277,7 +287,9 @@ class _ListIndicesIterable extends ListIterable<int> {
 
   int get length => _backedList.length;
   int elementAt(int index) {
-    if (index < 0 || index >= length) throw new RangeError(index);
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    }
     return index;
   }
 }

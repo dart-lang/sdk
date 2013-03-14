@@ -554,6 +554,7 @@ class _LazyList extends Iterable implements List {
   addAll(x) => _throw();
   sort([f]) => _throw();
   clear() => _throw();
+  insert(x, y) => _throw();
   removeAt(x) => _throw();
   remove(x) => _throw();
   removeLast() => _throw();

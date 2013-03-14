@@ -3450,6 +3450,10 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   Length max([int compare(Length a, Length b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Length element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Length removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -4155,6 +4159,10 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   Number max([int compare(Number a, Number b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, Number element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   Number removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -5338,6 +5346,10 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   PathSeg max([int compare(PathSeg a, PathSeg b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, PathSeg element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   PathSeg removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -6324,6 +6336,10 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   String max([int compare(String a, String b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, String element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -7581,6 +7597,10 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   Transform max([int compare(Transform a, Transform b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Transform element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Transform removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8158,6 +8178,10 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, ElementInstance element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   ElementInstance removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");

@@ -109,6 +109,8 @@ class _WrappedList<E> implements List<E> {
 
   int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
 
+  void insert(int index, E element) => _list.insert(index, element);
+
   E removeAt(int index) => _list.removeAt(index);
 
   E removeLast() => _list.removeLast();

@@ -193,7 +193,18 @@ abstract class List<E> implements Collection<E> {
   void clear();
 
   /**
-   * Removes the element at position[index] from the list.
+   * Inserts the element at position [index] in the list.
+   *
+   * This increases the length of the list by one and shifts all later elements
+   * towards the end of the list.
+   *
+   * It is an error if the [index] does not point inside the list or at the
+   * position after the last element.
+   */
+  void insert(int index, E element);
+
+  /**
+   * Removes the element at position [index] from the list.
    *
    * This reduces the length of the list by one and moves all later elements
    * down by one position.

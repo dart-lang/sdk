@@ -84,6 +84,17 @@ $endif
     }
   }
 
+  void insert(int index, Node node) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _this.$dom_appendChild(node);
+    } else {
+      this_.insertBefore(node, this[index]);
+    }
+  }
+
   Node removeLast() {
     final result = last;
     if (result != null) {

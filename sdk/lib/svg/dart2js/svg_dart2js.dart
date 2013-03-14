@@ -3187,6 +3187,10 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   Length max([int compare(Length a, Length b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Length element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Length removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -3815,6 +3819,10 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   Number max([int compare(Number a, Number b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, Number element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   Number removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -4721,6 +4729,10 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   PathSeg max([int compare(PathSeg a, PathSeg b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, PathSeg element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   PathSeg removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -5610,6 +5622,10 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   String max([int compare(String a, String b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, String element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -6778,6 +6794,10 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   Transform max([int compare(Transform a, Transform b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Transform element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Transform removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7301,6 +7321,10 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, ElementInstance element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   ElementInstance removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");

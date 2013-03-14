@@ -8,6 +8,28 @@ class _GrowableObjectArray<T> implements List<T> {
         "GrowableObjectArray can only be allocated by the VM");
   }
 
+  void insert(int index, T element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == this.length) {
+      add(element);
+      return;
+    }
+    int oldLength = this.length;
+    // We are modifying the length just below the is-check. Without the check
+    // Array.copy could throw an exception, leaving the list in a bad state
+    // (with a length that has been increased, but without a new element).
+    if (index is! int) throw new ArgumentError(index);
+    this.length++;
+    Arrays.copy(this,
+                index,
+                this,
+                index + 1,
+                oldLength - index);
+    this[index] = element;
+  }
+
   T removeAt(int index) {
     if (index is! int) throw new ArgumentError(index);
     T result = this[index];

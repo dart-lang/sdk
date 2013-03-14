@@ -27,6 +27,15 @@ class JSArray<E> implements List<E>, JSIndexable {
     return JS('var', r'#.splice(#, 1)[0]', this, index);
   }
 
+  void insert(int index, E value) {
+    if (index is !int) throw new ArgumentError(index);
+    if (index < 0 || index > length) {
+      throw new RangeError.value(index);
+    }
+    checkGrowable(this, 'insert');
+    JS('void', r'#.splice(#, 0, #)', this, index, value);
+  }
+
   E removeLast() {
     checkGrowable(this, 'removeLast');
     if (length == 0) throw new RangeError.value(-1);

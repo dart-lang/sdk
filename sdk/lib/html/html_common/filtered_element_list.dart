@@ -105,6 +105,10 @@ class FilteredElementList implements List {
   Iterable<Element> where(bool f(Element element)) => _filtered.where(f);
   Iterable expand(Iterable f(Element element)) => _filtered.expand(f);
 
+  void insert(int index, Element value) {
+    _childNodes.insert(index, value);
+  }
+
   Element removeAt(int index) {
     final result = this[index];
     result.remove();

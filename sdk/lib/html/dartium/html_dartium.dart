@@ -7933,6 +7933,10 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, DomMimeType element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8205,6 +8209,10 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, DomPlugin element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -8597,6 +8605,10 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   String max([int compare(String a, String b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, String element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8924,6 +8936,17 @@ class _ChildrenElementList implements List {
   int lastIndexOf(Element element, [int start = null]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
+  }
+
+  void insert(int index, Element element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _element.$dom_appendChild(element);
+    } else {
+      throw new UnimplementedError("insert on ElementLists");
+    }
   }
 
   void clear() {
@@ -11597,6 +11620,10 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   File max([int compare(File a, File b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, File element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12213,6 +12240,10 @@ class Float32Array extends ArrayBufferView implements List<num> {
   num max([int compare(num a, num b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, num element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12452,6 +12483,10 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   num max([int compare(num a, num b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, num element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -13142,6 +13177,10 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -13355,6 +13394,10 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -15681,6 +15724,10 @@ class Int16Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -15921,6 +15968,10 @@ class Int32Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -16160,6 +16211,10 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -18826,6 +18881,17 @@ class _ChildNodeListLazy implements List {
     }
   }
 
+  void insert(int index, Node node) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _this.$dom_appendChild(node);
+    } else {
+      this_.insertBefore(node, this[index]);
+    }
+  }
+
   Node removeLast() {
     final result = last;
     if (result != null) {
@@ -19411,6 +19477,10 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -22111,6 +22181,10 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SourceBuffer element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -22433,6 +22507,10 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, SpeechGrammar element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -24122,6 +24200,10 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, TextTrackCue element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -24335,6 +24417,10 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   TextTrack max([int compare(TextTrack a, TextTrack b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, TextTrack element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -24766,6 +24852,10 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   Touch max([int compare(Touch a, Touch b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, Touch element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -25281,6 +25371,10 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25520,6 +25614,10 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -25761,6 +25859,10 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25998,6 +26100,10 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -29851,6 +29957,10 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
   Rect max([int compare(Rect a, Rect b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Rect element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Rect removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30057,6 +30167,10 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   CssRule max([int compare(CssRule a, CssRule b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, CssRule element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30262,6 +30376,10 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   CssValue max([int compare(CssValue a, CssValue b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, CssValue element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -30612,6 +30730,10 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   Entry max([int compare(Entry a, Entry b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Entry element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30818,6 +30940,10 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   EntrySync max([int compare(EntrySync a, EntrySync b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, EntrySync element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31023,6 +31149,10 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   Gamepad max([int compare(Gamepad a, Gamepad b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, Gamepad element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -31321,6 +31451,10 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31551,6 +31685,10 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SpeechInputResult element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31757,6 +31895,10 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SpeechRecognitionResult element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31962,6 +32104,10 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) =>
       IterableMixinWorkaround.max(this, compare);
+
+  void insert(int index, StyleSheet element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
 
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -34274,6 +34420,8 @@ class _WrappedList<E> implements List<E> {
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
 
   int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
+
+  void insert(int index, E element) => _list.insert(index, element);
 
   E removeAt(int index) => _list.removeAt(index);
 
