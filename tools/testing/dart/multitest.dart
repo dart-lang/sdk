@@ -137,11 +137,12 @@ class _Annotation {
       return null;
     }
     var annotation = new _Annotation();
-    var parts = line.split('///')[1].split(':').map((s) => s.trim()).toList();
+    var parts = line.split('///')[1].split(':')
+        .mappedBy((s) => s.trim()).toList();
     annotation.key = parts[0];
     annotation.rest = parts[1];
     annotation.outcomesList = annotation.rest.split(',')
-        .map((s) => s.trim()).toList();
+        .mappedBy((s) => s.trim()).toList();
     return annotation;
   }
 }
@@ -150,7 +151,7 @@ class _Annotation {
 // the generated tests.
 Set<Path> _findAllRelativeImports(Path topLibrary) {
   Set<Path> toSearch = new Set<Path>.from([topLibrary]);
-  Set<Path> foundImports = new Set<Path>();
+  Set<Path> foundImports = new HashSet<Path>();
   Path libraryDir = topLibrary.directoryPath;
   // Matches #import( or #source( followed by " or ' followed by anything
   // except dart:, dart-ext: or /, at the beginning of a line.
@@ -158,7 +159,7 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
       '^#(import|source)[(]["\'](?!(dart:|dart-ext:|/))([^"\']*)["\']');
   while (!toSearch.isEmpty) {
     var thisPass = toSearch;
-    toSearch = new Set<Path>();
+    toSearch = new HashSet<Path>();
     for (Path filename in thisPass) {
       File f = new File.fromPath(filename);
       for (String line in f.readAsLinesSync()) {
@@ -218,7 +219,8 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
 
       file.createSync();
       RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
-      openedFile.writeStringSync(tests[key]);
+      var bytes = tests[key].charCodes;
+      openedFile.writeListSync(bytes, 0, bytes.length);
       openedFile.closeSync();
       Set<String> outcome = outcomes[key];
       bool enableFatalTypeErrors = outcome.contains('static type warning');
