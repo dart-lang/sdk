@@ -85,22 +85,24 @@ class MinifyNamer extends Namer {
       if (_hasBannedPrefix(name)) usedInstanceNames.add(name.substring(1));
     }
 
-    // This list of popular instance variable names generated with:
-    // cat out.js |
-    // perl -ne '$_=~s/(?<![^a-z0-9_\$]\$)\.([a-z0-9_\$]+)/print("$1\n")/gei' |
-    // sort | uniq -c | sort -nr | head -40
-    // Removed: html, call*, hasOwnProperty.
+    // These popular names are present in most programs and deserve
+    // single character minified names.  We could determine the popular names
+    // individually per program, but that would mean that the output of the
+    // minifier was less stable from version to version of the program being
+    // minified.
     _populateSuggestedNames(
         suggestedInstanceNames,
         usedInstanceNames,
         const <String>[
-            r'$add', r'add$1', r'box_0', r'codeUnitAt$1', r'constructor',
-            r'current', r'$defineNativeClass', r'$eq', r'$ne',
+            r'$add', r'add$1', r'$and', r'codeUnitAt$1', r'$or',
+            r'current', r'$shr', r'$eq', r'$ne',
             r'getPrototypeOf', r'hasOwnProperty', r'$index', r'$indexSet',
-            r'$isJavaScriptIndexingBehavior', r'$isolateProperties',
+            r'$isJavaScriptIndexingBehavior', r'$xor',
             r'iterator', r'length', r'$lt', r'$gt', r'$le', r'$ge',
-            r'moveNext$0', r'node', r'on', r'prototype', r'push', r'self',
-            r'start', r'target', r'this_0', r'value', r'width', r'style']);
+            r'moveNext$0', r'node', r'on', r'$negate', r'push', r'self',
+            r'start', r'target', r'$shl', r'value', r'width', r'style',
+            r'noSuchMethod$1', r'$mul', r'$div', r'$sub', r'$not', r'$mod',
+            r'$tdiv']);
 
     _populateSuggestedNames(
         suggestedGlobalNames,
@@ -116,7 +118,7 @@ class MinifyNamer extends Namer {
             r'List_List$from', r'Set_Set$from', r'toString', r'toInt', r'min',
             r'StringBuffer_StringBuffer', r'contains1', r'WhereIterable$',
             r'RangeError$value', r'JSString', r'JSNumber',
-            r'JSArray'
+            r'JSArray', r'createInvocationMirror'
             ]);
   }
 

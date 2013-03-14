@@ -87,6 +87,12 @@ unittest/test/instance_test: Skip
 [ $compiler == dart2js && $runtime == drt ]
 intl/test/date_time_format_unitialized_test: Pass, Fail # http://dartbug.com/9000
 
+[ $compiler == dart2js && $minified ]
+# The unittest package relies on getting the original (non-minified) method
+# names in InvocationMirrors.  You can't get that when minifying.
+unittest/test/mock_test: Fail
+unittest/test/mock_regexp_negative_test: Fail
+
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 

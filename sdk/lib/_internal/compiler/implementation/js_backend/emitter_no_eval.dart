@@ -11,6 +11,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
       : super(compiler, namer, generateSourceMap);
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => false;
+  bool get generateTrivialNsmHandlers => false;
 
   void emitSuper(String superName, ClassBuilder builder) {
     if (superName != '') {
@@ -115,7 +116,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
           js.fun([], [
             js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
             js.forIn('staticName', 'isolateProperties',
-              js.if_(js['hasOwnProperty.call(isolateProperties, staticName)'],
+              js.if_('hasOwnProperty.call(isolateProperties, staticName)',
                 js['this[staticName] = isolateProperties[staticName]'])),
             // Use the newly created object as prototype. In Chrome,
             // this creates a hidden class for the object and makes

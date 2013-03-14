@@ -69,6 +69,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> regularClasses = <ClassElement>[];
   final List<ClassElement> deferredClasses = <ClassElement>[];
   final List<ClassElement> nativeClasses = <ClassElement>[];
+  final List<Selector> trivialNsmHandlers = <Selector>[];
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -297,9 +298,9 @@ class CodeEmitterTask extends CompilerTask {
         js['var body = ""'],
 
         // for (var i = 0; i < fields.length; i++) {
-        js.for_(js['var i = 0'], js['i < fields.length'], js['i++'], [
+        js.for_('var i = 0', 'i < fields.length', 'i++', [
           // if (i != 0) str += ", ";
-          js.if_(js['i != 0'], js['str += ", "']),
+          js.if_('i != 0', js['str += ", "']),
 
           js['var field = fields[i]'],
           js['field = generateAccessor(field, prototype)'],
@@ -352,6 +353,224 @@ class CodeEmitterTask extends CompilerTask {
     ];
   }
 
+  const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
+
+  // If we need fewer than this many noSuchMethod handlers we can save space by
+  // just emitting them in JS, rather than emitting the JS needed to generate
+  // them at run time.
+  const VERY_FEW_NO_SUCH_METHOD_HANDLERS = 10;
+
+  /**
+   * Adds (at runtime) the handlers to the Object class which catch calls to
+   * methods that the object does not have.  The handlers create an invocation
+   * mirror object.
+   *
+   * The current version only gives you the minified name when minifying (when
+   * not minifying this method is not called).
+   *
+   * In order to generate the noSuchMethod handlers we only need the minified
+   * name of the method.  We test the first character of the minified name to
+   * determine if it is a getter or a setter, and we use the arguments array at
+   * runtime to get the number of arguments and their values.  If the method
+   * involves named arguments etc. then we don't handle it here, but emit the
+   * handler method directly on the Object class.
+   *
+   * The minified names are mostly 1-4 character names, which we emit in sorted
+   * order (primary key is length, secondary ordering is lexicographic).  This
+   * gives an order like ... dD dI dX da ...
+   *
+   * Gzip is good with repeated text, but it can't diff-encode, so we do that
+   * for it.  We encode the minified names in a comma-separated string, but all
+   * the 1-4 character names are encoded before the first comma as a series of
+   * base 26 numbers.  The last digit of each number is lower case, the others
+   * are upper case, so 1 is "b" and 26 is "Ba".
+   *
+   * We think of the minified names as base 88 numbers using the ASCII
+   * characters from # to z.  The base 26 numbers each encode the delta from
+   * the previous minified name to the next.  So if there is a minified name
+   * called Df and the next is Dh, then they are 2971 and 2973 when thought of
+   * as base 88 numbers.  The difference is 2, which is "c" in lower-case-
+   * terminated base 26.
+   *
+   * The reason we don't encode long minified names with this method is that
+   * decoding the base 88 numbers would overflow JavaScript's puny integers.
+   *
+   * There are some selectors that have a special calling convention (because
+   * they are called with the receiver as the first argument).  They need a
+   * slightly different noSuchMethod handler, so we handle these first.
+   */
+  void addTrivialNsmHandlers(List<jsAst.Node> statements) {
+    if (trivialNsmHandlers.length == 0) return;
+    // Sort by calling convention, JS name length and by JS name.
+    trivialNsmHandlers.sort((a, b) {
+      bool aIsIntercepted = backend.isInterceptedName(a.name);
+      bool bIsIntercepted = backend.isInterceptedName(b.name);
+      if (aIsIntercepted != bIsIntercepted) return aIsIntercepted ? -1 : 1;
+      String aName = namer.invocationMirrorInternalName(a);
+      String bName = namer.invocationMirrorInternalName(b);
+      if (aName.length != bName.length) return aName.length - bName.length;
+      return aName.compareTo(bName);
+    });
+
+    // Find out how many selectors there are with the special calling
+    // convention.
+    int firstNormalSelector = trivialNsmHandlers.length;
+    for (int i = 0; i < trivialNsmHandlers.length; i++) {
+      if (!backend.isInterceptedName(trivialNsmHandlers[i].name)) {
+        firstNormalSelector = i;
+        break;
+      }
+    }
+
+    // Get the short names (JS names, perhaps minified).
+    Iterable<String> shorts = trivialNsmHandlers.map((selector) =>
+         namer.invocationMirrorInternalName(selector));
+    final diffShorts = <String>[];
+    var diffEncoding = new StringBuffer();
+
+    // Treat string as a number in base 88 with digits in ASCII order from # to
+    // z.  The short name sorting is based on length, and uses ASCII order for
+    // equal length strings so this means that names are ascending.  The hash
+    // character, #, is never given as input, but we need it because it's the
+    // implicit leading zero (otherwise we could not code names with leading
+    // dollar signs).
+    int fromBase88(String x) {
+      int answer = 0;
+      for (int i = 0; i < x.length; i++) {
+        int c = x.codeUnitAt(i);
+        // No support for Unicode minified identifiers in JS.
+        assert(c >= $$ && c <= $z);
+        answer *= 88;
+        answer += c - $HASH;
+      }
+      return answer;
+    }
+
+    // Big endian encoding, A = 0, B = 1...
+    // A lower case letter terminates the number.
+    String toBase26(int x) {
+      int c = x;
+      var encodingChars = <int>[];
+      encodingChars.add($a + (c % 26));
+      while (true) {
+        c ~/= 26;
+        if (c == 0) break;
+        encodingChars.add($A + (c % 26));
+      }
+      return new String.fromCharCodes(encodingChars.reversed.toList());
+    }
+
+    bool minify = compiler.enableMinification;
+    bool useDiffEncoding = minify && shorts.length > 30;
+
+    int previous = 0;
+    int nameCounter = 0;
+    for (String short in shorts) {
+      // Emit period that resets the diff base to zero when we switch to normal
+      // calling convention (this avoids the need to code negative diffs).
+      if (useDiffEncoding && nameCounter == firstNormalSelector) {
+        diffEncoding.write(".");
+        previous = 0;
+      }
+      if (short.length <= MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING &&
+          useDiffEncoding) {
+        int base63 = fromBase88(short);
+        int diff = base63 - previous;
+        previous = base63;
+        String base26Diff = toBase26(diff);
+        diffEncoding.write(base26Diff);
+      } else {
+        if (useDiffEncoding || diffEncoding.length != 0) {
+          diffEncoding.write(",");
+        }
+        diffEncoding.write(short);
+      }
+      nameCounter++;
+    }
+
+    // Startup code that loops over the method names and puts handlers on the
+    // Object class to catch noSuchMethod invocations.
+    ClassElement objectClass = compiler.objectClass;
+    String createInvocationMirror = namer.getName(
+        compiler.createInvocationMirrorElement);
+    String noSuchMethodName = namer.publicInstanceMethodNameByArity(
+        Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
+    var type = 0;
+    if (useDiffEncoding) {
+      statements.addAll([
+        js['var objectClassObject = '
+           '        collectedClasses["${namer.getName(objectClass)}"],'
+           '    shortNames = "$diffEncoding".split(","),'
+           '    nameNumber = 0,'
+           '    diffEncodedString = shortNames[0],'
+           '    calculatedShortNames = [0, 1]'],  // 0, 1 are args for splice.
+        js.for_('var i = 0', 'i < diffEncodedString.length', 'i++', [
+          js['var codes = [],'
+             '    diff = 0,'
+             '    digit = diffEncodedString.charCodeAt(i)'],
+          js.if_('digit == ${$PERIOD}', [
+            js['nameNumber = 0'],
+            js['digit = diffEncodedString.charCodeAt(++i)']
+          ]),
+          js.while_('digit <= ${$Z}', [
+            js['diff *= 26'],
+            js['diff += (digit - ${$A})'],
+            js['digit = diffEncodedString.charCodeAt(++i)']
+          ]),
+          js['diff *= 26'],
+          js['diff += (digit - ${$a})'],
+          js['nameNumber += diff'],
+          js.for_('var remaining = nameNumber',
+                  'remaining > 0',
+                  'remaining = ((remaining / 88) | 0)', [
+            js['codes.unshift(${$HASH} + (remaining % 88))']
+          ]),
+          js['calculatedShortNames.push('
+             '    String.fromCharCode.apply(String, codes))']
+        ]),
+        js['shortNames.splice.apply(shortNames, calculatedShortNames)']
+      ]);
+    } else {
+      // No useDiffEncoding version.
+      Iterable<String> longs = trivialNsmHandlers.map((selector) =>
+             selector.invocationMirrorMemberName);
+      String longNamesConstant = minify ? "" :
+          ',longNames = "${longs.join(",")}".split(",")';
+      statements.add(
+        js['var objectClassObject = '
+           '        collectedClasses["${namer.getName(objectClass)}"],'
+           '    shortNames = "$diffEncoding".split(",")'
+           '    $longNamesConstant']);
+    }
+
+    String sliceOffset = '," + (j < $firstNormalSelector ? 1 : 0)';
+    if (firstNormalSelector == 0) sliceOffset = '"';
+    if (firstNormalSelector == shorts.length) sliceOffset = ', 1"';
+
+    String whatToPatch = nativeEmitter.handleNoSuchMethod ?
+                         "Object.prototype" :
+                         "objectClassObject";
+
+    statements.addAll([
+      js.for_('var j = 0', 'j < shortNames.length', 'j++', [
+        js['var type = 0'],
+        js['var short = shortNames[j]'],
+        js.if_('short[0] == "${namer.getterPrefix[0]}"', js['type = 1']),
+        js.if_('short[0] == "${namer.setterPrefix[0]}"', js['type = 2']),
+        js['$whatToPatch[short] = Function("'
+               'return this.$noSuchMethodName('
+                   'this,'
+                   '${namer.CURRENT_ISOLATE}.$createInvocationMirror(\'"'
+                       ' + ${minify ? "shortNames" : "longNames"}[j]'
+                       ' + "\',\'" + short + "\',"'
+                       ' + type'
+                       ' + ",Array.prototype.slice.call(arguments'
+                       '$sliceOffset'
+                       ' + "),[]))")']
+      ])
+    ]);
+  }
+
   jsAst.Fun get finishClassesFunction {
     // Class descriptions are collected in a JS object.
     // 'finishClasses' takes all collected descriptions and sets up
@@ -366,11 +585,7 @@ class CodeEmitterTask extends CompilerTask {
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
 
-    // function(collectedClasses,
-    //          isolateProperties,
-    //          existingIsolateProperties) {
-    return js.fun(['collectedClasses', 'isolateProperties',
-                   'existingIsolateProperties'], [
+    List<jsAst.Node> statements = [
       js['var pendingClasses = {}'],
 
       js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
@@ -378,7 +593,7 @@ class CodeEmitterTask extends CompilerTask {
       // for (var cls in collectedClasses) {
       js.forIn('cls', 'collectedClasses', [
         // if (hasOwnProperty.call(collectedClasses, cls)) {
-        js.if_(js['hasOwnProperty.call(collectedClasses, cls)'], [
+        js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js['var desc = collectedClasses[cls]'],
 
           /* The 'fields' are either a constructor function or a
@@ -390,7 +605,7 @@ class CodeEmitterTask extends CompilerTask {
           // var fields = desc[""], supr;
           js['var fields = desc[""], supr'],
 
-          js.if_(js['typeof fields == "string"'], [
+          js.if_('typeof fields == "string"', [
             js['var s = fields.split(";")'],
             js['supr = s[0]'],
             js['fields = s[1] == "" ? [] : s[1].split(",")'],
@@ -401,7 +616,7 @@ class CodeEmitterTask extends CompilerTask {
           js['isolateProperties[cls] = defineClass(cls, fields, desc)'],
 
           // if (supr) pendingClasses[cls] = supr;
-          js.if_(js['supr'], js['pendingClasses[cls] = supr'])
+          js.if_('supr', js['pendingClasses[cls] = supr'])
         ])
       ]),
 
@@ -409,10 +624,19 @@ class CodeEmitterTask extends CompilerTask {
 
       // function finishClass(cls) { ... }
       buildFinishClass(),
+    ];
 
+    addTrivialNsmHandlers(statements);
+
+    statements.add(
       // for (var cls in pendingClasses) finishClass(cls);
-      js.forIn('cls', 'pendingClasses', js['finishClass']('cls'))
-    ]);
+      js.forIn('cls', 'pendingClasses', js['finishClass(cls)'])
+    );
+    // function(collectedClasses,
+    //          isolateProperties,
+    //          existingIsolateProperties) {
+    return js.fun(['collectedClasses', 'isolateProperties',
+                   'existingIsolateProperties'], statements);
   }
 
   jsAst.FunctionDeclaration buildFinishClass() {
@@ -425,14 +649,18 @@ class CodeEmitterTask extends CompilerTask {
       js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
 
       // if (hasOwnProperty.call(finishedClasses, cls)) return;
-      js.if_(js['hasOwnProperty.call(finishedClasses, cls)'],
+      js.if_('hasOwnProperty.call(finishedClasses, cls)',
              js.return_()),
 
       js['finishedClasses[cls] = true'],
+
       js['var superclass = pendingClasses[cls]'],
 
-      /* The superclass is only false (empty string) for Dart's Object class. */
-      js.if_(js['!superclass'], js.return_()),
+      // The superclass is only false (empty string) for Dart's Object class.
+      // The minifier together with noSuchMethod can put methods on the
+      // Object.prototype object, and they show through here, so we check that
+      // we have a string.
+      js.if_('!superclass || typeof superclass != "string"', js.return_()),
       js['finishClass(superclass)'],
       js['var constructor = isolateProperties[cls]'],
       js['var superConstructor = isolateProperties[superclass]'],
@@ -466,10 +694,10 @@ class CodeEmitterTask extends CompilerTask {
         js.forIn('member', 'prototype', [
           /* Short version of: if (member == '') */
           // if (!member) continue;
-          js.if_(js['!member'], new jsAst.Continue(null)),
+          js.if_('!member', new jsAst.Continue(null)),
 
           // if (hasOwnProperty.call(prototype, member)) {
-          js.if_(js['hasOwnProperty.call(prototype, member)'], [
+          js.if_('hasOwnProperty.call(prototype, member)', [
             js['newPrototype[member] = prototype[member]']
           ])
         ])
@@ -531,7 +759,7 @@ class CodeEmitterTask extends CompilerTask {
 
       // for (var staticName in isolateProperties) {
       js.forIn('staticName', 'isolateProperties', [
-        js.if_(js['hasOwnProperty.call(isolateProperties, staticName)'], [
+        js.if_('hasOwnProperty.call(isolateProperties, staticName)', [
           js['str += ("this." + staticName + "= properties." + staticName + '
                           '";\\n")']
         ])
@@ -578,7 +806,7 @@ class CodeEmitterTask extends CompilerTask {
 
         // try {
         js.try_([
-          js.if_(js['result === sentinelUndefined'], [
+          js.if_('result === sentinelUndefined', [
             js['$isolate[fieldName] = sentinelInProgress'],
 
             // try {
@@ -590,15 +818,15 @@ class CodeEmitterTask extends CompilerTask {
               // stack trace.
 
               // if (result === sentinelUndefined) {
-              js.if_(js['result === sentinelUndefined'], [
+              js.if_('result === sentinelUndefined', [
                 // if ($isolate[fieldName] === sentinelInProgress) {
-                js.if_(js['$isolate[fieldName] === sentinelInProgress'], [
+                js.if_('$isolate[fieldName] === sentinelInProgress', [
                   js['$isolate[fieldName] = null'],
                 ])
               ])
             ])
           ], /* else */ [
-            js.if_(js['result === sentinelInProgress'],
+            js.if_('result === sentinelInProgress',
               js['$cyclicThrow(staticName)']
             )
           ]),
@@ -1179,7 +1407,7 @@ class CodeEmitterTask extends CompilerTask {
         ? ['receiver']
         : [];
     builder.addProperty(getterName,
-        js.fun(args, js.return_(js[receiver][fieldName])));
+        js.fun([], js.return_(js['this.$receiver.$fieldName'])));
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
@@ -1376,6 +1604,10 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
+
+  /// If this is true then we can generate the noSuchMethod handlers at startup
+  /// time, instead of them being emitted as part of the Object class.
+  bool get generateTrivialNsmHandlers => true;
 
   int _selectorRank(Selector selector) {
     int arity = selector.argumentCount * 3;
@@ -1999,6 +2231,29 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  // Identify the noSuchMethod handlers that are so simple that we can
+  // generate them programatically.
+  bool isTrivialNsmHandler(
+      int type, List argNames, Selector selector, String internalName) {
+    if (!generateTrivialNsmHandlers) return false;
+    // Check for interceptor calling convention.
+    if (backend.isInterceptedName(selector.name)) {
+      // We can handle the calling convention used by intercepted names in the
+      // diff encoding, but we don't use that for non-minified code.
+      if (!compiler.enableMinification) return false;
+      String shortName = namer.invocationMirrorInternalName(selector);
+      if (shortName.length > MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING) {
+        return false;
+      }
+    }
+    // Check for named arguments.
+    if (argNames.length != 0) return false;
+    // Check for unexpected name (this doesn't really happen).
+    if (internalName.startsWith(namer.getterPrefix[0])) return type == 1;
+    if (internalName.startsWith(namer.setterPrefix[0])) return type == 2;
+    return type == 0;
+  }
+
   void emitNoSuchMethodHandlers(DefineStubFunction defineStub) {
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
@@ -2013,42 +2268,7 @@ class CodeEmitterTask extends CompilerTask {
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
-    Set<String> addedJsNames = new Set<String>();
-
-    jsAst.Expression generateMethod(String jsName, Selector selector) {
-      // Values match JSInvocationMirror in js-helper library.
-      int type = selector.invocationMirrorKind;
-      String methodName = selector.invocationMirrorMemberName;
-      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-      CodeBuffer args = new CodeBuffer();
-      for (int i = 0; i < selector.argumentCount; i++) {
-        parameters.add(new jsAst.Parameter('\$$i'));
-      }
-
-      List<jsAst.Expression> argNames =
-          selector.getOrderedNamedArguments().map((SourceString name) =>
-              js.string(name.slowToString())).toList();
-
-      String internalName = namer.invocationMirrorInternalName(selector);
-
-      String createInvocationMirror = namer.getName(
-          compiler.createInvocationMirrorElement);
-
-      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-      jsAst.Expression expression = js['this.$noSuchMethodName'](
-          [js['this'],
-           js[namer.CURRENT_ISOLATE][createInvocationMirror]([
-               js.string(methodName),
-               js.string(internalName),
-               type,
-               new jsAst.ArrayInitializer.from(
-                   parameters.map((param) => js[param.name]).toList()),
-               new jsAst.ArrayInitializer.from(argNames)])]);
-      parameters = backend.isInterceptedName(selector.name)
-          ? ([new jsAst.Parameter('\$receiver')]..addAll(parameters))
-          : parameters;
-      return js.fun(parameters, js.return_(expression));
-    }
+    Map<String, Selector> addedJsNames = new Map<String, Selector>();
 
     void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
       // Cache the object class and type.
@@ -2127,17 +2347,66 @@ class CodeEmitterTask extends CompilerTask {
             compiler.world.locateNoSuchMethodHolders(selector);
         if (holders.every(hasMatchingMember)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
-        if (!addedJsNames.contains(jsName)) {
-          jsAst.Expression method = generateMethod(jsName, selector);
-          defineStub(jsName, method);
-          addedJsNames.add(jsName);
-        }
+        addedJsNames[jsName] = selector;
       }
     }
 
     compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
     compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
     compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
+
+    // Set flag used by generateMethod helper below.  If we have very few
+    // handlers we use defineStub for them all, rather than try to generate them
+    // at runtime.
+    bool haveVeryFewNoSuchMemberHandlers =
+        (addedJsNames.length < VERY_FEW_NO_SUCH_METHOD_HANDLERS);
+
+    jsAst.Expression generateMethod(String jsName, Selector selector) {
+      // Values match JSInvocationMirror in js-helper library.
+      int type = selector.invocationMirrorKind;
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+      CodeBuffer args = new CodeBuffer();
+      for (int i = 0; i < selector.argumentCount; i++) {
+        parameters.add(new jsAst.Parameter('\$$i'));
+      }
+
+      List<jsAst.Expression> argNames =
+          selector.getOrderedNamedArguments().map((SourceString name) =>
+              js.string(name.slowToString())).toList();
+
+      String methodName = selector.invocationMirrorMemberName;
+      String internalName = namer.invocationMirrorInternalName(selector);
+      if (!haveVeryFewNoSuchMemberHandlers &&
+          isTrivialNsmHandler(type, argNames, selector, internalName)) {
+        trivialNsmHandlers.add(selector);
+        return null;
+      }
+
+      String createInvocationMirror = namer.getName(
+          compiler.createInvocationMirrorElement);
+
+      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
+      jsAst.Expression expression = js['this.$noSuchMethodName'](
+          [js['this'],
+           js[namer.CURRENT_ISOLATE][createInvocationMirror]([
+               js.string(compiler.enableMinification ?
+                         internalName : methodName),
+               js.string(internalName),
+               type,
+               new jsAst.ArrayInitializer.from(
+                   parameters.map((param) => js[param.name]).toList()),
+               new jsAst.ArrayInitializer.from(argNames)])]);
+      parameters = backend.isInterceptedName(selector.name)
+          ? ([new jsAst.Parameter('\$receiver')]..addAll(parameters))
+          : parameters;
+      return js.fun(parameters, js.return_(expression));
+    }
+
+    for (String jsName in addedJsNames.keys.toList()..sort()) {
+      Selector selector = addedJsNames[jsName];
+      jsAst.Expression method = generateMethod(jsName, selector);
+      if (method != null) defineStub(jsName, method);
+    }
   }
 
   String buildIsolateSetup(CodeBuffer buffer,
@@ -2196,7 +2465,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       return js.return_(js[namer.isolateAccess(cls)]['prototype']);
     }
 
-    jsAst.VariableUse receiver = js['receiver'];
     /**
      * Build a JavaScrit AST node for doing a type check on
      * [cls]. [cls] must be an interceptor class.
@@ -2205,7 +2473,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       jsAst.Expression condition;
       assert(backend.isInterceptorClass(cls));
       if (cls == backend.jsBoolClass) {
-        condition = receiver.typeof.equals(js.string('boolean'));
+        condition = js['(typeof receiver) == "boolean"'];
       } else if (cls == backend.jsIntClass ||
                  cls == backend.jsDoubleClass ||
                  cls == backend.jsNumberClass) {
@@ -2214,13 +2482,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                  cls == backend.jsMutableArrayClass ||
                  cls == backend.jsFixedArrayClass ||
                  cls == backend.jsExtendableArrayClass) {
-        condition = receiver['constructor'].equals('Array');
+        condition = js['receiver.constructor == Array'];
       } else if (cls == backend.jsStringClass) {
-        condition = receiver.typeof.equals(js.string('string'));
+        condition = js['(typeof receiver) == "string"'];
       } else if (cls == backend.jsNullClass) {
-        condition = receiver.equals(new jsAst.LiteralNull());
+        condition = js['receiver == null'];
       } else if (cls == backend.jsFunctionClass) {
-        condition = receiver.typeof.equals(js.string('function'));
+        condition = js['(typeof receiver) == "function"'];
       } else {
         throw 'internal error';
       }
@@ -2271,7 +2539,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
           hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
 
       if (hasInt) {
-        jsAst.Expression isInt = js['Math']['floor'](receiver).equals(receiver);
+        jsAst.Expression isInt = js['Math.floor(receiver) == receiver'];
         whenNumber = js.block([
             js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)),
             returnNumberClass]);
@@ -2279,7 +2547,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         whenNumber = returnNumberClass;
       }
       block.statements.add(
-          js.if_(receiver.typeof.equals(js.string('number')),
+          js.if_('(typeof receiver) == "number"',
                  whenNumber));
     }
 
@@ -2292,7 +2560,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // Returning "undefined" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
       // [unwrapException] in js_helper.dart.
-      block.statements.add(js.if_(receiver.equals(new jsAst.LiteralNull()),
+      block.statements.add(js.if_('receiver == null',
                                   js.return_(js.undefined())));
     }
     if (hasFunction) {
@@ -2306,7 +2574,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (hasArray) {
       block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
-    block.statements.add(js.return_(receiver));
+    block.statements.add(js.return_(js['receiver']));
 
     buffer.write(jsAst.prettyPrint(
         js[isolateProperties][key].assign(js.fun(['receiver'], block)),
@@ -2410,7 +2678,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         //    }
         // :].
         List<jsAst.Statement> body = <jsAst.Statement>[];
-        body.add(js.if_(js['receiver'].equals(new jsAst.LiteralNull()),
+        body.add(js.if_('receiver == null',
                         js.return_(js['a0'].equals(new jsAst.LiteralNull()))));
         body.add(js.if_(
             isNotObject('receiver'),

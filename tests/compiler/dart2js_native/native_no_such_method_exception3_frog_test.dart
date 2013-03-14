@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class GetName {
+  foo(x, y, [z]) => "foo";
+}
+
+static String getName(im) => im.invokeOn(new GetName());
+
 class A native "*A" {
   bar() => 42;
 }
@@ -12,7 +18,7 @@ class B native "*B" {
 
 class C {
   static create() => new C();
-  noSuchMethod(x) => "${x.memberName}:${x.positionalArguments}";
+  noSuchMethod(x) => "${getName(x)}:${x.positionalArguments}";
 }
 
 makeA() native;

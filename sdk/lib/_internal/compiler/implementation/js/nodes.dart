@@ -1061,6 +1061,11 @@ class JsBuilder {
         toStatement(statement));
   }
 
+  While while_(condition, statement) {
+    return new While(
+        toExpression(condition), toStatement(statement));
+  }
+
   Try try_(body, {catchPart, finallyPart}) {
     if (catchPart != null) catchPart = toStatement(catchPart);
     if (finallyPart != null) finallyPart = toStatement(finallyPart);
@@ -1191,8 +1196,8 @@ class MiniJsParser {
       ALPHA, ALPHA, LBRACE, SYMBOL, RBRACE, SYMBOL];                // yz{|}~
 
   static final BINARY_OPERATORS = [
-      '+', '-', '*', '/', '%', '^', '|', '&', '||', '&&',
-      '<<', '>>', '+=', '-=', '*=', '/=', '^=', '|=', '&=', '<<=', '>>=',
+      '+', '-', '*', '/', '%', '^', '|', '&', '||', '&&', '<<', '>>', '>>>',
+      '+=', '-=', '*=', '/=', '%=', '^=', '|=', '&=', '<<=', '>>=', '>>>=',
       '=', '!=', '==', '!==', '===', '<', '<=', '>=', '>'].toSet();
   static final UNARY_OPERATORS = ['++', '--', '+', '-', '~', '!'].toSet();
 
@@ -1431,7 +1436,7 @@ class MiniJsParser {
     // it the wrong prescedence), so we just return if we see it.
     if (relation == "=" || !acceptCategory(RELATION)) return lhs;
     Expression rhs = parseBinary();
-    if (relation == "<<=" || relation == ">>=") {
+    if (relation == "<<=" || relation == ">>=" || relation == ">>>=") {
       return new Assignment.compound(lhs,
                                      relation.substring(0, relation.length - 1),
                                      rhs);
