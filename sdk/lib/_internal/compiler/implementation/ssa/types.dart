@@ -36,13 +36,13 @@ abstract class HType {
       return isNullable ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
     }
 
-    if (isNullable) {
-      // TODO(kasperl): A lot of the code in the system currently
-      // expects the top type to be 'unknown'. I'll rework this.
-      if (element == compiler.objectClass || element == compiler.dynamicClass) {
-        return HType.UNKNOWN;
-      }
-    } else {
+    // TODO(kasperl): A lot of the code in the system currently
+    // expects the top type to be 'unknown'. I'll rework this.
+    if (element == compiler.objectClass || element == compiler.dynamicClass) {
+      return isNullable ? HType.UNKNOWN : HType.NON_NULL;
+    }
+
+    if (!isNullable) {
       if (element == backend.jsIndexableClass) {
         return HType.INDEXABLE_PRIMITIVE;
       } else if (element == backend.jsArrayClass) {
@@ -148,6 +148,7 @@ abstract class HType {
 
   static const HType CONFLICTING = const HConflictingType();
   static const HType UNKNOWN = const HUnknownType();
+  static const HType NON_NULL = const HNonNullType();
   static const HType BOOLEAN = const HBooleanType();
   static const HType NUMBER = const HNumberType();
   static const HType INTEGER = const HIntegerType();
@@ -203,16 +204,14 @@ abstract class HType {
   TypeMask computeMask(Compiler compiler);
 
   Selector refine(Selector selector, Compiler compiler) {
-    TypeMask mask = computeMask(compiler);
     // TODO(kasperl): Should we check if the refinement really is more
     // specialized than the starting point?
-    if (!mask.isEmpty && mask.base.isMalformed) return selector;
+    TypeMask mask = computeMask(compiler);
     return new TypedSelector(mask, selector);
   }
 
   // TODO(kasperl): Try to get rid of these.
   DartType computeType(Compiler compiler);
-  bool isTop(Compiler compiler) => false;
 
   /**
    * The intersection of two types is the intersection of its values. For
@@ -231,12 +230,7 @@ abstract class HType {
     TypeMask mask = computeMask(compiler);
     TypeMask otherMask = other.computeMask(compiler);
     TypeMask intersection = mask.intersection(otherMask, compiler);
-    if (intersection != null) return new HType.fromMask(intersection, compiler);
-    // TODO(kasperl): See if we can move the nullability check into
-    // the type mask intersection computation.
-    return (mask.isNullable && otherMask.isNullable)
-        ? HType.NULL
-        : HType.CONFLICTING;
+    return new HType.fromMask(intersection, compiler);
   }
 
   /**
@@ -255,10 +249,7 @@ abstract class HType {
     TypeMask mask = computeMask(compiler);
     TypeMask otherMask = other.computeMask(compiler);
     TypeMask union = mask.union(otherMask, compiler);
-    // TODO(kasperl): It would be nice if the union was never null.
-    return (union != null)
-        ? new HType.fromMask(union, compiler)
-        : HType.UNKNOWN;
+    return new HType.fromMask(union, compiler);
   }
 }
 
@@ -283,6 +274,23 @@ class HUnknownType extends HAnalysisType {
 
   TypeMask computeMask(Compiler compiler) {
     return new TypeMask.subclass(computeType(compiler));
+  }
+}
+
+class HNonNullType extends HAnalysisType {
+  const HNonNullType() : super("non-null");
+  bool canBePrimitive(Compiler compiler) => true;
+  bool canBeNull() => false;
+  bool canBePrimitiveNumber(Compiler compiler) => true;
+  bool canBePrimitiveString(Compiler compiler) => true;
+  bool canBePrimitiveArray(Compiler compiler) => true;
+
+  DartType computeType(Compiler compiler) {
+    return compiler.objectClass.computeType(compiler);
+  }
+
+  TypeMask computeMask(Compiler compiler) {
+    return new TypeMask.nonNullSubclass(computeType(compiler));
   }
 }
 
@@ -575,7 +583,6 @@ class HBoundedType extends HType {
   const HBoundedType(this.mask);
 
   bool isExact() => mask.isExact;
-  bool isTop(Compiler compiler) => mask.containsAll(compiler);
 
   bool canBeNull() => mask.isNullable;
 

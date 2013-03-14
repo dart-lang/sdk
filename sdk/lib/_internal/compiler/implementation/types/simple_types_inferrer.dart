@@ -776,7 +776,9 @@ class SimpleTypesInferrer extends TypesInferrer {
       return firstType;
     } else {
       TypeMask union = firstType.union(secondType, compiler);
-      return union == null ? giveUpType : union;
+      // TODO(kasperl): If the union isn't nullable it seems wasteful
+      // to give up. Fix that.
+      return union.containsAll(compiler) ? giveUpType : union;
     }
   }
 }

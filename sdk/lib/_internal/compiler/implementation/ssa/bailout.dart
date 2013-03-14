@@ -127,7 +127,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
           sourceType.kind == TypeKind.INTERFACE) {
         TypeMask sourceMask = new TypeMask.subtype(sourceType);
         TypeMask speculatedMask = speculativeType.computeMask(compiler);
-        if (sourceMask.intersection(speculatedMask, compiler) == null) {
+        if (sourceMask.intersection(speculatedMask, compiler).isEmpty) {
           return false;
         }
       }

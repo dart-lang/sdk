@@ -25,6 +25,7 @@ const INTEGER_OR_NULL = HType.INTEGER_OR_NULL;
 const DOUBLE_OR_NULL = HType.DOUBLE_OR_NULL;
 const STRING_OR_NULL = HType.STRING_OR_NULL;
 const NULL = HType.NULL;
+const NON_NULL = HType.NON_NULL;
 
 var patternClass;
 HType nonPrimitive1;
@@ -135,25 +136,25 @@ void testUnion(MockCompiler compiler) {
                 BOOLEAN.union(UNKNOWN, compiler));
   Expect.equals(BOOLEAN,
                 BOOLEAN.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 BOOLEAN.union(potentialArray, compiler));
@@ -171,14 +172,14 @@ void testUnion(MockCompiler compiler) {
                 BOOLEAN.union(STRING_OR_NULL, compiler));
   Expect.equals(BOOLEAN_OR_NULL,
                 BOOLEAN.union(NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 BOOLEAN.union(FIXED_ARRAY, compiler));
 
   Expect.equals(NUMBER,
                 NUMBER.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 NUMBER.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(BOOLEAN, compiler));
   Expect.equals(NUMBER,
                 NUMBER.union(NUMBER, compiler));
@@ -186,19 +187,19 @@ void testUnion(MockCompiler compiler) {
                 NUMBER.union(INTEGER, compiler));
   Expect.equals(NUMBER,
                 NUMBER.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 NUMBER.union(potentialArray, compiler));
@@ -216,14 +217,14 @@ void testUnion(MockCompiler compiler) {
                 NUMBER.union(STRING_OR_NULL, compiler));
   Expect.equals(NUMBER_OR_NULL,
                 NUMBER.union(NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 NUMBER.union(FIXED_ARRAY, compiler));
 
   Expect.equals(INTEGER,
                 INTEGER.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 INTEGER.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(BOOLEAN, compiler));
   Expect.equals(NUMBER,
                 INTEGER.union(NUMBER, compiler));
@@ -231,19 +232,19 @@ void testUnion(MockCompiler compiler) {
                 INTEGER.union(INTEGER, compiler));
   Expect.equals(NUMBER,
                 INTEGER.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 INTEGER.union(potentialArray, compiler));
@@ -261,14 +262,14 @@ void testUnion(MockCompiler compiler) {
                 INTEGER.union(STRING_OR_NULL, compiler));
   Expect.equals(INTEGER_OR_NULL,
                 INTEGER.union(NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INTEGER.union(FIXED_ARRAY, compiler));
 
   Expect.equals(DOUBLE,
                 DOUBLE.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 DOUBLE.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(BOOLEAN, compiler));
   Expect.equals(NUMBER,
                 DOUBLE.union(NUMBER, compiler));
@@ -276,19 +277,19 @@ void testUnion(MockCompiler compiler) {
                 DOUBLE.union(INTEGER, compiler));
   Expect.equals(DOUBLE,
                 DOUBLE.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 DOUBLE.union(potentialArray, compiler));
@@ -306,20 +307,20 @@ void testUnion(MockCompiler compiler) {
                 DOUBLE.union(STRING_OR_NULL, compiler));
   Expect.equals(DOUBLE_OR_NULL,
                 DOUBLE.union(NULL, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 DOUBLE.union(FIXED_ARRAY, compiler));
 
   Expect.equals(INDEXABLE_PRIMITIVE,
                 INDEXABLE_PRIMITIVE.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 INDEXABLE_PRIMITIVE.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INDEXABLE_PRIMITIVE.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INDEXABLE_PRIMITIVE.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INDEXABLE_PRIMITIVE.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INDEXABLE_PRIMITIVE.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 INDEXABLE_PRIMITIVE.union(INDEXABLE_PRIMITIVE,
@@ -333,9 +334,9 @@ void testUnion(MockCompiler compiler) {
   Expect.equals(INDEXABLE_PRIMITIVE,
                 INDEXABLE_PRIMITIVE.union(EXTENDABLE_ARRAY,
                 compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INDEXABLE_PRIMITIVE.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 INDEXABLE_PRIMITIVE.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 INDEXABLE_PRIMITIVE.union(potentialArray, compiler));
@@ -360,13 +361,13 @@ void testUnion(MockCompiler compiler) {
                 STRING.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 STRING.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 STRING.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 STRING.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 STRING.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 STRING.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 STRING.union(INDEXABLE_PRIMITIVE, compiler));
@@ -378,9 +379,9 @@ void testUnion(MockCompiler compiler) {
                 STRING.union(MUTABLE_ARRAY, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 STRING.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 STRING.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 STRING.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 STRING.union(potentialArray, compiler));
@@ -405,13 +406,13 @@ void testUnion(MockCompiler compiler) {
                 READABLE_ARRAY.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 READABLE_ARRAY.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 READABLE_ARRAY.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 READABLE_ARRAY.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 READABLE_ARRAY.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 READABLE_ARRAY.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 READABLE_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
@@ -423,9 +424,9 @@ void testUnion(MockCompiler compiler) {
                 READABLE_ARRAY.union(MUTABLE_ARRAY, compiler));
   Expect.equals(READABLE_ARRAY,
                 READABLE_ARRAY.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 READABLE_ARRAY.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 READABLE_ARRAY.union(nonPrimitive2, compiler));
   Expect.equals(potentialArray,
                 READABLE_ARRAY.union(potentialArray, compiler));
@@ -450,13 +451,13 @@ void testUnion(MockCompiler compiler) {
                 MUTABLE_ARRAY.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 MUTABLE_ARRAY.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 MUTABLE_ARRAY.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 MUTABLE_ARRAY.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 MUTABLE_ARRAY.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 MUTABLE_ARRAY.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 MUTABLE_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
@@ -468,9 +469,9 @@ void testUnion(MockCompiler compiler) {
                 MUTABLE_ARRAY.union(MUTABLE_ARRAY, compiler));
   Expect.equals(MUTABLE_ARRAY,
                 MUTABLE_ARRAY.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 MUTABLE_ARRAY.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 MUTABLE_ARRAY.union(nonPrimitive2, compiler));
   Expect.equals(potentialArray,MUTABLE_ARRAY.union(potentialArray,
                 compiler));
@@ -495,13 +496,13 @@ void testUnion(MockCompiler compiler) {
                 EXTENDABLE_ARRAY.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 EXTENDABLE_ARRAY.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 EXTENDABLE_ARRAY.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 EXTENDABLE_ARRAY.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 EXTENDABLE_ARRAY.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 EXTENDABLE_ARRAY.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 EXTENDABLE_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
@@ -513,9 +514,9 @@ void testUnion(MockCompiler compiler) {
                 EXTENDABLE_ARRAY.union(MUTABLE_ARRAY, compiler));
   Expect.equals(EXTENDABLE_ARRAY,
                 EXTENDABLE_ARRAY.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 EXTENDABLE_ARRAY.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 EXTENDABLE_ARRAY.union(nonPrimitive2, compiler));
   Expect.equals(potentialArray,
                 EXTENDABLE_ARRAY.union(potentialArray, compiler));
@@ -540,27 +541,27 @@ void testUnion(MockCompiler compiler) {
                 nonPrimitive1.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 nonPrimitive1.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(EXTENDABLE_ARRAY, compiler));
   Expect.equals(nonPrimitive1,
                 nonPrimitive1.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(nonPrimitive2, compiler));
   Expect.equals(UNKNOWN,
                 nonPrimitive1.union(potentialArray, compiler));
@@ -577,32 +578,32 @@ void testUnion(MockCompiler compiler) {
   Expect.equals(UNKNOWN,
                 nonPrimitive1.union(STRING_OR_NULL, compiler));
   Expect.isTrue(nonPrimitive1.union(NULL, compiler) is HBoundedType);
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive1.union(FIXED_ARRAY, compiler));
 
   Expect.equals(nonPrimitive2,
                 nonPrimitive2.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 nonPrimitive2.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(DOUBLE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(INDEXABLE_PRIMITIVE, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(STRING, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(READABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(MUTABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(nonPrimitive1, compiler));
   Expect.equals(nonPrimitive2,
                 nonPrimitive2.union(nonPrimitive2, compiler));
@@ -621,7 +622,7 @@ void testUnion(MockCompiler compiler) {
   Expect.equals(UNKNOWN,
                 nonPrimitive2.union(STRING_OR_NULL, compiler));
   Expect.isTrue(nonPrimitive2.union(NULL, compiler) is HBoundedType);
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 nonPrimitive2.union(FIXED_ARRAY, compiler));
 
   Expect.equals(potentialArray,
@@ -986,13 +987,13 @@ void testUnion(MockCompiler compiler) {
                 FIXED_ARRAY.union(CONFLICTING, compiler));
   Expect.equals(UNKNOWN,
                 FIXED_ARRAY.union(UNKNOWN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 FIXED_ARRAY.union(BOOLEAN, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 FIXED_ARRAY.union(NUMBER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 FIXED_ARRAY.union(INTEGER, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 FIXED_ARRAY.union(DOUBLE, compiler));
   Expect.equals(INDEXABLE_PRIMITIVE,
                 FIXED_ARRAY.union(INDEXABLE_PRIMITIVE, compiler));
@@ -1004,9 +1005,9 @@ void testUnion(MockCompiler compiler) {
                 FIXED_ARRAY.union(MUTABLE_ARRAY, compiler));
   Expect.equals(MUTABLE_ARRAY,
                 FIXED_ARRAY.union(EXTENDABLE_ARRAY, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 FIXED_ARRAY.union(nonPrimitive1, compiler));
-  Expect.equals(UNKNOWN,
+  Expect.equals(NON_NULL,
                 FIXED_ARRAY.union(nonPrimitive2, compiler));
   Expect.equals(potentialArray,
                 FIXED_ARRAY.union(potentialArray, compiler));
