@@ -83,6 +83,67 @@ abstract class Stream<T> {
   }
 
   /**
+   * Creates a stream that repeatedly emits events at [period] intervals.
+   *
+   * The event values are computed by invoking [computation]. The argument to
+   * this callback is an integer that starts with 0 and is incremented for
+   * every event.
+   *
+   * If [computation] is omitted the event values will all be `null`.
+   */
+  factory Stream.periodic(Duration period,
+                          [T computation(int computationCount)]) {
+    if (computation == null) computation = ((i) => null);
+
+    Timer timer;
+    int computationCount = 0;
+    StreamController<T> controller;
+    // Counts the time that the Stream was running (and not paused).
+    Stopwatch watch = new Stopwatch();
+
+    void sendEvent() {
+      watch.reset();
+      T data = computation(computationCount++);
+      controller.add(data);
+    }
+
+    void startPeriodicTimer() {
+      assert(timer == null);
+      timer = new Timer.periodic(period, (Timer timer) {
+        sendEvent();
+      });
+    }
+
+    controller = new StreamController<T>(
+        onPauseStateChange: () {
+          if (controller.isPaused) {
+            timer.cancel();
+            timer = null;
+            watch.stop();
+          } else {
+            assert(timer == null);
+            Duration elapsed = watch.elapsed;
+            watch.start();
+            timer = new Timer(period - elapsed, () {
+              timer = null;
+              startPeriodicTimer();
+              sendEvent();
+            });
+          }
+        },
+        onSubscriptionStateChange: () {
+          if (controller.hasSubscribers) {
+            watch.start();
+            startPeriodicTimer();
+          } else {
+            if (timer != null) timer.cancel();
+            timer = null;
+          }
+        });
+    return controller.stream;
+  }
+
+  /**
    * Reports whether this stream is a broadcast stream.
    */
   bool get isBroadcast => false;
