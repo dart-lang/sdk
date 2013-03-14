@@ -1930,6 +1930,7 @@ class Script : public Object {
   RawString* url() const { return raw_ptr()->url_; }
   bool HasSource() const;
   RawString* Source() const;
+  RawString* GenerateSource() const;  // Generates source code from Tokenstream.
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
   }

@@ -158,6 +158,20 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
 
 
 /**
+ * Returns a string containing a generated source code of the given script
+ * in the given library. This is essentially used to pretty print dart code
+ * generated from any tool (e.g: dart2dart).
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to string containing the source text if no error
+ * occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
+                                                  Dart_Handle script_url_in);
+
+
+/**
  * Sets a breakpoint at line \line_number in \script_url, or the closest
  * following line (within the same function) where a breakpoint can be set.
  *

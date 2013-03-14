@@ -63,6 +63,11 @@ static const char* package_root = NULL;
 static bool has_compile_all = false;
 
 
+// Global flag that is used to indicate that we want to print the source code
+// for script that is being run.
+static bool has_print_script = false;
+
+
 static bool IsValidFlag(const char* name,
                         const char* prefix,
                         intptr_t prefix_length) {
@@ -186,6 +191,16 @@ static bool ProcessVmStatsOption(const char* port) {
 }
 
 
+static bool ProcessPrintScriptOption(const char* arg) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  has_print_script = true;
+  return true;
+}
+
+
 static bool ProcessVmStatsRootOption(const char* arg) {
   ASSERT(arg != NULL);
   vmstats_root = arg;
@@ -238,6 +253,7 @@ static struct {
   { "--generate-script-snapshot=", ProcessGenScriptSnapshotOption },
   { "--stats-root=", ProcessVmStatsRootOption },
   { "--stats", ProcessVmStatsOption },
+  { "--print-script", ProcessPrintScriptOption },
   { NULL, NULL }
 };
 
@@ -583,6 +599,9 @@ static void PrintUsage() {
 "--generate-script-snapshot=<file_name>\n"
 "  loads Dart script and generates a snapshot in the specified file\n"
 "\n"
+"--print-source\n"
+"  generates Dart source code back and prints it after parsing a Dart script\n"
+"\n"
 "--stats[:<port number>]\n"
 "  enables VM stats service and listens on specified port for HTTP requests\n"
 "  (default port number is dynamically assigned)\n"
@@ -672,6 +691,40 @@ static void ShutdownIsolate(void* callback_data) {
   EventHandler* handler = isolate_data->event_handler;
   if (handler != NULL) handler->Shutdown();
   delete isolate_data;
+}
+
+
+static Dart_Handle GenerateScriptSource() {
+  Dart_Handle library_url = Dart_LibraryUrl(Dart_RootLibrary());
+  if (Dart_IsError(library_url)) {
+    return library_url;
+  }
+  Dart_Handle script_urls = Dart_GetScriptURLs(library_url);
+  if (Dart_IsError(script_urls)) {
+    return script_urls;
+  }
+  intptr_t length;
+  Dart_Handle result = Dart_ListLength(script_urls, &length);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  for (intptr_t i = 0; i < length; i++) {
+    Dart_Handle script_url = Dart_ListGetAt(script_urls, i);
+    if (Dart_IsError(script_url)) {
+      return script_url;
+    }
+    result = Dart_GenerateScriptSource(library_url, script_url);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    const char* script_source = NULL;
+    result = Dart_StringToCString(result, &script_source);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    Log::Print("%s\n", script_source);
+  }
+  return Dart_True();
 }
 
 
@@ -803,6 +856,12 @@ int main(int argc, char** argv) {
         return ErrorExit("Error setting breakpoint at '%s': %s\n",
                          breakpoint_at,
                          Dart_GetError(result));
+      }
+    }
+    if (has_print_script) {
+      result = GenerateScriptSource();
+      if (Dart_IsError(result)) {
+        return ErrorExit("%s\n", Dart_GetError(result));
       }
     }
 

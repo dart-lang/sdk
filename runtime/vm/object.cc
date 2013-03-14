@@ -5330,11 +5330,15 @@ bool Script::HasSource() const {
 RawString* Script::Source() const {
   String& source = String::Handle(raw_ptr()->source_);
   if (source.IsNull()) {
-    const TokenStream& token_stream = TokenStream::Handle(tokens());
-    return token_stream.GenerateSource();
-  } else {
-    return raw_ptr()->source_;
+    return GenerateSource();
   }
+  return raw_ptr()->source_;
+}
+
+
+RawString* Script::GenerateSource() const {
+  const TokenStream& token_stream = TokenStream::Handle(tokens());
+  return token_stream.GenerateSource();
 }
 
 

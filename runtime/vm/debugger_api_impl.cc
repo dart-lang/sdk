@@ -568,6 +568,30 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
 }
 
 
+DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
+                                                  Dart_Handle script_url_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+
+  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  if (library.IsNull()) {
+    return Api::NewError("%s: library '%s' not found",
+                         CURRENT_FUNC, library_url.ToCString());
+  }
+
+  const Script& script = Script::Handle(library.LookupScript(script_url));
+  if (script.IsNull()) {
+    return Api::NewError("%s: script '%s' not found in library '%s'",
+                         CURRENT_FUNC, script_url.ToCString(),
+                         library_url.ToCString());
+  }
+
+  return Api::NewHandle(isolate, script.GenerateSource());
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetScriptSource(
                             Dart_Handle library_url_in,
                             Dart_Handle script_url_in) {
