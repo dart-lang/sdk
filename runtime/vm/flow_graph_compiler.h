@@ -414,12 +414,10 @@ class FlowGraphCompiler : public ValueObject {
                                                 intptr_t index_scale,
                                                 Register array,
                                                 Register index);
-  static Address ExternalElementAddressForIntIndex(intptr_t cid,
-                                                   intptr_t index_scale,
+  static Address ExternalElementAddressForIntIndex(intptr_t index_scale,
                                                    Register array,
                                                    intptr_t offset);
-  static Address ExternalElementAddressForRegIndex(intptr_t cid,
-                                                   intptr_t index_scale,
+  static Address ExternalElementAddressForRegIndex(intptr_t index_scale,
                                                    Register array,
                                                    Register index);
 

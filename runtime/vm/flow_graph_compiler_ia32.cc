@@ -1542,7 +1542,6 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
 
 
 Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t cid,
     intptr_t index_scale,
     Register array,
     intptr_t index) {
@@ -1551,18 +1550,10 @@ Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
 
 
 Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t cid,
     intptr_t index_scale,
     Register array,
     Register index) {
-  switch (cid) {
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-      return Address(array, index, ToScaleFactor(index_scale), 0);
-    default:
-      UNIMPLEMENTED();
-      return Address(SPREG, 0);
-  }
+  return Address(array, index, ToScaleFactor(index_scale), 0);
 }
 
 

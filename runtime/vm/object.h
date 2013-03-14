@@ -4963,6 +4963,10 @@ class TypedData : public Instance {
     return OFFSET_OF(RawTypedData, length_);
   }
 
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawTypedData, data_);
+  }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTypedData) == OFFSET_OF(RawTypedData, data_));
     return 0;

@@ -271,6 +271,7 @@ static bool IsRecognizedLibrary(const Library& library) {
   // List of libraries where methods can be recognized.
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
+      || (library.raw() == Library::TypedDataLibrary())
       || (library.raw() == Library::ScalarlistLibrary());
 }
 
@@ -1112,6 +1113,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
     case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kStringBaseLength:
       return true;
     default:
@@ -1122,6 +1124,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
 
 MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
     intptr_t cid) {
+  if (RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsExternalTypedDataClassId(cid)) {
+    return MethodRecognizer::kTypedDataLength;
+  }
   switch (cid) {
     case kArrayCid:
       return MethodRecognizer::kObjectArrayLength;
@@ -1924,7 +1930,8 @@ void LoadFieldInstr::InferRange() {
     return;
   }
   if ((range_ == NULL) &&
-      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength)) {
+      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength ||
+       recognized_kind() == MethodRecognizer::kTypedDataLength)) {
     range_ = new Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
     return;
   }
@@ -1942,6 +1949,7 @@ void LoadFieldInstr::InferRange() {
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
     case kInt8ArrayCid:
+    case kTypedDataInt8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-128),
                          RangeBoundary::FromConstant(127));
       break;
@@ -1949,14 +1957,20 @@ void LoadIndexedInstr::InferRange() {
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
     case kExternalUint8ClampedArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
     case kInt16ArrayCid:
+    case kTypedDataInt16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-32768),
                          RangeBoundary::FromConstant(32767));
       break;
     case kUint16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(65535));
       break;
@@ -2190,6 +2204,12 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
 
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+    return ExternalTypedData::length_offset();
+  }
+  if (RawObject::IsTypedDataClassId(class_id)) {
+    return TypedData::length_offset();
+  }
   switch (class_id) {
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::length_offset();

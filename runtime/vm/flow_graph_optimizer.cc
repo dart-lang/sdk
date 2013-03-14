@@ -716,6 +716,13 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       // Check that value is always smi.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -724,7 +731,9 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       }
       break;
     case kInt32ArrayCid:
-    case kUint32ArrayCid: {
+    case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
       if (!CanUnboxInt32()) return false;
       // Check that value is always smi or mint, if the platform has unboxed
       // mints (ia32 with at least SSE 4.1).
@@ -742,7 +751,9 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       break;
     }
     case kFloat32ArrayCid:
-    case kFloat64ArrayCid: {
+    case kFloat64ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -853,12 +864,26 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
       case kUint16ArrayCid:
       case kInt32ArrayCid:
       case kUint32ArrayCid:
+      case kTypedDataInt8ArrayCid:
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+      case kTypedDataInt16ArrayCid:
+      case kTypedDataUint16ArrayCid:
+      case kTypedDataInt32ArrayCid:
+      case kTypedDataUint32ArrayCid:
         ASSERT(value_type.IsIntType());
         // Fall through.
       case kFloat32ArrayCid:
-      case kFloat64ArrayCid: {
+      case kFloat64ArrayCid:
+      case kTypedDataFloat32ArrayCid:
+      case kTypedDataFloat64ArrayCid: {
         type_args = instantiator = flow_graph_->constant_null();
-        ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
+        ASSERT((class_id != kFloat32ArrayCid &&
+                class_id != kFloat64ArrayCid &&
+                class_id != kTypedDataFloat32ArrayCid &&
+                class_id != kTypedDataFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
         break;
@@ -925,9 +950,20 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       break;
     case kInt32ArrayCid:
-    case kUint32ArrayCid: {
+    case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
         if (!CanUnboxInt32()) return false;
 
         // Set deopt_id if we can optimistically assume that the result is Smi.
@@ -1327,6 +1363,11 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
       return Array::length_offset();
     case MethodRecognizer::kByteArrayBaseLength:
       return ByteArray::length_offset();
+    case MethodRecognizer::kTypedDataLength:
+      // .length is defined in _TypedList which is the base class for internal
+      // and external typed data.
+      ASSERT(TypedData::length_offset() == ExternalTypedData::length_offset());
+      return TypedData::length_offset();
     case MethodRecognizer::kGrowableArrayLength:
       return GrowableObjectArray::length_offset();
     default:
@@ -1365,6 +1406,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
     case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kGrowableArrayLength: {
       if (!ic_data.HasOneTarget()) {
         // TODO(srdjan): Implement for mutiple targets.
@@ -1373,7 +1415,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       const bool is_immutable =
           (recognized_kind == MethodRecognizer::kObjectArrayLength) ||
           (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-          (recognized_kind == MethodRecognizer::kByteArrayBaseLength);
+          (recognized_kind == MethodRecognizer::kByteArrayBaseLength) ||
+          (recognized_kind == MethodRecognizer::kTypedDataLength);
       InlineArrayLengthGetter(call,
                               OffsetForLengthGetter(recognized_kind),
                               is_immutable,
@@ -1900,8 +1943,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if ((op_kind == Token::kASSIGN_INDEX) &&
-      TryReplaceWithStoreIndexed(instr)) {
+  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithStoreIndexed(instr)) {
     return;
   }
   if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {

@@ -941,6 +941,11 @@ void ParallelMoveResolver::PerformMove(int index) {
 
 
 intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
+  if (RawObject::IsExternalTypedDataClassId(cid)) {
+    return ExternalTypedData::ElementSizeInBytes(cid);
+  } else if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::ElementSizeInBytes(cid);
+  }
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
@@ -979,6 +984,13 @@ intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
 
 
 intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
+  if (RawObject::IsExternalTypedDataClassId(cid)) {
+    // Elements start at offset 0 of the external data.
+    return 0;
+  }
+  if (RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::data_offset();
+  }
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:

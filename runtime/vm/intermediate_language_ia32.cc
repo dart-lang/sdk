@@ -1102,6 +1102,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       return CompileType::FromCid(kDoubleCid);
 
     case kInt8ArrayCid:
@@ -1111,12 +1113,21 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
       return CompileType::FromCid(kSmiCid);
 
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
       // Result can be Smi or Mint when boxed.
       // Instruction can deoptimize if we optimistically assumed that the result
       // fits into Smi.
@@ -1141,16 +1152,27 @@ Representation LoadIndexedInstr::representation() const {
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
       return kTagged;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
       // Instruction can deoptimize if we optimistically assumed that the result
       // fits into Smi.
       return CanDeoptimize() ? kTagged : kUnboxedMint;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
     default:
       UNIMPLEMENTED();
@@ -1192,14 +1214,15 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Location index = locs()->in(1);
 
   if ((class_id() == kExternalUint8ArrayCid) ||
-      (class_id() == kExternalUint8ClampedArrayCid)) {
+      (class_id() == kExternalUint8ClampedArrayCid) ||
+      (class_id() == kExternalTypedDataUint8ArrayCid) ||
+      (class_id() == kExternalTypedDataUint8ClampedArrayCid)) {
     Register result = locs()->out().reg();
     const Address& element_address = index.IsRegister()
         ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
-            class_id(), index_scale(), result, index.reg())
+            index_scale(), result, index.reg())
         : FlowGraphCompiler::ExternalElementAddressForIntIndex(
-            class_id(), index_scale(), result,
-            Smi::Cast(index.constant()).Value());
+            index_scale(), result, Smi::Cast(index.constant()).Value());
     ASSERT(index_scale() == 1);
     if (index.IsRegister()) {
       __ SmiUntag(index.reg());
@@ -1226,19 +1249,23 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     switch (class_id()) {
       case kInt32ArrayCid:
+      case kTypedDataInt32ArrayCid:
         __ movss(result, element_address);
         __ pmovsxdq(result, result);
         break;
       case kUint32ArrayCid:
+      case kTypedDataUint32ArrayCid:
         __ xorpd(result, result);
         __ movss(result, element_address);
         break;
       case kFloat32ArrayCid:
+      case kTypedDataFloat32ArrayCid:
         // Load single precision float and promote to double.
         __ movss(result, element_address);
         __ cvtss2sd(result, locs()->out().fpu_reg());
         break;
       case kFloat64ArrayCid:
+      case kTypedDataFloat64ArrayCid:
         __ movsd(result, element_address);
         break;
     }
@@ -1251,27 +1278,33 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   switch (class_id()) {
     case kInt8ArrayCid:
+    case kTypedDataInt8ArrayCid:
+      ASSERT(index_scale() == 1);
+      __ movsxb(result, element_address);
+      __ SmiTag(result);
+      break;
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
       ASSERT(index_scale() == 1);
-      if (class_id() == kInt8ArrayCid) {
-        __ movsxb(result, element_address);
-      } else {
-        __ movzxb(result, element_address);
-      }
+      __ movzxb(result, element_address);
       __ SmiTag(result);
       break;
     case kInt16ArrayCid:
+    case kTypedDataInt16ArrayCid:
       __ movsxw(result, element_address);
       __ SmiTag(result);
       break;
     case kUint16ArrayCid:
+    case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
       __ movzxw(result, element_address);
       __ SmiTag(result);
       break;
-    case kInt32ArrayCid: {
+    case kInt32ArrayCid:
+    case kTypedDataInt32ArrayCid: {
         Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
         __ movl(result, element_address);
         // Verify that the signed value in 'result' can fit inside a Smi.
@@ -1280,7 +1313,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiTag(result);
       }
       break;
-    case kUint32ArrayCid: {
+    case kUint32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
         Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
         __ movl(result, element_address);
         // Verify that the unsigned value in 'result' can fit inside a Smi.
@@ -1310,12 +1344,23 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       return kTagged;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
       return value()->IsSmiValue() ? kTagged : kUnboxedMint;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
+    case kTypedDataFloat32ArrayCid :
+    case kTypedDataFloat64ArrayCid :
       return kUnboxedDouble;
     default:
       UNIMPLEMENTED();
@@ -1351,23 +1396,32 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       break;
     case kExternalUint8ArrayCid:
     case kExternalUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
       // Need temp register to load the external array's data array.
       locs->AddTemp(Location::RequiresRegister());
       // Fall through.
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
       // TODO(fschneider): Add location constraint for byte registers (EAX,
       // EBX, ECX, EDX) instead of using a fixed register.
       locs->set_in(2, Location::FixedRegisterOrSmiConstant(value(), EAX));
       break;
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       // Writable register because the value must be untagged before storing.
       locs->set_in(2, Location::WritableRegister());
       break;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
       // Mints are stored in XMM registers. For smis, use a writable register
       // because the value must be untagged before storing.
       locs->set_in(2, value()->IsSmiValue()
@@ -1375,10 +1429,12 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
                       : Location::RequiresFpuRegister());
       break;
     case kFloat32ArrayCid:
+    case kTypedDataFloat32ArrayCid:
       // Need temp register for float-to-double conversion.
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
     case kFloat64ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1396,14 +1452,15 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Address element_address(kNoRegister, 0);
   if ((class_id() == kExternalUint8ArrayCid) ||
-      (class_id() == kExternalUint8ClampedArrayCid)) {
+      (class_id() == kExternalUint8ClampedArrayCid) ||
+      (class_id() == kExternalTypedDataUint8ArrayCid) ||
+      (class_id() == kExternalTypedDataUint8ClampedArrayCid)) {
     Register temp = locs()->temp(0).reg();
     element_address = index.IsRegister()
         ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
-            class_id(), index_scale(), temp, index.reg())
+            index_scale(), temp, index.reg())
         : FlowGraphCompiler::ExternalElementAddressForIntIndex(
-            class_id(), index_scale(), temp,
-            Smi::Cast(index.constant()).Value());
+            index_scale(), temp, Smi::Cast(index.constant()).Value());
     __ movl(temp,
             FieldAddress(array, ExternalUint8Array::data_offset()));
   } else {
@@ -1434,6 +1491,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kExternalUint8ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ movb(element_address,
@@ -1445,7 +1505,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     case kUint8ClampedArrayCid:
-    case kExternalUint8ClampedArrayCid: {
+    case kExternalUint8ClampedArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid: {
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         intptr_t value = constant.Value();
@@ -1475,7 +1537,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kInt16ArrayCid:
-    case kUint16ArrayCid: {
+    case kUint16ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid: {
       Register value = locs()->in(2).reg();
       __ SmiUntag(value);
       __ movw(element_address, value);
@@ -1483,6 +1547,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kInt32ArrayCid:
     case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
       if (value()->IsSmiValue()) {
         ASSERT(RequiredInputRepresentation(2) == kTagged);
         Register value = locs()->in(2).reg();
@@ -1494,12 +1560,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     case kFloat32ArrayCid:
+    case kTypedDataFloat32ArrayCid:
       // Convert to single precision.
       __ cvtsd2ss(locs()->temp(0).fpu_reg(), locs()->in(2).fpu_reg());
       // Store.
       __ movss(element_address, locs()->temp(0).fpu_reg());
       break;
     case kFloat64ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
     default:
