@@ -141,6 +141,11 @@ const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 
 
+// Dart stack frame layout.
+static const int kLastParamSlotIndex = 3;
+static const int kFirstLocalSlotIndex = -2;
+
+
 // Values for the condition field.  // UNIMPLEMENTED.
 enum Condition {
   kNoCondition = -1,

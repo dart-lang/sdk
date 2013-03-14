@@ -66,9 +66,10 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // has its own return instruction. Method that have finally are currently
   // not optimized.
   if (!compiler->HasFinally()) {
+    __ Comment("Stack Check");
+    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
     __ sub(R2, FP, ShifterOperand(SP));
-    // + 1 for saved PP.
-    __ CompareImmediate(R2, (compiler->StackSize() + 1) * kWordSize);
+    __ CompareImmediate(R2, sp_fp_dist * kWordSize);
     __ bkpt(0, NE);
   }
 #endif
@@ -92,13 +93,15 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
 
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  __ LoadFromOffset(kLoadWord, result, FP, local().index() * kWordSize);
 }
 
 
@@ -214,9 +217,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in R2.
   if (!function().HasOptionalParameters()) {
-    __ AddImmediate(R2, FP, (2 + function().NumParameters()) * kWordSize);
+    __ AddImmediate(R2, FP, (kLastParamSlotIndex +
+                             function().NumParameters() - 1) * kWordSize);
   } else {
-    __ AddImmediate(R2, FP, ParsedFunction::kFirstLocalSlotIndex * kWordSize);
+    __ AddImmediate(R2, FP, kFirstLocalSlotIndex * kWordSize);
   }
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call

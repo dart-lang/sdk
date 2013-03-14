@@ -81,11 +81,12 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // has its own return instruction. Method that have finally are currently
   // not optimized.
   if (!compiler->HasFinally()) {
+    __ Comment("Stack Check");
     Label done;
+    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
     __ movq(RDI, RBP);
     __ subq(RDI, RSP);
-    // + 1 for Pc marker.
-    __ cmpq(RDI, Immediate((compiler->StackSize() + 1) * kWordSize));
+    __ cmpq(RDI, Immediate(sp_fp_dist * kWordSize));
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ int3();
     __ Bind(&done);
@@ -908,10 +909,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in RAX.
   if (!function().HasOptionalParameters()) {
-    __ leaq(RAX, Address(RBP, (1 + function().NumParameters()) * kWordSize));
+    __ leaq(RAX, Address(RBP, (kLastParamSlotIndex +
+                               function().NumParameters() - 1) * kWordSize));
   } else {
     __ leaq(RAX,
-            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
+            Address(RBP, kFirstLocalSlotIndex * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movq(R10, Immediate(NativeArguments::ComputeArgcTag(function())));

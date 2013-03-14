@@ -655,8 +655,7 @@ void FlowGraphCompiler::CopyParameters() {
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
   ASSERT(function.NumParameters() == num_params);
-  ASSERT(parsed_function().first_parameter_index() ==
-         ParsedFunction::kFirstLocalSlotIndex);
+  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotIndex);
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -674,20 +673,19 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(GREATER, &wrong_num_arguments);
 
   // Copy positional arguments.
-  // Argument i passed at fp[1 + num_args - i] is copied
-  // to fp[ParsedFunction::kFirstLocalSlotIndex - i].
+  // Argument i passed at fp[kLastParamSlotIndex + num_args - 1 - i] is copied
+  // to fp[kFirstLocalSlotIndex - i].
 
   __ movl(EBX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   // Since EBX and ECX are Smi, use TIMES_2 instead of TIMES_4.
   // Let EBX point to the last passed positional argument, i.e. to
-  // fp[1 + num_args - (num_pos_args - 1)].
+  // fp[kLastParamSlotIndex + num_args - 1 - (num_pos_args - 1)].
   __ subl(EBX, ECX);
-  __ leal(EBX, Address(EBP, EBX, TIMES_2, 2 * kWordSize));
+  __ leal(EBX, Address(EBP, EBX, TIMES_2, kLastParamSlotIndex * kWordSize));
 
   // Let EDI point to the last copied positional argument, i.e. to
-  // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
-  const int index = ParsedFunction::kFirstLocalSlotIndex + 1;
-  __ leal(EDI, Address(EBP, (index * kWordSize)));
+  // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
+  __ leal(EDI, Address(EBP, (kFirstLocalSlotIndex + 1) * kWordSize));
   __ subl(EDI, ECX);  // ECX is a Smi, subtract twice for TIMES_4 scaling.
   __ subl(EDI, ECX);
   __ SmiUntag(ECX);
@@ -764,12 +762,11 @@ void FlowGraphCompiler::CopyParameters() {
               param_pos - num_fixed_params));
       __ LoadObject(EAX, value);
       __ Bind(&assign_optional_parameter);
-      // Assign EAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
+      // Assign EAX to fp[kFirstLocalSlotIndex - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const intptr_t computed_param_pos =
-          ParsedFunction::kFirstLocalSlotIndex - param_pos;
+      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
       const Address param_addr(EBP, (computed_param_pos * kWordSize));
       __ movl(param_addr, EAX);
       __ Bind(&next_parameter);
@@ -796,12 +793,11 @@ void FlowGraphCompiler::CopyParameters() {
       const Object& value = Object::ZoneHandle(
           parsed_function().default_parameter_values().At(i));
       __ LoadObject(EAX, value);
-      // Assign EAX to fp[ParsedFunction::kFirstLocalSlotIndex - param_pos].
+      // Assign EAX to fp[kFirstLocalSlotIndex - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const intptr_t computed_param_pos =
-          ParsedFunction::kFirstLocalSlotIndex - param_pos;
+      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
       const Address param_addr(EBP, (computed_param_pos * kWordSize));
       __ movl(param_addr, EAX);
       __ Bind(&next_parameter);

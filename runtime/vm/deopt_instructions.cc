@@ -709,14 +709,12 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
   } else if (from_loc.IsStackSlot()) {
     intptr_t from_index = (from_loc.stack_index() < 0) ?
         from_loc.stack_index() + num_args_ :
-        from_loc.stack_index() + num_args_ -
-            ParsedFunction::kFirstLocalSlotIndex + 1;
+        from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
     deopt_instr = new DeoptStackSlotInstr(from_index);
   } else if (from_loc.IsDoubleStackSlot()) {
     intptr_t from_index = (from_loc.stack_index() < 0) ?
         from_loc.stack_index() + num_args_ :
-        from_loc.stack_index() + num_args_ -
-            ParsedFunction::kFirstLocalSlotIndex + 1;
+        from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
     if (from_loc.representation() == Location::kDouble) {
       deopt_instr = new DeoptDoubleStackSlotInstr(from_index);
     } else {

@@ -31,8 +31,6 @@ struct FieldInitExpression;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  static const int kFirstLocalSlotIndex = -2;
-
   explicit ParsedFunction(const Function& function)
       : function_(function),
         node_sequence_(NULL),

@@ -158,10 +158,10 @@ void ParsedFunction::AllocateVariables() {
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
   if (num_opt_params == 0) {
-    // Parameter i will be at fp[1 + num_params - i] and local variable
-    // j will be at fp[kFirstLocalSlotIndex - j].
+    // Parameter i will be at fp[kLastParamSlotIndex + num_params - 1 - i] and
+    // local variable j will be at fp[kFirstLocalSlotIndex - j].
     ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
-    first_parameter_index_ = 1 + num_params;
+    first_parameter_index_ = kLastParamSlotIndex + num_params - 1;
     first_stack_local_index_ = kFirstLocalSlotIndex;
     num_copied_params_ = 0;
   } else {

@@ -83,10 +83,10 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->HasFinally()) {
     __ Comment("Stack Check");
     Label done;
+    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
     __ movl(EDI, EBP);
     __ subl(EDI, ESP);
-    // + 1 for Pc marker.
-    __ cmpl(EDI, Immediate((compiler->StackSize() + 1) * kWordSize));
+    __ cmpl(EDI, Immediate(sp_fp_dist * kWordSize));
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ int3();
     __ Bind(&done);
@@ -1043,10 +1043,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in EAX.
   if (!function().HasOptionalParameters()) {
-    __ leal(EAX, Address(EBP, (1 + function().NumParameters()) * kWordSize));
+    __ leal(EAX, Address(EBP, (kLastParamSlotIndex +
+                               function().NumParameters() - 1) * kWordSize));
   } else {
-    __ leal(EAX,
-            Address(EBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
+    __ leal(EAX, Address(EBP, kFirstLocalSlotIndex * kWordSize));
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movl(EDX, Immediate(NativeArguments::ComputeArgcTag(function())));

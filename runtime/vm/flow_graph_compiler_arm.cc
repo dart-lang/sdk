@@ -187,7 +187,22 @@ void FlowGraphCompiler::EmitFrameEntry() {
     const bool can_optimize = !is_optimizing() || may_reoptimize();
     const Register function_reg = R6;
     if (can_optimize) {
-      __ LoadObject(function_reg, function);
+      // The pool pointer is not setup before entering the Dart frame.
+
+      // Preserve PP of caller.
+      __ mov(R7, ShifterOperand(PP));
+
+      // Temporarily setup pool pointer for this dart function.
+      const intptr_t object_pool_pc_dist =
+         Instructions::HeaderSize() - Instructions::object_pool_offset() +
+         assembler()->CodeSize() + Instr::kPCReadOffset;
+      __ ldr(PP, Address(PC, -object_pool_pc_dist));
+
+      // Load function object from object pool.
+      __ LoadObject(function_reg, function);  // Uses PP.
+
+      // Restore PP of caller.
+      __ mov(PP, ShifterOperand(R7));
     }
     // Patch point is after the eventually inlined function object.
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,

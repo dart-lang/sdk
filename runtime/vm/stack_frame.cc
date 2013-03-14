@@ -61,8 +61,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   NoGCScope no_gc;
   RawObject** start_addr = reinterpret_cast<RawObject**>(sp());
-  RawObject** end_addr = reinterpret_cast<RawObject**>(fp()) +
-      ParsedFunction::kFirstLocalSlotIndex;
+  RawObject** end_addr =
+      reinterpret_cast<RawObject**>(fp()) + kFirstLocalSlotIndex;
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
