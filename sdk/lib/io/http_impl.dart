@@ -1608,6 +1608,10 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   String get remoteHost => _socket.remoteHost;
 
   int get remotePort => _socket.remotePort;
+
+  bool setOption(SocketOption option, bool enabled) {
+    return _socket.setOption(option, enabled);
+  }
 }
 
 

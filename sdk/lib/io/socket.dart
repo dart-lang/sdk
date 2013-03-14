@@ -232,13 +232,12 @@ abstract class Socket implements Stream<List<int>>,
   void destroy();
 
   /**
-   * Enable or disable no-delay on the socket. If no-delay is enabled, the
-   * socket will not buffer data internally, but instead write each data chunk
-   * as an invidual TCP packet.
+   * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
+   * available options.
    *
-   * No-delay is disabled by default.
+   * Returns [true] if the option was set successfully, false otherwise.
    */
-  bool setNoDelay([bool enabled = true]);
+  bool setOption(SocketOption option, bool enabled);
 
   int get port;
   String get remoteHost;
