@@ -1118,10 +1118,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitStringInterpolation(StringInterpolation node) {
+    node.visitChildren(this);
     return inferrer.stringType;
   }
 
   TypeMask visitStringJuxtaposition(StringJuxtaposition node) {
+    node.visitChildren(this);
     return inferrer.stringType;
   }
 
@@ -1138,12 +1140,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitLiteralList(LiteralList node) {
+    node.visitChildren(this);
     return node.isConst()
         ? inferrer.constListType
         : inferrer.growableListType;
   }
 
   TypeMask visitLiteralMap(LiteralMap node) {
+    node.visitChildren(this);
     return node.isConst()
         ? inferrer.constMapType
         : inferrer.mapType;

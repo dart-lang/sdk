@@ -375,6 +375,29 @@ const String TEST_22 = r"""
   }
 """;
 
+const String TEST_23 = r"""
+  class A {
+    var f1 = 42;
+    var f2 = 42;
+    var f3 = 42;
+    var f4 = 42;
+    A() {
+      // Test string interpolation.
+      '${f1 = null}';
+      // Test string juxtaposition.
+      ''
+      '${f2 = null}';
+      // Test list literal.
+      [f3 = null];
+      // Test map literal.
+      var c = {'foo': f4 = null };
+    }
+  }
+  main() {
+    new A();
+  }
+""";
+
 void doTest(String test, bool disableInlining, Map<String, Function> fields) {
   fields.forEach((String name, Function f) {
     compileAndFind(
@@ -443,6 +466,11 @@ void test() {
   runTest(TEST_22, {'f1': (inferrer) => inferrer.intType,
                     'f2': (inferrer) => inferrer.intType,
                     'f3': (inferrer) => inferrer.stringType.nullable()});
+
+  runTest(TEST_23, {'f1': (inferrer) => inferrer.intType.nullable(),
+                    'f2': (inferrer) => inferrer.intType.nullable(),
+                    'f3': (inferrer) => inferrer.intType.nullable(),
+                    'f4': (inferrer) => inferrer.intType.nullable()});
 }
 
 void main() {
