@@ -14,7 +14,7 @@ import "date_symbols.dart";
 import "src/lazy_locale_data.dart";
 import 'src/date_format_internal.dart';
 import 'src/file_data_reader.dart';
-import 'dart:io';
+import 'package:pathos/path.dart' as path;
 
 part "src/data/dates/localeList.dart";
 
@@ -24,11 +24,11 @@ part "src/data/dates/localeList.dart";
  * The [path] parameter should end with a directory separator appropriate
  * for the platform.
  */
-Future initializeDateFormatting(String locale, String path) {
-  var reader = new FileDataReader('${path}symbols${Platform.pathSeparator}');
+Future initializeDateFormatting(String locale, String filePath) {
+  var reader = new FileDataReader(path.join(filePath, 'symbols'));
   initializeDateSymbols(() => new LazyLocaleData(
       reader, _createDateSymbol, availableLocalesForDateFormatting));
-  var reader2 = new FileDataReader('${path}patterns${Platform.pathSeparator}');
+  var reader2 = new FileDataReader(path.join(filePath, 'patterns'));
   initializeDatePatterns(() => new LazyLocaleData(
       reader2, (x) => x, availableLocalesForDateFormatting));
   return initializeIndividualLocaleDateFormatting(

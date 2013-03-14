@@ -5,21 +5,43 @@
 /**
  * A utility function for test and tools that compensates (at least for very
  * simple cases) for file-dependent programs being run from different
- * directories.
+ * directories. The important cases are
+ *   -running in the directory that contains the test itself, i.e.
+ *    pkg/intl/test or a sub-directory.
+ *   -running in pkg/intl, which is where the editor will run things by default
+ *   -running in the top-level dart directory, where the build tests run
  */
 library data_directory;
 
-import 'dart:io';
+import "package:pathos/path.dart" as path;
 
-String get _sep => Platform.pathSeparator;
-
-get dataDirectory {
-  var current = new Directory.current().path;
-  if (new RegExp('.*${_sep}test').hasMatch(current)) {
-    return '..${_sep}lib${_sep}src${_sep}data${_sep}dates${_sep}';
-  }
-  if (new RegExp('.*${_sep}intl').hasMatch(current)) {
-    return 'lib${_sep}src${_sep}data${_sep}dates${_sep}';
-  }
-  return 'pkg${_sep}intl${_sep}lib${_sep}src${_sep}data${_sep}dates${_sep}';
+String get dataDirectory {
+  return path.join(intlDirectory, datesRelativeToIntl);
 }
+
+String get intlDirectory {
+  var components = path.split(path.current);
+  var foundIntlDir = false;
+
+  /**
+   * A helper function that returns false (indicating we should stop iterating)
+   * if the argument to the previous call was 'intl' and also sets
+   * the outer scope [foundIntl].
+   */
+  bool checkForIntlDir(String each) {
+    if (foundIntlDir) return false;
+    foundIntlDir = (each == 'intl') ? true : false;
+    return true;
+  }
+
+  var pathUpToIntl = components.takeWhile(checkForIntlDir).toList();
+  // We assume that if we're not somewhere underneath the intl hierarchy
+  // that we are in the dart root.
+  if (foundIntlDir) {
+    return path.joinAll(pathUpToIntl);
+  } else {
+    return path.join(path.current, 'pkg', 'intl');
+  }
+}
+
+String get datesRelativeToIntl => path.join('lib', 'src', 'data', 'dates');

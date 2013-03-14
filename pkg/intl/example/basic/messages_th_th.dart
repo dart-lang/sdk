@@ -5,13 +5,19 @@
 /**
  * This is a library that provides messages for a German locale. All the
  * messages from the main program should be duplicated here with the same
- * function name.  Note that the library name is significant, as it's looked
- * up based on a naming convention.
+ * function name.
  */
-
 library messages_th_TH;
-import '../../lib/intl.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/message_lookup_by_library.dart';
 
-runAt(time, day) =>
-    Intl.message('วิ่ง $time on $day.', name: 'runAt', args: [time, day]);
+final messages = new MessageLookup();
 
+class MessageLookup extends MessageLookupByLibrary {
+
+  get localeName => 'th_TH';
+
+  final messages = {
+    "runAt" : (time, day) => Intl.message('วิ่ง $time on $day.')
+  };
+}

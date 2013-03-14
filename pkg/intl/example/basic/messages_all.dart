@@ -3,12 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * In order to avoid needing to import the libraries for each locale
- * individually in each program file, we make a separate library that imports
- * all of them. In this example there's only one program file, so it doesn't
- * make very much difference.
+ * This imports all of the different message libraries and provides an
+ * [initializeMessages] function that sets up the lookup for a particular
+ * library.
  */
 library messages_all;
 
+import 'dart:async';
+import 'package:intl/message_lookup_by_library.dart';
+import 'package:intl/src/intl_helpers.dart';
 import 'messages_th_th.dart' as th_TH;
 import 'messages_de.dart' as de;
+import 'package:intl/intl.dart';
+
+// TODO(alanknight): Use lazy loading of the requested library.
+MessageLookupByLibrary _findExact(localeName) {
+  switch (localeName) {
+    case 'th_TH' : return th_TH.messages;
+    case 'de' : return de.messages;
+    default: return null;
+  }
+}
+
+initializeMessages(localeName) {
+  initializeInternalMessageLookup(() => new CompositeMessageLookup());
+  messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
+  return new Future.immediate(null);
+}
+
+MessageLookupByLibrary _findGeneratedMessagesFor(locale) {
+  var actualLocale = Intl.verifiedLocale(locale, (x) => _findExact(x) != null);
+  if (actualLocale == null) return null;
+  return _findExact(actualLocale);
+}
