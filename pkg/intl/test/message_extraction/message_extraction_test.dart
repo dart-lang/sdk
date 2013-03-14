@@ -30,6 +30,13 @@ String _findPackageDir(executable) {
   if (tail.contains('Release') || tail.contains('Debug')) {
       return path.join(oneUp, 'packages/');
   }
+  // Check for the case where we're running Release<arch>/dart-sdk/bin/dart
+  // (pub bots)
+  var threeUp = path.dirname(path.dirname(oneUp));
+  tail = path.basename(threeUp);
+  if (tail.contains('Release') || tail.contains('Debug')) {
+      return path.join(threeUp, 'packages/');
+  }
   // Otherwise we will rely on the normal packages directory.
   return null;
 }
@@ -124,6 +131,11 @@ void verifyResult(results) {
 
   var output = results.stdout;
   var lines = output.split("\n");
+  // If it looks like these are CRLF delimited, then use that. Wish strings
+  // just implemented last.
+  if (lines.first.codeUnits.last == "\r".codeUnits.first) {
+    lines = output.split("\r\n");
+  }
   lineIterator = lines.iterator..moveNext();
   verify("Printing messages for en_US");
   verify("This is a message");
