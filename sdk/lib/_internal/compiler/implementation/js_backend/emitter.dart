@@ -1407,7 +1407,7 @@ class CodeEmitterTask extends CompilerTask {
         ? ['receiver']
         : [];
     builder.addProperty(getterName,
-        js.fun([], js.return_(js['$receiver.$fieldName'])));
+        js.fun(args, js.return_(js['$receiver.$fieldName'])));
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
