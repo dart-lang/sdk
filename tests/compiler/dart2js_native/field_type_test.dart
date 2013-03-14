@@ -62,7 +62,7 @@ main() {
   Expect.identical(m1, x1);
 
   var m2 = new ModelSource('2');
-  n2._modelSource2 = m1;         // The only write is non-null.
+  n2._modelSource2 = m2;         // The only write is non-null.
   var x2 = n3.modelSource2;
   Expect.identical(m2, x2);
 }

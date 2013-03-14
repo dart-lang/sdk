@@ -5,8 +5,9 @@
 library simple_types_inferrer;
 
 import '../closure.dart' show ClosureClassMap, ClosureScope;
-import '../native_handler.dart' as native;
+import '../dart_types.dart' show DartType, FunctionType;
 import '../elements/elements.dart';
+import '../native_handler.dart' as native;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'types.dart' show TypesInferrer, TypeMask;
@@ -487,9 +488,19 @@ class SimpleTypesInferrer extends TypesInferrer {
     return internalRecordType(analyzedElement, returnType, returnTypeOf);
   }
 
+  bool isNativeElement(Element element) {
+    if (element.isNative()) return true;
+    return element.isMember()
+        && element.getEnclosingClass().isNative()
+        && element.isField();
+  }
+
   bool internalRecordType(Element analyzedElement,
                           TypeMask newType,
                           Map<Element, TypeMask> types) {
+    // Fields and native methods of native classes are handled
+    // specially when querying for their type or return type.
+    if (isNativeElement(analyzedElement)) return false;
     assert(newType != null);
     TypeMask existing = types[analyzedElement];
     types[analyzedElement] = newType;
@@ -506,7 +517,19 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask returnTypeOfElement(Element element) {
     element = element.implementation;
     if (element.isGenerativeConstructor()) {
-      return new TypeMask.nonNullExact(rawTypeOf(element.getEnclosingClass()));
+      return returnTypeOf.putIfAbsent(element, () {
+        return new TypeMask.nonNullExact(
+            rawTypeOf(element.getEnclosingClass()));
+      });
+    } else if (element.isNative()) {
+      return returnTypeOf.putIfAbsent(element, () {
+        // Only functions are native.
+        FunctionType functionType = element.computeType(compiler);
+        DartType returnType = functionType.returnType;
+        return returnType.isVoid
+            ? nullType
+            : new TypeMask.subtype(returnType.asRaw());
+      });
     }
     TypeMask returnType = returnTypeOf[element];
     if (returnType == null || isGiveUpType(returnType)) {
@@ -522,6 +545,11 @@ class SimpleTypesInferrer extends TypesInferrer {
    */
   TypeMask typeOfElement(Element element) {
     element = element.implementation;
+    if (isNativeElement(element) && element.isField()) {
+      return typeOf.putIfAbsent(element, () {
+        return new TypeMask.subtype(element.computeType(compiler).asRaw());
+      });
+    }
     TypeMask type = typeOf[element];
     if (type == null || isGiveUpType(type)) {
       return dynamicType;
@@ -738,7 +766,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       types.forEach((_, TypeMask type) {
         fieldType = computeLUB(fieldType, type);
       });
-      typeOf[field] = fieldType;
+      recordType(field, fieldType);
     });
   }
 
