@@ -128,19 +128,12 @@ class LinkedHashSet<E> extends Collection<E> implements Set<E> {
   }
 
   // Set.
-  bool isSubsetOf(Collection<E> other) {
-    // Deprecated, and using old signature.
-    Set otherSet;
-    if (other is Set) {
-      otherSet = other;
-    } else {
-      otherSet = other.toSet();
-    }
-    return IterableMixinWorkaround.setContainsAll(otherSet, this);
+  bool isSubsetOf(Set<E> other) {
+    return IterableMixinWorkaround.isSubsetOfSet(this, other);
   }
 
-  bool containsAll(Iterable<E> other) {
-    return IterableMixinWorkaround.setContainsAll(this, other);
+  bool containsAll(Set<E> other) {
+    return IterableMixinWorkaround.isSubsetOfSet(other, this);
   }
 
   Set<E> intersection(Set<E> other) {
