@@ -71,9 +71,10 @@ main() {
     var crossOriginPort = int.parse(args['crossOriginPort']);
     servers.startServers(args['network'],
                          port: port,
-                         crossOriginPort: crossOriginPort);
-    DebugLogger.info('Server listening on port ${servers.port}');
-    DebugLogger.info('Server listening on port ${servers.crossOriginPort}');
+                         crossOriginPort: crossOriginPort).then((_) {
+      DebugLogger.info('Server listening on port ${servers.port}');
+      DebugLogger.info('Server listening on port ${servers.crossOriginPort}');
+    });
   }
 }
 
@@ -102,10 +103,10 @@ class TestingServers {
    *   "Access-Control-Allow-Credentials: true"
    */
   Future startServers(String host, {int port: 0, int crossOriginPort: 0}) {
-    return _startHttpServer(host, port: port).then((_) {
-      _startHttpServer(host,
-                       port: crossOriginPort,
-                       allowedPort:_serverList[0].port);
+    return _startHttpServer(host, port: port).then((server) {
+      return _startHttpServer(host,
+                              port: crossOriginPort,
+                              allowedPort:_serverList[0].port);
     });
   }
 
