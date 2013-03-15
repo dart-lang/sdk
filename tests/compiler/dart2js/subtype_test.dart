@@ -12,6 +12,12 @@ import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dar
 void main() {
   testInterfaceSubtype();
   testCallableSubtype();
+  testFunctionSubtyping();
+  testTypedefSubtyping();
+  testFunctionSubtypingOptional();
+  testTypedefSubtypingOptional();
+  testFunctionSubtypingNamed();
+  testTypedefSubtypingNamed();
 }
 
 void testInterfaceSubtype() {
@@ -252,4 +258,237 @@ void testCallableSubtype() {
   expect(false, A, m3);
   expect(false, A, m4);
   expect(true, A, m5);
+}
+
+testFunctionSubtyping() {
+  var env = new TypeEnvironment(r"""
+      void void_() {}
+      void void_2() {}
+      int int_() => 0;
+      int int_2() => 0;
+      Object Object_() => null;
+      double double_() => 0.0;
+      void void__int(int i) {}
+      int int__int(int i) => 0;
+      int int__int2(int i) => 0;
+      int int__Object(Object o) => 0;
+      Object Object__int(int i) => null;
+      int int__double(double d) => 0;
+      int int__int_int(int i1, int i2) => 0;
+      void inline_void_(void f()) {}
+      void inline_void__int(void f(int i)) {}
+      """);
+  functionSubtypingHelper(env);
+}
+
+testTypedefSubtyping() {
+  var env = new TypeEnvironment(r"""
+      typedef void void_();
+      typedef void void_2();
+      typedef int int_();
+      typedef int int_2();
+      typedef Object Object_();
+      typedef double double_();
+      typedef void void__int(int i);
+      typedef int int__int(int i);
+      typedef int int__int2(int i);
+      typedef int int__Object(Object o);
+      typedef Object Object__int(int i);
+      typedef int int__double(double d);
+      typedef int int__int_int(int i1, int i2);
+      typedef void inline_void_(void f());
+      typedef void inline_void__int(void f(int i));
+      """);
+  functionSubtypingHelper(env);
+}
+
+functionSubtypingHelper(TypeEnvironment env) {
+  void expect(bool expectedResult, String sub, String sup) {
+    DartType subtype = env.getElementType(sub);
+    DartType supertype = env.getElementType(sup);
+    Expect.equals(expectedResult, env.isSubtype(subtype, supertype),
+        '$subtype <: $supertype');
+  }
+
+  // () -> int <: Function
+  expect(true, 'int_', 'Function');
+  // Function <: () -> int
+  expect(false, 'Function', 'int_');
+
+  // () -> int <: () -> void
+  expect(true, 'int_', 'void_');
+  // () -> void <: () -> int
+  expect(false, 'void_', 'int_');
+  // () -> void <: () -> void
+  expect(true, 'void_', 'void_2');
+  // () -> int <: () -> int
+  expect(true, 'int_', 'int_2');
+  // () -> int <: () -> Object
+  expect(true, 'int_', 'Object_');
+  // () -> int <: () -> double
+  expect(false, 'int_', 'double_');
+  // () -> int <: (int) -> void
+  expect(false, 'int_', 'void__int');
+  // () -> void <: (int) -> int
+  expect(false, 'void_', 'int__int');
+  // () -> void <: (int) -> void
+  expect(false, 'void_', 'void__int');
+  // (int) -> int <: (int) -> int
+  expect(true, 'int__int', 'int__int2');
+  // (Object) -> int <: (int) -> Object
+  expect(true, 'int__Object', 'Object__int');
+  // (int) -> int <: (double) -> int
+  expect(false, 'int__int', 'int__double');
+  // () -> int <: (int) -> int
+  expect(false, 'int_', 'int__int');
+  // (int) -> int <: (int,int) -> int
+  expect(false, 'int__int', 'int__int_int');
+  // (int,int) -> int <: (int) -> int
+  expect(false, 'int__int_int', 'int__int');
+  // (()->void) -> void <: ((int)->void) -> void
+  expect(false, 'inline_void_', 'inline_void__int');
+  // ((int)->void) -> void <: (()->void) -> void
+  expect(false, 'inline_void__int', 'inline_void_');
+}
+
+testFunctionSubtypingOptional() {
+  var env = new TypeEnvironment(r"""
+      void void_() {}
+      void void__int(int i) {}
+      void void___int([int i]) {}
+      void void___int2([int i]) {}
+      void void___Object([Object o]) {}
+      void void__int__int(int i1, [int i2]) {}
+      void void__int__int2(int i1, [int i2]) {}
+      void void___double(double d) {}
+      void void___int_int([int i1, int i2]) {}
+      void void___Object_int([Object o, int i]) {}
+      """);
+  functionSubtypingOptionalHelper(env);
+}
+
+testTypedefSubtypingOptional() {
+  var env = new TypeEnvironment(r"""
+      typedef void void_();
+      typedef void void__int(int i);
+      typedef void void___int([int i]);
+      typedef void void___int2([int i]);
+      typedef void void___Object([Object o]);
+      typedef void void__int__int(int i1, [int i2]);
+      typedef void void__int__int2(int i1, [int i2]);
+      typedef void void___double(double d);
+      typedef void void___int_int([int i1, int i2]);
+      typedef void void___Object_int([Object o, int i]);
+      """);
+  functionSubtypingOptionalHelper(env);
+}
+
+functionSubtypingOptionalHelper(TypeEnvironment env) {
+  expect(bool expectedResult, String sub, String sup) {
+    DartType subtype = env.getElementType(sub);
+    DartType supertype = env.getElementType(sup);
+    Expect.equals(expectedResult, env.isSubtype(subtype, supertype),
+        '$subtype <: $supertype');
+  }
+
+  // Test ([int])->void <: ()->void.
+  expect(true, 'void___int', 'void_');
+  // Test ([int])->void <: (int)->void.
+  expect(false, 'void___int', 'void__int');
+  // Test (int)->void <: ([int])->void.
+  expect(false, 'void__int', 'void___int');
+  // Test ([int])->void <: ([int])->void.
+  expect(true, 'void___int', 'void___int2');
+  // Test ([Object])->void <: ([int])->void.
+  expect(true, 'void___Object', 'void___int');
+  // Test ([int])->void <: ([Object])->void.
+  expect(true, 'void___int', 'void___Object');
+  // Test (int,[int])->void <: (int,[int])->void.
+  expect(true, 'void__int__int', 'void__int__int2');
+  // Test ([int])->void <: ([double])->void.
+  expect(false, 'void___int', 'void___double');
+  // Test ([int])->void <: ([int,int])->void.
+  expect(false, 'void___int', 'void___int_int');
+  // Test ([int,int])->void <: ([int])->void.
+  expect(true, 'void___int_int', 'void___int');
+  // Test ([Object,int])->void <: ([int])->void.
+  expect(true, 'void___Object_int', 'void___int');
+}
+
+testFunctionSubtypingNamed() {
+  var env = new TypeEnvironment(r"""
+      void void_() {}
+      void void__int(int i) {}
+      void void___a_int({int a}) {}
+      void void___a_int2({int a}) {}
+      void void___b_int({int b}) {}
+      void void___a_Object({Object a}) {}
+      void void__int__a_int(int i1, {int a}) {}
+      void void__int__a_int2(int i1, {int a}) {}
+      void void___a_double({double a}) {}
+      void void___a_int_b_int({int a, int b}) {}
+      void void___a_int_b_int_c_int({int a, int b, int c}) {}
+      void void___a_int_c_int({int a, int c}) {}
+      void void___b_int_c_int({int b, int c}) {}
+      void void___c_int({int c}) {}
+      """);
+  functionSubtypingNamedHelper(env);
+}
+
+testTypedefSubtypingNamed() {
+  var env = new TypeEnvironment(r"""
+      typedef void void_();
+      typedef void void__int(int i);
+      typedef void void___a_int({int a});
+      typedef void void___a_int2({int a});
+      typedef void void___b_int({int b});
+      typedef void void___a_Object({Object a});
+      typedef void void__int__a_int(int i1, {int a});
+      typedef void void__int__a_int2(int i1, {int a});
+      typedef void void___a_double({double a});
+      typedef void void___a_int_b_int({int a, int b});
+      typedef void void___a_int_b_int_c_int({int a, int b, int c});
+      typedef void void___a_int_c_int({int a, int c});
+      typedef void void___b_int_c_int({int b, int c});
+      typedef void void___c_int({int c});
+      """);
+  functionSubtypingNamedHelper(env);
+}
+
+functionSubtypingNamedHelper(TypeEnvironment env) {
+  expect(bool expectedResult, String sub, String sup) {
+    DartType subtype = env.getElementType(sub);
+    DartType supertype = env.getElementType(sup);
+    Expect.equals(expectedResult, env.isSubtype(subtype, supertype),
+        '$subtype <: $supertype');
+  }
+
+  // Test ({int a})->void <: ()->void.
+  expect(true, 'void___a_int', 'void_');
+  // Test ({int a})->void <: (int)->void.
+  expect(false, 'void___a_int', 'void__int');
+  // Test (int)->void <: ({int a})->void.
+  expect(false, 'void__int', 'void___a_int');
+  // Test ({int a})->void <: ({int a})->void.
+  expect(true, 'void___a_int', 'void___a_int2');
+  // Test ({int a})->void <: ({int b})->void.
+  expect(false, 'void___a_int', 'void___b_int');
+  // Test ({Object a})->void <: ({int a})->void.
+  expect(true, 'void___a_Object', 'void___a_int');
+  // Test ({int a})->void <: ({Object a})->void.
+  expect(true, 'void___a_int', 'void___a_Object');
+  // Test (int,{int a})->void <: (int,{int a})->void.
+  expect(true, 'void__int__a_int', 'void__int__a_int2');
+  // Test ({int a})->void <: ({double a})->void.
+  expect(false, 'void___a_int', 'void___a_double');
+  // Test ({int a})->void <: ({int a,int b})->void.
+  expect(false, 'void___a_int', 'void___a_int_b_int');
+  // Test ({int a,int b})->void <: ({int a})->void.
+  expect(true, 'void___a_int_b_int', 'void___a_int');
+  // Test ({int a,int b,int c})->void <: ({int a,int c})->void.
+  expect(true, 'void___a_int_b_int_c_int', 'void___a_int_c_int');
+  // Test ({int a,int b,int c})->void <: ({int b,int c})->void.
+  expect(true, 'void___a_int_b_int_c_int', 'void___b_int_c_int');
+  // Test ({int a,int b,int c})->void <: ({int c})->void.
+  expect(true, 'void___a_int_b_int_c_int', 'void___c_int');
 }

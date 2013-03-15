@@ -569,7 +569,7 @@ class FunctionType extends DartType {
                         Link<SourceString> this.namedParameters,
                         Link<DartType> this.namedParameterTypes,
                         bool this.isMalformed) {
-    assert(element == null || invariant(element, element.isDeclaration));
+    assert(invariant(element, element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
     assert(namedParameters.slowLength() == namedParameterTypes.slowLength());
@@ -971,7 +971,9 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   }
 
   bool visitFunctionType(FunctionType t, DartType s) {
-    if (identical(s.element, compiler.functionClass)) return true;
+    if (s is InterfaceType && identical(s.element, compiler.functionClass)) {
+      return true;
+    }
     if (s is !FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
