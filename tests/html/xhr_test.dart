@@ -154,6 +154,17 @@ main() {
       }
     });
 
+    test('HttpRequestProgressEvent', () {
+      var expectation = HttpRequestProgressEvent.supported ?
+          returnsNormally : throws;
+      expect(() {
+        var event = new Event.eventType('XMLHttpRequestProgressEvent', '');
+        expect(event is HttpRequestProgressEvent, isTrue);
+      }, expectation);
+    });
+  });
+
+  group('xhr_requestBlob', () {
     test('XHR.request responseType blob', () {
       if (ArrayBuffer.supported) {
         return HttpRequest.request(url, responseType: 'blob').then(
@@ -164,15 +175,6 @@ main() {
             expect(blob, isNotNull);
           });
       }
-    });
-
-    test('HttpRequestProgressEvent', () {
-      var expectation = HttpRequestProgressEvent.supported ?
-          returnsNormally : throws;
-      expect(() {
-        var event = new Event.eventType('XMLHttpRequestProgressEvent', '');
-        expect(event is HttpRequestProgressEvent, isTrue);
-      }, expectation);
     });
   });
 }
