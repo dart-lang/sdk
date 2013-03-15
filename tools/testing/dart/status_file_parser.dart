@@ -4,6 +4,7 @@
 
 library status_file_parser;
 
+import "dart:async";
 import "dart:io";
 import "status_expression.dart";
 
@@ -65,49 +66,45 @@ void ReadConfigurationInto(path, sections, onDone) {
   if (!file.existsSync()) {
     throw new Exception('Cannot find test status file $path');
   }
-  InputStream file_stream = file.openInputStream();
-  StringInputStream lines = new StringInputStream(file_stream);
+  Stream<String> lines =
+      file.openRead()
+          .transform(new StringDecoder())
+          .transform(new LineTransformer());
 
   Section current = new Section.always();
   sections.add(current);
 
-  lines.onLine = () {
-    String line;
-    while ((line = lines.readLine()) != null) {
-      Match match = StripComment.firstMatch(line);
-      line = (match == null) ? "" : match[0];
-      line = line.trim();
-      if (line.isEmpty) continue;
+  lines.listen((String line) {
+    Match match = StripComment.firstMatch(line);
+    line = (match == null) ? "" : match[0];
+    line = line.trim();
+    if (line.isEmpty) return;
 
-      match = HeaderPattern.firstMatch(line);
-      if (match != null) {
-        String condition_string = match[1].trim();
-        List<String> tokens = new Tokenizer(condition_string).tokenize();
-        ExpressionParser parser = new ExpressionParser(new Scanner(tokens));
-        current = new Section(parser.parseBooleanExpression());
-        sections.add(current);
-        continue;
-      }
-
-      match = RulePattern.firstMatch(line);
-      if (match != null) {
-        String name = match[1].trim();
-        // TODO(whesse): Handle test names ending in a wildcard (*).
-        String expression_string = match[2].trim();
-        List<String> tokens = new Tokenizer(expression_string).tokenize();
-        SetExpression expression =
-            new ExpressionParser(new Scanner(tokens)).parseSetExpression();
-        current.testRules.add(new TestRule(name, expression));
-        continue;
-      }
-
-      print("unmatched line: $line");
+    match = HeaderPattern.firstMatch(line);
+    if (match != null) {
+      String condition_string = match[1].trim();
+      List<String> tokens = new Tokenizer(condition_string).tokenize();
+      ExpressionParser parser = new ExpressionParser(new Scanner(tokens));
+      current = new Section(parser.parseBooleanExpression());
+      sections.add(current);
+      return;
     }
-  };
 
-  lines.onClosed = () {
-    onDone();
-  };
+    match = RulePattern.firstMatch(line);
+    if (match != null) {
+      String name = match[1].trim();
+      // TODO(whesse): Handle test names ending in a wildcard (*).
+      String expression_string = match[2].trim();
+      List<String> tokens = new Tokenizer(expression_string).tokenize();
+      SetExpression expression =
+          new ExpressionParser(new Scanner(tokens)).parseSetExpression();
+      current.testRules.add(new TestRule(name, expression));
+      return;
+    }
+
+    print("unmatched line: $line");
+  },
+  onDone: onDone);
 }
 
 

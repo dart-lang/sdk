@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,18 +8,18 @@
 // This file is identical to test.dart with test suites in the
 // directories samples, client, compiler, and utils removed.
 
-#library("test");
+library test;
 
-#import("dart:io");
-#import("testing/dart/test_runner.dart");
-#import("testing/dart/test_options.dart");
-#import("testing/dart/test_suite.dart");
-#import("testing/dart/http_server.dart");
-#import("testing/dart/utils.dart");
+import "dart:io";
+import "testing/dart/test_runner.dart";
+import "testing/dart/test_options.dart";
+import "testing/dart/test_suite.dart";
+import "testing/dart/http_server.dart";
+import "testing/dart/utils.dart";
 import "testing/dart/test_progress.dart";
 
-#import("../tests/co19/test_config.dart");
-#import("../runtime/tests/vm/test_config.dart");
+import "../tests/co19/test_config.dart";
+import "../runtime/tests/vm/test_config.dart";
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -39,7 +39,7 @@ final TEST_SUITE_DIRECTORIES = [
 ];
 
 main() {
-  var startTime = new Date.now();
+  var startTime = new DateTime.now();
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
@@ -67,7 +67,7 @@ main() {
         ['Test configurations:'] : ['Test configuration:'];
     for (Map conf in configurations) {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
-          .mappedBy((name) => conf[name]).toList();
+          .map((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
       output_words.add(settings.join('_'));
     }

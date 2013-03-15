@@ -676,9 +676,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     var stdout = testCase.commandOutputs[command].stdout;
     var file = new io.File.fromPath(command.expectedOutputFile);
     if (file.existsSync()) {
-      var bytesContentLength = "Content-Length:".charCodes;
-      var bytesNewLine = "\n".charCodes;
-      var bytesEOF = "#EOF\n".charCodes;
+      var bytesContentLength = "Content-Length:".codeUnits;
+      var bytesNewLine = "\n".codeUnits;
+      var bytesEOF = "#EOF\n".codeUnits;
 
       var expectedContent = file.readAsBytesSync();
       if (command.isPixelTest) {
@@ -909,10 +909,10 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       escaped = false;
       if (c == '|') {
         result.add(field.toString());
-        field.clear();
+        field = new StringBuffer();
         continue;
       }
-      field.add(c);
+      field.write(c);
     }
     result.add(field.toString());
     return result;
@@ -933,7 +933,7 @@ class RunningProcess {
   TestCase testCase;
   Command command;
   bool timedOut = false;
-  Date startTime;
+  DateTime startTime;
   Timer timeoutTimer;
   List<int> stdout = <int>[];
   List<int> stderr = <int>[];
@@ -946,7 +946,7 @@ class RunningProcess {
     Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
 
     completer = new Completer<CommandOutput>();
-    startTime = new Date.now();
+    startTime = new DateTime.now();
     _runCommand();
     return completer.future;
   }
@@ -962,16 +962,17 @@ class RunningProcess {
                                                 command.arguments,
                                                 processOptions);
         processFuture.then((io.Process process) {
-          void timeoutHandler(_) {
+          void timeoutHandler() {
             timedOut = true;
             if (process != null) {
               process.kill();
             }
           }
-          process.onExit = _commandComplete;
+          process.exitCode.then(_commandComplete);
           _drainStream(process.stdout, stdout);
           _drainStream(process.stderr, stderr);
-          timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+          timeoutTimer = new Timer(new Duration(seconds: testCase.timeout),
+                                   timeoutHandler);
         }).catchError((e) {
           print("Process error:");
           print("  Command: $command");
@@ -1001,24 +1002,13 @@ class RunningProcess {
         timedOut,
         stdout,
         stderr,
-        new Date.now().difference(startTime),
+        new DateTime.now().difference(startTime),
         compilationSkipped);
     return commandOutput;
   }
 
-  void _drainStream(io.InputStream source, List<int> destination) {
-    void onDataHandler () {
-      if (source.closed) {
-        return;  // TODO(whesse): Remove when bug is fixed.
-      }
-      var data = source.read();
-      while (data != null) {
-        destination.addAll(data);
-        data = source.read();
-      }
-    }
-    source.onData = onDataHandler;
-    source.onClosed = onDataHandler;
+  void _drainStream(Stream<List<int>> source, List<int> destination) {
+    source.listen(destination.addAll);
   }
 
   io.ProcessOptions _createProcessOptions() {
@@ -1032,32 +1022,23 @@ class RunningProcess {
   }
 }
 
-/**
- * This class holds a value, that can be changed.  It is used when
- * closures need a shared value, that they can all change and read.
- */
-class MutableValue<T> {
-  MutableValue(T this.value);
-  T value;
-}
-
 class BatchRunnerProcess {
   Command _command;
   String _executable;
   List<String> _batchArguments;
 
   io.Process _process;
-  io.StringInputStream _stdoutStream;
-  io.StringInputStream _stderrStream;
+  Completer _stdoutCompleter;
+  Completer _stderrCompleter;
+  StreamSubscription<String> _stdoutSubscription;
+  StreamSubscription<String> _stderrSubscription;
+  Function _processExitHandler;
 
   TestCase _currentTest;
   List<int> _testStdout;
   List<int> _testStderr;
   String _status;
-  bool _stdoutDrained = false;
-  bool _stderrDrained = false;
-  MutableValue<bool> _ignoreStreams;
-  Date _startTime;
+  DateTime _startTime;
   Timer _timer;
 
   bool _isWebDriver;
@@ -1086,7 +1067,7 @@ class BatchRunnerProcess {
       // if needed.
       _executable = testCase.commands.last.executable;
       _batchArguments = testCase.batchRunnerArguments;
-      _process.onExit = (exitCode) {
+      _processExitHandler = (_) {
         _startProcess(() {
           doStartTest(testCase);
         });
@@ -1101,7 +1082,7 @@ class BatchRunnerProcess {
     if (_process == null) return new Future.immediate(true);
     Completer completer = new Completer();
     Timer killTimer;
-    _process.onExit = (exitCode) {
+    _processExitHandler = (_) {
       if (killTimer != null) killTimer.cancel();
       completer.complete(true);
     };
@@ -1109,11 +1090,10 @@ class BatchRunnerProcess {
       // Use a graceful shutdown so our Selenium script can close
       // the open browser processes. On Windows, signals do not exist
       // and a kill is a hard kill.
-      _process.stdin.write('--terminate\n'.charCodes);
+      _process.stdin.writeln('--terminate');
 
       // In case the run_selenium process didn't close, kill it after 30s
-      int shutdownMillisecs = 30000;
-      killTimer = new Timer(shutdownMillisecs, (e) { _process.kill(); });
+      killTimer = new Timer(new Duration(seconds: 30), _process.kill);
     } else {
       _process.kill();
     }
@@ -1122,16 +1102,14 @@ class BatchRunnerProcess {
   }
 
   void doStartTest(TestCase testCase) {
-    _startTime = new Date.now();
+    _startTime = new DateTime.now();
     _testStdout = [];
     _testStderr = [];
     _status = null;
-    _stdoutDrained = false;
-    _stderrDrained = false;
-    _ignoreStreams = new MutableValue<bool>(false);  // Captured by closures.
-    _readStdout(_stdoutStream, _testStdout);
-    _readStderr(_stderrStream, _testStderr);
-    _timer = new Timer(testCase.timeout * 1000, _timeoutHandler);
+    _stdoutCompleter = new Completer();
+    _stderrCompleter = new Completer();
+    _timer = new Timer(new Duration(seconds: testCase.timeout),
+                       _timeoutHandler);
 
     if (testCase.commands.last.environment != null) {
       print("Warning: command.environment != null, but we don't support custom "
@@ -1139,14 +1117,11 @@ class BatchRunnerProcess {
     }
 
     var line = _createArgumentsLine(testCase.batchTestArguments);
-    _process.stdin.onError = (err) {
-      print('Error on batch runner input stream stdin');
-      print('  Input line: $line');
-      print('  Previous test\'s status: $_status');
-      print('  Error: $err');
-      throw err;
-    };
-    _process.stdin.write(line.charCodes);
+    _process.stdin.write(line);
+    _stdoutSubscription.resume();
+    _stderrSubscription.resume();
+    Future.wait([_stdoutCompleter.future,
+                 _stderrCompleter.future]).then((_) => _reportResult());
   }
 
   String _createArgumentsLine(List<String> arguments) {
@@ -1168,81 +1143,11 @@ class BatchRunnerProcess {
                                (outcome == "TIMEOUT"),
                                _testStdout,
                                _testStderr,
-                               new Date.now().difference(_startTime),
+                               new DateTime.now().difference(_startTime),
                                false);
     var test = _currentTest;
     _currentTest = null;
     test.completed();
-  }
-
-  void _stderrDone() {
-    _stderrDrained = true;
-    // Move on when both stdout and stderr has been drained.
-    if (_stdoutDrained) _reportResult();
-  }
-
-  void _stdoutDone() {
-    _stdoutDrained = true;
-    // Move on when both stdout and stderr has been drained.
-    if (_stderrDrained) _reportResult();
-  }
-
-  void _readStdout(io.StringInputStream stream, List<int> buffer) {
-    var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    void onLineHandler() {
-      if (ignoreStreams.value) {
-         while (stream.readLine() != null) {
-          // Do nothing.
-        }
-        return;
-      }
-      // Otherwise, process output and call _reportResult() when done.
-      var line = stream.readLine();
-      while (line != null) {
-        if (line.startsWith('>>> TEST')) {
-          _status = line;
-        } else if (line.startsWith('>>> BATCH')) {
-          // ignore
-        } else if (line.startsWith('>>> ')) {
-          throw new Exception(
-               'Unexpected command from ${testCase.configuration['compiler']} '
-               'batch runner.');
-        } else {
-          buffer.addAll(encodeUtf8(line));
-          buffer.addAll("\n".charCodes);
-        }
-        line = stream.readLine();
-      }
-      if (_status != null) {
-        _timer.cancel();
-        _stdoutDone();
-      }
-    }
-    stream.onLine = onLineHandler;
-  }
-
-  void _readStderr(io.StringInputStream stream, List<int> buffer) {
-    var ignoreStreams = _ignoreStreams;  // Capture this mutable object.
-    void onLineHandler() {
-      if (ignoreStreams.value) {
-        while (stream.readLine() != null) {
-          // Do nothing.
-        }
-        return;
-      }
-      // Otherwise, process output and call _reportResult() when done.
-      var line = stream.readLine();
-      while (line != null) {
-        if (line.startsWith('>>> EOF STDERR')) {
-          _stderrDone();
-        } else {
-          buffer.addAll(encodeUtf8(line));
-          buffer.addAll("\n".charCodes);
-        }
-        line = stream.readLine();
-      }
-    }
-    stream.onLine = onLineHandler;
   }
 
   ExitCodeEvent makeExitHandler(String status) {
@@ -1250,20 +1155,8 @@ class BatchRunnerProcess {
       if (active) {
         if (_timer != null) _timer.cancel();
         _status = status;
-        // Read current content of streams, ignore any later output.
-        _ignoreStreams.value = true;
-        var line = _stdoutStream.readLine();
-        while (line != null) {
-          _testStdout.add(line);
-          line = _stdoutStream.readLine();
-        }
-        line = _stderrStream.readLine();
-        while (line != null) {
-          _testStderr.add(line);
-          line = _stderrStream.readLine();
-        }
-        _stderrDrained = true;
-        _stdoutDrained = true;
+        _stdoutSubscription.cancel();
+        _stderrSubscription.cancel();
         _startProcess(_reportResult);
       } else {  // No active test case running.
         _process = null;
@@ -1272,8 +1165,8 @@ class BatchRunnerProcess {
     return handler;
   }
 
-  void _timeoutHandler(ignore) {
-    _process.onExit = makeExitHandler(">>> TEST TIMEOUT");
+  void _timeoutHandler() {
+    _processExitHandler = makeExitHandler(">>> TEST TIMEOUT");
     _process.kill();
   }
 
@@ -1281,9 +1174,58 @@ class BatchRunnerProcess {
     Future processFuture = io.Process.start(_executable, _batchArguments);
     processFuture.then((io.Process p) {
       _process = p;
-      _stdoutStream = new io.StringInputStream(_process.stdout);
-      _stderrStream = new io.StringInputStream(_process.stderr);
-      _process.onExit = makeExitHandler(">>> TEST CRASH");
+
+      var _stdoutStream =
+          _process.stdout
+              .transform(new io.StringDecoder())
+              .transform(new io.LineTransformer());
+      _stdoutSubscription = _stdoutStream.listen((String line) {
+        if (line.startsWith('>>> TEST')) {
+          _status = line;
+        } else if (line.startsWith('>>> BATCH')) {
+          // ignore
+        } else if (line.startsWith('>>> ')) {
+          throw new Exception(
+              'Unexpected command from ${testCase.configuration['compiler']} '
+              'batch runner.');
+        } else {
+          _testStdout.addAll(encodeUtf8(line));
+          _testStdout.addAll("\n".codeUnits);
+        }
+        if (_status != null) {
+          _stdoutSubscription.pause();
+          _timer.cancel();
+          _stdoutCompleter.complete(null);
+        }
+      });
+      _stdoutSubscription.pause();
+
+      var _stderrStream =
+          _process.stderr
+              .transform(new io.StringDecoder())
+              .transform(new io.LineTransformer());
+      _stderrSubscription = _stderrStream.listen((String line) {
+        if (line.startsWith('>>> EOF STDERR')) {
+          _stderrSubscription.pause();
+          _stderrCompleter.complete(null);
+        } else {
+          _testStderr.addAll(encodeUtf8(line));
+          _testStderr.addAll("\n".codeUnits);
+        }
+      });
+      _stderrSubscription.pause();
+
+      _processExitHandler = makeExitHandler(">>> TEST CRASH");
+      _process.exitCode.then((exitCode) {
+        _processExitHandler(exitCode);
+      });
+
+      _process.stdin.done.catchError((err) {
+        print('Error on batch runner input stream stdin');
+        print('  Previous test\'s status: $_status');
+        print('  Error: $err');
+        throw err;
+      });
       callback();
     }).catchError((e) {
       print("Process error:");
@@ -1356,7 +1298,7 @@ class ProcessQueue {
 
   ProcessQueue(this._maxProcesses,
                this._maxBrowserProcesses,
-               Date startTime,
+               DateTime startTime,
                testSuites,
                this._eventListener,
                this._allDone,
@@ -1442,23 +1384,20 @@ class ProcessQueue {
       Future processFuture = io.Process.start(cmd, arg);
       processFuture.then((io.Process p) {
         // Drain stderr to not leak resources.
-        p.stderr.onData = p.stderr.read;
-        final io.StringInputStream stdoutStringStream =
-            new io.StringInputStream(p.stdout);
-        stdoutStringStream.onLine = () {
-          var line = stdoutStringStream.readLine();
-          while (null != line) {
-            var regexp = new RegExp(r".*selenium-server-standalone.*");
-            if (regexp.hasMatch(line)) {
-              _seleniumAlreadyRunning = true;
-              resumeTesting();
-            }
-            line = stdoutStringStream.readLine();
+        p.stderr.listen((_) {});
+        final Stream<String> stdoutStringStream =
+            p.stdout.transform(new io.StringDecoder())
+                    .transform(new io.LineTransformer());
+        stdoutStringStream.listen((String line) {
+          var regexp = new RegExp(r".*selenium-server-standalone.*");
+          if (regexp.hasMatch(line)) {
+            _seleniumAlreadyRunning = true;
+            resumeTesting();
           }
           if (!_isSeleniumAvailable) {
             _startSeleniumServer();
           }
-        };
+        });
       }).catchError((e) {
         print("Error starting process:");
         print("  Command: $cmd ${arg.join(' ')}");
@@ -1485,20 +1424,12 @@ class ProcessQueue {
    * begin running tests.
    * source: Output(Stream) from the Java server.
    */
-  VoidFunction makeSeleniumServerHandler(io.StringInputStream source) {
-    void handler() {
-      if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
-      var line = source.readLine();
-      while (null != line) {
-        if (new RegExp(r".*Started.*Server.*").hasMatch(line) ||
-            new RegExp(r"Exception.*Selenium is already running.*").hasMatch(
-            line)) {
-          resumeTesting();
-        }
-        line = source.readLine();
-      }
+  void seleniumServerHandler(String line) {
+    if (new RegExp(r".*Started.*Server.*").hasMatch(line) ||
+        new RegExp(r"Exception.*Selenium is already running.*").hasMatch(
+        line)) {
+      resumeTesting();
     }
-    return handler;
   }
 
   /**
@@ -1511,35 +1442,38 @@ class ProcessQueue {
     String pathSep = io.Platform.pathSeparator;
     int index = filePath.lastIndexOf(pathSep);
     filePath = '${filePath.substring(0, index)}${pathSep}testing${pathSep}';
-    var lister = new io.Directory(filePath).list();
-    lister.onFile = (String file) {
-      if (new RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
-          && _seleniumServer == null) {
-        Future processFuture = io.Process.start('java', ['-jar', file]);
-        processFuture.then((io.Process server) {
-          _seleniumServer = server;
-          // Heads up: there seems to an obscure data race of some form in
-          // the VM between launching the server process and launching the test
-          // tasks that disappears when you read IO (which is convenient, since
-          // that is our condition for knowing that the server is ready).
-          io.StringInputStream stdoutStringStream =
-              new io.StringInputStream(_seleniumServer.stdout);
-          io.StringInputStream stderrStringStream =
-              new io.StringInputStream(_seleniumServer.stderr);
-          stdoutStringStream.onLine =
-              makeSeleniumServerHandler(stdoutStringStream);
-          stderrStringStream.onLine =
-              makeSeleniumServerHandler(stderrStringStream);
-        }).catchError((e) {
-          print("Process error:");
-          print("  Command: java -jar $file");
-          print("  Error: $e");
-          // TODO(ahe): How to report this as a test failure?
-          io.exit(1);
-          return true;
-        });
+    new io.Directory(filePath).list().listen((io.FileSystemEntity fse) {
+      if (fse is io.File) {
+        String file = fse.path;
+        if (new RegExp(r"selenium-server-standalone-.*\.jar").hasMatch(file)
+            && _seleniumServer == null) {
+          Future processFuture = io.Process.start('java', ['-jar', file]);
+          processFuture.then((io.Process server) {
+            _seleniumServer = server;
+            // Heads up: there seems to an obscure data race of some form in
+            // the VM between launching the server process and launching the
+            // test tasks that disappears when you read IO (which is
+            // convenient, since that is our condition for knowing that the
+            // server is ready).
+            Stream<String> stdoutStringStream =
+                _seleniumServer.stdout.transform(new io.StringDecoder())
+                .transform(new io.LineTransformer());
+            Stream<String> stderrStringStream =
+                _seleniumServer.stderr.transform(new io.StringDecoder())
+                .transform(new io.LineTransformer());
+            stdoutStringStream.listen(seleniumServerHandler);
+            stderrStringStream.listen(seleniumServerHandler);
+          }).catchError((e) {
+            print("Process error:");
+            print("  Command: java -jar $file");
+            print("  Error: $e");
+            // TODO(ahe): How to report this as a test failure?
+            io.exit(1);
+            return true;
+          });
+        }
       }
-    };
+    });
   }
 
   Future _terminateBatchRunners() {
@@ -1588,7 +1522,8 @@ class ProcessQueue {
         // The test is not yet ready to run. Put the test back in
         // the queue.  Avoid spin-polling by using a timeout.
         _tests.add(test);
-        new Timer(100, (_) => _tryRunTest());  // Don't lose a process.
+        new Timer(new Duration(milliseconds: 100),
+                  _tryRunTest);  // Don't lose a process.
         return;
       }
       // Before running any commands, we print out all commands if '--verbose'
@@ -1614,7 +1549,8 @@ class ProcessQueue {
       if (isBrowserCommand && _numBrowserProcesses == _maxBrowserProcesses) {
         // If there is no free browser runner, put it back into the queue.
         _tests.add(test);
-        new Timer(100, (_) => _tryRunTest());  // Don't lose a process.
+        new Timer(new Duration(milliseconds: 100),
+                  _tryRunTest);  // Don't lose a process.
         return;
       }
 
@@ -1623,8 +1559,8 @@ class ProcessQueue {
       // Analyzer and browser test commands can be run by a [BatchRunnerProcess]
       var nextCommandIndex = test.commandOutputs.keys.length;
       var numberOfCommands = test.commands.length;
-        
-      var useBatchRunnerForAnalyzer = 
+
+      var useBatchRunnerForAnalyzer =
           test.configuration['analyzer'] &&
           test.displayName != 'dartc/junit_tests';
       var isWebdriverCommand = nextCommandIndex == (numberOfCommands - 1) &&
