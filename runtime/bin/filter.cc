@@ -13,8 +13,6 @@ const int kZLibFlagWindowBits = 15;
 const int kZLibFlagUseGZipHeader = 16;
 const int kZLibFlagAcceptAnyHeader = 32;
 
-const intptr_t kFilterBufferLength = 64 * KB;
-
 static const int kFilterPointerNativeField = 0;
 
 Filter* GetFilter(Dart_Handle filter_obj) {
@@ -133,8 +131,9 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
     Dart_ThrowException(DartUtils::NewInternalError(
         "Failed to get 'flush' parameter"));
   }
-  uint8_t buffer[kFilterBufferLength];
-  intptr_t read = filter->Processed(buffer, kFilterBufferLength, flush);
+  intptr_t read = filter->Processed(filter->processed_buffer(),
+                                    filter->processed_buffer_size(),
+                                    flush);
   if (read < 0) {
     // Error, end filter.
     EndFilter(filter_obj, filter);
@@ -145,7 +144,7 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   } else {
     uint8_t* io_buffer;
     Dart_Handle result = IOBuffer::Allocate(read, &io_buffer);
-    memmove(io_buffer, buffer, read);
+    memmove(io_buffer, filter->processed_buffer(), read);
     Dart_SetReturnValue(args, result);
   }
   Dart_ExitScope();
@@ -179,24 +178,24 @@ Dart_Handle Filter::GetFilterPointerNativeField(Dart_Handle filter,
 
 
 ZLibDeflateFilter::~ZLibDeflateFilter() {
-  delete[] current_buffer;
-  if (initialized) deflateEnd(&stream);
+  delete[] current_buffer_;
+  if (initialized()) deflateEnd(&stream_);
 }
 
 
 bool ZLibDeflateFilter::Init() {
-  stream.zalloc = Z_NULL;
-  stream.zfree = Z_NULL;
-  stream.opaque = Z_NULL;
+  stream_.zalloc = Z_NULL;
+  stream_.zfree = Z_NULL;
+  stream_.opaque = Z_NULL;
   int result = deflateInit2(
-      &stream,
-      level,
+      &stream_,
+      level_,
       Z_DEFLATED,
-      kZLibFlagWindowBits | (gZip ? kZLibFlagUseGZipHeader : 0),
+      kZLibFlagWindowBits | (gzip_ ? kZLibFlagUseGZipHeader : 0),
       kZlibFlagMemUsage,
       Z_DEFAULT_STRATEGY);
   if (result == Z_OK) {
-    initialized = true;
+    set_initialized(true);
     return true;
   }
   return false;
@@ -204,23 +203,23 @@ bool ZLibDeflateFilter::Init() {
 
 
 bool ZLibDeflateFilter::Process(uint8_t* data, intptr_t length) {
-  if (current_buffer != NULL) return false;
-  stream.avail_in = length;
-  stream.next_in = current_buffer = data;
+  if (current_buffer_ != NULL) return false;
+  stream_.avail_in = length;
+  stream_.next_in = current_buffer_ = data;
   return true;
 }
 
 intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
                                       intptr_t length,
                                       bool flush) {
-  stream.avail_out = length;
-  stream.next_out = buffer;
-  switch (deflate(&stream, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  stream_.avail_out = length;
+  stream_.next_out = buffer;
+  switch (deflate(&stream_, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
     case Z_OK: {
-      intptr_t processed = length - stream.avail_out;
+      intptr_t processed = length - stream_.avail_out;
       if (processed == 0) {
-        delete[] current_buffer;
-        current_buffer = NULL;
+        delete[] current_buffer_;
+        current_buffer_ = NULL;
         return 0;
       } else {
         // We processed data, should be called again.
@@ -231,34 +230,34 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
     case Z_STREAM_END:
     case Z_BUF_ERROR:
       // We processed all available input data.
-      delete[] current_buffer;
-      current_buffer = NULL;
+      delete[] current_buffer_;
+      current_buffer_ = NULL;
       return 0;
 
     default:
     case Z_STREAM_ERROR:
       // An error occoured.
-      delete[] current_buffer;
-      current_buffer = NULL;
+      delete[] current_buffer_;
+      current_buffer_ = NULL;
       return -1;
   }
 }
 
 
 ZLibInflateFilter::~ZLibInflateFilter() {
-  delete[] current_buffer;
-  if (initialized) inflateEnd(&stream);
+  delete[] current_buffer_;
+  if (initialized()) inflateEnd(&stream_);
 }
 
 
 bool ZLibInflateFilter::Init() {
-  stream.zalloc = Z_NULL;
-  stream.zfree = Z_NULL;
-  stream.opaque = Z_NULL;
-  int result = inflateInit2(&stream,
+  stream_.zalloc = Z_NULL;
+  stream_.zfree = Z_NULL;
+  stream_.opaque = Z_NULL;
+  int result = inflateInit2(&stream_,
                             kZLibFlagWindowBits | kZLibFlagAcceptAnyHeader);
   if (result == Z_OK) {
-    initialized = true;
+    set_initialized(true);
     return true;
   }
   return false;
@@ -266,9 +265,9 @@ bool ZLibInflateFilter::Init() {
 
 
 bool ZLibInflateFilter::Process(uint8_t* data, intptr_t length) {
-  if (current_buffer != NULL) return false;
-  stream.avail_in = length;
-  stream.next_in = current_buffer = data;
+  if (current_buffer_ != NULL) return false;
+  stream_.avail_in = length;
+  stream_.next_in = current_buffer_ = data;
   return true;
 }
 
@@ -276,14 +275,14 @@ bool ZLibInflateFilter::Process(uint8_t* data, intptr_t length) {
 intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
                                       intptr_t length,
                                       bool flush) {
-  stream.avail_out = length;
-  stream.next_out = buffer;
-  switch (inflate(&stream, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  stream_.avail_out = length;
+  stream_.next_out = buffer;
+  switch (inflate(&stream_, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
     case Z_OK: {
-      intptr_t processed = length - stream.avail_out;
+      intptr_t processed = length - stream_.avail_out;
       if (processed == 0) {
-        delete[] current_buffer;
-        current_buffer = NULL;
+        delete[] current_buffer_;
+        current_buffer_ = NULL;
         return 0;
       } else {
         // We processed data, should be called again.
@@ -294,8 +293,8 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
     case Z_STREAM_END:
     case Z_BUF_ERROR:
       // We processed all available input data.
-      delete[] current_buffer;
-      current_buffer = NULL;
+      delete[] current_buffer_;
+      current_buffer_ = NULL;
       return 0;
 
     default:
@@ -304,8 +303,8 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
     case Z_DATA_ERROR:
     case Z_STREAM_ERROR:
       // An error occoured.
-      delete[] current_buffer;
-      current_buffer = NULL;
+      delete[] current_buffer_;
+      current_buffer_ = NULL;
       return -1;
   }
 }

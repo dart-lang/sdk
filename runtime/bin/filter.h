@@ -11,14 +11,11 @@
 #include "../third_party/zlib/zlib.h"
 
 class Filter {
- protected:
-  Filter() : initialized(false) {}
-
  public:
   virtual ~Filter() {}
 
- public:
   virtual bool Init() = 0;
+
   /**
    * On a succesfull call to Process, Process will take ownership of data. On
    * successive calls to either Processed or ~Filter, data will be freed with
@@ -27,48 +24,60 @@ class Filter {
   virtual bool Process(uint8_t* data, intptr_t length) = 0;
   virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish) = 0;
 
-
- public:
   static Dart_Handle SetFilterPointerNativeField(Dart_Handle filter,
                                                  Filter* filter_pointer);
   static Dart_Handle GetFilterPointerNativeField(Dart_Handle filter,
                                                  Filter** filter_pointer);
 
+  bool initialized() const { return initialized_; }
+  void set_initialized(bool value) { initialized_ = value; }
+  uint8_t* processed_buffer() { return processed_buffer_; }
+  intptr_t processed_buffer_size() const { return kFilterBufferSize; }
+
  protected:
-  bool initialized;
+  Filter() : initialized_(false) {}
+
+ private:
+  static const intptr_t kFilterBufferSize = 64 * KB;
+  uint8_t processed_buffer_[kFilterBufferSize];
+  bool initialized_;
+
+  DISALLOW_COPY_AND_ASSIGN(Filter);
 };
 
 class ZLibDeflateFilter : public Filter {
  public:
-  ZLibDeflateFilter(bool gZip = false, int level = 6)
-    : gZip(gZip), level(level), current_buffer(NULL) {}
+  ZLibDeflateFilter(bool gzip = false, int level = 6)
+    : gzip_(gzip), level_(level), current_buffer_(NULL) {}
   virtual ~ZLibDeflateFilter();
 
- public:
   virtual bool Init();
   virtual bool Process(uint8_t* data, intptr_t length);
   virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish);
 
  private:
-  const bool gZip;
-  const int level;
-  uint8_t* current_buffer;
-  z_stream stream;
+  const bool gzip_;
+  const int level_;
+  uint8_t* current_buffer_;
+  z_stream stream_;
+
+  DISALLOW_COPY_AND_ASSIGN(ZLibDeflateFilter);
 };
 
 class ZLibInflateFilter : public Filter {
  public:
-  ZLibInflateFilter() : current_buffer(NULL) {}
+  ZLibInflateFilter() : current_buffer_(NULL) {}
   virtual ~ZLibInflateFilter();
 
- public:
   virtual bool Init();
   virtual bool Process(uint8_t* data, intptr_t length);
   virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish);
 
  private:
-  uint8_t* current_buffer;
-  z_stream stream;
+  uint8_t* current_buffer_;
+  z_stream stream_;
+
+  DISALLOW_COPY_AND_ASSIGN(ZLibInflateFilter);
 };
 
 #endif  // BIN_FILTER_H_
