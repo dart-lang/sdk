@@ -44,7 +44,7 @@ class CodeBuffer implements StringBuffer {
     return this;
   }
 
-  CodeBuffer writeln(var object) {
+  CodeBuffer writeln([var object = ""]) {
     return write(object).write("\n");
   }
 

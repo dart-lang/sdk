@@ -91,7 +91,7 @@ class PubHttpClient extends http.BaseClient {
       if (contentTypeString == null) contentTypeString = '';
       var contentType = new ContentType.fromString(contentTypeString);
       if (request is http.MultipartRequest) {
-        requestLog.writeln('');
+        requestLog.writeln();
         requestLog.writeln("Body fields:");
         request.fields.forEach((name, value) =>
             requestLog.writeln(_logField(name, value)));
@@ -99,7 +99,7 @@ class PubHttpClient extends http.BaseClient {
         // TODO(nweiz): make MultipartRequest.files readable, and log them?
       } else if (request is http.Request) {
         if (contentType.value == 'application/x-www-form-urlencoded') {
-          requestLog.writeln('');
+          requestLog.writeln();
           requestLog.writeln("Body fields:");
           request.bodyFields.forEach((name, value) =>
               requestLog.writeln(_logField(name, value)));

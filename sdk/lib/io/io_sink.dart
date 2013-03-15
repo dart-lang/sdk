@@ -98,7 +98,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
     for (Object obj in objects) write(obj);
   }
 
-  void writeln(Object obj) {
+  void writeln([Object obj = ""]) {
     write(obj);
     write("\n");
   }

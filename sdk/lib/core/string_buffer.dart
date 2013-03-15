@@ -33,7 +33,7 @@ class StringBuffer implements StringSink {
     for (Object obj in objects) write(obj);
   }
 
-  void writeln(Object obj) {
+  void writeln([Object obj = ""]) {
     write(obj);
     write("\n");
   }

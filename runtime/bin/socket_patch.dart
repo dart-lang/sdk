@@ -781,7 +781,7 @@ class _Socket extends Stream<List<int>> implements Socket {
 
   void write(Object obj) => _sink.write(obj);
 
-  void writeln(Object obj) => _sink.writeln(obj);
+  void writeln([Object obj = ""]) => _sink.writeln(obj);
 
   void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
 

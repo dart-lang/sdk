@@ -153,7 +153,7 @@ String _summarizeTests(Map results) {
     }
   }
 
-  buffer.writeln("");
+  buffer.writeln();
 
   var success = false;
   if (results['passed'] == 0 && results['failed'] == 0 &&

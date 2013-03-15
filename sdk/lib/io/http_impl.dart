@@ -379,7 +379,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     for (Object obj in objects) write(obj);
   }
 
-  void writeln(Object obj) {
+  void writeln([Object obj = ""]) {
     write(obj);
     write("\n");
   }
@@ -1581,7 +1581,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void write(Object obj) => _socket.write(obj);
 
-  void writeln(Object obj) => _socket.writeln(obj);
+  void writeln([Object obj = ""]) => _socket.writeln(obj);
 
   void writeCharCode(int charCode) => _socket.writeCharCode(charCode);
 
