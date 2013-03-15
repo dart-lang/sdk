@@ -19196,6 +19196,86 @@ class Node extends EventTarget {
     }
   }
 
+  // Note that this may either be the locally set model or a cached value
+  // of the inherited model. This is cached to minimize model change
+  // notifications.
+  var _model;
+  bool _hasLocalModel;
+  StreamController<Node> _modelChangedStream;
+
+  /**
+   * The data model which is inherited through the tree.
+   *
+   * Setting this will propagate the value to all descendant nodes. If the
+   * model is not set on this node then it will be inherited from ancestor
+   * nodes.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   *
+   * [clearModel] must be used to remove the model property from this node
+   * and have the model inherit from ancestor nodes.
+   */
+  @Experimental
+  get model {
+    // If we have a change handler then we've cached the model locally.
+    if (_modelChangedStream != null) {
+      return _model;
+    }
+    // Otherwise start looking up the tree.
+    for (var node = this; node != null; node = node.parentNode) {
+      if (node._hasLocalModel == true) {
+        return node._model;
+      }
+    }
+    return null;
+  }
+
+  @Experimental
+  void set model(value) {
+    var changed = model != value;
+    _model = value;
+    _hasLocalModel = true;
+    _ModelTreeObserver.initialize();
+
+    if (changed) {
+      if (_modelChangedStream != null) {
+        _modelChangedStream.add(this);
+      }
+      // Propagate new model to all descendants.
+      _ModelTreeObserver.propagateModel(this, value, false);
+    }
+  }
+
+  /**
+   * Clears the locally set model and makes this model be inherited from parent
+   * nodes.
+   */
+  @Experimental
+  void clearModel() {
+    if (_hasLocalModel == true) {
+      _hasLocalModel = false;
+
+      // Propagate new model to all descendants.
+      if (parentNode != null) {
+        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
+      } else {
+        _ModelTreeObserver.propagateModel(this, null, false);
+      }
+    }
+  }
+
+  /**
+   * Get a stream of models, whenever the model changes.
+   */
+  Stream<Node> get onModelChanged {
+    if (_modelChangedStream == null) {
+      // Ensure the model is cached locally to minimize change notifications.
+      _model = model;
+      _modelChangedStream = new StreamController.broadcast();
+    }
+    return _modelChangedStream.stream;
+  }
+
   Node.internal() : super.internal();
 
   @DomName('Node.childNodes')
@@ -34227,6 +34307,105 @@ abstract class KeyName {
    * value, due to either hardware, platform, or software constraints
    */
   static const String UNIDENTIFIED = "Unidentified";
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _ModelTreeObserver {
+  static bool _initialized = false;
+
+  /**
+   * Start an observer watching the document for tree changes to automatically
+   * propagate model changes.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   */
+  static void initialize() {
+    if (!_initialized) {
+      _initialized = true;
+
+      if (MutationObserver.supported) {
+        var observer = new MutationObserver(_processTreeChange);
+        observer.observe(document, childList: true, subtree: true);
+      } else {
+        document.on['DOMNodeInserted'].listen(_handleNodeInserted);
+        document.on['DOMNodeRemoved'].listen(_handleNodeRemoved);
+      }
+    }
+  }
+
+  static void _processTreeChange(List<MutationRecord> mutations,
+      MutationObserver observer) {
+    for (var record in mutations) {
+      for (var node in record.addedNodes) {
+        // When nodes enter the document we need to make sure that all of the
+        // models are properly propagated through the entire sub-tree.
+        propagateModel(node, _calculatedModel(node), true);
+      }
+      for (var node in record.removedNodes) {
+        propagateModel(node, _calculatedModel(node), false);
+      }
+    }
+  }
+
+  static void _handleNodeInserted(MutationEvent e) {
+    var node = e.target;
+    window.setImmediate(() {
+      propagateModel(node, _calculatedModel(node), true);
+    });
+  }
+
+  static void _handleNodeRemoved(MutationEvent e) {
+    var node = e.target;
+    window.setImmediate(() {
+      propagateModel(node, _calculatedModel(node), false);
+    });
+  }
+
+  /**
+   * Figures out what the model should be for a node, avoiding any cached
+   * model values.
+   */
+  static _calculatedModel(node) {
+    if (node._hasLocalModel == true) {
+      return node._model;
+    } else if (node.parentNode != null) {
+      return node.parentNode._model;
+    }
+    return null;
+  }
+
+  /**
+   * Pushes model changes down through the tree.
+   *
+   * Set fullTree to true if the state of the tree is unknown and model changes
+   * should be propagated through the entire tree.
+   */
+  static void propagateModel(Node node, model, bool fullTree) {
+    // Calling into user code with the != call could generate exceptions.
+    // Catch and report them a global exceptions.
+    try {
+      if (node._hasLocalModel != true && node._model != model &&
+          node._modelChangedStream != null) {
+        node._model = model;
+        node._modelChangedStream.add(node);
+      }
+    } on AsyncError catch (e) {
+      e.throwDelayed();
+    } catch (e, s) {
+      new AsyncError(e, s).throwDelayed();
+    }
+    for (var child = node.$dom_firstChild; child != null;
+        child = child.nextNode) {
+      if (child._hasLocalModel != true) {
+        propagateModel(child, model, fullTree);
+      } else if (fullTree) {
+        propagateModel(child, child._model, true);
+      }
+    }
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

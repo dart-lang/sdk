@@ -335,5 +335,85 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
+  // Note that this may either be the locally set model or a cached value
+  // of the inherited model. This is cached to minimize model change
+  // notifications.
+  var _model;
+  bool _hasLocalModel;
+  StreamController<Node> _modelChangedStream;
+
+  /**
+   * The data model which is inherited through the tree.
+   *
+   * Setting this will propagate the value to all descendant nodes. If the
+   * model is not set on this node then it will be inherited from ancestor
+   * nodes.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   *
+   * [clearModel] must be used to remove the model property from this node
+   * and have the model inherit from ancestor nodes.
+   */
+  @Experimental
+  get model {
+    // If we have a change handler then we've cached the model locally.
+    if (_modelChangedStream != null) {
+      return _model;
+    }
+    // Otherwise start looking up the tree.
+    for (var node = this; node != null; node = node.parentNode) {
+      if (node._hasLocalModel == true) {
+        return node._model;
+      }
+    }
+    return null;
+  }
+
+  @Experimental
+  void set model(value) {
+    var changed = model != value;
+    _model = value;
+    _hasLocalModel = true;
+    _ModelTreeObserver.initialize();
+
+    if (changed) {
+      if (_modelChangedStream != null) {
+        _modelChangedStream.add(this);
+      }
+      // Propagate new model to all descendants.
+      _ModelTreeObserver.propagateModel(this, value, false);
+    }
+  }
+
+  /**
+   * Clears the locally set model and makes this model be inherited from parent
+   * nodes.
+   */
+  @Experimental
+  void clearModel() {
+    if (_hasLocalModel == true) {
+      _hasLocalModel = false;
+
+      // Propagate new model to all descendants.
+      if (parentNode != null) {
+        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
+      } else {
+        _ModelTreeObserver.propagateModel(this, null, false);
+      }
+    }
+  }
+
+  /**
+   * Get a stream of models, whenever the model changes.
+   */
+  Stream<Node> get onModelChanged {
+    if (_modelChangedStream == null) {
+      // Ensure the model is cached locally to minimize change notifications.
+      _model = model;
+      _modelChangedStream = new StreamController.broadcast();
+    }
+    return _modelChangedStream.stream;
+  }
+
 $!MEMBERS
 }
