@@ -108,14 +108,18 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  List<T> getRange(int start, int length) {
-    if (length == 0) return [];
-    Arrays.rangeCheck(this, start, length);
+  List<T> sublist(int start, [int end]) {
+    Arrays.indicesCheck(this, start, end);
+    if (end == null) end = length;
+    int length = end - start;
+    if (start == end) return <T>[];
     List list = new _GrowableObjectArray<T>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
+
+  List<T> getRange(int start, int length) => sublist(start, start + length);
 
   factory _GrowableObjectArray(int length) {
     var data = new _ObjectArray((length == 0) ? 4 : length);

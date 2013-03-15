@@ -116,8 +116,7 @@ abstract class _HashBase implements Hash {
         _bytesToChunk(_pendingData, index);
         _updateHash(_currentChunk);
       }
-      var remaining = len - index;
-      _pendingData = _pendingData.getRange(index, remaining);
+      _pendingData = _pendingData.sublist(index, len);
     }
   }
 

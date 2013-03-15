@@ -56,9 +56,9 @@ class _InvocationMirror implements InvocationMirror {
 
   List get positionalArguments {
     if (_positionalArguments == null) {
+      int numPositionalArguments = _argumentsDescriptor[1];
       // Exclude receiver.
-      int numPositionalArguments = _argumentsDescriptor[1] - 1;
-      _positionalArguments = _arguments.getRange(1, numPositionalArguments);
+      _positionalArguments = _arguments.sublist(1, numPositionalArguments);
     }
     return _positionalArguments;
   }

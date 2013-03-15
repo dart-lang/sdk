@@ -120,7 +120,7 @@ void testFullMessages() {
       // Update the transformer one byte at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i++) {
-        controller.add(frame.getRange(i, 1));
+        controller.add(<int>[frame[i]]);
       }
       Expect.equals(0, transformer._state);
       Expect.isNotNull(mc.data);
@@ -129,7 +129,7 @@ void testFullMessages() {
       // Update the transformer two bytes at the time.
       messageCount++;
       for (int i = 0; i < frame.length; i += 2) {
-        controller.add(frame.getRange(i, i + 1 < frame.length ? 2 : 1));
+        controller.add(frame.sublist(i, min(i + 2, frame.length)));
       }
       Expect.equals(0, transformer._state);
       Expect.isNotNull(mc.data);

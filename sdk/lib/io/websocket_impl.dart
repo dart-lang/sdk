@@ -173,7 +173,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                 if (_controlPayload == null) {
                   _controlPayload = new List<int>();
                 }
-                _controlPayload.addAll(buffer.getRange(index, payload));
+                _controlPayload.addAll(buffer.sublist(index, index + payload));
                 index += payload;
               }
 
@@ -186,7 +186,8 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   throw new WebSocketException("Protocol error");
 
                 case _WebSocketMessageType.TEXT:
-                  _buffer.write(_decodeString(buffer.getRange(index, payload)));
+                  _buffer.write(_decodeString(
+                      buffer.sublist(index, index + payload)));
                   index += payload;
                   if (_remainingPayloadBytes == 0) {
                     _messageFrameEnd(sink);
@@ -194,7 +195,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   break;
 
                 case _WebSocketMessageType.BINARY:
-                  _buffer.write(buffer.getRange(index, payload));
+                  _buffer.write(buffer.sublist(index, index + payload));
                   index += payload;
                   if (_remainingPayloadBytes == 0) {
                     _messageFrameEnd(sink);
@@ -295,7 +296,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
           }
           if (_controlPayload.length > 2) {
             closeReason = _decodeString(
-                _controlPayload.getRange(2, _controlPayload.length - 2));
+                _controlPayload.sublist(2));
           }
         }
         _state = CLOSED;

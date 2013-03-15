@@ -611,6 +611,8 @@ LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
 
+LibTest/core/List/getRange_A02_t01: Fail # issue 391
+
 [ $compiler == none && $runtime == vm && $unchecked ]
 LibTest/core/Set/containsAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377). Succeedes in checked mode due to Issue 390.
 LibTest/core/Set/intersection_A03_t01: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377). Succeedes in checked mode due to Issue 390.

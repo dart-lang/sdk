@@ -116,9 +116,8 @@ class HttpParserTest {
       if (chunkSize == -1) chunkSize = requestData.length;
       reset();
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
-        int remaining = requestData.length - pos;
-        int writeLength = min(chunkSize, remaining);
-        controller.add(requestData.getRange(pos, writeLength));
+        int end = min(requestData.length, pos + chunkSize);
+        controller.add(requestData.sublist(pos, end));
       }
       controller.close();
     }
@@ -160,9 +159,8 @@ class HttpParserTest {
       for (int pos = 0;
            pos < requestData.length && !errorCalled;
            pos += chunkSize) {
-        int remaining = requestData.length - pos;
-        int writeLength = min(chunkSize, remaining);
-        controller.add(requestData.getRange(pos, writeLength));
+        int end = min(requestData.length, pos + chunkSize);
+        controller.add(requestData.sublist(pos, end));
       }
       controller.close();
     }
@@ -260,9 +258,8 @@ class HttpParserTest {
       if (chunkSize == -1) chunkSize = requestData.length;
       reset();
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
-        int remaining = requestData.length - pos;
-        int writeLength = min(chunkSize, remaining);
-        controller.add(requestData.getRange(pos, writeLength));
+        int end = min(requestData.length, pos + chunkSize);
+        controller.add(requestData.sublist(pos, end));
 
       }
       if (close) controller.close();
@@ -311,9 +308,8 @@ class HttpParserTest {
       for (int pos = 0;
            pos < requestData.length && !errorCalled;
            pos += chunkSize) {
-        int remaining = requestData.length - pos;
-        int writeLength = min(chunkSize, remaining);
-        controller.add(requestData.getRange(pos, writeLength));
+        int end = min(requestData.length, pos + chunkSize);
+        controller.add(requestData.sublist(pos, end));
       }
       controller.close();
     }

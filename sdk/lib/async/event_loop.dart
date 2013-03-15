@@ -24,7 +24,7 @@ void _asyncRunCallback() {
         callback();
       } catch (e) {
         i++;  // Skip current callback.
-        List remainingCallbacks = callbacks.getRange(i, callbacks.length - i);
+        List remainingCallbacks = callbacks.sublist(i);
         List newCallbacks = _asyncCallbacks;
         _asyncCallbacks = <_AsyncCallback>[];
         _asyncCallbacks.addAll(remainingCallbacks);

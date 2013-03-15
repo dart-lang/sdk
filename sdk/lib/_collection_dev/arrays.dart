@@ -75,6 +75,15 @@ class Arrays {
     return -1;
   }
 
+  static void indicesCheck(List a, int start, int end) {
+    if (start < 0 || start > a.length) {
+      throw new RangeError.range(start, 0, a.length);
+    }
+    if (end != null && (end < start || end > a.length)) {
+      throw new RangeError.range(end, start, a.length);
+    }
+  }
+
   static void rangeCheck(List a, int start, int length) {
     if (length < 0) {
       throw new ArgumentError("negative length $length");

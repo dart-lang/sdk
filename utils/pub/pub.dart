@@ -137,8 +137,7 @@ main() {
       return;
     }
 
-    var commandArgs =
-        globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
+    var commandArgs = globalOptions.rest.sublist(1);
     command.run(cache, globalOptions, commandArgs);
   });
 }

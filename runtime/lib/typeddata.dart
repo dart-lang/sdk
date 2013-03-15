@@ -434,11 +434,17 @@ abstract class _TypedListBase {
     return new Set.from(this);
   }
 
-  List getRange(int start, int length) {
+  List sublist(int start, [int end]) {
+    if (end == null) end = length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
+  }
+
+  List getRange(int start, int length) {
+    return sublist(start, start + length);
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
@@ -1521,7 +1527,7 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
 
 class _ExternalInt32Array extends _TypedList implements Int32List {
   // Factory constructors.
-  
+
   factory _ExternalInt32Array(int length) {
     if (length < 0) {
       String message = "$length must be greater than 0";

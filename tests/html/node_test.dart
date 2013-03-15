@@ -241,9 +241,9 @@ main() {
       expect(node.nodes.length, 1);
     });
 
-    test('getRange', () {
+    test('sublist', () {
       var node = makeNodeWithChildren();
-      expect(node.nodes.getRange(1, 2), isNodeList);
+      expect(node.nodes.sublist(1, 3), isNodeList);
     });
   });
 
@@ -263,8 +263,8 @@ main() {
       expect(filtered, isNodeList);
     });
 
-    test('getRange', () {
-      var range = makeNodeList().getRange(1, 2);
+    test('sublist', () {
+      var range = makeNodeList().sublist(1, 3);
       expect(range, isNodeList);
       expect(range[0], isBRElement);
       expect(range[1], isComment);

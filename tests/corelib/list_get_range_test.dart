@@ -3,43 +3,54 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  Expect.listEquals([], [].getRange(0, 0));
-  Expect.listEquals([], const [].getRange(0, 0));
+  Expect.listEquals([], [].sublist(0, 0));
+  Expect.listEquals([], const [].sublist(0, 0));
 
-  Expect.listEquals([], [].getRange(-1, 0));
-  Expect.listEquals([], const [].getRange(-1, 0));
 
-  Expect.listEquals([1, 2], [1, 2].getRange(0, 2));
-  Expect.listEquals([1, 2], const [1, 2].getRange(0, 2));
+  Expect.listEquals([1, 2], [1, 2].sublist(0, 2));
+  Expect.listEquals([1, 2], const [1, 2].sublist(0, 2));
 
-  Expect.listEquals([1], [1, 2].getRange(0, 1));
-  Expect.listEquals([1], const [1, 2].getRange(0, 1));
+  Expect.listEquals([1], [1, 2].sublist(0, 1));
+  Expect.listEquals([1], const [1, 2].sublist(0, 1));
 
-  Expect.listEquals([2], [1, 2].getRange(1, 1));
-  Expect.listEquals([2], const [1, 2].getRange(1, 1));
+  Expect.listEquals([2], [1, 2].sublist(1, 2));
+  Expect.listEquals([2], const [1, 2].sublist(1, 2));
 
-  Expect.listEquals([], [1, 2].getRange(0, 0));
-  Expect.listEquals([], const [1, 2].getRange(0, 0));
+  Expect.listEquals([], [1, 2].sublist(0, 0));
+  Expect.listEquals([], const [1, 2].sublist(0, 0));
 
-  Expect.listEquals([2, 3], [1, 2, 3, 4].getRange(1, 2));
-  Expect.listEquals([2, 3], const [1, 2, 3, 4].getRange(1, 2));
+  Expect.listEquals([2, 3], [1, 2, 3, 4].sublist(1, 3));
+  Expect.listEquals([2, 3], const [1, 2, 3, 4].sublist(1, 3));
 
-  Expect.listEquals([2, 3], [1, 2, 3, 4].getRange(1, 2));
-  Expect.listEquals([2, 3], const [1, 2, 3, 4].getRange(1, 2));
+  Expect.listEquals([2, 3], [1, 2, 3, 4].sublist(1, 3));
+  Expect.listEquals([2, 3], const [1, 2, 3, 4].sublist(1, 3));
 
-  expectIAE(() => [].getRange(0, -1));
-  expectIAE(() => const [].getRange(-1, -1));
+  expectAE(() => [].sublist(-1, null));
+  expectAE(() => const [].sublist(-1, null));
+  expectAE(() => [].sublist(-1, 0));
+  expectAE(() => const [].sublist(-1, 0));
+  expectAE(() => [].sublist(-1, -1));
+  expectAE(() => const [].sublist(-1, -1));
+  expectAE(() => [].sublist(-1, 1));
+  expectAE(() => const [].sublist(-1, 1));
+  expectAE(() => [].sublist(0, -1));
+  expectAE(() => const [].sublist(0, -1));
+  expectAE(() => [].sublist(0, 1));
+  expectAE(() => const [].sublist(0, 1));
+  expectAE(() => [].sublist(1, null));
+  expectAE(() => const [].sublist(1, null));
+  expectAE(() => [].sublist(1, 0));
+  expectAE(() => const [].sublist(1, 0));
+  expectAE(() => [].sublist(1, -1));
+  expectAE(() => const [].sublist(1, -1));
+  expectAE(() => [].sublist(1, 1));
+  expectAE(() => const [].sublist(1, 1));
 
-  expectIOORE(() => [].getRange(-1, 1));
-  expectIOORE(() => [].getRange(1, 1));
-  expectIOORE(() => [1].getRange(0, 2));
-  expectIOORE(() => [1].getRange(1, 1));
+  expectAE(() => [1].sublist(0, 2));
+  expectAE(() => [1].sublist(1, 2));
+  expectAE(() => [1].sublist(1, 0));
 }
 
-void expectIOORE(Function f) {
-  Expect.throws(f, (e) => e is RangeError);
-}
-
-void expectIAE(Function f) {
+void expectAE(Function f) {
   Expect.throws(f, (e) => e is ArgumentError);
 }

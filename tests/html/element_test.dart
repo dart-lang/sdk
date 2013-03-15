@@ -479,9 +479,9 @@ main() {
       expect(el.children.length, 1);
     });
 
-    test('getRange', () {
+    test('sublist', () {
       var el = makeElementWithChildren();
-      expect(el.children.getRange(1, 1), isElementList);
+      expect(el.children.sublist(1, 2), isElementList);
     });
   });
 
@@ -582,8 +582,8 @@ main() {
       expect(els[2], isHRElement);
     });
 
-    test('getRange', () {
-      expect(getQueryAll().getRange(1, 1) is List<Element>, isTrue);
+    test('sublist', () {
+      expect(getQueryAll().sublist(1, 2) is List<Element>, isTrue);
     });
 
     testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
@@ -632,8 +632,8 @@ main() {
       expect(filtered, isElementIterable);
     });
 
-    test('getRange', () {
-      var range = makeElList().getRange(1, 2);
+    test('sublist', () {
+      var range = makeElList().sublist(1, 3);
       expect(range, isElementList);
       expect(range[0], isImageElement);
       expect(range[1], isInputElement);

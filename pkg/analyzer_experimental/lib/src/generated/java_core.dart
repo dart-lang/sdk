@@ -313,9 +313,9 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
 
   Iterable<E> get reversed => elements.reversed;
 
-  List<E> getRange(int start, int length) {
-    return elements.getRange(start, length);
-  }
+  List<E> sublist(int start, [int end]) => elements.sublist(start, end);
+
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
     elements.setRange(start, length, from, startFrom);

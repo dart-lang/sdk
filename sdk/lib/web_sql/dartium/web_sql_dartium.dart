@@ -449,8 +449,13 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Map> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Map>[]);
+  }
+
   List<Map> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Map>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, Map> asMap() =>
     IterableMixinWorkaround.asMapList(this);

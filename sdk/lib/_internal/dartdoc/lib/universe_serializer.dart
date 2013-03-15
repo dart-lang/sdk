@@ -213,7 +213,7 @@ class LibraryElement extends Element {
       }
 
       var libDir = parts.lastIndexOf('lib');
-      var rest = parts.getRange(libDir + 1, parts.length - libDir - 1);
+      var rest = parts.sublist(libDir + 1);
 
       // If there's no lib, we can't find the package.
       if (libDir < 0 || libDir < packageDir) {

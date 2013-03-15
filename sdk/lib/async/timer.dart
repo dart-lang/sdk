@@ -61,7 +61,7 @@ abstract class Timer {
             _runCallbacks = [];
             i++;  // Skip the current;
             _runCallbacks.addAll(
-                runCallbacks.getRange(i, runCallbacks.length - i));
+                runCallbacks.sublist(i));
             _runCallbacks.addAll(newCallbacks);
             throw;
           }

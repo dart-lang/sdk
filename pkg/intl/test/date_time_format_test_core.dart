@@ -184,7 +184,7 @@ List oddLocales() {
  * Return a set of a few locales to run just the tests on a small sample.
  */
 List smallSetOfLocales() {
-  return allLocales().getRange(0,10);
+  return allLocales().sublist(0,10);
 }
 
 /**

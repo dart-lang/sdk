@@ -78,7 +78,7 @@ updateDropDown(Event event) {
     if (results.length >= 10) {
       var row = table.insertRow(table.rows.length);
       row.innerHtml = '<tr><td>+ ${results.length-10} more.</td></tr>';
-      results = results.getRange(0, 10);
+      results = results.sublist(0, 10);
     }
   }
   dropdown.children = elements;

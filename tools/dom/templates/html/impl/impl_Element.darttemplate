@@ -201,9 +201,13 @@ class _ChildrenElementList implements List {
     throw new UnimplementedError();
   }
 
+  List sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
+  }
+
   List getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(Lists.getRange(this, start, rangeLength,
-        []));
+      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -422,8 +426,12 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  List<Element> sublist(int start, [int end]) {
+    return new _FrozenElementList._wrap(_nodeList.sublist(start, end));
+  }
+
   List<Element> getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
+      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);

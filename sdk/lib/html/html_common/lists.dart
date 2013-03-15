@@ -51,15 +51,14 @@ class Lists {
 
   /**
    * Returns a sub list copy of this list, from [start] to
-   * [:start + length:].
+   * [end] ([end] not inclusive).
    * Returns an empty list if [length] is 0.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws a [RangeError] if [start] or [:start + length:] are out of range.
+   * It is an error if indices are not valid for the list, or
+   * if [end] is before [start].
    */
-  static List getRange(List a, int start, int length, List accumulator) {
-    if (length < 0) throw new ArgumentError('length');
+  static List getRange(List a, int start, int end, List accumulator) {
     if (start < 0) throw new RangeError.value(start);
-    int end = start + length;
+    if (end < start) throw new RangeError.value(end);
     if (end > a.length) throw new RangeError.value(end);
     for (int i = start; i < end; i++) {
       accumulator.add(a[i]);

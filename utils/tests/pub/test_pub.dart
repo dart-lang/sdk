@@ -1025,7 +1025,7 @@ class DirectoryDescriptor extends Descriptor {
 
     for (var descriptor in contents) {
       if (descriptor.name == path[0]) {
-        return descriptor.load(path.getRange(1, path.length - 1));
+        return descriptor.load(path.sublist(1));
       }
     }
 

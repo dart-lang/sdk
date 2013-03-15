@@ -244,8 +244,13 @@ $endif
     throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end == length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
 
   // -- end List<Node> mixins.
 

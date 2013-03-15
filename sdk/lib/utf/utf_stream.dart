@@ -52,7 +52,7 @@ abstract class _StringDecoder
           _carry.addAll(carry);
           _carry.addAll(bytes);
         } else {
-          _carry = bytes.getRange(currentPos, bytes.length - currentPos);
+          _carry = bytes.sublist(currentPos);
         }
         break;
       } else {

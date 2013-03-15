@@ -556,12 +556,16 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int8Array) {
@@ -620,12 +624,16 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint8Array || from is _ExternalUint8Array ||
@@ -686,12 +694,16 @@ class _Uint8ClampedArray extends _ByteArrayBase implements Uint8ClampedList {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint8Array || from is _ExternalUint8Array ||
@@ -751,12 +763,16 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int16Array) {
@@ -815,12 +831,16 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint16Array) {
@@ -879,12 +899,16 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int32Array) {
@@ -944,12 +968,16 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint32Array) {
@@ -1008,12 +1036,16 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int64Array) {
@@ -1072,12 +1104,16 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint64Array) {
@@ -1136,12 +1172,17 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
     return new _ByteArrayIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
+  List<double> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<double> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<double> getRange(int start, int length) =>
+      sublist(start, start + length);
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _Float32Array) {
@@ -1200,12 +1241,17 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
     return new _ByteArrayIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
+  List<double> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<double> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<double> getRange(int start, int length) =>
+      sublist(start, start + length);
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _Float64Array) {
@@ -1253,12 +1299,16 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int8List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt8Array) {
@@ -1304,12 +1354,16 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint8List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint8Array || from is _Uint8Array) {
@@ -1356,12 +1410,16 @@ class _ExternalUint8ClampedArray
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint8ClampedList(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint8ClampedArray || from is _Uint8ClampedArray) {
@@ -1407,12 +1465,16 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int16List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt16Array) {
@@ -1458,12 +1520,16 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint16List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint16Array) {
@@ -1511,12 +1577,16 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int32List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt32Array) {
@@ -1564,12 +1634,16 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint32List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint32Array) {
@@ -1617,12 +1691,16 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int64List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt64Array) {
@@ -1670,12 +1748,16 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint64List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint64Array) {
@@ -1723,12 +1805,17 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
     return new _ByteArrayIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
+  List<double> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<double> result = new Float32List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<double> getRange(int start, int length) =>
+      sublist(start, start + length);
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _ExternalFloat32Array) {
@@ -1776,12 +1863,17 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
     return new _ByteArrayIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
+  List<double> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<double> result = new Float64List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<double> getRange(int start, int length) =>
+      sublist(start, start + length);
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _ExternalFloat64Array) {
@@ -2110,12 +2202,16 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int8List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2174,12 +2270,16 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint8List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2238,12 +2338,16 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int16List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2302,12 +2406,16 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint16List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2366,12 +2474,16 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int32List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2430,12 +2542,16 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint32List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2494,12 +2610,16 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Int64List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2558,12 +2678,16 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
     return new _ByteArrayIterator<int>(this);
   }
 
-  List<int> getRange(int start, int length) {
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<int> result = new Uint64List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<int> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2622,12 +2746,17 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
     return new _ByteArrayIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
+  List<double> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<double> result = new Float32List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<double> getRange(int start, int length) =>
+      sublist(start, start + length);
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
@@ -2686,12 +2815,17 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
     return new _ByteArrayIterator<double>(this);
   }
 
-  List<double> getRange(int start, int length) {
+  List<double> sublist(int start, [int end]) {
+    if (end == null) end = this.length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<double> result = new Float64List(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<double> getRange(int start, int length) =>
+      sublist(start, start + length);
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);

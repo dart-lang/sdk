@@ -433,7 +433,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
     }
     List<int> result = (toRead == 0) ? null :
-        buffer.data.getRange(buffer.start, toRead);
+        buffer.data.sublist(buffer.start, buffer.start + toRead);
     buffer.advanceStart(toRead);
 
     // Set up a read event if the filter still has data.

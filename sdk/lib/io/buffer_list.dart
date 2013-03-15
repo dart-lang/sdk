@@ -79,7 +79,7 @@ class _BufferList {
     } else {
       int firstRemaining = _buffers.first.length - _index;
       if (firstRemaining >= count) {
-        result = _buffers.first.getRange(_index, count);
+        result = _buffers.first.sublist(_index, _index + count);
         _index += count;
         _length -= count;
         if (_index == _buffers.first.length) {

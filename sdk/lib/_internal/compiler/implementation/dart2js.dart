@@ -231,7 +231,7 @@ void compile(List<String> argv) {
     helpAndFail('Error: No Dart file specified.');
   }
   if (arguments.length > 1) {
-    var extra = arguments.getRange(1, arguments.length - 1);
+    var extra = arguments.sublist(1);
     helpAndFail('Error: Extra arguments: ${extra.join(" ")}');
   }
 

@@ -3494,8 +3494,13 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Length> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Length>[]);
+  }
+
   List<Length> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Length>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, Length> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -4204,8 +4209,13 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Number> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Number>[]);
+  }
+
   List<Number> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Number>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, Number> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -5390,8 +5400,13 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<PathSeg> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <PathSeg>[]);
+  }
+
   List<PathSeg> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <PathSeg>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, PathSeg> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -6381,8 +6396,13 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<String> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <String>[]);
+  }
+
   List<String> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <String>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, String> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -7641,8 +7661,13 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Transform> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Transform>[]);
+  }
+
   List<Transform> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Transform>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, Transform> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -8223,8 +8248,13 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<ElementInstance> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <ElementInstance>[]);
+  }
+
   List<ElementInstance> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, ElementInstance> asMap() =>
     IterableMixinWorkaround.asMapList(this);

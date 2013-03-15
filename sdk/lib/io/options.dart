@@ -47,7 +47,7 @@ class _OptionsImpl implements Options {
   List<String> get arguments {
     if (_arguments == null) {
       // On first access make a copy of the native arguments.
-      _arguments = _nativeArguments.getRange(0, _nativeArguments.length);
+      _arguments = _nativeArguments.sublist(0, _nativeArguments.length);
     }
     return _arguments;
   }

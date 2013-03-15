@@ -79,17 +79,17 @@ class _MimeMultipartParser {
         var contentLength = boundaryPrefix + index - _boundaryIndex;
         if (contentLength <= boundaryPrefix) {
           partDataReceived(
-              _boundary.getRange(0, contentLength));
+              _boundary.sublist(0, contentLength));
         } else {
           partDataReceived(
-              _boundary.getRange(0, boundaryPrefix));
+              _boundary.sublist(0, boundaryPrefix));
           partDataReceived(
-              buffer.getRange(0, contentLength - boundaryPrefix));
+              buffer.sublist(0, contentLength - boundaryPrefix));
         }
       } else {
-        var contentLength = index - contentStartIndex - _boundaryIndex;
+        var contentEndIndex = index - _boundaryIndex;
         partDataReceived(
-            buffer.getRange(contentStartIndex, contentLength));
+            buffer.sublist(contentStartIndex, contentEndIndex));
       }
     }
 

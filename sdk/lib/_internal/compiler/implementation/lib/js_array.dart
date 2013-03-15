@@ -146,21 +146,28 @@ class JSArray<E> implements List<E>, JSIndexable {
     return this[index];
   }
 
-  List<E> getRange(int start, int length) {
-    // TODO(ngeoffray): Parameterize the return value.
-    if (0 == length) return [];
+  List<E> sublist(int start, [int end]) {
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
     if (start is !int) throw new ArgumentError(start);
-    if (length is !int) throw new ArgumentError(length);
-    if (length < 0) throw new ArgumentError(length);
-    if (start < 0) throw new RangeError.value(start);
-    int end = start + length;
-    if (end > this.length) {
-      throw new RangeError.value(length);
+    if (start < 0 || start > length) {
+      throw new RangeError.range(start, 0, length);
     }
-    if (length < 0) throw new ArgumentError(length);
+    if (end == null) {
+      end = length;
+    } else {
+      if (end is !int) throw new ArgumentError(end);
+      if (end < start || end > length) {
+        throw new RangeError.range(end, start, length);
+      }
+    }
+    // TODO(ngeoffray): Parameterize the return value.
+    if (start == end) return [];
     return JS('=List', r'#.slice(#, #)', this, start, end);
+  }
+
+
+  List<E> getRange(int start, int length) {
+    return sublist(start, start + length);
   }
 
   void insertRange(int start, int length, [E initialValue]) {

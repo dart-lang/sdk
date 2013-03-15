@@ -189,20 +189,18 @@ class TestingServers {
       if (pathSegments[0] == PREFIX_BUILDDIR) {
         basePath = _buildDirectory;
         relativePath = new Path(
-            pathSegments.getRange(1, pathSegments.length - 1).join('/'));
+            pathSegments.skip(1).join('/'));
       } else if (pathSegments[0] == PREFIX_DARTDIR) {
         basePath = TestUtils.dartDir();
         relativePath = new Path(
-            pathSegments.getRange(1, pathSegments.length - 1).join('/'));
+            pathSegments.skip(1).join('/'));
       }
       var packagesDirName = 'packages';
       var packagesIndex = pathSegments.indexOf(packagesDirName);
       if (packagesIndex != -1) {
         var start = packagesIndex + 1;
-        var length = pathSegments.length - start;
         basePath = _buildDirectory.append(packagesDirName);
-        relativePath = new Path(
-            pathSegments.getRange(start, length).join('/'));
+        relativePath = new Path(pathSegments.skip(start).join('/'));
       }
       if (basePath != null && relativePath != null) {
         return basePath.join(relativePath);

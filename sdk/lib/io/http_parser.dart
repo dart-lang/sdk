@@ -795,7 +795,7 @@ class _HttpParser
   List<int> readUnparsedData() {
     if (_buffer == null) return null;
     if (_index == _buffer.length) return null;
-    var result = _buffer.getRange(_index, _buffer.length - _index);
+    var result = _buffer.sublist(_index);
     _releaseBuffer();
     return result;
   }

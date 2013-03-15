@@ -25,7 +25,7 @@ patch class NoSuchMethodError {
     if (numPositionalArguments == 0) {
       positionalArguments = [];
     } else {
-      positionalArguments = arguments.getRange(0, numPositionalArguments);
+      positionalArguments = arguments.sublist(0, numPositionalArguments);
     }
     Map<String, dynamic> namedArguments = new Map<String, dynamic>();
     for (int i = 0; i < numNamedArguments; i++) {

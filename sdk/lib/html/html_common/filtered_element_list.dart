@@ -80,7 +80,7 @@ class FilteredElementList implements List {
   }
 
   void removeRange(int start, int rangeLength) {
-    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
+    _filtered.sublist(start, start + rangeLength).forEach((el) => el.remove());
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
@@ -174,8 +174,10 @@ class FilteredElementList implements List {
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> get iterator => _filtered.iterator;
+  List<Element> sublist(int start, [int end]) =>
+    _filtered.sublist(start, end);
   List<Element> getRange(int start, int rangeLength) =>
-    _filtered.getRange(start, rangeLength);
+    sublist(start, start + rangeLength);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 

@@ -82,14 +82,19 @@ class _ObjectArray<E> implements List<E> {
         "Cannot insert range in a non-extendable array");
   }
 
-  List<E> getRange(int start, int length) {
-    if (length == 0) return [];
-    Arrays.rangeCheck(this, start, length);
+
+  List<E> sublist(int start, [int end]) {
+    Arrays.indicesCheck(this, start, end);
+    if (end == null) end = this.length;
+    int length = end - start;
+    if (start == end) return [];
     List list = new _GrowableObjectArray<E>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
+
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   // Iterable interface.
 
@@ -325,14 +330,18 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot insert range in an immutable array");
   }
 
-  List<E> getRange(int start, int length) {
-    if (length == 0) return [];
-    Arrays.rangeCheck(this, start, length);
+  List<E> sublist(int start, [int end]) {
+    Arrays.indicesCheck(this, start, end);
+    if (end == null) end = this.length;
+    int length = end - start;
+    if (start == end) return [];
     List list = new List<E>();
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
+
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   // Collection interface.
 

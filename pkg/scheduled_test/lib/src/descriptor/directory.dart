@@ -62,7 +62,7 @@ class Directory extends descriptor.Entry {
         throw "Found multiple entries named '${split.first}' within "
             "$nameDescription.";
       } else {
-        var remainingPath = split.getRange(1, split.length - 1);
+        var remainingPath = split.sublist(1);
         if (remainingPath.isEmpty) {
           return matchingEntries.first.read();
         } else {

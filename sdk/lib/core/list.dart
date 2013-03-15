@@ -225,13 +225,19 @@ abstract class List<E> implements Collection<E> {
   E removeLast();
 
   /**
-   * Returns a new list containing [length] elements from the list,
-   * starting at  [start].
-   * Returns an empty list if [length] is 0.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] or
-   * [:start + length - 1:] are out of range.
+   * Returns a new list containing the elemenst from [start] to [end].
+   *
+   * If [end] is omitted, the [length] of the list is used.
+   *
+   * It is an error if [start] or [end] are not list indices for this list,
+   * or if [end] is before [start].
    */
+  List<E> sublist(int start, [int end]);
+
+  /**
+   * *Deprecated*. Use [sublist] instead.
+   */
+  @deprecated
   List<E> getRange(int start, int length);
 
   /**

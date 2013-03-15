@@ -737,3 +737,5 @@ LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+
+LibTest/core/List/getRange_A02_t01: Fail # issue 391

@@ -310,7 +310,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // bounds check will become explicit, so we won't need this
         // optimization.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-            node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+            node.selector, node.inputs.sublist(1));
         result.element = target;
         return result;
       }

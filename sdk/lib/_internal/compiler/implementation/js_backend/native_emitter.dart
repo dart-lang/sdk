@@ -227,11 +227,11 @@ function(cls, desc) {
 
       if (isInterceptedMethod) {
         receiver = argumentsBuffer[0];
-        arguments = argumentsBuffer.getRange(1,
-            indexOfLastOptionalArgumentInParameters);
+        arguments = argumentsBuffer.sublist(1,
+            indexOfLastOptionalArgumentInParameters + 1);
       } else {
         receiver = new jsAst.VariableUse('this');
-        arguments = argumentsBuffer.getRange(0,
+        arguments = argumentsBuffer.sublist(0,
             indexOfLastOptionalArgumentInParameters + 1);
       }
     }

@@ -29,19 +29,23 @@ abstract class ListBase<E> extends ListIterable<E> implements List<E> {
     return new ListMapView(this);
   }
 
-  List<E> getRange(int start, int length) {
+  List<E> sublist(int start, [int end]) {
+    if (end == null) end = length;
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
+    if (end < start || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
     }
-    List<E> result = new List<E>(length);
+    int length = end - start;
+    List<E> result = new List<E>()..length = length;
     for (int i = 0; i < length; i++) {
       result[i] = this[start + i];
     }
     return result;
   }
+
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   int indexOf(E element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
