@@ -6184,14 +6184,50 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('DirectoryEntry')
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
+  
+  /**
+   * Create a new directory with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a directory already
+   * exists with the specified `path`.
+   */
+  Future<Entry> createDirectory(String path, {bool exclusive: false}) {
+    return _getDirectory(path, options: 
+        {'create': true, 'exclusive': exclusive});
+  }
+
+  /**
+   * Retrieve an already existing directory entry. The returned future will
+   * result in an error if a directory at `path` does not exist or if the item
+   * at `path` is not a directory.
+   */
+  Future<Entry> getDirectory(String path) {
+    return _getDirectory(path);
+  }
+
+  /**
+   * Create a new file with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a file already
+   * exists at the specified `path`.
+   */
+  Future<Entry> createFile(String path, {bool exclusive: false}) {
+    return _getFile(path, options: {'create': true, 'exclusive': exclusive});
+  }
+  
+  /**
+   * Retrieve an already existing file entry. The returned future will
+   * result in an error if a file at `path` does not exist or if the item at
+   * `path` is not a file.
+   */
+  Future<Entry> getFile(String path) {
+    return _getFile(path);
+  }
 
   @DomName('DirectoryEntry.createReader')
   @DocsEditable
@@ -6199,48 +6235,48 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void _getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+  void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getDirectory_1(path, options_1, successCallback, errorCallback);
+      ___getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getDirectory_2(path, options_2, successCallback);
+      ___getDirectory_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getDirectory_3(path, options_3);
+      ___getDirectory_3(path, options_3);
       return;
     }
-    __getDirectory_4(path);
+    ___getDirectory_4(path);
     return;
   }
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void ___getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_2(path, options, _EntryCallback successCallback) native;
+  void ___getDirectory_2(path, options, _EntryCallback successCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_3(path, options) native;
+  void ___getDirectory_3(path, options) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_4(path) native;
+  void ___getDirectory_4(path) native;
 
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  Future<Entry> getDirectory(String path, {Map options}) {
+  Future<Entry> _getDirectory(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    _getDirectory(path, options : options,
+    __getDirectory(path, options : options,
         successCallback : (value) { completer.complete(value); },
         errorCallback : (error) { completer.completeError(error); });
     return completer.future;
@@ -6248,48 +6284,48 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void _getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+  void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getFile_1(path, options_1, successCallback, errorCallback);
+      ___getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getFile_2(path, options_2, successCallback);
+      ___getFile_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getFile_3(path, options_3);
+      ___getFile_3(path, options_3);
       return;
     }
-    __getFile_4(path);
+    ___getFile_4(path);
     return;
   }
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void ___getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_2(path, options, _EntryCallback successCallback) native;
+  void ___getFile_2(path, options, _EntryCallback successCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_3(path, options) native;
+  void ___getFile_3(path, options) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_4(path) native;
+  void ___getFile_4(path) native;
 
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  Future<Entry> getFile(String path, {Map options}) {
+  Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    _getFile(path, options : options,
+    __getFile(path, options : options,
         successCallback : (value) { completer.complete(value); },
         errorCallback : (error) { completer.completeError(error); });
     return completer.future;
@@ -6310,7 +6346,9 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
         (error) { completer.completeError(error); });
     return completer.future;
   }
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10425,14 +10463,19 @@ class EventException native "*EventException" {
   @DocsEditable
   String toString() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('EventSource')
 class EventSource extends EventTarget native "*EventSource" {
+  factory EventSource(String title, {withCredentials: false}) {
+    var parsedOptions = {
+      'withCredentials': withCredentials,
+    };
+    return EventSource._factoryEventSource(title, parsedOptions);
+  }
 
   @DomName('EventSource.errorEvent')
   @DocsEditable
@@ -10448,7 +10491,7 @@ class EventSource extends EventTarget native "*EventSource" {
 
   @DomName('EventSource.EventSource')
   @DocsEditable
-  factory EventSource(String url, [Map eventSourceInit]) {
+  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
     if (?eventSourceInit) {
       return EventSource._create_1(url, eventSourceInit);
     }
@@ -10504,6 +10547,7 @@ class EventSource extends EventTarget native "*EventSource" {
   @DomName('EventSource.onopen')
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17220,8 +17264,7 @@ class MutationObserver native "*MutationObserver" {
   }
 
   void observe(Node target,
-               {Map options,
-                bool childList,
+               {bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
@@ -17231,19 +17274,6 @@ class MutationObserver native "*MutationObserver" {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
-
-    if (options != null) {
-      options.forEach((k, v) {
-          if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true == v);
-          } else if (k == 'attributeFilter') {
-            _add(parsedOptions, k, _fixupList(v));
-          } else {
-            throw new ArgumentError(
-                "Illegal MutationObserver.observe option '$k'");
-          }
-        });
-    }
 
     // Override options passed in the map with named optional arguments.
     override(key, value) {
@@ -18355,13 +18385,18 @@ class Notation extends Node native "*Notation" {
 
 @DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
-  factory Notification(String title, [Map options]) {
-    if (?options) {
-      return JS('Notification', 'new Notification(#,#)', title,
-          convertDartToNative_SerializedScriptValue(options));
-    } else {
-      return JS('Notification', 'new Notification(#)', title);
-    }
+
+  factory Notification(String title, {String titleDir: null, String body: null, 
+      String bodyDir: null, String tag: null, String iconUrl: null}) {
+
+    var parsedOptions = {};
+    if (titleDir != null) parsedOptions['titleDir'] = titleDir;
+    if (body != null) parsedOptions['body'] = body;
+    if (bodyDir != null) parsedOptions['bodyDir'] = bodyDir;
+    if (tag != null) parsedOptions['tag'] = tag;
+    if (iconUrl != null) parsedOptions['iconUrl'] = iconUrl;
+
+    return Notification._factoryNotification(title, parsedOptions);
   }
 
   @DomName('Notification.clickEvent')
@@ -18383,6 +18418,17 @@ class Notification extends EventTarget native "*Notification" {
   @DomName('Notification.showEvent')
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
+
+  @DomName('Notification.Notification')
+  @DocsEditable
+  static Notification _factoryNotification(String title, [Map options]) {
+    if (?options) {
+      return Notification._create_1(title, options);
+    }
+    return Notification._create_2(title);
+  }
+  static Notification _create_1(title, options) => JS('Notification', 'new Notification(#,#)', title, options);
+  static Notification _create_2(title) => JS('Notification', 'new Notification(#)', title);
 
   @DomName('Notification.dir')
   @DocsEditable
@@ -26649,6 +26695,17 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     JS('void', '#.setImmediate(#)', this, convertDartClosureToJS(callback, 0));
   }
 
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
 
   @DomName('DOMWindow.DOMContentLoadedEvent')
   @DocsEditable
@@ -27111,16 +27168,16 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native;
+  void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
   @DomName('DOMWindow.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<FileSystem> requestFileSystem(int type, int size) {
+  Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
+    __requestFileSystem(type, size,
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); });
     return completer.future;
@@ -27412,13 +27469,59 @@ class Worker extends AbstractWorker native "*Worker" {
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
 @DomName('WorkerContext')
 class WorkerContext extends EventTarget native "*WorkerContext" {
+  /**
+   * Gets an instance of the Indexed DB factory to being using Indexed DB.
+   *
+   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * current platform.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental
+  IdbFactory get indexedDB =>
+      JS('IdbFactory',
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
+
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  @DomName('WorkerContext.webkitRequestFileSystem')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
+
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. This call will block until a reference to the synchronous file 
+   * system API has been obtained. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  @DomName('WorkerContext.webkitRequestFileSystemSync')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  FileSystemSync requestFileSystemSync(int size, {bool persistent: false}) {
+    return _requestFileSystemSync(persistent? 1 : 0, size);
+  }
 
   @DomName('WorkerContext.errorEvent')
   @DocsEditable
@@ -27505,16 +27608,16 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
+  void __requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<FileSystem> requestFileSystem(int type, int size) {
+  Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
+    __requestFileSystem(type, size,
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); });
     return completer.future;
@@ -27525,7 +27628,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  FileSystemSync requestFileSystemSync(int type, int size) native;
+  FileSystemSync _requestFileSystemSync(int type, int size) native;
 
   @JSName('webkitResolveLocalFileSystemSyncURL')
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
@@ -27558,21 +27661,6 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-
-  /**
-   * Gets an instance of the Indexed DB factory to being using Indexed DB.
-   *
-   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
-   * current platform.
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
-  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
-  @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental
-  IdbFactory get indexedDB =>
-      JS('IdbFactory',
-         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
-         this, this, this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

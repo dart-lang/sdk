@@ -6959,16 +6959,50 @@ class DeviceOrientationEvent extends Event {
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('DirectoryEntry')
 class DirectoryEntry extends Entry {
+  
+  /**
+   * Create a new directory with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a directory already
+   * exists with the specified `path`.
+   */
+  Future<Entry> createDirectory(String path, {bool exclusive: false}) {
+    return _getDirectory(path, options: 
+        {'create': true, 'exclusive': exclusive});
+  }
+
+  /**
+   * Retrieve an already existing directory entry. The returned future will
+   * result in an error if a directory at `path` does not exist or if the item
+   * at `path` is not a directory.
+   */
+  Future<Entry> getDirectory(String path) {
+    return _getDirectory(path);
+  }
+
+  /**
+   * Create a new file with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a file already
+   * exists at the specified `path`.
+   */
+  Future<Entry> createFile(String path, {bool exclusive: false}) {
+    return _getFile(path, options: {'create': true, 'exclusive': exclusive});
+  }
+  
+  /**
+   * Retrieve an already existing file entry. The returned future will
+   * result in an error if a file at `path` does not exist or if the item at
+   * `path` is not a file.
+   */
+  Future<Entry> getFile(String path) {
+    return _getFile(path);
+  }
   DirectoryEntry.internal() : super.internal();
 
   @DomName('DirectoryEntry.createReader')
@@ -6977,11 +7011,11 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void _getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
+  void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
 
-  Future<Entry> getDirectory(String path, {Map options}) {
+  Future<Entry> _getDirectory(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    _getDirectory(path, options : options,
+    __getDirectory(path, options : options,
         successCallback : (value) { completer.complete(value); },
         errorCallback : (error) { completer.completeError(error); });
     return completer.future;
@@ -6989,11 +7023,11 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void _getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
+  void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
 
-  Future<Entry> getFile(String path, {Map options}) {
+  Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    _getFile(path, options : options,
+    __getFile(path, options : options,
         successCallback : (value) { completer.complete(value); },
         errorCallback : (error) { completer.completeError(error); });
     return completer.future;
@@ -7012,6 +7046,7 @@ class DirectoryEntry extends Entry {
   }
 
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11071,16 +11106,19 @@ class EventException extends NativeFieldWrapperClass1 {
   String toString() native "EventException_toString_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('EventSource')
 class EventSource extends EventTarget {
+  factory EventSource(String title, {withCredentials: false}) {
+    var parsedOptions = {
+      'withCredentials': withCredentials,
+    };
+    return EventSource._factoryEventSource(title, parsedOptions);
+  }
   EventSource.internal() : super.internal();
 
   @DomName('EventSource.errorEvent')
@@ -11097,7 +11135,7 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.EventSource')
   @DocsEditable
-  factory EventSource(String url, [Map eventSourceInit]) {
+  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
     return EventSource._create_1(url, eventSourceInit);
   }
 
@@ -18687,8 +18725,7 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   }
 
   void observe(Node target,
-               {Map options,
-                bool childList,
+               {bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
@@ -18698,19 +18735,6 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
-
-    if (options != null) {
-      options.forEach((k, v) {
-          if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true == v);
-          } else if (k == 'attributeFilter') {
-            _add(parsedOptions, k, _fixupList(v));
-          } else {
-            throw new ArgumentError(
-                "Illegal MutationObserver.observe option '$k'");
-          }
-        });
-    }
 
     // Override options passed in the map with named optional arguments.
     override(key, value) {
@@ -19800,16 +19824,26 @@ class Notation extends Node {
   String get systemId native "Notation_systemId_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('Notification')
 class Notification extends EventTarget {
+
+  factory Notification(String title, {String titleDir: null, String body: null, 
+      String bodyDir: null, String tag: null, String iconUrl: null}) {
+
+    var parsedOptions = {};
+    if (titleDir != null) parsedOptions['titleDir'] = titleDir;
+    if (body != null) parsedOptions['body'] = body;
+    if (bodyDir != null) parsedOptions['bodyDir'] = bodyDir;
+    if (tag != null) parsedOptions['tag'] = tag;
+    if (iconUrl != null) parsedOptions['iconUrl'] = iconUrl;
+
+    return Notification._factoryNotification(title, parsedOptions);
+  }
   Notification.internal() : super.internal();
 
   @DomName('Notification.clickEvent')
@@ -19834,7 +19868,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.Notification')
   @DocsEditable
-  factory Notification(String title, [Map options]) {
+  static Notification _factoryNotification(String title, [Map options]) {
     return Notification._create_1(title, options);
   }
 
@@ -28752,6 +28786,17 @@ class Window extends EventTarget implements WindowBase {
     throw new UnsupportedError('setImmediate is not supported');
   }
 
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
   Window.internal() : super.internal();
 
   @DomName('DOMWindow.DOMContentLoadedEvent')
@@ -29213,11 +29258,11 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+  void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
-  Future<FileSystem> requestFileSystem(int type, int size) {
+  Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
+    __requestFileSystem(type, size,
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); });
     return completer.future;
@@ -29492,16 +29537,45 @@ class Worker extends AbstractWorker {
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('WorkerContext')
 class WorkerContext extends EventTarget {
+
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  @DomName('WorkerContext.webkitRequestFileSystem')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
+
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. This call will block until a reference to the synchronous file 
+   * system API has been obtained. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  @DomName('WorkerContext.webkitRequestFileSystemSync')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  FileSystemSync requestFileSystemSync(int size, {bool persistent: false}) {
+    return _requestFileSystemSync(persistent? 1 : 0, size);
+  }
   WorkerContext.internal() : super.internal();
 
   @DomName('WorkerContext.errorEvent')
@@ -29593,11 +29667,11 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
+  void __requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
-  Future<FileSystem> requestFileSystem(int type, int size) {
+  Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
+    __requestFileSystem(type, size,
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); });
     return completer.future;
@@ -29607,7 +29681,7 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  FileSystemSync requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
+  FileSystemSync _requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
   @DocsEditable
