@@ -12,4 +12,5 @@ import '../util/characters.dart' as charCodes;
 import '../dart2jslib.dart' as leg;
 
 part 'nodes.dart';
+part 'builder.dart';
 part 'printer.dart';
