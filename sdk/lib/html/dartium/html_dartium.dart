@@ -9093,7 +9093,7 @@ class _ChildrenElementList implements List {
     if (index == length) {
       _element.append(element);
     } else {
-      throw new UnimplementedError("insert on ElementLists");
+      _element.insertBefore(element, this[index]);
     }
   }
 
@@ -19066,7 +19066,7 @@ class _ChildNodeListLazy implements List {
     if (index == length) {
       _this.append(node);
     } else {
-      this_.insertBefore(node, this[index]);
+      _this.insertBefore(node, this[index]);
     }
   }
 

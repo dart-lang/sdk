@@ -465,6 +465,18 @@ main() {
       expect(el.children[5], isHeadingElement);
     });
 
+    test('insert', () {
+      var element = new DivElement();
+      element.children.insert(0, new BRElement());
+      expect(element.children[0], isBRElement);
+      element.children.insert(0, new HRElement());
+      expect(element.children[0], isHRElement);
+      element.children.insert(1, new ImageElement());
+      expect(element.children[1], isImageElement);
+      element.children.insert(element.children.length, new InputElement());
+      expect(element.children.last, isInputElement);
+    });
+
     test('clear', () {
       var el = makeElementWithChildren();
       el.children.clear();
