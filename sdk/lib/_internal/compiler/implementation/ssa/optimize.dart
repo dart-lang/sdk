@@ -461,8 +461,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
-    if (element.isTypeVariable()) {
-      compiler.unimplemented("visitIs for type variables");
+
+    if (!node.isRawCheck) {
+      return node;
     } else if (element.isTypedef()) {
       return node;
     }
@@ -1263,8 +1264,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void visitIs(HIs instruction) {
     DartType type = instruction.typeExpression;
     Element element = type.element;
-    if (element.isTypeVariable()) {
-      compiler.unimplemented("visitIs for type variables");
+    if (!instruction.isRawCheck) {
+      return;
     } else if (element.isTypedef()) {
       return;
     }

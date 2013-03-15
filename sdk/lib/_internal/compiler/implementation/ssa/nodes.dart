@@ -2155,30 +2155,49 @@ class HIndexAssign extends HInstruction {
   HInstruction get value => inputs[2];
 }
 
+// TODO(karlklose): use this class to represent type conversions as well.
 class HIs extends HInstruction {
+  /// A check against a raw type: 'o is int', 'o is A'.
+  static const int RAW_CHECK = 0;
+  /// A check against a type with type arguments: 'o is List<int>', 'o is C<T>'.
+  static const int COMPOUND_CHECK = 1;
+  /// A check against a single type variable: 'o is T'.
+  static const int VARIABLE_CHECK = 2;
+
   final DartType typeExpression;
   final bool nullOk;
+  final int kind;
 
-  HIs(this.typeExpression, List<HInstruction> inputs, {this.nullOk: false})
-     : super(inputs) {
+  HIs(this.typeExpression, List<HInstruction> inputs, this.kind,
+      {this.nullOk: false}) : super(inputs) {
+    assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
     instructionType = HType.BOOLEAN;
   }
 
   HInstruction get expression => inputs[0];
-  HInstruction get checkCall => inputs[1];
 
-  bool hasArgumentsCheck() => inputs.length > 1;
+  HInstruction get checkCall {
+    assert(kind == VARIABLE_CHECK || kind == COMPOUND_CHECK);
+    return inputs[1];
+  }
+
+  bool get isRawCheck => kind == RAW_CHECK;
+  bool get isVariableCheck => kind == VARIABLE_CHECK;
+  bool get isCompoundCheck => kind == COMPOUND_CHECK;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
   toString() => "$expression is $typeExpression";
 
   int typeCode() => HInstruction.IS_TYPECODE;
+
   bool typeEquals(HInstruction other) => other is HIs;
+
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression
-        && nullOk == other.nullOk;
+        && nullOk == other.nullOk
+        && kind == other.kind;
   }
 }
 

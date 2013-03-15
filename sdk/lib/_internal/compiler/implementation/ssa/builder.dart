@@ -2646,9 +2646,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (node.argumentsNode is Prefix) {
       visitUnary(node, op);
     } else if (const SourceString("is") == op.source) {
+      visitIsSend(node);
+    } else if (const SourceString("as") == op.source) {
       visit(node.receiver);
       HInstruction expression = pop();
       Node argument = node.arguments.head;
+      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
+      DartType type = elements.getType(typeAnnotation);
+      HInstruction converted = expression.convertType(
+          compiler, type, HTypeConversion.CAST_TYPE_CHECK);
+      if (converted != expression) add(converted);
+      stack.add(converted);
+    } else {
+      visit(node.receiver);
+      visit(node.argumentsNode);
+      var right = pop();
+      var left = pop();
+      visitBinary(left, op, right, elements.getSelector(node), node);
+    }
+  }
+
+  void visitIsSend(Send node) {
+      Node argument = node.arguments.head;
+      visit(node.receiver);
+      HInstruction expression = pop();
       TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
       bool isNot = false;
       // TODO(ngeoffray): Duplicating pattern in resolver. We should
@@ -2676,67 +2697,50 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         add(helperCall);
         List<HInstruction> inputs = <HInstruction>[helperCall, expression,
                                                    runtimeType];
-        instruction = new HInvokeStatic(inputs, HType.BOOLEAN);
-        add(instruction);
-        compiler.enqueuer.codegen.registerIsCheck(type, elements);
-
+        HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+        add(call);
+        instruction = new HIs(type, <HInstruction>[expression, call],
+                              HIs.VARIABLE_CHECK);
       } else if (RuntimeTypes.hasTypeArguments(type)) {
-
-        void argumentsCheck() {
-          HInstruction typeInfo = getRuntimeTypeInfo(expression);
-          Element helper = backend.getCheckArguments();
-          HInstruction helperCall = new HStatic(helper);
-          add(helperCall);
-          HInstruction representations =
-              buildTypeArgumentRepresentations(type);
-          add(representations);
-          Element element = type.element;
-          String substitution = backend.namer.substitutionName(element);
-          if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
-            substitution = '$substitution()';
-          }
-          HInstruction fieldGet =
-              createForeign('#.$substitution', HType.UNKNOWN, [expression]);
-          add(fieldGet);
-          List<HInstruction> inputs = <HInstruction>[helperCall,
-                                                     fieldGet,
-                                                     typeInfo,
-                                                     representations];
-          push(new HInvokeStatic(inputs, HType.UNKNOWN));
+        HInstruction constant(String string) {
+          return graph.addConstantString(new DartString.literal(string), node,
+                                         constantSystem);
         }
 
-        void classCheck() { push(new HIs(type, <HInstruction>[expression])); }
-
-        SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
-        branchBuilder.handleLogicalAndOr(classCheck, argumentsCheck,
-                                         isAnd: true);
-        instruction = pop();
+        Element element = type.element;
+        bool needsNativeCheck =
+            backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
+        Element helper = backend.getCheckSubtype();
+        HInstruction helperCall = new HStatic(helper);
+        add(helperCall);
+        HInstruction representations =
+          buildTypeArgumentRepresentations(type);
+        add(representations);
+        HInstruction isFieldName = constant(backend.namer.operatorIs(element));
+        // TODO(karlklose): use [:null:] for [asField] if [element] does not
+        // have a subclass.
+        HInstruction asFieldName =
+            constant(backend.namer.substitutionName(element));
+        HInstruction native =
+            graph.addConstantBool(needsNativeCheck, constantSystem);
+        List<HInstruction> inputs = <HInstruction>[helperCall,
+                                                   expression,
+                                                   isFieldName,
+                                                   representations,
+                                                   asFieldName,
+                                                   native];
+        HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+        add(call);
+        instruction = new HIs(type, <HInstruction>[expression, call],
+                              HIs.COMPOUND_CHECK);
       } else {
-        instruction = new HIs(type, <HInstruction>[expression]);
-        add(instruction);
+        instruction = new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
       }
       if (isNot) {
-        instruction = new HNot(instruction);
         add(instruction);
+        instruction = new HNot(instruction);
       }
-      stack.add(instruction);
-    } else if (const SourceString("as") == op.source) {
-      visit(node.receiver);
-      HInstruction expression = pop();
-      Node argument = node.arguments.head;
-      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
-      DartType type = elements.getType(typeAnnotation);
-      HInstruction converted = expression.convertType(
-          compiler, type, HTypeConversion.CAST_TYPE_CHECK);
-      if (converted != expression) add(converted);
-      stack.add(converted);
-    } else {
-      visit(node.receiver);
-      visit(node.argumentsNode);
-      var right = pop();
-      var left = pop();
-      visitBinary(left, op, right, elements.getSelector(node), node);
-    }
+      push(instruction);
   }
 
   void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
@@ -4572,8 +4576,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                 graph.addConstantBool(true, constantSystem);
             stack.add(condition);
           } else {
-            HInstruction condition =
-                new HIs(type, <HInstruction>[unwrappedException]);
+            // TODO(karlkose): support type arguments here.
+            HInstruction condition = new HIs(type,
+                                             <HInstruction>[unwrappedException],
+                                             HIs.RAW_CHECK);
             push(condition);
           }
         } else {
@@ -4591,8 +4597,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             if (type == null) {
               compiler.cancel('Catch with unresolved type', node: catchBlock);
             }
-            condition =
-                new HIs(type, <HInstruction>[unwrappedException], nullOk: true);
+            // TODO(karlkose): support type arguments here.
+            condition = new HIs(type, <HInstruction>[unwrappedException],
+                                HIs.RAW_CHECK, nullOk: true);
             push(condition);
           }
         }
