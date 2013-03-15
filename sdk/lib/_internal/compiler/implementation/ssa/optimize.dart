@@ -663,17 +663,37 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // return the object (the [:getInterceptor:] method would have
     // returned the object).
     HType type = node.receiver.instructionType;
-    if (!type.canBePrimitive(compiler)) {
-      if (!(type.canBeNull()
-            && node.interceptedClasses.contains(compiler.objectClass))) {
-        return node.receiver;
-      }
+    if (canUseSelfForInterceptor(type, node.interceptedClasses)) {
+      return node.receiver;
     }
     HInstruction constant = tryComputeConstantInterceptor(
         node.inputs[0], node.interceptedClasses);
     if (constant == null) return node;
 
     return constant;
+  }
+
+  bool canUseSelfForInterceptor(HType receiverType,
+                                Set<ClassElement> interceptedClasses) {
+    if (receiverType.canBePrimitive(compiler)) {
+      // Primitives always need interceptors.
+      return false;
+    }
+    if (receiverType.canBeNull()
+        && interceptedClasses.contains(backend.jsNullClass)) {
+      // Need the JSNull interceptor.
+      return false;
+    }
+
+    // [interceptedClasses] is sparse - it is just the classes that define some
+    // intercepted method.  Their subclasses (that inherit the method) are
+    // implicit, so we have to extend them.
+
+    TypeMask receiverMask = receiverType.computeMask(compiler);
+    return interceptedClasses
+        .where((cls) => cls != compiler.objectClass)
+        .map((cls) => new TypeMask.subclass(cls.rawType))
+        .every((mask) => receiverMask.intersection(mask, compiler).isEmpty);
   }
 
   HInstruction tryComputeConstantInterceptor(HInstruction input,
@@ -693,8 +713,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (type.isNull()) {
       constantInterceptor = backend.jsNullClass;
     } else if (type.isNumber()) {
-      // If the method being intercepted is not defined in [int] or
-      // [double] we can safely use the number interceptor.
+      // If the method being intercepted is not defined in [int] or [double] we
+      // can safely use the number interceptor.  This is because none of the
+      // [int] or [double] methods are called from a method defined on [num].
       if (!intercepted.contains(backend.jsIntClass)
           && !intercepted.contains(backend.jsDoubleClass)) {
         constantInterceptor = backend.jsNumberClass;

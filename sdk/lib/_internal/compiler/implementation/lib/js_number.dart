@@ -9,6 +9,9 @@ part of _interceptors;
  * recognizes this class as an interceptor, and changes references to
  * [:this:] to actually use the receiver of the method, which is
  * generated as an extra argument added to each member.
+ *
+ * Note that none of the methods here delegate to a method defined on JSInt or
+ * JSDouble.  This is exploited in [tryComputeConstantInterceptor].
  */
 class JSNumber implements num {
   const JSNumber();

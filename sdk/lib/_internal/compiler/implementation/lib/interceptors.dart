@@ -78,7 +78,8 @@ class JSBool implements bool {
  * The interceptor class for [Null].
  *
  * This class defines implementations for *all* methods on [Object] since the
- * the methods on Object assume the receiver is non-null.
+ * the methods on Object assume the receiver is non-null.  This means that
+ * JSNull will always be in the interceptor set for methods defined on Object.
  */
 class JSNull implements Null {
   const JSNull();
