@@ -411,6 +411,8 @@ abstract class Stream<T> {
    * be a [Comparator]).
    *
    * If [compare] is omitted, it defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary min method if needed.
    */
   Future<T> min([int compare(T a, T b)]) {
     if (compare == null) {
@@ -455,6 +457,8 @@ abstract class Stream<T> {
    * be a [Comparator]).
    *
    * If [compare] is omitted, it defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary max method if needed.
    */
   Future<T> max([int compare(T a, T b)]) {
     if (compare == null)  {

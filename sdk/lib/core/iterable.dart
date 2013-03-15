@@ -185,7 +185,10 @@ abstract class Iterable<E> {
    *
    * The [compare] function must be a proper [Comparator<T>]. If a function is
    * not provided, [compare] defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary min method if needed.
    */
+  @deprecated
   E min([int compare(E a, E b)]) {
     if (compare == null) compare = Comparable.compare;
     Iterator it = iterator;
@@ -208,7 +211,10 @@ abstract class Iterable<E> {
    *
    * The [compare] function must be a proper [Comparator<T>]. If a function is
    * not provided, [compare] defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary max method if needed.
    */
+  @deprecated
   E max([int compare(E a, E b)]) {
     if (compare == null) compare = Comparable.compare;
     Iterator it = iterator;
