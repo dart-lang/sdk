@@ -1109,7 +1109,7 @@ class JavaScriptBackend extends Backend {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeArgument(), elements);
-      enqueueInResolution(getCheckSubtype(), elements);
+      enqueueInResolution(getCheckArguments(), elements);
       if (isTypeVariable) {
         enqueueInResolution(getGetObjectIsSubtype(), elements);
       }
@@ -1617,8 +1617,8 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper(const SourceString('runtimeTypeToString'));
   }
 
-  Element getCheckSubtype() {
-    return compiler.findHelper(const SourceString('checkSubtype'));
+  Element getCheckArguments() {
+    return compiler.findHelper(const SourceString('checkArguments'));
   }
 
   Element getGetObjectIsSubtype() {

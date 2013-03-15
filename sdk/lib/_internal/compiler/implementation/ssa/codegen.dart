@@ -2316,69 +2316,67 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitIs(HIs node) {
     DartType type = node.typeExpression;
     world.registerIsCheck(type, work.resolutionTree);
+    Element element = type.element;
+    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
+      compiler.unimplemented("visitIs for type variables",
+                             instruction: node.expression);
+    }
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
 
-    if (node.isVariableCheck || node.isCompoundCheck) {
-      use(node.checkCall);
+    if (identical(element, objectClass) ||
+        identical(element, compiler.dynamicClass)) {
+      // The constant folder also does this optimization, but we make
+      // it safe by assuming it may have not run.
+      push(newLiteralBool(true), node);
+    } else if (element == compiler.stringClass) {
+      checkString(input, '===');
+      attachLocationToLast(node);
+    } else if (element == compiler.doubleClass) {
+      checkDouble(input, '===');
+      attachLocationToLast(node);
+    } else if (element == compiler.numClass) {
+      checkNum(input, '===');
+      attachLocationToLast(node);
+    } else if (element == compiler.boolClass) {
+      checkBool(input, '===');
+      attachLocationToLast(node);
+    } else if (element == compiler.functionClass) {
+      checkFunction(input, type);
+      attachLocationToLast(node);
+    } else if (element == compiler.intClass) {
+      // The is check in the code tells us that it might not be an
+      // int. So we do a typeof first to avoid possible
+      // deoptimizations on the JS engine due to the Math.floor check.
+      checkNum(input, '===');
+      js.Expression numTest = pop();
+      checkBigInt(input, '===');
+      push(new js.Binary('&&', numTest, pop()), node);
+    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+      handleNumberOrStringSupertypeCheck(input, type);
+      attachLocationToLast(node);
+    } else if (Elements.isStringOnlySupertype(element, compiler)) {
+      handleStringSupertypeCheck(input, type);
+      attachLocationToLast(node);
+    } else if (identical(element, compiler.listClass)
+               || Elements.isListSupertype(element, compiler)) {
+      handleListOrSupertypeCheck(input, type);
+      attachLocationToLast(node);
+    } else if (element.isTypedef()) {
+      checkNonNull(input);
+      js.Expression nullTest = pop();
+      checkType(input, type);
+      push(new js.Binary('&&', nullTest, pop()));
+      attachLocationToLast(node);
+    } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
+      checkObject(input, '===');
+      js.Expression objectTest = pop();
+      checkType(input, type);
+      push(new js.Binary('&&', objectTest, pop()), node);
     } else {
-      assert(node.isRawCheck);
-      LibraryElement coreLibrary = compiler.coreLibrary;
-      ClassElement objectClass = compiler.objectClass;
-      Element element = type.element;
-
-      if (identical(element, objectClass) ||
-          identical(element, compiler.dynamicClass)) {
-        // The constant folder also does this optimization, but we make
-        // it safe by assuming it may have not run.
-        push(newLiteralBool(true), node);
-      } else if (element == compiler.stringClass) {
-        checkString(input, '===');
-        attachLocationToLast(node);
-      } else if (element == compiler.doubleClass) {
-        checkDouble(input, '===');
-        attachLocationToLast(node);
-      } else if (element == compiler.numClass) {
-        checkNum(input, '===');
-        attachLocationToLast(node);
-      } else if (element == compiler.boolClass) {
-        checkBool(input, '===');
-        attachLocationToLast(node);
-      } else if (element == compiler.functionClass) {
-        checkFunction(input, type);
-        attachLocationToLast(node);
-      } else if (element == compiler.intClass) {
-        // The is check in the code tells us that it might not be an
-        // int. So we do a typeof first to avoid possible
-        // deoptimizations on the JS engine due to the Math.floor check.
-        checkNum(input, '===');
-        js.Expression numTest = pop();
-        checkBigInt(input, '===');
-        push(new js.Binary('&&', numTest, pop()), node);
-      } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
-        handleNumberOrStringSupertypeCheck(input, type);
-        attachLocationToLast(node);
-      } else if (Elements.isStringOnlySupertype(element, compiler)) {
-        handleStringSupertypeCheck(input, type);
-        attachLocationToLast(node);
-      } else if (identical(element, compiler.listClass)
-                 || Elements.isListSupertype(element, compiler)) {
-        handleListOrSupertypeCheck(input, type);
-        attachLocationToLast(node);
-      } else if (element.isTypedef()) {
-        checkNonNull(input);
-        js.Expression nullTest = pop();
-        checkType(input, type);
-        push(new js.Binary('&&', nullTest, pop()));
-        attachLocationToLast(node);
-      } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
-        checkObject(input, '===');
-        js.Expression objectTest = pop();
-        checkType(input, type);
-        push(new js.Binary('&&', objectTest, pop()), node);
-      } else {
-        checkType(input, type);
-        attachLocationToLast(node);
-      }
+      checkType(input, type);
+      attachLocationToLast(node);
     }
     if (node.nullOk) {
       checkNull(input);
