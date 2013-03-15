@@ -64,6 +64,7 @@ intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+intl/test/message_extraction/message_extraction_test: Fail # dart:io bug with reading encoding
 
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
