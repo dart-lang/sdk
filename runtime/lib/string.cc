@@ -13,10 +13,26 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));
+  if (!list.IsGrowableObjectArray() && !list.IsArray()) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, list);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
   // TODO(srdjan): Check that parameterized type is an int.
+
+  Array& a = Array::Handle();
+  intptr_t array_len;
+  if (list.IsGrowableObjectArray()) {
+    const GrowableObjectArray& growableArray = GrowableObjectArray::Cast(list);
+    a ^= growableArray.data();
+    array_len = growableArray.Length();
+  } else {
+    a ^= Array::Cast(list).raw();
+    array_len = a.Length();
+  }
+
   Zone* zone = isolate->current_zone();
-  intptr_t array_len = a.Length();
 
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;

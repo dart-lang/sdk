@@ -20,7 +20,7 @@ class _StringBase {
    *  [codePoints].
    */
   static String createFromCharCodes(Iterable<int> charCodes) {
-    if (charCodes is! _ObjectArray) {
+    if (charCodes is! _ObjectArray && charCodes is! _GrowableObjectArray) {
       charCodes = new List<int>.from(charCodes, growable: false);
     }
     return _createFromCodePoints(charCodes);
