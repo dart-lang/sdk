@@ -15,11 +15,28 @@ namespace dart {
 
 // TypedData.
 
-// Checks to see if offsetInBytes is in the range.
-static bool RangeCheck(intptr_t offsetInBytes, intptr_t lengthInBytes) {
-  return ((offsetInBytes >= 0) &&
-          (lengthInBytes > 0) &&
-          (offsetInBytes < lengthInBytes));
+// Checks to see if offset_in_bytes is in the range.
+static bool RangeCheck(intptr_t offset_in_bytes, intptr_t length_in_bytes) {
+  return ((offset_in_bytes >= 0) &&
+          (length_in_bytes > 0) &&
+          (offset_in_bytes < length_in_bytes));
+}
+
+
+// Checks to see if offsetInBytes + num_bytes is in the range.
+static void SetRangeCheck(intptr_t offset_in_bytes,
+                          intptr_t num_bytes,
+                          intptr_t length_in_bytes,
+                          intptr_t element_size_in_bytes) {
+  if (!Utils::RangeCheck(offset_in_bytes, num_bytes, length_in_bytes)) {
+    const String& error = String::Handle(String::NewFormatted(
+        "index (%"Pd") must be in the range [0..%"Pd")",
+        (offset_in_bytes / element_size_in_bytes),
+        (length_in_bytes / element_size_in_bytes)));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
+  }
 }
 
 
@@ -59,6 +76,55 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   args.SetAt(0, error);
   Exceptions::ThrowByType(Exceptions::kArgument, args);
   return Integer::null();
+}
+
+
+#define COPY_DATA(type, dst, src)                                              \
+  const type& dst_array = type::Cast(dst);                                     \
+  const type& src_array = type::Cast(src);                                     \
+  intptr_t element_size_in_bytes = dst_array.ElementSizeInBytes();             \
+  intptr_t length_in_bytes = length.Value() * element_size_in_bytes;           \
+  intptr_t src_offset_in_bytes = src_start.Value() * element_size_in_bytes;    \
+  intptr_t dst_offset_in_bytes = dst_start.Value() * element_size_in_bytes;    \
+  SetRangeCheck(src_offset_in_bytes,                                           \
+                length_in_bytes,                                               \
+                src_array.LengthInBytes(),                                     \
+                element_size_in_bytes);                                        \
+  SetRangeCheck(dst_offset_in_bytes,                                           \
+                length_in_bytes,                                               \
+                dst_array.LengthInBytes(),                                     \
+                element_size_in_bytes);                                        \
+  type::Copy(dst_array, dst_offset_in_bytes,                                   \
+             src_array, src_offset_in_bytes,                                   \
+             length_in_bytes);
+
+DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, dst, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, src, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(4));
+
+  if (length.Value() < 0) {
+    const String& error = String::Handle(String::NewFormatted(
+        "length (%"Pd") must be non-negative", length.Value()));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+  if ((dst.IsTypedData() || dst.IsExternalTypedData()) &&
+      (dst.clazz() == src.clazz())) {
+    if (dst.IsTypedData()) {
+      ASSERT(src.IsTypedData());
+      COPY_DATA(TypedData, dst, src);
+    } else {
+      ASSERT(src.IsExternalTypedData());
+      ASSERT(dst.IsExternalTypedData());
+      COPY_DATA(ExternalTypedData, dst, src);
+    }
+    return Bool::True().raw();
+  }
+  return Bool::False().raw();
 }
 
 

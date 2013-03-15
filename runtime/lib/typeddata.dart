@@ -325,6 +325,7 @@ abstract class _TypedListBase {
     return this.length == 0;
   }
 
+
   // Method(s) implementing the List interface.
 
   set length(newLength) {
@@ -448,14 +449,24 @@ abstract class _TypedListBase {
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    if (!_setRange(start, length, from, startFrom)) {
+      IterableMixinWorkaround.setRangeList(this, start,
+                                           length, from, startFrom);
+    }
   }
+
 
   // Method(s) implementing Object interface.
 
   String toString() {
     return Collections.collectionToString(this);
   }
+
+
+  // Internal utility methods.
+
+  bool _setRange(int start, int length, List from, startFrom)
+      native "TypedData_setRange";
 }
 
 

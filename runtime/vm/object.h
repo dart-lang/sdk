@@ -4991,6 +4991,12 @@ class TypedData : public Instance {
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
 
+  static void Copy(const TypedData& dst,
+                   intptr_t dst_offset_in_bytes,
+                   const TypedData& src,
+                   intptr_t src_offset_in_bytes,
+                   intptr_t length_in_bytes);
+
  protected:
   void SetLength(intptr_t value) const {
     raw_ptr()->length_ = Smi::New(value);
@@ -5078,6 +5084,12 @@ class ExternalTypedData : public Instance {
                                    uint8_t* data,
                                    intptr_t len,
                                    Heap::Space space = Heap::kNew);
+
+  static void Copy(const ExternalTypedData& dst,
+                   intptr_t dst_offset_in_bytes,
+                   const ExternalTypedData& src,
+                   intptr_t src_offset_in_bytes,
+                   intptr_t length_in_bytes);
 
  protected:
   void SetLength(intptr_t value) const {

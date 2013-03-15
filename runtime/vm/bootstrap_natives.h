@@ -288,6 +288,7 @@ namespace dart {
   V(ExternalTypedData_Float32Array_new, 1)                                     \
   V(ExternalTypedData_Float64Array_new, 1)                                     \
   V(TypedData_length, 1)                                                       \
+  V(TypedData_setRange, 5)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
   V(TypedData_SetInt8, 3)                                                      \
   V(TypedData_GetUint8, 2)                                                     \

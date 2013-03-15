@@ -12381,6 +12381,28 @@ const intptr_t TypedData::element_size[] = {
 };
 
 
+void TypedData::Copy(const TypedData& dst,
+                     intptr_t dst_offset_in_bytes,
+                     const TypedData& src,
+                     intptr_t src_offset_in_bytes,
+                     intptr_t length_in_bytes) {
+  ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                           length_in_bytes,
+                           src.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                           length_in_bytes,
+                           dst.LengthInBytes()));
+  {
+    NoGCScope no_gc;
+    if (length_in_bytes > 0) {
+      memmove(dst.DataAddr(dst_offset_in_bytes),
+              src.DataAddr(src_offset_in_bytes),
+              length_in_bytes);
+    }
+  }
+}
+
+
 RawTypedData* TypedData::New(intptr_t class_id,
                              intptr_t len,
                              Heap::Space space) {
@@ -12415,6 +12437,28 @@ FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
     void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
   SetPeer(peer);
   return dart::AddFinalizer(*this, peer, callback);
+}
+
+
+void ExternalTypedData::Copy(const ExternalTypedData& dst,
+                             intptr_t dst_offset_in_bytes,
+                             const ExternalTypedData& src,
+                             intptr_t src_offset_in_bytes,
+                             intptr_t length_in_bytes) {
+  ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                           length_in_bytes,
+                           src.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                           length_in_bytes,
+                           dst.LengthInBytes()));
+  {
+    NoGCScope no_gc;
+    if (length_in_bytes > 0) {
+      memmove(dst.DataAddr(dst_offset_in_bytes),
+              src.DataAddr(src_offset_in_bytes),
+              length_in_bytes);
+    }
+  }
 }
 
 
