@@ -17,7 +17,6 @@ import 'log.dart' as log;
 import 'package.dart';
 import 'path_source.dart';
 import 'pubspec.dart';
-import 'sdk_source.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
@@ -26,7 +25,7 @@ import 'version.dart';
 /// The system-wide cache of installed packages.
 ///
 /// This cache contains all packages that are downloaded from the internet.
-/// Packages that are available locally (e.g. from the SDK) don't use this
+/// Packages that are available locally (e.g. path dependencies) don't use this
 /// cache.
 class SystemCache {
   /// The root directory where this package cache is located.
@@ -52,7 +51,6 @@ class SystemCache {
     cache.register(new GitSource());
     cache.register(new HostedSource());
     cache.register(new PathSource());
-    cache.register(new SdkSource());
     cache.sources.setDefault('hosted');
     return cache;
   }

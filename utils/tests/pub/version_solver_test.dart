@@ -69,7 +69,6 @@ Matcher sourceMismatch(String package1, String package2) {
 
 MockSource source1;
 MockSource source2;
-Source versionlessSource;
 
 main() {
   initConfig();
@@ -149,30 +148,6 @@ main() {
     'foo': '1.0.1',
     'bar': '1.0.0',
     'bang': '1.0.0'
-  });
-
-  testResolve('from versionless source', {
-    'myapp 0.0.0': {
-      'foo from versionless': 'any'
-    },
-    'foo 1.2.3 from versionless': {}
-  }, result: {
-    'myapp from root': '0.0.0',
-    'foo from versionless': '1.2.3'
-  });
-
-  testResolve('transitively through versionless source', {
-    'myapp 0.0.0': {
-      'foo from versionless': 'any'
-    },
-    'foo 1.2.3 from versionless': {
-      'bar': '>=1.0.0'
-    },
-    'bar 1.1.0': {}
-  }, result: {
-    'myapp from root': '0.0.0',
-    'foo from versionless': '1.2.3',
-    'bar': '1.1.0'
   });
 
   testResolve('with compatible locked dependency', {
@@ -426,10 +401,8 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
     var cache = new SystemCache('.');
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
-    versionlessSource = new MockVersionlessSource();
     cache.register(source1);
     cache.register(source2);
-    cache.register(versionlessSource);
     cache.sources.setDefault(source1.name);
 
     // Build the test package graph.
@@ -553,30 +526,6 @@ class MockSource extends Source {
   }
 }
 
-/// A source used for testing that doesn't natively understand versioning,
-/// similar to how the Git and SDK sources work.
-class MockVersionlessSource extends Source {
-  final Map<String, Package> _packages;
-
-  final String name = 'versionless';
-  final bool shouldCache = false;
-
-  MockVersionlessSource()
-    : _packages = <String, Package>{};
-
-  Future<bool> install(PackageId id, String path) {
-    throw 'no';
-  }
-
-  Future<Pubspec> describe(PackageId id) {
-    return new Future<Pubspec>.immediate(_packages[id.description].pubspec);
-  }
-
-  void addPackage(Package package) {
-    _packages[package.name] = package;
-  }
-}
-
 void parseSource(String description,
     callback(bool isDev, String name, Source source)) {
   var isDev = false;
@@ -592,8 +541,7 @@ void parseSource(String description,
   var sourceNames = {
     'mock1': source1,
     'mock2': source2,
-    'root': null,
-    'versionless': versionlessSource
+    'root': null
   };
 
   var match = new RegExp(r"(.*) from (.*)").firstMatch(description);

@@ -161,15 +161,6 @@ main() {
       expectNoValidationError(lib);
     });
 
-    integration('has an unconstrained dependency on "unittest"', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0", deps: [
-          {'hosted': 'unittest'}
-        ])
-      ]).scheduleCreate();
-      expectNoValidationError(dependency);
-    });
-
     integration('has a nested directory named "tools"', () {
       dir(appPath, [
         dir("foo", [dir("tools")])

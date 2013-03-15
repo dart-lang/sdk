@@ -33,7 +33,6 @@ import '../../pub/http.dart';
 import '../../pub/io.dart';
 import '../../pub/path_source.dart';
 import '../../pub/safe_http_server.dart';
-import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/validator.dart';
@@ -410,9 +409,6 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
         break;
       case "path":
         source = new PathSource();
-        break;
-      case "sdk":
-        source = new SdkSource();
         break;
       default:
         throw 'Unknown source "$sourceName"';

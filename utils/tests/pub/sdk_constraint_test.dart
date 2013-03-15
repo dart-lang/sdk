@@ -44,26 +44,22 @@ main() {
     });
 
     integration("gives an error if some dependencies do not match", () {
-      // Using an SDK source, but this should be true of all sources.
-      dir(sdkPath, [
-        dir("pkg", [
-          dir("foo", [
-            libPubspec("foo", "0.0.1", sdk: ">0.1.3"),
-            libDir("foo")
-          ]),
-          dir("bar", [
-            libPubspec("bar", "0.0.1", sdk: ">0.1.1"),
-            libDir("bar")
-          ])
-        ])
+      // Using a path source, but this should be true of all sources.
+      dir("foo", [
+        libPubspec("foo", "0.0.1", sdk: ">0.1.3"),
+        libDir("foo")
+      ]).scheduleCreate();
+      dir("bar", [
+        libPubspec("bar", "0.0.1", sdk: ">0.1.1"),
+        libDir("bar")
       ]).scheduleCreate();
 
       dir(appPath, [
         pubspec({
           "name": "myapp",
           "dependencies": {
-            "foo": { "sdk": "foo" },
-            "bar": { "sdk": "bar" }
+            "foo": {"path": "../foo"},
+            "bar": {"path": "../bar"}
           },
           "environment": {"sdk": ">2.0.0"}
         })
@@ -82,27 +78,23 @@ main() {
     });
 
     integration("gives an error if a transitive dependency doesn't match", () {
-      // Using an SDK source, but this should be true of all sources.
-      dir(sdkPath, [
-        dir("pkg", [
-          dir("foo", [
-            libPubspec("foo", "0.0.1", deps: [
-              {"sdk": "bar"}
-            ]),
-            libDir("foo")
-          ]),
-          dir("bar", [
-            libPubspec("bar", "0.0.1", sdk: "<0.1.1"),
-            libDir("bar")
-          ])
-        ])
+      // Using a path source, but this should be true of all sources.
+      dir("foo", [
+        libPubspec("foo", "0.0.1", deps: [
+          {"path": "../bar"}
+        ]),
+        libDir("foo")
+      ]).scheduleCreate();
+      dir("bar", [
+        libPubspec("bar", "0.0.1", sdk: "<0.1.1"),
+        libDir("bar")
       ]).scheduleCreate();
 
       dir(appPath, [
         pubspec({
           "name": "myapp",
           "dependencies": {
-            "foo": { "sdk": "foo" }
+            "foo": {"path": "../foo"}
           }
         })
       ]).scheduleCreate();
@@ -119,23 +111,19 @@ main() {
     });
 
     integration("handles a circular dependency on the root package", () {
-      // Using an SDK source, but this should be true of all sources.
-      dir(sdkPath, [
-        dir("pkg", [
-          dir("foo", [
-            libPubspec("foo", "0.0.1", sdk: ">3.0.0", deps: [
-              {"sdk": "myapp"}
-            ]),
-            libDir("foo")
-          ])
-        ])
+      // Using a path source, but this should be true of all sources.
+      dir("foo", [
+        libPubspec("foo", "0.0.1", sdk: ">3.0.0", deps: [
+          {"path": "../myapp"}
+        ]),
+        libDir("foo")
       ]).scheduleCreate();
 
       dir(appPath, [
         pubspec({
           "name": "myapp",
           "dependencies": {
-            "foo": { "sdk": "foo" }
+            "foo": {"path": "../foo"}
           },
           "environment": {"sdk": ">2.0.0"}
         })

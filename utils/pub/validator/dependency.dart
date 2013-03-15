@@ -34,13 +34,7 @@ class DependencyValidator extends Validator {
         return new Future.immediate(null);
       }
 
-      if (dependency.constraint.isAny &&
-          // TODO(nweiz): once we have development dependencies (issue 5358), we
-          // should warn about unittest. Until then, it's reasonable not to put
-          // a constraint on it.
-          dependency.name != 'unittest') {
-        _warnAboutConstraint(dependency);
-      }
+      if (dependency.constraint.isAny) _warnAboutConstraint(dependency);
 
       return new Future.immediate(null);
     });
