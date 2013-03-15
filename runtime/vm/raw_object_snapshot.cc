@@ -405,6 +405,22 @@ void RawBoundedType::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind) {
+  UNREACHABLE();  // MixinAppType objects do not survive finalization.
+  return MixinAppType::null();
+}
+
+
+void RawMixinAppType::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind) {
+  UNREACHABLE();  // MixinAppType objects do not survive finalization.
+}
+
+
 RawAbstractTypeArguments* AbstractTypeArguments::ReadFrom(
     SnapshotReader* reader,
     intptr_t object_id,

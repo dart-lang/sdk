@@ -3743,6 +3743,49 @@ class BoundedType : public AbstractType {
 };
 
 
+// A MixinAppType represents a mixin application clause, e.g.
+// "S<T> with M<U, N>". The class finalizer builds the type
+// parameters and arguments at finalization time.
+// MixinType objects do not survive finalization, so they do not
+// need to be written to and read from snapshots.
+class MixinAppType : public AbstractType {
+ public:
+  // MixinAppType objects are replaced with their actual finalized type.
+  virtual bool IsFinalized() const { return false; }
+  virtual bool IsMalformed() const { return false; }
+  virtual bool IsResolved() const { return false; }
+  virtual bool HasResolvedTypeClass() const { return false; }
+  virtual RawString* Name() const;
+
+  virtual intptr_t token_pos() const {
+    return AbstractType::Handle(super_type()).token_pos();
+  }
+
+  virtual RawAbstractTypeArguments* arguments() const {
+    return AbstractTypeArguments::null();
+  }
+
+  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
+  RawArray* mixin_types() const { return raw_ptr()->mixin_types_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawMixinAppType));
+  }
+
+  static RawMixinAppType* New(const AbstractType& super_type,
+                              const Array& mixin_types);
+
+ private:
+  void set_super_type(const AbstractType& value) const;
+  void set_mixin_types(const Array& value) const;
+
+  static RawMixinAppType* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(MixinAppType, AbstractType);
+  friend class Class;
+};
+
+
 class Number : public Instance {
  public:
   // TODO(iposva): Fill in a useful Number interface.

@@ -1184,6 +1184,104 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
 }
 
 
+// Copy the type parameters of the super and mixin classes to the
+// mixin application class. Change type arguments of super type to
+// refer to the respective type parameters of the mixin application
+// class.
+void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
+  ASSERT(mixapp_class.NumTypeParameters() == 0);
+
+  const AbstractType& super_type =
+      AbstractType::Handle(mixapp_class.super_type());
+  ASSERT(super_type.IsResolved());
+  const Class& super_class = Class::Handle(super_type.type_class());
+  const Type& mixin_type = Type::Handle(mixapp_class.mixin());
+  const Class& mixin_class = Class::Handle(mixin_type.type_class());
+  const int num_super_parameters = super_class.NumTypeParameters();
+  const int num_mixin_parameters = mixin_class.NumTypeParameters();
+  if ((num_super_parameters + num_mixin_parameters) == 0) {
+    return;
+  }
+
+  // First, clone the super class type parameters. Rename them so that
+  // there can be no name conflict between the parameters of the super
+  // class and the mixin class.
+  const TypeArguments& cloned_type_params = TypeArguments::Handle(
+      TypeArguments::New(num_super_parameters + num_mixin_parameters));
+  TypeParameter& param = TypeParameter::Handle();
+  TypeParameter& cloned_param = TypeParameter::Handle();
+  String& param_name = String::Handle();
+  AbstractType& param_bound = AbstractType::Handle();
+  int cloned_index = 0;
+  if (num_super_parameters > 0) {
+    const TypeArguments& super_params =
+        TypeArguments::Handle(super_class.type_parameters());
+    const TypeArguments& super_type_args =
+        TypeArguments::Handle(TypeArguments::New(num_super_parameters));
+    for (int i = 0; i < num_super_parameters; i++) {
+      param ^= super_params.TypeAt(i);
+      param_name = param.name();
+      param_bound = param.bound();
+      // TODO(hausner): handle type bounds.
+      if (!param_bound.IsObjectType()) {
+        const Script& script = Script::Handle(mixapp_class.script());
+        ReportError(script, param.token_pos(),
+                    "type parameter '%s': type bounds not yet"
+                    " implemented for mixins\n",
+                    param_name.ToCString());
+      }
+      param_name = String::Concat(param_name, Symbols::Backtick());
+      param_name = Symbols::New(param_name);
+      cloned_param = TypeParameter::New(mixapp_class,
+                                        cloned_index,
+                                        param_name,
+                                        param_bound,
+                                        param.token_pos());
+      cloned_type_params.SetTypeAt(cloned_index, cloned_param);
+      // Change the type arguments of the super type to refer to the
+      // cloned type parameters of the mixin application class.
+      super_type_args.SetTypeAt(cloned_index, cloned_param);
+      cloned_index++;
+    }
+    // TODO(hausner): May need to handle BoundedType here.
+    ASSERT(super_type.IsType());
+    Type::Cast(super_type).set_arguments(super_type_args);
+  }
+
+  // Second, clone the type parameters of the mixin class.
+  // We need to retain the parameter names of the mixin class
+  // since the code that will be compiled in the context of the
+  // mixin application class may refer to the type parameters
+  // with that name.
+  if (num_mixin_parameters > 0) {
+    const TypeArguments& mixin_params =
+        TypeArguments::Handle(mixin_class.type_parameters());
+    for (int i = 0; i < num_mixin_parameters; i++) {
+      param ^= mixin_params.TypeAt(i);
+      param_name = param.name();
+      param_bound = param.bound();
+
+      // TODO(hausner): handle type bounds.
+      if (!param_bound.IsObjectType()) {
+        const Script& script = Script::Handle(mixapp_class.script());
+        ReportError(script, param.token_pos(),
+                    "type parameter '%s': type bounds not yet"
+                    " implemented for mixins\n",
+                    param_name.ToCString());
+      }
+      cloned_param = TypeParameter::New(mixapp_class,
+                                        cloned_index,
+                                        param_name,
+                                        param_bound,
+                                        param.token_pos());
+      cloned_type_params.SetTypeAt(cloned_index, cloned_param);
+      cloned_index++;
+    }
+  }
+  mixapp_class.set_type_parameters(cloned_type_params);
+}
+
+
 void ClassFinalizer::ApplyMixin(const Class& cls) {
   const Type& mixin_type = Type::Handle(cls.mixin());
   ASSERT(!mixin_type.IsNull());
@@ -1191,9 +1289,10 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   const Class& mixin_cls = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin '%s' to '%s'\n",
+    OS::Print("Applying mixin '%s' to '%s' at pos %"Pd"\n",
               String::Handle(mixin_cls.Name()).ToCString(),
-              cls.ToCString());
+              cls.ToCString(),
+              cls.token_pos());
   }
 
   // Check that the super class of the mixin class is extending
@@ -1208,30 +1307,8 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
                 class_name.ToCString());
   }
 
-  // Copy the type parameters of the mixin class to the mixin
-  // application class.
-  const int num_type_parameters = mixin_cls.NumTypeParameters();
-  if (num_type_parameters > 0) {
-    ASSERT(cls.NumTypeParameters() == 0);
-    const TypeArguments& type_params =
-        TypeArguments::Handle(mixin_cls.type_parameters());
-    const TypeArguments& cloned_type_params =
-        TypeArguments::Handle(TypeArguments::New(num_type_parameters));
-    ASSERT(!type_params.IsNull());
-    TypeParameter& param = TypeParameter::Handle();
-    TypeParameter& cloned_param = TypeParameter::Handle();
-    String& param_name = String::Handle();
-    AbstractType& param_bound = AbstractType::Handle();
-    for (int i = 0; i < num_type_parameters; i++) {
-      param ^= type_params.TypeAt(i);
-      param_name = param.name();
-      param_bound = param.bound();
-      cloned_param = TypeParameter::New(
-          cls, i, param_name, param_bound, param.token_pos());
-      cloned_type_params.SetTypeAt(i, cloned_param);
-    }
-    cls.set_type_parameters(cloned_type_params);
-  }
+  // Copy type parameters to mixin application class.
+  CloneTypeParameters(cls);
 
   const GrowableObjectArray& cloned_funcs =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
@@ -1284,6 +1361,13 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   }
   fields = Array::MakeArray(cloned_fields);
   cls.SetFields(fields);
+
+  if (FLAG_trace_class_finalization) {
+    OS::Print("done mixin appl %s %s extending %s\n",
+              String::Handle(cls.Name()).ToCString(),
+              TypeArguments::Handle(cls.type_parameters()).ToCString(),
+              AbstractType::Handle(cls.super_type()).ToCString());
+  }
 }
 
 
@@ -1451,6 +1535,86 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
 }
 
 
+void ClassFinalizer::CollectTypeArguments(const Class& cls,
+                              const Type& type,
+                              const GrowableObjectArray& collected_args) {
+  ASSERT(type.HasResolvedTypeClass());
+  Class& type_class = Class::Handle(type.type_class());
+  AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(type.arguments());
+  intptr_t num_type_parameters = type_class.NumTypeParameters();
+  intptr_t num_type_arguments = type_args.IsNull() ? 0 : type_args.Length();
+  AbstractType& arg = AbstractType::Handle();
+  if (num_type_arguments > 0) {
+    if (num_type_arguments != num_type_parameters) {
+      const Script& script = Script::Handle(cls.script());
+      const String& type_class_name = String::Handle(type_class.Name());
+      ReportError(script, type.token_pos(),
+          "wrong number of type arguments for class '%s'",
+          type_class_name.ToCString());
+    }
+    for (int i = 0; i < num_type_arguments; i++) {
+      arg = type_args.TypeAt(i);
+      collected_args.Add(arg);
+    }
+  } else {
+    // Fill arguments with type dynamic.
+    for (int i = 0; i < num_type_parameters; i++) {
+      arg = Type::DynamicType();
+      collected_args.Add(arg);
+    }
+  }
+}
+
+
+RawType* ClassFinalizer::ResolveMixinAppType(const Class& cls,
+                                             const MixinAppType& mixin_app) {
+  // Resolve super type and all mixin types.
+  const GrowableObjectArray& type_args =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  AbstractType& type = AbstractType::Handle(mixin_app.super_type());
+  ResolveType(cls, type, kCanonicalizeWellFormed);
+  ASSERT(type.HasResolvedTypeClass());
+  // TODO(hausner): May need to handle BoundedType here.
+  ASSERT(type.IsType());
+  CollectTypeArguments(cls, Type::Cast(type), type_args);
+  const Array& mixins = Array::Handle(mixin_app.mixin_types());
+  for (int i = 0; i < mixins.Length(); i++) {
+    type ^= mixins.At(i);
+    ASSERT(type.HasResolvedTypeClass());  // Newly created class in parser.
+    const Class& mixin_app_class = Class::Handle(type.type_class());
+    type = mixin_app_class.mixin();
+    ASSERT(!type.IsNull());
+    ResolveType(cls, type, kCanonicalizeWellFormed);
+    ASSERT(type.HasResolvedTypeClass());
+    ASSERT(type.IsType());
+    CollectTypeArguments(cls, Type::Cast(type), type_args);
+  }
+  const TypeArguments& mixin_app_args =
+    TypeArguments::Handle(TypeArguments::New(type_args.Length()));
+  for (int i = 0; i < type_args.Length(); i++) {
+    type ^= type_args.At(i);
+    mixin_app_args.SetTypeAt(i, type);
+  }
+  if (FLAG_trace_class_finalization) {
+    OS::Print("ResolveMixinAppType: mixin appl type args: %s\n",
+              mixin_app_args.ToCString());
+  }
+  // The last element in the mixins array is the lowest mixin application
+  // type in the mixin chain. Build a new super type with its type class
+  // and the collected type arguments from the super type and all
+  // mixin types. This super type replaces the MixinAppType object
+  // in the class that extends the mixin application.
+  type ^= mixins.At(mixins.Length() - 1);
+  const Class& resolved_mixin_app_class = Class::Handle(type.type_class());
+  Type& resolved_mixin_app_type = Type::Handle();
+  resolved_mixin_app_type = Type::New(resolved_mixin_app_class,
+                                      mixin_app_args,
+                                      mixin_app.token_pos());
+  return resolved_mixin_app_type.raw();
+}
+
+
 // Recursively walks the graph of explicitly declared super type and
 // interfaces, resolving unresolved super types and interfaces.
 // Reports an error if there is an interface reference that cannot be
@@ -1476,16 +1640,16 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   // If the class/interface has no explicit super class/interfaces
   // and is not a mixin application, we are done.
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
-  Type& mixin_type = Type::Handle(cls.mixin());
   Array& super_interfaces = Array::Handle(cls.interfaces());
   if ((super_type.IsNull() || super_type.IsObjectType()) &&
-      (super_interfaces.Length() == 0) &&
-      (mixin_type.IsNull())) {
+      (super_interfaces.Length() == 0)) {
     return;
   }
 
-  if (!mixin_type.IsNull()) {
-    ResolveType(cls, mixin_type, kCanonicalizeWellFormed);
+  if (super_type.IsMixinAppType()) {
+    const MixinAppType& mixin_app_type = MixinAppType::Cast(super_type);
+    super_type = ResolveMixinAppType(cls, mixin_app_type);
+    cls.set_super_type(super_type);
   }
 
   // If cls belongs to core lib, restrictions about allowed interfaces

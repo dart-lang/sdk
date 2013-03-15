@@ -393,6 +393,13 @@ intptr_t RawBoundedType::VisitBoundedTypePointers(
 }
 
 
+intptr_t RawMixinAppType::VisitMixinAppTypePointers(
+    RawMixinAppType* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return MixinAppType::InstanceSize();
+}
+
+
 intptr_t RawAbstractTypeArguments::VisitAbstractTypeArgumentsPointers(
     RawAbstractTypeArguments* raw_obj, ObjectPointerVisitor* visitor) {
   // RawAbstractTypeArguments is an abstract class.

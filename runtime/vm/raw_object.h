@@ -52,6 +52,7 @@ namespace dart {
       V(Type)                                                                  \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
+      V(MixinAppType)                                                          \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -1171,6 +1172,21 @@ class RawBoundedType : public RawAbstractType {
     return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
   }
   bool is_being_checked_;
+};
+
+
+class RawMixinAppType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->super_type_);
+  }
+  RawAbstractType* super_type_;
+  RawArray* mixin_types_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
+  }
 };
 
 

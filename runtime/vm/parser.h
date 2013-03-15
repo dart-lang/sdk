@@ -386,8 +386,8 @@ class Parser : public ValueObject {
                          LocalVariable* receiver,
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
-  RawArray* ParseInterfaceList(const Type& super_type);
-  RawType* ParseMixins(const Type& super_type);
+  RawArray* ParseInterfaceList(const AbstractType& super_type);
+  RawAbstractType* ParseMixins(const AbstractType& super_type);
   void AddInterfaceIfUnique(intptr_t interfaces_pos,
                             const GrowableObjectArray& interface_list,
                             const AbstractType& interface);

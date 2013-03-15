@@ -540,6 +540,11 @@ RawBoundedType* SnapshotReader::NewBoundedType() {
 }
 
 
+RawMixinAppType* SnapshotReader::NewMixinAppType() {
+  ALLOC_NEW_OBJECT(MixinAppType, object_store()->mixin_app_type_class());
+}
+
+
 RawPatchClass* SnapshotReader::NewPatchClass() {
   ALLOC_NEW_OBJECT(PatchClass, Object::patch_class_class());
 }

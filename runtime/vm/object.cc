@@ -705,6 +705,9 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<BoundedType>();
   object_store->set_bounded_type_class(cls);
 
+  cls = Class::New<MixinAppType>();
+  object_store->set_mixin_app_type_class(cls);
+
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
@@ -1049,6 +1052,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<BoundedType>();
   object_store->set_bounded_type_class(cls);
+
+  cls = Class::New<MixinAppType>();
+  object_store->set_mixin_app_type_class(cls);
 
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
@@ -1593,7 +1599,10 @@ RawClass* Class::SuperClass() const {
 
 
 void Class::set_super_type(const AbstractType& value) const {
-  ASSERT(value.IsNull() || value.IsType() || value.IsBoundedType());
+  ASSERT(value.IsNull() ||
+         value.IsType() ||
+         value.IsBoundedType() ||
+         value.IsMixinAppType());
   StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
@@ -9875,6 +9884,48 @@ const char* BoundedType::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, type_cstr, bound_cstr, cls_cstr);
   return chars;
+}
+
+
+
+RawString* MixinAppType::Name() const {
+  return String::New("MixinApplication");
+}
+
+
+const char* MixinAppType::ToCString() const {
+  return "MixinAppType";
+}
+
+
+void MixinAppType::set_super_type(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->super_type_, value.raw());
+}
+
+
+void MixinAppType::set_mixin_types(const Array& value) const {
+  StorePointer(&raw_ptr()->mixin_types_, value.raw());
+}
+
+
+RawMixinAppType* MixinAppType::New() {
+  ASSERT(Isolate::Current()->object_store()->mixin_app_type_class() !=
+         Class::null());
+  // MixinAppType objects do not survive finalization, so allocate
+  // on new heap.
+  RawObject* raw = Object::Allocate(MixinAppType::kClassId,
+                                    MixinAppType::InstanceSize(),
+                                    Heap::kNew);
+  return reinterpret_cast<RawMixinAppType*>(raw);
+}
+
+
+RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
+                                   const Array& mixin_types) {
+  const MixinAppType& result = MixinAppType::Handle(MixinAppType::New());
+  result.set_super_type(super_type);
+  result.set_mixin_types(mixin_types);
+  return result.raw();
 }
 
 

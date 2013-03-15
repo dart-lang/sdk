@@ -35,6 +35,7 @@ class RawApiError;
 class RawArray;
 class RawBigint;
 class RawBoundedType;
+class RawMixinAppType;
 class RawClass;
 class RawContext;
 class RawDouble;
@@ -257,6 +258,7 @@ class SnapshotReader : public BaseReader {
   RawType* NewType();
   RawTypeParameter* NewTypeParameter();
   RawBoundedType* NewBoundedType();
+  RawMixinAppType* NewMixinAppType();
   RawPatchClass* NewPatchClass();
   RawClosureData* NewClosureData();
   RawRedirectionData* NewRedirectionData();
@@ -331,6 +333,7 @@ class SnapshotReader : public BaseReader {
   friend class ApiError;
   friend class Array;
   friend class BoundedType;
+  friend class MixinAppType;
   friend class Class;
   friend class Context;
   friend class ContextScope;

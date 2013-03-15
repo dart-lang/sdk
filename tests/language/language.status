@@ -58,10 +58,7 @@ type_parameter_literal_test: Fail # Issue 7551
 
 on_catch_malformed_type_test: Fail # Issue 8601
 
-mixin_illegal_syntax_test/none: Fail
-mixin_type_parameters_mixin_test: Fail
-mixin_type_parameters_super_test: Fail
-mixin_type_parameters_super_extends_test: Fail
+mixin_mixin_test: Fail
 mixin_lib_extends_field_test: Fail
 
 type_variable_field_initializer_closure_test: Crash # issue 8847
@@ -358,11 +355,9 @@ overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test de
 on_catch_malformed_type_test: Fail # Issue 8601
 
 # Mixins fail on the VM.
-mixin_illegal_syntax_test/none: Fail            # VM issue
-mixin_illegal_constructor_test/none: Fail       # VM issue
-mixin_type_parameters_mixin_test: Fail          # VM issue
-mixin_type_parameters_super_test: Fail          # VM issue
-mixin_type_parameters_super_extends_test: Fail  # VM issue
+mixin_mixin_test: Fail                      # VM issue
+mixin_illegal_constructor_test/none: Fail   # VM issue
+
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail

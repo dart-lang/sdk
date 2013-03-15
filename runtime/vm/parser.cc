@@ -3244,19 +3244,17 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     }
     cls.set_type_parameters(orig_type_parameters);
   }
-  Type& super_type = Type::Handle();
+  AbstractType& super_type = Type::Handle();
   if (CurrentToken() == Token::kEXTENDS) {
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
-    const AbstractType& type = AbstractType::Handle(
-        ParseType(ClassFinalizer::kTryResolve));
-    if (type.IsTypeParameter()) {
+    super_type = ParseType(ClassFinalizer::kTryResolve);
+    if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
                "class '%s' may not extend type parameter '%s'",
                class_name.ToCString(),
-               String::Handle(type.UserVisibleName()).ToCString());
+               String::Handle(super_type.UserVisibleName()).ToCString());
     }
-    super_type ^= type.raw();
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(super_type);
     }
@@ -3416,12 +3414,6 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
 
-  // TODO(hausner): Handle mixin application aliases with generics.
-  if (mixin_application.NumTypeParameters() > 0) {
-    ErrorMsg(classname_pos,
-             "type parameters on mixin applications not yet supported");
-  }
-
   ExpectToken(Token::kASSIGN);
 
   if (CurrentToken() == Token::kABSTRACT) {
@@ -3429,56 +3421,34 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
     ConsumeToken();
   }
 
-  const intptr_t supertype_pos = TokenPos();
-  const AbstractType& type =
+  const intptr_t type_pos = TokenPos();
+  AbstractType& type =
       AbstractType::Handle(ParseType(ClassFinalizer::kTryResolve));
   if (type.IsTypeParameter()) {
-    ErrorMsg(supertype_pos,
+    ErrorMsg(type_pos,
              "class '%s' may not extend type parameter '%s'",
              class_name.ToCString(),
              String::Handle(type.UserVisibleName()).ToCString());
   }
-  Type& mixin_super_type = Type::Handle();
-  mixin_super_type ^= type.raw();
 
   if (CurrentToken() != Token::kWITH) {
     ErrorMsg("mixin application 'with Type' expected");
   }
+  type = ParseMixins(type);
 
-  const Type& mixin_application_type =
-      Type::Handle(ParseMixins(mixin_super_type));
-  // TODO(hausner): Implement generic mixin support.
-  if (mixin_application_type.arguments() != AbstractTypeArguments::null()) {
-    ErrorMsg(mixin_application_type.token_pos(),
-             "mixin class with type arguments not yet supported");
-  }
+  // TODO(hausner): treat the mixin application as an alias, not as a base
+  // class whose super class is the mixin application!
+  mixin_application.set_super_type(type);
 
-  // The result of ParseMixins() is a chain of super types that is the
-  // result of the mixin composition 'S with M1, M2, ...'. The mixin
-  // application classes are anonymous (i.e. not registered in the current
-  // library). We steal the super type and mixin type from the bottom of
-  // the chain and add it to the named mixin application class. The bottom
-  // anonymous class in the chain is thrown away.
-  const Class& anon_mixin_app_class =
-      Class::Handle(mixin_application_type.type_class());
-  mixin_application.set_super_type(
-      AbstractType::Handle(anon_mixin_app_class.super_type()));
-  mixin_application.set_mixin(Type::Handle(anon_mixin_app_class.mixin()));
-  const Array& interfaces = Array::Handle(anon_mixin_app_class.interfaces());
-  mixin_application.set_interfaces(interfaces);
   AddImplicitConstructor(mixin_application);
-
   if (CurrentToken() == Token::kIMPLEMENTS) {
     Array& interfaces = Array::Handle();
     const intptr_t interfaces_pos = TokenPos();
-    Type& super_type = Type::Handle();
-    super_type ^= mixin_application.super_type();
-    interfaces = ParseInterfaceList(super_type);
+    interfaces = ParseInterfaceList(type);
     AddInterfaces(interfaces_pos, mixin_application, interfaces);
   }
-
-  pending_classes.Add(mixin_application, Heap::kOld);
   ExpectSemicolon();
+  pending_classes.Add(mixin_application, Heap::kOld);
 }
 
 
@@ -3810,7 +3780,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
 
 
 // Parse and return an array of interface types.
-RawArray* Parser::ParseInterfaceList(const Type& super_type) {
+RawArray* Parser::ParseInterfaceList(const AbstractType& super_type) {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT(CurrentToken() == Token::kIMPLEMENTS);
   const GrowableObjectArray& interfaces =
@@ -3846,22 +3816,20 @@ RawArray* Parser::ParseInterfaceList(const Type& super_type) {
 }
 
 
-RawType* Parser::ParseMixins(const Type& super_type) {
+RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
 
-  // TODO(hausner): Remove this restriction.
-  if (super_type.arguments() != AbstractTypeArguments::null()) {
-    ErrorMsg(super_type.token_pos(),
-             "super class in mixin application may not have type arguments");
-  }
-
+  const GrowableObjectArray& mixin_apps =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
   AbstractTypeArguments& mixin_type_arguments =
       AbstractTypeArguments::Handle();
   Class& mixin_application = Class::Handle();
   Type& mixin_application_type = Type::Handle();
-  Type& mixin_super_type = Type::Handle(super_type.raw());
+  Type& mixin_super_type = Type::Handle();
+  ASSERT(super_type.IsType());
+  mixin_super_type ^= super_type.raw();
   Array& mixin_application_interfaces = Array::Handle();
   do {
     ConsumeToken();
@@ -3905,8 +3873,10 @@ RawType* Parser::ParseMixins(const Type& super_type) {
                                        mixin_type_arguments,
                                        mixin_pos);
     mixin_super_type = mixin_application_type.raw();
+    mixin_apps.Add(mixin_application_type);
   } while (CurrentToken() == Token::kCOMMA);
-  return mixin_application_type.raw();
+  return MixinAppType::New(super_type,
+                           Array::Handle(Array::MakeArray(mixin_apps)));
 }
 
 
