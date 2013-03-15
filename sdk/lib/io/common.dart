@@ -18,7 +18,7 @@ const int _OSERROR_RESPONSE_MESSAGE = 2;
   * An [OSError] object holds information about an error from the
   * operating system.
   */
-class OSError {
+class OSError implements Error {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 

@@ -383,13 +383,31 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   }
   FindClose(find_handle);
   DWORD attributes = file_data.dwFileAttributes;
-  if (!follow_links && (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    DWORD reparse_tag = file_data.dwReserved0;
-    if (reparse_tag == IO_REPARSE_TAG_SYMLINK ||
-        reparse_tag == IO_REPARSE_TAG_MOUNT_POINT) {
-      return File::kIsLink;
+  if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    if (follow_links) {
+      HANDLE dir_handle = CreateFileW(
+          name,
+          0,
+          FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+          NULL,
+          OPEN_EXISTING,
+          FILE_FLAG_BACKUP_SEMANTICS,
+          NULL);
+      if (dir_handle == INVALID_HANDLE_VALUE) {
+        // TODO(whesse): Distinguish other errors from does not exist.
+        return File::kDoesNotExist;
+      } else {
+        CloseHandle(dir_handle);
+        return File::kIsDirectory;
+      }
     } else {
-      return File::kDoesNotExist;
+      DWORD reparse_tag = file_data.dwReserved0;
+      if (reparse_tag == IO_REPARSE_TAG_SYMLINK ||
+          reparse_tag == IO_REPARSE_TAG_MOUNT_POINT) {
+        return File::kIsLink;
+      } else {
+        return File::kDoesNotExist;
+      }
     }
   } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
     return File::kIsDirectory;
