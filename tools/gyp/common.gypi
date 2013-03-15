@@ -27,11 +27,17 @@
       'target_defaults': {
         'msvs_cygwin_dirs': ['<(DEPTH)/../third_party/cygwin'],
       },
+      'includes': [
+        'msvs.gypi',
+      ],
+    }],
+    [ 'OS=="mac"', {
+      'includes': [
+        'xcode.gypi',
+      ],
     }],
   ],
   'includes': [
-    'xcode.gypi',
-    'msvs.gypi',
     'configurations.gypi',
   ],
 }

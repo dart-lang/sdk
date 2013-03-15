@@ -18,8 +18,8 @@
     # Chrome normally builds with the Mac OS X 10.5 SDK and sets the
     # deployment target to 10.5.  Other projects, such as O3D, may override
     # these defaults.
-    'mac_sdk%': '10.5',
-    'mac_deployment_target%': '10.5',
+    'mac_sdk%': '<!(python <(DEPTH)/tools/gyp/find_mac_sdk.py 10.6)',
+    'mac_deployment_target%': '10.6',
   },
   'xcode_settings': {
     # DON'T ADD ANYTHING NEW TO THIS BLOCK UNLESS YOU REALLY REALLY NEED IT!

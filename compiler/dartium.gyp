@@ -6,8 +6,6 @@
 # into the dartium build.
 {
   'includes': [
-    # TODO(iposva): Move shared gyp setup to a shared location.
-    '../tools/gyp/xcode.gypi',
     # TODO(mmendez): Add the appropriate gypi includes here.
   ],
   'targets': [
