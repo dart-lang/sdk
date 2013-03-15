@@ -291,12 +291,18 @@ class Entrypoint {
     }).then(flatten);
   }
 
-  /// Creates a symlink to the `packages` directory in [dir] if none exists.
+  /// Creates a symlink to the `packages` directory in [dir]. Will replace one
+  /// if already there.
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
       var symlink = path.join(dir, 'packages');
-      if (entryExists(symlink)) return;
-      return createSymlink(packagesDir, symlink, relative: true);
+      return new Future.of(() {
+        if (fileExists(symlink)) {
+          deleteFile(symlink);
+        } else if (dirExists(symlink)) {
+          return deleteDir(symlink);
+        }
+      }).then((_) => createSymlink(packagesDir, symlink, relative: true));
     });
   }
 }

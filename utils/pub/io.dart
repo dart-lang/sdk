@@ -29,11 +29,13 @@ bool isBeneath(String entry, String dir) {
   return !path.isAbsolute(relative) && path.split(relative)[0] != '..';
 }
 
-/// Determines if a file or directory at [path] exists.
-bool entryExists(String path) => fileExists(path) || dirExists(path);
+/// Determines if a file or directory exists at [path].
+bool entryExists(String path) => dirExists(path) || fileExists(path);
 
-/// Determines if [file] exists on the file system.
-bool fileExists(String file) => new File(file).existsSync();
+/// Determines if [file] exists on the file system. Will also return `true` if
+/// [file] points to a symlink, even a directory symlink.
+bool fileExists(String file) =>
+    new File(file).existsSync() || new Link(file).existsSync();
 
 /// Reads the contents of the text file [file].
 String readTextFile(String file) =>
@@ -212,10 +214,16 @@ Future<String> cleanDir(String dir) {
     if (dirExists(dir)) {
       // Delete it first.
       return deleteDir(dir).then((_) => createDir(dir));
-    } else {
-      // Just create it.
+    }
+
+    if (fileExists(dir)) {
+      // If there is a non-directory there (file or symlink), delete it.
+      deleteFile(dir);
       return createDir(dir);
     }
+
+    // Just create it.
+    return createDir(dir);
   });
 }
 
