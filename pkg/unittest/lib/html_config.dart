@@ -53,7 +53,11 @@ void _showResultsInPage(int passed, int failed, int errors,
     document.body.innerHtml = newBody.toString();
 
     window.onHashChange.listen((_) {
-      window.location.reload();
+      // Location may change from individual tests setting the hash tag.
+      if (window.location.hash != null &&
+          window.location.hash.contains('testFilter')) {
+        window.location.reload();
+      }
     });
   }
 }
