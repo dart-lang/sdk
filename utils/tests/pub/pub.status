@@ -18,4 +18,4 @@ pub_lish_test: Pass, Fail # Issue 8868
 
 [ $system == windows ]
 io_test: Fail # Issue 7505
-install/broken_symlink_test # Issue 9192
+install/broken_symlink_test: Fail # Issue 9192
