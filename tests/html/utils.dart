@@ -1,5 +1,7 @@
 library TestUtils;
+
 import 'dart:async';
+import 'dart:html';
 import '../../pkg/unittest/lib/unittest.dart';
 
 /**
@@ -37,6 +39,27 @@ verifyGraph(expected, actual) {
     }
     eItems.add(expected);
     aItems.add(actual);
+
+    if (expected is ArrayBuffer) {
+      expect(actual is ArrayBuffer, isTrue,
+          reason: '$actual is ArrayBuffer');
+      expect(expected.byteLength, equals(actual.byteLength),
+          reason: message(path, '.byteLength'));
+      // TODO(antonm): one can create a view on top of those
+      // and check if contents identical.  Let's do it later.
+      return;
+    }
+
+    if (expected is ArrayBufferView) {
+      expect(actual is ArrayBufferView, isTrue,
+          reason: '$actual is ArrayBufferView');
+      walk('$path/.buffer', expected.buffer, actual.buffer);
+      expect(expected.byteOffset, equals(actual.byteOffset),
+          reason: message(path, '.byteOffset'));
+      expect(expected.byteLength, equals(actual.byteLength),
+          reason: message(path, '.byteLength'));
+      // And also fallback to elements check below.
+    }
 
     if (expected is List) {
       expect(actual, isList, reason: message(path, '$actual is List'));
