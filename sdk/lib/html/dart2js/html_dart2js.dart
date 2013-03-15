@@ -19660,6 +19660,21 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     } catch (_) {}
     return false;
   }
+  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createOffer(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
+  }
+
+  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createAnswer(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.addstreamEvent')
   @DocsEditable
@@ -19770,17 +19785,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void __createAnswer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
 
-  @JSName('createAnswer')
-  @DomName('RTCPeerConnection.createAnswer')
-  @DocsEditable
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer(mediaConstraints,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
   @JSName('createDTMFSender')
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable
@@ -19823,17 +19827,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
   void __createOffer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
-
-  @JSName('createOffer')
-  @DomName('RTCPeerConnection.createOffer')
-  @DocsEditable
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer(mediaConstraints,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
@@ -21470,12 +21463,11 @@ class StorageEvent extends Event native "*StorageEvent" {
   void $dom_initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('StorageInfo')
 class StorageInfo native "*StorageInfo" {
 
@@ -21487,17 +21479,6 @@ class StorageInfo native "*StorageInfo" {
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
   void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native;
-
-  @JSName('queryUsageAndQuota')
-  @DomName('StorageInfo.queryUsageAndQuota')
-  @DocsEditable
-  Future<int> queryUsageAndQuota(int storageType) {
-    var completer = new Completer<int>();
-    _queryUsageAndQuota(storageType,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
 
   @JSName('requestQuota')
   @DomName('StorageInfo.requestQuota')
@@ -21514,6 +21495,27 @@ class StorageInfo native "*StorageInfo" {
         (error) { completer.completeError(error); });
     return completer.future;
   }
+
+  Future<StorageInfoUsage> queryUsageAndQuota(int storageType) {
+    var completer = new Completer<StorageInfoUsage>();
+    _queryUsageAndQuota(storageType,
+        (currentUsageInBytes, currentQuotaInBytes) { 
+          completer.complete(new StorageInfoUsage(currentUsageInBytes, 
+              currentQuotaInBytes));
+        },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
+}
+
+/** 
+ * A simple container class for the two values that are returned from the
+ * futures in requestQuota and queryUsageAndQuota.
+ */
+class StorageInfoUsage {
+  final int currentUsageInBytes;
+  final int currentQuotaInBytes;
+  const StorageInfoUsage(this.currentUsageInBytes, this.currentQuotaInBytes);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32476,7 +32478,7 @@ class _HttpRequestUtils {
                             onComplete(HttpRequest request),
                             bool withCredentials) {
     final request = new HttpRequest();
-    request.open('GET', url, true);
+    request.open('GET', url, async: true);
 
     request.withCredentials = withCredentials;
 

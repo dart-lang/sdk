@@ -11,7 +11,7 @@ class _HttpRequestUtils {
                             onComplete(HttpRequest request),
                             bool withCredentials) {
     final request = new HttpRequest();
-    request.open('GET', url, true);
+    request.open('GET', url, async: true);
 
     request.withCredentials = withCredentials;
 

@@ -39,6 +39,21 @@ $if DART2JS
 $else
   static bool get supported => true;
 $endif
+  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createOffer(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
+  }
+
+  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createAnswer(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
+  }
 $!MEMBERS
 }
 
