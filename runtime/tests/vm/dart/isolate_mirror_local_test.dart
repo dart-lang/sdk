@@ -270,7 +270,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
 
   variable = cls_mirror.members['value'];
   Expect.isTrue(variable is VariableMirror);
-  Expect.equals('value type(Dynamic) final', buildVariableString(variable));
+  Expect.equals('value type(dynamic) final', buildVariableString(variable));
 
   // Test type variable mirrors.
   var type_var = generic_cls_mirror.members['method'].returnType;
@@ -331,7 +331,7 @@ void testMirrorSystem(MirrorSystem mirrors) {
   testRootLibraryMirror(mirrors.isolate.rootLibrary);
   testLibrariesMap(mirrors.libraries);
   Expect.equals('void', mirrors.voidType.simpleName);
-  Expect.equals('Dynamic', mirrors.dynamicType.simpleName);
+  Expect.equals('dynamic', mirrors.dynamicType.simpleName);
   testDone('testMirrorSystem');
 }
 

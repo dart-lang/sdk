@@ -9,7 +9,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 
-expectLargeRect(ClientRect rect) {
+expectLargeRect(Rect rect) {
   expect(rect.top, 0);
   expect(rect.left, 0);
   expect(rect.width, greaterThan(100));
@@ -60,10 +60,10 @@ main() {
       container.children.add(element);
       document.body.children.add(container);
 
-      expect(element.clientWidth, greaterThan(100));
-      expect(element.clientHeight, greaterThan(100));
-      expect(element.offsetWidth, greaterThan(100));
-      expect(element.offsetHeight, greaterThan(100));
+      expect(element.client.width, greaterThan(100));
+      expect(element.client.height, greaterThan(100));
+      expect(element.offset.width, greaterThan(100));
+      expect(element.offset.height, greaterThan(100));
       expect(element.scrollWidth, greaterThan(100));
       expect(element.scrollHeight, greaterThan(100));
       expect(element.getBoundingClientRect().left, 8);
@@ -439,12 +439,6 @@ main() {
       expect(el.children.last, isHRElement);
     });
 
-    test('addLast', () {
-      var el = makeElement();
-      el.children.addLast(new Element.tag('hr'));
-      expect(el.children.last, isHRElement);
-    });
-
     test('iterator', () {
       var els = [];
       var el = makeElementWithChildren();
@@ -485,9 +479,9 @@ main() {
       expect(el.children.length, 1);
     });
 
-    test('getRange', () {
+    test('sublist', () {
       var el = makeElementWithChildren();
-      expect(el.children.getRange(1, 1), isElementList);
+      expect(el.children.sublist(1, 2), isElementList);
     });
   });
 
@@ -588,14 +582,12 @@ main() {
       expect(els[2], isHRElement);
     });
 
-    test('getRange', () {
-      expect(getQueryAll().getRange(1, 1) is List<Element>, isTrue);
+    test('sublist', () {
+      expect(getQueryAll().sublist(1, 2) is List<Element>, isTrue);
     });
 
     testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
     testUnsupported('add', () => getQueryAll().add(new Element.tag('br')));
-    testUnsupported('addLast', () =>
-        getQueryAll().addLast(new Element.tag('br')));
 
     testUnsupported('addAll', () {
       getQueryAll().addAll([
@@ -640,8 +632,8 @@ main() {
       expect(filtered, isElementIterable);
     });
 
-    test('getRange', () {
-      var range = makeElList().getRange(1, 2);
+    test('sublist', () {
+      var range = makeElList().sublist(1, 3);
       expect(range, isElementList);
       expect(range[0], isImageElement);
       expect(range[1], isInputElement);

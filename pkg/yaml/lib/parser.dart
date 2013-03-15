@@ -347,13 +347,13 @@ class _Parser {
     capturingAs = false;
     if (!truth(res)) return res;
 
-    capturedString.add(transformation(s.substring(captureStart, pos)));
+    capturedString.write(transformation(s.substring(captureStart, pos)));
     captureStart = pos;
     return res;
   }
 
   void flushCapture() {
-    capturedString.add(s.substring(captureStart, pos));
+    capturedString.write(s.substring(captureStart, pos));
     captureStart = pos;
   }
 

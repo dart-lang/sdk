@@ -29,19 +29,23 @@ abstract class ListBase<E> extends ListIterable<E> implements List<E> {
     return new ListMapView(this);
   }
 
-  List<E> getRange(int start, int length) {
+  List<E> sublist(int start, [int end]) {
+    if (end == null) end = length;
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
+    if (end < start || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
     }
-    List<E> result = new List<E>(length);
+    int length = end - start;
+    List<E> result = new List<E>()..length = length;
     for (int i = 0; i < length; i++) {
       result[i] = this[start + i];
     }
     return result;
   }
+
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   int indexOf(E element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
@@ -90,6 +94,11 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
         "Cannot add to a fixed-length list");
   }
 
+  void insert(int index, E value) {
+    throw new UnsupportedError(
+        "Cannot add to a fixed-length list");
+  }
+
   void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to a fixed-length list");
@@ -110,12 +119,12 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
         "Cannot remove from a fixed-length list");
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -171,6 +180,11 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
         "Cannot add to an unmodifiable list");
   }
 
+  E insert(int index, E value) {
+    throw new UnsupportedError(
+        "Cannot add to an unmodifiable list");
+  }
+
   void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
@@ -191,12 +205,12 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
         "Cannot remove from an unmodifiable list");
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }
 
-  void retainMatching(bool test(E element)) {
+  void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }
@@ -277,7 +291,9 @@ class _ListIndicesIterable extends ListIterable<int> {
 
   int get length => _backedList.length;
   int elementAt(int index) {
-    if (index < 0 || index >= length) throw new RangeError(index);
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    }
     return index;
   }
 }

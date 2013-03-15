@@ -11,7 +11,7 @@ library pi_test;
 import 'dart:math';
 
 void main() {
-  var seed = new Random().nextInt((1<<32) - 1);
+  var seed = new Random().nextInt(1<<16);
   print("pi_test seed: $seed");
   var prng = new Random(seed);
   var outside = 0;

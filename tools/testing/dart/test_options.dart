@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,7 @@ import "test_suite.dart";
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
-           'utils', 'lib', 'pkg'];
+           'utils', 'lib', 'pkg', 'analyze_library'];
 
 /**
  * Specification of a single test option.
@@ -77,9 +77,12 @@ is 'dart file.dart' and you specify special command
          safari, ie9, ie10, firefox, opera, none (compile only)),
 
    dartc: Perform static analysis on Dart code by running dartc.
+          (only valid with the following runtimes: none),
+
+   new_analyzer: Perform static analysis on Dart code by running the analyzer.
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2dart', 'dart2js', 'dartc'],
+              ['none', 'dart2dart', 'dart2js', 'dartc', 'new_analyzer'],
               'none'),
           new _TestOptionSpecification(
               'runtime',
@@ -156,7 +159,7 @@ is 'dart file.dart' and you specify special command
               'Progress indication mode',
               ['-p', '--progress'],
               ['compact', 'color', 'line', 'verbose',
-               'silent', 'status', 'buildbot'],
+               'silent', 'status', 'buildbot', 'diff'],
               'compact'),
           new _TestOptionSpecification(
               'step_name',
@@ -432,6 +435,7 @@ Note: currently only implemented for dart2js.''',
                                'opera'];
         break;
       case 'dartc':
+      case 'new_analyzer':
         validRuntimes = const ['none'];
         break;
       case 'none':
@@ -474,7 +478,7 @@ Note: currently only implemented for dart2js.''',
   List<Map> _expandConfigurations(Map configuration) {
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64';
+      configuration['arch'] = 'ia32,x64,simarm,simmips';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
@@ -508,8 +512,10 @@ Note: currently only implemented for dart2js.''',
       configuration['runtime'] == 'ff';
     }
 
+    String compiler = configuration['compiler'];
     configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
-
+    configuration['analyzer'] = TestUtils.isCommandLineAnalyzer(compiler);
+    
     // Set the javascript command line flag for less verbose status files.
     configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
 
@@ -577,6 +583,7 @@ Note: currently only implemented for dart2js.''',
       var timeout = 60;
       switch (configuration['compiler']) {
         case 'dartc':
+        case 'new_analyzer':
           timeout *= 4;
           break;
         case 'dart2js':
@@ -648,24 +655,24 @@ Note: currently only implemented for dart2js.''',
       for (var name in option.keys) {
         assert(name.startsWith('-'));
         var buffer = new StringBuffer();;
-        buffer.add(name);
+        buffer.write(name);
         if (option.type == 'bool') {
           assert(option.values.isEmpty);
         } else {
-          buffer.add(name.startsWith('--') ? '=' : ' ');
+          buffer.write(name.startsWith('--') ? '=' : ' ');
           if (option.type == 'int') {
             assert(option.values.isEmpty);
-            buffer.add('n (default: ${option.defaultValue})');
+            buffer.write('n (default: ${option.defaultValue})');
           } else {
-            buffer.add('[');
+            buffer.write('[');
             bool first = true;
             for (var value in option.values) {
-              if (!first) buffer.add(", ");
-              if (value == option.defaultValue) buffer.add('*');
-              buffer.add(value);
+              if (!first) buffer.write(", ");
+              if (value == option.defaultValue) buffer.write('*');
+              buffer.write(value);
               first = false;
             }
-            buffer.add(']');
+            buffer.write(']');
           }
         }
         print(buffer.toString());

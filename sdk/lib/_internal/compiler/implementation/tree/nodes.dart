@@ -199,6 +199,8 @@ abstract class Node extends TreeElementMixin implements Spannable {
 
   bool isValidBreakTarget() => false;
   bool isValidContinueTarget() => false;
+  bool isThis() => false;
+  bool isSuper() => false;
 }
 
 class ClassNode extends Node {
@@ -355,9 +357,7 @@ class Send extends Expression {
   }
 
   bool get isSuperCall {
-    return receiver != null &&
-           receiver.asIdentifier() != null &&
-           receiver.asIdentifier().isSuper();
+    return receiver != null && receiver.isSuper();
   }
   bool get isOperator => selector is Operator;
   bool get isPropertyAccess => argumentsNode == null;
@@ -2036,22 +2036,16 @@ class CatchBlock extends Node {
 
 class Initializers {
   static bool isSuperConstructorCall(Send node) {
-    return (node.receiver == null &&
-            node.selector.asIdentifier() != null &&
-            node.selector.asIdentifier().isSuper()) ||
+    return (node.receiver == null && node.selector.isSuper()) ||
            (node.receiver != null &&
-            node.receiver.asIdentifier() != null &&
-            node.receiver.asIdentifier().isSuper() &&
+            node.receiver.isSuper() &&
             node.selector.asIdentifier() != null);
   }
 
   static bool isConstructorRedirect(Send node) {
-    return (node.receiver == null &&
-            node.selector.asIdentifier() != null &&
-            node.selector.asIdentifier().isThis()) ||
+    return (node.receiver == null && node.selector.isThis()) ||
            (node.receiver != null &&
-            node.receiver.asIdentifier() != null &&
-            node.receiver.asIdentifier().isThis() &&
+            node.receiver.isThis() &&
             node.selector.asIdentifier() != null);
   }
 }

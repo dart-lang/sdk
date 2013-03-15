@@ -17,7 +17,7 @@ main() {
   Expect.isTrue(failed);
   failed = false;
   try {
-    var t = new Timer.repeating(ms * 10, (_) { });
+    var t = new Timer.periodic(ms * 10, (_) { });
     t.cancel();
   } on UnsupportedError catch (e) {
     failed = true;

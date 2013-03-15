@@ -80,7 +80,7 @@ class FilteredElementList implements List {
   }
 
   void removeRange(int start, int rangeLength) {
-    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
+    _filtered.sublist(start, start + rangeLength).forEach((el) => el.remove());
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {
@@ -104,6 +104,10 @@ class FilteredElementList implements List {
   Iterable map(f(Element element)) => _filtered.map(f);
   Iterable<Element> where(bool f(Element element)) => _filtered.where(f);
   Iterable expand(Iterable f(Element element)) => _filtered.expand(f);
+
+  void insert(int index, Element value) {
+    _childNodes.insert(index, value);
+  }
 
   Element removeAt(int index) {
     final result = this[index];
@@ -133,12 +137,12 @@ class FilteredElementList implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Element element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Element element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Element element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Element element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   dynamic reduce(dynamic initialValue,
@@ -150,16 +154,16 @@ class FilteredElementList implements List {
   List<Element> toList({ bool growable: true }) =>
       new List<Element>.from(this, growable: growable);
   Set<Element> toSet() => new Set<Element>.from(this);
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return _filtered.firstMatching(test, orElse: orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return _filtered.firstWhere(test, orElse: orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return _filtered.lastMatching(test, orElse: orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return _filtered.lastWhere(test, orElse: orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return _filtered.singleMatching(test);
+  Element singleWhere(bool test(Element value)) {
+    return _filtered.singleWhere(test);
   }
 
   Element elementAt(int index) {
@@ -170,8 +174,10 @@ class FilteredElementList implements List {
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> get iterator => _filtered.iterator;
+  List<Element> sublist(int start, [int end]) =>
+    _filtered.sublist(start, end);
   List<Element> getRange(int start, int rangeLength) =>
-    _filtered.getRange(start, rangeLength);
+    sublist(start, start + rangeLength);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 

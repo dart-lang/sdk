@@ -17,7 +17,15 @@ import 'markdown_test.dart';
 // TODO(rnystrom): Better path to unittest.
 import '../../../../../pkg/unittest/lib/unittest.dart';
 
+// Pretty test config with --human
+import '../../../../../utils/tests/pub/command_line_config.dart';
+
 main() {
+  // Use the human-friendly config.
+  if (new Options().arguments.contains('--human')) {
+    configure(new CommandLineConfiguration());
+  }
+
   group('countOccurrences', () {
     test('empty text returns 0', () {
       expect(dd.countOccurrences('', 'needle'), equals(0));
@@ -198,26 +206,40 @@ main() {
 
   group('integration tests', () {
     test('no entrypoints', () {
-      expect(_runDartdoc([], exitCode: 1), completes);
+      _testRunDartDoc([], (result) {
+            expect(result.exitCode, 1);
+          });
     });
 
-    test('library with no packages', () {
-      expect(_runDartdoc(
-          [new Path('test/test_files/other_place/'
-              'no_package_test_file.dart').toNativePath()]),
-        completes);
+    test('entrypoint in lib', () {
+      _testRunDartDoc(['test_files/lib/no_package_test_file.dart'], (result) {
+        expect(result.exitCode, 0);
+        _expectDocumented(result.stdout, libCount: 1, typeCount: 1, memberCount: 0);
+      });
     });
 
-    test('library with packages', () {
-      expect(_runDartdoc(
-          [new Path('test/test_files/'
-              'package_test_file.dart').toNativePath()]),
-        completes);
+    test('entrypoint somewhere with packages locally', () {
+      _testRunDartDoc(['test_files/package_test_file.dart'], (result) {
+        expect(result.exitCode, 0);
+        _expectDocumented(result.stdout, libCount: 1, typeCount: 1, memberCount: 0);
+      });
+    });
+
+    test('file does not exist', () {
+      _testRunDartDoc(['test_files/this_file_does_not_exist.dart'], (result) {
+        expect(result.exitCode, 1);
+      });
     });
   });
 }
 
-Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
+void _testRunDartDoc(List<String> libraryPaths, void eval(ProcessResult)) {
+  expect(_runDartdoc(libraryPaths).then(eval), completes);
+}
+
+/// Runs dartdoc with the libraryPaths provided, and completes to dartdoc's
+/// ProcessResult.
+Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
   var dartBin = new Options().executable;
 
   var dir = path.absolute(new Options().script);
@@ -227,14 +249,47 @@ Future _runDartdoc(List<String> arguments, {int exitCode: 0}) {
     }
     dir = path.dirname(dir);
   }
-
   var dartdoc = path.join(path.absolute(dir), 'bin/dartdoc.dart');
-  arguments.insertRange(0, 1, dartdoc);
-  return Process.run(dartBin, arguments)
-      .then((result) {
-        expect(result.exitCode, exitCode);
-      });
+
+  final runArgs = [dartdoc];
+
+  // Turn relative libraryPaths to absolute ones.
+  runArgs.addAll(libraryPaths
+      .map((e) => path.join(dd.scriptDir.toNativePath(), e)));
+
+  return Process.run(dartBin, runArgs);
 }
+
+final _dartdocCompletionRegExp =
+  new RegExp(r'Documentation complete -- documented (\d+) libraries, (\d+) types, and (\d+) members\.');
+
+void _expectDocumented(String output, { int libCount, int typeCount,
+  int memberCount}) {
+
+  final completionMatches = _dartdocCompletionRegExp.allMatches(output)
+      .toList();
+
+  expect(completionMatches, hasLength(1),
+      reason: 'dartdoc output should contain one summary');
+
+  final completionMatch = completionMatches.single;
+
+  if(libCount != null) {
+    expect(int.parse(completionMatch[1]), libCount,
+        reason: 'expected library count');
+  }
+
+  if(typeCount != null) {
+    expect(int.parse(completionMatch[2]), typeCount,
+        reason: 'expected type count');
+  }
+
+  if(memberCount != null) {
+    expect(int.parse(completionMatch[3]), memberCount,
+        reason: 'expected member count');
+  }
+}
+
 
 validateDartdocMarkdown(String description, String markdown,
     String html) {

@@ -22,7 +22,7 @@ typedef Future<String> CompilerInputProvider(Uri uri);
 typedef Future<String> ReadStringFromUri(Uri uri);
 
 /**
- * Returns a [StreamSink] that will serve as compiler output for the given
+ * Returns an [EventSink] that will serve as compiler output for the given
  * component.
  *
  * Components are identified by [name] and [extension]. By convention,
@@ -41,8 +41,8 @@ typedef Future<String> ReadStringFromUri(Uri uri);
  * As more features are added to the compiler, new names and
  * extensions may be introduced.
  */
-typedef StreamSink<String> CompilerOutputProvider(String name,
-                                                  String extension);
+typedef EventSink<String> CompilerOutputProvider(String name,
+                                                 String extension);
 
 /**
  * Invoked by the compiler to report diagnostics. If [uri] is

@@ -14,9 +14,6 @@ interactive_test: Skip # Must be run manually.
 *layout_test: Skip
 
 [ $runtime == chrome ]
-input_element_test/supported_date: Pass, Fail      # Chrome stable does not support this input type.
-speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
-speechrecognition_test/types: Pass, Fail
 touchevent_test/supported: Fail
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
@@ -47,10 +44,7 @@ audiocontext_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
-inner_frame_test: Skip
 isolates_test: Skip
-measurement_test: Fail, Pass
-messageevent_test: Fail
 microtask_test: Fail, Pass # Appears to be flaky
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
@@ -73,7 +67,7 @@ element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
@@ -108,10 +102,8 @@ dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 element_test/matches: Fail # IE9 does not support matches
 form_element_test: Fail # Issue 4793.
-inner_frame_test: Skip # Issue 5727 (timeout)
 isolates_test: Skip         # BUG(4016)
 localstorage_test: Fail
-messageevent_test: Fail
 microtask_test: Pass, Fail # http://dartbug.com/8300
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
@@ -140,7 +132,7 @@ form_data_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_email: Fail
@@ -211,6 +203,7 @@ input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 webgl_1_test: Pass, Fail # Issue 8219
 wheelevent_test: Fail # Issue: 7414
+xhr_test/xhr_requestBlob: Fail # Issue: 9178 Safari doesn't support Blob responses.
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -219,7 +212,7 @@ element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
@@ -253,7 +246,6 @@ element_webkit_test: Fail
 fileapi_test: Skip # Timeout.
 form_data_test: Fail # Issue: 7413
 htmlelement_test: Fail
-inner_frame_test: Skip # Timeout.
 isolates_test: Skip # Timeout.
 js_interop_3_test: Skip # Timeout.
 js_interop_4_test: Skip # Timeout.
@@ -269,7 +261,7 @@ css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
 indexeddb_1_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail
@@ -283,8 +275,8 @@ audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 dromaeo_smoke_test: Pass, Fail # Issue: 8257
-inner_frame_test: Skip
 webgl_1_test: Pass, Fail   # Issue 8219
+postmessage_structured_test: Fail
 
 # FireFox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -300,7 +292,7 @@ element_types_test/supported_object: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
-indexeddb_5_test/supportsDatabaseNames: Fail
+indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
@@ -337,18 +329,9 @@ request_animation_frame_test: Skip # Async test hangs.
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 
-[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || $runtime == drt)]
-element_test/queryAll: Fail # dartbug.com/8496: missing substitution on native classes
-node_test/_NodeList: Fail # dartbug.com/8496: missing substitution on native classes
-node_test/nodes: Fail # dartbug.com/8496: missing substitution on native classes
-typed_arrays_1_test/arrays: Fail # dartbug.com/8496: missing substitution on native classes
-typed_arrays_1_test/supported: Fail # dartbug.com/8496: missing substitution on native classes
-
-[ $compiler == dart2js && $runtime == ff ]
-inner_frame_test: Skip # Timeout
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
-indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
+#indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome) ]
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).

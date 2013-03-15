@@ -399,9 +399,7 @@ abstract class HttpHeaders {
  * use code like this:
  *
  *     HttpClientRequest request = ...;
- *     var v = new HeaderValue();
- *     v.value = "text/plain";
- *     v.parameters["q"] = "0.3"
+ *     var v = new HeaderValue("text/plain", {"q": "0.3"});
  *     request.headers.add(HttpHeaders.ACCEPT, v);
  *     request.headers.add(HttpHeaders.ACCEPT, "text/html");
  *
@@ -413,12 +411,16 @@ abstract class HttpHeaders {
  *       HeaderValue v = new HeaderValue.fromString(value);
  *       // Use v.value and v.parameters
  *     });
+ *
+ * An instance of [HeaderValue] is immutable.
  */
 abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value part.
    */
-  factory HeaderValue([String value = ""]) => new _HeaderValue(value);
+  factory HeaderValue([String value = "", Map<String, String> parameters]) {
+    return new _HeaderValue(value, parameters);
+  }
 
   /**
    * Creates a new header value object from parsing a header value
@@ -431,9 +433,9 @@ abstract class HeaderValue {
   }
 
   /**
-   * Gets and sets the header value.
+   * Gets the header value.
    */
-  String value;
+  String get value;
 
   /**
    * Gets the map of parameters.
@@ -473,15 +475,22 @@ abstract class HttpSession implements Map {
 
 
 /**
- * Representation of a content type.
+ * Representation of a content type. An instance of [ContentType] is
+ * immutable.
  */
 abstract class ContentType implements HeaderValue {
   /**
    * Creates a new content type object setting the primary type and
-   * sub type.
+   * sub type. The charset and additional parameters can also be set
+   * using [charset] and [parameters]. If charset is passed and
+   * [parameters] contains charset as well the passed [charset] will
+   * override the value in parameters. Keys and values passed in
+   * parameters will be converted to lower case.
    */
-  factory ContentType([String primaryType = "", String subType = ""]) {
-    return new _ContentType(primaryType, subType);
+  factory ContentType(String primaryType,
+                      String subType,
+                      {String charset, Map<String, String> parameters}) {
+    return new _ContentType(primaryType, subType, charset, parameters);
   }
 
   /**
@@ -500,24 +509,19 @@ abstract class ContentType implements HeaderValue {
   }
 
   /**
-   * Gets and sets the content type in the form "primaryType/subType".
+   * Gets the primary type.
    */
-  String value;
+  String get primaryType;
 
   /**
-   * Gets and sets the primary type.
+   * Gets the sub type.
    */
-  String primaryType;
+  String get subType;
 
   /**
-   * Gets and sets the sub type.
+   * Gets the character set.
    */
-  String subType;
-
-  /**
-   * Gets and sets the character set.
-   */
-  String charset;
+  String get charset;
 }
 
 
@@ -672,6 +676,32 @@ abstract class HttpRequest implements Stream<List<int>> {
 
 /**
  * HTTP response to be send back to the client.
+ *
+ * This object has a number of properties for setting up the HTTP
+ * header of the response. When the header has been set up the methods
+ * from the [IOSink] can be used to write the actual body of the HTTP
+ * response. When one of the [IOSink] methods is used for the
+ * first time the request header is send. Calling any methods that
+ * will change the header after it is sent will throw an exception.
+ *
+ * When writing string data through the [IOSink] the encoding used
+ * will be determined from the "charset" parameter of the
+ * "Content-Type" header.
+ *
+ *   HttpResponse response = ...
+ *   response.headers.contentType
+ *       = new ContentType("application", "json", charset: "utf-8");
+ *   response.write(...);  // Strings written will be UTF-8 encoded.
+ *
+ * If no charset is provided the default of ISO-8859-1 (Latin 1) will
+ * be used.
+ *
+ *   HttpResponse response = ...
+ *   response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *   response.write(...);  // Strings written will be ISO-8859-1 encoded.
+ *
+ * If an unsupported encoding is used an exception will be thrown if
+ * using one of the write methods taking a string.
  */
 abstract class HttpResponse implements IOSink<HttpResponse> {
   // TODO(ajohnsen): Add documentation of how to pipe a file to the response.
@@ -856,13 +886,31 @@ abstract class HttpClient {
 /**
  * HTTP request for a client connection.
  *
- * The request is an [IOSink], used to write the request data. When
- * all request data has been written, close the stream to indicate the end of
- * the request.
+ * This object has a number of properties for setting up the HTTP
+ * header of the request. When the header has been set up the methods
+ * from the [IOSink] can be used to write the actual body of the HTTP
+ * request. When one of the [IOSink] methods is used for the first
+ * time the request header is send. Calling any methods that will
+ * change the header after it is sent will throw an exception.
  *
- * When this is accessed for the first time the request header is
- * send. Calling any methods that will change the header after
- * having retrieved the output stream will throw an exception.
+ * When writing string data through the [IOSink] the
+ * encoding used will be determined from the "charset" parameter of
+ * the "Content-Type" header.
+ *
+ *   HttpClientRequest request = ...
+ *   request.headers.contentType
+ *       = new ContentType("application", "json", charset: "utf-8");
+ *   request.write(...);  // Strings written will be UTF-8 encoded.
+ *
+ * If no charset is provided the default of ISO-8859-1 (Latin 1) will
+ * be used.
+ *
+ *   HttpClientRequest request = ...
+ *   request.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *   request.write(...);  // Strings written will be ISO-8859-1 encoded.
+ *
+ * If an unsupported encoding is used an exception will be thrown if
+ * using one of the write methods taking a string.
  */
 abstract class HttpClientRequest
     implements IOSink<HttpClientRequest> {

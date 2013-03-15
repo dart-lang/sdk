@@ -16,7 +16,7 @@ void main() {
   
   var iterations = 200000;
 
-  var seed = new Random().nextInt((1<<32) - 1);
+  var seed = new Random().nextInt(1<<16);
   print("low_test seed: $seed");
   var prng = new Random(seed);
 

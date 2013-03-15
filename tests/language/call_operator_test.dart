@@ -32,9 +32,9 @@ class E {
   String call(String str, {int count: 1}) {
     StringBuffer buffer = new StringBuffer();
     for (var i = 0; i < count; i++) {
-      buffer.add(str);
+      buffer.write(str);
       if (i < count - 1) {
-        buffer.add(":");
+        buffer.write(":");
       }
     }
     return buffer.toString();

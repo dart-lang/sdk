@@ -156,9 +156,9 @@ class NumberFormat {
   void _formatFixed(num number) {
     // Round the number.
     var power = pow(10, _maximumFractionDigits);
-    var intValue = number.truncate().toInt();
+    var intValue = number.truncate();
     var multiplied = (number * power).round();
-    var fracValue = (multiplied - intValue * power).floor().toInt();
+    var fracValue = (multiplied - intValue * power).floor();
     var fractionPresent = _minimumFractionDigits > 0 || fracValue > 0;
 
     // On dartj2s the integer part may be large enough to be a floating

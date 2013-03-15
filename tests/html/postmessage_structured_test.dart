@@ -122,6 +122,11 @@ main() {
   var cyclic_list = [1, 2, 3];
   cyclic_list[1] = cyclic_list;
 
+  var array_buffer = new ArrayBuffer(16);
+  var view_a = new Float32Array.fromBuffer(array_buffer, 0, 4);
+  var view_b = new Uint8Array.fromBuffer(array_buffer, 1, 13);
+  var typed_arrays_list = [view_a, array_buffer, view_b];
+
   go('test_simple_list', [1, 2, 3]);
   go('test_map', obj1);
   go('test_DAG', obj2);
@@ -132,4 +137,5 @@ main() {
   go('array_deferred_copy', [1,2,3, obj3, obj3, 6]);
   go('array_deferred_copy_2', [1,2,3, [4, 5, obj3], [obj3, 6]]);
   go('cyclic_list', cyclic_list);
+  go('typed_arrays_list', typed_arrays_list);
 }

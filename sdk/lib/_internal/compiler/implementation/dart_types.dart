@@ -102,6 +102,36 @@ abstract class DartType {
 
   DartType asRaw() => this;
 
+  /**
+   * Is [: true :] if this type is the dynamic type.
+   */
+  bool get isDynamic => false;
+
+  /**
+   * Is [: true :] if this type is the void type.
+   */
+  bool get isVoid => false;
+
+  /**
+   * Returns an occurrence of a type variable within this type, if any.
+   */
+  TypeVariableType get typeVariableOccurrence => null;
+
+  TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
+    for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
+      TypeVariableType typeVariable = link.head.typeVariableOccurrence;
+      if (typeVariable != null) {
+        return typeVariable;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Is [: true :] if this type contains any type variables.
+   */
+  bool get containsTypeVariables => typeVariableOccurrence != null;
+
   accept(DartTypeVisitor visitor, var argument);
 }
 
@@ -160,6 +190,8 @@ class TypeVariableType extends DartType {
   }
 
   DartType unalias(Compiler compiler) => this;
+
+  DartType get typeVariableOccurrence => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitTypeVariableType(this, argument);
@@ -238,6 +270,8 @@ class VoidType extends DartType {
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitVoidType(this, argument);
   }
+
+  bool get isVoid => true;
 
   int get hashCode => 1729;
 
@@ -356,6 +390,10 @@ abstract class GenericType extends DartType {
       }
     }
     return true;
+  }
+
+  TypeVariableType get typeVariableOccurrence {
+    return _findTypeVariableOccurrence(typeArguments);
   }
 
   String toString() {
@@ -531,7 +569,7 @@ class FunctionType extends DartType {
                         Link<SourceString> this.namedParameters,
                         Link<DartType> this.namedParameterTypes,
                         bool this.isMalformed) {
-    assert(element == null || invariant(element, element.isDeclaration));
+    assert(invariant(element, element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
     assert(namedParameters.slowLength() == namedParameterTypes.slowLength());
@@ -608,6 +646,19 @@ class FunctionType extends DartType {
 
   DartType unalias(Compiler compiler) => this;
 
+  DartType get typeVariableOccurrence {
+    TypeVariableType typeVariableType = returnType.typeVariableOccurrence;
+    if (typeVariableType != null) return typeVariableType;
+
+    typeVariableType = _findTypeVariableOccurrence(parameterTypes);
+    if (typeVariableType != null) return typeVariableType;
+
+    typeVariableType = _findTypeVariableOccurrence(optionalParameterTypes);
+    if (typeVariableType != null) return typeVariableType;
+
+    return _findTypeVariableOccurrence(namedParameterTypes);
+  }
+
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitFunctionType(this, argument);
   }
@@ -660,18 +711,18 @@ class FunctionType extends DartType {
   }
 
   int get hashCode {
-    int hash = 17 * element.hashCode + 3 * returnType.hashCode;
+    int hash = 3 * returnType.hashCode;
     for (DartType parameter  in parameterTypes) {
-      hash = 17 * hash + 3 * parameter.hashCode;
+      hash = 17 * hash + 5 * parameter.hashCode;
     }
     for (DartType parameter  in optionalParameterTypes) {
-      hash = 17 * hash + 3 * parameter.hashCode;
+      hash = 19 * hash + 7 * parameter.hashCode;
     }
     for (SourceString name  in namedParameters) {
-      hash = 17 * hash + 3 * name.hashCode;
+      hash = 23 * hash + 11 * name.hashCode;
     }
     for (DartType parameter  in namedParameterTypes) {
-      hash = 17 * hash + 3 * parameter.hashCode;
+      hash = 29 * hash + 13 * parameter.hashCode;
     }
     return hash;
   }
@@ -736,6 +787,8 @@ class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
   SourceString get name => const SourceString('dynamic');
+
+  bool get isDynamic => true;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitDynamicType(this, argument);
@@ -844,8 +897,11 @@ abstract class DartTypeVisitor<R, A> {
 class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   final DynamicType dynamicType;
+  final VoidType voidType;
 
-  SubtypeVisitor(Compiler this.compiler, DynamicType this.dynamicType);
+  SubtypeVisitor(Compiler this.compiler,
+                 DynamicType this.dynamicType,
+                 VoidType this.voidType);
 
   bool isSubtype(DartType t, DartType s) {
     if (identical(t, s) ||
@@ -877,11 +933,10 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   }
 
   bool visitInterfaceType(InterfaceType t, DartType s) {
-    if (s is !InterfaceType) return false;
 
-    bool checkTypeArguments(InterfaceType instance) {
+    bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
       Link<DartType> tTypeArgs = instance.typeArguments;
-      Link<DartType> sTypeArgs = s.typeArguments;
+      Link<DartType> sTypeArgs = other.typeArguments;
       while (!tTypeArgs.isEmpty) {
         assert(!sTypeArgs.isEmpty);
         if (!isSubtype(tTypeArgs.head, sTypeArgs.head)) {
@@ -894,16 +949,31 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       return true;
     }
 
+    lookupCall(type) => type.lookupMember(Compiler.CALL_OPERATOR_NAME);
+
     // TODO(johnniwinther): Currently needed since literal types like int,
     // double, bool etc. might not have been resolved yet.
     t.element.ensureResolved(compiler);
 
-    InterfaceType instance = t.asInstanceOf(s.element);
-    return instance != null && checkTypeArguments(instance);
+    if (s is InterfaceType) {
+      if (s.element == compiler.functionClass && lookupCall(t) != null) {
+        return true;
+      }
+      InterfaceType instance = t.asInstanceOf(s.element);
+      return instance != null && checkTypeArguments(instance, s);
+    } else if (s is FunctionType) {
+      Member call = lookupCall(t);
+      if (call == null) return false;
+      return isSubtype(call.computeType(compiler), s);
+    } else {
+      return false;
+    }
   }
 
   bool visitFunctionType(FunctionType t, DartType s) {
-    if (identical(s.element, compiler.functionClass)) return true;
+    if (s is InterfaceType && identical(s.element, compiler.functionClass)) {
+      return true;
+    }
     if (s is !FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
@@ -915,8 +985,10 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       sps = sps.tail;
     }
     if (!tps.isEmpty || !sps.isEmpty) return false;
-    // TODO(johnniwinther): Handle the void type correctly.
-    if (!isAssignable(tf.returnType, sf.returnType)) return false;
+    if (!identical(sf.returnType, voidType) &&
+        !isAssignable(tf.returnType, sf.returnType)) {
+      return false;
+    }
     if (!sf.namedParameters.isEmpty) {
       // Since named parameters are globally ordered we can determine the
       // subset relation with a linear search for [:sf.NamedParameters:]
@@ -978,7 +1050,8 @@ class Types {
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawType = dynamicElement.thisType = dynamicType;
-    SubtypeVisitor subtypeVisitor = new SubtypeVisitor(compiler, dynamicType);
+    SubtypeVisitor subtypeVisitor =
+        new SubtypeVisitor(compiler, dynamicType, voidType);
     return new Types.internal(compiler, voidType, dynamicType, subtypeVisitor);
   }
 
@@ -1036,5 +1109,15 @@ class Types {
       return true;
     });
     return reasons.join(', ');
+  }
+
+  /**
+   * Returns the [ClassElement] which declares the type variables occurring in
+   * [type], or [:null:] if [type] does not contain type variables.
+   */
+  static ClassElement getClassContext(DartType type) {
+    TypeVariableType typeVariable = type.typeVariableOccurrence;
+    if (typeVariable == null) return null;
+    return typeVariable.element.enclosingElement;
   }
 }

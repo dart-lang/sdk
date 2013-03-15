@@ -252,20 +252,20 @@ class Expect {
     StringBuffer sb = new StringBuffer("Expect.setEquals($msg) fails");
     // Report any missing items.
     if (!missingSet.isEmpty) {
-      sb.add('\nExpected collection does not contain: ');
+      sb.write('\nExpected collection does not contain: ');
     }
 
     for (final val in missingSet) {
-      sb.add('$val ');
+      sb.write('$val ');
     }
 
     // Report any extra items.
     if (!extraSet.isEmpty) {
-      sb.add('\nExpected collection should not contain: ');
+      sb.write('\nExpected collection should not contain: ');
     }
 
     for (final val in extraSet) {
-      sb.add('$val ');
+      sb.write('$val ');
     }
     _fail(sb.toString());
   }

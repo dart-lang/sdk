@@ -267,16 +267,16 @@ main() {
     stream.single.then((_) {});
   });
 
-  test('firstMatching', () {
-    stream.firstMatching((_) => true).then((_) {});
+  test('firstWhere', () {
+    stream.firstWhere((_) => true).then((_) {});
   });
 
-  test('lastMatching', () {
-    stream.lastMatching((_) => true).then((_) {});
+  test('lastWhere', () {
+    stream.lastWhere((_) => true).then((_) {});
   });
 
-  test('singleMatching', () {
-    stream.singleMatching((_) => true).then((_) {});
+  test('singleWhere', () {
+    stream.singleWhere((_) => true).then((_) {});
   });
 
   test('elementAt', () {

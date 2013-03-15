@@ -3,12 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing overridden messageNotUnderstood.
 
+class GetName {
+  foo(a, b) => "foo";
+}
+
+String getName(im) => im.invokeOn(new GetName());
+
 class OverriddenNoSuchMethod {
 
   OverriddenNoSuchMethod() {}
 
   noSuchMethod(InvocationMirror mirror) {
-    Expect.equals("foo", mirror.memberName);
+    Expect.equals("foo", getName(mirror));
     // 'foo' was called with two parameters (not counting receiver).
     List args = mirror.positionalArguments;
     Expect.equals(2, args.length);

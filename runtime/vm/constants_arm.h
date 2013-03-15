@@ -5,6 +5,8 @@
 #ifndef VM_CONSTANTS_ARM_H_
 #define VM_CONSTANTS_ARM_H_
 
+#include "platform/assert.h"
+
 namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
@@ -176,6 +178,11 @@ const DRegister kDartLastVolatileFpuReg = D7;
 const int kDartVolatileFpuRegCount = 8;
 
 
+// Dart stack frame layout.
+static const int kLastParamSlotIndex = 3;
+static const int kFirstLocalSlotIndex = -2;
+
+
 // Values for the condition field as defined in section A3.2.
 enum Condition {
   kNoCondition = -1,
@@ -292,6 +299,18 @@ enum InstructionFields {
   kMulRdBits = 4,
   kMulRnShift = 12,
   kMulRnBits = 4,
+
+  // MRC instruction offset field encoding.
+  kCRmShift = 0,
+  kCRmBits = 4,
+  kOpc2Shift = 5,
+  kOpc2Bits = 3,
+  kCoprocShift = 8,
+  kCoprocBits = 4,
+  kCRnShift = 16,
+  kCRnBits = 4,
+  kOpc1Shift = 21,
+  kOpc1Bits = 3,
 
   kBranchOffsetMask = 0x00ffffff
 };
@@ -480,6 +499,13 @@ class Instr {
     return static_cast<DRegister>(Bits(kRmShift, kRmBits) + (Bit(5) << 4));
   }
 
+  inline bool IsDivision() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 3);
+    return ((Bit(4) == 1) && (Bits(5, 3) == 0) &&
+            (Bit(20) == 1) && (Bits(22, 3) == 4));
+  }
+
   // Test for VFP data processing or single transfer instructions of type 7.
   inline bool IsVFPDataProcessingOrSingleTransfer() const {
     ASSERT(ConditionField() != kSpecialCondition);
@@ -504,6 +530,15 @@ class Instr {
     return ((Bits(20, 5) & 0x12) == 0x10) && (Bits(9, 3) == 5);
   }
 
+  // Only handle mrc of the id_isar0 register.
+  inline bool IsMrcIdIsar0() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 7);
+    return (Bits(21, 3) == 0) && (Bits(16, 4) == 0) &&
+           (Bits(8, 4) == 0xf) && (Bits(5, 3) == 0) &&
+           (Bits(0, 4) == 2);
+  }
+
   // Test for VFP multiple load and store instructions of type 6.
   inline bool IsVFPMultipleLoadStore() const {
     ASSERT(ConditionField() != kSpecialCondition);
@@ -526,7 +561,6 @@ class Instr {
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
   static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
-  Instr* Next() { return this + kInstrSize; }
 
  private:
   DISALLOW_ALLOCATION();

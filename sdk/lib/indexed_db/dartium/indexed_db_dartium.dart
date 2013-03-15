@@ -1064,7 +1064,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
     request.onError.listen((e) {
       //TODO: Report stacktrace once issue 4061 is resolved.
-      controller.signalError(e);
+      controller.addError(e);
     });
 
     request.onSuccess.listen((e) {
@@ -1073,7 +1073,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
         controller.close();
       } else {
         controller.add(cursor);
-        if (autoAdvance == true) {
+        if (autoAdvance == true && controller.hasSubscribers) {
           cursor.next();
         }
       }

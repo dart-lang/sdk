@@ -7,12 +7,12 @@ part of dart.crypto;
 class _LineWrappingStringBuffer {
   _LineWrappingStringBuffer(int this._lineLength) : _sb = new StringBuffer();
 
-  void add(String s) {
+  void write(String s) {
     if (_lineLength != null && _currentLineLength == _lineLength) {
-      _sb.add('\r\n');
+      _sb.write('\r\n');
       _currentLineLength = 0;
     }
-    _sb.add(s);
+    _sb.write(s);
     _currentLineLength++;
   }
 
@@ -27,7 +27,7 @@ abstract class _CryptoUtils {
   static String bytesToHex(List<int> bytes) {
     var result = new StringBuffer();
     for (var part in bytes) {
-      result.add('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+      result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
     }
     return result.toString();
   }
@@ -49,26 +49,26 @@ abstract class _CryptoUtils {
       var b0 = bytes[i] & 0xff;
       var b1 = bytes[i + 1] & 0xff;
       var b2 = bytes[i + 2] & 0xff;
-      result.add(table[b0 >> 2]);
-      result.add(table[((b0 << 4) | (b1 >> 4)) & 0x3f]);
-      result.add(table[((b1 << 2) | (b2 >> 6)) & 0x3f]);
-      result.add(table[b2 & 0x3f]);
+      result.write(table[b0 >> 2]);
+      result.write(table[((b0 << 4) | (b1 >> 4)) & 0x3f]);
+      result.write(table[((b1 << 2) | (b2 >> 6)) & 0x3f]);
+      result.write(table[b2 & 0x3f]);
     }
 
     // Deal with the last non-full block if any and add padding '='.
     if (i == bytes.length - 1) {
       var b0 = bytes[i] & 0xff;
-      result.add(table[b0 >> 2]);
-      result.add(table[(b0 << 4) & 0x3f]);
-      result.add('=');
-      result.add('=');
+      result.write(table[b0 >> 2]);
+      result.write(table[(b0 << 4) & 0x3f]);
+      result.write('=');
+      result.write('=');
     } else if (i == bytes.length - 2) {
       var b0 = bytes[i] & 0xff;
       var b1 = bytes[i + 1] & 0xff;
-      result.add(table[b0 >> 2]);
-      result.add(table[((b0 << 4) | (b1 >> 4)) & 0x3f]);
-      result.add(table[(b1 << 2) & 0x3f]);
-      result.add('=');
+      result.write(table[b0 >> 2]);
+      result.write(table[((b0 << 4) | (b1 >> 4)) & 0x3f]);
+      result.write(table[(b1 << 2) & 0x3f]);
+      result.write('=');
     }
 
     return result.toString();

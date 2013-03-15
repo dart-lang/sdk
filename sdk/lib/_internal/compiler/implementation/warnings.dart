@@ -389,6 +389,10 @@ Length: #{length}''');
   static const DEFERRED_LIBRARY_NAME_MISMATCH = const MessageKind(
       'Error: Library name mismatch "#{expectedName}" != "#{actualName}".');
 
+  static const ILLEGAL_STATIC = const MessageKind(
+      "Error: Modifier static is only allowed on functions declared in"
+      " a class.");
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

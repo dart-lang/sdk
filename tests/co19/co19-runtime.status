@@ -6,6 +6,8 @@
 LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
 LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
 
+LibTest/core/int/operator_division_A01_t01: Fail # ~/ returns ints, issue 361
+
 [ $compiler == none && $runtime == vm ]
 Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
 Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
@@ -146,6 +148,17 @@ LibTest/core/List/List_A02_t01: Fail # List constructors, co19 issue 358
 
 LibTest/core/List/last_A02_t01: Fail # List.last throws a StateError, co19 issue 359
 
+LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/double_class_A01_t01: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/isNaN_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+
 LibTest/core/double/toInt_A01_t03: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, co19 issue 360
 LibTest/core/double/toInt_A01_t04: Fail # conversion to integer throws UnsupportedError for NaN/Infinity now, co19 issue 360
 
@@ -253,9 +266,6 @@ Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage th
 
 Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # co19 issue 234
 
-[ $compiler == none && $runtime == vm && $unchecked ]
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-
 [ $compiler == none && $runtime == vm ]
 Language/11_Expressions/01_Constants_A16_t01: Fail # Not properly reporting exception in initializer expressions
 Language/11_Expressions/01_Constants_A16_t02: Fail # Not properly reporting exception in initializer expressions
@@ -303,7 +313,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
 [ $compiler == none && $runtime == vm ]
-LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
+LibTest/core/Date/Date.fromString_A03_t01: Pass # Issue co19 - 121  (currently passing due to co19 issues 373 and 374)
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
@@ -515,11 +525,9 @@ LibTest/core/Map/remove_A01_t02: Fail # Doesn't expect null to be allowed in Set
 LibTest/core/Set/add_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/addAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/contains_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Set/containsAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Set/intersection_A03_t01: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Set/isSubsetOf_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/remove_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/removeAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/isSubsetOf_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 
 LibTest/core/Map/forEach_A01_t07: Fail # Doesn't expect concurrent modification error (issue 376).
 
@@ -529,6 +537,69 @@ LibTest/core/String/charCodeAt_A03_t01: Fail # Deprecated string members removed
 LibTest/core/String/charCodeAt_A01_t01: Fail # Deprecated string members removed (issue 382).
 LibTest/core/String/splitChars_A01_t01: Fail # Deprecated string members removed (issue 382).
 
+Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.utc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t04: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/day_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/hour_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/isUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecond_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/minute_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/month_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/second_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toLocal_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+
+
+LibTest/core/StringBuffer/addAll_A01_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/add_A01_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/add_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/addAll_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/toString_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/12_Statements/01_Blocks_A01_t03: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t12: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t05: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A13_t03: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t06: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+
+LibTest/core/List/getRange_A02_t01: Fail # issue 391
+
 [ $compiler == none && $runtime == vm && $unchecked ]
 LibTest/core/Future/chain_A02_t05: Fail # Future is in async library. co19 issue 367
 LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 issue 367
@@ -536,6 +607,17 @@ LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 i
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367
 Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
+
+LibTest/core/Set/containsAll_A01_t02: Fail # issue 390
+LibTest/core/Set/intersection_A01_t01: Fail # issue 390
+LibTest/core/Set/intersection_A01_t02: Fail # issue 390
+LibTest/core/Set/intersection_A01_t03: Fail # issue 390
+
+[ $compiler == none && $runtime == vm && $unchecked ]
+LibTest/core/Set/containsAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377). Succeedes in checked mode due to Issue 390.
+LibTest/core/Set/intersection_A03_t01: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377). Succeedes in checked mode due to Issue 390.
+
+
 
 [ $compiler == none && $arch == simarm ]
 *: Skip

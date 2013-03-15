@@ -97,7 +97,6 @@ const char* CanvasState::setFont(const char*name, float size) {
   SkTypeface *pTypeface = SkTypeface::CreateFromName(name, SkTypeface::kNormal);
   paint_.setTypeface(pTypeface);
   paint_.setTextSize(size);
-  pTypeface->unref();
   // TODO(gram): Must return a normalized font name incorporating size, so
   // callers can set the Dart canvas font name to an appropriate value.
   // Actually this may not be necessary in which case we can change this

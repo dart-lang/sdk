@@ -17,7 +17,7 @@ class MemoryFileSystem implements FileSystem {
   MemoryFileSystem() : this.buffer = new StringBuffer();
 
   void writeString(String outfile, String text) {
-    buffer.add(text);
+    buffer.write(text);
   }
 
   String readAll(String filename) {

@@ -42,7 +42,7 @@ void main() {
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
 
-  checkReturn('returnDyn1', compiler.dynamicClass);
-  checkReturn('returnDyn2', compiler.dynamicClass);
-  checkReturn('returnDyn3', compiler.dynamicClass);
+  checkReturn('returnDyn1', typesInferrer.dynamicType);
+  checkReturn('returnDyn2', typesInferrer.dynamicType);
+  checkReturn('returnDyn3', typesInferrer.dynamicType);
 }

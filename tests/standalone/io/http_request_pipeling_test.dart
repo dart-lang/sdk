@@ -16,7 +16,7 @@ void main() {
   HttpServer.bind().then((server) {
     server.listen((HttpRequest request) {
       count++;
-      request.response.addString(request.uri.path);
+      request.response.write(request.uri.path);
       request.response.close();
       if (request.uri.path == "/done") {
         request.response.done.then((_) {
@@ -28,9 +28,9 @@ void main() {
     Socket.connect("127.0.0.1", server.port).then((s) {
       s.listen((data) { });
       for (int i = 0; i < REQUEST_COUNT; i++) {
-        s.addString("GET /$i HTTP/1.1\r\nX-Header-1: 111\r\n\r\n");
+        s.write("GET /$i HTTP/1.1\r\nX-Header-1: 111\r\n\r\n");
       }
-      s.addString("GET /done HTTP/1.1\r\nConnection: close\r\n\r\n");
+      s.write("GET /done HTTP/1.1\r\nConnection: close\r\n\r\n");
       s.close();
     });
   });

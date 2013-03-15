@@ -21,6 +21,8 @@
     'eventhandler_macos.h',
     'eventhandler_win.cc',
     'eventhandler_win.h',
+    'filter.cc',
+    'filter.h',
     'net/nss_memio.cc',
     'net/nss_memio.h',
     'platform.cc',

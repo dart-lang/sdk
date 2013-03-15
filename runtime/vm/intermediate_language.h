@@ -17,6 +17,7 @@ namespace dart {
 class BitVector;
 class BlockEntryInstr;
 class BufferFormatter;
+class CatchBlockEntryInstr;
 class ComparisonInstr;
 class ControlInstruction;
 class Definition;
@@ -36,6 +37,7 @@ class Range;
 #define RECOGNIZED_LIST(V)                                                     \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
+  V(_TypedList, get:length, TypedDataLength, 231908172)                        \
   V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
   V(_ByteArrayBase, _getInt8, ByteArrayBaseGetInt8, 261365835)                 \
   V(_ByteArrayBase, _getUint8, ByteArrayBaseGetUint8, 261365835)               \
@@ -45,6 +47,14 @@ class Range;
   V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
   V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
   V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
+  V(_ByteArrayBase, _setInt8, ByteArrayBaseSetInt8, 501962848)                 \
+  V(_ByteArrayBase, _setUint8, ByteArrayBaseSetUint8, 501962848)               \
+  V(_ByteArrayBase, _setInt16, ByteArrayBaseSetInt16, 501962848)               \
+  V(_ByteArrayBase, _setUint16, ByteArrayBaseSetUint16, 501962848)             \
+  V(_ByteArrayBase, _setInt32, ByteArrayBaseSetInt32, 501962848)               \
+  V(_ByteArrayBase, _setUint32, ByteArrayBaseSetUint32, 501962848)             \
+  V(_ByteArrayBase, _setFloat32, ByteArrayBaseSetFloat32, 864506525)           \
+  V(_ByteArrayBase, _setFloat64, ByteArrayBaseSetFloat64, 864506525)           \
   V(_Float32Array, _getIndexed, Float32ArrayGetIndexed, 734006846)             \
   V(_Float64Array, _getIndexed, Float64ArrayGetIndexed, 498074772)             \
   V(_Int8Array, _getIndexed, Int8ArrayGetIndexed, 712069760)                   \
@@ -77,10 +87,10 @@ class Range;
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
-  V(_Double, truncate, DoubleTruncate, 620870996)                              \
-  V(_Double, round, DoubleRound, 620870996)                                    \
-  V(_Double, floor, DoubleFloor, 620870996)                                    \
-  V(_Double, ceil, DoubleCeil, 620870996)                                      \
+  V(_Double, truncateToDouble, DoubleTruncate, 620870996)                      \
+  V(_Double, roundToDouble, DoubleRound, 620870996)                            \
+  V(_Double, floorToDouble, DoubleFloor, 620870996)                            \
+  V(_Double, ceilToDouble, DoubleCeil, 620870996)                              \
   V(_Double, pow, DoublePow, 1131958048)                                       \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
@@ -405,6 +415,7 @@ class EmbeddedArray<T, 0> {
   M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
+  M(CatchBlockEntry)                                                           \
   M(Phi)                                                                       \
   M(Parameter)                                                                 \
   M(ParallelMove)                                                              \
@@ -563,7 +574,7 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsControl());
+    ASSERT(!IsControl() || (instr == NULL));
     ASSERT(!IsPhi());
     ASSERT(instr == NULL || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
@@ -731,6 +742,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class InvokeMathCFunctionInstr;
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
+  friend class StoreIndexedInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1077,7 +1089,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
+  void AddCatchEntry(CatchBlockEntryInstr* entry) { catch_entries_.Add(entry); }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
@@ -1106,7 +1118,7 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   const ParsedFunction& parsed_function_;
   TargetEntryInstr* normal_entry_;
-  GrowableArray<TargetEntryInstr*> catch_entries_;
+  GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;
   intptr_t spill_slot_count_;
 
@@ -1145,7 +1157,7 @@ class JoinEntryInstr : public BlockEntryInstr {
  private:
   // Classes that have access to predecessors_ when inlining.
   friend class BlockEntryInstr;
-  friend class ValueInliningContext;
+  friend class InliningContext;
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
@@ -1187,10 +1199,7 @@ class PhiIterator : public ValueObject {
 class TargetEntryInstr : public BlockEntryInstr {
  public:
   TargetEntryInstr(intptr_t block_id, intptr_t try_index)
-      : BlockEntryInstr(block_id, try_index),
-        predecessor_(NULL),
-        catch_try_index_(CatchClauseNode::kInvalidTryIndex),
-        catch_handler_types_(Array::ZoneHandle()) { }
+      : BlockEntryInstr(block_id, try_index), predecessor_(NULL) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -1200,22 +1209,6 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
-  }
-
-  // Returns true if this Block is an entry of a catch handler.
-  bool IsCatchEntry() const {
-    return catch_try_index_ != CatchClauseNode::kInvalidTryIndex;
-  }
-
-  // Returns try index for the try block to which this catch handler
-  // corresponds.
-  intptr_t catch_try_index() const {
-    ASSERT(IsCatchEntry());
-    return catch_try_index_;
-  }
-  void set_catch_try_index(intptr_t index) { catch_try_index_ = index; }
-  void set_catch_handler_types(const Array& handler_types) {
-    catch_handler_types_ = handler_types.raw();
   }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
@@ -1232,10 +1225,56 @@ class TargetEntryInstr : public BlockEntryInstr {
   }
 
   BlockEntryInstr* predecessor_;
-  intptr_t catch_try_index_;
-  Array& catch_handler_types_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
+};
+
+
+class CatchBlockEntryInstr : public BlockEntryInstr {
+ public:
+  CatchBlockEntryInstr(intptr_t block_id,
+                       intptr_t try_index,
+                       const Array& handler_types,
+                       intptr_t catch_try_index)
+      : BlockEntryInstr(block_id, try_index),
+        predecessor_(NULL),
+        catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
+        catch_try_index_(catch_try_index) { }
+
+  DECLARE_INSTRUCTION(CatchBlockEntry)
+
+  virtual intptr_t PredecessorCount() const {
+    return (predecessor_ == NULL) ? 0 : 1;
+  }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    ASSERT((index == 0) && (predecessor_ != NULL));
+    return predecessor_;
+  }
+
+  // Returns try index for the try block to which this catch handler
+  // corresponds.
+  intptr_t catch_try_index() const {
+    return catch_try_index_;
+  }
+
+  virtual void PrepareEntry(FlowGraphCompiler* compiler);
+
+  virtual void PrintTo(BufferFormatter* f) const;
+
+ private:
+  friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
+
+  virtual void ClearPredecessors() { predecessor_ = NULL; }
+  virtual void AddPredecessor(BlockEntryInstr* predecessor) {
+    ASSERT(predecessor_ == NULL);
+    predecessor_ = predecessor;
+  }
+
+  BlockEntryInstr* predecessor_;
+  const Array& catch_handler_types_;
+  const intptr_t catch_try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
 
 
@@ -1312,6 +1351,7 @@ class Definition : public Instruction {
   bool HasUses() const {
     return (input_use_list_ != NULL) || (env_use_list_ != NULL);
   }
+  bool HasOnlyUse(Value* use) const;
 
   Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
@@ -2033,6 +2073,8 @@ class ConstantInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
 
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
   const Object& value() const { return value_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2589,7 +2631,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
         argument_names_(argument_names),
         arguments_(arguments),
         result_cid_(kDynamicCid),
-        is_known_constructor_(false) {
+        is_known_list_constructor_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle());
   }
@@ -2615,9 +2657,9 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
-  bool is_known_constructor() const { return is_known_constructor_; }
-  void set_is_known_constructor(bool is_known_constructor) {
-    is_known_constructor_ = is_known_constructor;
+  bool is_known_list_constructor() const { return is_known_list_constructor_; }
+  void set_is_known_list_constructor(bool value) {
+    is_known_list_constructor_ = value;
   }
 
  private:
@@ -2627,8 +2669,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   intptr_t result_cid_;  // For some library functions we know the result.
 
-  // Some library constructors have known semantics.
-  bool is_known_constructor_;
+  // 'True' for recognized list constructors.
+  bool is_known_list_constructor_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
@@ -2636,15 +2678,12 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
 class LoadLocalInstr : public TemplateDefinition<0> {
  public:
-  LoadLocalInstr(const LocalVariable& local, intptr_t context_level)
-      : local_(local),
-        context_level_(context_level) { }
+  explicit LoadLocalInstr(const LocalVariable& local) : local_(local) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
 
   const LocalVariable& local() const { return local_; }
-  intptr_t context_level() const { return context_level_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2657,7 +2696,6 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
  private:
   const LocalVariable& local_;
-  const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -2665,11 +2703,7 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
 class StoreLocalInstr : public TemplateDefinition<1> {
  public:
-  StoreLocalInstr(const LocalVariable& local,
-                  Value* value,
-                  intptr_t context_level)
-      : local_(local),
-        context_level_(context_level) {
+  StoreLocalInstr(const LocalVariable& local, Value* value) : local_(local) {
     SetInputAt(0, value);
   }
 
@@ -2678,7 +2712,6 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 
   const LocalVariable& local() const { return local_; }
   Value* value() const { return inputs_[0]; }
-  intptr_t context_level() const { return context_level_; }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
@@ -2694,7 +2727,6 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 
  private:
   const LocalVariable& local_;
-  const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
@@ -2906,14 +2938,16 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
                     Value* index,
                     Value* value,
                     StoreBarrierType emit_store_barrier,
+                    intptr_t index_scale,
                     intptr_t class_id,
                     intptr_t deopt_id)
       : emit_store_barrier_(emit_store_barrier),
-        class_id_(class_id),
-        deopt_id_(deopt_id) {
+        index_scale_(index_scale),
+        class_id_(class_id) {
     SetInputAt(0, array);
     SetInputAt(1, index);
     SetInputAt(2, value);
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreIndexed)
@@ -2921,6 +2955,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
+  intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
 
   bool ShouldEmitStoreBarrier() const {
@@ -2942,8 +2977,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
  private:
   const StoreBarrierType emit_store_barrier_;
+  const intptr_t index_scale_;
   const intptr_t class_id_;
-  const intptr_t deopt_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -3203,6 +3238,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
+
+  static bool IsFixedLengthArrayCid(intptr_t cid);
 
  private:
   const intptr_t offset_in_bytes_;

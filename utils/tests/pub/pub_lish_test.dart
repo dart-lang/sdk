@@ -29,7 +29,7 @@ void handleUploadForm(ScheduledServer server, [Map body]) {
       }
 
       response.headers.contentType = new ContentType("application", "json");
-      response.addString(json.stringify(body));
+      response.write(json.stringify(body));
       response.close();
     });
   });
@@ -63,7 +63,7 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
       response.close();
@@ -150,7 +150,7 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
       }));
       response.close();
@@ -170,7 +170,7 @@ main() {
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
       response.statusCode = 400;
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'error': {'message': 'your request sucked'}
       }));
       response.close();
@@ -188,7 +188,7 @@ main() {
     confirmPublish(pub);
 
     server.handle('GET', '/packages/versions/new.json', (request, response) {
-      response.addString('{not json');
+      response.write('{not json');
       response.close();
     });
 
@@ -295,7 +295,7 @@ main() {
       return drainStream(request).then((_) {
         response.statusCode = 400;
         response.headers.contentType = new ContentType('application', 'xml');
-        response.addString('<Error><Message>Your request sucked.'
+        response.write('<Error><Message>Your request sucked.'
             '</Message></Error>');
         response.close();
       });
@@ -337,7 +337,7 @@ main() {
 
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
-      response.addString(json.stringify({
+      response.write(json.stringify({
         'error': {'message': 'Your package was too boring.'}
       }));
       response.close();
@@ -357,7 +357,7 @@ main() {
     handleUpload(server);
 
     server.handle('GET', '/create', (request, response) {
-      response.addString('{not json');
+      response.write('{not json');
       response.close();
     });
 
@@ -378,7 +378,7 @@ main() {
     var body = {'error': 'Your package was too boring.'};
     server.handle('GET', '/create', (request, response) {
       response.statusCode = 400;
-      response.addString(json.stringify(body));
+      response.write(json.stringify(body));
       response.close();
     });
 
@@ -398,7 +398,7 @@ main() {
 
     var body = {'success': 'Your package was awesome.'};
     server.handle('GET', '/create', (request, response) {
-      response.addString(json.stringify(body));
+      response.write(json.stringify(body));
       response.close();
     });
 
@@ -425,7 +425,7 @@ main() {
       handleUpload(server);
 
       server.handle('GET', '/create', (request, response) {
-        response.addString(json.stringify({
+        response.write(json.stringify({
           'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
         }));
         response.close();
@@ -449,7 +449,7 @@ main() {
       handleUpload(server);
 
       server.handle('GET', '/create', (request, response) {
-        response.addString(json.stringify({
+        response.write(json.stringify({
           'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
         }));
         response.close();

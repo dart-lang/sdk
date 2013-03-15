@@ -75,6 +75,12 @@ RawScript* Bootstrap::LoadScalarlistScript(bool is_patch) {
 }
 
 
+RawScript* Bootstrap::LoadTypedDataScript(bool is_patch) {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
 RawScript* Bootstrap::LoadUriScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();

@@ -21,7 +21,7 @@ Function test() {
     server.listen((HttpRequest request) {
       Expect.isNotNull(request.certificate);
       Expect.equals('CN=localhost', request.certificate.subject);
-      request.response.addString("Hello");
+      request.response.write("Hello");
       request.response.close();
     });
 

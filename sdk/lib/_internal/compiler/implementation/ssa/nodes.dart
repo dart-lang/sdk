@@ -120,6 +120,8 @@ class HGraph {
   HBasicBlock entry;
   HBasicBlock exit;
   HThis thisInstruction;
+  /// Receiver parameter, set for methods using interceptor calling convention.
+  HParameterValue explicitReceiverParameter;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
   final List<HBasicBlock> blocks;
@@ -167,10 +169,12 @@ class HGraph {
     if (constant.isList()) return HType.READABLE_ARRAY;
     if (constant.isFunction()) return HType.UNKNOWN;
     if (constant.isSentinel()) return HType.UNKNOWN;
-    ObjectConstant objectConstant = constant;
+    // TODO(sra): What is the type of the prototype of an interceptor?
+    if (constant.isInterceptor()) return HType.UNKNOWN;
     // TODO(kasperl): This seems a bit fishy, but we do not have the
     // compiler at hand so we cannot use the usual HType factory
     // methods. At some point this should go away.
+    ObjectConstant objectConstant = constant;
     TypeMask mask = new TypeMask.nonNullExact(objectConstant.type);
     return new HBoundedType(mask);
   }
@@ -882,7 +886,6 @@ abstract class HInstruction implements Spannable {
   bool isNumber() => instructionType.isNumber();
   bool isNumberOrNull() => instructionType.isNumberOrNull();
   bool isString() => instructionType.isString();
-  bool isTypeUnknown() => instructionType.isUnknown();
   bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
   bool isPrimitive() => instructionType.isPrimitive();
   bool canBeNull() => instructionType.canBeNull();
@@ -1109,23 +1112,19 @@ abstract class HInstruction implements Spannable {
     return false;
   }
 
-
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (type == null) return this;
     if (identical(type.element, compiler.dynamicClass)) return this;
     if (identical(type.element, compiler.objectClass)) return this;
-
-    // If the original can't be null, type conversion also can't produce null.
-    bool canBeNull = instructionType.canBeNull();
-    HType convertedType = new HType.subtype(type, compiler);
-
-    // No need to convert if we know the instruction has
-    // [convertedType] as a bound.
-    if (instructionType == convertedType) {
-      return this;
+    if (type.isMalformed || type.kind != TypeKind.INTERFACE) {
+      return new HTypeConversion(type, kind, HType.UNKNOWN, this);
+    } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
+      // Boolean conversion checks work on non-nullable booleans.
+      return new HTypeConversion(type, kind, HType.BOOLEAN, this);
+    } else {
+      HType subtype = new HType.subtype(type, compiler);
+      return new HTypeConversion(type, kind, subtype, this);
     }
-
-    return new HTypeConversion(convertedType, this, kind);
   }
 
     /**
@@ -1460,8 +1459,7 @@ class HFieldGet extends HFieldAccess {
     }
   }
 
-  // TODO(ngeoffray): Only if input can be null.
-  bool canThrow() => true;
+  bool canThrow() => receiver.canBeNull();
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
@@ -1480,8 +1478,7 @@ class HFieldSet extends HFieldAccess {
     setChangesInstanceProperty();
   }
 
-  // TODO(ngeoffray): Only if input can be null.
-  bool canThrow() => true;
+  bool canThrow() => receiver.canBeNull();
 
   HInstruction get value => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
@@ -1515,14 +1512,18 @@ class HLocalSet extends HFieldAccess {
 class HForeign extends HInstruction {
   final DartString code;
   final bool isStatement;
+  final bool isSideEffectFree;
 
   HForeign(this.code,
            HType type,
            List<HInstruction> inputs,
-           {this.isStatement: false})
+           {this.isStatement: false,
+            this.isSideEffectFree: false})
       : super(inputs) {
-    setAllSideEffects();
-    setDependsOnSomething();
+    if (!isSideEffectFree) {
+      setAllSideEffects();
+      setDependsOnSomething();
+    }
     instructionType = type;
   }
 
@@ -1532,7 +1533,7 @@ class HForeign extends HInstruction {
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() => true;
+  bool canThrow() => !isSideEffectFree;
 }
 
 class HForeignNew extends HForeign {
@@ -2152,34 +2153,54 @@ class HIndexAssign extends HInstruction {
   HInstruction get value => inputs[2];
 }
 
+// TODO(karlklose): use this class to represent type conversions as well.
 class HIs extends HInstruction {
+  /// A check against a raw type: 'o is int', 'o is A'.
+  static const int RAW_CHECK = 0;
+  /// A check against a type with type arguments: 'o is List<int>', 'o is C<T>'.
+  static const int COMPOUND_CHECK = 1;
+  /// A check against a single type variable: 'o is T'.
+  static const int VARIABLE_CHECK = 2;
+
   final DartType typeExpression;
   final bool nullOk;
+  final int kind;
 
-  HIs(this.typeExpression, List<HInstruction> inputs, {this.nullOk: false})
-     : super(inputs) {
+  HIs(this.typeExpression, List<HInstruction> inputs, this.kind,
+      {this.nullOk: false}) : super(inputs) {
+    assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
     instructionType = HType.BOOLEAN;
   }
 
   HInstruction get expression => inputs[0];
-  HInstruction get checkCall => inputs[1];
 
-  bool hasArgumentsCheck() => inputs.length > 1;
+  HInstruction get checkCall {
+    assert(kind == VARIABLE_CHECK || kind == COMPOUND_CHECK);
+    return inputs[1];
+  }
+
+  bool get isRawCheck => kind == RAW_CHECK;
+  bool get isVariableCheck => kind == VARIABLE_CHECK;
+  bool get isCompoundCheck => kind == COMPOUND_CHECK;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
   toString() => "$expression is $typeExpression";
 
   int typeCode() => HInstruction.IS_TYPECODE;
+
   bool typeEquals(HInstruction other) => other is HIs;
+
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression
-        && nullOk == other.nullOk;
+        && nullOk == other.nullOk
+        && kind == other.kind;
   }
 }
 
 class HTypeConversion extends HCheck {
+  final DartType typeExpression;
   final int kind;
 
   static const int NO_CHECK = 0;
@@ -2188,23 +2209,17 @@ class HTypeConversion extends HCheck {
   static const int CAST_TYPE_CHECK = 3;
   static const int BOOLEAN_CONVERSION_CHECK = 4;
 
-  HTypeConversion(HType type, HInstruction input, [this.kind = NO_CHECK])
+  HTypeConversion(this.typeExpression, this.kind,
+                  HType type, HInstruction input)
       : super(<HInstruction>[input]) {
-    assert(type != null);
     sourceElement = input.sourceElement;
     instructionType = type;
   }
-  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
-      : this(type, input, CHECKED_MODE_CHECK);
-  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
-      : this(type, input, ARGUMENT_TYPE_CHECK);
-  HTypeConversion.castCheck(HType type, HInstruction input)
-      : this(type, input, CAST_TYPE_CHECK);
-
 
   bool get isChecked => kind != NO_CHECK;
   bool get isCheckedModeCheck {
-    return kind == CHECKED_MODE_CHECK || kind == BOOLEAN_CONVERSION_CHECK;
+    return kind == CHECKED_MODE_CHECK
+        || kind == BOOLEAN_CONVERSION_CHECK;
   }
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
@@ -2218,8 +2233,11 @@ class HTypeConversion extends HCheck {
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeConversion;
+
   bool dataEquals(HTypeConversion other) {
-    return instructionType == other.instructionType && kind == other.kind;
+    return kind == other.kind
+        && typeExpression == other.typeExpression
+        && instructionType == other.instructionType;
   }
 }
 

@@ -459,7 +459,7 @@ class TypedSelector extends Selector {
               selector.argumentCount,
               selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
-    assert(!identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
+    assert(mask.isEmpty || !identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
     assert(asUntyped.mask == null);
   }
 
@@ -479,13 +479,19 @@ class TypedSelector extends Selector {
    * invoked on an instance of [cls].
    */
   bool hasElementIn(ClassElement cls, Element element) {
-    return cls.lookupSelector(this) == element;
+    // Use the [:implementation] of [cls] in case [element]
+    // is in the patch class. Also use [:implementation:] of [element]
+    // because our function set only stores declarations.
+    Element result = cls.implementation.lookupSelector(this);
+    return result == null
+        ? false
+        : result.implementation == element.implementation;
   }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
-    // [TypedSelector] are only used when compiling.
-    assert(compiler.phase == Compiler.PHASE_COMPILING);
+    // [TypedSelector] are only used after resolution.
+    assert(compiler.phase > Compiler.PHASE_RESOLVING);
     if (!element.isMember()) return false;
 
     // A closure can be called through any typed selector:
@@ -498,6 +504,12 @@ class TypedSelector extends Selector {
       return appliesUntyped(element, compiler);
     }
 
+    if (mask.isEmpty) {
+      if (!mask.isNullable) return false;
+      return hasElementIn(compiler.backend.nullImplementation, element)
+          && appliesUntyped(element, compiler);
+    }
+
     // TODO(kasperl): Can't we just avoid creating typed selectors
     // based of function types?
     Element self = mask.base.element;
@@ -507,7 +519,9 @@ class TypedSelector extends Selector {
       return false;
     }
 
-    if (mask.isExact) {
+    if (mask.isNullable && compiler.backend.isNullImplementation(other)) {
+      return appliesUntyped(element, compiler);
+    } else if (mask.isExact) {
       return hasElementIn(self, element) && appliesUntyped(element, compiler);
     } else if (mask.isSubclass) {
       return (hasElementIn(self, element)

@@ -209,14 +209,14 @@ Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
 Collection populateRandomCollection(int size, bool exact,
     StringBuffer stringRep, List beingMade, Collection coll) {
   beingMade.add(coll);
-  stringRep.add(coll is List ? '[' : '{');
+  stringRep.write(coll is List ? '[' : '{');
 
   for (int i = 0; i < size; i++) {
-    if (i != 0) stringRep.add(', ');
+    if (i != 0) stringRep.write(', ');
     coll.add(randomElement(random(size), exact, stringRep, beingMade));
   }
 
-  stringRep.add(coll is List ? ']' : '}');
+  stringRep.write(coll is List ? ']' : '}');
   beingMade.removeLast();
   return coll;
 }
@@ -224,15 +224,15 @@ Collection populateRandomCollection(int size, bool exact,
 /** Like populateRandomCollection, but for sets (elements must be hashable) */
 Set populateRandomSet(int size, bool exact, StringBuffer stringRep,
     List beingMade, Set set) {
-  stringRep.add('{');
+  stringRep.write('{');
 
   for (int i = 0; i < size; i++) {
-    if (i != 0) stringRep.add(', ');
+    if (i != 0) stringRep.write(', ');
     set.add(i);
-    stringRep.add(i);
+    stringRep.write(i);
   }
 
-  stringRep.add('}');
+  stringRep.write('}');
   return set;
 }
 
@@ -241,19 +241,19 @@ Set populateRandomSet(int size, bool exact, StringBuffer stringRep,
 Map populateRandomMap(int size, bool exact, StringBuffer stringRep,
     List beingMade, Map map) {
   beingMade.add(map);
-  stringRep.add('{');
+  stringRep.write('{');
 
   for (int i = 0; i < size; i++) {
-    if (i != 0) stringRep.add(', ');
+    if (i != 0) stringRep.write(', ');
 
     int key = i; // Ensures no duplicates
-    stringRep.add(key);
-    stringRep.add(': ');
+    stringRep.write(key);
+    stringRep.write(': ');
     Object val = randomElement(random(size), exact, stringRep, beingMade);
     map[key] = val;
   }
 
-  stringRep.add('}');
+  stringRep.write('}');
   beingMade.removeLast();
   return map;
 }
@@ -272,7 +272,7 @@ Object randomElement(int size, bool exact, StringBuffer stringRep,
   double elementTypeFrac = rand.nextDouble();
   if (elementTypeFrac < 1/3) {
     result = random(1000);
-    stringRep.add(result);
+    stringRep.write(result);
   } else if (elementTypeFrac < 2/3) {
     // Element Is a random (new) collection
     result = randomCollectionHelper(size, exact, stringRep, beingMade);
@@ -280,9 +280,9 @@ Object randomElement(int size, bool exact, StringBuffer stringRep,
     // Element Is a random recursive ref
     result = beingMade[random(beingMade.length)];
     if (result is List)
-      stringRep.add('[...]');
+      stringRep.write('[...]');
     else
-      stringRep.add('{...}');
+      stringRep.write('{...}');
   }
   return result;
 }

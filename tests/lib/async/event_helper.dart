@@ -7,7 +7,7 @@ library event_helper;
 import 'dart:async';
 
 abstract class Event {
-  void replay(StreamSink sink);
+  void replay(EventSink sink);
 }
 
 class DataEvent implements Event {
@@ -15,7 +15,7 @@ class DataEvent implements Event {
 
   DataEvent(this.data);
 
-  void replay(StreamSink sink) { sink.add(data); }
+  void replay(EventSink sink) { sink.add(data); }
 
   int get hashCode => data.hashCode;
 
@@ -33,7 +33,7 @@ class ErrorEvent implements Event {
 
   ErrorEvent(this.error);
 
-  void replay(StreamSink sink) { sink.signalError(error); }
+  void replay(EventSink sink) { sink.addError(error); }
 
   int get hashCode => error.error.hashCode;
 
@@ -49,7 +49,7 @@ class ErrorEvent implements Event {
 class DoneEvent implements Event {
   const DoneEvent();
 
-  void replay(StreamSink sink) { sink.close(); }
+  void replay(EventSink sink) { sink.close(); }
 
   int get hashCode => 42;
 
@@ -59,7 +59,7 @@ class DoneEvent implements Event {
 }
 
 /** Collector of events. */
-class Events implements StreamSink {
+class Events implements EventSink {
   final List<Event> events = [];
 
   Events();
@@ -72,10 +72,12 @@ class Events implements StreamSink {
   factory Events.capture(Stream stream,
                          { bool unsubscribeOnError: false }) = CaptureEvents;
 
-  // StreamSink interface.
-  add(var value) { events.add(new DataEvent(value)); }
+  // EventSink interface.
+  void add(var value) {
+    events.add(new DataEvent(value));
+  }
 
-  void signalError(AsyncError error) {
+  void addError(AsyncError error) {
     events.add(new ErrorEvent(error));
   }
 
@@ -84,10 +86,10 @@ class Events implements StreamSink {
   }
 
   // Error helper for creating errors manually..
-  void error(var value) { signalError(new AsyncError(value, null)); }
+  void error(var value) { addError(new AsyncError(value, null)); }
 
   /** Replay the captured events on a sink. */
-  void replay(StreamSink sink) {
+  void replay(EventSink sink) {
     for (int i = 0; i < events.length; i++) {
       events[i].replay(sink);
     }
@@ -139,13 +141,13 @@ class CaptureEvents extends Events {
       : onDoneSignal = new Completer() {
     this.unsubscribeOnError = unsubscribeOnError;
     subscription = stream.listen(add,
-                                 onError: signalError,
+                                 onError: addError,
                                  onDone: close,
                                  unsubscribeOnError: unsubscribeOnError);
   }
 
-  void signalError(AsyncError error) {
-    super.signalError(error);
+  void addError(AsyncError error) {
+    super.addError(error);
     if (unsubscribeOnError) onDoneSignal.complete(null);
   }
 

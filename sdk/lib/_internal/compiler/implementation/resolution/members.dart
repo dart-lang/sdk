@@ -5,6 +5,12 @@
 part of resolution;
 
 abstract class TreeElements {
+  Element get currentElement;
+  Set<Node> get superUses;
+
+  /// A set of additional dependencies.  See [registerDependency] below.
+  Set<Element> get otherDependencies;
+
   Element operator[](Node node);
   Selector getSelector(Send send);
   Selector getGetterSelectorInComplexSendSet(SendSet node);
@@ -14,7 +20,10 @@ abstract class TreeElements {
   Selector getCurrentSelector(ForIn node);
   DartType getType(Node node);
   bool isParameterChecked(Element element);
-  Set<Node> get superUses;
+
+  /// Register additional dependencies required by [currentElement].
+  /// For example, elements that are used by a backend.
+  void registerDependency(Element element);
 }
 
 class TreeElementMapping implements TreeElements {
@@ -22,8 +31,11 @@ class TreeElementMapping implements TreeElements {
   final Map<Spannable, Selector> selectors =
       new LinkedHashMap<Spannable, Selector>();
   final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
-  final Set<Element> checkedParameters = new Set<Element>();
-  final Set<Node> superUses = new Set<Node>();
+  final Set<Element> checkedParameters = new LinkedHashSet<Element>();
+  final Set<Node> superUses = new LinkedHashSet<Node>();
+  final Set<Element> otherDependencies = new LinkedHashSet<Element>();
+  final int hashCode = ++hashCodeCounter;
+  static int hashCodeCounter = 0;
 
   TreeElementMapping(this.currentElement);
 
@@ -118,6 +130,12 @@ class TreeElementMapping implements TreeElements {
   bool isParameterChecked(Element element) {
     return checkedParameters.contains(element);
   }
+
+  void registerDependency(Element element) {
+    otherDependencies.add(element.implementation);
+  }
+
+  String toString() => 'TreeElementMapping($currentElement)';
 }
 
 class ResolverTask extends CompilerTask {
@@ -363,7 +381,9 @@ class ResolverTask extends CompilerTask {
   }
 
   void visitBody(ResolverVisitor visitor, Statement body) {
-    visitor.visit(body);
+    if (!compiler.analyzeSignaturesOnly) {
+      visitor.visit(body);
+    }
   }
 
   void resolveConstructorImplementation(FunctionElement constructor,
@@ -434,13 +454,15 @@ class ResolverTask extends CompilerTask {
             MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
+    // TODO(johnniwinther): Avoid analyzing initializers if
+    // [Compiler.analyzeSignaturesOnly] is set.
     initializerDo(tree, visitor.visit);
 
     if (Elements.isStaticOrTopLevelField(element)) {
       if (tree.asSendSet() != null) {
         // TODO(ngeoffray): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
-        compiler.backend.registerLazyField();
+        compiler.backend.registerLazyField(visitor.mapping);
       }
     }
 
@@ -1405,10 +1427,6 @@ class TypeResolver {
       String stringValue = typeName.source.stringValue;
       if (identical(stringValue, 'void')) {
         return compiler.types.voidType.element;
-      } else if (identical(stringValue, 'Dynamic')) {
-        // TODO(aprelev@gmail.com): Remove deprecated Dynamic keyword support.
-        compiler.onDeprecatedFeature(typeName, 'Dynamic');
-        return compiler.dynamicClass;
       } else if (identical(stringValue, 'dynamic')) {
         return compiler.dynamicClass;
       } else {
@@ -1538,7 +1556,9 @@ class TypeResolver {
         }
       } else if (element.isTypeVariable()) {
         if (enclosingElement.isInStaticMember()) {
-          compiler.backend.registerThrowRuntimeError();
+          compiler.backend.registerThrowRuntimeError(
+              // TODO(ahe): Get the TreeElements for the current element.
+              compiler.globalDependencies);
           compiler.reportWarning(node,
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message(
                   {'typeVariableName': node}));
@@ -1729,7 +1749,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           element = warnAndCreateErroneousElement(node, node.source,
                                                   MessageKind.CANNOT_RESOLVE,
                                                   {'name': node});
-          compiler.backend.registerThrowNoSuchMethod();
+          compiler.backend.registerThrowNoSuchMethod(mapping);
         }
       } else if (element.isErroneous()) {
         // Use the erroneous element.
@@ -1752,7 +1772,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     DartType type = resolveTypeAnnotation(node);
     if (type != null) {
       if (inCheckContext) {
-        compiler.enqueuer.resolution.registerIsCheck(type);
+        compiler.enqueuer.resolution.registerIsCheck(type, mapping);
       }
       return type.element;
     }
@@ -1817,8 +1837,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
-    scope = new MethodScope(scope, function);
+    Element enclosingElement = function.enclosingElement;
+    if (node.modifiers.isStatic() &&
+        enclosingElement.kind != ElementKind.CLASS) {
+      compiler.reportErrorCode(node, MessageKind.ILLEGAL_STATIC);
+    }
 
+    scope = new MethodScope(scope, function);
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
@@ -1938,7 +1963,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
 
-    world.registerInstantiatedClass(compiler.functionClass);
+    world.registerInstantiatedClass(compiler.functionClass, mapping);
   }
 
   visitIf(If node) {
@@ -2005,7 +2030,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
-      target = currentClass.lookupSuperMember(name);
+      target = currentClass.lookupSuperSelector(selector);
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
@@ -2016,7 +2041,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // call [:super.noSuchMethod:] that does a
         // [:InvocationMirror.invokeOn:].
         world.registerDynamicInvocation(selector.name, selector);
-        compiler.backend.registerSuperNoSuchMethod();
+        compiler.backend.registerSuperNoSuchMethod(mapping);
       }
     } else if (Elements.isUnresolved(resolvedReceiver)) {
       return null;
@@ -2034,7 +2059,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       target = receiverClass.lookupLocalMember(name);
       if (target == null || target.isInstanceMember()) {
-        compiler.backend.registerThrowNoSuchMethod();
+        compiler.backend.registerThrowNoSuchMethod(mapping);
         // TODO(johnniwinther): With the simplified [TreeElements] invariant,
         // try to resolve injected elements if [currentClass] is in the patch
         // library of [receiverClass].
@@ -2053,7 +2078,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       PrefixElement prefix = resolvedReceiver;
       target = prefix.lookupLocalMember(name);
       if (Elements.isUnresolved(target)) {
-        compiler.backend.registerThrowNoSuchMethod();
+        compiler.backend.registerThrowNoSuchMethod(mapping);
         return warnAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
             {'libraryName': prefix.name, 'memberName': name});
@@ -2168,13 +2193,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         AbstractFieldElement field = target;
         target = field.getter;
         if (target == null && !inInstanceContext) {
-          compiler.backend.registerThrowNoSuchMethod();
+          compiler.backend.registerThrowNoSuchMethod(mapping);
           target =
               warnAndCreateErroneousElement(node.selector, field.name,
                                             MessageKind.CANNOT_RESOLVE_GETTER);
         }
+      } else if (target.isTypeVariable()) {
+        ClassElement cls = target.getEnclosingClass();
+        assert(enclosingElement.getEnclosingClass() == cls);
+        compiler.backend.registerClassUsingVariableExpression(cls);
+        compiler.backend.registerTypeVariableExpression(mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
-        compiler.backend.registerTypeLiteral();
+        compiler.backend.registerTypeLiteral(mapping);
       }
     }
 
@@ -2186,9 +2216,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         DartType type = resolveTypeTest(node.arguments.head);
         if (type != null) {
           if (operatorString == 'as') {
-            compiler.enqueuer.resolution.registerAsCheck(type);
+            compiler.enqueuer.resolution.registerAsCheck(type, mapping);
           } else {
-            compiler.enqueuer.resolution.registerIsCheck(type);
+            compiler.enqueuer.resolution.registerIsCheck(type, mapping);
           }
         }
         resolvedArguments = true;
@@ -2242,13 +2272,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     registerSend(selector, target);
     if (node.isPropertyAccess) {
       // It might be the closurization of a method.
-      world.registerInstantiatedClass(compiler.functionClass);
+      world.registerInstantiatedClass(compiler.functionClass, mapping);
     }
     return node.isPropertyAccess ? target : null;
   }
 
   void warnArgumentMismatch(Send node, Element target) {
-    compiler.backend.registerThrowNoSuchMethod();
+    compiler.backend.registerThrowNoSuchMethod(mapping);
     // TODO(karlklose): we can be more precise about the reason of the
     // mismatch.
     warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
@@ -2279,27 +2309,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         if (setter == null && !inInstanceContext) {
           setter = warnAndCreateErroneousElement(
               node.selector, field.name, MessageKind.CANNOT_RESOLVE_SETTER);
-          compiler.backend.registerThrowNoSuchMethod();
+          compiler.backend.registerThrowNoSuchMethod(mapping);
         }
         if (isComplex && getter == null && !inInstanceContext) {
           getter = warnAndCreateErroneousElement(
               node.selector, field.name, MessageKind.CANNOT_RESOLVE_GETTER);
-          compiler.backend.registerThrowNoSuchMethod();
+          compiler.backend.registerThrowNoSuchMethod(mapping);
         }
       } else if (target.impliesType()) {
-        compiler.backend.registerThrowNoSuchMethod();
+        compiler.backend.registerThrowNoSuchMethod(mapping);
       } else if (target.modifiers.isFinal() || target.modifiers.isConst()) {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
-        compiler.backend.registerThrowNoSuchMethod();
-      } else if (isComplex && target.name == const SourceString('[]=')) {
-        getter = target.getEnclosingClass().lookupMember(
-            const SourceString('[]'));
-        if (getter == null) {
-          getter = warnAndCreateErroneousElement(
-              node, setter.name, MessageKind.CANNOT_RESOLVE_INDEX);
-          compiler.backend.registerThrowNoSuchMethod();
-        }
+        compiler.backend.registerThrowNoSuchMethod(mapping);
       }
     }
 
@@ -2320,6 +2342,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       registerSend(getterSelector, getter);
       mapping.setGetterSelectorInComplexSendSet(node, getterSelector);
+      if (node.isSuperCall) {
+        getter = currentClass.lookupSuperSelector(getterSelector);
+        if (getter == null) {
+          target = warnAndCreateErroneousElement(
+              node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
+              {'className': currentClass, 'memberName': selector.name});
+          compiler.backend.registerSuperNoSuchMethod(mapping);
+        }
+      }
       useElement(node.selector, getter);
 
       // Make sure we include the + and - operators if we are using
@@ -2363,27 +2394,27 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralInt(LiteralInt node) {
-    world.registerInstantiatedClass(compiler.intClass);
+    world.registerInstantiatedClass(compiler.intClass, mapping);
   }
 
   visitLiteralDouble(LiteralDouble node) {
-    world.registerInstantiatedClass(compiler.doubleClass);
+    world.registerInstantiatedClass(compiler.doubleClass, mapping);
   }
 
   visitLiteralBool(LiteralBool node) {
-    world.registerInstantiatedClass(compiler.boolClass);
+    world.registerInstantiatedClass(compiler.boolClass, mapping);
   }
 
   visitLiteralString(LiteralString node) {
-    world.registerInstantiatedClass(compiler.stringClass);
+    world.registerInstantiatedClass(compiler.stringClass, mapping);
   }
 
   visitLiteralNull(LiteralNull node) {
-    world.registerInstantiatedClass(compiler.nullClass);
+    world.registerInstantiatedClass(compiler.nullClass, mapping);
   }
 
   visitStringJuxtaposition(StringJuxtaposition node) {
-    world.registerInstantiatedClass(compiler.stringClass);
+    world.registerInstantiatedClass(compiler.stringClass, mapping);
     node.visitChildren(this);
   }
 
@@ -2439,14 +2470,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
     world.registerStaticUse(redirectionTarget);
     world.registerInstantiatedClass(
-        redirectionTarget.enclosingElement.declaration);
+        redirectionTarget.enclosingElement.declaration, mapping);
   }
 
   visitThrow(Throw node) {
     if (!inCatchBlock && node.expression == null) {
       error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
     }
-    compiler.backend.registerThrow();
+    compiler.backend.registerThrow(mapping);
     visit(node.expression);
   }
 
@@ -2488,7 +2519,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Selector callSelector = mapping.getSelector(node.send);
     if (!callSelector.applies(constructor, compiler)) {
       warnArgumentMismatch(node.send, constructor);
-      compiler.backend.registerThrowNoSuchMethod();
+      compiler.backend.registerThrowNoSuchMethod(mapping);
     }
     compiler.withCurrentElement(constructor, () {
       FunctionExpression tree = constructor.parseNode(compiler);
@@ -2500,7 +2531,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       // TODO(ngeoffray): Remove once we remove such support.
       world.registerStaticUse(constructor.declaration);
       world.registerInstantiatedClass(
-          constructor.getEnclosingClass().declaration);
+          constructor.getEnclosingClass().declaration, mapping);
       constructor = constructor.defaultImplementation;
     }
     // [constructor.defaultImplementation] might be the implementation element
@@ -2509,9 +2540,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     ClassElement cls = constructor.getEnclosingClass();
     // [cls] might be the implementation element and only declaration elements
     // may be registered.
-    world.registerInstantiatedType(mapping.getType(node));
+    world.registerInstantiatedType(mapping.getType(node), mapping);
     if (cls.isAbstract(compiler)) {
-      compiler.backend.registerAbstractClassInstantiation();
+      compiler.backend.registerAbstractClassInstantiation(mapping);
     }
     // [cls] might be the declaration element and we want to include injected
     // members.
@@ -2545,24 +2576,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
-  void analyzeTypeArgument(DartType annotation, DartType argument) {
-    if (argument == null) return;
-    if (argument.element.isTypeVariable()) {
-      // Register a dependency between the class where the type
-      // variable is, and the annotation. If the annotation requires
-      // runtime type information, then the class of the type variable
-      // does too.
-      compiler.world.registerRtiDependency(
-          annotation.element,
-          argument.element.enclosingElement);
-    } else if (argument is InterfaceType) {
-      InterfaceType type = argument;
-      type.typeArguments.forEach((DartType argument) {
-        analyzeTypeArgument(type, argument);
-      });
-    }
-  }
-
   DartType resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
     DartType type = typeResolver.resolveTypeAnnotation(
@@ -2570,16 +2583,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         onFailure: report, whenResolved: useType);
     if (type == null) return null;
     if (inCheckContext) {
-      compiler.enqueuer.resolution.registerIsCheck(type);
+      compiler.enqueuer.resolution.registerIsCheck(type, mapping);
     }
     if (typeRequired || inCheckContext) {
-      if (type is InterfaceType) {
-        InterfaceType itf = type;
-        itf.typeArguments.forEach((DartType argument) {
-          analyzeTypeArgument(type, argument);
-        });
-      }
-      // TODO(ngeoffray): Also handle T a (in checked mode).
+      compiler.backend.registerRequiredType(type, enclosingElement);
     }
     return type;
   }
@@ -2590,20 +2597,28 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
-    world.registerInstantiatedClass(compiler.listClass);
     NodeList arguments = node.typeArguments;
+    DartType typeArgument;
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
       } else {
-        resolveTypeRequired(nodes.head);
+        typeArgument = resolveTypeRequired(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
           error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
           resolveTypeRequired(nodes.head);
         }
       }
     }
+    DartType listType;
+    if (typeArgument != null) {
+      listType = new InterfaceType(compiler.listClass,
+                                   new Link<DartType>.fromList([typeArgument]));
+    } else {
+      listType = compiler.listClass.rawType;
+    }
+    world.registerInstantiatedType(listType, mapping);
     visit(node.elements);
   }
 
@@ -2612,8 +2627,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    world.registerInstantiatedClass(compiler.stringClass);
-    compiler.backend.registerStringInterpolation();
+    world.registerInstantiatedClass(compiler.stringClass, mapping);
+    compiler.backend.registerStringInterpolation(mapping);
     node.visitChildren(this);
   }
 
@@ -2758,9 +2773,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
-    world.registerInstantiatedClass(compiler.mapClass);
+    world.registerInstantiatedClass(compiler.mapClass, mapping);
     if (node.isConst()) {
-      compiler.backend.registerConstantMap();
+      compiler.backend.registerConstantMap(mapping);
     }
     node.visitChildren(this);
   }
@@ -2841,7 +2856,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     });
     // TODO(ngeoffray): We should check here instead of the SSA backend if
     // there might be an error.
-    compiler.backend.registerFallThroughError();
+    compiler.backend.registerFallThroughError(mapping);
   }
 
   visitSwitchCase(SwitchCase node) {
@@ -2865,7 +2880,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    compiler.backend.registerCatchStatement();
+    compiler.backend.registerCatchStatement(mapping);
     // Check that if catch part is present, then
     // it has one or two formal parameters.
     if (node.formals != null) {
@@ -2878,7 +2893,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
             error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
           }
         }
-        compiler.backend.registerStackTraceInCatch();
+        compiler.backend.registerStackTraceInCatch(mapping);
       }
 
       // Check that the formals aren't optional and that they have no
@@ -3423,7 +3438,8 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
 
   SourceString visitIdentifier(Identifier node) {
     // The variable is initialized to null.
-    resolver.world.registerInstantiatedClass(compiler.nullClass);
+    resolver.world.registerInstantiatedClass(compiler.nullClass,
+                                             resolver.mapping);
     return node.source;
   }
 
@@ -3543,11 +3559,15 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     Element element;
     if (node.receiver != null) {
       element = visitSend(node);
-    } else if (node.selector.asIdentifier() != null) {
+    } else if (node.selector.asIdentifier() != null ||
+               node.selector.asFunctionExpression() != null) {
       Element variables = new VariableListElementX.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new VariableElementX(node.selector.asIdentifier().source,
-          variables, ElementKind.PARAMETER, node);
+      SourceString source = node.selector.asIdentifier() != null ?
+          node.selector.asIdentifier().source :
+          node.selector.asFunctionExpression().name.asIdentifier().source;
+      element = new VariableElementX(source, variables,
+          ElementKind.PARAMETER, node);
     }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
@@ -3662,9 +3682,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
                                SourceString targetName, MessageKind kind,
                                Map arguments) {
     if (kind == MessageKind.CANNOT_FIND_CONSTRUCTOR) {
-      compiler.backend.registerThrowNoSuchMethod();
+      compiler.backend.registerThrowNoSuchMethod(resolver.mapping);
     } else {
-      compiler.backend.registerThrowRuntimeError();
+      compiler.backend.registerThrowRuntimeError(resolver.mapping);
     }
     if (inConstContext) {
       error(diagnosticNode, kind, arguments);

@@ -158,10 +158,10 @@ void ParsedFunction::AllocateVariables() {
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
   if (num_opt_params == 0) {
-    // Parameter i will be at fp[1 + num_params - i] and local variable
-    // j will be at fp[kFirstLocalSlotIndex - j].
+    // Parameter i will be at fp[kLastParamSlotIndex + num_params - 1 - i] and
+    // local variable j will be at fp[kFirstLocalSlotIndex - j].
     ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
-    first_parameter_index_ = 1 + num_params;
+    first_parameter_index_ = kLastParamSlotIndex + num_params - 1;
     first_stack_local_index_ = kFirstLocalSlotIndex;
     num_copied_params_ = 0;
   } else {
@@ -3244,19 +3244,17 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     }
     cls.set_type_parameters(orig_type_parameters);
   }
-  Type& super_type = Type::Handle();
+  AbstractType& super_type = Type::Handle();
   if (CurrentToken() == Token::kEXTENDS) {
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
-    const AbstractType& type = AbstractType::Handle(
-        ParseType(ClassFinalizer::kTryResolve));
-    if (type.IsTypeParameter()) {
+    super_type = ParseType(ClassFinalizer::kTryResolve);
+    if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
                "class '%s' may not extend type parameter '%s'",
                class_name.ToCString(),
-               String::Handle(type.UserVisibleName()).ToCString());
+               String::Handle(super_type.UserVisibleName()).ToCString());
     }
-    super_type ^= type.raw();
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(super_type);
     }
@@ -3416,12 +3414,6 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
 
-  // TODO(hausner): Handle mixin application aliases with generics.
-  if (mixin_application.NumTypeParameters() > 0) {
-    ErrorMsg(classname_pos,
-             "type parameters on mixin applications not yet supported");
-  }
-
   ExpectToken(Token::kASSIGN);
 
   if (CurrentToken() == Token::kABSTRACT) {
@@ -3429,55 +3421,34 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
     ConsumeToken();
   }
 
-  const intptr_t supertype_pos = TokenPos();
-  const AbstractType& type =
+  const intptr_t type_pos = TokenPos();
+  AbstractType& type =
       AbstractType::Handle(ParseType(ClassFinalizer::kTryResolve));
   if (type.IsTypeParameter()) {
-    ErrorMsg(supertype_pos,
+    ErrorMsg(type_pos,
              "class '%s' may not extend type parameter '%s'",
              class_name.ToCString(),
              String::Handle(type.UserVisibleName()).ToCString());
   }
-  Type& mixin_super_type = Type::Handle();
-  mixin_super_type ^= type.raw();
 
   if (CurrentToken() != Token::kWITH) {
     ErrorMsg("mixin application 'with Type' expected");
   }
+  type = ParseMixins(type);
 
-  const Type& mixin_application_type =
-      Type::Handle(ParseMixins(mixin_super_type));
-  // TODO(hausner): Implement generic mixin support.
-  if (mixin_application_type.arguments() != AbstractTypeArguments::null()) {
-    ErrorMsg(mixin_application_type.token_pos(),
-             "mixin class with type arguments not yet supported");
-  }
+  // TODO(hausner): treat the mixin application as an alias, not as a base
+  // class whose super class is the mixin application!
+  mixin_application.set_super_type(type);
 
-  // The result of ParseMixins() is a chain of super types that is the
-  // result of the mixin composition 'S with M1, M2, ...'. The mixin
-  // application classes are anonymous (i.e. not registered in the current
-  // library). We steal the super type and mixin type from the bottom of
-  // the chain and add it to the named mixin application class. The bottom
-  // anonymous class in the chain is thrown away.
-  const Class& anon_mixin_app_class =
-      Class::Handle(mixin_application_type.type_class());
-  mixin_application.set_super_type(
-      Type::Handle(anon_mixin_app_class.super_type()));
-  mixin_application.set_mixin(Type::Handle(anon_mixin_app_class.mixin()));
-  const Array& interfaces = Array::Handle(anon_mixin_app_class.interfaces());
-  mixin_application.set_interfaces(interfaces);
   AddImplicitConstructor(mixin_application);
-
   if (CurrentToken() == Token::kIMPLEMENTS) {
     Array& interfaces = Array::Handle();
     const intptr_t interfaces_pos = TokenPos();
-    const Type& super_type = Type::Handle(mixin_application.super_type());
-    interfaces = ParseInterfaceList(super_type);
+    interfaces = ParseInterfaceList(type);
     AddInterfaces(interfaces_pos, mixin_application, interfaces);
   }
-
-  pending_classes.Add(mixin_application, Heap::kOld);
   ExpectSemicolon();
+  pending_classes.Add(mixin_application, Heap::kOld);
 }
 
 
@@ -3809,7 +3780,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
 
 
 // Parse and return an array of interface types.
-RawArray* Parser::ParseInterfaceList(const Type& super_type) {
+RawArray* Parser::ParseInterfaceList(const AbstractType& super_type) {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT(CurrentToken() == Token::kIMPLEMENTS);
   const GrowableObjectArray& interfaces =
@@ -3845,22 +3816,20 @@ RawArray* Parser::ParseInterfaceList(const Type& super_type) {
 }
 
 
-RawType* Parser::ParseMixins(const Type& super_type) {
+RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
 
-  // TODO(hausner): Remove this restriction.
-  if (super_type.arguments() != AbstractTypeArguments::null()) {
-    ErrorMsg(super_type.token_pos(),
-             "super class in mixin application may not have type arguments");
-  }
-
+  const GrowableObjectArray& mixin_apps =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
   AbstractTypeArguments& mixin_type_arguments =
       AbstractTypeArguments::Handle();
   Class& mixin_application = Class::Handle();
   Type& mixin_application_type = Type::Handle();
-  Type& mixin_super_type = Type::Handle(super_type.raw());
+  Type& mixin_super_type = Type::Handle();
+  ASSERT(super_type.IsType());
+  mixin_super_type ^= super_type.raw();
   Array& mixin_application_interfaces = Array::Handle();
   do {
     ConsumeToken();
@@ -3904,8 +3873,10 @@ RawType* Parser::ParseMixins(const Type& super_type) {
                                        mixin_type_arguments,
                                        mixin_pos);
     mixin_super_type = mixin_application_type.raw();
+    mixin_apps.Add(mixin_application_type);
   } while (CurrentToken() == Token::kCOMMA);
-  return mixin_application_type.raw();
+  return MixinAppType::New(super_type,
+                           Array::Handle(Array::MakeArray(mixin_apps)));
 }
 
 
@@ -5931,10 +5902,9 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   if (IsForInStatement()) {
     return ParseForInStatement(for_pos, label);
   }
-  OpenBlock();
-  // The label is added to the implicit scope that also contains
-  // the loop variable declarations.
-  current_block_->scope->AddLabel(label);
+  // Open a block that contains the loop variable. Make it a loop block so
+  // that we allocate a new context if the loop variable is captured.
+  OpenLoopBlock();
   AstNode* initializer = NULL;
   const intptr_t init_pos = TokenPos();
   LocalScope* init_scope = current_block_->scope;
@@ -5953,13 +5923,12 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   ExpectSemicolon();
   AstNode* increment = NULL;
   const intptr_t incr_pos = TokenPos();
-  LocalScope* incr_scope = current_block_->scope;
   if (CurrentToken() != Token::kRPAREN) {
     increment = ParseExprList();
   }
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body =  true;
-  SequenceNode* body = ParseNestedStatement(parsing_loop_body, NULL);
+  SequenceNode* body = ParseNestedStatement(parsing_loop_body, label);
 
   // Check whether any of the variables in the initializer part of
   // the for statement are captured by a closure. If so, we insert a
@@ -5968,7 +5937,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
   for (int i = 0; i < init_scope->num_variables(); i++) {
     if (init_scope->VariableAt(i)->is_captured() &&
         (init_scope->VariableAt(i)->owner() == init_scope)) {
-      SequenceNode* incr_sequence = new SequenceNode(incr_pos, incr_scope);
+      SequenceNode* incr_sequence = new SequenceNode(incr_pos, NULL);
       incr_sequence->Add(new CloneContextNode(for_pos));
       if (increment != NULL) {
         incr_sequence->Add(increment);
@@ -5977,13 +5946,15 @@ AstNode* Parser::ParseForStatement(String* label_name) {
       break;
     }
   }
-  CloseBlock();
-  return new ForNode(for_pos,
-                     label,
-                     NodeAsSequenceNode(init_pos, initializer, init_scope),
-                     condition,
-                     NodeAsSequenceNode(incr_pos, increment, incr_scope),
-                     body);
+  AstNode* for_node =
+      new ForNode(for_pos,
+                  label,
+                  NodeAsSequenceNode(init_pos, initializer, NULL),
+                  condition,
+                  NodeAsSequenceNode(incr_pos, increment, NULL),
+                  body);
+  current_block_->statements->Add(for_node);
+  return CloseBlock();
 }
 
 
@@ -9332,12 +9303,16 @@ AstNode* Parser::ParseNewOperator() {
       if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
-        redirect_type ^= redirect_type.InstantiateFrom(type_arguments);
+        Error& malformed_error = Error::Handle();
+        redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
+                                                       &malformed_error);
+        if (!malformed_error.IsNull()) {
+          redirect_type.set_malformed_error(malformed_error);
+        }
       }
       if (redirect_type.IsMalformed()) {
         if (is_const) {
-          const Error& error = Error::Handle(redirect_type.malformed_error());
-          ErrorMsg(error);
+          ErrorMsg(Error::Handle(redirect_type.malformed_error()));
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }

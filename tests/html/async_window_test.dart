@@ -9,10 +9,10 @@ main() {
   test('Timer', () {
     new Timer(const Duration(milliseconds: 10), expectAsync0((){}));
   });
-  test('Timer.repeating', () {
+  test('Timer.periodic', () {
     int counter = 0;
     int id = null;
-    new Timer.repeating(const Duration(milliseconds: 10),
+    new Timer.periodic(const Duration(milliseconds: 10),
         expectAsyncUntil1(
         (timer) {
           if (counter == 3) {

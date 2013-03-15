@@ -36,13 +36,11 @@ class _SplayTreeMapNode<K, V> extends _SplayTreeNode<K> {
  */
 abstract class _SplayTree<K> {
   // The root node of the splay tree. It will contain either the last
-  // element inserted, or the last element looked up.
+  // element inserted or the last element looked up.
   _SplayTreeNode<K> _root;
 
-  // The dummy node used when performing a splay on the tree. It is a
-  // local field of the class to avoid allocating a node each time a
-  // splay is performed.
-  // TODO(lrn); Should it be a getter backed by a static instead?
+  // The dummy node used when performing a splay on the tree. Reusing it
+  // avoids allocating a node each time a splay is performed.
   _SplayTreeNode<K> _dummy = new _SplayTreeNode<K>(null);
 
   // Number of elements in the splay tree.
@@ -136,6 +134,34 @@ abstract class _SplayTree<K> {
     return comp;
   }
 
+  // Emulates splaying with a key that is smaller than any in the tree.
+  // After this, the smallest element in the tree is the root.
+  void _splayMin() {
+    assert(_root != null);
+    _SplayTreeNode current = _root;
+    while (current.left != null) {
+      _SplayTreeNode left = current.left;
+      current.left = left.right;
+      left.right = current;
+      current = left;
+    }
+    _root = current;
+  }
+
+  // Emulates splaying with a key that is greater than any in the tree.
+  // After this, the largest element in the tree is the root.
+  void _splayMax() {
+    assert(_root != null);
+    _SplayTreeNode current = _root;
+    while (current.right != null) {
+      _SplayTreeNode right = current.right;
+      current.right = right.left;
+      right.left = current;
+      current = right;
+    }
+    _root = current;
+  }
+
   _SplayTreeNode _remove(K key) {
     if (_root == null) return null;
     int comp = _splay(key);
@@ -186,26 +212,14 @@ abstract class _SplayTree<K> {
 
   _SplayTreeNode get _first {
     if (_root == null) return null;
-    _SplayTreeNode<K> node = _root;
-    while (node.left != null) {
-      node = node.left;
-    }
-    // Maybe implement a splay-method that can splay the minimum without
-    // performing comparisons.
-    _splay(node.key);
-    return node;
+    _splayMin();
+    return _root;
   }
 
   _SplayTreeNode get _last {
     if (_root == null) return null;
-    _SplayTreeNode<K> node = _root;
-    while (node.right != null) {
-      node = node.right;
-    }
-    // Maybe implement a splay-method that can splay the minimum without
-    // performing comparisons.
-    _splay(node.key);
-    return node;
+    _splayMax();
+    return _root;
   }
 
   void _clear() {
@@ -224,11 +238,11 @@ abstract class _SplayTree<K> {
  * Keys of the map are compared using the `compare` function passed in
  * the constructor. If that is omitted, the objects are assumed to be
  * [Comparable], and are compared using their [Comparable.compareTo]
- * method.
+ * method. This also means that `null` is *not* allowed as a key.
  */
 class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   // TODO(ngeoffray): Restore type when feature is implemented in dart2js
-  // checked mode. http://dartbug.com/7733  
+  // checked mode. http://dartbug.com/7733
   Function /* Comparator<K> */_comparator;
 
   SplayTreeMap([int compare(K key1, K key2)])
@@ -239,6 +253,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   SplayTreeMap._internal();
 
   V operator [](K key) {
+    if (key == null) throw new ArgumentError(key);
     if (_root != null) {
       int comp = _splay(key);
       if (comp == 0) return _root.value;
@@ -246,13 +261,15 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
     return null;
   }
 
-  V remove(K key) {
+  V remove(Object key) {
+    if (key is! K) return null;
     _SplayTreeMapNode root = _remove(key);
     if (root != null) return root.value;
     return null;
   }
 
   void operator []=(K key, V value) {
+    if (key == null) throw new ArgumentError(key);
     // Splay on the key to move the last node on the search path for
     // the key to the root of the tree.
     int comp = _splay(key);
@@ -265,6 +282,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
 
   V putIfAbsent(K key, V ifAbsent()) {
+    if (key == null) throw new ArgumentError(key);
     int comp = _splay(key);
     if (comp == 0) return _root.value;
     int modificationCount = _modificationCount;
@@ -311,12 +329,17 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   bool containsValue(V value) {
     bool found = false;
+    int initialSplayCount = _splayCount;
     bool visit(_SplayTreeNode node) {
-      if (node == null) return false;
-      if (node.value == value) return true;
-      // TODO(lrn): Do we want to handle the case where node.value.operator==
-      // modifies the map?
-      return visit(node.left) || visit(node.right);
+      while (node != null) {
+        if (node.value == value) return true;
+        if (initialSplayCount != _splayCount) {
+          throw new ConcurrentModificationError(this);
+        }
+        if (node.right != null && visit(node.right)) return true;
+        node = node.left;
+      }
+      return false;
     }
     return visit(_root);
   }
@@ -333,16 +356,16 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * Get the first key in the map. Returns [null] if the map is empty.
    */
   K firstKey() {
-    _SplayTreeNode node = _first;
-    return (node == null) ? null : node.key;
+    if (_root == null) return null;
+    return _first.key;
   }
 
   /**
    * Get the last key in the map. Returns [null] if the map is empty.
    */
   K lastKey() {
-    _SplayTreeNode node = _last;
-    return (node == null) ? null : node.key;
+    if (_root == null) return null;
+    return _last.key;
   }
 
   /**
@@ -350,6 +373,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * [null] if no key was not found.
    */
   K lastKeyBefore(K key) {
+    if (key == null) throw new ArgumentError(key);
     if (_root == null) return null;
     int comp = _splay(key);
     if (comp < 0) return _root.key;
@@ -366,6 +390,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
    * [null] if no key was not found.
    */
   K firstKeyAfter(K key) {
+    if (key == null) throw new ArgumentError(key);
     if (_root == null) return null;
     int comp = _splay(key);
     if (comp > 0) return _root.key;

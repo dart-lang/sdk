@@ -92,12 +92,12 @@ void testOperations() {
     testOp((i) => i.first, "first");
     testOp((i) => i.last, "last");
     testOp((i) => i.single, "single");
-    testOp((i) => i.firstMatching((n) => n < 5), "firstMatching<5");
-    testOp((i) => i.firstMatching((n) => n < 10), "firstMatching<10");
-    testOp((i) => i.lastMatching((n) => n < 5), "lastMatching<5");
-    testOp((i) => i.lastMatching((n) => n < 10), "lastMatching<10");
-    testOp((i) => i.singleMatching((n) => n < 5), "singelMatching<5");
-    testOp((i) => i.singleMatching((n) => n < 10), "singelMatching<10");
+    testOp((i) => i.firstWhere((n) => n < 5), "firstWhere<5");
+    testOp((i) => i.firstWhere((n) => n < 10), "firstWhere<10");
+    testOp((i) => i.lastWhere((n) => n < 5), "lastWhere<5");
+    testOp((i) => i.lastWhere((n) => n < 10), "lastWhere<10");
+    testOp((i) => i.singleWhere((n) => n < 5), "singelWhere<5");
+    testOp((i) => i.singleWhere((n) => n < 10), "singelWhere<10");
     testOp((i) => i.contains(5), "contains(5)");
     testOp((i) => i.contains(10), "contains(10)");
     testOp((i) => i.any((n) => n < 5), "any<5");

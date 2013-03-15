@@ -37,6 +37,7 @@
 # ......uri/
 # ......utf/
 # ......scalarlist/
+# ......typeddata/
 # ....pkg/
 # ......args/
 # ......intl/
@@ -205,7 +206,7 @@ def Main(argv):
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
-                  'json', 'math', 'mirrors', 'scalarlist',
+                  'json', 'math', 'mirrors', 'scalarlist', 'typeddata',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   'uri', 'utf',
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
@@ -277,9 +278,14 @@ def Main(argv):
   # Fix up dartdoc.
   # TODO(dgrove): Remove this once issue 6619 is fixed.
   ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc',
-                       'bin', 'dartdoc.dart')],
-                 [("../../../../../pkg/args/lib/args.dart",
-                   "../../../../pkg/args/lib/args.dart")])
+                       'bin', 'dartdoc.dart'),
+                  join(SDK_tmp, 'lib', '_internal', 'dartdoc',
+                       'lib', 'universe_serializer.dart')], [
+                  ("../../../../../pkg/args/lib/args.dart",
+                   "../../../../pkg/args/lib/args.dart"),
+                  ("../../../../../pkg/pathos/lib/path.dart",
+                   "../../../../pkg/pathos/lib/path.dart"),
+                 ])
 
   # Write the 'version' file
   versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')

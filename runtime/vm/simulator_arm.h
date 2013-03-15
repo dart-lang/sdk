@@ -68,8 +68,7 @@ class Simulator {
                int32_t parameter0,
                int32_t parameter1,
                int32_t parameter2,
-               int32_t parameter3,
-               int32_t parameter4);
+               int32_t parameter3);
 
   // Implementation of atomic compare and exchange in the same synchronization
   // domain as other synchronization primitive instructions (e.g. ldrex, strex).
@@ -77,9 +76,13 @@ class Simulator {
                                uword compare_value,
                                uword new_value);
 
-  // Runtime call support.
-  static uword RedirectExternalReference(uword function,
-                                         uint32_t argument_count);
+  // Runtime and native call support.
+  enum CallKind {
+    kRuntimeCall,
+    kLeafRuntimeCall,
+    kNativeCall
+  };
+  static uword RedirectExternalReference(uword function, CallKind call_kind);
 
   void Longjmp(int32_t pc, int32_t sp, int32_t fp, const Instance& object);
 
@@ -114,7 +117,6 @@ class Simulator {
   char* stack_;
   bool pc_modified_;
   int icount_;
-  static bool flag_trace_sim_;
   static int32_t flag_stop_sim_at_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
 
@@ -154,6 +156,9 @@ class Simulator {
 
   // Read and write memory.
   void UnalignedAccess(const char* msg, uword addr, Instr* instr);
+
+  // Perform a division.
+  void DoDivision(Instr* instr);
 
   inline uint8_t ReadBU(uword addr);
   inline int8_t ReadB(uword addr);

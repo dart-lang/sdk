@@ -40,10 +40,6 @@ class ValueRangeInfo {
     return new NegateValue(value, this);
   }
 
-  Range newRange(Value low, Value up) {
-    return new Range(low, up, this);
-  }
-
   Range newUnboundRange() {
     return new Range.unbound(this);
   }
@@ -427,7 +423,10 @@ class Range {
   final Value lower;
   final Value upper;
   final ValueRangeInfo info;
-  Range(this.lower, this.upper, this.info);
+  Range(this.lower, this.upper, this.info) {
+    assert(lower != const UnknownValue());
+    assert(upper != const UnknownValue());
+  }
 
   Range.unbound(info) : this(const MinIntValue(), const MaxIntValue(), info);
 
@@ -460,7 +459,7 @@ class Range {
       else if (other.upper is IntValue) up = other.upper;
       else up = upper;
     }
-    return info.newRange(low, up);
+    return info.newNormalizedRange(low, up);
   }
 
   Range operator +(Range other) {
@@ -480,7 +479,7 @@ class Range {
         && other.isSingleValue
         && lower is IntValue
         && other.lower is IntValue) {
-      return info.newRange(lower & other.lower, upper & other.upper);
+      return info.newNormalizedRange(lower & other.lower, upper & other.upper);
     }
     if (isPositive && other.isPositive) {
       Value up = upper.min(other.upper);
@@ -492,11 +491,11 @@ class Range {
         // or b & a.
         if (up is! IntValue && upper != other.upper) up = const MaxIntValue();
       }
-      return info.newRange(info.intZero, up);
+      return info.newNormalizedRange(info.intZero, up);
     } else if (isPositive) {
-      return info.newRange(info.intZero, upper);
+      return info.newNormalizedRange(info.intZero, upper);
     } else if (other.isPositive) {
-      return info.newRange(info.intZero, other.upper);
+      return info.newNormalizedRange(info.intZero, other.upper);
     } else {
       return info.newUnboundRange();
     }
@@ -598,7 +597,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitParameterValue(HParameterValue parameter) {
     if (!parameter.isInteger()) return info.newUnboundRange();
     Value value = info.newInstructionValue(parameter);
-    return info.newRange(value, value);
+    return info.newNormalizedRange(value, value);
   }
 
   Range visitPhi(HPhi phi) {
@@ -625,7 +624,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (!constant.isInteger()) return info.newUnboundRange();
     IntConstant constantInt = constant.constant;
     Value value = info.newIntValue(constantInt.value);
-    return info.newRange(value, value);
+    return info.newNormalizedRange(value, value);
   }
 
   Range visitFieldGet(HFieldGet fieldGet) {
@@ -638,7 +637,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // put the zero value as the lower bound of this range. This
     // allows to easily remove the second bound check in the following
     // expression: a[1] + a[0].
-    return info.newRange(info.intZero, value);
+    return info.newNormalizedRange(info.intZero, value);
   }
 
   Range visitBoundsCheck(HBoundsCheck check) {
@@ -681,7 +680,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       if (low != const UnknownValue()) {
         HInstruction instruction =
             createRangeConversion(next, check.length);
-        ranges[instruction] = info.newRange(low, lengthRange.upper);
+        ranges[instruction] = info.newNormalizedRange(low, lengthRange.upper);
       }
     }
 
@@ -689,7 +688,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // Update the range of the index if using the maximum index
       // narrows it.
       Range newIndexRange = indexRange.intersection(
-          info.newRange(info.intZero, maxIndex));
+          info.newNormalizedRange(info.intZero, maxIndex));
       if (indexRange == newIndexRange) return indexRange;
       HInstruction instruction = createRangeConversion(next, check.index);
       ranges[instruction] = newIndexRange;
@@ -757,9 +756,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range tryComputeRange(HInstruction instruction) {
       Range range = ranges[instruction];
       if (range.isPositive) {
-        return info.newRange(info.intZero, range.upper);
+        return info.newNormalizedRange(info.intZero, range.upper);
       } else if (range.isNegative) {
-        return info.newRange(range.lower, info.intZero);
+        return info.newNormalizedRange(range.lower, info.intZero);
       }
       return info.newUnboundRange();
     }
@@ -812,15 +811,15 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
                                 Range rightRange) {
     Range range;
     if (operation == const LessOperation()) {
-      range = info.newRange(
+      range = info.newNormalizedRange(
           const MinIntValue(), rightRange.upper - info.intOne);
     } else if (operation == const LessEqualOperation()) {
-      range = info.newRange(const MinIntValue(), rightRange.upper);
+      range = info.newNormalizedRange(const MinIntValue(), rightRange.upper);
     } else if (operation == const GreaterOperation()) {
-      range = info.newRange(
+      range = info.newNormalizedRange(
           rightRange.lower + info.intOne, const MaxIntValue());
     } else if (operation == const GreaterEqualOperation()) {
-      range = info.newRange(rightRange.lower, const MaxIntValue());
+      range = info.newNormalizedRange(rightRange.lower, const MaxIntValue());
     } else {
       range = info.newUnboundRange();
     }
@@ -906,9 +905,9 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     if (range == null) return info.newUnboundRange();
     Range initial = ranges[loopPhi.inputs[0]];
     if (range.isPositive) {
-      return info.newRange(initial.lower, const MaxIntValue());
+      return info.newNormalizedRange(initial.lower, const MaxIntValue());
     } else if (range.isNegative) {
-      return info.newRange(const MinIntValue(), initial.upper);
+      return info.newNormalizedRange(const MinIntValue(), initial.upper);
     }
     return info.newUnboundRange();
   }
@@ -918,9 +917,9 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     if (range == null) return info.newUnboundRange();
     Range initial = ranges[loopPhi.inputs[0]];
     if (range.isPositive) {
-      return info.newRange(const MinIntValue(), initial.upper);
+      return info.newNormalizedRange(const MinIntValue(), initial.upper);
     } else if (range.isNegative) {
-      return info.newRange(initial.lower, const MaxIntValue());
+      return info.newNormalizedRange(initial.lower, const MaxIntValue());
     }
     return info.newUnboundRange();
   }
@@ -970,7 +969,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
     // update does not have a range.
     if (other.isConstant()) {
       Value value = info.newIntValue(other.constant.value);
-      return info.newRange(value, value);
+      return info.newNormalizedRange(value, value);
     }
     return null;
   }

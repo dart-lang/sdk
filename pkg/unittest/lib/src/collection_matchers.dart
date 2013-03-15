@@ -189,10 +189,10 @@ abstract class _CollectionMatcher extends BaseMatcher {
   const _CollectionMatcher();
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
-    if (item is !Collection) {
+    if (item is! Iterable) {
       return mismatchDescription.
           addDescriptionOf(item).
-          add(' not a collection');
+          add(' not an Iterable');
     } else {
       return super.describeMismatch(item, mismatchDescription, matchState,
         verbose);

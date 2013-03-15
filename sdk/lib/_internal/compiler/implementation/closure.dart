@@ -14,7 +14,7 @@ import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
 
 class ClosureNamer {
   SourceString getClosureVariableName(SourceString name, int id) {
-    return new SourceString("${name.slowToString()}_$id");    
+    return new SourceString("${name.slowToString()}_$id");
   }
 }
 
@@ -80,7 +80,13 @@ class ClosureFieldElement extends ElementX {
 }
 
 class ClosureClassElement extends ClassElementX {
-  ClosureClassElement(SourceString name,
+  DartType rawType;
+  DartType thisType;
+  /// Node that corresponds to this closure, used for source position.
+  final FunctionExpression node;
+
+  ClosureClassElement(this.node,
+                      SourceString name,
                       Compiler compiler,
                       this.methodElement,
                       Element enclosingElement)
@@ -95,9 +101,12 @@ class ClosureClassElement extends ClassElementX {
     supertype = compiler.closureClass.computeType(compiler);
     interfaces = const Link<DartType>();
     allSupertypes = const Link<DartType>().prepend(supertype);
+    thisType = rawType = new InterfaceType(this);
   }
 
   bool isClosure() => true;
+
+  Token position() => node.getBeginToken();
 
   /**
    * The most outer method this closure is declared into.
@@ -193,9 +202,11 @@ class ClosureClassMap {
 
   bool isClosure() => closureElement != null;
 
-  bool captures(Element element) => freeVariableMapping.containsKey(element);
+  bool isVariableCaptured(Element element) {
+    freeVariableMapping.containsKey(element);
+  }
 
-  bool mutates(Element element) {
+  bool isVariableBoxed(Element element) {
     Element copy = freeVariableMapping[element];
     return copy != null && !copy.isMember();
   }
@@ -203,6 +214,21 @@ class ClosureClassMap {
   void forEachCapturedVariable(void f(Element element)) {
     freeVariableMapping.forEach((variable, _) {
       if (variable is BoxElement) return;
+      f(variable);
+    });
+  }
+
+  void forEachBoxedVariable(void f(Element element)) {
+    freeVariableMapping.forEach((variable, copy) {
+      if (!isVariableBoxed(variable)) return;
+      f(variable);
+    });
+  }
+
+  void forEachNonBoxedCapturedVariable(void f(Element element)) {
+    freeVariableMapping.forEach((variable, copy) {
+      if (variable is BoxElement) return;
+      if (isVariableBoxed(variable)) return;
       f(variable);
     });
   }
@@ -445,9 +471,10 @@ class ClosureTranslator extends Visitor {
         }
       }
     }
+
     if (outermostElement.isMember() &&
-        compiler.world.needsRti(outermostElement.getEnclosingClass())) {
-      if (outermostElement.isConstructor()) {
+        compiler.backend.needsRti(outermostElement.getEnclosingClass())) {
+      if (outermostElement.isConstructor() || outermostElement.isField()) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember()) {
         if (hasTypeVariable(type)) useLocal(closureData.thisElement);
@@ -563,7 +590,7 @@ class ClosureTranslator extends Visitor {
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
     SourceString closureName = new SourceString(computeClosureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
-        closureName, compiler, element, element.getCompilationUnit());
+        node, closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =
         new FunctionElementX.from(Compiler.CALL_OPERATOR_NAME,
                                   element,
@@ -609,8 +636,8 @@ class ClosureTranslator extends Visitor {
         declareLocal(element);
       }
 
-      if (currentElement.isFactoryConstructor()
-          && compiler.world.needsRti(currentElement.enclosingElement)) {
+      if (currentElement.isFactoryConstructor() &&
+          compiler.backend.needsRti(currentElement.enclosingElement)) {
         // Declare the type parameters in the scope. Generative
         // constructors just use 'this'.
         ClassElement cls = currentElement.enclosingElement;

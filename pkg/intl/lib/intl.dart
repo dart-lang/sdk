@@ -43,19 +43,23 @@ part 'bidi_utils.dart';
  * Usage examples:
  *      today(date) => Intl.message(
  *          "Today's date is $date",
+ *          name: 'today',
+ *          args: [date],
  *          desc: 'Indicate the current date',
  *          examples: {'date' : 'June 8, 2012'});
  *      print(today(new DateTime.now());
  *
- *      msg({num_people, place}) => Intl.message(
+ *      msg(num_people, place) => Intl.message(
  *           '''I see ${Intl.plural(num_people,
  *             {'0': 'no one at all',
  *              '1': 'one other person',
  *              'other': '$num_people other people'})} in $place.'''',
+ *          name: 'msg',
+ *          args: [num_people, place],
  *          desc: 'Description of how many people are seen as program start.',
  *          examples: {'num_people': 3, 'place': 'London'});
  *
- * Calling `msg({'num_people': 2, 'place': 'Athens'});` would
+ * Calling `msg(2, 'Athens');` would
  * produce "I see 2 other people in Athens." as output in the default locale.
  *
  * To use a locale other than the default, use the `withLocale` function.
@@ -128,7 +132,7 @@ class Intl {
    * will be extracted automatically but for the time being it must be passed
    * explicitly in the [name] and [args] arguments.
    */
-  static Future<String> message(String message_str, {final String desc: '',
+  static String message(String message_str, {final String desc: '',
       final Map examples: const {}, String locale, String name,
       List<String> args}) {
     return messageLookup.lookupMessage(
@@ -271,4 +275,6 @@ class Intl {
     if (_defaultLocale == null) _defaultLocale = systemLocale;
     return _defaultLocale;
   }
+
+  toString() => "Intl($locale)";
 }

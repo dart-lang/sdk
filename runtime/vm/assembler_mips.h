@@ -12,36 +12,55 @@
 #include "platform/assert.h"
 #include "vm/constants_mips.h"
 
+// References to documentation in this file refer to:
+// "MIPS® Architecture For Programmers Volume I-A:
+//   Introduction to the MIPS32® Architecture" in short "VolI-A"
+// and
+// "MIPS® Architecture For Programmers Volume II-A:
+//   The MIPS32® Instruction Set" in short "VolII-A"
 namespace dart {
 
-class Operand : public ValueObject {
+class Immediate : public ValueObject {
  public:
-  Operand(const Operand& other) : ValueObject() {
-    UNIMPLEMENTED();
-  }
+  explicit Immediate(int32_t value) : value_(value) { }
 
-  Operand& operator=(const Operand& other) {
-    UNIMPLEMENTED();
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+  Immediate& operator=(const Immediate& other) {
+    value_ = other.value_;
     return *this;
   }
 
- protected:
-  Operand() { }  // Needed by subclass Address.
+ private:
+  int32_t value_;
+
+  int32_t value() const { return value_; }
+
+  friend class Assembler;
 };
 
 
-class Address : public Operand {
+class Address : public ValueObject {
  public:
-  Address(Register base, int32_t disp) {
-    UNIMPLEMENTED();
-  }
+  Address(Register base, int32_t offset = 0)
+      : ValueObject(), base_(base), offset_(offset) { }
 
-  Address(const Address& other) : Operand(other) { }
-
+  Address(const Address& other)
+      : ValueObject(), base_(other.base_), offset_(other.offset_) { }
   Address& operator=(const Address& other) {
-    Operand::operator=(other);
+    base_ = other.base_;
+    offset_ = other.offset_;
     return *this;
   }
+
+  uint32_t encoding() const {
+    ASSERT(Utils::IsInt(16, offset_));
+    uint16_t imm_value = static_cast<uint16_t>(offset_);
+    return (base_ << kRsShift) | imm_value;
+  }
+
+ private:
+  Register base_;
+  int32_t offset_;
 };
 
 
@@ -119,6 +138,8 @@ class Assembler : public ValueObject {
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
+        delay_slot_available_(false),
+        in_delay_slot_(false),
         comments_() { }
   ~Assembler() { }
 
@@ -131,23 +152,42 @@ class Assembler : public ValueObject {
   }
 
   // Misc. functionality
-  int CodeSize() const {
-    UNIMPLEMENTED();
-    return 0;
-  }
-  int prologue_offset() const {
-    UNIMPLEMENTED();
-    return 0;
-  }
+  int CodeSize() const { return buffer_.Size(); }
+  int prologue_offset() const { return -1; }
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
-    UNIMPLEMENTED();
-    return *pointer_offsets_;
+    return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool() const {
-    UNIMPLEMENTED();
-    return object_pool_;
-  }
+  const GrowableObjectArray& object_pool() const { return object_pool_; }
   void FinalizeInstructions(const MemoryRegion& region) {
+    buffer_.FinalizeInstructions(region);
+  }
+
+  // Set up a Dart frame on entry with a frame pointer and PC information to
+  // enable easy access to the RawInstruction object of code corresponding
+  // to this frame.
+  void EnterDartFrame(intptr_t frame_size) {
+    UNIMPLEMENTED();
+  }
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  void EnterStubFrame() {
+    UNIMPLEMENTED();
+  }
+
+  // Instruction pattern from entrypoint is used in dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = -1;  // UNIMPLEMENTED.
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   bool near_jump,
+                   Register instance_reg) {
     UNIMPLEMENTED();
   }
 
@@ -157,9 +197,7 @@ class Assembler : public ValueObject {
   void Untested(const char* message);
   void Unreachable(const char* message);
 
-  static void InitializeMemoryWithBreakpoints(uword data, int length) {
-    UNIMPLEMENTED();
-  }
+  static void InitializeMemoryWithBreakpoints(uword data, int length);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
@@ -175,11 +213,138 @@ class Assembler : public ValueObject {
     return NULL;
   }
 
+  // A utility to be able to assemble an instruction into the delay slot.
+  Assembler* delay_slot() {
+    ASSERT(delay_slot_available_);
+    ASSERT(buffer_.Load<int32_t>(buffer_.GetPosition() - sizeof(int32_t)) ==
+        Instr::kNopInstruction);
+    buffer_.Remit<int32_t>();
+    delay_slot_available_ = false;
+    in_delay_slot_ = true;
+    return this;
+  }
+
+  // CPU instructions.
+  void addiu(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsInt(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ADDIU, rs, rt, imm_value);
+  }
+
+  void addu(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, ADDU);
+  }
+
+  void and_(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, AND);
+  }
+
+  void andi(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ANDI, rs, rt, imm_value);
+  }
+
+  void break_(int32_t code) {
+    ASSERT(Utils::IsUint(20, code));
+    Emit(SPECIAL << kOpcodeShift |
+         code << kBreakCodeShift |
+         BREAK << kFunctionShift);
+  }
+
+  void clo(Register rd, Register rs) {
+    EmitRType(SPECIAL2, rs, rd, rd, 0, CLO);
+  }
+
+  void clz(Register rd, Register rs) {
+    EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
+  }
+
+  void div(Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
+  }
+
+  void divu(Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, R0, 0, DIVU);
+  }
+
+
+  void lb(Register rt, const Address& addr) {
+    EmitLoadStore(LB, rt, addr);
+  }
+
+  void lbu(Register rt, const Address& addr) {
+    EmitLoadStore(LBU, rt, addr);
+  }
+
+  void lh(Register rt, const Address& addr) {
+    EmitLoadStore(LH, rt, addr);
+  }
+
+  void lhu(Register rt, const Address& addr) {
+    EmitLoadStore(LHU, rt, addr);
+  }
+
+  void lui(Register rt, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(LUI, R0, rt, imm_value);
+  }
+
+  void lw(Register rt, const Address& addr) {
+    EmitLoadStore(LW, rt, addr);
+  }
+
+  void mfhi(Register rd) {
+    EmitRType(SPECIAL, R0, R0, rd, 0, MFHI);
+  }
+
+  void mflo(Register rd) {
+    EmitRType(SPECIAL, R0, R0, rd, 0, MFLO);
+  }
+
+  void ori(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(16, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(ORI, rs, rt, imm_value);
+  }
+
+  void jr(Register rs) {
+    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
+    EmitRType(SPECIAL, rs, R0, R0, 0, JR);
+    Emit(Instr::kNopInstruction);  // Branch delay NOP.
+    delay_slot_available_ = true;
+  }
+
+  void sb(Register rt, const Address& addr) {
+    EmitLoadStore(SB, rt, addr);
+  }
+
+  void sh(Register rt, const Address& addr) {
+    EmitLoadStore(SH, rt, addr);
+  }
+
+  void sw(Register rt, const Address& addr) {
+    EmitLoadStore(SW, rt, addr);
+  }
+
+  void sll(Register rd, Register rt, int sa) {
+    EmitRType(SPECIAL, R0, rt, rd, sa, SLL);
+  }
+
+  // Macros.
+  void LoadImmediate(Register rd, int32_t value) {
+    lui(rd, Immediate((value >> 16) & 0xffff));
+    ori(rd, rd, Immediate(value & 0xffff));
+  }
+
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
-  ZoneGrowableArray<int>* pointer_offsets_;
   int prologue_offset_;
+
+  bool delay_slot_available_;
+  bool in_delay_slot_;
 
   class CodeComment : public ZoneAllocated {
    public:
@@ -197,6 +362,62 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
+
+  void Emit(int32_t value) {
+    // Emitting an instruction clears the delay slot state.
+    in_delay_slot_ = false;
+    delay_slot_available_ = false;
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    buffer_.Emit<int32_t>(value);
+  }
+
+  // Encode CPU instructions according to the types specified in
+  // Figures 4-1, 4-2 and 4-3 in VolI-A.
+  void EmitIType(Opcode opcode,
+                 Register rs,
+                 Register rt,
+                 uint16_t imm) {
+    Emit(opcode << kOpcodeShift |
+         rs << kRsShift |
+         rt << kRtShift |
+         imm);
+  }
+
+  void EmitLoadStore(Opcode opcode, Register rt,
+                     const Address &addr) {
+    Emit(opcode << kOpcodeShift |
+         rt << kRtShift |
+         addr.encoding());
+  }
+
+  void EmitRegImmType(Opcode opcode,
+                      Register rs,
+                      RtRegImm code,
+                      uint16_t imm) {
+    Emit(opcode << kOpcodeShift |
+         rs << kRsShift |
+         code << kRtShift |
+         imm);
+  }
+
+  void EmitJType(Opcode opcode, Label* label) {
+    UNIMPLEMENTED();
+  }
+
+  void EmitRType(Opcode opcode,
+                 Register rs,
+                 Register rt,
+                 Register rd,
+                 int sa,
+                 SpecialFunction func) {
+    ASSERT(Utils::IsUint(5, sa));
+    Emit(opcode << kOpcodeShift |
+         rs << kRsShift |
+         rt << kRtShift |
+         rd << kRdShift |
+         sa << kSaShift |
+         func << kFunctionShift);
+  }
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

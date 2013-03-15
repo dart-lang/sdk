@@ -1361,6 +1361,181 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
+
+// Check that assembler mrc instruction encoding, and simulator decoding
+// are in agreement.
+#if defined(USING_SIMULATOR)
+ASSEMBLER_TEST_GENERATE(MrcHaveDiv, assembler) {
+  __ mrc(R0, 15, 0, 0, 2, 0);
+  __ Lsr(R0, R0, 24);
+  __ and_(R0, R0, ShifterOperand(0xf));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(MrcHaveDiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  bool b = CPUFeatures::integer_division_supported();
+  CPUFeatures::set_integer_division_supported(true);
+  EXPECT_LT(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  CPUFeatures::set_integer_division_supported(b);
+}
+
+
+ASSEMBLER_TEST_GENERATE(MrcNoDiv, assembler) {
+  __ mrc(R0, 15, 0, 0, 2, 0);
+  __ Lsr(R0, R0, 24);
+  __ and_(R0, R0, ShifterOperand(0xf));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(MrcNoDiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  bool b = CPUFeatures::integer_division_supported();
+  CPUFeatures::set_integer_division_supported(false);
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  CPUFeatures::set_integer_division_supported(b);
+}
+#endif  // defined(USING_SIMULATOR)
+
+
+ASSEMBLER_TEST_GENERATE(MrcReal, assembler) {
+  __ mrc(R0, 15, 0, 0, 2, 0);
+  __ Lsr(R0, R0, 24);
+  __ and_(R0, R0, ShifterOperand(0xf));
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(MrcReal, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  bool have_div = CPUFeatures::integer_division_supported();
+  int32_t r = EXECUTE_TEST_CODE_INT32(Tst, test->entry());
+  if (have_div) {
+    EXPECT_LT(0, r);
+  } else {
+    EXPECT_EQ(0, r);
+  }
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(9));
+  __ udiv(R2, R0, R1);
+  __ Mov(R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
+  __ mov(R0, ShifterOperand(27));
+  __ LoadImmediate(R1, -9);
+  __ sdiv(R2, R0, R1);
+  __ Mov(R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(0));
+  __ udiv(R2, R0, R1);
+  __ Mov(R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv_zero, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
+  __ mov(R0, ShifterOperand(27));
+  __ mov(R1, ShifterOperand(0));
+  __ udiv(R2, R0, R1);
+  __ Mov(R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
+  __ LoadImmediate(R0, 0x80000000);
+  __ LoadImmediate(R1, 0xffffffff);
+  __ udiv(R2, R0, R1);
+  __ Mov(R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Udiv_corner, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
+  __ LoadImmediate(R0, 0x80000000);
+  __ LoadImmediate(R1, 0xffffffff);
+  __ sdiv(R2, R0, R1);
+  __ Mov(R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(static_cast<int32_t>(0x80000000),
+            EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Muls, assembler) {
+  __ mov(R0, ShifterOperand(3));
+  __ LoadImmediate(R1, -9);
+  __ muls(R2, R0, R1);
+  __ mov(R0, ShifterOperand(42), MI);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Muls, test) {
+  EXPECT(test != NULL);
+  typedef int (*Tst)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

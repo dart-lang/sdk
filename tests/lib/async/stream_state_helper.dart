@@ -33,7 +33,7 @@ class StreamProtocolTest {
 
   // Actions on the stream and controller.
   void add(var data) { _controller.add(data); }
-  void error(var error) { _controller.signalError(error); }
+  void error(var error) { _controller.addError(error); }
   void close() { _controller.close(); }
 
   void subscribe({bool unsubscribeOnError : false}) {

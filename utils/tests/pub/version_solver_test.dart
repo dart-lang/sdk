@@ -7,6 +7,8 @@ library pub_update_test;
 import 'dart:async';
 import 'dart:io';
 
+import '../../../pkg/unittest/lib/unittest.dart';
+
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
 import '../../pub/pubspec.dart';
@@ -16,7 +18,7 @@ import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
 import '../../pub/version_solver.dart';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'test_pub.dart';
 
 Matcher noVersion(List<String> packages) {
   return predicate((x) {
@@ -67,9 +69,10 @@ Matcher sourceMismatch(String package1, String package2) {
 
 MockSource source1;
 MockSource source2;
-Source versionlessSource;
 
 main() {
+  initConfig();
+
   testResolve('no dependencies', {
     'myapp 0.0.0': {}
   }, result: {
@@ -145,30 +148,6 @@ main() {
     'foo': '1.0.1',
     'bar': '1.0.0',
     'bang': '1.0.0'
-  });
-
-  testResolve('from versionless source', {
-    'myapp 0.0.0': {
-      'foo from versionless': 'any'
-    },
-    'foo 1.2.3 from versionless': {}
-  }, result: {
-    'myapp from root': '0.0.0',
-    'foo from versionless': '1.2.3'
-  });
-
-  testResolve('transitively through versionless source', {
-    'myapp 0.0.0': {
-      'foo from versionless': 'any'
-    },
-    'foo 1.2.3 from versionless': {
-      'bar': '>=1.0.0'
-    },
-    'bar 1.1.0': {}
-  }, result: {
-    'myapp from root': '0.0.0',
-    'foo from versionless': '1.2.3',
-    'bar': '1.1.0'
   });
 
   testResolve('with compatible locked dependency', {
@@ -369,54 +348,91 @@ main() {
     }
   }, error: couldNotSolve);
 
+  group('dev dependencies', () {
+    testResolve("includes root package's dev dependencies", {
+      'myapp 1.0.0': {
+        '(dev) foo': '1.0.0',
+        '(dev) bar': '1.0.0'
+      },
+      'foo 1.0.0': {},
+      'bar 1.0.0': {}
+    }, result: {
+      'myapp from root': '1.0.0',
+      'foo': '1.0.0',
+      'bar': '1.0.0'
+    });
+
+    testResolve("includes dev dependency's transitive dependencies", {
+      'myapp 1.0.0': {
+        '(dev) foo': '1.0.0'
+      },
+      'foo 1.0.0': {
+        'bar': '1.0.0'
+      },
+      'bar 1.0.0': {}
+    }, result: {
+      'myapp from root': '1.0.0',
+      'foo': '1.0.0',
+      'bar': '1.0.0'
+    });
+
+    testResolve("ignores transitive dependency's dev dependencies", {
+      'myapp 1.0.0': {
+        'foo': '1.0.0'
+      },
+      'foo 1.0.0': {
+        '(dev) bar': '1.0.0'
+      },
+      'bar 1.0.0': {}
+    }, result: {
+      'myapp from root': '1.0.0',
+      'foo': '1.0.0'
+    });
+  });
+}
+
 // TODO(rnystrom): More stuff to test:
 // - Depending on a non-existent package.
 // - Test that only a certain number requests are sent to the mock source so we
 //   can keep track of server traffic.
-}
 
 testResolve(description, packages, {lockfile, result, Matcher error}) {
   test(description, () {
     var cache = new SystemCache('.');
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
-    versionlessSource = new MockVersionlessSource();
     cache.register(source1);
     cache.register(source2);
-    cache.register(versionlessSource);
     cache.sources.setDefault(source1.name);
 
     // Build the test package graph.
     var root;
     packages.forEach((nameVersion, dependencies) {
-      var parsed = parseSource(nameVersion);
-      nameVersion = parsed.first;
-      var source = parsed.last;
+      var parsed = parseSource(nameVersion, (isDev, nameVersion, source) {
+        var parts = nameVersion.split(' ');
+        var name = parts[0];
+        var version = parts[1];
 
-      var parts = nameVersion.split(' ');
-      var name = parts[0];
-      var version = parts[1];
-
-      var package = source1.mockPackage(name, version, dependencies);
-      if (name == 'myapp') {
-        // Don't add the root package to the server, so we can verify that Pub
-        // doesn't try to look up information about the local package on the
-        // remote server.
-        root = package;
-      } else {
-        source.addPackage(package);
-      }
+        var package = source1.mockPackage(name, version, dependencies);
+        if (name == 'myapp') {
+          // Don't add the root package to the server, so we can verify that Pub
+          // doesn't try to look up information about the local package on the
+          // remote server.
+          root = package;
+        } else {
+          source.addPackage(package);
+        }
+      });
     });
 
     // Clean up the expectation.
     if (result != null) {
       var newResult = {};
       result.forEach((name, version) {
-        var parsed = parseSource(name);
-        name = parsed.first;
-        var source = parsed.last;
-        version = new Version.parse(version);
-        newResult[name] = new PackageId(name, source, version, name);
+        parseSource(name, (isDev, name, source) {
+          version = new Version.parse(version);
+          newResult[name] = new PackageId(name, source, version, name);
+        });
       });
       result = newResult;
     }
@@ -482,16 +498,24 @@ class MockSource extends Source {
       Map dependencyStrings) {
     // Build the pubspec dependencies.
     var dependencies = <PackageRef>[];
+    var devDependencies = <PackageRef>[];
+
     dependencyStrings.forEach((name, constraint) {
-      var parsed = parseSource(name);
-      var description = parsed.first;
-      var packageName = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
-      dependencies.add(new PackageRef(packageName, parsed.last,
-          new VersionConstraint.parse(constraint), description));
+      parseSource(name, (isDev, name, source) {
+        var packageName = name.replaceFirst(new RegExp(r"-[^-]+$"), "");
+        var ref = new PackageRef(packageName, source,
+            new VersionConstraint.parse(constraint), name);
+
+        if (isDev) {
+          devDependencies.add(ref);
+        } else {
+          dependencies.add(ref);
+        }
+      });
     });
 
     var pubspec = new Pubspec(
-        description, new Version.parse(version), dependencies,
+        description, new Version.parse(version), dependencies, devDependencies,
         new PubspecEnvironment());
     return new Package.inMemory(pubspec);
   }
@@ -502,38 +526,29 @@ class MockSource extends Source {
   }
 }
 
-/// A source used for testing that doesn't natively understand versioning,
-/// similar to how the Git and SDK sources work.
-class MockVersionlessSource extends Source {
-  final Map<String, Package> _packages;
+void parseSource(String description,
+    callback(bool isDev, String name, Source source)) {
+  var isDev = false;
 
-  final String name = 'versionless';
-  final bool shouldCache = false;
-
-  MockVersionlessSource()
-    : _packages = <String, Package>{};
-
-  Future<bool> install(PackageId id, String path) {
-    throw 'no';
+  if (description.startsWith("(dev) ")) {
+    description = description.substring("(dev) ".length);
+    isDev = true;
   }
 
-  Future<Pubspec> describe(PackageId id) {
-    return new Future<Pubspec>.immediate(_packages[id.description].pubspec);
+  var name = description;
+  var source = source1;
+
+  var sourceNames = {
+    'mock1': source1,
+    'mock2': source2,
+    'root': null
+  };
+
+  var match = new RegExp(r"(.*) from (.*)").firstMatch(description);
+  if (match != null) {
+    name = match[1];
+    source = sourceNames[match[2]];
   }
 
-  void addPackage(Package package) {
-    _packages[package.name] = package;
-  }
-}
-
-Pair<String, Source> parseSource(String name) {
-  var match = new RegExp(r"(.*) from (.*)").firstMatch(name);
-  if (match == null) return new Pair<String, Source>(name, source1);
-  switch (match[2]) {
-  case 'mock1': return new Pair<String, Source>(match[1], source1);
-  case 'mock2': return new Pair<String, Source>(match[1], source2);
-  case 'root': return new Pair<String, Source>(match[1], null);
-  case 'versionless':
-    return new Pair<String, Source>(match[1], versionlessSource);
-  }
+  callback(isDev, name, source);
 }

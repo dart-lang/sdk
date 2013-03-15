@@ -25,7 +25,7 @@ Future<SecureServerSocket> startServer() {
             String received = new String.fromCharCodes(message);
             Expect.isTrue(received.contains("Hello from client "));
             String name = received.substring(received.indexOf("client ") + 7);
-            client.add("Welcome, client $name".codeUnits);
+            client.writeBytes("Welcome, client $name".codeUnits);
             client.close();
           });
     });
@@ -35,7 +35,7 @@ Future<SecureServerSocket> startServer() {
 
 Future testClient(server, name) {
   return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
-    socket.add("Hello from client $name".codeUnits);
+    socket.writeBytes("Hello from client $name".codeUnits);
     socket.close();
     return socket.reduce(<int>[], (message, data) => message..addAll(data))
         .then((message) {

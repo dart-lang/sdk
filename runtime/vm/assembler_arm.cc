@@ -6,14 +6,60 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
-
+#include "vm/simulator.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
 
 namespace dart {
 
-// TODO(regis): Enable this flag after PrintStopMessage stub is implemented.
-DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
+DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+
+
+bool CPUFeatures::integer_division_supported_ = false;
+#if defined(DEBUG)
+bool CPUFeatures::initialized_ = false;
+#endif
+
+
+bool CPUFeatures::integer_division_supported() {
+  DEBUG_ASSERT(initialized_);
+  return integer_division_supported_;
+}
+
+
+#if defined(USING_SIMULATOR)
+void CPUFeatures::set_integer_division_supported(bool supported) {
+  integer_division_supported_ = supported;
+}
+#endif
+
+
+#define __ assembler.
+
+void CPUFeatures::InitOnce() {
+#if defined(USING_SIMULATOR)
+  integer_division_supported_ = true;
+#else
+  Assembler assembler;
+  __ mrc(R0, 15, 0, 0, 2, 0);
+  __ Lsr(R0, R0, 24);
+  __ and_(R0, R0, ShifterOperand(0xf));
+  __ Ret();
+
+  const Code& code =
+      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef int32_t (*DetectCPUFeatures)();
+  int32_t features =
+      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
+  integer_division_supported_ = features != 0;
+#endif  // defined(USING_SIMULATOR)
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+#undef __
 
 
 // Instruction encoding bits.
@@ -67,17 +113,15 @@ enum {
 
 uint32_t Address::encoding3() const {
   ASSERT(kind_ == Immediate);
-  const uint32_t offset_mask = (1 << 12) - 1;
-  uint32_t offset = encoding_ & offset_mask;
+  uint32_t offset = encoding_ & kOffset12Mask;
   ASSERT(offset < 256);
-  return (encoding_ & ~offset_mask) | ((offset & 0xf0) << 4) | (offset & 0xf);
+  return (encoding_ & ~kOffset12Mask) | ((offset & 0xf0) << 4) | (offset & 0xf);
 }
 
 
 uint32_t Address::vencoding() const {
   ASSERT(kind_ == Immediate);
-  const uint32_t offset_mask = (1 << 12) - 1;
-  uint32_t offset = encoding_ & offset_mask;
+  uint32_t offset = encoding_ & kOffset12Mask;
   ASSERT(offset < (1 << 10));  // In the range 0 to +1020.
   ASSERT(Utils::IsAligned(offset, 4));  // Multiple of 4.
   int mode = encoding_ & ((8|4|1) << 21);
@@ -127,7 +171,7 @@ void Assembler::EmitType01(Condition cond,
 }
 
 
-void Assembler::EmitType5(Condition cond, int offset, bool link) {
+void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      5 << kTypeShift |
@@ -412,6 +456,13 @@ void Assembler::mul(Register rd, Register rn,
 }
 
 
+// Like mul, but sets condition flags.
+void Assembler::muls(Register rd, Register rn,
+                     Register rm, Condition cond) {
+  EmitMulOp(cond, B20, R0, rd, rn, rm);
+}
+
+
 void Assembler::mla(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
@@ -430,6 +481,33 @@ void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
+}
+
+
+void Assembler::EmitDivOp(Condition cond, int32_t opcode,
+                          Register rd, Register rn, Register rm) {
+  ASSERT(CPUFeatures::integer_division_supported());
+  ASSERT(rd != kNoRegister);
+  ASSERT(rn != kNoRegister);
+  ASSERT(rm != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  int32_t encoding = opcode |
+    (static_cast<int32_t>(cond) << kConditionShift) |
+    (static_cast<int32_t>(rn) << kRnShift) |
+    (static_cast<int32_t>(rd) << kRdShift) |
+    B26 | B25 | B24 | B20 | B4 |
+    (static_cast<int32_t>(rm) << kRmShift);
+  Emit(encoding);
+}
+
+
+void Assembler::sdiv(Register rd, Register rn, Register rm, Condition cond) {
+  EmitDivOp(cond, 0, rd, rn, rm);
+}
+
+
+void Assembler::udiv(Register rd, Register rn, Register rm, Condition cond) {
+  EmitDivOp(cond, B21 , rd, rn, rm);
 }
 
 
@@ -1117,6 +1195,29 @@ void Assembler::blx(Register rm, Condition cond) {
 }
 
 
+void Assembler::mrc(Register rd, int32_t coproc, int32_t opc1,
+                    int32_t crn, int32_t crm, int32_t opc2, Condition cond) {
+  ASSERT(rd != kNoRegister);
+  ASSERT(cond != kNoCondition);
+
+  // This is all the simulator and disassembler know about.
+  ASSERT(coproc == 15);
+  ASSERT(opc1 == 0);
+  ASSERT(crn == 0);
+  ASSERT(crm == 2);
+  ASSERT(opc2 == 0);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
+                     B27 | B26 | B25 | B20 | B4 |
+                     ((opc1 & 0x7) << kOpc1Shift) |
+                     ((crn & 0xf) << kCRnShift) |
+                     ((coproc & 0xf) << kCoprocShift) |
+                     ((opc2 & 0x7) << kOpc2Shift) |
+                     ((crm & 0xf) << kCRmShift) |
+                     (static_cast<int32_t>(rd) << kRdShift);
+  Emit(encoding);
+}
+
+
 void Assembler::MarkExceptionHandler(Label* label) {
   EmitType01(AL, 1, TST, 1, PC, R0, ShifterOperand(0));
   Label l;
@@ -1134,6 +1235,32 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 
+// Uses a code sequence that can easily be decoded.
+void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
+  ASSERT(rd != PP);
+  int32_t offset_mask = 0;
+  if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
+    ldr(rd, Address(PP, offset));
+  } else {
+    int32_t offset_hi = offset & ~offset_mask;  // signed
+    uint32_t offset_lo = offset & offset_mask;  // unsigned
+    // Inline a simplified version of AddImmediate(rd, PP, offset_hi).
+    ShifterOperand shifter_op;
+    if (ShifterOperand::CanHold(offset_hi, &shifter_op)) {
+      add(rd, PP, shifter_op);
+    } else {
+      movw(rd, Utils::Low16Bits(offset_hi));
+      const uint16_t value_high = Utils::High16Bits(offset_hi);
+      if (value_high != 0) {
+        movt(rd, value_high);
+      }
+      add(rd, PP, ShifterOperand(LR));
+    }
+    ldr(rd, Address(rd, offset_lo));
+  }
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
   if (object.IsNull() ||
       object.IsSmi() ||
@@ -1145,14 +1272,13 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   }
   const int32_t offset =
       Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-  if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
-    ldr(rd, Address(PP, offset));
-  } else {
-    int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    AddImmediate(rd, PP, offset12_hi);
-    ldr(rd, Address(rd, offset12_lo));
-  }
+  LoadWordFromPoolOffset(rd, offset);
+}
+
+
+void Assembler::PushObject(const Object& object) {
+  LoadObject(IP, object);
+  Push(IP);
 }
 
 
@@ -1170,40 +1296,58 @@ void Assembler::Bind(Label* label) {
 }
 
 
-bool Address::CanHoldLoadOffset(LoadOperandType type, int offset) {
+bool Address::CanHoldLoadOffset(LoadOperandType type,
+                                int32_t offset,
+                                int32_t* offset_mask) {
   switch (type) {
     case kLoadSignedByte:
     case kLoadSignedHalfword:
     case kLoadUnsignedHalfword:
-    case kLoadWordPair:
+    case kLoadWordPair: {
+      *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+    }
     case kLoadUnsignedByte:
-    case kLoadWord:
+    case kLoadWord: {
+      *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+    }
     case kLoadSWord:
-    case kLoadDWord:
+    case kLoadDWord: {
+      *offset_mask = 0x3ff;
       return Utils::IsAbsoluteUint(10, offset);  // VFP addressing mode.
-    default:
+    }
+    default: {
       UNREACHABLE();
       return false;
+    }
   }
 }
 
 
-bool Address::CanHoldStoreOffset(StoreOperandType type, int offset) {
+bool Address::CanHoldStoreOffset(StoreOperandType type,
+                                 int32_t offset,
+                                 int32_t* offset_mask) {
   switch (type) {
     case kStoreHalfword:
-    case kStoreWordPair:
+    case kStoreWordPair: {
+      *offset_mask = 0xff;
       return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+    }
     case kStoreByte:
-    case kStoreWord:
+    case kStoreWord: {
+      *offset_mask = 0xfff;
       return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+    }
     case kStoreSWord:
-    case kStoreDWord:
+    case kStoreDWord: {
+      *offset_mask = 0x3ff;
       return Utils::IsAbsoluteUint(10, offset);  // VFP addressing mode.
-    default:
+    }
+    default: {
       UNREACHABLE();
       return false;
+    }
   }
 }
 
@@ -1272,7 +1416,18 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 
 void Assembler::Branch(const ExternalLabel* label, Condition cond) {
   LoadImmediate(IP, label->address(), cond);  // Address is never patched.
-  mov(PC, ShifterOperand(IP), cond);
+  bx(IP, cond);
+}
+
+
+void Assembler::BranchPatchable(const ExternalLabel* label) {
+  // Use a fixed size code sequence, since a function prologue may be patched
+  // with this branch sequence.
+  // Contrarily to BranchLinkPatchable, BranchPatchable requires an instruction
+  // cache flush upon patching.
+  movw(IP, Utils::Low16Bits(label->address()));
+  movt(IP, Utils::High16Bits(label->address()));
+  bx(IP);
 }
 
 
@@ -1289,25 +1444,7 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset =
       Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-  if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
-    ldr(LR, Address(PP, offset));
-  } else {
-    int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    // Inline a simplified version of AddImmediate(LR, CP, offset12_hi).
-    ShifterOperand shifter_op;
-    if (ShifterOperand::CanHold(offset12_hi, &shifter_op)) {
-      add(LR, PP, shifter_op);
-    } else {
-      movw(LR, Utils::Low16Bits(offset12_hi));
-      const uint16_t value_high = Utils::High16Bits(offset12_hi);
-      if (value_high != 0) {
-        movt(LR, value_high);
-      }
-      add(LR, PP, ShifterOperand(LR));
-    }
-    ldr(LR, Address(LR, offset12_lo));
-  }
+  LoadWordFromPoolOffset(LR, offset);
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -1320,24 +1457,10 @@ void Assembler::BranchLinkStore(const ExternalLabel* label, Address ad) {
 }
 
 
-void Assembler::BranchLinkOffset(Register base, int offset) {
+void Assembler::BranchLinkOffset(Register base, int32_t offset) {
   ASSERT(base != PC);
   ASSERT(base != IP);
-  if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
-    ldr(IP, Address(base, offset));
-  } else {
-    int offset_hi = offset & ~kOffset12Mask;
-    int offset_lo = offset & kOffset12Mask;
-    ShifterOperand offset_hi_op;
-    if (ShifterOperand::CanHold(offset_hi, &offset_hi_op)) {
-      add(IP, base, offset_hi_op);
-      ldr(IP, Address(IP, offset_lo));
-    } else {
-      LoadImmediate(IP, offset_hi);
-      add(IP, IP, ShifterOperand(base));
-      ldr(IP, Address(IP, offset_lo));
-    }
-  }
+  LoadFromOffset(kLoadWord, IP, base, offset);
   blx(IP);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -1389,14 +1512,13 @@ void Assembler::LoadFromOffset(LoadOperandType type,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  if (!Address::CanHoldLoadOffset(type, offset)) {
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldLoadOffset(type, offset, &offset_mask)) {
     ASSERT(base != IP);
-    LoadImmediate(IP, offset, cond);
-    add(IP, IP, ShifterOperand(base), cond);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
-    offset = 0;
+    offset = offset & offset_mask;
   }
-  ASSERT(Address::CanHoldLoadOffset(type, offset));
   switch (type) {
     case kLoadSignedByte:
       ldrsb(reg, Address(base, offset), cond);
@@ -1427,15 +1549,14 @@ void Assembler::StoreToOffset(StoreOperandType type,
                               Register base,
                               int32_t offset,
                               Condition cond) {
-  if (!Address::CanHoldStoreOffset(type, offset)) {
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldStoreOffset(type, offset, &offset_mask)) {
     ASSERT(reg != IP);
     ASSERT(base != IP);
-    LoadImmediate(IP, offset, cond);
-    add(IP, IP, ShifterOperand(base), cond);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
-    offset = 0;
+    offset = offset & offset_mask;
   }
-  ASSERT(Address::CanHoldStoreOffset(type, offset));
   switch (type) {
     case kStoreByte:
       strb(reg, Address(base, offset), cond);
@@ -1459,14 +1580,13 @@ void Assembler::LoadSFromOffset(SRegister reg,
                                 Register base,
                                 int32_t offset,
                                 Condition cond) {
-  if (!Address::CanHoldLoadOffset(kLoadSWord, offset)) {
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldLoadOffset(kLoadSWord, offset, &offset_mask)) {
     ASSERT(base != IP);
-    LoadImmediate(IP, offset, cond);
-    add(IP, IP, ShifterOperand(base), cond);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
-    offset = 0;
+    offset = offset & offset_mask;
   }
-  ASSERT(Address::CanHoldLoadOffset(kLoadSWord, offset));
   vldrs(reg, Address(base, offset), cond);
 }
 
@@ -1475,14 +1595,13 @@ void Assembler::StoreSToOffset(SRegister reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  if (!Address::CanHoldStoreOffset(kStoreSWord, offset)) {
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldStoreOffset(kStoreSWord, offset, &offset_mask)) {
     ASSERT(base != IP);
-    LoadImmediate(IP, offset, cond);
-    add(IP, IP, ShifterOperand(base), cond);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
-    offset = 0;
+    offset = offset & offset_mask;
   }
-  ASSERT(Address::CanHoldStoreOffset(kStoreSWord, offset));
   vstrs(reg, Address(base, offset), cond);
 }
 
@@ -1491,14 +1610,13 @@ void Assembler::LoadDFromOffset(DRegister reg,
                                 Register base,
                                 int32_t offset,
                                 Condition cond) {
-  if (!Address::CanHoldLoadOffset(kLoadDWord, offset)) {
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldLoadOffset(kLoadDWord, offset, &offset_mask)) {
     ASSERT(base != IP);
-    LoadImmediate(IP, offset, cond);
-    add(IP, IP, ShifterOperand(base), cond);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
-    offset = 0;
+    offset = offset & offset_mask;
   }
-  ASSERT(Address::CanHoldLoadOffset(kLoadDWord, offset));
   vldrd(reg, Address(base, offset), cond);
 }
 
@@ -1507,14 +1625,13 @@ void Assembler::StoreDToOffset(DRegister reg,
                                Register base,
                                int32_t offset,
                                Condition cond) {
-  if (!Address::CanHoldStoreOffset(kStoreDWord, offset)) {
+  int32_t offset_mask = 0;
+  if (!Address::CanHoldStoreOffset(kStoreDWord, offset, &offset_mask)) {
     ASSERT(base != IP);
-    LoadImmediate(IP, offset, cond);
-    add(IP, IP, ShifterOperand(base), cond);
+    AddImmediate(IP, base, offset & ~offset_mask, cond);
     base = IP;
-    offset = 0;
+    offset = offset & offset_mask;
   }
-  ASSERT(Address::CanHoldStoreOffset(kStoreDWord, offset));
   vstrd(reg, Address(base, offset), cond);
 }
 
@@ -1677,11 +1794,10 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   // Preserve volatile CPU registers.
-  EnterFrame(kDartVolatileCpuRegs | (1 << FP), 0);
+  EnterFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR), 0);
 
   // Preserve all volatile FPU registers.
-  // TODO(regis): Use vstmd instruction once supported.
-  // vstmd(DB_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+  vstmd(DB_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -1692,21 +1808,75 @@ void Assembler::LeaveCallRuntimeFrame() {
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * kWordSize;
-  // TODO(regis): + kDartVolatileFpuRegCount * 2 * kWordSize;
+      kDartVolatileCpuRegCount * kWordSize +
+      kDartVolatileFpuRegCount * 2 * kWordSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
-  // TODO(regis): Use vldmd instruction once supported.
-  // vldmd(IA_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
+  vldmd(IA_W, SP, kDartFirstVolatileFpuReg, kDartLastVolatileFpuReg);
 
   // Restore volatile CPU registers.
-  LeaveFrame(kDartVolatileCpuRegs | (1 << FP));
+  LeaveFrame(kDartVolatileCpuRegs | (1 << FP) | (1 << LR));
 }
 
 
 void Assembler::CallRuntime(const RuntimeEntry& entry) {
   entry.Call(this);
+}
+
+
+void Assembler::EnterDartFrame(intptr_t frame_size) {
+  const intptr_t offset = CodeSize();
+  // Save PC in frame for fast identification of corresponding code.
+  // Note that callee-saved registers can be added to the register list.
+  EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
+
+  if (offset != 0) {
+    // Adjust saved PC for any intrinsic code that could have been generated
+    // before a frame is created. Use PP as temp register.
+    ldr(PP, Address(FP, 2 * kWordSize));
+    AddImmediate(PP, PP, -offset);
+    str(PP, Address(FP, 2 * kWordSize));
+  }
+
+  // Setup pool pointer for this dart function.
+  const intptr_t object_pool_pc_dist =
+     Instructions::HeaderSize() - Instructions::object_pool_offset() +
+     CodeSize() + Instr::kPCReadOffset;
+  ldr(PP, Address(PC, -object_pool_pc_dist));
+
+  // Reserve space for locals.
+  AddImmediate(SP, -frame_size);
+}
+
+
+void Assembler::LeaveDartFrame() {
+  LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
+  // Adjust SP for PC pushed in EnterDartFrame.
+  AddImmediate(SP, kWordSize);
+}
+
+
+void Assembler::EnterStubFrame() {
+  // Push 0 as saved PC for stub frames.
+  mov(IP, ShifterOperand(LR));
+  mov(LR, ShifterOperand(0));
+  EnterFrame((1 << FP) | (1 << IP) | (1 << LR), 0);
+}
+
+
+void Assembler::LeaveStubFrame() {
+  LeaveFrame((1 << FP) | (1 << LR));
+  // Adjust SP for null PC pushed in EnterStubFrame.
+  AddImmediate(SP, kWordSize);
+}
+
+
+void Assembler::TryAllocate(const Class& cls,
+                            Label* failure,
+                            bool near_jump,
+                            Register instance_reg) {
+  UNIMPLEMENTED();
 }
 
 
@@ -1729,7 +1899,7 @@ void Assembler::Stop(const char* message) {
 }
 
 
-int32_t Assembler::EncodeBranchOffset(int offset, int32_t inst) {
+int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= 8;
   ASSERT(Utils::IsAligned(offset, 4));

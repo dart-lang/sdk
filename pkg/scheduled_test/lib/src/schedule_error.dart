@@ -23,6 +23,10 @@ class ScheduleError extends AsyncError {
   /// `null` if there was no such queue.
   final TaskQueue queue;
 
+  /// The descriptions of out-of-band callbacks that were pending when this
+  /// error occurred.
+  final Collection<String> pendingCallbacks;
+
   /// The state of the schedule at the time the error was detected.
   final ScheduleState _stateWhenDetected;
 
@@ -49,10 +53,12 @@ class ScheduleError extends AsyncError {
 
   ScheduleError(Schedule schedule, error, stackTrace, AsyncError cause)
       : super.withCause(error, stackTrace, cause),
-        this.schedule = schedule,
-        this.task = schedule.currentTask,
-        this.queue = schedule.currentQueue,
-        this._stateWhenDetected = schedule.state;
+        schedule = schedule,
+        task = schedule.currentTask,
+        queue = schedule.currentQueue,
+        pendingCallbacks = schedule.currentQueue == null ? <String>[]
+            : schedule.currentQueue.pendingCallbacks.toList(),
+        _stateWhenDetected = schedule.state;
 
   bool operator ==(other) => other is ScheduleError && task == other.task &&
       queue == other.queue && _stateWhenDetected == other._stateWhenDetected &&
@@ -64,30 +70,38 @@ class ScheduleError extends AsyncError {
 
     var errorString = error.toString();
     if (errorString.contains("\n")) {
-      result.add('ScheduleError:\n');
-      result.add(prefixLines(errorString.trim()));
-      result.add("\n\n");
+      result.write('ScheduleError:\n');
+      result.write(prefixLines(errorString.trim()));
+      result.write("\n\n");
     } else {
-      result.add('ScheduleError: "$errorString"\n');
+      result.write('ScheduleError: "$errorString"\n');
     }
 
-    result.add('Stack trace:\n');
-    result.add(prefixLines(stackTrace.toString().trim()));
-    result.add("\n\n");
+    result.write('Stack trace:\n');
+    result.write(prefixLines(stackTrace.toString().trim()));
+    result.write("\n\n");
 
     if (task != null) {
-      result.add('Error detected during task in queue "$queue":\n');
-      result.add(task.generateTree());
+      result.write('Error detected during task in queue "$queue":\n');
+      result.write(task.generateTree());
     } else if (_stateWhenDetected == ScheduleState.DONE) {
-      result.add('Error detected after all tasks in the schedule had '
+      result.write('Error detected after all tasks in the schedule had '
           'finished.');
     } else if (_stateWhenDetected == ScheduleState.RUNNING) {
-      result.add('Error detected when waiting for out-of-band callbacks in '
+      result.write('Error detected when waiting for out-of-band callbacks in '
           'queue "$queue".');
     } else { // _stateWhenDetected == ScheduleState.SET_UP
-      result.add('Error detected before the schedule started running.');
+      result.write('Error detected before the schedule started running.');
     }
 
-    return result.toString();
+    if (!pendingCallbacks.isEmpty) {
+      result.write("\n\n");
+      result.writeln("Pending out-of-band callbacks:");
+      for (var callback in pendingCallbacks) {
+        result.writeln("* $callback");
+      }
+    }
+
+    return result.toString().trim();
   }
 }

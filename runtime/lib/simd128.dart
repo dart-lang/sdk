@@ -583,6 +583,7 @@ class _Float32x4Array extends _ByteArrayBase
   factory _Float32x4Array(int length) {
     return _new(length);
   }
+
   factory _Float32x4Array.view(ByteArray array,
                                     [int start = 0, int length]) {
     if (length == null) {
@@ -590,21 +591,32 @@ class _Float32x4Array extends _ByteArrayBase
     }
     return new _Float32x4ArrayView(array, start, length);
   }
+
   Float32x4 operator [](int index) {
     return _getIndexed(index);
   }
+
   int operator []=(int index, Float32x4 value) {
     _setIndexed(index, value);
   }
+
   Iterator<Float32x4> get iterator {
     return new _ByteArrayIterator<Float32x4>(this);
   }
-  List<Float32x4> getRange(int start, int length) {
+
+  List<Float32x4> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<Float32x4> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
   }
+
+  List<Float32x4> getRange(int start, int length) {
+    return sublist(start, start + length);
+  }
+
   void setRange(int start, int length, List<Float32x4> from,
                 [int startFrom = 0]) {
     if (from is _Float32x4Array) {
@@ -667,11 +679,17 @@ class _Float32x4ArrayView extends _ByteArrayViewBase
     return new _ByteArrayIterator<Float32x4>(this);
   }
 
-  List<Float32x4> getRange(int start, int length) {
+  List<Float32x4> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<Float32x4> result = new Float32List(length);
     result.setRange(0, length, this, start);
     return result;
+  }
+
+  List<Float32x4> getRange(int start, int length) {
+    return sublist(start, start + length);
   }
 
   void setRange(int start, int length, List<Float32x4> from,
@@ -717,11 +735,17 @@ class _ExternalFloat32x4Array extends _ByteArrayBase
     return new _ByteArrayIterator<Float32x4>(this);
   }
 
-  List<Float32x4> getRange(int start, int length) {
+  List<Float32x4> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    int length = end - start;
     _rangeCheck(this.length, start, length);
     List<Float32x4> result = new Float32x4List(length);
     result.setRange(0, length, this, start);
     return result;
+  }
+
+  List<Float32x4> getRange(int start, int length) {
+    return sublist(start, start + length);
   }
 
   void setRange(int start, int length, List<Float32x4> from,

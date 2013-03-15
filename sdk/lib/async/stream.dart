@@ -68,7 +68,7 @@ abstract class Stream<T> {
         stream._close();
       },
       onError: (error) {
-        stream._signalError(error);
+        stream._addError(error);
         stream._close();
       });
     return stream;
@@ -80,6 +80,67 @@ abstract class Stream<T> {
   factory Stream.fromIterable(Iterable<T> data) {
     _PendingEvents iterableEvents = new _IterablePendingEvents<T>(data);
     return new _GeneratedSingleStreamImpl<T>(iterableEvents);
+  }
+
+  /**
+   * Creates a stream that repeatedly emits events at [period] intervals.
+   *
+   * The event values are computed by invoking [computation]. The argument to
+   * this callback is an integer that starts with 0 and is incremented for
+   * every event.
+   *
+   * If [computation] is omitted the event values will all be `null`.
+   */
+  factory Stream.periodic(Duration period,
+                          [T computation(int computationCount)]) {
+    if (computation == null) computation = ((i) => null);
+
+    Timer timer;
+    int computationCount = 0;
+    StreamController<T> controller;
+    // Counts the time that the Stream was running (and not paused).
+    Stopwatch watch = new Stopwatch();
+
+    void sendEvent() {
+      watch.reset();
+      T data = computation(computationCount++);
+      controller.add(data);
+    }
+
+    void startPeriodicTimer() {
+      assert(timer == null);
+      timer = new Timer.periodic(period, (Timer timer) {
+        sendEvent();
+      });
+    }
+
+    controller = new StreamController<T>(
+        onPauseStateChange: () {
+          if (controller.isPaused) {
+            timer.cancel();
+            timer = null;
+            watch.stop();
+          } else {
+            assert(timer == null);
+            Duration elapsed = watch.elapsed;
+            watch.start();
+            timer = new Timer(period - elapsed, () {
+              timer = null;
+              startPeriodicTimer();
+              sendEvent();
+            });
+          }
+        },
+        onSubscriptionStateChange: () {
+          if (controller.hasSubscribers) {
+            watch.start();
+            startPeriodicTimer();
+          } else {
+            if (timer != null) timer.cancel();
+            timer = null;
+          }
+        });
+    return controller.stream;
   }
 
   /**
@@ -214,13 +275,13 @@ abstract class Stream<T> {
   }
 
   // Deprecated method, previously called 'pipe', retained for compatibility.
-  Future pipeInto(StreamSink<T> sink,
+  Future pipeInto(EventSink<T> sink,
                   {void onError(AsyncError error),
                    bool unsubscribeOnError}) {
     _FutureImpl<T> result = new _FutureImpl<T>();
     this.listen(
         sink.add,
-        onError: sink.signalError,
+        onError: sink.addError,
         onDone: () {
           sink.close();
           result._setValue(null);
@@ -350,6 +411,8 @@ abstract class Stream<T> {
    * be a [Comparator]).
    *
    * If [compare] is omitted, it defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary min method if needed.
    */
   Future<T> min([int compare(T a, T b)]) {
     if (compare == null) {
@@ -394,6 +457,8 @@ abstract class Stream<T> {
    * be a [Comparator]).
    *
    * If [compare] is omitted, it defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary max method if needed.
    */
   Future<T> max([int compare(T a, T b)]) {
     if (compare == null)  {
@@ -643,7 +708,7 @@ abstract class Stream<T> {
    * with no [defaultValue] function provided, the future will receive an
    * error.
    */
-  Future<T> firstMatching(bool test(T value), {T defaultValue()}) {
+  Future<T> firstWhere(bool test(T value), {T defaultValue()}) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
@@ -677,11 +742,11 @@ abstract class Stream<T> {
   /**
    * Finds the last element in this stream matching [test].
    *
-   * As [firstMatching], except that the last matching element is found.
+   * As [firstWhere], except that the last matching element is found.
    * That means that the result cannot be provided before this stream
    * is done.
    */
-  Future<T> lastMatching(bool test(T value), {T defaultValue()}) {
+  Future<T> lastWhere(bool test(T value), {T defaultValue()}) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     T result = null;
     bool foundResult = false;
@@ -724,7 +789,7 @@ abstract class Stream<T> {
    * Like [lastMatch], except that it is an error if more than one
    * matching element occurs in the stream.
    */
-  Future<T> singleMatching(bool test(T value)) {
+  Future<T> singleWhere(bool test(T value)) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     T result = null;
     bool foundResult = false;
@@ -844,14 +909,27 @@ abstract class StreamSubscription<T> {
 
 
 /**
- * An interface that abstracts sending events into a [Stream].
+ * *Deprecated*. Use [EventSink] instead.
  */
-abstract class StreamSink<T> {
+abstract class StreamSink<T> extends EventSink<T>{
+  /* TODO(8997): Remove class.*/
+  /** *Deprecated*. Use [EventSink.addError] instead.*/
+  void signalError(AsyncError errorEvent) { addError(errorEvent); }
+}
+
+
+/**
+ * An interface that abstracts creation or handling of [Stream] events.
+ */
+abstract class EventSink<T> {
+  /** Create a data event */
   void add(T event);
-  /** Signal an async error to the receivers of this sink's values. */
-  void signalError(AsyncError errorEvent);
+  /** Create an async error. */
+  void addError(AsyncError errorEvent);
+  /** Request a stream to close. */
   void close();
 }
+
 
 /** [Stream] wrapper that only exposes the [Stream] interface. */
 class StreamView<T> extends Stream<T> {
@@ -873,15 +951,16 @@ class StreamView<T> extends Stream<T> {
 }
 
 /**
- * [StreamSink] wrapper that only exposes the [StreamSink] interface.
+ * [EventSink] wrapper that only exposes the [EventSink] interface.
  */
-class StreamSinkView<T> implements StreamSink<T> {
-  final StreamSink<T> _sink;
+class EventSinkView<T> extends StreamSink<T> {
+  // TODO(8997): Implment EventSink instead.
+  final EventSink<T> _sink;
 
-  StreamSinkView(this._sink);
+  EventSinkView(this._sink);
 
   void add(T value) { _sink.add(value); }
-  void signalError(AsyncError error) { _sink.signalError(error); }
+  void addError(AsyncError error) { _sink.addError(error); }
   void close() { _sink.close(); }
 }
 
@@ -916,16 +995,16 @@ abstract class StreamTransformer<S, T> {
    * Example use:
    *
    *     stringStream.transform(new StreamTransformer<String, String>(
-   *         handleData: (Strung value, StreamSink<String> sink) {
+   *         handleData: (Strung value, EventSink<String> sink) {
    *           sink.add(value);
    *           sink.add(value);  // Duplicate the incoming events.
    *         }));
    *
    */
   factory StreamTransformer({
-      void handleData(S data, StreamSink<T> sink),
-      void handleError(AsyncError error, StreamSink<T> sink),
-      void handleDone(StreamSink<T> sink)}) {
+      void handleData(S data, EventSink<T> sink),
+      void handleError(AsyncError error, EventSink<T> sink),
+      void handleDone(EventSink<T> sink)}) {
     return new _StreamTransformerImpl<S, T>(handleData,
                                             handleError,
                                             handleDone);
@@ -950,7 +1029,7 @@ abstract class StreamTransformer<S, T> {
  * An example that duplicates all data events:
  *
  *     class DoubleTransformer<T> extends StreamEventTransformerBase<T, T> {
- *       void handleData(T data, StreamSink<T> sink) {
+ *       void handleData(T data, EventSink<T> sink) {
  *         sink.add(value);
  *         sink.add(value);
  *       }
@@ -974,7 +1053,7 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
    * The method may generate any number of events on the sink, but should
    * not throw.
    */
-  void handleData(S event, StreamSink<T> sink) {
+  void handleData(S event, EventSink<T> sink) {
     var data = event;
     sink.add(data);
   }
@@ -985,8 +1064,8 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
    * The method may generate any number of events on the sink, but should
    * not throw.
    */
-  void handleError(AsyncError error, StreamSink<T> sink) {
-    sink.signalError(error);
+  void handleError(AsyncError error, EventSink<T> sink) {
+    sink.addError(error);
   }
 
   /**
@@ -995,7 +1074,7 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
    * The method may generate any number of events on the sink, but should
    * not throw.
    */
-  void handleDone(StreamSink<T> sink){
+  void handleDone(EventSink<T> sink){
     sink.close();
   }
 }
@@ -1029,15 +1108,15 @@ class EventTransformStream<S, T> extends Stream<T> {
 
 class _EventTransformStreamSubscription<S, T>
     extends _BaseStreamSubscription<T>
-    implements _StreamOutputSink<T> {
+    implements _EventOutputSink<T> {
   /** The transformer used to transform events. */
   final StreamEventTransformer<S, T> _transformer;
   /** Whether to unsubscribe when emitting an error. */
   final bool _unsubscribeOnError;
   /** Source of incoming events. */
   StreamSubscription<S> _subscription;
-  /** Cached StreamSink wrapper for this class. */
-  StreamSink<T> _sink;
+  /** Cached EventSink wrapper for this class. */
+  EventSink<T> _sink;
 
   _EventTransformStreamSubscription(Stream<S> source,
                                     this._transformer,
@@ -1046,7 +1125,7 @@ class _EventTransformStreamSubscription<S, T>
                                     void onDone(),
                                     this._unsubscribeOnError)
       : super(onData, onError, onDone) {
-    _sink = new _StreamOutputSinkWrapper<T>(this);
+    _sink = new _EventOutputSinkWrapper<T>(this);
     _subscription = source.listen(_handleData,
                                   onError: _handleError,
                                   onDone: _handleDone);
@@ -1092,7 +1171,7 @@ class _EventTransformStreamSubscription<S, T>
     }
   }
 
-  // StreamOutputSink interface.
+  // EventOutputSink interface.
   void _sendData(T data) {
     _onData(data);
   }
@@ -1111,11 +1190,12 @@ class _EventTransformStreamSubscription<S, T>
   }
 }
 
-class _StreamOutputSinkWrapper<T> implements StreamSink<T> {
-  _StreamOutputSink _sink;
-  _StreamOutputSinkWrapper(this._sink);
+/* TODO(8997): Implement EventSink instead, */
+class _EventOutputSinkWrapper<T> extends StreamSink<T> {
+  _EventOutputSink _sink;
+  _EventOutputSinkWrapper(this._sink);
 
-  void add(T data) => _sink._sendData(data);
-  void signalError(AsyncError error) => _sink._sendError(error);
-  void close() => _sink._sendDone();
+  void add(T data) { _sink._sendData(data); }
+  void addError(AsyncError error) { _sink._sendError(error); }
+  void close() { _sink._sendDone(); }
 }

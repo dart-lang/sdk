@@ -423,11 +423,15 @@ class PlaceholderCollector extends Visitor {
                element is TypeVariableElement);
         makeElementPlaceholder(send.selector, element);
       } else {
-        assert(send.selector is Identifier);
+        Identifier identifier = send.selector.asIdentifier();
+        if (identifier == null) {
+          // Handle optional function expression parameters with default values.
+          identifier = send.selector.asFunctionExpression().name;
+        }
         if (Elements.isInstanceField(element)) {
-          tryMakeMemberPlaceholder(send.selector);
+          tryMakeMemberPlaceholder(identifier);
         } else {
-          tryMakeLocalPlaceholder(element, send.selector);
+          tryMakeLocalPlaceholder(element, identifier);
         }
       }
     }

@@ -10,7 +10,7 @@
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
-import "dart:scalarlist";
+import "dart:typeddata";
 import "dart:uri";
 
 const String CERT_NAME = 'localhost_cert';
@@ -121,9 +121,10 @@ class SecurityConfiguration {
                 onDone: () {
                   Expect.equals(closeStatus == null
                                 ? WebSocketStatus.NO_STATUS_RECEIVED
-                                : closeStatus, event.code);
-                  Expect.equals(
-                      closeReason == null ? "" : closeReason, event.reason);
+                                : closeStatus, webSocket.closeCode);
+                  Expect.equals(closeReason == null
+                                ? ""
+                                : closeReason, webSocket.closeReason);
                 });
             });
       }
@@ -180,6 +181,43 @@ class SecurityConfiguration {
 
       createClient(server.port).then((webSocket) {
           webSocket.listen((_) { }, onDone: webSocket.close);
+        });
+    });
+  }
+
+
+  void testImmediateCloseServer() {
+    createServer().then((server) {
+      server.listen((request) {
+        WebSocketTransformer.upgrade(request)
+            .then((webSocket) {
+              webSocket.close();
+              webSocket.listen((_) { Expect.fail(); }, onDone: server.close);
+            });
+      });
+
+      createClient(server.port).then((webSocket) {
+          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+        });
+    });
+  }
+
+
+  void testImmediateCloseClient() {
+    createServer().then((server) {
+      server.listen((request) {
+        WebSocketTransformer.upgrade(request)
+            .then((webSocket) {
+              webSocket.listen((_) { Expect.fail(); }, onDone: () {
+                server.close();
+                webSocket.close();
+              });
+            });
+      });
+
+      createClient(server.port).then((webSocket) {
+          webSocket.close();
+          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
         });
     });
   }
@@ -274,9 +312,8 @@ class SecurityConfiguration {
                 Expect.equals(10, onmessageCalled);
                 Expect.isFalse(oncloseCalled);
                 oncloseCalled = true;
-                Expect.isTrue(event.wasClean);
-                Expect.equals(3002, event.code);
-                Expect.equals("Got tired", event.reason);
+                Expect.equals(3002, webSocket.closeCode);
+                Expect.equals("Got tired", webSocket.closeReason);
                 Expect.equals(WebSocket.CLOSED, webSocket.readyState);
               });
         });
@@ -349,6 +386,8 @@ class SecurityConfiguration {
     testMessageLength(65536);
     testDoubleCloseClient();
     testDoubleCloseServer();
+    testImmediateCloseServer();
+    testImmediateCloseClient();
     testNoUpgrade();
     testUsePOST();
     testConnections(10, 3002, "Got tired");

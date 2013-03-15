@@ -9,7 +9,7 @@ int counter = 0;
 class Mark {
   static StringBuffer buffer;
   Mark(value) {
-    buffer.add('$value.');
+    buffer.write('$value.');
   }
 }
 

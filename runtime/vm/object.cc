@@ -702,6 +702,12 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<TypeParameter>();
   object_store->set_type_parameter_class(cls);
 
+  cls = Class::New<BoundedType>();
+  object_store->set_bounded_type_class(cls);
+
+  cls = Class::New<MixinAppType>();
+  object_store->set_mixin_app_type_class(cls);
+
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::NewStringClass(kOneByteStringCid);
   object_store->set_one_byte_string_class(cls);
@@ -851,116 +857,67 @@ RawError* Object::Init(Isolate* isolate) {
   // Pre-register the scalarlist library so the native class implementations
   // can be hooked up before compiling it.
   LOAD_LIBRARY(Scalarlist, scalarlist);
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::ScalarlistLibrary());
+#define REGISTER_SCALARLIST_CLASS(name, object_store_name)                     \
+  cls = Class::New<name>();                                                    \
+  object_store->set_##object_store_name##_class(cls);                          \
+  RegisterPrivateClass(cls, Symbols::_##name(), lib);                          \
 
-  Library& scalarlist_lib = Library::Handle(Library::ScalarlistLibrary());
-  ASSERT(!scalarlist_lib.IsNull());
+  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
+  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
+  REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(Int16Array, int16_array);
+  REGISTER_SCALARLIST_CLASS(Uint16Array, uint16_array);
+  REGISTER_SCALARLIST_CLASS(Int32Array, int32_array);
+  REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
+  REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
+  REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
+  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
+  REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
+  REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8Array, external_uint8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8ClampedArray,
+                            external_uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt16Array, external_int16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint16Array, external_uint16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt32Array, external_int32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
+#undef REGISTER_SCALARLIST_CLASS
 
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4(), scalarlist_lib);
+  // Pre-register the typeddata library so the native class implementations
+  // can be hooked up before compiling it.
+  LOAD_LIBRARY(TypedData, typeddata);
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::TypedDataLibrary());
+  Array& typeddata_classes =
+      Array::Handle(Array::New(RawObject::NumberOfTypedDataClasses()));
+  int index = 0;
+#define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
+  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
+  index = kTypedData##clazz##Cid - kTypedDataInt8ArrayCid;                     \
+  typeddata_classes.SetAt(index, cls);                                         \
+  RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
 
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32x4(), scalarlist_lib);
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+#undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
+  cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
+  index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
+  typeddata_classes.SetAt(index, cls);                                         \
+  RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
-  cls = Class::New<Int8Array>();
-  object_store->set_int8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int8Array(), scalarlist_lib);
-
-  cls = Class::New<Uint8Array>();
-  object_store->set_uint8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint8Array(), scalarlist_lib);
-
-  cls = Class::New<Uint8ClampedArray>();
-  object_store->set_uint8_clamped_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint8ClampedArray(), scalarlist_lib);
-
-  cls = Class::New<Int16Array>();
-  object_store->set_int16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int16Array(), scalarlist_lib);
-
-  cls = Class::New<Uint16Array>();
-  object_store->set_uint16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint16Array(), scalarlist_lib);
-
-  cls = Class::New<Int32Array>();
-  object_store->set_int32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int32Array(), scalarlist_lib);
-
-  cls = Class::New<Uint32Array>();
-  object_store->set_uint32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32Array(), scalarlist_lib);
-
-  cls = Class::New<Int64Array>();
-  object_store->set_int64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int64Array(), scalarlist_lib);
-
-  cls = Class::New<Uint64Array>();
-  object_store->set_uint64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint64Array(), scalarlist_lib);
-
-  cls = Class::New<Float32x4Array>();
-  object_store->set_float32x4_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4Array(), scalarlist_lib);
-
-  cls = Class::New<Float32Array>();
-  object_store->set_float32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32Array(), scalarlist_lib);
-
-  cls = Class::New<Float64Array>();
-  object_store->set_float64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float64Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalInt8Array>();
-  object_store->set_external_int8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt8Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint8Array>();
-  object_store->set_external_uint8_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint8Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint8ClampedArray>();
-  object_store->set_external_uint8_clamped_array_class(cls);
-  RegisterPrivateClass(cls,
-                       Symbols::_ExternalUint8ClampedArray(),
-                       scalarlist_lib);
-
-  cls = Class::New<ExternalInt16Array>();
-  object_store->set_external_int16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt16Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint16Array>();
-  object_store->set_external_uint16_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint16Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalInt32Array>();
-  object_store->set_external_int32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt32Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint32Array>();
-  object_store->set_external_uint32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint32Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalInt64Array>();
-  object_store->set_external_int64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalInt64Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalUint64Array>();
-  object_store->set_external_uint64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalUint64Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalFloat32x4Array>();
-  object_store->set_external_float32x4_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalFloat32x4Array(),
-                       scalarlist_lib);
-
-  cls = Class::New<ExternalFloat32Array>();
-  object_store->set_external_float32_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalFloat32Array(), scalarlist_lib);
-
-  cls = Class::New<ExternalFloat64Array>();
-  object_store->set_external_float64_array_class(cls);
-  RegisterPrivateClass(cls, Symbols::_ExternalFloat64Array(), scalarlist_lib);
+  CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
+#undef REGISTER_EXT_TYPED_DATA_CLASS
+  object_store->set_typeddata_classes(typeddata_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -1054,6 +1011,7 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Math, math, true);
   INIT_LIBRARY(Mirrors, mirrors, true);
   INIT_LIBRARY(Scalarlist, scalarlist, true);
+  INIT_LIBRARY(TypedData, typeddata, true);
   INIT_LIBRARY(Utf, utf, false);
   INIT_LIBRARY(Uri, uri, false);
 
@@ -1092,6 +1050,12 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<TypeParameter>();
   object_store->set_type_parameter_class(cls);
 
+  cls = Class::New<BoundedType>();
+  object_store->set_bounded_type_class(cls);
+
+  cls = Class::New<MixinAppType>();
+  object_store->set_mixin_app_type_class(cls);
+
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
@@ -1101,83 +1065,47 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
 
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
+#define REGISTER_SCALARLIST_CLASS(name, object_store_name)                     \
+  cls = Class::New<name>();                                                    \
+  object_store->set_##object_store_name##_class(cls);                          \
 
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
+  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
+  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
+  REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
+  REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(Int16Array, int16_array);
+  REGISTER_SCALARLIST_CLASS(Uint16Array, uint16_array);
+  REGISTER_SCALARLIST_CLASS(Int32Array, int32_array);
+  REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
+  REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
+  REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
+  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
+  REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
+  REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8Array, external_uint8_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint8ClampedArray,
+                            external_uint8_clamped_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt16Array, external_int16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint16Array, external_uint16_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt32Array, external_int32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
+  REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
+#undef REGISTER_SCALARLIST_CLASS
 
-  cls = Class::New<Int8Array>();
-  object_store->set_int8_array_class(cls);
-
-  cls = Class::New<Uint8Array>();
-  object_store->set_uint8_array_class(cls);
-
-  cls = Class::New<Uint8ClampedArray>();
-  object_store->set_uint8_clamped_array_class(cls);
-
-  cls = Class::New<Int16Array>();
-  object_store->set_int16_array_class(cls);
-
-  cls = Class::New<Uint16Array>();
-  object_store->set_uint16_array_class(cls);
-
-  cls = Class::New<Int32Array>();
-  object_store->set_int32_array_class(cls);
-
-  cls = Class::New<Uint32Array>();
-  object_store->set_uint32_array_class(cls);
-
-  cls = Class::New<Int64Array>();
-  object_store->set_int64_array_class(cls);
-
-  cls = Class::New<Uint64Array>();
-  object_store->set_uint64_array_class(cls);
-
-  cls = Class::New<Float32x4Array>();
-  object_store->set_float32x4_array_class(cls);
-
-  cls = Class::New<Float32Array>();
-  object_store->set_float32_array_class(cls);
-
-  cls = Class::New<Float64Array>();
-  object_store->set_float64_array_class(cls);
-
-  cls = Class::New<ExternalInt8Array>();
-  object_store->set_external_int8_array_class(cls);
-
-  cls = Class::New<ExternalUint8Array>();
-  object_store->set_external_uint8_array_class(cls);
-
-  cls = Class::New<ExternalUint8ClampedArray>();
-  object_store->set_external_uint8_clamped_array_class(cls);
-
-  cls = Class::New<ExternalInt16Array>();
-  object_store->set_external_int16_array_class(cls);
-
-  cls = Class::New<ExternalUint16Array>();
-  object_store->set_external_uint16_array_class(cls);
-
-  cls = Class::New<ExternalInt32Array>();
-  object_store->set_external_int32_array_class(cls);
-
-  cls = Class::New<ExternalUint32Array>();
-  object_store->set_external_uint32_array_class(cls);
-
-  cls = Class::New<ExternalInt64Array>();
-  object_store->set_external_int64_array_class(cls);
-
-  cls = Class::New<ExternalUint64Array>();
-  object_store->set_external_uint64_array_class(cls);
-
-  cls = Class::New<ExternalFloat32x4Array>();
-  object_store->set_external_float32x4_array_class(cls);
-
-  cls = Class::New<ExternalFloat32Array>();
-  object_store->set_external_float32_array_class(cls);
-
-  cls = Class::New<ExternalFloat64Array>();
-  object_store->set_external_float64_array_class(cls);
+#define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
+  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+#undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
+  cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
+  CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
+#undef REGISTER_EXT_TYPED_DATA_CLASS
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -1662,7 +1590,7 @@ bool Class::HasTypeArguments() const {
 
 
 RawClass* Class::SuperClass() const {
-  const Type& sup_type = Type::Handle(super_type());
+  const AbstractType& sup_type = AbstractType::Handle(super_type());
   if (sup_type.IsNull()) {
     return Class::null();
   }
@@ -1670,7 +1598,11 @@ RawClass* Class::SuperClass() const {
 }
 
 
-void Class::set_super_type(const Type& value) const {
+void Class::set_super_type(const AbstractType& value) const {
+  ASSERT(value.IsNull() ||
+         value.IsType() ||
+         value.IsBoundedType() ||
+         value.IsMixinAppType());
   StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
@@ -1685,24 +1617,11 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
     intptr_t num_type_params = type_params.Length();
     TypeParameter& type_param = TypeParameter::Handle();
     String& type_param_name = String::Handle();
-    // TODO(regis): We do not copy the bound (= type_param.bound()), since
-    // we are not able to finalize the bounds of type parameter references
-    // without getting into cycles. Revisit.
-    const AbstractType& bound = AbstractType::Handle(
-        Isolate::Current()->object_store()->object_type());
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.name();
       if (type_param_name.Equals(type_name)) {
-        intptr_t index = type_param.index();
-        // Create a non-finalized new TypeParameter with the given token_pos.
-        if (type_param.IsFinalized()) {
-          // The index was adjusted during finalization. Revert.
-          index -= NumTypeArguments() - num_type_params;
-        } else {
-          ASSERT(type_param.index() == i);
-        }
-        return TypeParameter::New(*this, index, type_name, bound, token_pos);
+        return type_param.raw();
       }
     }
   }
@@ -2016,6 +1935,28 @@ RawClass* Class::NewStringClass(intptr_t class_id) {
 }
 
 
+RawClass* Class::NewTypedDataClass(intptr_t class_id) {
+  ASSERT(RawObject::IsTypedDataClassId(class_id));
+  intptr_t instance_size = TypedData::InstanceSize();
+  Class& result = Class::Handle(New<TypedData>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_next_field_offset(instance_size);
+  result.set_is_prefinalized();
+  return result.raw();
+}
+
+
+RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
+  ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+  intptr_t instance_size = ExternalTypedData::InstanceSize();
+  Class& result = Class::Handle(New<ExternalTypedData>(class_id));
+  result.set_instance_size(instance_size);
+  result.set_next_field_offset(instance_size);
+  result.set_is_prefinalized();
+  return result.raw();
+}
+
+
 void Class::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
@@ -2243,6 +2184,7 @@ bool Class::TypeTest(
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
   AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
+  Error& args_malformed_error = Error::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
     interface_class = interface.type_class();
@@ -2257,19 +2199,15 @@ bool Class::TypeTest(
       // after the type arguments of the super type of this type.
       // The index of the type parameters is adjusted upon finalization.
       ASSERT(interface.IsFinalized());
-      interface_args = interface_args.InstantiateFrom(type_arguments);
-      // In checked mode, verify that the instantiated interface type
-      // arguments are within the bounds specified by the interface class.
-      // Note that the additional bounds check in checked mode may lead to a
-      // dynamic type error, but it will never change the result of the type
-      // check from true in production mode to false in checked mode.
-      if (FLAG_enable_type_checks && !interface_args.IsNull()) {
-        // Pass type_arguments as bounds instantiator.
-        if (!interface_args.IsWithinBoundsOf(interface_class,
-                                             type_arguments,
-                                             malformed_error)) {
-          continue;
+      args_malformed_error = Error::null();
+      interface_args = interface_args.InstantiateFrom(type_arguments,
+                                                      &args_malformed_error);
+      if (!args_malformed_error.IsNull()) {
+        // Return the first malformed error to the caller if it requests it.
+        if ((malformed_error != NULL) && malformed_error->IsNull()) {
+          *malformed_error = args_malformed_error.raw();
         }
+        continue;  // Another interface may work better.
       }
     }
     if (interface_class.TypeTest(test_kind,
@@ -2693,6 +2631,13 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+bool AbstractTypeArguments::IsBounded() const {
+  // AbstractTypeArguments is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 static intptr_t FinalizeHash(uword hash) {
   hash += hash << 3;
   hash ^= hash >> 11;
@@ -2784,7 +2729,8 @@ bool AbstractTypeArguments::AreEqual(
 
 
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments) const {
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* malformed_error) const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -2801,10 +2747,12 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
     ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
-        // An uninstantiated type parameter is equivalent to dynamic.
+        // An uninstantiated type parameter is equivalent to dynamic (even in
+        // the presence of a malformed bound in checked mode).
         continue;
       }
       ASSERT((!raw_instantiated && type.IsTypeParameter()) ||
+             type.IsBoundedType() ||
              type.IsMalformed());
       return false;
     }
@@ -2829,69 +2777,6 @@ static RawError* FormatError(const Error& prev_error,
     return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
                                          "Error", format, args);
   }
-}
-
-
-bool AbstractTypeArguments::IsWithinBoundsOf(
-    const Class& cls,
-    const AbstractTypeArguments& bounds_instantiator,
-    Error* malformed_error) const {
-  ASSERT(FLAG_enable_type_checks);
-  // This function may be called at compile time on (partially) uninstantiated
-  // type arguments and may return true, in which case a run time bounds check
-  // can be avoided.
-  ASSERT(Length() >= cls.NumTypeArguments());
-  const intptr_t num_type_params = cls.NumTypeParameters();
-  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
-  AbstractType& this_type_arg = AbstractType::Handle();
-  AbstractType& cls_type_arg = AbstractType::Handle();
-  AbstractType& bound = AbstractType::Handle();
-  const TypeArguments& cls_type_params =
-      TypeArguments::Handle(cls.type_parameters());
-  ASSERT((cls_type_params.IsNull() && (num_type_params == 0)) ||
-         (cls_type_params.Length() == num_type_params));
-  for (intptr_t i = 0; i < num_type_params; i++) {
-    cls_type_arg = cls_type_params.TypeAt(i);
-    const TypeParameter& cls_type_param = TypeParameter::Cast(cls_type_arg);
-    bound = cls_type_param.bound();
-    if (!bound.IsDynamicType()) {
-      this_type_arg = TypeAt(offset + i);
-      Error& malformed_bound_error = Error::Handle();
-      if (bound.IsMalformed()) {
-        malformed_bound_error = bound.malformed_error();
-      } else if (!bound.IsInstantiated()) {
-        bound = bound.InstantiateFrom(bounds_instantiator);
-      }
-      if (!malformed_bound_error.IsNull() ||
-          !this_type_arg.IsSubtypeOf(bound, malformed_error)) {
-        // Ignore this bound error if another malformed error was already
-        // reported for this type test.
-        if ((malformed_error != NULL) && malformed_error->IsNull()) {
-          const String& type_arg_name =
-              String::Handle(this_type_arg.UserVisibleName());
-          const String& class_name = String::Handle(cls.Name());
-          const String& bound_name = String::Handle(bound.UserVisibleName());
-          const Script& script = Script::Handle(cls.script());
-          // Since the bound was canonicalized, its token index was lost,
-          // therefore, use the token index of the corresponding type parameter.
-          *malformed_error ^= FormatError(malformed_bound_error,
-                                          script, cls_type_param.token_pos(),
-                                          "type argument '%s' does not "
-                                          "extend bound '%s' of '%s'\n",
-                                          type_arg_name.ToCString(),
-                                          bound_name.ToCString(),
-                                          class_name.ToCString());
-        }
-        return false;
-      }
-    }
-  }
-  const Class& super_class = Class::Handle(cls.SuperClass());
-  if (!super_class.IsNull() &&
-      !IsWithinBoundsOf(super_class, bounds_instantiator, malformed_error)) {
-    return false;
-  }
-  return true;
 }
 
 
@@ -2982,7 +2867,17 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
       return false;
     }
     const TypeParameter& type_param = TypeParameter::Cast(type);
+    ASSERT(type_param.IsFinalized());
     if ((type_param.index() != i)) {
+      return false;
+    }
+    // If this type parameter specifies an upper bound, then the type argument
+    // vector does not really represent the identity vector. It cannot be
+    // substituted by the instantiator's type argument vector without checking
+    // the upper bound.
+    const AbstractType& bound = AbstractType::Handle(type_param.bound());
+    ASSERT(bound.IsFinalized());
+    if (!bound.IsObjectType() && !bound.IsDynamicType()) {
       return false;
     }
   }
@@ -2990,8 +2885,35 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+bool TypeArguments::IsBounded() const {
+  AbstractType& type = AbstractType::Handle();
+  intptr_t num_types = Length();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    if (type.IsBoundedType()) {
+      return true;
+    }
+    if (type.IsTypeParameter()) {
+      const AbstractType& bound = AbstractType::Handle(
+          TypeParameter::Cast(type).bound());
+      if (!bound.IsObjectType() && !bound.IsDynamicType()) {
+        return true;
+      }
+      continue;
+    }
+    const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+        Type::Cast(type).arguments());
+    if (!type_args.IsNull() && type_args.IsBounded()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments) const {
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* malformed_error) const {
   ASSERT(!IsInstantiated());
   if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
@@ -3005,7 +2927,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments);
+      type = type.InstantiateFrom(instantiator_type_arguments, malformed_error);
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -3179,13 +3101,18 @@ intptr_t InstantiatedTypeArguments::Length() const {
 
 
 RawAbstractType* InstantiatedTypeArguments::TypeAt(intptr_t index) const {
-  const AbstractType& type = AbstractType::Handle(
-      AbstractTypeArguments::Handle(
-          uninstantiated_type_arguments()).TypeAt(index));
+  AbstractType& type = AbstractType::Handle(AbstractTypeArguments::Handle(
+      uninstantiated_type_arguments()).TypeAt(index));
   if (!type.IsInstantiated()) {
     const AbstractTypeArguments& instantiator_type_args =
         AbstractTypeArguments::Handle(instantiator_type_arguments());
-    return type.InstantiateFrom(instantiator_type_args);
+    Error& malformed_error = Error::Handle();
+    type = type.InstantiateFrom(instantiator_type_args, &malformed_error);
+    // InstantiatedTypeArguments cannot include unchecked bounds.
+    // In the presence of unchecked bounds, no InstantiatedTypeArguments are
+    // allocated, but the type arguments are instantiated individually and their
+    // bounds are checked.
+    ASSERT(malformed_error.IsNull());
   }
   return type.raw();
 }
@@ -3983,7 +3910,9 @@ bool Function::TestParameterType(
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
   if (!other_param_type.IsInstantiated()) {
-    other_param_type = other_param_type.InstantiateFrom(other_type_arguments);
+    other_param_type = other_param_type.InstantiateFrom(other_type_arguments,
+                                                        malformed_error);
+    ASSERT((malformed_error == NULL) || malformed_error->IsNull());
   }
   if (other_param_type.IsDynamicType()) {
     return true;
@@ -3991,7 +3920,8 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments);
+    param_type = param_type.InstantiateFrom(type_arguments, malformed_error);
+    ASSERT((malformed_error == NULL) || malformed_error->IsNull());
   }
   if (param_type.IsDynamicType()) {
     return test_kind == kIsSubtypeOf;
@@ -4032,12 +3962,15 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // Check the result type.
   AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
-    other_res_type = other_res_type.InstantiateFrom(other_type_arguments);
+    other_res_type = other_res_type.InstantiateFrom(other_type_arguments,
+                                                    malformed_error);
+    ASSERT((malformed_error == NULL) || malformed_error->IsNull());
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments);
+      res_type = res_type.InstantiateFrom(type_arguments, malformed_error);
+      ASSERT((malformed_error == NULL) || malformed_error->IsNull());
     }
     if (res_type.IsVoidType()) {
       return false;
@@ -4349,7 +4282,7 @@ RawString* Function::BuildSignature(
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(instantiator);
+      param_type = param_type.InstantiateFrom(instantiator, NULL);
     }
     name = param_type.BuildName(name_visibility);
     pieces.Add(name);
@@ -4374,7 +4307,7 @@ RawString* Function::BuildSignature(
       }
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator);
+        param_type = param_type.InstantiateFrom(instantiator, NULL);
       }
       ASSERT(!param_type.IsNull());
       name = param_type.BuildName(name_visibility);
@@ -4392,7 +4325,7 @@ RawString* Function::BuildSignature(
   pieces.Add(Symbols::RParenArrow());
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
-    res_type = res_type.InstantiateFrom(instantiator);
+    res_type = res_type.InstantiateFrom(instantiator, NULL);
   }
   name = res_type.BuildName(name_visibility);
   pieces.Add(name);
@@ -4930,6 +4863,9 @@ RawString* TokenStream::GenerateSource() const {
             escape_characters = true;
           }
         }
+        if ((literal.CharAt(i) == '$')) {
+          escape_characters = true;
+        }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
         if (is_raw_string) {
@@ -5406,11 +5342,15 @@ bool Script::HasSource() const {
 RawString* Script::Source() const {
   String& source = String::Handle(raw_ptr()->source_);
   if (source.IsNull()) {
-    const TokenStream& token_stream = TokenStream::Handle(tokens());
-    return token_stream.GenerateSource();
-  } else {
-    return raw_ptr()->source_;
+    return GenerateSource();
   }
+  return raw_ptr()->source_;
+}
+
+
+RawString* Script::GenerateSource() const {
+  const TokenStream& token_stream = TokenStream::Handle(tokens());
+  return token_stream.GenerateSource();
 }
 
 
@@ -6495,6 +6435,11 @@ RawLibrary* Library::NativeWrappersLibrary() {
 
 RawLibrary* Library::ScalarlistLibrary() {
   return Isolate::Current()->object_store()->scalarlist_library();
+}
+
+
+RawLibrary* Library::TypedDataLibrary() {
+  return Isolate::Current()->object_store()->typeddata_library();
 }
 
 
@@ -8803,7 +8748,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     // Verify that the number of type arguments in the instance matches the
     // number of type arguments expected by the instance class.
     // A discrepancy is allowed for closures, which borrow the type argument
-    // vector of their instantiator, which may be of a super class of the class
+    // vector of their instantiator, which may be of a subclass of the class
     // defining the closure. Truncating the vector to the correct length on
     // instantiation is unnecessary. The vector may therefore be longer.
     ASSERT(type_arguments.IsNull() ||
@@ -8813,31 +8758,19 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   }
   Class& other_class = Class::Handle();
   AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
-  // In case 'other' is not instantiated, we could simply call
-  // other.InstantiateFrom(other_instantiator), however, we can save the
-  // allocation of a new AbstractType by inlining the code.
-  if (other.IsTypeParameter()) {
-    if (other_instantiator.IsNull()) {
-      // An uninstantiated type parameter is equivalent to dynamic.
-      return true;
-    }
-    const TypeParameter& other_type_param = TypeParameter::Cast(other);
-    AbstractType& instantiated_other = AbstractType::Handle(
-        other_instantiator.TypeAt(other_type_param.index()));
-    if (instantiated_other.IsDynamicType() ||
-        instantiated_other.IsTypeParameter()) {
-      return true;
+  // Note that we may encounter a bound error in checked mode.
+  if (!other.IsInstantiated()) {
+    const AbstractType& instantiated_other = AbstractType::Handle(
+        other.InstantiateFrom(other_instantiator, malformed_error));
+    if ((malformed_error != NULL) && !malformed_error->IsNull()) {
+      ASSERT(FLAG_enable_type_checks);
+      return false;
     }
     other_class = instantiated_other.type_class();
     other_type_arguments = instantiated_other.arguments();
   } else {
     other_class = other.type_class();
     other_type_arguments = other.arguments();
-    if (!other_type_arguments.IsNull() &&
-        !other_type_arguments.IsInstantiated()) {
-      other_type_arguments =
-          other_type_arguments.InstantiateFrom(other_instantiator);
-    }
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
                          malformed_error);
@@ -9031,13 +8964,14 @@ void AbstractType::set_malformed_error(const Error& value) const {
 
 bool AbstractType::Equals(const Instance& other) const {
   // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
+  ASSERT(raw() == AbstractType::null());
+  return other.IsNull();
 }
 
 
 RawAbstractType* AbstractType::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments) const {
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* malformed_error) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -9052,6 +8986,13 @@ RawAbstractType* AbstractType::Canonicalize() const {
 
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+  if (IsBoundedType()) {
+    // TODO(regis): Should the bound be visible in the name for debug purposes
+    // if name_visibility is kInternalName?
+    const AbstractType& type = AbstractType::Handle(
+        BoundedType::Cast(*this).type());
+    return type.BuildName(name_visibility);
+  }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).name();
   }
@@ -9190,42 +9131,48 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     return false;
   }
   if (other.IsMalformed()) {
-    ASSERT(FLAG_enable_type_checks);
+    // Note that 'other' may represent an unresolved bound that is checked at
+    // compile time, even in production mode, in which case the resulting
+    // BoundedType is ignored at run time if in production mode.
+    // Therefore, we cannot assert that we are in checked mode here.
     if ((malformed_error != NULL) && malformed_error->IsNull()) {
       *malformed_error = other.malformed_error();
     }
     return false;
   }
-  // AbstractType parameters cannot be handled by Class::TypeTest().
+  if (IsBoundedType() || other.IsBoundedType()) {
+    if (Equals(other)) {
+      return true;
+    }
+    return false;  // TODO(regis): We should return "maybe after instantiation".
+  }
+  // Type parameters cannot be handled by Class::TypeTest().
   // When comparing two uninstantiated function types, one returning type
   // parameter K, the other returning type parameter V, we cannot assume that K
-  // is a subtype of V, or vice versa. We only return true if K == V, i.e. if
-  // they have the same index (both are finalized, so their indices are
-  // comparable).
-  // The same rule applies When checking the upper bound of a still
+  // is a subtype of V, or vice versa. We only return true if K equals V, as
+  // defined by TypeParameter::Equals.
+  // The same rule applies when checking the upper bound of a still
   // uninstantiated type at compile time. Returning false will defer the test
-  // to run time. But there are cases where it can be decided at compile time.
+  // to run time.
+  // We may think that some cases can be decided at compile time.
   // For example, with class A<K, V extends K>, new A<T, T> called from within
-  // a class B<T> will never require a run time bounds check, even it T is
+  // a class B<T> will never require a run time bound check, even if T is
   // uninstantiated at compile time.
+  // However, this is not true, because bounds are ignored in production mode,
+  // and even if we are running in checked mode, we may generate a snapshot
+  // that will be executed in production mode.
   if (IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
       const TypeParameter& other_type_param = TypeParameter::Cast(other);
-      return type_param.index() == other_type_param.index();
-    } else if (FLAG_enable_type_checks) {
-      // In checked mode, if the upper bound of this type is more specific than
-      // the other type, then this type is more specific than the other type.
-      const AbstractType& type_param_bound =
-          AbstractType::Handle(type_param.bound());
-      if (type_param_bound.IsMoreSpecificThan(other, malformed_error)) {
+      if (type_param.Equals(other_type_param)) {
         return true;
       }
     }
-    return false;
+    return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   if (other.IsTypeParameter()) {
-    return false;
+    return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   const Class& cls = Class::Handle(type_class());
   return cls.TypeTest(test_kind,
@@ -9436,14 +9383,22 @@ bool Type::IsInstantiated() const {
 
 
 RawAbstractType* Type::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments) const {
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(!IsInstantiated());
+  // Return the uninstantiated type unchanged if malformed. No copy needed.
+  if (IsMalformed()) {
+    return raw();
+  }
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(arguments());
-  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments);
+  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
+                                                  malformed_error);
   const Class& cls = Class::Handle(type_class());
   ASSERT(cls.is_finalized());
+  // This uninstantiated type is not modified, as it can be instantiated
+  // with different instantiators.
   Type& instantiated_type = Type::Handle(
       Type::New(cls, type_arguments, token_pos()));
   ASSERT(type_arguments.IsNull() ||
@@ -9460,7 +9415,7 @@ bool Type::Equals(const Instance& other) const {
   if (!other.IsType()) {
     return false;
   }
-  const AbstractType& other_type = AbstractType::Cast(other);
+  const Type& other_type = Type::Cast(other);
   ASSERT(IsFinalized() && other_type.IsFinalized());
   if (IsMalformed() || other_type.IsMalformed()) {
     return false;
@@ -9626,6 +9581,7 @@ void TypeParameter::set_is_finalized() const {
 
 
 bool TypeParameter::Equals(const Instance& other) const {
+  ASSERT(IsFinalized());
   if (raw() == other.raw()) {
     return true;
   }
@@ -9633,9 +9589,7 @@ bool TypeParameter::Equals(const Instance& other) const {
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  if (IsFinalized() != other_type_param.IsFinalized()) {
-    return false;
-  }
+  ASSERT(other_type_param.IsFinalized());
   if (parameterized_class() != other_type_param.parameterized_class()) {
     return false;
   }
@@ -9668,13 +9622,57 @@ void TypeParameter::set_bound(const AbstractType& value) const {
   StorePointer(&raw_ptr()->bound_, value.raw());
 }
 
+
 RawAbstractType* TypeParameter::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments) const {
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* malformed_error) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
+  // Bound checks should never appear in the instantiator type arguments.
+  ASSERT(!AbstractType::Handle(
+      instantiator_type_arguments.TypeAt(index())).IsBoundedType());
   return instantiator_type_arguments.TypeAt(index());
+}
+
+
+void TypeParameter::CheckBound(const AbstractType& bounded_type,
+                               const AbstractType& upper_bound,
+                               Error* malformed_error) const {
+  ASSERT(malformed_error->IsNull());
+  ASSERT(bounded_type.IsFinalized());
+  ASSERT(upper_bound.IsFinalized());
+  ASSERT(!bounded_type.IsMalformed());
+  if (bounded_type.IsSubtypeOf(upper_bound, malformed_error) ||
+      !malformed_error->IsNull()) {
+    return;
+  }
+  // Report the bound error.
+  const String& bounded_type_name = String::Handle(
+      bounded_type.UserVisibleName());
+  const String& upper_bound_name = String::Handle(
+      upper_bound.UserVisibleName());
+  const AbstractType& declared_bound = AbstractType::Handle(bound());
+  const String& declared_bound_name = String::Handle(
+      declared_bound.UserVisibleName());
+  const String& type_param_name = String::Handle(UserVisibleName());
+  const Class& cls = Class::Handle(parameterized_class());
+  const String& class_name = String::Handle(cls.Name());
+  const Script& script = Script::Handle(cls.script());
+  // Since the bound may have been canonicalized, its token index is
+  // meaningless, therefore use the token index of this type parameter.
+  *malformed_error = FormatError(
+      *malformed_error,
+      script,
+      token_pos(),
+      "type parameter '%s' of class '%s' must extend bound '%s', "
+      "but type argument '%s' is not a subtype of '%s'\n",
+      type_param_name.ToCString(),
+      class_name.ToCString(),
+      declared_bound_name.ToCString(),
+      bounded_type_name.ToCString(),
+      upper_bound_name.ToCString());
 }
 
 
@@ -9682,6 +9680,7 @@ intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
   uword result = 0;
   result += Class::Handle(parameterized_class()).id();
+  // Do not include the hash of the bound, which could lead to cycles.
   result <<= index();
   return FinalizeHash(result);
 }
@@ -9737,6 +9736,196 @@ const char* TypeParameter::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr);
   return chars;
+}
+
+
+bool BoundedType::IsMalformed() const {
+  return FLAG_enable_type_checks && AbstractType::Handle(bound()).IsMalformed();
+}
+
+
+RawError* BoundedType::malformed_error() const {
+  ASSERT(FLAG_enable_type_checks);
+  return AbstractType::Handle(bound()).malformed_error();
+}
+
+
+bool BoundedType::Equals(const Instance& other) const {
+  // BoundedType are not canonicalized, because their bound may get finalized
+  // after the BoundedType is created and initialized.
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsBoundedType()) {
+    return false;
+  }
+  const BoundedType& other_bounded = BoundedType::Cast(other);
+  if (type_parameter() != other_bounded.type_parameter()) {
+    // Not a structural compare.
+    // Note that a deep comparison of bounds could lead to cycles.
+    return false;
+  }
+  const AbstractType& this_type = AbstractType::Handle(type());
+  const AbstractType& other_type = AbstractType::Handle(other_bounded.type());
+  if (!this_type.Equals(other_type)) {
+    return false;
+  }
+  const AbstractType& this_bound = AbstractType::Handle(bound());
+  const AbstractType& other_bound = AbstractType::Handle(other_bounded.bound());
+  return this_bound.IsFinalized() &&
+         other_bound.IsFinalized() &&
+         this_bound.Equals(other_bound);
+}
+
+
+void BoundedType::set_type(const AbstractType& value) const {
+  ASSERT(value.IsFinalized());
+  ASSERT(!value.IsMalformed());
+  StorePointer(&raw_ptr()->type_, value.raw());
+}
+
+
+void BoundedType::set_bound(const AbstractType& value) const {
+  // The bound may still be unfinalized because of legal cycles.
+  // It must be finalized before it is checked at run time, though.
+  StorePointer(&raw_ptr()->bound_, value.raw());
+}
+
+
+void BoundedType::set_type_parameter(const TypeParameter& value) const {
+  // A null type parameter is set when marking a type malformed because of a
+  // bound error at compile time.
+  ASSERT(value.IsNull() || value.IsFinalized());
+  StorePointer(&raw_ptr()->type_parameter_, value.raw());
+}
+
+
+void BoundedType::set_is_being_checked(bool value) const {
+  raw_ptr()->is_being_checked_ = value;
+}
+
+
+RawAbstractType* BoundedType::InstantiateFrom(
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* malformed_error) const {
+  ASSERT(IsFinalized());
+  AbstractType& bounded_type = AbstractType::Handle(type());
+  if (!bounded_type.IsInstantiated()) {
+    bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
+                                                malformed_error);
+  }
+  if (FLAG_enable_type_checks &&
+      malformed_error->IsNull() &&
+      !is_being_checked()) {
+    // Avoid endless recursion while checking and instantiating bound.
+    set_is_being_checked(true);
+    AbstractType& upper_bound = AbstractType::Handle(bound());
+    ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
+    const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
+    if (!upper_bound.IsInstantiated()) {
+      upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
+                                                malformed_error);
+    }
+    if (malformed_error->IsNull()) {
+      type_param.CheckBound(bounded_type, upper_bound, malformed_error);
+    }
+    set_is_being_checked(false);
+  }
+  return bounded_type.raw();
+}
+
+
+intptr_t BoundedType::Hash() const {
+  uword result = 0;
+  result += AbstractType::Handle(type()).Hash();
+  // Do not include the hash of the bound, which could lead to cycles.
+  TypeParameter& type_param = TypeParameter::Handle(type_parameter());
+  if (!type_param.IsNull()) {
+    result += type_param.Hash();
+  }
+return FinalizeHash(result);
+}
+
+
+RawBoundedType* BoundedType::New() {
+  ASSERT(Isolate::Current()->object_store()->bounded_type_class() !=
+         Class::null());
+  RawObject* raw = Object::Allocate(BoundedType::kClassId,
+                                    BoundedType::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawBoundedType*>(raw);
+}
+
+
+RawBoundedType* BoundedType::New(const AbstractType& type,
+                                 const AbstractType& bound,
+                                 const TypeParameter& type_parameter) {
+  const BoundedType& result = BoundedType::Handle(BoundedType::New());
+  result.set_type(type);
+  result.set_bound(bound);
+  result.set_type_parameter(type_parameter);
+  result.set_is_being_checked(false);
+  return result.raw();
+}
+
+
+const char* BoundedType::ToCString() const {
+  const char* format = "BoundedType: type %s; bound: %s; class: %s";
+  const char* type_cstr = String::Handle(AbstractType::Handle(
+      type()).Name()).ToCString();
+  const char* bound_cstr = String::Handle(AbstractType::Handle(
+      bound()).Name()).ToCString();
+  const Class& cls = Class::Handle(TypeParameter::Handle(
+      type_parameter()).parameterized_class());
+  const char* cls_cstr =
+      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
+  intptr_t len = OS::SNPrint(
+      NULL, 0, format, type_cstr, bound_cstr, cls_cstr) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, cls_cstr);
+  return chars;
+}
+
+
+
+RawString* MixinAppType::Name() const {
+  return String::New("MixinApplication");
+}
+
+
+const char* MixinAppType::ToCString() const {
+  return "MixinAppType";
+}
+
+
+void MixinAppType::set_super_type(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->super_type_, value.raw());
+}
+
+
+void MixinAppType::set_mixin_types(const Array& value) const {
+  StorePointer(&raw_ptr()->mixin_types_, value.raw());
+}
+
+
+RawMixinAppType* MixinAppType::New() {
+  ASSERT(Isolate::Current()->object_store()->mixin_app_type_class() !=
+         Class::null());
+  // MixinAppType objects do not survive finalization, so allocate
+  // on new heap.
+  RawObject* raw = Object::Allocate(MixinAppType::kClassId,
+                                    MixinAppType::InstanceSize(),
+                                    Heap::kNew);
+  return reinterpret_cast<RawMixinAppType*>(raw);
+}
+
+
+RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
+                                   const Array& mixin_types) {
+  const MixinAppType& result = MixinAppType::Handle(MixinAppType::New());
+  result.set_super_type(super_type);
+  result.set_mixin_types(mixin_types);
+  return result.raw();
 }
 
 
@@ -11348,6 +11537,7 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
       if (IsSpecialCharacter(*CharAddr(str, i)) ||
+          (!raw_str && (*CharAddr(str, i) == '$')) ||
           (!raw_str && (*CharAddr(str, i) == '\\'))) {
         num_escapes += 1;
       }
@@ -11358,6 +11548,10 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
         *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
+        index += 2;
+      } else if (!raw_str && (*CharAddr(str, i) == '$')) {
+        *(CharAddr(dststr, index)) = '\\';
+        *(CharAddr(dststr, index + 1)) = '$';
         index += 2;
       } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
         *(CharAddr(dststr, index)) = '\\';
@@ -12220,6 +12414,125 @@ const char* Uint32x4::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, _x, _y, _z, _w);
   return chars;
+}
+
+
+const intptr_t TypedData::element_size[] = {
+  1,  // kTypedDataInt8ArrayCid.
+  1,  // kTypedDataUint8ArrayCid.
+  1,  // kTypedDataUint8ClampedArrayCid.
+  2,  // kTypedDataInt16ArrayCid.
+  2,  // kTypedDataUint16ArrayCid.
+  4,  // kTypedDataInt32ArrayCid.
+  4,  // kTypedDataUint32ArrayCid.
+  8,  // kTypedDataInt64ArrayCid.
+  8,  // kTypedDataUint64ArrayCid.
+  4,  // kTypedDataFloat32ArrayCid.
+  8,  // kTypedDataFloat64ArrayCid.
+};
+
+
+void TypedData::Copy(const TypedData& dst,
+                     intptr_t dst_offset_in_bytes,
+                     const TypedData& src,
+                     intptr_t src_offset_in_bytes,
+                     intptr_t length_in_bytes) {
+  ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                           length_in_bytes,
+                           src.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                           length_in_bytes,
+                           dst.LengthInBytes()));
+  {
+    NoGCScope no_gc;
+    if (length_in_bytes > 0) {
+      memmove(dst.DataAddr(dst_offset_in_bytes),
+              src.DataAddr(src_offset_in_bytes),
+              length_in_bytes);
+    }
+  }
+}
+
+
+RawTypedData* TypedData::New(intptr_t class_id,
+                             intptr_t len,
+                             Heap::Space space) {
+  // TODO(asiva): Add a check for maximum elements.
+  TypedData& result = TypedData::Handle();
+  {
+    // The len field has already been checked by the caller, we only assert
+    // here that it is within a valid range.
+    ASSERT((len >= 0) &&
+           (len < (kSmiMax / TypedData::ElementSizeInBytes(class_id))));
+    intptr_t lengthInBytes = len * ElementSizeInBytes(class_id);
+    RawObject* raw = Object::Allocate(class_id,
+                                      TypedData::InstanceSize(lengthInBytes),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    if (len > 0) {
+      memset(result.DataAddr(0), 0, lengthInBytes);
+    }
+  }
+  return result.raw();
+}
+
+
+const char* TypedData::ToCString() const {
+  return "TypedData";
+}
+
+
+FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
+    void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
+  SetPeer(peer);
+  return dart::AddFinalizer(*this, peer, callback);
+}
+
+
+void ExternalTypedData::Copy(const ExternalTypedData& dst,
+                             intptr_t dst_offset_in_bytes,
+                             const ExternalTypedData& src,
+                             intptr_t src_offset_in_bytes,
+                             intptr_t length_in_bytes) {
+  ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                           length_in_bytes,
+                           src.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                           length_in_bytes,
+                           dst.LengthInBytes()));
+  {
+    NoGCScope no_gc;
+    if (length_in_bytes > 0) {
+      memmove(dst.DataAddr(dst_offset_in_bytes),
+              src.DataAddr(src_offset_in_bytes),
+              length_in_bytes);
+    }
+  }
+}
+
+
+RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
+                                             uint8_t* data,
+                                             intptr_t len,
+                                             Heap::Space space) {
+  ExternalTypedData& result = ExternalTypedData::Handle();
+  {
+    RawObject* raw = Object::Allocate(class_id,
+                                      ExternalTypedData::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    result.SetData(data);
+  }
+  return result.raw();
+}
+
+
+const char* ExternalTypedData::ToCString() const {
+  return "ExternalTypedData";
 }
 
 

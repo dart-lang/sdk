@@ -10,7 +10,7 @@ part of _interceptors;
  * actually use the receiver of the method, which is generated as an extra
  * argument added to each member.
  */
-class JSString implements String {
+class JSString implements String, JSIndexable {
   const JSString();
 
   int codeUnitAt(int index) {
@@ -25,10 +25,12 @@ class JSString implements String {
     return allMatchesInStringUnchecked(this, str);
   }
 
-  String concat(String other) {
+  String operator +(String other) {
     if (other is !String) throw new ArgumentError(other);
     return JS('String', r'# + #', this, other);
   }
+
+  String concat(String other) => this + other;
 
   bool endsWith(String other) {
     checkString(other);

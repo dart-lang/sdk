@@ -155,7 +155,7 @@ class B {
   get y { _mark('y'); return 1; }
   get z { _mark('z'); return 2; }
 
-  _mark(m) { _order.add(m); return _order.toString(); }
+  _mark(m) { _order.write(m); return _order.toString(); }
   StringBuffer _order;
 
 }

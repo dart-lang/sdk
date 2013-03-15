@@ -692,6 +692,13 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
 }
 
 
+static bool CanUnboxInt32() {
+  // Int32/Uint32 can be unboxed if it fits into a smi or the platform
+  // supports unboxed mints.
+  return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedMints();
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
   ICData& value_check = ICData::ZoneHandle();
@@ -709,6 +716,13 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       // Check that value is always smi.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -717,12 +731,10 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       }
       break;
     case kInt32ArrayCid:
-    case kUint32ArrayCid: {
-      // Check if elements fit into a smi or the platform supports unboxed
-      // mints.
-      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-        return false;
-      }
+    case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
+      if (!CanUnboxInt32()) return false;
       // Check that value is always smi or mint, if the platform has unboxed
       // mints (ia32 with at least SSE 4.1).
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
@@ -739,7 +751,9 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       break;
     }
     case kFloat32ArrayCid:
-    case kFloat64ArrayCid: {
+    case kFloat64ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -779,11 +793,8 @@ bool FlowGraphOptimizer::TryInlineByteArraySetIndexed(InstanceCallInstr* call) {
     }
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      // Check if elements fit into a smi or the platform supports unboxed
-      // mints.
-      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-        return false;
-      }
+      if (!CanUnboxInt32()) return false;
+
       // We don't have ICData for the value stored, so we optimistically assume
       // smis first. If we ever deoptimized here, we require to unbox the value
       // before storing to handle the mint case, too.
@@ -853,12 +864,26 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
       case kUint16ArrayCid:
       case kInt32ArrayCid:
       case kUint32ArrayCid:
+      case kTypedDataInt8ArrayCid:
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+      case kTypedDataInt16ArrayCid:
+      case kTypedDataUint16ArrayCid:
+      case kTypedDataInt32ArrayCid:
+      case kTypedDataUint32ArrayCid:
         ASSERT(value_type.IsIntType());
         // Fall through.
       case kFloat32ArrayCid:
-      case kFloat64ArrayCid: {
+      case kFloat64ArrayCid:
+      case kTypedDataFloat32ArrayCid:
+      case kTypedDataFloat64ArrayCid: {
         type_args = instantiator = flow_graph_->constant_null();
-        ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
+        ASSERT((class_id != kFloat32ArrayCid &&
+                class_id != kFloat64ArrayCid &&
+                class_id != kTypedDataFloat32ArrayCid &&
+                class_id != kTypedDataFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
         break;
@@ -895,10 +920,12 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
                   call);
   }
 
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
   Definition* array_op = new StoreIndexedInstr(new Value(array),
                                                new Value(index),
                                                new Value(stored_value),
                                                needs_store_barrier,
+                                               index_scale,
                                                array_cid,
                                                call->deopt_id());
   ReplaceCall(call, array_op);
@@ -923,15 +950,22 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       break;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      // Check if elements fit into a smi or the platform supports unboxed
-      // mints.
-      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-        return false;
-      }
-      {
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
+        if (!CanUnboxInt32()) return false;
+
         // Set deopt_id if we can optimistically assume that the result is Smi.
         // Assume mixed Mint/Smi if this instruction caused deoptimization once.
         ASSERT(call->HasICData());
@@ -946,10 +980,11 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   Definition* array = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(array_cid);
   Definition* array_op =
       new LoadIndexedInstr(new Value(array),
                            new Value(index),
-                           FlowGraphCompiler::ElementSizeFor(array_cid),
+                           index_scale,
                            array_cid,
                            deopt_id);
   ReplaceCall(call, array_op);
@@ -1328,6 +1363,11 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
       return Array::length_offset();
     case MethodRecognizer::kByteArrayBaseLength:
       return ByteArray::length_offset();
+    case MethodRecognizer::kTypedDataLength:
+      // .length is defined in _TypedList which is the base class for internal
+      // and external typed data.
+      ASSERT(TypedData::length_offset() == ExternalTypedData::length_offset());
+      return TypedData::length_offset();
     case MethodRecognizer::kGrowableArrayLength:
       return GrowableObjectArray::length_offset();
     default:
@@ -1366,6 +1406,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
     case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kGrowableArrayLength: {
       if (!ic_data.HasOneTarget()) {
         // TODO(srdjan): Implement for mutiple targets.
@@ -1374,7 +1415,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       const bool is_immutable =
           (recognized_kind == MethodRecognizer::kObjectArrayLength) ||
           (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-          (recognized_kind == MethodRecognizer::kByteArrayBaseLength);
+          (recognized_kind == MethodRecognizer::kByteArrayBaseLength) ||
+          (recognized_kind == MethodRecognizer::kTypedDataLength);
       InlineArrayLengthGetter(call,
                               OffsetForLengthGetter(recognized_kind),
                               is_immutable,
@@ -1460,13 +1502,11 @@ void FlowGraphOptimizer::ReplaceWithMathCFunction(
 }
 
 
-static bool IsSupportedByteArrayCid(intptr_t cid) {
+static bool IsSupportedByteArrayViewCid(intptr_t cid) {
   switch (cid) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kInt32ArrayCid:
@@ -1601,57 +1641,177 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (IsSupportedByteArrayCid(class_ids[0]) &&
+  if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    Definition* array_op = NULL;
+    // For elements that may not fit into a smi on all platforms, check if
+    // elements fit into a smi or the platform supports unboxed mints.
+    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetInt32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseGetUint32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetInt32) ||
+        (recognized_kind == MethodRecognizer::kByteArrayBaseSetUint32)) {
+      if (!CanUnboxInt32()) return false;
+    }
+
     switch (recognized_kind) {
+      // ByteArray getters.
       case MethodRecognizer::kByteArrayBaseGetInt8:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint8:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt16:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint16:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt32:
-        // Check if elements fit into a smi or the platform supports unboxed
-        // mints.
-        if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-          return false;
-        }
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint32:
-        // Check if elements fit into a smi or the platform supports unboxed
-        // mints.
-        if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
-          return false;
-        }
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat64:
-        array_op = BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
-        break;
+        return BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
+
+      // ByteArray setters.
+      case MethodRecognizer::kByteArrayBaseSetInt8:
+        return BuildByteArrayViewStore(call, class_ids[0], kInt8ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint8:
+        return BuildByteArrayViewStore(call, class_ids[0], kUint8ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetInt16:
+        return BuildByteArrayViewStore(call, class_ids[0], kInt16ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint16:
+        return BuildByteArrayViewStore(call, class_ids[0], kUint16ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetInt32:
+        return BuildByteArrayViewStore(call, class_ids[0], kInt32ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint32:
+        return BuildByteArrayViewStore(call, class_ids[0], kUint32ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetFloat32:
+        return BuildByteArrayViewStore(call, class_ids[0], kFloat32ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetFloat64:
+        return BuildByteArrayViewStore(call, class_ids[0], kFloat64ArrayCid);
       default:
         // Unsupported method.
         return false;
     }
-    ASSERT(array_op != NULL);
-    ReplaceCall(call, array_op);
-    return true;
   }
   return false;
 }
 
 
-LoadIndexedInstr* FlowGraphOptimizer::BuildByteArrayViewLoad(
+bool FlowGraphOptimizer::BuildByteArrayViewLoad(
+    InstanceCallInstr* call,
+    intptr_t receiver_cid,
+    intptr_t view_cid) {
+  PrepareByteArrayViewOp(call, receiver_cid, view_cid);
+
+  Definition* array = call->ArgumentAt(0);
+  Definition* byte_index = call->ArgumentAt(1);
+
+  // Optimistically build a smi-checked load for Int32 and Uint32
+  // loads on ia32 like we do for normal array loads, and only revert to
+  // mint case after deoptimizing here.
+  intptr_t deopt_id = Isolate::kNoDeoptId;
+  if ((view_cid == kInt32ArrayCid || view_cid == kUint32ArrayCid) &&
+      call->ic_data()->deopt_reason() == kDeoptUnknown) {
+    deopt_id = call->deopt_id();
+  }
+  LoadIndexedInstr* array_op = new LoadIndexedInstr(new Value(array),
+                                                    new Value(byte_index),
+                                                    1,  // Index scale.
+                                                    view_cid,
+                                                    deopt_id);
+  ReplaceCall(call, array_op);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::BuildByteArrayViewStore(
+    InstanceCallInstr* call,
+    intptr_t receiver_cid,
+    intptr_t view_cid) {
+  PrepareByteArrayViewOp(call, receiver_cid, view_cid);
+  ICData& value_check = ICData::ZoneHandle();
+  switch (view_cid) {
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid: {
+      // Check that value is always smi.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      break;
+    }
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // We don't have ICData for the value stored, so we optimistically assume
+      // smis first. If we ever deoptimized here, we require to unbox the value
+      // before storing to handle the mint case, too.
+      if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
+        value_check = ICData::New(Function::Handle(),
+                                  String::Handle(),
+                                  Isolate::kNoDeoptId,
+                                  1);
+        value_check.AddReceiverCheck(kSmiCid, Function::Handle());
+      }
+      break;
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid: {
+      // Check that value is always double.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
+      break;
+    }
+    default:
+      // Array cids are already checked in the caller.
+      UNREACHABLE();
+      return NULL;
+  }
+
+  Definition* array = call->ArgumentAt(0);
+  Definition* index = call->ArgumentAt(1);
+  Definition* stored_value = call->ArgumentAt(2);
+  if (!value_check.IsNull()) {
+    AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
+                  call);
+  }
+  StoreBarrierType needs_store_barrier = kNoStoreBarrier;
+
+
+  // result = index + bytesPerElement.
+  intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
+  ConstantInstr* bytes_per_element =
+      new ConstantInstr(Smi::Handle(Smi::New(element_size)));
+  InsertBefore(call, bytes_per_element, NULL, Definition::kValue);
+  BinarySmiOpInstr* result =
+      new BinarySmiOpInstr(Token::kADD,
+                           call,
+                           new Value(index),
+                           new Value(bytes_per_element));
+  InsertBefore(call, result, call->env(), Definition::kValue);
+
+  StoreIndexedInstr* array_op = new StoreIndexedInstr(new Value(array),
+                                                      new Value(index),
+                                                      new Value(stored_value),
+                                                      needs_store_barrier,
+                                                      1,  // Index scale
+                                                      view_cid,
+                                                      call->deopt_id());
+  call->ReplaceUsesWith(result);  // Fix uses of the call's return value.
+  ReplaceCall(call, array_op);
+  array_op->ClearSSATempIndex();  // Store has no uses.
+  return true;
+}
+
+
+void FlowGraphOptimizer::PrepareByteArrayViewOp(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
     intptr_t view_cid) {
@@ -1690,15 +1850,6 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildByteArrayViewLoad(
                                         call),
                call->env(),
                Definition::kEffect);
-
-  // TODO(fschneider): Optimistically build smi load for Int32 and Uint32
-  // loads on ia32 like we do for normal array loads, and only revert to
-  // mint case after deoptimizing here.
-  return new LoadIndexedInstr(new Value(array),
-                              new Value(byte_index),
-                              1,  // Index scale.
-                              view_cid,
-                              Isolate::kNoDeoptId);  // Can't deoptimize.
 }
 
 
@@ -1790,8 +1941,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  if ((op_kind == Token::kASSIGN_INDEX) &&
-      TryReplaceWithStoreIndexed(instr)) {
+  if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithStoreIndexed(instr)) {
     return;
   }
   if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
@@ -3593,6 +3743,13 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 }
 
 
+void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    it.Current()->Accept(this);
+  }
+}
+
+
 void ConstantPropagator::VisitParallelMove(ParallelMoveInstr* instr) {
   // Parallel moves have not yet been inserted in the graph.
   UNREACHABLE();
@@ -4370,6 +4527,187 @@ void ConstantPropagator::Transform() {
     OS::Print("\n==== After constant propagation ====\n");
     FlowGraphPrinter printer(*graph_);
     printer.PrintBlocks();
+  }
+}
+
+
+bool BranchSimplifier::Match(JoinEntryInstr* block) {
+  // Match the pattern of a branch on a comparison whose left operand is a
+  // phi from the same block, and whose right operand is a constant.
+  //
+  //   Branch(Comparison(kind, Phi, Constant))
+  //
+  // These are the branches produced by inlining in a test context.  Also,
+  // the phi and the constant have no other uses so they can simply be
+  // eliminated.  The block has no other phis and no instructions
+  // intervening between the phi, constant, and branch so the block can
+  // simply be eliminated.
+  BranchInstr* branch = block->last_instruction()->AsBranch();
+  ASSERT(branch != NULL);
+  ComparisonInstr* comparison = branch->comparison();
+  Value* left = comparison->left();
+  PhiInstr* phi = left->definition()->AsPhi();
+  Value* right = comparison->right();
+  ConstantInstr* constant = right->definition()->AsConstant();
+  return (phi != NULL) &&
+      (constant != NULL) &&
+      (phi->GetBlock() == block) &&
+      phi->HasOnlyUse(left) &&
+      constant->HasOnlyUse(right) &&
+      (block->next() == constant) &&
+      (constant->next() == branch) &&
+      (block->phis()->length() == 1);
+}
+
+
+JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
+  // Convert a target block into a join block.  Branches will be duplicated
+  // so the former true and false targets become joins of the control flows
+  // from all the duplicated branches.
+  JoinEntryInstr* join =
+      new JoinEntryInstr(target->block_id(), target->try_index());
+  join->LinkTo(target->next());
+  join->set_last_instruction(target->last_instruction());
+  return join;
+}
+
+
+ConstantInstr* BranchSimplifier::CloneConstant(FlowGraph* flow_graph,
+                                               ConstantInstr* constant) {
+  ConstantInstr* new_constant = new ConstantInstr(constant->value());
+  new_constant->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
+  return new_constant;
+}
+
+
+BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
+                                           Value* left,
+                                           Value* right) {
+  ComparisonInstr* comparison = branch->comparison();
+  ComparisonInstr* new_comparison = NULL;
+  if (comparison->IsStrictCompare()) {
+    new_comparison = new StrictCompareInstr(comparison->kind(), left, right);
+  } else if (comparison->IsEqualityCompare()) {
+    new_comparison =
+        new EqualityCompareInstr(comparison->AsEqualityCompare()->token_pos(),
+                                 comparison->kind(),
+                                 left,
+                                 right);
+  } else {
+    ASSERT(comparison->IsRelationalOp());
+    new_comparison =
+        new RelationalOpInstr(comparison->AsRelationalOp()->token_pos(),
+                              comparison->kind(),
+                              left,
+                              right);
+  }
+  return new BranchInstr(new_comparison, branch->is_checked());
+}
+
+
+void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
+  // Optimize some branches that test the value of a phi.  When it is safe
+  // to do so, push the branch to each of the predecessor blocks.  This is
+  // an optimization when (a) it can avoid materializing a boolean object at
+  // the phi only to test its value, and (b) it can expose opportunities for
+  // constant propagation and unreachable code elimination.  This
+  // optimization is intended to run after inlining which creates
+  // opportunities for optimization (a) and before constant folding which
+  // can perform optimization (b).
+
+  // Begin with a worklist of join blocks ending in branches.  They are
+  // candidates for the pattern below.
+  const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();
+  GrowableArray<BlockEntryInstr*> worklist(postorder.length());
+  for (BlockIterator it(postorder); !it.Done(); it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    if (block->IsJoinEntry() && block->last_instruction()->IsBranch()) {
+      worklist.Add(block);
+    }
+  }
+
+  // Rewrite until no more instance of the pattern exists.
+  bool changed = false;
+  while (!worklist.is_empty()) {
+    // All blocks in the worklist are join blocks (ending with a branch).
+    JoinEntryInstr* block = worklist.RemoveLast()->AsJoinEntry();
+    ASSERT(block != NULL);
+
+    if (Match(block)) {
+      changed = true;
+
+      // The branch will be copied and pushed to all the join's
+      // predecessors.  Convert the true and false target blocks into join
+      // blocks to join the control flows from all of the true
+      // (respectively, false) targets of the copied branches.
+      //
+      // The converted join block will have no phis, so it cannot be another
+      // instance of the pattern.  There is thus no need to add it to the
+      // worklist.
+      BranchInstr* branch = block->last_instruction()->AsBranch();
+      ASSERT(branch != NULL);
+      JoinEntryInstr* join_true = ToJoinEntry(branch->true_successor());
+      JoinEntryInstr* join_false = ToJoinEntry(branch->false_successor());
+
+      ComparisonInstr* comparison = branch->comparison();
+      PhiInstr* phi = comparison->left()->definition()->AsPhi();
+      ConstantInstr* constant = comparison->right()->definition()->AsConstant();
+      ASSERT(constant != NULL);
+      // Copy the constant and branch and push it to all the predecessors.
+      for (intptr_t i = 0, count = block->PredecessorCount(); i < count; ++i) {
+        GotoInstr* old_goto =
+            block->PredecessorAt(i)->last_instruction()->AsGoto();
+        ASSERT(old_goto != NULL);
+
+        // Insert a copy of the constant in all the predecessors.
+        ConstantInstr* new_constant = CloneConstant(flow_graph, constant);
+        new_constant->InsertBefore(old_goto);
+
+        // Replace the goto in each predecessor with a rewritten branch,
+        // rewritten to use the corresponding phi input instead of the phi.
+        Value* new_left = phi->InputAt(i)->Copy();
+        Value* new_right = new Value(new_constant);
+        BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
+        new_branch->InsertBefore(old_goto);
+        new_branch->set_next(NULL);  // Detaching the goto from the graph.
+        old_goto->UnuseAllInputs();
+
+        // Update the predecessor block.  We may have created another
+        // instance of the pattern so add it to the worklist if necessary.
+        BlockEntryInstr* branch_block = new_branch->GetBlock();
+        branch_block->set_last_instruction(new_branch);
+        if (branch_block->IsJoinEntry()) worklist.Add(branch_block);
+
+        // Connect the branch to the true and false joins, via empty target
+        // blocks.
+        TargetEntryInstr* true_target =
+            new TargetEntryInstr(flow_graph->max_block_id() + 1,
+                                 block->try_index());
+        TargetEntryInstr* false_target =
+            new TargetEntryInstr(flow_graph->max_block_id() + 2,
+                                 block->try_index());
+        flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
+        *new_branch->true_successor_address() = true_target;
+        *new_branch->false_successor_address() = false_target;
+        GotoInstr* goto_true = new GotoInstr(join_true);
+        true_target->LinkTo(goto_true);
+        true_target->set_last_instruction(goto_true);
+        GotoInstr* goto_false = new GotoInstr(join_false);
+        false_target->LinkTo(goto_false);
+        false_target->set_last_instruction(goto_false);
+      }
+      // When all predecessors have been rewritten, the original block is
+      // unreachable from the graph.
+      phi->UnuseAllInputs();
+      branch->UnuseAllInputs();
+    }
+  }
+
+  if (changed) {
+    // We may have changed the block order and the dominator tree.
+    flow_graph->DiscoverBlocks();
+    GrowableArray<BitVector*> dominance_frontier;
+    flow_graph->ComputeDominators(&dominance_frontier);
   }
 }
 

@@ -51,9 +51,9 @@ class _Base64 {
     StringBuffer output = new StringBuffer();
     for (i = 0; i < characters.length; i++) {
       if (i > 0 && i % 76 == 0) {
-        output.add("\r\n");
+        output.write("\r\n");
       }
-      output.add(characters[i]);
+      output.write(characters[i]);
     }
     return output.toString();
   }

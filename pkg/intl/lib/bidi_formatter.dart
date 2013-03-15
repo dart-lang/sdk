@@ -130,7 +130,7 @@ class BidiFormatter {
     } else {
       result = text;
     }
-    return result.concat(resetDir? _resetDir(text, direction, isHtml) : '');
+    return result + (resetDir? _resetDir(text, direction, isHtml) : '');
   }
 
   /**
@@ -161,7 +161,7 @@ class BidiFormatter {
       result = "${marker}$text${Bidi.PDF}";
 
     }
-    return result.concat(resetDir? _resetDir(text, direction, isHtml) : '');
+    return result + (resetDir? _resetDir(text, direction, isHtml) : '');
   }
 
   /**

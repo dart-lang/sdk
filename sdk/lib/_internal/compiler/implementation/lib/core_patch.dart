@@ -193,9 +193,8 @@ patch class List<E> {
 
 
 patch class String {
-  patch factory String.fromCharCodes(List<int> charCodes) {
+  patch factory String.fromCharCodes(Iterable<int> charCodes) {
     if (!isJsArray(charCodes)) {
-      if (charCodes is !List) throw new ArgumentError(charCodes);
       charCodes = new List.from(charCodes);
     }
     return Primitives.stringFromCharCodes(charCodes);
@@ -234,6 +233,10 @@ patch class StringBuffer {
     _contents = Primitives.stringConcatUnchecked(_contents, str);
   }
 
+  patch void writeCharCode(int charCode) {
+    write(new String.fromCharCode(charCode));
+  }
+
   patch void clear() {
     _contents = "";
   }
@@ -248,19 +251,19 @@ patch class NoSuchMethodError {
     if (_arguments != null) {
       for (; i < _arguments.length; i++) {
         if (i > 0) {
-          sb.add(", ");
+          sb.write(", ");
         }
-        sb.add(Error.safeToString(_arguments[i]));
+        sb.write(Error.safeToString(_arguments[i]));
       }
     }
     if (_namedArguments != null) {
       _namedArguments.forEach((String key, var value) {
         if (i > 0) {
-          sb.add(", ");
+          sb.write(", ");
         }
-        sb.add(key);
-        sb.add(": ");
-        sb.add(Error.safeToString(value));
+        sb.write(key);
+        sb.write(": ");
+        sb.write(Error.safeToString(value));
         i++;
       });
     }
@@ -273,9 +276,9 @@ patch class NoSuchMethodError {
       sb = new StringBuffer();
       for (int i = 0; i < _existingArgumentNames.length; i++) {
         if (i > 0) {
-          sb.add(", ");
+          sb.write(", ");
         }
-        sb.add(_existingArgumentNames[i]);
+        sb.write(_existingArgumentNames[i]);
       }
       String formalParameters = sb.toString();
       return "NoSuchMethodError: incorrect number of arguments passed to "
@@ -296,4 +299,3 @@ patch class StackTrace {
     throw new UnsupportedError('stackTrace');
   }
 }
-

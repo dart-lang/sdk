@@ -247,7 +247,7 @@ class _Directory implements Directory {
     responsePort.receive((message, replyTo) {
       if (message is !List || message[RESPONSE_TYPE] is !int) {
         responsePort.close();
-        controller.signalError(new DirectoryIOException("Internal error"));
+        controller.addError(new DirectoryIOException("Internal error"));
         return;
       }
       switch (message[RESPONSE_TYPE]) {
@@ -261,7 +261,7 @@ class _Directory implements Directory {
           var errorType =
               message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
           if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
-            controller.signalError(new ArgumentError());
+            controller.addError(new ArgumentError());
           } else if (errorType == _OSERROR_RESPONSE) {
             var responseError = message[RESPONSE_ERROR];
             var err = new OSError(
@@ -269,12 +269,12 @@ class _Directory implements Directory {
                 responseError[_OSERROR_RESPONSE_ERROR_CODE]);
             var errorPath = message[RESPONSE_PATH];
             if (errorPath == null) errorPath = path;
-            controller.signalError(
+            controller.addError(
                 new DirectoryIOException("Directory listing failed",
                                          errorPath,
                                          err));
           } else {
-            controller.signalError(new DirectoryIOException("Internal error"));
+            controller.addError(new DirectoryIOException("Internal error"));
           }
           break;
         case LIST_DONE:

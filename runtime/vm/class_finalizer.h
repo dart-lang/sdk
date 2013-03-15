@@ -11,6 +11,7 @@
 namespace dart {
 
 class AbstractType;
+class MixinAppType;
 class AbstractTypeArguments;
 class Class;
 class Error;
@@ -99,13 +100,23 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const Function& factory,
       const GrowableObjectArray& visited_factories);
+  static void CloneTypeParameters(const Class& mixapp_class);
   static void ApplyMixin(const Class& cls);
+  static void CollectTypeArguments(const Class& cls,
+                                   const Type& type,
+                                   const GrowableObjectArray& collected_args);
+  static RawType* ResolveMixinAppType(const Class& cls,
+                                      const MixinAppType& mixin_app);
   static void ResolveSuperTypeAndInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,
-                                    FinalizationKind finalization);
+                                    FinalizationKind finalization,
+                                    Error* bound_error);
+  static void CheckTypeArgumentBounds(const Class& cls,
+                                      const AbstractTypeArguments& arguments,
+                                      Error* bound_error);
   static void ResolveType(const Class& cls,
                           const AbstractType& type,
                           FinalizationKind finalization);

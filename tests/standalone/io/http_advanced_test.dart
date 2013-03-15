@@ -145,8 +145,7 @@ class TestServer {
     Expect.equals("html", request.headers.contentType.subType);
     Expect.equals("utf-8", request.headers.contentType.parameters["charset"]);
 
-    ContentType contentType = new ContentType("text", "html");
-    contentType.parameters["charset"] = "utf-8";
+    ContentType contentType = new ContentType("text", "html", charset: "utf-8");
     response.headers.contentType = contentType;
     response.close();
   }
@@ -347,10 +346,8 @@ Future testContentType() {
 
     httpClient.get("127.0.0.1", port, "/contenttype1")
         .then((request) {
-          ContentType contentType = new ContentType();
-          contentType.value = "text/html";
-          contentType.parameters["charset"] = "utf-8";
-          request.headers.contentType = contentType;
+          request.headers.contentType =
+              new ContentType("text", "html", charset: "utf-8");
           return request.close();
         })
         .then(processResponse);

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,7 +25,7 @@ void main() {
         'method': 'POST',
         'path': '/',
         'headers': {
-          'content-type': ['text/plain; charset=UTF-8'],
+          'content-type': ['text/plain; charset=utf-8'],
           'content-length': ['5']
         },
         'body': 'hello'
@@ -246,7 +246,7 @@ void main() {
       var request = new http.Request('POST', dummyUrl);
       request.bodyFields = {'hello': 'world'};
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
-          equals('application/x-www-form-urlencoded; charset=UTF-8'));
+          equals('application/x-www-form-urlencoded; charset=utf-8'));
     });
 
     test('is set to application/x-www-form-urlencoded with the given charset '
@@ -255,7 +255,7 @@ void main() {
       request.encoding = Encoding.ISO_8859_1;
       request.bodyFields = {'hello': 'world'};
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
-          equals('application/x-www-form-urlencoded; charset=ISO-8859-1'));
+          equals('application/x-www-form-urlencoded; charset=iso-8859-1'));
     });
 
     test('is set to text/plain and the given encoding if body and encoding are '
@@ -264,7 +264,7 @@ void main() {
       request.encoding = Encoding.ISO_8859_1;
       request.body = 'hello, world';
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
-          equals('text/plain; charset=ISO-8859-1'));
+          equals('text/plain; charset=iso-8859-1'));
     });
 
     test('is modified to include utf-8 if body is set', () {
@@ -272,7 +272,7 @@ void main() {
       request.headers[HttpHeaders.CONTENT_TYPE] = 'application/json';
       request.body = '{"hello": "world"}';
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
-          equals('application/json; charset=UTF-8'));
+          equals('application/json; charset=utf-8'));
     });
 
     test('is modified to include the given encoding if encoding is set', () {
@@ -280,7 +280,7 @@ void main() {
       request.headers[HttpHeaders.CONTENT_TYPE] = 'application/json';
       request.encoding = Encoding.ISO_8859_1;
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
-          equals('application/json; charset=ISO-8859-1'));
+          equals('application/json; charset=iso-8859-1'));
     });
 
     test('has its charset overridden by an explicit encoding', () {
@@ -289,7 +289,7 @@ void main() {
           'application/json; charset=utf-8';
       request.encoding = Encoding.ISO_8859_1;
       expect(request.headers[HttpHeaders.CONTENT_TYPE],
-          equals('application/json; charset=ISO-8859-1'));
+          equals('application/json; charset=iso-8859-1'));
     });
 
     test("doen't have its charset overridden by setting bodyFields", () {

@@ -13,6 +13,6 @@
 #import("dart:isolate");
 #import("dart:math");
 #import("dart:nativewrappers");
-#import("dart:scalarlist");
+#import("dart:typeddata");
 #import("dart:uri");
 #import("dart:utf");

@@ -392,6 +392,12 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     close();
   }
 
+  bool setOption(SocketOption option, bool enabled) {
+    if (option is! SocketOption) throw new ArgumentError(options);
+    if (enabled is! bool) throw new ArgumentError(enabled);
+    return nativeSetOption(option._value, enabled);
+  }
+
   nativeAvailable() native "Socket_Available";
   nativeRead(int len) native "Socket_Read";
   nativeWrite(List<int> buffer, int offset, int bytes)
@@ -403,6 +409,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   int nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   OSError nativeGetError() native "Socket_GetError";
+  bool nativeSetOption(int option, bool enabled) native "Socket_SetOption";
 
   static SendPort newServicePort() native "Socket_NewServicePort";
 }
@@ -434,7 +441,7 @@ class _RawServerSocket extends Stream<RawSocket>
         if (socket != null) _controller.add(new _RawSocket(socket));
       },
       error: (e) {
-        _controller.signalError(new AsyncError(e));
+        _controller.addError(new AsyncError(e));
         _controller.close();
       }
     );
@@ -507,7 +514,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
       error: (e) {
-        _controller.signalError(new AsyncError(e));
+        _controller.addError(new AsyncError(e));
         close();
       }
     );
@@ -570,6 +577,9 @@ class _RawSocket extends Stream<RawSocketEvent>
       if (!_controller.isPaused) _resume();
     }
   }
+
+  bool setOption(SocketOption option, bool enabled) =>
+      _socket.setOption(option, enabled);
 
   _pause() {
     _socket.setListening(read: false, write: false);
@@ -763,20 +773,28 @@ class _Socket extends Stream<List<int>> implements Socket {
         unsubscribeOnError: unsubscribeOnError);
   }
 
+  Encoding get encoding => _sink.encoding;
+
+  void set encoding(Encoding value) {
+    _sink.encoding = value;
+  }
+
+  void write(Object obj) => _sink.write(obj);
+
+  void writeln([Object obj = ""]) => _sink.writeln(obj);
+
+  void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
+
+  void writeAll(Iterable objects) => _sink.writeAll(objects);
+
+  void writeBytes(List<int> bytes) => _sink.writeBytes(bytes);
+
   Future<Socket> consume(Stream<List<int>> stream) {
     return _sink.consume(stream);
   }
 
-  Future<Socket> addStream(Stream<List<int>> stream) {
-    return _sink.addStream(stream);
-  }
-
-  void add(List<int> data) {
-    return _sink.add(data);
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    return _sink.addString(string, encoding);
+  Future<Socket> writeStream(Stream<List<int>> stream) {
+    return _sink.writeStream(stream);
   }
 
   close() => _sink.close();
@@ -790,6 +808,11 @@ class _Socket extends Stream<List<int>> implements Socket {
     _closeRawSocket();
     _controllerClosed = true;
     _controller.close();
+  }
+
+  bool setOption(SocketOption option, bool enabled) {
+    if (_raw == null) return false;
+    return _raw.setOption(option, enabled);
   }
 
   int get port => _raw.port;
@@ -863,7 +886,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   void _onError(error) {
     if (!_controllerClosed) {
       _controllerClosed = true;
-      _controller.signalError(error);
+      _controller.addError(error);
       _controller.close();
     }
     _done(error);

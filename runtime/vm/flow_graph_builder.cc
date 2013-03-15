@@ -9,6 +9,7 @@
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
@@ -56,13 +57,8 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
     graph_entry_(NULL) { }
 
 
-void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
+void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
   graph_entry_->AddCatchEntry(entry);
-}
-
-
-InliningContext* InliningContext::Create(Definition* call) {
-  return new ValueInliningContext();
 }
 
 
@@ -96,18 +92,18 @@ void InliningContext::PrepareGraphs(FlowGraph* caller_graph,
 }
 
 
-void ValueInliningContext::AddExit(ReturnInstr* exit) {
+void InliningContext::AddExit(ReturnInstr* exit) {
   Data data = { NULL, exit };
   exits_.Add(data);
 }
 
 
-int ValueInliningContext::LowestBlockIdFirst(const Data* a, const Data* b) {
+int InliningContext::LowestBlockIdFirst(const Data* a, const Data* b) {
   return (a->exit_block->block_id() - b->exit_block->block_id());
 }
 
 
-void ValueInliningContext::SortExits() {
+void InliningContext::SortExits() {
   // Assign block entries here because we did not necessarily know them when
   // the return exit was added to the array.
   for (int i = 0; i < exits_.length(); ++i) {
@@ -117,9 +113,9 @@ void ValueInliningContext::SortExits() {
 }
 
 
-void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
-                                       Definition* call,
-                                       FlowGraph* callee_graph) {
+void InliningContext::ReplaceCall(FlowGraph* caller_graph,
+                                  Definition* call,
+                                  FlowGraph* callee_graph) {
   ASSERT(call->previous() != NULL);
   ASSERT(call->next() != NULL);
   PrepareGraphs(caller_graph, call, callee_graph);
@@ -406,7 +402,7 @@ PushArgumentInstr* EffectGraphVisitor::PushArgument(Value* value) {
 Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
                                                Value* value) {
   ASSERT(!local.is_captured());
-  return new StoreLocalInstr(local, value, owner()->context_level());
+  return new StoreLocalInstr(local, value);
 }
 
 
@@ -450,7 +446,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(
       return store;
     }
   } else {
-    return new StoreLocalInstr(local, value, owner()->context_level());
+    return new StoreLocalInstr(local, value);
   }
 }
 
@@ -470,7 +466,7 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
                               Context::variable_offset(local.index()),
                               local.type());
   } else {
-    return new LoadLocalInstr(local, owner()->context_level());
+    return new LoadLocalInstr(local);
   }
 }
 
@@ -1062,13 +1058,17 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       // instantiated).
       result = new ConstantInstr(negate_result ? Bool::True() : Bool::False());
     } else {
-      if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
+      Error& malformed_error = Error::Handle();
+      if (literal_value.IsInstanceOf(type,
+                                     TypeArguments::Handle(),
+                                     &malformed_error)) {
         result = new ConstantInstr(negate_result ?
                                    Bool::False() : Bool::True());
       } else {
         result = new ConstantInstr(negate_result ?
                                    Bool::True() : Bool::False());
       }
+      ASSERT(malformed_error.IsNull());
     }
     ReturnDefinition(result);
     return;
@@ -1675,7 +1675,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   const intptr_t deopt_id = Isolate::kNoDeoptId;
   for (int i = 0; i < node->length(); ++i) {
     Value* array = Bind(
-        new LoadLocalInstr(node->temp_local(), owner()->context_level()));
+        new LoadLocalInstr(node->temp_local()));
     Value* index = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(i))));
     ValueGraphVisitor for_value(owner(), temp_index());
     node->ElementAt(i)->Visit(&for_value);
@@ -1685,14 +1685,14 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
         for_value.value()->BindsToConstant()
             ? kNoStoreBarrier
             : kEmitStoreBarrier;
+    intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
     StoreIndexedInstr* store = new StoreIndexedInstr(
         array, index, for_value.value(),
-        emit_store_barrier, class_id, deopt_id);
+        emit_store_barrier, index_scale, class_id, deopt_id);
     Do(store);
   }
 
-  ReturnDefinition(
-      new LoadLocalInstr(node->temp_local(), owner()->context_level()));
+  ReturnDefinition(new LoadLocalInstr(node->temp_local()));
 }
 
 
@@ -1927,18 +1927,13 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
       requires_type_arguments &&
       !node->type_arguments().IsNull() &&
       !node->type_arguments().IsInstantiated() &&
-      !node->type_arguments().IsWithinBoundsOf(cls,
-                                               node->type_arguments(),
-                                               NULL)) {
+      node->type_arguments().IsBounded()) {
     Value* type_arguments = NULL;
     Value* instantiator = NULL;
     BuildConstructorTypeArguments(node, &type_arguments, &instantiator, NULL);
 
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
-    // Although the type arguments may be uninstantiated at compile time, they
-    // may represent the identity vector and may be replaced by the instantiated
-    // type arguments of the instantiator at run time.
     allocate_comp = new AllocateObjectWithBoundsCheckInstr(node,
                                                            type_arguments,
                                                            instantiator);
@@ -1976,12 +1971,25 @@ void EffectGraphVisitor::BuildConstructorCall(
 }
 
 
-// List of recognized factories in core lib (factories with known result-cid):
+// List of recognized list factories in core lib:
 // (factory-name-symbol, result-cid, fingerprint).
-#define RECOGNIZED_FACTORY_LIST(V)                                             \
-  V(ObjectArrayDot, kArrayCid, 97987288)                                       \
+// TODO(srdjan): Store the values in the snapshot instead.
+// TODO(srdjan): Add Float32x4List.
+#define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
+  V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
-  V(GrowableObjectArrayDot, kGrowableObjectArrayCid, 1896741574)               \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1896741574)           \
+  V(Int8ListFactory, kInt8ArrayCid, 817410959)                                 \
+  V(Uint8ListFactory, kUint8ArrayCid, 220896178)                               \
+  V(Uint8ClampedListFactory, kUint8ClampedArrayCid, 422034060)                 \
+  V(Int16ListFactory, kInt16ArrayCid, 214246025)                               \
+  V(Uint16ListFactory, kUint16ArrayCid, 137929963)                             \
+  V(Int32ListFactory, kInt32ArrayCid, 1977571010)                              \
+  V(Uint32ListFactory, kUint32ArrayCid, 407638944)                             \
+  V(Int64ListFactory, kInt64ArrayCid, 885130273)                               \
+  V(Uint64ListFactory, kUint64ArrayCid, 1471017221)                            \
+  V(Float64ListFactory, kFloat64ArrayCid, 1037441059)                          \
+  V(Float32ListFactory, kFloat32ArrayCid, 2035252095)                          \
 
 
 // Class that recognizes factories and returns corresponding result cid.
@@ -1992,10 +2000,8 @@ class FactoryRecognizer : public AllStatic {
     ASSERT(factory.IsFactory());
     const Class& function_class = Class::Handle(factory.Owner());
     const Library& lib = Library::Handle(function_class.library());
-    if (lib.raw() != Library::CoreLibrary()) {
-      // Only core library factories recognized.
-      return kDynamicCid;
-    }
+    ASSERT((lib.raw() == Library::CoreLibrary()) ||
+        (lib.raw() == Library::ScalarlistLibrary()));
     const String& factory_name = String::Handle(factory.name());
 #define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
     if (String::EqualsIgnoringPrivateKey(                                      \
@@ -2004,7 +2010,7 @@ class FactoryRecognizer : public AllStatic {
       return cid;                                                              \
     }                                                                          \
 
-RECOGNIZED_FACTORY_LIST(RECOGNIZE_FACTORY);
+RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY);
 #undef RECOGNIZE_FACTORY
 
     return kDynamicCid;
@@ -2012,12 +2018,12 @@ RECOGNIZED_FACTORY_LIST(RECOGNIZE_FACTORY);
 };
 
 
-static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
+static intptr_t GetResultCidOfListFactory(ConstructorCallNode* node) {
   const Function& function = node->constructor();
   const Class& function_class = Class::Handle(function.Owner());
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
 
-  if (function_class.library() != core_lib.raw()) {
+  if ((function_class.library() != Library::CoreLibrary()) &&
+      (function_class.library() != Library::ScalarlistLibrary())) {
     return kDynamicCid;
   }
 
@@ -2032,7 +2038,7 @@ static intptr_t GetResultCidOfConstructor(ConstructorCallNode* node) {
     }
     return FactoryRecognizer::ResultCid(function);
   }
-  return kDynamicCid;   // Result cid not known.
+  return kDynamicCid;   // Not a known list constructor.
 }
 
 
@@ -2051,10 +2057,15 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
                             node->constructor(),
                             node->arguments()->names(),
                             arguments);
-    // List factories return kArrayCid or kGrowableObjectArrayCid.
-    const intptr_t result_cid = GetResultCidOfConstructor(node);
-    call->set_result_cid(result_cid);
-    call->set_is_known_constructor(result_cid != kDynamicCid);
+    const intptr_t result_cid = GetResultCidOfListFactory(node);
+    if (result_cid != kDynamicCid) {
+      call->set_result_cid(result_cid);
+      call->set_is_known_list_constructor(true);
+      // Recognized fixed length array factory must have two arguments:
+      // (0) type-arguments, (1) length.
+      ASSERT(!LoadFieldInstr::IsFixedLengthArrayCid(result_cid) ||
+             arguments->length() == 2);
+    }
     ReturnDefinition(call);
     return;
   }
@@ -2705,18 +2716,25 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
-      if (result_is_needed) {
-        // Even though noSuchMethod most likely does not return,
-        // we save the stored value if the result is needed.
-        ValueGraphVisitor for_value(owner(), temp_index());
-        node->value()->Visit(&for_value);
-        Append(for_value);
-        Bind(BuildStoreExprTemp(for_value.value()));
-      }
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
       arguments->Add(node->array());
       arguments->Add(node->index_expr());
-      arguments->Add(node->value());
+
+      // Even though noSuchMethod most likely does not return,
+      // we save the stored value if the result is needed.
+      if (result_is_needed) {
+        ValueGraphVisitor for_value(owner(), temp_index());
+        node->value()->Visit(&for_value);
+        Append(for_value);
+        Do(BuildStoreExprTemp(for_value.value()));
+
+        const LocalVariable* temp =
+            owner()->parsed_function().expression_temp_var();
+        AstNode* value = new LoadLocalNode(node->token_pos(), temp);
+        arguments->Add(value);
+      } else {
+        arguments->Add(node->value());
+      }
       StaticCallInstr* call =
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
@@ -2858,10 +2876,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       const Function& function = owner()->parsed_function().function();
       int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
-          (1 + num_params) : ParsedFunction::kFirstLocalSlotIndex;
+          (kLastParamSlotIndex + num_params - 1) : kFirstLocalSlotIndex;
       // Handle the saved arguments descriptor as an additional parameter.
       if (owner()->parsed_function().GetSavedArgumentsDescriptorVar() != NULL) {
-        ASSERT(param_frame_index == ParsedFunction::kFirstLocalSlotIndex);
+        ASSERT(param_frame_index == kFirstLocalSlotIndex);
         num_params++;
       }
       for (int pos = 0; pos < num_params; param_frame_index--, pos++) {
@@ -3017,10 +3035,11 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
     catch_block->Visit(&for_catch_block);
-    TargetEntryInstr* catch_entry =
-        new TargetEntryInstr(owner()->AllocateBlockId(), old_try_index);
-    catch_entry->set_catch_try_index(try_index);
-    catch_entry->set_catch_handler_types(catch_block->handler_types());
+    CatchBlockEntryInstr* catch_entry =
+        new CatchBlockEntryInstr(owner()->AllocateBlockId(),
+                                 old_try_index,
+                                 catch_block->handler_types(),
+                                 try_index);
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     AppendFragment(catch_entry, for_catch_block);

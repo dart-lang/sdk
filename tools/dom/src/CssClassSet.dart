@@ -48,7 +48,7 @@ abstract class CssClassSet implements Set<String> {
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
-  Iterable expand(Iterable f(String element)) => readClasses.expand(f);
+  Iterable expand(Iterable f(String element)) => readClasses().expand(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
@@ -94,22 +94,28 @@ abstract class CssClassSet implements Set<String> {
     _modify((s) => s.retainAll(iterable));
   }
 
-  void removeMatching(bool test(String name)) {
-    _modify((s) => s.removeMatching(test));
+  void removeWhere(bool test(String name)) {
+    _modify((s) => s.removeWhere(test));
   }
 
-  void retainMatching(bool test(String name)) {
-    _modify((s) => s.retainMatching(test));
+  void retainWhere(bool test(String name)) {
+    _modify((s) => s.retainWhere(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
     readClasses().isSubsetOf(collection);
 
-  bool containsAll(Collection<String> collection) =>
+  bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
 
-  Set<String> intersection(Collection<String> other) =>
+  Set<String> intersection(Set<String> other) =>
     readClasses().intersection(other);
+
+  Set<String> union(Set<String> other) =>
+    readClasses().union(other);
+
+  Set<String> difference(Set<String> other) =>
+    readClasses().difference(other);
 
   String get first => readClasses().first;
   String get last => readClasses().last;
@@ -127,12 +133,12 @@ abstract class CssClassSet implements Set<String> {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  String firstMatching(bool test(String value), { String orElse() }) =>
-      readClasses().firstMatching(test, orElse: orElse);
-  String lastMatching(bool test(String value), {String orElse()}) =>
-      readClasses().lastMatching(test, orElse: orElse);
-  String singleMatching(bool test(String value)) =>
-      readClasses().singleMatching(test);
+  String firstWhere(bool test(String value), { String orElse() }) =>
+      readClasses().firstWhere(test, orElse: orElse);
+  String lastWhere(bool test(String value), {String orElse()}) =>
+      readClasses().lastWhere(test, orElse: orElse);
+  String singleWhere(bool test(String value)) =>
+      readClasses().singleWhere(test);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {

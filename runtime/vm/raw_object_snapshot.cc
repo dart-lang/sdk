@@ -115,28 +115,13 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 }
 
 
-static const char* RawOneByteStringToCString(RawOneByteString* str) {
-  const char* start = reinterpret_cast<char*>(str) - kHeapObjectTag +
-      OneByteString::data_offset();
-  const int len = Smi::Value(*reinterpret_cast<RawSmi**>(
-      reinterpret_cast<uword>(str) - kHeapObjectTag + String::length_offset()));
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-  memmove(chars, start, len);
-  chars[len] = '\0';
-  return chars;
-}
-
-
 RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
                                               intptr_t tags,
                                               Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
-  // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace this code by an UNREACHABLE().
-
-  // Allocate parameterized type object.
+  // Allocate unresolved class object.
   UnresolvedClass& unresolved_class = UnresolvedClass::ZoneHandle(
       reader->isolate(), NEW_OBJECT(UnresolvedClass));
   reader->AddBackRef(object_id, &unresolved_class, kIsDeserialized);
@@ -164,19 +149,6 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-
-  // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace this code by an UNREACHABLE().
-  if (FLAG_error_on_malformed_type) {
-    // Print the name of the unresolved class, as well as the token location
-    // from where it is referred to, making sure not to allocate any handles.
-    // Unfortunately, we cannot print the script name.
-    OS::Print("Snapshotting unresolved class '%s' at token pos %"Pd"\n",
-              RawOneByteStringToCString(
-                  reinterpret_cast<RawOneByteString*>(ptr()->ident_)),
-              ptr()->token_pos_);
-    UNREACHABLE();
-  }
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -245,13 +217,25 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 }
 
 
+static const char* RawOneByteStringToCString(RawOneByteString* str) {
+  const char* start = reinterpret_cast<char*>(str) - kHeapObjectTag +
+      OneByteString::data_offset();
+  const int len = Smi::Value(*reinterpret_cast<RawSmi**>(
+      reinterpret_cast<uword>(str) - kHeapObjectTag + String::length_offset()));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  memmove(chars, start, len);
+  chars[len] = '\0';
+  return chars;
+}
+
+
 void RawType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT().
+  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
   if (FLAG_error_on_malformed_type &&
       (ptr()->type_state_ != RawType::kFinalizedInstantiated) &&
       (ptr()->type_state_ != RawType::kFinalizedUninstantiated)) {
@@ -336,7 +320,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Only finalized type parameters should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT().
+  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
   if (FLAG_error_on_malformed_type &&
       (ptr()->type_state_ != RawTypeParameter::kFinalizedUninstantiated)) {
     // Print the name of the unfinalized type parameter, the name of the class
@@ -370,6 +354,70 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
+}
+
+
+RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
+                                      intptr_t object_id,
+                                      intptr_t tags,
+                                      Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Allocate bounded type object.
+  BoundedType& bounded_type = BoundedType::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(BoundedType));
+  reader->AddBackRef(object_id, &bounded_type, kIsDeserialized);
+
+  // Set the object tags.
+  bounded_type.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (bounded_type.raw()->to() -
+                       bounded_type.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    bounded_type.StorePointer((bounded_type.raw()->from() + i),
+                              reader->ReadObjectRef());
+  }
+
+  bounded_type.set_is_being_checked(false);
+
+  return bounded_type.raw();
+}
+
+
+void RawBoundedType::WriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kBoundedTypeCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
+RawMixinAppType* MixinAppType::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind) {
+  UNREACHABLE();  // MixinAppType objects do not survive finalization.
+  return MixinAppType::null();
+}
+
+
+void RawMixinAppType::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind) {
+  UNREACHABLE();  // MixinAppType objects do not survive finalization.
 }
 
 
@@ -2365,6 +2413,217 @@ void RawExternalFloat32x4Array::WriteTo(SnapshotWriter* writer,
 }
 
 #undef BYTEARRAY_TYPE_LIST
+
+
+#define TYPED_DATA_READ(setter, type)                                          \
+  for (intptr_t i = 0; i < lengthInBytes; i += element_size) {                 \
+    result.Set##setter(i, reader->Read<type>());                               \
+  }                                                                            \
+
+RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  intptr_t cid = RawObject::ClassIdTag::decode(tags);
+  intptr_t len = reader->ReadSmiValue();
+  TypedData& result = TypedData::ZoneHandle(
+      reader->isolate(), TypedData::New(cid, len, HEAP_SPACE(kind)));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  // Setup the array elements.
+  intptr_t element_size = ElementSizeInBytes(cid);
+  intptr_t lengthInBytes = len * element_size;
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+      TYPED_DATA_READ(Int8, int8_t);
+      break;
+    case kTypedDataUint8ArrayCid:
+      TYPED_DATA_READ(Uint8, uint8_t);
+      break;
+    case kTypedDataUint8ClampedArrayCid:
+      TYPED_DATA_READ(Uint8, uint8_t);
+      break;
+    case kTypedDataInt16ArrayCid:
+      TYPED_DATA_READ(Int16, int16_t);
+      break;
+    case kTypedDataUint16ArrayCid:
+      TYPED_DATA_READ(Uint16, uint16_t);
+      break;
+    case kTypedDataInt32ArrayCid:
+      TYPED_DATA_READ(Int32, int32_t);
+      break;
+    case kTypedDataUint32ArrayCid:
+      TYPED_DATA_READ(Uint32, uint32_t);
+      break;
+    case kTypedDataInt64ArrayCid:
+      TYPED_DATA_READ(Int64, int64_t);
+      break;
+    case kTypedDataUint64ArrayCid:
+      TYPED_DATA_READ(Uint64, uint64_t);
+      break;
+    case kTypedDataFloat32ArrayCid:
+      TYPED_DATA_READ(Float32, float);
+      break;
+    case kTypedDataFloat64ArrayCid:
+      TYPED_DATA_READ(Float64, double);
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return result.raw();
+}
+#undef TYPED_DATA_READ
+
+
+RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind) {
+  ASSERT(kind != Snapshot::kFull);
+  intptr_t cid = RawObject::ClassIdTag::decode(tags);
+  intptr_t length = reader->ReadSmiValue();
+  uint8_t* data = reinterpret_cast<uint8_t*>(reader->ReadIntptrValue());
+  const ExternalTypedData& obj = ExternalTypedData::Handle(
+      ExternalTypedData::New(cid, data, length));
+  void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());
+  Dart_WeakPersistentHandleFinalizer callback =
+      reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
+          reader->ReadIntptrValue());
+  obj.AddFinalizer(peer, callback);
+  return obj.raw();
+}
+
+
+#define TYPED_DATA_WRITE(type)                                                 \
+  {                                                                            \
+    type* data = reinterpret_cast<type*>(ptr()->data_);                        \
+    for (intptr_t i = 0; i < len; i++) {                                       \
+      writer->Write(data[i]);                                                  \
+    }                                                                          \
+  }                                                                            \
+
+
+void RawTypedData::WriteTo(SnapshotWriter* writer,
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  intptr_t tags = writer->GetObjectTags(this);
+  intptr_t cid = ClassIdTag::decode(tags);
+  intptr_t len = Smi::Value(ptr()->length_);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(cid);
+  writer->WriteIntptrValue(tags);
+
+  // Write out the length field.
+  writer->Write<RawObject*>(ptr()->length_);
+
+  // Write out the array elements.
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+      TYPED_DATA_WRITE(int8_t);
+      break;
+    case kTypedDataUint8ArrayCid:
+      TYPED_DATA_WRITE(uint8_t);
+      break;
+    case kTypedDataUint8ClampedArrayCid:
+      TYPED_DATA_WRITE(uint8_t);
+      break;
+    case kTypedDataInt16ArrayCid:
+      TYPED_DATA_WRITE(int16_t);
+      break;
+    case kTypedDataUint16ArrayCid:
+      TYPED_DATA_WRITE(uint16_t);
+      break;
+    case kTypedDataInt32ArrayCid:
+      TYPED_DATA_WRITE(int32_t);
+      break;
+    case kTypedDataUint32ArrayCid:
+      TYPED_DATA_WRITE(uint32_t);
+      break;
+    case kTypedDataInt64ArrayCid:
+      TYPED_DATA_WRITE(int64_t);
+      break;
+    case kTypedDataUint64ArrayCid:
+      TYPED_DATA_WRITE(uint64_t);
+      break;
+    case kTypedDataFloat32ArrayCid:
+      TYPED_DATA_WRITE(float);  // NOLINT.
+      break;
+    case kTypedDataFloat64ArrayCid:
+      TYPED_DATA_WRITE(double);  // NOLINT.
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
+void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  intptr_t tags = writer->GetObjectTags(this);
+  intptr_t cid = ClassIdTag::decode(tags);
+  intptr_t len = Smi::Value(ptr()->length_);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(cid);
+  writer->WriteIntptrValue(tags);
+
+  // Write out the length field.
+  writer->Write<RawObject*>(ptr()->length_);
+
+  switch (cid) {
+    case kExternalTypedDataInt8ArrayCid:
+      TYPED_DATA_WRITE(int8_t);
+      break;
+    case kExternalTypedDataUint8ArrayCid:
+      TYPED_DATA_WRITE(uint8_t);
+      break;
+    case kExternalTypedDataUint8ClampedArrayCid:
+      TYPED_DATA_WRITE(uint8_t);
+      break;
+    case kExternalTypedDataInt16ArrayCid:
+      TYPED_DATA_WRITE(int16_t);
+      break;
+    case kExternalTypedDataUint16ArrayCid:
+      TYPED_DATA_WRITE(uint16_t);
+      break;
+    case kExternalTypedDataInt32ArrayCid:
+      TYPED_DATA_WRITE(int32_t);
+      break;
+    case kExternalTypedDataUint32ArrayCid:
+      TYPED_DATA_WRITE(uint32_t);
+      break;
+    case kExternalTypedDataInt64ArrayCid:
+      TYPED_DATA_WRITE(int64_t);
+      break;
+    case kExternalTypedDataUint64ArrayCid:
+      TYPED_DATA_WRITE(uint64_t);
+      break;
+    case kExternalTypedDataFloat32ArrayCid:
+      TYPED_DATA_WRITE(float);  // NOLINT.
+      break;
+    case kExternalTypedDataFloat64ArrayCid:
+      TYPED_DATA_WRITE(double);  // NOLINT.
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+#undef TYPED_DATA_WRITE
 
 
 RawDartFunction* DartFunction::ReadFrom(SnapshotReader* reader,

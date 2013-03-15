@@ -44,6 +44,8 @@ class Compiler extends leg.Compiler {
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
             analyzeAll: hasOption(options, '--analyze-all'),
             analyzeOnly: hasOption(options, '--analyze-only'),
+            analyzeSignaturesOnly:
+                hasOption(options, '--analyze-signatures-only'),
             rejectDeprecatedFeatures:
                 hasOption(options, '--reject-deprecated-language-features'),
             checkDeprecationInSdk:
@@ -52,7 +54,8 @@ class Compiler extends leg.Compiler {
             strips: getStrips(options),
             enableConcreteTypeInference:
                 hasOption(options, '--enable-concrete-type-inference'),
-            preserveComments: hasOption(options, '--preserve-comments')) {
+            preserveComments: hasOption(options, '--preserve-comments'),
+            verbose: hasOption(options, '--verbose')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }

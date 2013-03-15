@@ -17,7 +17,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       view = window;
     }
     var eventType = 'WheelEvent';
-    if (_Device.isFirefox) {
+    if (Device.isFirefox) {
       eventType = 'MouseScrollEvents';
     }
     final event = document.$dom_createEvent(eventType);

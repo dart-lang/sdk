@@ -115,12 +115,12 @@ main() {
           metaKey: true, relatedTarget: new Element.tag('div')),
       (ev) {
     expect(ev.detail, 1);
-    expect(ev.screenX, 2);
-    expect(ev.screenYi, 3);
-    expect(ev.clientX, 4);
-    expect(ev.clientY, 5);
-    expect(ev.offsetX, 4);  // Same as clientX.
-    expect(ev.offsetY, 5);  // Same as clientY.
+    expect(ev.screen.x, 2);
+    expect(ev.screen.y, 3);
+    expect(ev.client.x, 4);
+    expect(ev.client.y, 5);
+    expect(ev.offset.x, 4);  // Same as clientX.
+    expect(ev.offset.y, 5);  // Same as clientY.
     expect(ev.button, 6);
     expect(ev.ctrlKey, isTrue);
     expect(ev.altKey, isTrue);
@@ -212,10 +212,10 @@ main() {
     // wheelDelta* properties are multiplied by 120 for some reason
     expect(ev.wheelDeltaX, 120);
     expect(ev.wheelDeltaY, 240);
-    expect(ev.screenX, 3);
-    expect(ev.screenY, 4);
-    expect(ev.clientX, 5);
-    expect(ev.clientY, 6);
+    expect(ev.screen.x, 3);
+    expect(ev.screen.y, 4);
+    expect(ev.client.x, 5);
+    expect(ev.client.y, 6);
     expect(ev.ctrlKey, isTrue);
     expect(ev.altKey, isTrue);
     expect(ev.shiftKey, isTrue);

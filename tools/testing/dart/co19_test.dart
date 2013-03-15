@@ -41,7 +41,7 @@ void main() {
       new Path(scriptFile.fullPathSync())
       .directoryPath.directoryPath.directoryPath.append('test.dart');
   TestUtils.testScriptPath = scriptPath.toNativePath();
-  var startTime = new Date.now();
+  var startTime = new DateTime.now();
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = <Map>[];
   for (var commandLine in COMMAND_LINES) {

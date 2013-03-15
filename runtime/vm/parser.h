@@ -31,8 +31,6 @@ struct FieldInitExpression;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  static const int kFirstLocalSlotIndex = -2;
-
   explicit ParsedFunction(const Function& function)
       : function_(function),
         node_sequence_(NULL),
@@ -388,8 +386,8 @@ class Parser : public ValueObject {
                          LocalVariable* receiver,
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
-  RawArray* ParseInterfaceList(const Type& super_type);
-  RawType* ParseMixins(const Type& super_type);
+  RawArray* ParseInterfaceList(const AbstractType& super_type);
+  RawAbstractType* ParseMixins(const AbstractType& super_type);
   void AddInterfaceIfUnique(intptr_t interfaces_pos,
                             const GrowableObjectArray& interface_list,
                             const AbstractType& interface);

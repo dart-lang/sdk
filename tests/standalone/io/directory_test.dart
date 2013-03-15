@@ -124,9 +124,9 @@ class DirectoryTest {
         // Construct a long string of the form
         // 'tempdir/subdir/../subdir/../subdir'.
         var buffer = new StringBuffer();
-        buffer.add(subDir.path);
+        buffer.write(subDir.path);
         for (var i = 0; i < 1000; i++) {
-          buffer.add("/../${subDirName}");
+          buffer.write("/../${subDirName}");
         }
         var long = new Directory("${buffer.toString()}");
         setupListHandlers(long.list());
@@ -162,9 +162,9 @@ class DirectoryTest {
           // Construct a long string of the form
           // 'tempdir/subdir/../subdir/../subdir'.
           var buffer = new StringBuffer();
-          buffer.add(subDir.path);
+          buffer.write(subDir.path);
           for (var i = 0; i < 1000; i++) {
-            buffer.add("/../${subDirName}");
+            buffer.write("/../${subDirName}");
           }
           var long = new Directory("${buffer.toString()}");
           var errors = 0;
@@ -196,9 +196,9 @@ class DirectoryTest {
     // Construct a long string of the form
     // 'tempdir/subdir/../subdir/../subdir'.
     var buffer = new StringBuffer();
-    buffer.add(subDir.path);
+    buffer.write(subDir.path);
     for (var i = 0; i < 1000; i++) {
-      buffer.add("/../${subDirName}");
+      buffer.write("/../${subDirName}");
     }
     var long = new Directory("${buffer.toString()}");
     Expect.throws(long.deleteSync);

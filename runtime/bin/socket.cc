@@ -445,6 +445,33 @@ void FUNCTION_NAME(Socket_NewServicePort)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Socket_SetOption)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
+  intptr_t socket = 0;
+  bool result = false;
+  Dart_Handle err = Socket::GetSocketIdNativeField(socket_obj, &socket);
+  if (Dart_IsError(err)) Dart_PropagateError(err);
+  Dart_Handle option_obj = Dart_GetNativeArgument(args, 1);
+  int64_t option;
+  err = Dart_IntegerToInt64(option_obj, &option);
+  if (Dart_IsError(err)) Dart_PropagateError(err);
+  Dart_Handle enabled_obj = Dart_GetNativeArgument(args, 2);
+  bool enabled;
+  err = Dart_BooleanValue(enabled_obj, &enabled);
+  if (Dart_IsError(err)) Dart_PropagateError(err);
+  switch (option) {
+    case 0:  // TCP_NODELAY.
+      result = Socket::SetNoDelay(socket, enabled);
+      break;
+    default:
+      break;
+  }
+  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  Dart_ExitScope();
+}
+
+
 Dart_Handle Socket::SetSocketIdNativeField(Dart_Handle socket, intptr_t id) {
   return Dart_SetNativeInstanceField(socket, kSocketIdNativeField, id);
 }

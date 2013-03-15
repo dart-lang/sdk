@@ -336,6 +336,7 @@ int Process::Start(const char* path,
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
+  FDUtils::SetCloseOnExec(read_in[0]);
 
   result = TEMP_FAILURE_RETRY(pipe(read_err));
   if (result < 0) {
@@ -345,6 +346,7 @@ int Process::Start(const char* path,
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
+  FDUtils::SetCloseOnExec(read_err[0]);
 
   result = TEMP_FAILURE_RETRY(pipe(write_out));
   if (result < 0) {
@@ -356,6 +358,7 @@ int Process::Start(const char* path,
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
+  FDUtils::SetCloseOnExec(write_out[1]);
 
   result = TEMP_FAILURE_RETRY(pipe(exec_control));
   if (result < 0) {
@@ -369,12 +372,9 @@ int Process::Start(const char* path,
     Log::PrintErr("Error pipe creation failed: %s\n", *os_error_message);
     return errno;
   }
+  FDUtils::SetCloseOnExec(exec_control[0]);
+  FDUtils::SetCloseOnExec(exec_control[1]);
 
-  // Set close on exec on the write file descriptor of the exec control pipe.
-  result = TEMP_FAILURE_RETRY(
-      fcntl(exec_control[1],
-            F_SETFD,
-            TEMP_FAILURE_RETRY(fcntl(exec_control[1], F_GETFD)) | FD_CLOEXEC));
   if (result < 0) {
     SetChildOsErrorMessage(os_error_message);
     TEMP_FAILURE_RETRY(close(read_in[0]));

@@ -14,7 +14,9 @@ import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
+import 'dart:math';
 import 'dart:nativewrappers';
+import 'dart:typeddata' as _typeddata;
 import 'dart:web_sql';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
@@ -23,6 +25,7 @@ import 'dart:web_audio' as web_audio;
 $!GENERATED_DART_FILES
 
 part '$AUXILIARY_DIR/AttributeMap.dart';
+part '$AUXILIARY_DIR/CanvasImageSource.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
 part '$AUXILIARY_DIR/CssClassSet.dart';
 part '$AUXILIARY_DIR/EventListener.dart';
@@ -31,14 +34,16 @@ part '$AUXILIARY_DIR/KeyboardEventController.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
+part '$AUXILIARY_DIR/ModelTreeObserver.dart';
+part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
+part '$AUXILIARY_DIR/Rectangle.dart';
 part '$AUXILIARY_DIR/Timer.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
 part '$AUXILIARY_DIR/dartium_FactoryProviders.dart';
-part '$AUXILIARY_DIR/Device.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/Serialization.dart';

@@ -56,7 +56,8 @@ String compile(String code, {String entry: 'main',
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element == null) return null;
   compiler.phase = Compiler.PHASE_RESOLVING;
-  compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
+  compiler.backend.enqueueHelpers(compiler.enqueuer.resolution,
+                                  compiler.globalDependencies);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   compiler.world.populate();
   var context = new js.JavaScriptItemCompilationContext();

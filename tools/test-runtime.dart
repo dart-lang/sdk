@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,16 +8,18 @@
 // This file is identical to test.dart with test suites in the
 // directories samples, client, compiler, and utils removed.
 
-#library("test");
+library test;
 
-#import("dart:io");
-#import("testing/dart/test_runner.dart");
-#import("testing/dart/test_options.dart");
-#import("testing/dart/test_suite.dart");
-#import("testing/dart/http_server.dart");
+import "dart:io";
+import "testing/dart/test_runner.dart";
+import "testing/dart/test_options.dart";
+import "testing/dart/test_suite.dart";
+import "testing/dart/http_server.dart";
+import "testing/dart/utils.dart";
+import "testing/dart/test_progress.dart";
 
-#import("../tests/co19/test_config.dart");
-#import("../runtime/tests/vm/test_config.dart");
+import "../tests/co19/test_config.dart";
+import "../runtime/tests/vm/test_config.dart";
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -37,7 +39,7 @@ final TEST_SUITE_DIRECTORIES = [
 ];
 
 main() {
-  var startTime = new Date.now();
+  var startTime = new DateTime.now();
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
@@ -50,7 +52,6 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  var useContentSecurityPolicy = firstConf['csp'];
 
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
@@ -66,30 +67,15 @@ main() {
         ['Test configurations:'] : ['Test configuration:'];
     for (Map conf in configurations) {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
-          .mappedBy((name) => conf[name]).toList();
+          .map((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
       output_words.add(settings.join('_'));
     }
     print(output_words.join(' '));
   }
 
-  var runningBrowserTests = configurations.any((config) {
-    return TestUtils.isBrowserRuntime(config['runtime']);
-  });
-
   var testSuites = new List<TestSuite>();
   for (var conf in configurations) {
-    if (!listTests && runningBrowserTests) {
-      // Start global http servers that serve the entire dart repo.
-      // The http server is available on window.location.port, and a second
-      // server for cross-domain tests can be found by calling
-      // getCrossOriginPortNumber().
-      var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
-                                       useContentSecurityPolicy);
-      servers.startServers('127.0.0.1');
-      conf['_servers_'] = servers;
-    }
-
     if (selectors.containsKey('co19')) {
       testSuites.add(new Co19TestSuite(conf));
     }
@@ -109,24 +95,48 @@ main() {
   }
 
   void allTestsFinished() {
-    for (var conf in configurations) {
-      if (conf.containsKey('_servers_')) {
-        conf['_servers_'].stopServers();
-      }
-    }
     DebugLogger.close();
   }
 
   var maxBrowserProcesses = maxProcesses;
 
+  var eventListener = [];
+  if (progressIndicator != 'silent') {
+    var printFailures = true;
+    var formatter = new Formatter();
+    if (progressIndicator == 'color') {
+      progressIndicator = 'compact';
+      formatter = new ColorFormatter();
+    }
+    if (progressIndicator == 'diff') {
+      progressIndicator = 'compact';
+      formatter = new ColorFormatter();
+      printFailures = false;
+      eventListener.add(new StatusFileUpdatePrinter());
+    }
+    eventListener.add(new SummaryPrinter());
+    eventListener.add(new FlakyLogWriter());
+    if (printFailures) {
+      eventListener.add(new TestFailurePrinter(formatter));
+    }
+    eventListener.add(new ProgressIndicator.fromName(progressIndicator,
+                                                     startTime,
+                                                     formatter));
+    if (printTiming) {
+      eventListener.add(new TimingPrinter(startTime));
+    }
+    eventListener.add(new SkippedCompilationsPrinter());
+    eventListener.add(new LeftOverTempDirPrinter());
+  }
+  eventListener.add(new ExitCodeSetter());
+
   // Start process queue.
   new ProcessQueue(
       maxProcesses,
       maxBrowserProcesses,
-      progressIndicator,
       startTime,
-      printTiming,
       testSuites,
+      eventListener,
       allTestsFinished,
       verbose,
       listTests);

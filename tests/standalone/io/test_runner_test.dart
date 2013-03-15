@@ -1,7 +1,8 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:io";
 import "dart:isolate";
 import "dart:async";
 import "dart:utf";
@@ -72,8 +73,8 @@ class CustomTestSuite extends TestSuite {
     var crashCommand = new Command(getProcessTestFileName(),
                                    ["0", "0", "1", "1"]);
     // The crash test sometimes times out. Run it with a large timeout
-    // to help diagnose the delay. 
-    // The test loads a new executable, which may sometimes take a long time. 
+    // to help diagnose the delay.
+    // The test loads a new executable, which may sometimes take a long time.
     // It involves a wait on the VM event loop, and possible system
     // delays.
     return _makeTestCase(name, LONG_TIMEOUT, crashCommand, expectations);
@@ -93,8 +94,8 @@ class CustomTestSuite extends TestSuite {
 void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
-  new ProcessQueue(maxProcesses, maxBrowserProcesses, "silent",
-      new Date.now(), false, [new CustomTestSuite()], TestController.finished);
+  new ProcessQueue(maxProcesses, maxBrowserProcesses,
+      new DateTime.now(), [new CustomTestSuite()], [], TestController.finished);
 }
 
 void main() {

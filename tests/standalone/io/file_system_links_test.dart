@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,19 +6,8 @@ import "dart:io";
 import "dart:isolate";
 
 
-createLink(String dst, String link, bool symbolic, void callback()) {
-  var args = [ symbolic ? '-s' : '', dst, link ];
-  var script = 'tests/standalone/io/ln.sh';
-  if (!new File(script).existsSync()) {
-    script = '../$script';
-  }
-  Process.run(script, args).then((result) {
-    if (result.exitCode == 0) {
-      callback();
-    } else {
-      throw new Exception('link creation failed');
-    }
-  });
+createLink(String dst, String link, void callback()) {
+  new Link(link).create(dst).then((_) => callback());
 }
 
 
@@ -26,12 +15,49 @@ testFileExistsCreate() {
   var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
-  createLink(x, y, true, () {
-    Expect.isFalse(new File(x).existsSync());
+  createLink(x, y, () {
     Expect.isFalse(new File(y).existsSync());
+    Expect.isFalse(new File(x).existsSync());
+    Expect.isTrue(FileSystemEntity.isLinkSync(y));
+    Expect.isFalse(FileSystemEntity.isLinkSync(x));
+    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.LINK,
+                  FileSystemEntity.typeSync(y, followLinks: false));
+    Expect.equals(FileSystemEntityType.NOT_FOUND,
+                  FileSystemEntity.typeSync(x, followLinks: false));
+
     new File(y).createSync();
-    Expect.isTrue(new File(x).existsSync());
     Expect.isTrue(new File(y).existsSync());
+    Expect.isTrue(new File(x).existsSync());
+    Expect.isTrue(FileSystemEntity.isLinkSync(y));
+    Expect.isFalse(FileSystemEntity.isLinkSync(x));
+    Expect.isTrue(FileSystemEntity.isFileSync(y));
+    Expect.isTrue(FileSystemEntity.isFileSync(x));
+    Expect.equals(FileSystemEntityType.FILE, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.FILE, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.LINK,
+                  FileSystemEntity.typeSync(y, followLinks: false));
+    Expect.equals(FileSystemEntityType.FILE,
+                  FileSystemEntity.typeSync(x, followLinks: false));
+    new File(x).deleteSync();
+    new Directory(x).createSync();
+    Expect.isTrue(FileSystemEntity.isLinkSync(y));
+    Expect.isFalse(FileSystemEntity.isLinkSync(x));
+    Expect.isTrue(FileSystemEntity.isDirectorySync(y));
+    Expect.isTrue(FileSystemEntity.isDirectorySync(x));
+    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
+    Expect.equals(FileSystemEntityType.LINK,
+                  FileSystemEntity.typeSync(y, followLinks: false));
+    Expect.equals(FileSystemEntityType.DIRECTORY,
+                  FileSystemEntity.typeSync(x, followLinks: false));
+    new File(y).deleteSync();
+    Expect.isFalse(FileSystemEntity.isLinkSync(y));
+    Expect.isFalse(FileSystemEntity.isLinkSync(x));
+    Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
+
     temp.deleteSync(recursive: true);
   });
 }
@@ -42,13 +68,13 @@ testFileDelete() {
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
-  createLink(x, y, true, () {
+  createLink(x, y, () {
     Expect.isTrue(new File(x).existsSync());
     Expect.isTrue(new File(y).existsSync());
     new File(y).deleteSync();
     Expect.isTrue(new File(x).existsSync());
     Expect.isFalse(new File(y).existsSync());
-    createLink(x, y, false, () {
+    createLink(x, y, () {
       Expect.isTrue(new File(x).existsSync());
       Expect.isTrue(new File(y).existsSync());
       new File(y).deleteSync();
@@ -65,10 +91,10 @@ testFileWriteRead() {
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
   new File(x).createSync();
-  createLink(x, y, true, () {
+  createLink(x, y, () {
     var data = "asdf".codeUnits;
-    var output = new File(y).openWrite(FileMode.WRITE);
-    output.add(data);
+    var output = new File(y).openWrite(mode: FileMode.WRITE);
+    output.writeBytes(data);
     output.close();
     output.done.then((_) {
       var read = new File(y).readAsBytesSync();
@@ -85,7 +111,7 @@ testDirectoryExistsCreate() {
   var temp = new Directory('').createTempSync();
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
-  createLink(x, y, true, () {
+  createLink(x, y, () {
     Expect.isFalse(new Directory(x).existsSync());
     Expect.isFalse(new Directory(y).existsSync());
     Expect.throws(new Directory(y).createSync);
@@ -100,14 +126,14 @@ testDirectoryDelete() {
   var y = '${temp.path}${Platform.pathSeparator}y';
   var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
-  createLink(temp2.path, y, true, () {
+  createLink(temp2.path, y, () {
     var link = new Directory(y);
     Expect.isTrue(link.existsSync());
     Expect.isTrue(temp2.existsSync());
     link.deleteSync();
     Expect.isFalse(link.existsSync());
     Expect.isTrue(temp2.existsSync());
-    createLink(temp2.path, y, true, () {
+    createLink(temp2.path, y, () {
       Expect.isTrue(link.existsSync());
       temp.deleteSync(recursive: true);
       Expect.isFalse(link.existsSync());
@@ -126,7 +152,7 @@ testDirectoryListing() {
   var y = '${temp.path}${Platform.pathSeparator}y';
   var x = '${temp2.path}${Platform.pathSeparator}x';
   new File(x).createSync();
-  createLink(temp2.path, y, true, () {
+  createLink(temp2.path, y, () {
     var files = [];
     var dirs = [];
     for (var entry in temp.listSync(recursive:true)) {
@@ -173,7 +199,7 @@ testDirectoryListingBrokenLink() {
   var link = '${temp.path}${Platform.pathSeparator}link';
   var doesNotExist = 'this_thing_does_not_exist';
   new File(x).createSync();
-  createLink(doesNotExist, link, true, () {
+  createLink(doesNotExist, link, () {
     Expect.throws(() => temp.listSync(recursive: true),
                   (e) => e is DirectoryIOException);
     var files = [];

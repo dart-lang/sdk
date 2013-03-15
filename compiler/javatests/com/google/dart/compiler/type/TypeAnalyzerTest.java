@@ -1199,23 +1199,4 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("while ('') {}",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
-
-  public void testStringConcat() {
-    Map<String, ClassNodeElement> source = loadSource(
-        "class Object {}",
-        "abstract class Foo {",
-        "  operator +(arg1);" +
-        "}",
-        "Foo a = new Foo();",
-        "Foo b = new Foo();",
-        "String s = 'foo';");
-    analyzeClasses(source);
-    analyze("{ var c = a + b; }");
-    analyzeFail("{ var c = s + b; }",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-    analyzeFail("var c = 'foo' + 1;",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-    analyzeFail("var c = 'foo' + 'bar';",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
-  }
 }

@@ -11,7 +11,7 @@
 String trace = "";
 
 int E(int i) {
-  trace = trace.concat("$i-");
+  trace += "$i-";
   return i;
 }
 

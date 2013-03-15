@@ -857,7 +857,7 @@ class Color extends CssValue {
 
   @DomName('SVGColor.rgbColor')
   @DocsEditable
-  RgbColor get rgbColor native "SVGColor_rgbColor_Getter";
+  CssRgbColor get rgbColor native "SVGColor_rgbColor_Getter";
 
   @DomName('SVGColor.setColor')
   @DocsEditable
@@ -3375,16 +3375,16 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Length firstMatching(bool test(Length value), { Length orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Length firstWhere(bool test(Length value), { Length orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Length lastMatching(bool test(Length value), {Length orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Length lastWhere(bool test(Length value), {Length orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Length singleMatching(bool test(Length value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Length singleWhere(bool test(Length value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Length elementAt(int index) {
@@ -3450,6 +3450,10 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   Length max([int compare(Length a, Length b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Length element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Length removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -3470,11 +3474,11 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Length element)) {
+  void removeWhere(bool test(Length element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Length element)) {
+  void retainWhere(bool test(Length element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -3490,8 +3494,16 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Length> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Length>[]);
+  }
+
   List<Length> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Length>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Length> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Length> mixins.
 
@@ -4078,16 +4090,16 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Number firstMatching(bool test(Number value), { Number orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Number firstWhere(bool test(Number value), { Number orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Number lastMatching(bool test(Number value), {Number orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Number lastWhere(bool test(Number value), {Number orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Number singleMatching(bool test(Number value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Number singleWhere(bool test(Number value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Number elementAt(int index) {
@@ -4153,6 +4165,10 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   Number max([int compare(Number a, Number b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Number element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Number removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -4173,11 +4189,11 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Number element)) {
+  void removeWhere(bool test(Number element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Number element)) {
+  void retainWhere(bool test(Number element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -4193,8 +4209,16 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Number> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Number>[]);
+  }
+
   List<Number> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Number>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Number> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Number> mixins.
 
@@ -5257,16 +5281,16 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  PathSeg firstMatching(bool test(PathSeg value), { PathSeg orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  PathSeg firstWhere(bool test(PathSeg value), { PathSeg orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  PathSeg lastMatching(bool test(PathSeg value), {PathSeg orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  PathSeg lastWhere(bool test(PathSeg value), {PathSeg orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  PathSeg singleMatching(bool test(PathSeg value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  PathSeg singleWhere(bool test(PathSeg value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   PathSeg elementAt(int index) {
@@ -5332,6 +5356,10 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   PathSeg max([int compare(PathSeg a, PathSeg b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, PathSeg element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   PathSeg removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -5352,11 +5380,11 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(PathSeg element)) {
+  void removeWhere(bool test(PathSeg element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(PathSeg element)) {
+  void retainWhere(bool test(PathSeg element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -5372,8 +5400,16 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<PathSeg> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <PathSeg>[]);
+  }
+
   List<PathSeg> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <PathSeg>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, PathSeg> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<PathSeg> mixins.
 
@@ -6160,7 +6196,7 @@ class StopElement extends StyledElement {
 
   @DomName('SVGStopElement.offset')
   @DocsEditable
-  AnimatedNumber get offset native "SVGStopElement_offset_Getter";
+  AnimatedNumber get gradientOffset native "SVGStopElement_offset_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6241,16 +6277,16 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  String firstMatching(bool test(String value), { String orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  String firstWhere(bool test(String value), { String orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  String lastMatching(bool test(String value), {String orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  String lastWhere(bool test(String value), {String orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  String singleMatching(bool test(String value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  String singleWhere(bool test(String value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   String elementAt(int index) {
@@ -6316,6 +6352,10 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   String max([int compare(String a, String b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, String element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -6336,11 +6376,11 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(String element)) {
+  void removeWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(String element)) {
+  void retainWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -6356,8 +6396,16 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<String> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <String>[]);
+  }
+
   List<String> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <String>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, String> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<String> mixins.
 
@@ -7494,16 +7542,16 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Transform firstMatching(bool test(Transform value), { Transform orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Transform firstWhere(bool test(Transform value), { Transform orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Transform lastMatching(bool test(Transform value), {Transform orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Transform lastWhere(bool test(Transform value), {Transform orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Transform singleMatching(bool test(Transform value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Transform singleWhere(bool test(Transform value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Transform elementAt(int index) {
@@ -7569,6 +7617,10 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   Transform max([int compare(Transform a, Transform b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Transform element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Transform removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7589,11 +7641,11 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Transform element)) {
+  void removeWhere(bool test(Transform element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Transform element)) {
+  void retainWhere(bool test(Transform element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7609,8 +7661,16 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Transform> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Transform>[]);
+  }
+
   List<Transform> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Transform>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Transform> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Transform> mixins.
 
@@ -8067,16 +8127,16 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  ElementInstance firstMatching(bool test(ElementInstance value), { ElementInstance orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  ElementInstance firstWhere(bool test(ElementInstance value), { ElementInstance orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  ElementInstance lastMatching(bool test(ElementInstance value), {ElementInstance orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  ElementInstance lastWhere(bool test(ElementInstance value), {ElementInstance orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  ElementInstance singleMatching(bool test(ElementInstance value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  ElementInstance singleWhere(bool test(ElementInstance value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   ElementInstance elementAt(int index) {
@@ -8144,6 +8204,10 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, ElementInstance element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   ElementInstance removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8164,11 +8228,11 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(ElementInstance element)) {
+  void removeWhere(bool test(ElementInstance element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(ElementInstance element)) {
+  void retainWhere(bool test(ElementInstance element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8184,8 +8248,16 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<ElementInstance> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <ElementInstance>[]);
+  }
+
   List<ElementInstance> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <ElementInstance>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, ElementInstance> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<ElementInstance> mixins.
 
@@ -8271,7 +8343,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
 
   @DomName('SVGComponentTransferFunctionElement.offset')
   @DocsEditable
-  AnimatedNumber get offset native "SVGComponentTransferFunctionElement_offset_Getter";
+  AnimatedNumber get gradientOffset native "SVGComponentTransferFunctionElement_offset_Getter";
 
   @DomName('SVGComponentTransferFunctionElement.slope')
   @DocsEditable

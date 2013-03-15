@@ -25,6 +25,11 @@ class _BufferList {
     if (offset != 0) _index = offset;
   }
 
+  /** Alias for [add]. */
+  void write(List<int> buffer, [int offset = 0]) {
+    add(buffer, offset);
+  }
+
   /**
    * Returns the first buffer from the list. This returns the whole
    * buffer and does not remove the buffer from the list. Use
@@ -61,7 +66,8 @@ class _BufferList {
    * Read [count] bytes from the buffer list. If the number of bytes
    * requested is not available null will be returned.
    */
-  List<int> readBytes(int count) {
+  List<int> readBytes([int count]) {
+    if (count == null) count = length;
     List<int> result;
     if (_length == 0 || _length < count) return null;
     if (_index == 0 && _buffers.first.length == count) {
@@ -73,7 +79,7 @@ class _BufferList {
     } else {
       int firstRemaining = _buffers.first.length - _index;
       if (firstRemaining >= count) {
-        result = _buffers.first.getRange(_index, count);
+        result = _buffers.first.sublist(_index, _index + count);
         _index += count;
         _length -= count;
         if (_index == _buffers.first.length) {

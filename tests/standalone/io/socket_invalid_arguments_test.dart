@@ -39,7 +39,7 @@ testAdd(buffer) {
             socket.destroy();
             server.close();
           });
-      socket.add(buffer);
+      socket.writeBytes(buffer);
     });
   });
 }

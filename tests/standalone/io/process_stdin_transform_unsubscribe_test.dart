@@ -23,7 +23,7 @@ void test(Future<Process> future, int expectedExitCode) {
 
     process.stdout.listen((_) {});
     process.stderr.listen((_) {});
-    process.stdin.addString("Line1\n");
+    process.stdin.writeln("Line1");
   });
 }
 

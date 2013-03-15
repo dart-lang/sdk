@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -32,7 +32,7 @@ import '../../pub/hosted_source.dart';
 import '../../pub/http.dart';
 import '../../pub/io.dart';
 import '../../pub/path_source.dart';
-import '../../pub/sdk_source.dart';
+import '../../pub/safe_http_server.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/validator.dart';
@@ -102,7 +102,7 @@ void serve([List<Descriptor> contents]) {
 
   _schedule((_) {
     return _closeServer().then((_) {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         _server = server;
         server.listen((request) {
           var response = request.response;
@@ -121,7 +121,7 @@ void serve([List<Descriptor> contents]) {
           stream.toBytes().then((data) {
             response.statusCode = 200;
             response.contentLength = data.length;
-            response.add(data);
+            response.writeBytes(data);
             response.close();
           }).catchError((e) {
             print("Exception while handling ${request.uri}: $e");
@@ -409,9 +409,6 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
         break;
       case "path":
         source = new PathSource();
-        break;
-      case "sdk":
-        source = new SdkSource();
         break;
       default:
         throw 'Unknown source "$sourceName"';
@@ -1024,7 +1021,7 @@ class DirectoryDescriptor extends Descriptor {
 
     for (var descriptor in contents) {
       if (descriptor.name == path[0]) {
-        return descriptor.load(path.getRange(1, path.length - 1));
+        return descriptor.load(path.sublist(1));
       }
     }
 
@@ -1173,7 +1170,8 @@ class TarFileDescriptor extends Descriptor {
   }
 }
 
-/// A descriptor that validates that no file exists with the given name.
+/// A descriptor that validates that no file or directory exists with the given
+/// name.
 class NothingDescriptor extends Descriptor {
   NothingDescriptor(String name) : super(name);
 
@@ -1183,7 +1181,7 @@ class NothingDescriptor extends Descriptor {
   Future validate(String dir) {
     return defer(() {
       if (entryExists(path.join(dir, name))) {
-        throw new TestFailure('File $name in $dir should not exist.');
+        throw new TestFailure('Entry $name in $dir should not exist.');
       }
     });
   }
@@ -1439,7 +1437,7 @@ class ScheduledProcess {
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
     _schedule((_) => _processFuture.then(
-        (p) => p.stdin.add('$line\n'.codeUnits)));
+        (p) => p.stdin.add(encodeUtf8('$line\n'))));
   }
 
   /// Kills the process, and waits until it's dead.
@@ -1509,7 +1507,7 @@ class ScheduledServer {
   factory ScheduledServer() {
     var scheduledServer;
     scheduledServer = new ScheduledServer._(_scheduleValue((_) {
-      return HttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
         server.listen(scheduledServer._awaitHandle);
         _scheduleCleanup((_) => server.close());
         return server;

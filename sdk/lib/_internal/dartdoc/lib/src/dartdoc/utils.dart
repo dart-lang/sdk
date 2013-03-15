@@ -68,7 +68,7 @@ List<Mirror> orderByName(Iterable<Mirror> list) {
 String joinWithCommas(List<String> items, [String conjunction = 'and']) {
   if (items.length == 1) return items[0];
   if (items.length == 2) return "${items[0]} $conjunction ${items[1]}";
-  return '${items.getRange(0, items.length - 1).join(', ')}'
+  return '${items.take(items.length - 1).join(', ')}'
     ', $conjunction ${items[items.length - 1]}';
 }
 

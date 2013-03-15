@@ -38,26 +38,26 @@ class Generate {
         if (production is StyletDirective) {
           // TODO(terry): Need safer mechanism for stylets in different files
           //              and stylets with colliding names.
-          buff.add('class ${production.dartClassName} {\n');
-          buff.add('  // selector, properties<propertyName, value>\n');
-          buff.add('  static const selectors = const {\n');
+          buff.write('class ${production.dartClassName} {\n');
+          buff.write('  // selector, properties<propertyName, value>\n');
+          buff.write('  static const selectors = const {\n');
 
           for (final ruleset in production.rulesets) {
             for (final selector in ruleset.selectorGroup.selectors) {
               var selSeq = selector.simpleSelectorSquences;
               if (selSeq.length == 1) {
-                buff.add('    \'${selSeq.toString()}\' : const {\n');
+                buff.write('    \'${selSeq.toString()}\' : const {\n');
               }
             }
 
             for (final decl in ruleset.declarationGroup.declarations) {
-              buff.add('      \'${decl.property}\' : ' +
+              buff.write('      \'${decl.property}\' : ' +
                   '\'${decl.expression.toString()}\',\n');
             }
-            buff.add('    },\n');   // End of declarations for stylet class.
+            buff.write('    },\n');   // End of declarations for stylet class.
           }
-          buff.add('  };\n');       // End of static selectors constant.
-          buff.add('}\n\n');        // End of stylet class
+          buff.write('  };\n');       // End of static selectors constant.
+          buff.write('}\n\n');        // End of stylet class
         } else if (production is IncludeDirective) {
           for (final topLevel in production.styleSheet._topLevels) {
             if (topLevel is RuleSet) {
@@ -76,11 +76,11 @@ class Generate {
       '  // CSS class selectors:\n');
     for (final className in knownClasses) {
       String classAsDart = className.replaceAll('-', '_').toUpperCase();
-      classSelectors.add('  static const String ${classAsDart} = ' +
+      classSelectors.write('  static const String ${classAsDart} = ' +
           '\'${className}\';\n');
     }
-    classSelectors.add('}\n');            // End of class selectors.
-    buff.add(classSelectors.toString());
+    classSelectors.write('}\n');            // End of class selectors.
+    buff.write(classSelectors.toString());
 
     // Write Dart file.
     String outFile = '${outPath}CSS.dart';

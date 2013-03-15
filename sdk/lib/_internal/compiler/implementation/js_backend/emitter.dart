@@ -69,6 +69,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> regularClasses = <ClassElement>[];
   final List<ClassElement> deferredClasses = <ClassElement>[];
   final List<ClassElement> nativeClasses = <ClassElement>[];
+  final List<Selector> trivialNsmHandlers = <Selector>[];
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -135,7 +136,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void addComment(String comment, CodeBuffer buffer) {
-    buffer.add(jsAst.prettyPrint(js.comment(comment), compiler));
+    buffer.write(jsAst.prettyPrint(js.comment(comment), compiler));
   }
 
   void computeRequiredTypeChecks() {
@@ -181,62 +182,82 @@ class CodeEmitterTask extends CompilerTask {
   String get lazyInitializerName
       => '${namer.isolateName}.\$lazy';
 
-  // Property name suffixes.  If the accessors are renaming then the format
-  // is <accessorName>:<fieldName><suffix>.  We use the suffix to know whether
-  // to look for the ':' separator in order to avoid doing the indexOf operation
-  // on every single property (they are quite rare).  None of these characters
-  // are legal in an identifier and they are related by bit patterns.
-  // setter          <          0x3c
-  // both            =          0x3d
-  // getter          >          0x3e
-  // renaming setter |          0x7c
-  // renaming both   }          0x7d
-  // renaming getter ~          0x7e
-  const SUFFIX_MASK = 0x3f;
-  const FIRST_SUFFIX_CODE = 0x3c;
-  const SETTER_CODE = 0x3c;
-  const GETTER_SETTER_CODE = 0x3d;
-  const GETTER_CODE = 0x3e;
-  const RENAMING_FLAG = 0x40;
-  String needsGetterCode(String variable) => '($variable & 3) > 0';
-  String needsSetterCode(String variable) => '($variable & 2) == 0';
-  String isRenaming(String variable) => '($variable & $RENAMING_FLAG) != 0';
+  // Compact field specifications.  The format of the field specification is
+  // <accessorName>:<fieldName><suffix> where the suffix and accessor name
+  // prefix are optional.  The suffix directs the generation of getter and
+  // setter methods.  Each of the getter and setter has two bits to determine
+  // the calling convention.  Setter listed below, getter is similar.
+  //
+  //     00: no setter
+  //     01: function(value) { this.field = value; }
+  //     10: function(receiver, value) { receiver.field = value; }
+  //     11: function(receiver, value) { this.field = value; }
+  //
+  // The suffix encodes 4 bits using three ASCII ranges of non-identifier
+  // characters.
+  static const FIELD_CODE_CHARACTERS = r"<=>?@{|}~%&'()*";
+  static const NO_FIELD_CODE = 0;
+  static const FIRST_FIELD_CODE = 1;
+  static const RANGE1_FIRST = 0x3c;   //  <=>?@    encodes 1..5
+  static const RANGE1_LAST = 0x40;
+  static const RANGE2_FIRST = 0x7b;   //  {|}~     encodes 6..9
+  static const RANGE2_LAST = 0x7e;
+  static const RANGE3_FIRST = 0x25;   //  %&'()*+  encodes 10..16
+  static const RANGE3_LAST = 0x2b;
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
+    const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
+    const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
+    const RANGE1_ADJUST = - (FIRST_FIELD_CODE - RANGE1_FIRST);
+    const RANGE2_ADJUST = - (FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
+    const RANGE3_ADJUST =
+        - (FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
+
+    String receiverParamName = compiler.enableMinification ? "r" : "receiver";
+    String valueParamName = compiler.enableMinification ? "v" : "value";
+
     // function generateAccessor(field, prototype) {
     jsAst.Fun fun = js.fun(['field', 'prototype'], [
       js['var len = field.length'],
-      js['var lastCharCode = field.charCodeAt(len - 1)'],
-      js['var needsAccessor = '
-                '(lastCharCode & $SUFFIX_MASK) >= $FIRST_SUFFIX_CODE'],
+      js['var code = field.charCodeAt(len - 1)'],
+      js['code = ((code >= $RANGE1_FIRST) && (code <= $RANGE1_LAST))'
+          '    ? code - $RANGE1_ADJUST'
+          '    : ((code >= $RANGE2_FIRST) && (code <= $RANGE2_LAST))'
+          '      ? code - $RANGE2_ADJUST'
+          '      : ((code >= $RANGE3_FIRST) && (code <= $RANGE3_LAST))'
+          '        ? code - $RANGE3_ADJUST'
+          '        : $NO_FIELD_CODE'],
 
       // if (needsAccessor) {
-      js.if_('needsAccessor', [
-        js['var needsGetter = ${needsGetterCode("lastCharCode")}'],
-        js['var needsSetter = ${needsSetterCode("lastCharCode")}'],
-        js['var renaming = ${isRenaming("lastCharCode")}'],
+      js.if_('code', [
+        js['var getterCode = code & 3'],
+        js['var setterCode = code >> 2'],
         js['var accessorName = field = field.substring(0, len - 1)'],
 
-        // if (renaming) {
-        js.if_('renaming', [
-          js['var divider = field.indexOf(":")'],
+        js['var divider = field.indexOf(":")'],
+        js.if_('divider > 0', [  // Colon never in first position.
           js['accessorName = field.substring(0, divider)'],
           js['field = field.substring(divider + 1)']
         ]),
 
         // if (needsGetter) {
-        js.if_('needsGetter', [
-          js['var getterString = "return this." + field'],
+        js.if_('getterCode', [
+          js['var args = (getterCode & 2) ? "$receiverParamName" : ""'],
+          js['var receiver = (getterCode & 1) ? "this" : "$receiverParamName"'],
+          js['var body = "return " + receiver + "." + field'],
           js['prototype["${namer.getterPrefix}" + accessorName] = '
-                 'new Function(getterString)']
+                 'new Function(args, body)']
         ]),
 
         // if (needsSetter) {
-        js.if_('needsSetter', [
-          // var setterString = "this." + field + " = v;";
-          js['var setterString = "this." + field + "$_=${_}v"'],
+        js.if_('setterCode', [
+          js['var args = (setterCode & 2)'
+              '  ? "$receiverParamName,${_}$valueParamName"'
+              '  : "$valueParamName"'],
+          js['var receiver = (setterCode & 1) ? "this" : "$receiverParamName"'],
+          js['var body = receiver + "." + field + "$_=$_$valueParamName"'],
           js['prototype["${namer.setterPrefix}" + accessorName] = '
-                 'new Function("v", setterString)']
+                 'new Function(args, body)']
         ]),
 
       ]),
@@ -277,9 +298,9 @@ class CodeEmitterTask extends CompilerTask {
         js['var body = ""'],
 
         // for (var i = 0; i < fields.length; i++) {
-        js.for_(js['var i = 0'], js['i < fields.length'], js['i++'], [
+        js.for_('var i = 0', 'i < fields.length', 'i++', [
           // if (i != 0) str += ", ";
-          js.if_(js['i != 0'], js['str += ", "']),
+          js.if_('i != 0', js['str += ", "']),
 
           js['var field = fields[i]'],
           js['field = generateAccessor(field, prototype)'],
@@ -332,6 +353,224 @@ class CodeEmitterTask extends CompilerTask {
     ];
   }
 
+  const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
+
+  // If we need fewer than this many noSuchMethod handlers we can save space by
+  // just emitting them in JS, rather than emitting the JS needed to generate
+  // them at run time.
+  const VERY_FEW_NO_SUCH_METHOD_HANDLERS = 10;
+
+  /**
+   * Adds (at runtime) the handlers to the Object class which catch calls to
+   * methods that the object does not have.  The handlers create an invocation
+   * mirror object.
+   *
+   * The current version only gives you the minified name when minifying (when
+   * not minifying this method is not called).
+   *
+   * In order to generate the noSuchMethod handlers we only need the minified
+   * name of the method.  We test the first character of the minified name to
+   * determine if it is a getter or a setter, and we use the arguments array at
+   * runtime to get the number of arguments and their values.  If the method
+   * involves named arguments etc. then we don't handle it here, but emit the
+   * handler method directly on the Object class.
+   *
+   * The minified names are mostly 1-4 character names, which we emit in sorted
+   * order (primary key is length, secondary ordering is lexicographic).  This
+   * gives an order like ... dD dI dX da ...
+   *
+   * Gzip is good with repeated text, but it can't diff-encode, so we do that
+   * for it.  We encode the minified names in a comma-separated string, but all
+   * the 1-4 character names are encoded before the first comma as a series of
+   * base 26 numbers.  The last digit of each number is lower case, the others
+   * are upper case, so 1 is "b" and 26 is "Ba".
+   *
+   * We think of the minified names as base 88 numbers using the ASCII
+   * characters from # to z.  The base 26 numbers each encode the delta from
+   * the previous minified name to the next.  So if there is a minified name
+   * called Df and the next is Dh, then they are 2971 and 2973 when thought of
+   * as base 88 numbers.  The difference is 2, which is "c" in lower-case-
+   * terminated base 26.
+   *
+   * The reason we don't encode long minified names with this method is that
+   * decoding the base 88 numbers would overflow JavaScript's puny integers.
+   *
+   * There are some selectors that have a special calling convention (because
+   * they are called with the receiver as the first argument).  They need a
+   * slightly different noSuchMethod handler, so we handle these first.
+   */
+  void addTrivialNsmHandlers(List<jsAst.Node> statements) {
+    if (trivialNsmHandlers.length == 0) return;
+    // Sort by calling convention, JS name length and by JS name.
+    trivialNsmHandlers.sort((a, b) {
+      bool aIsIntercepted = backend.isInterceptedName(a.name);
+      bool bIsIntercepted = backend.isInterceptedName(b.name);
+      if (aIsIntercepted != bIsIntercepted) return aIsIntercepted ? -1 : 1;
+      String aName = namer.invocationMirrorInternalName(a);
+      String bName = namer.invocationMirrorInternalName(b);
+      if (aName.length != bName.length) return aName.length - bName.length;
+      return aName.compareTo(bName);
+    });
+
+    // Find out how many selectors there are with the special calling
+    // convention.
+    int firstNormalSelector = trivialNsmHandlers.length;
+    for (int i = 0; i < trivialNsmHandlers.length; i++) {
+      if (!backend.isInterceptedName(trivialNsmHandlers[i].name)) {
+        firstNormalSelector = i;
+        break;
+      }
+    }
+
+    // Get the short names (JS names, perhaps minified).
+    Iterable<String> shorts = trivialNsmHandlers.map((selector) =>
+         namer.invocationMirrorInternalName(selector));
+    final diffShorts = <String>[];
+    var diffEncoding = new StringBuffer();
+
+    // Treat string as a number in base 88 with digits in ASCII order from # to
+    // z.  The short name sorting is based on length, and uses ASCII order for
+    // equal length strings so this means that names are ascending.  The hash
+    // character, #, is never given as input, but we need it because it's the
+    // implicit leading zero (otherwise we could not code names with leading
+    // dollar signs).
+    int fromBase88(String x) {
+      int answer = 0;
+      for (int i = 0; i < x.length; i++) {
+        int c = x.codeUnitAt(i);
+        // No support for Unicode minified identifiers in JS.
+        assert(c >= $$ && c <= $z);
+        answer *= 88;
+        answer += c - $HASH;
+      }
+      return answer;
+    }
+
+    // Big endian encoding, A = 0, B = 1...
+    // A lower case letter terminates the number.
+    String toBase26(int x) {
+      int c = x;
+      var encodingChars = <int>[];
+      encodingChars.add($a + (c % 26));
+      while (true) {
+        c ~/= 26;
+        if (c == 0) break;
+        encodingChars.add($A + (c % 26));
+      }
+      return new String.fromCharCodes(encodingChars.reversed.toList());
+    }
+
+    bool minify = compiler.enableMinification;
+    bool useDiffEncoding = minify && shorts.length > 30;
+
+    int previous = 0;
+    int nameCounter = 0;
+    for (String short in shorts) {
+      // Emit period that resets the diff base to zero when we switch to normal
+      // calling convention (this avoids the need to code negative diffs).
+      if (useDiffEncoding && nameCounter == firstNormalSelector) {
+        diffEncoding.write(".");
+        previous = 0;
+      }
+      if (short.length <= MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING &&
+          useDiffEncoding) {
+        int base63 = fromBase88(short);
+        int diff = base63 - previous;
+        previous = base63;
+        String base26Diff = toBase26(diff);
+        diffEncoding.write(base26Diff);
+      } else {
+        if (useDiffEncoding || diffEncoding.length != 0) {
+          diffEncoding.write(",");
+        }
+        diffEncoding.write(short);
+      }
+      nameCounter++;
+    }
+
+    // Startup code that loops over the method names and puts handlers on the
+    // Object class to catch noSuchMethod invocations.
+    ClassElement objectClass = compiler.objectClass;
+    String createInvocationMirror = namer.getName(
+        compiler.createInvocationMirrorElement);
+    String noSuchMethodName = namer.publicInstanceMethodNameByArity(
+        Compiler.NO_SUCH_METHOD, Compiler.NO_SUCH_METHOD_ARG_COUNT);
+    var type = 0;
+    if (useDiffEncoding) {
+      statements.addAll([
+        js['var objectClassObject = '
+           '        collectedClasses["${namer.getName(objectClass)}"],'
+           '    shortNames = "$diffEncoding".split(","),'
+           '    nameNumber = 0,'
+           '    diffEncodedString = shortNames[0],'
+           '    calculatedShortNames = [0, 1]'],  // 0, 1 are args for splice.
+        js.for_('var i = 0', 'i < diffEncodedString.length', 'i++', [
+          js['var codes = [],'
+             '    diff = 0,'
+             '    digit = diffEncodedString.charCodeAt(i)'],
+          js.if_('digit == ${$PERIOD}', [
+            js['nameNumber = 0'],
+            js['digit = diffEncodedString.charCodeAt(++i)']
+          ]),
+          js.while_('digit <= ${$Z}', [
+            js['diff *= 26'],
+            js['diff += (digit - ${$A})'],
+            js['digit = diffEncodedString.charCodeAt(++i)']
+          ]),
+          js['diff *= 26'],
+          js['diff += (digit - ${$a})'],
+          js['nameNumber += diff'],
+          js.for_('var remaining = nameNumber',
+                  'remaining > 0',
+                  'remaining = ((remaining / 88) | 0)', [
+            js['codes.unshift(${$HASH} + (remaining % 88))']
+          ]),
+          js['calculatedShortNames.push('
+             '    String.fromCharCode.apply(String, codes))']
+        ]),
+        js['shortNames.splice.apply(shortNames, calculatedShortNames)']
+      ]);
+    } else {
+      // No useDiffEncoding version.
+      Iterable<String> longs = trivialNsmHandlers.map((selector) =>
+             selector.invocationMirrorMemberName);
+      String longNamesConstant = minify ? "" :
+          ',longNames = "${longs.join(",")}".split(",")';
+      statements.add(
+        js['var objectClassObject = '
+           '        collectedClasses["${namer.getName(objectClass)}"],'
+           '    shortNames = "$diffEncoding".split(",")'
+           '    $longNamesConstant']);
+    }
+
+    String sliceOffset = '," + (j < $firstNormalSelector ? 1 : 0)';
+    if (firstNormalSelector == 0) sliceOffset = '"';
+    if (firstNormalSelector == shorts.length) sliceOffset = ', 1"';
+
+    String whatToPatch = nativeEmitter.handleNoSuchMethod ?
+                         "Object.prototype" :
+                         "objectClassObject";
+
+    statements.addAll([
+      js.for_('var j = 0', 'j < shortNames.length', 'j++', [
+        js['var type = 0'],
+        js['var short = shortNames[j]'],
+        js.if_('short[0] == "${namer.getterPrefix[0]}"', js['type = 1']),
+        js.if_('short[0] == "${namer.setterPrefix[0]}"', js['type = 2']),
+        js['$whatToPatch[short] = Function("'
+               'return this.$noSuchMethodName('
+                   'this,'
+                   '${namer.CURRENT_ISOLATE}.$createInvocationMirror(\'"'
+                       ' + ${minify ? "shortNames" : "longNames"}[j]'
+                       ' + "\',\'" + short + "\',"'
+                       ' + type'
+                       ' + ",Array.prototype.slice.call(arguments'
+                       '$sliceOffset'
+                       ' + "),[]))")']
+      ])
+    ]);
+  }
+
   jsAst.Fun get finishClassesFunction {
     // Class descriptions are collected in a JS object.
     // 'finishClasses' takes all collected descriptions and sets up
@@ -346,11 +585,7 @@ class CodeEmitterTask extends CompilerTask {
     // the object literal directly. For other engines we have to create a new
     // object and copy over the members.
 
-    // function(collectedClasses,
-    //          isolateProperties,
-    //          existingIsolateProperties) {
-    return js.fun(['collectedClasses', 'isolateProperties',
-                   'existingIsolateProperties'], [
+    List<jsAst.Node> statements = [
       js['var pendingClasses = {}'],
 
       js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
@@ -358,7 +593,7 @@ class CodeEmitterTask extends CompilerTask {
       // for (var cls in collectedClasses) {
       js.forIn('cls', 'collectedClasses', [
         // if (hasOwnProperty.call(collectedClasses, cls)) {
-        js.if_(js['hasOwnProperty.call(collectedClasses, cls)'], [
+        js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js['var desc = collectedClasses[cls]'],
 
           /* The 'fields' are either a constructor function or a
@@ -370,7 +605,7 @@ class CodeEmitterTask extends CompilerTask {
           // var fields = desc[""], supr;
           js['var fields = desc[""], supr'],
 
-          js.if_(js['typeof fields == "string"'], [
+          js.if_('typeof fields == "string"', [
             js['var s = fields.split(";")'],
             js['supr = s[0]'],
             js['fields = s[1] == "" ? [] : s[1].split(",")'],
@@ -381,7 +616,7 @@ class CodeEmitterTask extends CompilerTask {
           js['isolateProperties[cls] = defineClass(cls, fields, desc)'],
 
           // if (supr) pendingClasses[cls] = supr;
-          js.if_(js['supr'], js['pendingClasses[cls] = supr'])
+          js.if_('supr', js['pendingClasses[cls] = supr'])
         ])
       ]),
 
@@ -389,10 +624,19 @@ class CodeEmitterTask extends CompilerTask {
 
       // function finishClass(cls) { ... }
       buildFinishClass(),
+    ];
 
+    addTrivialNsmHandlers(statements);
+
+    statements.add(
       // for (var cls in pendingClasses) finishClass(cls);
-      js.forIn('cls', 'pendingClasses', js['finishClass']('cls'))
-    ]);
+      js.forIn('cls', 'pendingClasses', js['finishClass(cls)'])
+    );
+    // function(collectedClasses,
+    //          isolateProperties,
+    //          existingIsolateProperties) {
+    return js.fun(['collectedClasses', 'isolateProperties',
+                   'existingIsolateProperties'], statements);
   }
 
   jsAst.FunctionDeclaration buildFinishClass() {
@@ -405,14 +649,18 @@ class CodeEmitterTask extends CompilerTask {
       js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
 
       // if (hasOwnProperty.call(finishedClasses, cls)) return;
-      js.if_(js['hasOwnProperty.call(finishedClasses, cls)'],
+      js.if_('hasOwnProperty.call(finishedClasses, cls)',
              js.return_()),
 
       js['finishedClasses[cls] = true'],
+
       js['var superclass = pendingClasses[cls]'],
 
-      /* The superclass is only false (empty string) for Dart's Object class. */
-      js.if_(js['!superclass'], js.return_()),
+      // The superclass is only false (empty string) for Dart's Object class.
+      // The minifier together with noSuchMethod can put methods on the
+      // Object.prototype object, and they show through here, so we check that
+      // we have a string.
+      js.if_('!superclass || typeof superclass != "string"', js.return_()),
       js['finishClass(superclass)'],
       js['var constructor = isolateProperties[cls]'],
       js['var superConstructor = isolateProperties[superclass]'],
@@ -446,10 +694,10 @@ class CodeEmitterTask extends CompilerTask {
         js.forIn('member', 'prototype', [
           /* Short version of: if (member == '') */
           // if (!member) continue;
-          js.if_(js['!member'], new jsAst.Continue(null)),
+          js.if_('!member', new jsAst.Continue(null)),
 
           // if (hasOwnProperty.call(prototype, member)) {
-          js.if_(js['hasOwnProperty.call(prototype, member)'], [
+          js.if_('hasOwnProperty.call(prototype, member)', [
             js['newPrototype[member] = prototype[member]']
           ])
         ])
@@ -511,7 +759,7 @@ class CodeEmitterTask extends CompilerTask {
 
       // for (var staticName in isolateProperties) {
       js.forIn('staticName', 'isolateProperties', [
-        js.if_(js['hasOwnProperty.call(isolateProperties, staticName)'], [
+        js.if_('hasOwnProperty.call(isolateProperties, staticName)', [
           js['str += ("this." + staticName + "= properties." + staticName + '
                           '";\\n")']
         ])
@@ -558,7 +806,7 @@ class CodeEmitterTask extends CompilerTask {
 
         // try {
         js.try_([
-          js.if_(js['result === sentinelUndefined'], [
+          js.if_('result === sentinelUndefined', [
             js['$isolate[fieldName] = sentinelInProgress'],
 
             // try {
@@ -570,15 +818,15 @@ class CodeEmitterTask extends CompilerTask {
               // stack trace.
 
               // if (result === sentinelUndefined) {
-              js.if_(js['result === sentinelUndefined'], [
+              js.if_('result === sentinelUndefined', [
                 // if ($isolate[fieldName] === sentinelInProgress) {
-                js.if_(js['$isolate[fieldName] === sentinelInProgress'], [
+                js.if_('$isolate[fieldName] === sentinelInProgress', [
                   js['$isolate[fieldName] = null'],
                 ])
               ])
             ])
           ], /* else */ [
-            js.if_(js['result === sentinelInProgress'],
+            js.if_('result === sentinelInProgress',
               js['$cyclicThrow(staticName)']
             )
           ]),
@@ -618,7 +866,7 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitFinishIsolateConstructorInvocation(CodeBuffer buffer) {
     String isolate = namer.isolateName;
-    buffer.add("$isolate = $finishIsolateConstructorName($isolate)$N");
+    buffer.write("$isolate = $finishIsolateConstructorName($isolate)$N");
   }
 
   /**
@@ -641,9 +889,9 @@ class CodeEmitterTask extends CompilerTask {
     }
     if (parameters.optionalParametersAreNamed
         && selector.namedArgumentCount == parameters.optionalParameterCount) {
-      // If the selector has the same number of named arguments as
-      // the element, we don't need to add a stub. The call site will
-      // hit the method directly.
+      // If the selector has the same number of named arguments as the element,
+      // we don't need to add a stub. The call site will hit the method
+      // directly.
       return;
     }
     ConstantHandler handler = compiler.constantHandler;
@@ -655,8 +903,7 @@ class CodeEmitterTask extends CompilerTask {
 
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
 
-    // If the method is intercepted, we need to also pass
-    // the actual receiver.
+    // If the method is intercepted, we need to also pass the actual receiver.
     int extraArgumentCount = isInterceptedMethod ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
     // '$receiver' works because [:namer.safeName:] used for getting parameter
@@ -678,14 +925,16 @@ class CodeEmitterTask extends CompilerTask {
       argumentsBuffer[0] = js[receiverArgumentName];
     }
 
-    int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
+    int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
+    // Includes extra receiver argument when using interceptor convention
+    int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
+
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(member);
 
     parameters.orderedForEachParameter((Element element) {
       String jsName = backend.namer.safeName(element.name.slowToString());
       assert(jsName != receiverArgumentName);
-      int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
         argumentsBuffer[count] = js[jsName];
@@ -721,7 +970,8 @@ class CodeEmitterTask extends CompilerTask {
     List body;
     if (member.hasFixedBackendName()) {
       body = nativeEmitter.generateParameterStubStatements(
-          member, invocationName, parametersBuffer, argumentsBuffer,
+          member, isInterceptedMethod, invocationName,
+          parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else {
       body = [js.return_(js['this'][namer.getName(member)](argumentsBuffer))];
@@ -955,7 +1205,7 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     void generateSubstitution(Element other, {bool emitNull: false}) {
-      RuntimeTypeInformation rti = backend.rti;
+      RuntimeTypes rti = backend.rti;
       // TODO(karlklose): support typedefs with variables.
       jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
@@ -988,23 +1238,10 @@ class CodeEmitterTask extends CompilerTask {
         emitNoSuchMethodHandlers(builder.addProperty);
       }
     }
-
-    if (backend.isInterceptorClass(classElement)
-        && classElement != compiler.objectClass) {
-      // We optimize the operator== on interceptor classes to
-      // just do a JavaScript double or triple equals.
-      String name = backend.namer.publicInstanceMethodNameByArity(
-          const SourceString('=='), 1);
-      Function kind = (classElement == backend.jsNullClass)
-          ? js.equals
-          : js.strictEquals;
-      builder.addProperty(name, js.fun(['receiver', 'a'],
-          js.block(js.return_(kind(js['receiver'], js['a'])))));
-    }
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
-    RuntimeTypeInformation rti = backend.rti;
+    RuntimeTypes rti = backend.rti;
     TypeChecks typeChecks = rti.getRequiredChecks();
 
     /// Classes that are not instantiated and native classes need a holder
@@ -1025,8 +1262,8 @@ class CodeEmitterTask extends CompilerTask {
       if (!needsHolder(cls)) return;
       String holder = namer.isolateAccess(cls);
       String name = namer.getName(cls);
-      buffer.add('$holder$_=$_{builtin\$cls:$_"$name"');
-      buffer.add('}$N');
+      buffer.write('$holder$_=$_{builtin\$cls:$_"$name"');
+      buffer.write('}$N');
     }
 
     // Create representation objects for classes that we do not have a class
@@ -1040,10 +1277,10 @@ class CodeEmitterTask extends CompilerTask {
     for (ClassElement cls in typeChecks) {
       String holder = namer.isolateAccess(cls);
       for (ClassElement check in typeChecks[cls]) {
-        buffer.add('$holder.${namer.operatorIs(check)}$_=${_}true$N');
+        buffer.write('$holder.${namer.operatorIs(check)}$_=${_}true$N');
         String body = rti.getSupertypeSubstitution(cls, check);
         if (body != null) {
-          buffer.add('$holder.${namer.substitutionName(check)}$_=${_}$body$N');
+          buffer.write('$holder.${namer.substitutionName(check)}$_=${_}$body$N');
         }
       };
     }
@@ -1125,9 +1362,6 @@ class CodeEmitterTask extends CompilerTask {
               && canGenerateCheckedSetter(member)) {
             needsCheckedSetter = true;
             needsSetter = false;
-          } else if (backend.isInterceptedMethod(member)) {
-            // The [addField] will take care of generating the setter.
-            needsSetter = false;
           }
         }
         // Getters and setters with suffixes will be generated dynamically.
@@ -1166,21 +1400,26 @@ class CodeEmitterTask extends CompilerTask {
 
   void generateGetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
-    assert(!backend.isInterceptorClass(member));
     String getterName = namer.getterNameFromAccessorName(accessorName);
+    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
+        ? 'receiver' : 'this';
+    List<String> args = backend.isInterceptedMethod(member)
+        ? ['receiver']
+        : [];
     builder.addProperty(getterName,
-        js.fun([], js.return_(js['this'][fieldName])));
+        js.fun(args, js.return_(js['$receiver.$fieldName'])));
   }
 
   void generateSetter(Element member, String fieldName, String accessorName,
                       ClassBuilder builder) {
-    assert(!backend.isInterceptorClass(member));
     String setterName = namer.setterNameFromAccessorName(accessorName);
+    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
+        ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member)
         ? ['receiver', 'v']
         : ['v'];
     builder.addProperty(setterName,
-        js.fun(args, js['this'][fieldName].assign('v')));
+        js.fun(args, js[receiver][fieldName].assign('v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -1211,11 +1450,14 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
+    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
+        ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member)
         ? ['receiver', 'v']
         : ['v'];
     builder.addProperty(setterName,
-        js.fun(args, js['this'][fieldName].assign(js[helperName](arguments))));
+        js.fun(args,
+            js[receiver][fieldName].assign(js[helperName](arguments))));
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -1230,7 +1472,7 @@ class CodeEmitterTask extends CompilerTask {
                        ClassBuilder builder,
                        { String superClass: "",
                          bool classIsNative: false }) {
-    bool isFirstField = true;
+    String separator = '';
     StringBuffer buffer = new StringBuffer();
     if (!classIsNative) {
       buffer.write('$superClass;');
@@ -1248,13 +1490,8 @@ class CodeEmitterTask extends CompilerTask {
       // constructors, so we don't need the fields unless we are generating
       // accessors at runtime.
       if (!classIsNative || needsAccessor) {
-        // Emit correct commas.
-        if (isFirstField) {
-          isFirstField = false;
-        } else {
-          buffer.write(',');
-        }
-        int flag = 0;
+        buffer.write(separator);
+        separator = ',';
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -1267,15 +1504,31 @@ class CodeEmitterTask extends CompilerTask {
             buffer.write(':$name');
             // Only the native classes can have renaming accessors.
             assert(classIsNative);
-            flag = RENAMING_FLAG;
           }
-        }
-        if (needsGetter && needsSetter) {
-          buffer.writeCharCode(GETTER_SETTER_CODE + flag);
-        } else if (needsGetter) {
-          buffer.writeCharCode(GETTER_CODE + flag);
-        } else if (needsSetter) {
-          buffer.writeCharCode(SETTER_CODE + flag);
+
+          int getterCode = 0;
+          if (needsGetter) {
+            // 01:  function() { return this.field; }
+            // 10:  function(receiver) { return receiver.field; }
+            // 11:  function(receiver) { return this.field; }
+            getterCode += backend.fieldHasInterceptedGetter(member) ? 2 : 0;
+            getterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
+            // TODO(sra): 'isInterceptorClass' might not be the correct test for
+            // methods forced to use the interceptor convention because the
+            // method's class was elsewhere mixed-in to an interceptor.
+            assert(getterCode != 0);
+          }
+          int setterCode = 0;
+          if (needsSetter) {
+            // 01:  function(value) { this.field = value; }
+            // 10:  function(receiver, value) { receiver.field = value; }
+            // 11:  function(receiver, value) { this.field = value; }
+            setterCode += backend.fieldHasInterceptedSetter(member) ? 2 : 0;
+            setterCode += backend.isInterceptorClass(classElement) ? 0 : 1;
+            assert(setterCode != 0);
+          }
+          int code = getterCode + (setterCode << 2);
+          buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
         }
       }
     });
@@ -1299,13 +1552,6 @@ class CodeEmitterTask extends CompilerTask {
         if (needsCheckedSetter) {
           assert(!needsSetter);
           generateCheckedSetter(member, name, accessorName, builder);
-        }
-        if (backend.isInterceptedMethod(member)
-            && instanceFieldNeedsSetter(member)) {
-          // The caller of this method sets [needsSetter] as false
-          // when the setter is intercepted.
-          assert(!needsSetter);
-          generateSetter(member, name, accessorName, builder);
         }
         if (!getterAndSetterCanBeImplementedByFieldSpec) {
           if (needsGetter) {
@@ -1353,11 +1599,15 @@ class CodeEmitterTask extends CompilerTask {
 
     jsAst.Expression init =
         js[classesCollector][className].assign(builder.toObjectInitializer());
-    buffer.add(jsAst.prettyPrint(init, compiler));
-    buffer.add('$N$n');
+    buffer.write(jsAst.prettyPrint(init, compiler));
+    buffer.write('$N$n');
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
+
+  /// If this is true then we can generate the noSuchMethod handlers at startup
+  /// time, instead of them being emitted as part of the Object class.
+  bool get generateTrivialNsmHandlers => true;
 
   int _selectorRank(Selector selector) {
     int arity = selector.argumentCount * 3;
@@ -1398,7 +1648,7 @@ class CodeEmitterTask extends CompilerTask {
       emitSubstitution(cls);
     }
 
-    RuntimeTypeInformation rti = backend.rti;
+    RuntimeTypes rti = backend.rti;
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
@@ -1415,7 +1665,7 @@ class CodeEmitterTask extends CompilerTask {
       Set<ClassElement> emitted = new Set<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
-      if (compiler.world.needsRti(cls)) {
+      if (backend.needsRti(cls)) {
         emitSubstitution(superclass, emitNull: true);
         emitted.add(superclass);
       }
@@ -1527,14 +1777,12 @@ class CodeEmitterTask extends CompilerTask {
         }
     );
 
+    // Add interceptors referenced by constants.
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     for (Constant constant in constants) {
-      if (constant is ConstructedConstant) {
-        Element element = constant.computeType(compiler).element;
-        if (backend.isInterceptorClass(element)) {
-          needed.add(element);
-        }
+      if (constant is InterceptorConstant) {
+        needed.add(constant.dispatchedType.element);
       }
     }
 
@@ -1560,12 +1808,12 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
-      buffer.add('$finishClassesName($classesCollector,'
-                 '$_$isolateProperties,'
-                 '${_}null)$N');
+      buffer.write('$finishClassesName($classesCollector,'
+                   '$_$isolateProperties,'
+                   '${_}null)$N');
 
       // Reset the map.
-      buffer.add("$classesCollector$_=${_}null$N$n");
+      buffer.write("$classesCollector$_=${_}null$N$n");
     }
   }
 
@@ -1574,8 +1822,8 @@ class CodeEmitterTask extends CompilerTask {
                           jsAst.Expression functionExpression) {
     jsAst.Expression assignment =
         js[isolateProperties][name].assign(functionExpression);
-    buffer.add(jsAst.prettyPrint(assignment, compiler));
-    buffer.add('$N$n');
+    buffer.write(jsAst.prettyPrint(assignment, compiler));
+    buffer.write('$N$n');
   }
 
   void emitStaticFunctions(CodeBuffer eagerBuffer) {
@@ -1609,12 +1857,12 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitStaticFunctionGetters(CodeBuffer buffer) {
+  void emitStaticFunctionGetters(CodeBuffer eagerBuffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
-      // TODO(ahe): Defer loading of these getters.
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
 
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
@@ -1626,24 +1874,23 @@ class CodeEmitterTask extends CompilerTask {
       String staticName = namer.getName(element);
       String invocationName = namer.instanceMethodName(callElement);
       String fieldAccess = '$isolateProperties.$staticName';
-      buffer.add("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
+      buffer.write("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
 
       addParameterStubs(callElement, (String name, jsAst.Expression value) {
         jsAst.Expression assignment =
             js[isolateProperties][staticName][name].assign(value);
-        buffer.add(
-            jsAst.prettyPrint(assignment.toStatement(), compiler));
-        buffer.add('$N');
+        buffer.write(jsAst.prettyPrint(assignment.toStatement(), compiler));
+        buffer.write('$N');
       });
 
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
       String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
-      buffer.add('$fieldAccess.$fieldName$_=$_"$staticName"$N');
+      buffer.write('$fieldAccess.$fieldName$_=$_"$staticName"$N');
       getTypedefChecksOn(element.computeType(compiler)).forEach(
         (Element typedef) {
           String operator = namer.operatorIs(typedef);
-          buffer.add('$fieldAccess.$operator$_=${_}true$N');
+          buffer.write('$fieldAccess.$operator$_=${_}true$N');
         }
       );
     }
@@ -1729,7 +1976,8 @@ class CodeEmitterTask extends CompilerTask {
       }
 
       ClassElement closureClassElement = new ClosureClassElement(
-          new SourceString(name), compiler, member, member.getCompilationUnit());
+          null, new SourceString(name), compiler, member,
+          member.getCompilationUnit());
       String mangledName = namer.getName(closureClassElement);
       String superName = namer.getName(closureClassElement.superclass);
       needsClosureClass = true;
@@ -1883,8 +2131,8 @@ class CodeEmitterTask extends CompilerTask {
         jsAst.Expression init =
           js[isolateProperties][namer.getName(element)].assign(
               constantEmitter.referenceInInitializationContext(initialValue));
-        buffer.add(jsAst.prettyPrint(init, compiler));
-        buffer.add('$N');
+        buffer.write(jsAst.prettyPrint(init, compiler));
+        buffer.write('$N');
       });
     }
   }
@@ -1915,8 +2163,8 @@ class CodeEmitterTask extends CompilerTask {
           arguments.add(getter);
         }
         jsAst.Expression init = js[lazyInitializerName](arguments);
-        buffer.add(jsAst.prettyPrint(init, compiler));
-        buffer.add("$N");
+        buffer.write(jsAst.prettyPrint(init, compiler));
+        buffer.write("$N");
       }
     }
   }
@@ -1949,14 +2197,14 @@ class CodeEmitterTask extends CompilerTask {
           bufferForElement(constant.computeType(compiler).element, eagerBuffer);
       jsAst.Expression init = js[isolateProperties][name].assign(
           constantInitializerExpression(constant));
-      buffer.add(jsAst.prettyPrint(init, compiler));
-      buffer.add('$N');
+      buffer.write(jsAst.prettyPrint(init, compiler));
+      buffer.write('$N');
     }
   }
 
   void emitMakeConstantList(CodeBuffer buffer) {
-    buffer.add(namer.isolateName);
-    buffer.add(r'''.makeConstantList = function(list) {
+    buffer.write(namer.isolateName);
+    buffer.write(r'''.makeConstantList = function(list) {
   list.immutable$list = true;
   list.fixed$length = true;
   return list;
@@ -1983,6 +2231,29 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  // Identify the noSuchMethod handlers that are so simple that we can
+  // generate them programatically.
+  bool isTrivialNsmHandler(
+      int type, List argNames, Selector selector, String internalName) {
+    if (!generateTrivialNsmHandlers) return false;
+    // Check for interceptor calling convention.
+    if (backend.isInterceptedName(selector.name)) {
+      // We can handle the calling convention used by intercepted names in the
+      // diff encoding, but we don't use that for non-minified code.
+      if (!compiler.enableMinification) return false;
+      String shortName = namer.invocationMirrorInternalName(selector);
+      if (shortName.length > MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING) {
+        return false;
+      }
+    }
+    // Check for named arguments.
+    if (argNames.length != 0) return false;
+    // Check for unexpected name (this doesn't really happen).
+    if (internalName.startsWith(namer.getterPrefix[0])) return type == 1;
+    if (internalName.startsWith(namer.setterPrefix[0])) return type == 2;
+    return type == 0;
+  }
+
   void emitNoSuchMethodHandlers(DefineStubFunction defineStub) {
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
@@ -1997,42 +2268,7 @@ class CodeEmitterTask extends CompilerTask {
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
-    Set<String> addedJsNames = new Set<String>();
-
-    jsAst.Expression generateMethod(String jsName, Selector selector) {
-      // Values match JSInvocationMirror in js-helper library.
-      int type = selector.invocationMirrorKind;
-      String methodName = selector.invocationMirrorMemberName;
-      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-      CodeBuffer args = new CodeBuffer();
-      for (int i = 0; i < selector.argumentCount; i++) {
-        parameters.add(new jsAst.Parameter('\$$i'));
-      }
-
-      List<jsAst.Expression> argNames =
-          selector.getOrderedNamedArguments().map((SourceString name) =>
-              js.string(name.slowToString())).toList();
-
-      String internalName = namer.invocationMirrorInternalName(selector);
-
-      String createInvocationMirror = namer.getName(
-          compiler.createInvocationMirrorElement);
-
-      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-      jsAst.Expression expression = js['this.$noSuchMethodName'](
-          [js['this'],
-           js[namer.CURRENT_ISOLATE][createInvocationMirror]([
-               js.string(methodName),
-               js.string(internalName),
-               type,
-               new jsAst.ArrayInitializer.from(
-                   parameters.map((param) => js[param.name]).toList()),
-               new jsAst.ArrayInitializer.from(argNames)])]);
-      parameters = backend.isInterceptedName(selector.name)
-          ? ([new jsAst.Parameter('\$receiver')]..addAll(parameters))
-          : parameters;
-      return js.fun(parameters, js.return_(expression));
-    }
+    Map<String, Selector> addedJsNames = new Map<String, Selector>();
 
     void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
       // Cache the object class and type.
@@ -2059,6 +2295,9 @@ class CodeEmitterTask extends CompilerTask {
         ClassElement receiverClass = objectClass;
         TypeMask mask = selector.mask;
         if (mask != null) {
+          // If the mask is empty it doesn't contain a noSuchMethod
+          // handler -- not even if it is nullable.
+          if (mask.isEmpty) continue;
           receiverClass = mask.base.element;
         }
 
@@ -2108,17 +2347,66 @@ class CodeEmitterTask extends CompilerTask {
             compiler.world.locateNoSuchMethodHolders(selector);
         if (holders.every(hasMatchingMember)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
-        if (!addedJsNames.contains(jsName)) {
-          jsAst.Expression method = generateMethod(jsName, selector);
-          defineStub(jsName, method);
-          addedJsNames.add(jsName);
-        }
+        addedJsNames[jsName] = selector;
       }
     }
 
     compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
     compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
     compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
+
+    // Set flag used by generateMethod helper below.  If we have very few
+    // handlers we use defineStub for them all, rather than try to generate them
+    // at runtime.
+    bool haveVeryFewNoSuchMemberHandlers =
+        (addedJsNames.length < VERY_FEW_NO_SUCH_METHOD_HANDLERS);
+
+    jsAst.Expression generateMethod(String jsName, Selector selector) {
+      // Values match JSInvocationMirror in js-helper library.
+      int type = selector.invocationMirrorKind;
+      List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
+      CodeBuffer args = new CodeBuffer();
+      for (int i = 0; i < selector.argumentCount; i++) {
+        parameters.add(new jsAst.Parameter('\$$i'));
+      }
+
+      List<jsAst.Expression> argNames =
+          selector.getOrderedNamedArguments().map((SourceString name) =>
+              js.string(name.slowToString())).toList();
+
+      String methodName = selector.invocationMirrorMemberName;
+      String internalName = namer.invocationMirrorInternalName(selector);
+      if (!haveVeryFewNoSuchMemberHandlers &&
+          isTrivialNsmHandler(type, argNames, selector, internalName)) {
+        trivialNsmHandlers.add(selector);
+        return null;
+      }
+
+      String createInvocationMirror = namer.getName(
+          compiler.createInvocationMirrorElement);
+
+      assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
+      jsAst.Expression expression = js['this.$noSuchMethodName'](
+          [js['this'],
+           js[namer.CURRENT_ISOLATE][createInvocationMirror]([
+               js.string(compiler.enableMinification ?
+                         internalName : methodName),
+               js.string(internalName),
+               type,
+               new jsAst.ArrayInitializer.from(
+                   parameters.map((param) => js[param.name]).toList()),
+               new jsAst.ArrayInitializer.from(argNames)])]);
+      parameters = backend.isInterceptedName(selector.name)
+          ? ([new jsAst.Parameter('\$receiver')]..addAll(parameters))
+          : parameters;
+      return js.fun(parameters, js.return_(expression));
+    }
+
+    for (String jsName in addedJsNames.keys.toList()..sort()) {
+      Selector selector = addedJsNames[jsName];
+      jsAst.Expression method = generateMethod(jsName, selector);
+      if (method != null) defineStub(jsName, method);
+    }
   }
 
   String buildIsolateSetup(CodeBuffer buffer,
@@ -2131,7 +2419,7 @@ class CodeEmitterTask extends CompilerTask {
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       Selector selector = new Selector.callClosure(0);
       String invocationName = namer.invocationName(selector);
-      buffer.add("$mainAccess.$invocationName = $mainAccess$N");
+      buffer.write("$mainAccess.$invocationName = $mainAccess$N");
     }
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
@@ -2148,7 +2436,7 @@ class CodeEmitterTask extends CompilerTask {
       mainCall = '${namer.isolateAccess(main)}()';
     }
     addComment('BEGIN invoke [main].', buffer);
-    buffer.add("""
+    buffer.write("""
 if (typeof document !== "undefined" && document.readyState !== "complete") {
   document.addEventListener("readystatechange", function () {
     if (document.readyState == "complete") {
@@ -2177,7 +2465,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       return js.return_(js[namer.isolateAccess(cls)]['prototype']);
     }
 
-    jsAst.VariableUse receiver = js['receiver'];
     /**
      * Build a JavaScrit AST node for doing a type check on
      * [cls]. [cls] must be an interceptor class.
@@ -2186,19 +2473,22 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       jsAst.Expression condition;
       assert(backend.isInterceptorClass(cls));
       if (cls == backend.jsBoolClass) {
-        condition = receiver.typeof.equals(js.string('boolean'));
+        condition = js['(typeof receiver) == "boolean"'];
       } else if (cls == backend.jsIntClass ||
                  cls == backend.jsDoubleClass ||
                  cls == backend.jsNumberClass) {
         throw 'internal error';
-      } else if (cls == backend.jsArrayClass) {
-        condition = receiver['constructor'].equals('Array');
+      } else if (cls == backend.jsArrayClass ||
+                 cls == backend.jsMutableArrayClass ||
+                 cls == backend.jsFixedArrayClass ||
+                 cls == backend.jsExtendableArrayClass) {
+        condition = js['receiver.constructor == Array'];
       } else if (cls == backend.jsStringClass) {
-        condition = receiver.typeof.equals(js.string('string'));
+        condition = js['(typeof receiver) == "string"'];
       } else if (cls == backend.jsNullClass) {
-        condition = receiver.equals(new jsAst.LiteralNull());
+        condition = js['receiver == null'];
       } else if (cls == backend.jsFunctionClass) {
-        condition = receiver.typeof.equals(js.string('function'));
+        condition = js['(typeof receiver) == "function"'];
       } else {
         throw 'internal error';
       }
@@ -2214,7 +2504,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     bool hasNumber = false;
     bool hasString = false;
     for (ClassElement cls in classes) {
-      if (cls == backend.jsArrayClass) hasArray = true;
+      if (cls == backend.jsArrayClass ||
+          cls == backend.jsMutableArrayClass ||
+          cls == backend.jsFixedArrayClass ||
+          cls == backend.jsExtendableArrayClass) hasArray = true;
       else if (cls == backend.jsBoolClass) hasBool = true;
       else if (cls == backend.jsDoubleClass) hasDouble = true;
       else if (cls == backend.jsFunctionClass) hasFunction = true;
@@ -2223,7 +2516,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       else if (cls == backend.jsNumberClass) hasNumber = true;
       else if (cls == backend.jsStringClass) hasString = true;
       else {
-        assert(cls == compiler.objectClass);
+        // TODO(sra): The set of classes includes classes mixed-in to
+        // interceptor classes.
+        // assert(cls == compiler.objectClass || cls.isNative());
       }
     }
     if (hasDouble) {
@@ -2244,7 +2539,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
           hasDouble ? backend.jsDoubleClass : backend.jsNumberClass);
 
       if (hasInt) {
-        jsAst.Expression isInt = js['Math']['floor'](receiver).equals(receiver);
+        jsAst.Expression isInt = js['Math.floor(receiver) == receiver'];
         whenNumber = js.block([
             js.if_(isInt, buildReturnInterceptor(backend.jsIntClass)),
             returnNumberClass]);
@@ -2252,7 +2547,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         whenNumber = returnNumberClass;
       }
       block.statements.add(
-          js.if_(receiver.typeof.equals(js.string('number')),
+          js.if_('(typeof receiver) == "number"',
                  whenNumber));
     }
 
@@ -2265,7 +2560,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // Returning "undefined" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
       // [unwrapException] in js_helper.dart.
-      block.statements.add(js.if_(receiver.equals(new jsAst.LiteralNull()),
+      block.statements.add(js.if_('receiver == null',
                                   js.return_(js.undefined())));
     }
     if (hasFunction) {
@@ -2279,12 +2574,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (hasArray) {
       block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
-    block.statements.add(js.return_(receiver));
+    block.statements.add(js.return_(js['receiver']));
 
-    buffer.add(jsAst.prettyPrint(
+    buffer.write(jsAst.prettyPrint(
         js[isolateProperties][key].assign(js.fun(['receiver'], block)),
         compiler));
-    buffer.add(N);
+    buffer.write(N);
   }
 
   /**
@@ -2321,13 +2616,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     }
 
     // Finally, sort the classes.
-    List<ClassElement> sortedClasses = neededClasses.toList();
-    sortedClasses.sort((ClassElement class1, ClassElement class2) {
-      // We sort by the ids of the classes. There is no guarantee that these
-      // ids are meaningful (or even deterministic), but in the current
-      // implementation they are increasing within a source file.
-      return class1.id - class2.id;
-    });
+    List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     // If we need noSuchMethod support, we run through all needed
     // classes to figure out if we need the support on any native
@@ -2356,22 +2645,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         regularClasses.add(element);
       }
     }
-  }
-
-  int _compareSelectors(Selector selector1, Selector selector2) {
-    int comparison = _compareSelectorNames(selector1, selector2);
-    if (comparison != 0) return comparison;
-
-    Set<ClassElement> classes1 = backend.getInterceptedClassesOn(selector1);
-    Set<ClassElement> classes2 = backend.getInterceptedClassesOn(selector2);
-    if (classes1.length != classes2.length) {
-      return classes1.length - classes2.length;
-    }
-    String getInterceptor1 =
-        namer.getInterceptorName(backend.getInterceptorMethod, classes1);
-    String getInterceptor2 =
-        namer.getInterceptorName(backend.getInterceptorMethod, classes2);
-    return Comparable.compare(getInterceptor1, getInterceptor2);
   }
 
   // Optimize performance critical one shot interceptors.
@@ -2405,7 +2678,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         //    }
         // :].
         List<jsAst.Statement> body = <jsAst.Statement>[];
-        body.add(js.if_(js['receiver'].equals(new jsAst.LiteralNull()),
+        body.add(js.if_('receiver == null',
                         js.return_(js['a0'].equals(new jsAst.LiteralNull()))));
         body.add(js.if_(
             isNotObject('receiver'),
@@ -2557,8 +2830,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       jsAst.PropertyAccess property =
           js[isolateProperties][name];
 
-      buffer.add(jsAst.prettyPrint(property.assign(function), compiler));
-      buffer.add(N);
+      buffer.write(jsAst.prettyPrint(property.assign(function), compiler));
+      buffer.write(N);
     }
   }
 
@@ -2584,8 +2857,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         backend.usedInterceptors.length,
         elements);
 
-    buffer.add(jsAst.prettyPrint(property.assign(array), compiler));
-    buffer.add(N);
+    buffer.write(jsAst.prettyPrint(property.assign(array), compiler));
+    buffer.write(N);
   }
 
   void emitInitFunction(CodeBuffer buffer) {
@@ -2598,7 +2871,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     );
     jsAst.FunctionDeclaration decl = new jsAst.FunctionDeclaration(
         new jsAst.VariableDeclaration('init'), fun);
-    buffer.add(jsAst.prettyPrint(decl, compiler).getText());
+    buffer.write(jsAst.prettyPrint(decl, compiler).getText());
   }
 
   String assembleProgram() {
@@ -2637,8 +2910,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         for (ClassElement element in nativeClasses) {
           nativeEmitter.generateNativeClass(element);
         }
-        nativeEmitter.assembleCode(nativeBuffer);
       }
+      nativeEmitter.assembleCode(nativeBuffer);
 
       // Might also create boundClosures.
       if (!regularClasses.isEmpty) {
@@ -2666,6 +2939,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       emitClosureClassIfNeeded(mainBuffer);
 
+      addComment('Bound closures', mainBuffer);
       // Now that we have emitted all classes, we know all the bound
       // closures that will be needed.
       for (jsAst.Node node in boundClosures) {
@@ -2724,9 +2998,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitDeferredCode(CodeBuffer buffer) {
     if (buffer.isEmpty) return;
 
-    buffer.add(n);
+    buffer.write(n);
 
-    buffer.add('${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+    buffer.write(
+        '${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
 
     String code = buffer.getText();
     compiler.outputProvider('part', 'js')
@@ -2738,17 +3013,17 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
     if (!buffer.isEmpty) return;
 
-    buffer.add(GENERATED_BY);
+    buffer.write(GENERATED_BY);
 
-    buffer.add('var old${namer.CURRENT_ISOLATE}$_='
-               '$_${namer.CURRENT_ISOLATE}$N');
+    buffer.write('var old${namer.CURRENT_ISOLATE}$_='
+                 '$_${namer.CURRENT_ISOLATE}$N');
 
     // TODO(ahe): This defines a lot of properties on the
     // Isolate.prototype object.  We know this will turn it into a
     // slow object in V8, so instead we should do something similar to
     // Isolate.$finishIsolateConstructor.
-    buffer.add('${namer.CURRENT_ISOLATE}$_='
-               '$_${namer.isolateName}.prototype$N$n');
+    buffer.write('${namer.CURRENT_ISOLATE}$_='
+                 '$_${namer.isolateName}.prototype$N$n');
   }
 
   String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {

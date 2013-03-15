@@ -28,7 +28,7 @@ Future<HttpServer> startServer() {
       int length = int.parse(request.queryParameters["length"]);
       var buffer = new List<int>.filled(length, 0);
       if (!chunked) request.response.contentLength = length;
-      request.response.add(buffer);
+      request.response.writeBytes(buffer);
       request.response.close();
     });
     return server;

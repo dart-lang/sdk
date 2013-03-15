@@ -14,10 +14,17 @@ patch class Timer {
     return new TimerImpl(milliseconds, callback);
   }
 
-  patch factory Timer.repeating(Duration duration, void callback(Timer timer)) {
+  patch factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl.repeating(milliseconds, callback);
+    return new TimerImpl.periodic(milliseconds, callback);
+  }
+}
+
+patch class _AsyncRun {
+  patch static void _enqueueImmediate(void callback()) {
+    // TODO(9002): don't use the Timer to enqueue the immediate callback.
+    Timer.run(callback);
   }
 }
 

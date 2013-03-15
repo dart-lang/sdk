@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/intrinsifier.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -89,7 +90,17 @@ bool Intrinsifier::Int8Array_new(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int8Array_factory(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Uint8Array_new(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_factory(Assembler* assembler) {
   return false;
 }
 
@@ -99,7 +110,17 @@ bool Intrinsifier::Uint8ClampedArray_new(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint8ClampedArray_factory(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Int16Array_new(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int16Array_factory(Assembler* assembler) {
   return false;
 }
 
@@ -109,12 +130,27 @@ bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint16Array_factory(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Int32Array_new(Assembler* assembler) {
   return false;
 }
 
 
+bool Intrinsifier::Int32Array_factory(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Uint32Array_new(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint32Array_factory(Assembler* assembler) {
   return false;
 }
 
@@ -129,6 +165,11 @@ bool Intrinsifier::Int64Array_new(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int64Array_factory(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
   return false;
 }
@@ -139,7 +180,17 @@ bool Intrinsifier::Uint64Array_new(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint64Array_factory(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Float32Array_new(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Float32Array_factory(Assembler* assembler) {
   return false;
 }
 
@@ -147,6 +198,27 @@ bool Intrinsifier::Float32Array_new(Assembler* assembler) {
 bool Intrinsifier::Float64Array_new(Assembler* assembler) {
   return false;
 }
+
+
+bool Intrinsifier::Float64Array_factory(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
+  return true;
+}
+
+
+#define TYPEDDATA_ALLOCATOR(clazz)                                             \
+bool Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
+  return false;                                                                \
+}                                                                              \
+bool Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
+  return false;                                                                \
+}
+CLASS_LIST_TYPED_DATA(TYPEDDATA_ALLOCATOR)
+#undef TYPEDDATA_ALLOCATOR
 
 
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {

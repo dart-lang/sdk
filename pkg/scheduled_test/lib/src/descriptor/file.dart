@@ -9,7 +9,7 @@ import 'dart:io' as io;
 import 'dart:math' as math;
 import 'dart:utf';
 
-import 'package:pathos/path.dart' as path;
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../descriptor.dart' as descriptor;
 import '../../scheduled_test.dart';

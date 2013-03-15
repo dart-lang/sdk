@@ -15,14 +15,19 @@ class ARMDecoder : public ValueObject {
   ARMDecoder(char* buffer, size_t buffer_size)
       : buffer_(buffer),
         buffer_size_(buffer_size),
-        buffer_pos_(0) {
+        buffer_pos_(0),
+        decode_failure_(false) {
     buffer_[buffer_pos_] = '\0';
   }
 
   ~ARMDecoder() {}
 
   // Writes one disassembled instruction into 'buffer' (0-terminated).
+  // Returns true if the instruction was successfully decoded, false otherwise.
   void InstructionDecode(uword pc);
+
+  void set_decode_failure(bool b) { decode_failure_ = b; }
+  bool decode_failure() const { return decode_failure_; }
 
  private:
   // Bottleneck functions to print into the out_buffer.
@@ -66,6 +71,9 @@ class ARMDecoder : public ValueObject {
   size_t buffer_size_;  // The size of the character buffer.
   size_t buffer_pos_;  // Current character position in buffer.
 
+  bool decode_failure_;  // Set to true when a failure to decode is detected.
+
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ARMDecoder);
 };
 
@@ -571,6 +579,7 @@ void ARMDecoder::Format(Instr* instr, const char* format) {
 // which will just print "unknown" of the instruction bits.
 void ARMDecoder::Unknown(Instr* instr) {
   Format(instr, "unknown");
+  set_decode_failure(true);
 }
 
 
@@ -852,6 +861,14 @@ void ARMDecoder::DecodeType2(Instr* instr) {
 
 
 void ARMDecoder::DecodeType3(Instr* instr) {
+  if (instr->IsDivision()) {
+    if (instr->Bit(21)) {
+      Format(instr, "udiv'cond 'rd, 'rn, 'rm");
+    } else {
+      Format(instr, "sdiv'cond 'rd, 'rn, 'rm");
+    }
+    return;
+  }
   switch (instr->PUField()) {
     case 0: {
       if (instr->HasW()) {
@@ -1192,6 +1209,8 @@ void ARMDecoder::DecodeType7(Instr* instr) {
         Unknown(instr);
       }
     }
+  } else if (instr->IsMrcIdIsar0()) {
+    Format(instr, "mrc'cond p15, 0, 'rd, c0, c2, 0");
   } else {
     Unknown(instr);
   }
@@ -1199,7 +1218,8 @@ void ARMDecoder::DecodeType7(Instr* instr) {
 
 
 void ARMDecoder::InstructionDecode(uword pc) {
-Instr* instr = Instr::At(pc);
+  Instr* instr = Instr::At(pc);
+
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
       Format(instr, "clrex");
@@ -1247,22 +1267,26 @@ Instr* instr = Instr::At(pc);
 }
 
 
-int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                     char* human_buffer, intptr_t human_size,
-                                    uword pc) {
+                                    int* out_instr_size, uword pc) {
   ARMDecoder decoder(human_buffer, human_size);
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
   OS::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
-  return Instr::kInstrSize;
+  if (out_instr_size) {
+    *out_instr_size = Instr::kInstrSize;
+  }
+  return !decoder.decode_failure();
 }
 
 
-void Disassembler::Disassemble(uword start,
+bool Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
   ASSERT(formatter != NULL);
+  bool success = true;
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
@@ -1276,11 +1300,13 @@ void Disassembler::Disassemble(uword start,
           String::Handle(comments.CommentAt(comment_finger)).ToCString());
       comment_finger++;
     }
-    int instruction_length = DecodeInstruction(hex_buffer,
-                                               sizeof(hex_buffer),
-                                               human_buffer,
-                                               sizeof(human_buffer),
-                                               pc);
+    int instruction_length;
+    bool res = DecodeInstruction(hex_buffer, sizeof(hex_buffer),
+                                 human_buffer, sizeof(human_buffer),
+                                 &instruction_length, pc);
+    if (!res) {
+      success = false;
+    }
     formatter->ConsumeInstruction(hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
@@ -1288,6 +1314,8 @@ void Disassembler::Disassemble(uword start,
                                   pc);
     pc += instruction_length;
   }
+
+  return success;
 }
 
 }  // namespace dart

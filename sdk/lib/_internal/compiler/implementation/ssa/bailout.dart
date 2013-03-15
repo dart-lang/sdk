@@ -123,16 +123,11 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     Element source = instruction.sourceElement;
     if (source != null) {
       DartType sourceType = source.computeType(compiler);
-      DartType speculatedType = speculativeType.computeType(compiler);
-      JavaScriptBackend backend = compiler.backend;
-      if (speculatedType != null) {
-        // Use the num type instead of JSNumber because JSNumber
-        // is not assignment compatible with int and double, but we
-        // still want to generate a type guard.
-        if (speculatedType.element == backend.jsNumberClass) {
-          speculatedType = compiler.numClass.computeType(compiler);
-        }
-        if (!compiler.types.isAssignable(speculatedType, sourceType)) {
+      if (!sourceType.isMalformed && !sourceType.isDynamic &&
+          sourceType.kind == TypeKind.INTERFACE) {
+        TypeMask sourceMask = new TypeMask.subtype(sourceType);
+        TypeMask speculatedMask = speculativeType.computeMask(compiler);
+        if (sourceMask.intersection(speculatedMask, compiler).isEmpty) {
           return false;
         }
       }
@@ -502,7 +497,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
       if (info.initializer != null) {
         visitExpression(info.initializer);
       }
-      blocks.addLast(info.loopHeader);
+      blocks.add(info.loopHeader);
       if (!info.isDoWhile()) {
         visitExpression(info.condition);
       }
@@ -552,7 +547,7 @@ class SsaBailoutPropagator extends HBaseVisitor {
    */
   void visitStatements(HSubGraphBlockInformation info, {bool newFlow}) {
     SubGraph graph = info.subGraph;
-    if (newFlow) blocks.addLast(graph.start);
+    if (newFlow) blocks.add(graph.start);
     visitSubGraph(graph);
     if (newFlow) blocks.removeLast();
   }

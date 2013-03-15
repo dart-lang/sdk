@@ -5,6 +5,9 @@
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
+import
+    "../../../sdk/lib/_internal/compiler/implementation/universe/universe.dart"
+        show TypedSelector;
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
@@ -696,6 +699,61 @@ testPatchNonFunction() {
       compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_FUNCTION);
 }
 
+testPatchAndSelector() {
+  var compiler = applyPatch(
+      """
+      class A {
+        external void clear();
+      }
+      class B extends A {
+      }
+      """,
+      """
+      patch class A {
+        int method() => 0;
+        patch void clear() {}
+      }
+      """);
+  ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
+                            expectIsPatched: true);
+  cls.ensureResolved(compiler);
+
+  ensure(compiler, "method", cls.patch.lookupLocalMember,
+         checkHasBody: true, expectIsRegular: true);
+
+  ensure(compiler, "clear", cls.lookupLocalMember,
+         checkHasBody: true, expectIsPatched: true);
+
+  compiler.phase = Compiler.PHASE_DONE_RESOLVING;
+
+  // Check that a method just in the patch class is a target for a
+  // typed selector.
+  var selector = new Selector.call(
+      buildSourceString('method'), compiler.coreLibrary, 0);
+  var typedSelector = new TypedSelector.exact(cls.rawType, selector);
+  Element method =
+      cls.implementation.lookupLocalMember(buildSourceString('method'));
+  Expect.isTrue(selector.applies(method, compiler));
+  Expect.isTrue(typedSelector.applies(method, compiler));
+
+  // Check that the declaration method in the declaration class is a target
+  // for a typed selector.
+  selector = new Selector.call(
+      buildSourceString('clear'), compiler.coreLibrary, 0);
+  typedSelector = new TypedSelector.exact(cls.rawType, selector);
+  method = cls.lookupLocalMember(buildSourceString('clear'));
+  Expect.isTrue(selector.applies(method, compiler));
+  Expect.isTrue(typedSelector.applies(method, compiler));
+
+  // Check that the declaration method in the declaration class is a target
+  // for a typed selector on a subclass.
+  cls = ensure(compiler, "B", compiler.coreLibrary.find);
+  cls.ensureResolved(compiler);
+  typedSelector = new TypedSelector.exact(cls.rawType, selector);
+  Expect.isTrue(selector.applies(method, compiler));
+  Expect.isTrue(typedSelector.applies(method, compiler));
+}
+
 main() {
   testPatchConstructor();
   testPatchFunction();
@@ -723,4 +781,6 @@ main() {
   testPatchNonSetter();
   testPatchNoSetter();
   testPatchNonFunction();
+
+  testPatchAndSelector();
 }

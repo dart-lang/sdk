@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,6 +24,7 @@
 
 library test;
 
+import "dart:async";
 import "dart:io";
 import "testing/dart/test_runner.dart";
 import "testing/dart/test_options.dart";
@@ -36,6 +37,7 @@ import "../compiler/tests/dartc/test_config.dart";
 import "../runtime/tests/vm/test_config.dart";
 import "../samples/tests/dartc/test_config.dart";
 import "../tests/co19/test_config.dart";
+import "../tests/lib/analyzer/test_config.dart";
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -70,7 +72,7 @@ final TEST_SUITE_DIRECTORIES = [
 ];
 
 main() {
-  var startTime = new Date.now();
+  var startTime = new DateTime.now();
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null || configurations.length == 0) return;
@@ -104,7 +106,7 @@ main() {
         ['Test configurations:'] : ['Test configuration:'];
     for (Map conf in configurations) {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
-          .mappedBy((name) => conf[name]).toList();
+          .map((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
       output_words.add(settings.join('_'));
     }
@@ -115,6 +117,7 @@ main() {
     return TestUtils.isBrowserRuntime(config['runtime']);
   });
 
+  List<Future> serverFutures = [];
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
@@ -125,7 +128,7 @@ main() {
       // getCrossOriginPortNumber().
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
                                        useContentSecurityPolicy);
-      servers.startServers('127.0.0.1');
+      serverFutures.add(servers.startServers('127.0.0.1'));
       conf['_servers_'] = servers;
     }
 
@@ -143,9 +146,17 @@ main() {
         // vm tests contain both cc tests (added here) and dart tests (added in
         // [TEST_SUITE_DIRECTORIES]).
         testSuites.add(new VMTestSuite(conf));
-      } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
-        testSuites.add(new SamplesDartcTestSuite(conf));
-        testSuites.add(new JUnitDartcTestSuite(conf));
+      } else if (conf['analyzer']) {
+        if (key == 'dartc' && conf['compiler'] == 'dartc') {
+          testSuites.add(new JUnitDartcTestSuite(conf));
+        }
+        // TODO(devoncarew): get these running with the new analyzer
+        if (key == 'dartc' && conf['compiler'] == 'dartc') {
+          testSuites.add(new SamplesDartcTestSuite(conf));
+        }
+        if (key == 'analyze_library') {
+          testSuites.add(new AnalyzeLibraryTestSuite(conf));
+        }
       }
     }
 
@@ -167,14 +178,52 @@ main() {
     DebugLogger.close();
   }
 
-  // Start process queue.
-  new ProcessQueue(maxProcesses,
-                   maxBrowserProcesses,
-                   progressIndicator,
-                   startTime,
-                   printTiming,
-                   testSuites,
-                   allTestsFinished,
-                   verbose,
-                   listTests);
+  var eventListener = [];
+  if (progressIndicator != 'silent') {
+    var printFailures = true;
+    var formatter = new Formatter();
+    if (progressIndicator == 'color') {
+      progressIndicator = 'compact';
+      formatter = new ColorFormatter();
+    }
+    if (progressIndicator == 'diff') {
+      progressIndicator = 'compact';
+      formatter = new ColorFormatter();
+      printFailures = false;
+      eventListener.add(new StatusFileUpdatePrinter());
+    }
+    eventListener.add(new SummaryPrinter());
+    eventListener.add(new FlakyLogWriter());
+    if (printFailures) {
+      eventListener.add(new TestFailurePrinter(formatter));
+    }
+    eventListener.add(new ProgressIndicator.fromName(progressIndicator,
+                                                     startTime,
+                                                     formatter));
+    if (printTiming) {
+      eventListener.add(new TimingPrinter(startTime));
+    }
+    eventListener.add(new SkippedCompilationsPrinter());
+    eventListener.add(new LeftOverTempDirPrinter());
+  }
+  eventListener.add(new ExitCodeSetter());
+
+  void startProcessQueue() {
+    // Start process queue.
+    new ProcessQueue(maxProcesses,
+                     maxBrowserProcesses,
+                     startTime,
+                     testSuites,
+                     eventListener,
+                     allTestsFinished,
+                     verbose,
+                     listTests);
+  }
+
+  // Start all the HTTP servers required before starting the process queue.
+  if (serverFutures.isEmpty) {
+    startProcessQueue();
+  } else {
+    Future.wait(serverFutures).then((_) => startProcessQueue());
+  }
 }

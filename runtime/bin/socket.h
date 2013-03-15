@@ -43,6 +43,7 @@ class Socket {
   static void Close(intptr_t fd);
   static bool SetNonBlocking(intptr_t fd);
   static bool SetBlocking(intptr_t fd);
+  static bool SetNoDelay(intptr_t fd, bool enabled);
 
   // Perform a IPv4 hostname lookup. Returns the hostname string in
   // IPv4 dotted-decimal format.

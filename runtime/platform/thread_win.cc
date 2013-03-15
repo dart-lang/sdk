@@ -42,8 +42,8 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
-  // When the function returns here close the handle.
-  CloseHandle(GetCurrentThread());
+  // Clean up the monitor wait data for this thread.
+  MonitorWaitData::ThreadExit();
 
   return 0;
 }
@@ -170,6 +170,17 @@ void Monitor::Enter() {
 
 void Monitor::Exit() {
   LeaveCriticalSection(&data_.cs_);
+}
+
+
+void MonitorWaitData::ThreadExit() {
+  uword raw_wait_data =
+    Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+  if (raw_wait_data != 0) {
+    MonitorWaitData* wait_data =
+        reinterpret_cast<MonitorWaitData*>(raw_wait_data);
+    delete wait_data;
+  }
 }
 
 

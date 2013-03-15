@@ -9,13 +9,19 @@
 /// isolate, then reporting the results back to the parent isolate.
 library metatest;
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:pathos/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import '../../../pkg/pathos/lib/path.dart' as path;
+import '../../../pkg/unittest/lib/unittest.dart';
 
 import 'utils.dart';
+
+// TODO(nweiz): get rid of this once issue 8863 is fixed.
+/// The path to the Dart executable. This is only set in a child isolate.
+String get dartExecutable => _executable;
+String _executable;
 
 /// Declares a test with the given [description] and [body]. [body] corresponds
 /// to the `main` method of a test file, and will be run in an isolate. By
@@ -99,7 +105,8 @@ Future<bool> get _inChildIsolate {
 
   var completer = new Completer();
   port.receive((message, replyTo) {
-    _testToRun = message;
+    _testToRun = message['testToRun'];
+    _executable = message['executable'];
     _replyTo = replyTo;
     port.close();
     completer.complete(true);
@@ -117,8 +124,10 @@ Future<bool> get _inChildIsolate {
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   // TODO(nweiz): Don't use path here once issue 8440 is fixed.
-  var future = spawnUri(path.join(path.current, new Options().script))
-      .call(description);
+  var future = spawnUri(path.join(path.current, new Options().script)).call({
+    'testToRun': description,
+    'executable': new Options().executable
+  });
   // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
   // capture top-level exceptions.
   return timeout(future, 30 * 1000, () {
@@ -137,29 +146,29 @@ bool _hasError(Map results) {
 String _summarizeTests(Map results) {
   var buffer = new StringBuffer();
   for (var t in results["results"]) {
-    buffer.add("${t['result'].toUpperCase()}: ${t['description']}\n");
-    if (t['message'] != '') buffer.add("${_indent(t['message'])}\n");
+    buffer.writeln("${t['result'].toUpperCase()}: ${t['description']}");
+    if (t['message'] != '') buffer.writeln("${_indent(t['message'])}");
     if (t['stackTrace'] != null && t['stackTrace'] != '') {
-      buffer.add("${_indent(t['stackTrace'])}\n");
+      buffer.writeln("${_indent(t['stackTrace'])}");
     }
   }
 
-  buffer.add("\n");
+  buffer.writeln();
 
   var success = false;
   if (results['passed'] == 0 && results['failed'] == 0 &&
       results['errors'] == 0 && results['uncaughtError'] == null) {
-    buffer.add('No tests found.');
+    buffer.write('No tests found.');
     // This is considered a failure too.
   } else if (results['failed'] == 0 && results['errors'] == 0 &&
       results['uncaughtError'] == null) {
-    buffer.add('All ${results['passed']} tests passed.');
+    buffer.write('All ${results['passed']} tests passed.');
     success = true;
   } else {
     if (results['uncaughtError'] != null) {
-      buffer.add('Top-level uncaught error: ${results['uncaughtError']}');
+      buffer.write('Top-level uncaught error: ${results['uncaughtError']}');
     }
-    buffer.add('${results['passed']} PASSED, ${results['failed']} FAILED, '
+    buffer.write('${results['passed']} PASSED, ${results['failed']} FAILED, '
         '${results['errors']} ERRORS');
   }
   return prefixLines(buffer.toString());

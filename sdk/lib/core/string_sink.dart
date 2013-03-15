@@ -21,7 +21,7 @@ abstract class StringSink {
    * Converts [obj] to a String by invoking `toString` and adds the result to
    * `this`. Then adds a new line.
    */
-  void writeln(Object obj);
+  void writeln([Object obj = ""]);
 
   /**
    * Writes the [charCode] to `this`.

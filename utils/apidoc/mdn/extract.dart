@@ -611,7 +611,7 @@ SectionParseResult filteredHtml(Element elem, Element root, String prop,
   if (prop != null && prop.length > 0) {
     // Only expect properties to have HTML.
     for(Element e in fragment.queryAll(IDL_SELECTOR)) {
-      idl.add(e.outerHTML);
+      idl.write(e.outerHTML);
       e.remove();
     }
     // TODO(jacobr) this is a very basic regex to see if text looks like IDL
@@ -621,7 +621,7 @@ SectionParseResult filteredHtml(Element elem, Element root, String prop,
       // Check if it looks like idl...
       String txt = e.text.trim();
       if (likelyIdl.hasMatch(txt) && txt.contains("\n") && txt.contains(")")) {
-        idl.add(e.outerHTML);
+        idl.write(e.outerHTML);
         e.remove();
       }
     }
@@ -1273,7 +1273,7 @@ void run() {
   // safe to include in the summary.
   StringBuffer summary = new StringBuffer();
   for (Element e in root.queryAll("#Summary, #Description")) {
-    summary.add(filteredHtml(root, e, null, removeHeaders).html);
+    summary.write(filteredHtml(root, e, null, removeHeaders).html);
   }
 
   if (summary.length == 0) {
@@ -1288,7 +1288,7 @@ void run() {
       }
     }
     // Risky... this might add stuff we shouldn't.
-    summary.add(filteredHtml(root, root, null, removeHeaders).html);
+    summary.write(filteredHtml(root, root, null, removeHeaders).html);
   }
 
   if (summary.length > 0) {

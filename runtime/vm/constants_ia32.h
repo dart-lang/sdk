@@ -73,6 +73,12 @@ const Register kExceptionObjectReg = EAX;
 // an exception is thrown.
 const Register kStackTraceObjectReg = EDX;
 
+
+// Dart stack frame layout.
+static const int kLastParamSlotIndex = 2;
+static const int kFirstLocalSlotIndex = -2;
+
+
 enum ScaleFactor {
   TIMES_1 = 0,
   TIMES_2 = 1,

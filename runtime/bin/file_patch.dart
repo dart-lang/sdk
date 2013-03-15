@@ -9,6 +9,8 @@ patch class _FileUtils {
 patch class _File {
   /* patch */ static _exists(String path) native "File_Exists";
   /* patch */ static _create(String path) native "File_Create";
+  /* patch */ static _createLink(String path, String target)
+      native "File_CreateLink";
   /* patch */ static _delete(String path) native "File_Delete";
   /* patch */ static _directory(String path) native "File_Directory";
   /* patch */ static _lengthFromPath(String path) native "File_LengthFromPath";
@@ -35,6 +37,6 @@ patch class _RandomAccessFile {
   /* patch */ static _flush(int id) native "File_Flush";
 }
 
-List<int> _makeUint8ListView(List<int> source, int from, int to) {
-  return new Uint8List.view(source.asByteArray(), from, to);
+Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
+  return new Uint8List.view(source.buffer, offsetInBytes, length);
 }

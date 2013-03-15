@@ -45,8 +45,8 @@ void main() {
   originalTest.main();
 
   test('dromaeo runs', () {
-    new Timer.repeating(new Duration(milliseconds: 500),
-                        expectAsyncUntil1((timer) {
+    new Timer.periodic(new Duration(milliseconds: 500),
+                       expectAsyncUntil1((timer) {
       if (document.query('.alldone') != null) {
         timer.cancel();
         isDone = true;

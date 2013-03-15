@@ -6,6 +6,7 @@ package com.google.dart.compiler.ast;
 
 import com.google.common.collect.ImmutableList;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.util.StringInterner;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class DartStringLiteral extends DartLiteral {
   private final List<DartStringLiteral> parts;
 
   private DartStringLiteral(String value, List<DartStringLiteral> parts) {
-    this.value = value;
+    this.value = StringInterner.intern(value);
     this.parts = parts;
   }
 

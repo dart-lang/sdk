@@ -200,7 +200,7 @@ testErrorHandler() {
         errors++;
         Expect.isTrue(e.error is TestException);
       });
-  controller.signalError(new TestException());
+  controller.addError(new TestException());
   controller.close();
 }
 

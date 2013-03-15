@@ -75,18 +75,17 @@ String generateTree(List<String> files) {
 void _drawLine(StringBuffer buffer, String prefix, bool isLastChild,
                String name) {
   // Print lines.
-  buffer.add(prefix);
+  buffer.write(prefix);
   if (name != null) {
     if (isLastChild) {
-      buffer.add("'-- ");
+      buffer.write("'-- ");
     } else {
-      buffer.add("|-- ");
+      buffer.write("|-- ");
     }
   }
 
   // Print name.
-  buffer.add(name);
-  buffer.add('\n');
+  buffer.writeln(name);
 }
 
 String _getPrefix(bool isRoot, bool isLast) {
@@ -121,9 +120,9 @@ void _draw(StringBuffer buffer, String prefix, bool isLast,
     _drawChild(false, childNames[2]);
 
     // Elide the middle ones.
-    buffer.add(prefix);
-    buffer.add(_getPrefix(name == null, isLast));
-    buffer.add('| (${childNames.length - 6} more...)\n');
+    buffer.write(prefix);
+    buffer.write(_getPrefix(name == null, isLast));
+    buffer.writeln('| (${childNames.length - 6} more...)');
 
     // Show the last few.
     _drawChild(false, childNames[childNames.length - 3]);

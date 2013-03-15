@@ -16,12 +16,12 @@ main() {
     if (kind == Diagnostic.VERBOSE_INFO) return;
     if (identical(kind.name, 'source map')) return;
     if (uri == null) {
-      messages.add('$kind: $message\n');
+      messages.write('$kind: $message\n');
     } else {
       Expect.equals('main:${uri.path}', '$uri');
       String source = TEST_SOURCE[uri.path];
       Expect.isNotNull(source);
-      messages.add('$begin<${source.substring(begin, end)}>:${uri.path}:'
+      messages.write('$begin<${source.substring(begin, end)}>:${uri.path}:'
                    '$kind: $message\n');
     }
   }

@@ -433,7 +433,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
     }
     List<int> result = (toRead == 0) ? null :
-        buffer.data.getRange(buffer.start, toRead);
+        buffer.data.sublist(buffer.start, buffer.start + toRead);
     buffer.advanceStart(toRead);
 
     // Set up a read event if the filter still has data.
@@ -464,7 +464,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   // up handlers to flush the pipeline when possible.
   int write(List<int> data, [int offset, int bytes]) {
     if (_closedWrite) {
-      _controller.signalError(new AsyncError(new SocketIOException(
+      _controller.addError(new AsyncError(new SocketIOException(
           "Writing to a closed socket")));
       return 0;
     }
@@ -482,6 +482,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   X509Certificate get peerCertificate => _secureFilter.peerCertificate;
+
+  bool setOption(SocketOption option, bool enabled) {
+    if (_socket == null) return false;
+    return _socket.setOption(option, enabled);
+  }
 
   void _writeHandler() {
     if (_status == CLOSED) return;
@@ -572,7 +577,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_connectPending) {
       _handshakeComplete.completeError(e);
     } else {
-      _controller.signalError(e);
+      _controller.addError(e);
     }
     _close();
   }

@@ -133,13 +133,13 @@ abstract class Iterable<E> {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       do {
-        buffer.add("${iterator.current}");
+        buffer.write("${iterator.current}");
       } while (iterator.moveNext());
     } else {
-      buffer.add("${iterator.current}");
+      buffer.write("${iterator.current}");
       while (iterator.moveNext()) {
-        buffer.add(separator);
-        buffer.add("${iterator.current}");
+        buffer.write(separator);
+        buffer.write("${iterator.current}");
       }
     }
     return buffer.toString();
@@ -185,7 +185,10 @@ abstract class Iterable<E> {
    *
    * The [compare] function must be a proper [Comparator<T>]. If a function is
    * not provided, [compare] defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary min method if needed.
    */
+  @deprecated
   E min([int compare(E a, E b)]) {
     if (compare == null) compare = Comparable.compare;
     Iterator it = iterator;
@@ -208,7 +211,10 @@ abstract class Iterable<E> {
    *
    * The [compare] function must be a proper [Comparator<T>]. If a function is
    * not provided, [compare] defaults to [Comparable.compare].
+   *
+   * *Deprecated*. Use [reduce] with a binary max method if needed.
    */
+  @deprecated
   E max([int compare(E a, E b)]) {
     if (compare == null) compare = Comparable.compare;
     Iterator it = iterator;
@@ -323,7 +329,7 @@ abstract class Iterable<E> {
    * returned. By default, when [orElse] is `null`, a [StateError] is
    * thrown.
    */
-  E firstMatching(bool test(E value), { E orElse() }) {
+  E firstWhere(bool test(E value), { E orElse() }) {
     // TODO(floitsch): check that arguments are of correct type?
     for (E element in this) {
       if (test(element)) return element;
@@ -339,7 +345,7 @@ abstract class Iterable<E> {
    * returned. By default, when [orElse] is [:null:], a [StateError] is
    * thrown.
    */
-  E lastMatching(bool test(E value), {E orElse()}) {
+  E lastWhere(bool test(E value), {E orElse()}) {
     // TODO(floitsch): check that arguments are of correct type?
     E result = null;
     bool foundMatching = false;
@@ -358,7 +364,7 @@ abstract class Iterable<E> {
    * Returns the single element that satisfies [f]. If no or more than one
    * element match then a [StateError] is thrown.
    */
-  E singleMatching(bool test(E value)) {
+  E singleWhere(bool test(E value)) {
     // TODO(floitsch): check that argument is of correct type?
     E result = null;
     bool foundMatching = false;

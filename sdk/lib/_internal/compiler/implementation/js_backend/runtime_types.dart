@@ -12,10 +12,24 @@ abstract class TypeChecks {
   Iterator<ClassElement> get iterator;
 }
 
-class RuntimeTypeInformation {
+class RuntimeTypes {
   final Compiler compiler;
+  final TypeRepresentationGenerator representationGenerator;
 
-  RuntimeTypeInformation(this.compiler);
+  final Map<ClassElement, Set<ClassElement>> rtiDependencies;
+  final Set<ClassElement> classesNeedingRti;
+  // The set of classes that use one of their type variables as expressions
+  // to get the runtime type.
+  final Set<ClassElement> classesUsingTypeVariableExpression;
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  RuntimeTypes(Compiler compiler)
+      : this.compiler = compiler,
+        representationGenerator = new TypeRepresentationGenerator(compiler),
+        classesNeedingRti = new Set<ClassElement>(),
+        rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
+        classesUsingTypeVariableExpression = new Set<ClassElement>();
 
   /// Contains the classes of all arguments that have been used in
   /// instantiations and checks.
@@ -28,6 +42,76 @@ class RuntimeTypeInformation {
             element == compiler.doubleClass ||
             element == compiler.stringClass ||
             element == compiler.listClass);
+  }
+
+  void registerRtiDependency(Element element, Element dependency) {
+    // We're not dealing with typedef for now.
+    if (!element.isClass() || !dependency.isClass()) return;
+    Set<ClassElement> classes =
+        rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
+    classes.add(dependency);
+  }
+
+  void computeClassesNeedingRti() {
+    // Find the classes that need runtime type information. Such
+    // classes are:
+    // (1) used in a is check with type variables,
+    // (2) dependencies of classes in (1),
+    // (3) subclasses of (2) and (3).
+    void potentiallyAddForRti(ClassElement cls) {
+      if (cls.typeVariables.isEmpty) return;
+      if (classesNeedingRti.contains(cls)) return;
+      classesNeedingRti.add(cls);
+
+      // TODO(ngeoffray): This should use subclasses, not subtypes.
+      Set<ClassElement> classes = compiler.world.subtypes[cls];
+      if (classes != null) {
+        classes.forEach((ClassElement sub) {
+          potentiallyAddForRti(sub);
+        });
+      }
+
+      Set<ClassElement> dependencies = rtiDependencies[cls];
+      if (dependencies != null) {
+        dependencies.forEach((ClassElement other) {
+          potentiallyAddForRti(other);
+        });
+      }
+    }
+
+    Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
+    compiler.resolverWorld.isChecks.forEach((DartType type) {
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        classesUsingTypeVariableTests.add(variable.enclosingElement);
+      }
+    });
+    // Add is-checks that result from classes using type variables in checks.
+    compiler.resolverWorld.addImplicitChecks(classesUsingTypeVariableTests);
+    // Add the rti dependencies that are implicit in the way the backend
+    // generates code: when we create a new [List], we actually create
+    // a JSArray in the backend and we need to add type arguments to
+    // the calls of the list constructor whenever we determine that
+    // JSArray needs type arguments.
+    // TODO(karlklose): make this dependency visible from code.
+    if (backend.jsArrayClass != null) {
+      registerRtiDependency(backend.jsArrayClass, compiler.listClass);
+    }
+    // Compute the set of all classes that need runtime type information.
+    compiler.resolverWorld.isChecks.forEach((DartType type) {
+      if (type.kind == TypeKind.INTERFACE) {
+        InterfaceType itf = type;
+        if (!itf.isRaw) {
+          potentiallyAddForRti(itf.element);
+        }
+      } else if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        potentiallyAddForRti(variable.enclosingElement);
+      }
+    });
+    // Add the classes that need RTI because they use a type variable as
+    // expression.
+    classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
   }
 
   TypeChecks cachedRequiredChecks;
@@ -63,15 +147,6 @@ class RuntimeTypeInformation {
       }
     }
 
-    // TODO(karlklose): remove this temporary fix: we need to add the classes
-    // used in substitutions to addArguments.
-    allArguments.addAll([compiler.intClass,
-                         compiler.boolClass,
-                         compiler.numClass,
-                         compiler.doubleClass,
-                         compiler.stringClass,
-                         compiler.listClass]);
-
     return cachedRequiredChecks = requiredChecks;
   }
 
@@ -83,29 +158,29 @@ class RuntimeTypeInformation {
    * the type arguments.
    */
   Set<ClassElement> getInstantiatedArguments() {
-    Set<ClassElement> instantiatedArguments = new Set<ClassElement>();
+    ArgumentCollector collector = new ArgumentCollector();
     for (DartType type in instantiatedTypes) {
-      addAllInterfaceTypeArguments(type, instantiatedArguments);
+      collector.collect(type);
       ClassElement cls = type.element;
-      for (DartType type in cls.allSupertypes) {
-        addAllInterfaceTypeArguments(type, instantiatedArguments);
+      for (DartType supertype in cls.allSupertypes) {
+        collector.collect(supertype);
       }
     }
-    for (ClassElement cls in instantiatedArguments.toList()) {
-      for (DartType type in cls.allSupertypes) {
-        addAllInterfaceTypeArguments(type, instantiatedArguments);
+    for (ClassElement cls in collector.classes.toList()) {
+      for (DartType supertype in cls.allSupertypes) {
+        collector.collect(supertype);
       }
     }
-    return instantiatedArguments;
+    return collector.classes;
   }
 
   /// Collects all type arguments used in is-checks.
   Set<ClassElement> getCheckedArguments() {
-    Set<ClassElement> checkedArguments = new Set<ClassElement>();
+    ArgumentCollector collector = new ArgumentCollector();
     for (DartType type in isChecks) {
-      addAllInterfaceTypeArguments(type, checkedArguments);
+      collector.collect(type);
     }
-    return checkedArguments;
+    return collector.classes;
   }
 
   Iterable<DartType> get isChecks {
@@ -114,28 +189,6 @@ class RuntimeTypeInformation {
 
   Iterable<DartType> get instantiatedTypes {
     return compiler.codegenWorld.instantiatedTypes;
-  }
-
-  void addAllInterfaceTypeArguments(DartType type, Set<ClassElement> classes) {
-    if (type is !InterfaceType) return;
-    for (DartType argument in type.typeArguments) {
-      forEachInterfaceType(argument, (InterfaceType t) {
-        ClassElement cls = t.element;
-        if (cls != compiler.dynamicClass) {
-          classes.add(cls);
-        }
-      });
-    }
-  }
-
-  void forEachInterfaceType(DartType type, f(InterfaceType type)) {
-    if (type.kind == TypeKind.INTERFACE) {
-      f(type);
-      InterfaceType interface = type;
-      for (DartType argument in interface.typeArguments) {
-        forEachInterfaceType(argument, f);
-      }
-    }
   }
 
   /// Return the unique name for the element as an unquoted string.
@@ -212,17 +265,22 @@ class RuntimeTypeInformation {
    *     a list expression.
    */
   String getSupertypeSubstitution(ClassElement cls, ClassElement check,
-                                  {alwaysGenerateFunction: false}) {
+                                  {bool alwaysGenerateFunction: false}) {
     if (isTrivialSubstitution(cls, check)) return null;
 
     // TODO(karlklose): maybe precompute this value and store it in typeChecks?
+    bool usesTypeVariables = false;
+    String onVariable(TypeVariableType v) {
+      usesTypeVariables = true;
+      return v.toString();
+    };
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
     String substitution = target.typeArguments
-        .map((type) => _getTypeRepresentation(type, (v) => v.toString()))
+        .map((type) => _getTypeRepresentation(type, onVariable))
         .join(', ');
     substitution = '[$substitution]';
-    if (cls.typeVariables.isEmpty && !alwaysGenerateFunction) {
+    if (!usesTypeVariables && !alwaysGenerateFunction) {
       return substitution;
     } else {
       String parameters = cls.typeVariables.toList().join(', ');
@@ -241,34 +299,7 @@ class RuntimeTypeInformation {
 
   // TODO(karlklose): rewrite to use js.Expressions.
   String _getTypeRepresentation(DartType type, String onVariable(variable)) {
-    StringBuffer builder = new StringBuffer();
-    void build(DartType part) {
-      if (part is TypeVariableType) {
-        builder.write(onVariable(part));
-      } else {
-        bool hasArguments = part is InterfaceType && !part.isRaw;
-        Element element = part.element;
-        if (element == compiler.dynamicClass) {
-          builder.write('null');
-        } else {
-          String name = getJsName(element);
-          if (!hasArguments) {
-            builder.write(name);
-          } else {
-            builder.write('[');
-            builder.write(name);
-            InterfaceType interface = part;
-            for (DartType argument in interface.typeArguments) {
-              builder.write(', ');
-              build(argument);
-            }
-            builder.write(']');
-          }
-        }
-      }
-    }
-    build(type);
-    return builder.toString();
+    return representationGenerator.getTypeRepresentation(type, onVariable);
   }
 
   static bool hasTypeArguments(DartType type) {
@@ -279,13 +310,122 @@ class RuntimeTypeInformation {
     return false;
   }
 
-  static int getTypeVariableIndex(TypeVariableType variable) {
-    ClassElement classElement = variable.element.getEnclosingClass();
+  static int getTypeVariableIndex(TypeVariableElement variable) {
+    ClassElement classElement = variable.getEnclosingClass();
     Link<DartType> variables = classElement.typeVariables;
     for (int index = 0; !variables.isEmpty;
          index++, variables = variables.tail) {
-      if (variables.head == variable) return index;
+      if (variables.head.element == variable) return index;
     }
+  }
+}
+
+typedef String OnVariableCallback(TypeVariableType type);
+
+class TypeRepresentationGenerator extends DartTypeVisitor {
+  final Compiler compiler;
+  OnVariableCallback onVariable;
+  StringBuffer builder;
+
+  TypeRepresentationGenerator(Compiler this.compiler);
+
+  /**
+   * Creates a type representation for [type]. [onVariable] is called to provide
+   * the type representation for type variables.
+   */
+  String getTypeRepresentation(DartType type, OnVariableCallback onVariable) {
+    this.onVariable = onVariable;
+    builder = new StringBuffer();
+    visit(type);
+    String typeRepresentation = builder.toString();
+    builder = null;
+    this.onVariable = null;
+    return typeRepresentation;
+  }
+
+  String getJsName(Element element) {
+    JavaScriptBackend backend = compiler.backend;
+    Namer namer = backend.namer;
+    return namer.isolateAccess(element);
+  }
+
+  visit(DartType type) {
+    type.unalias(compiler).accept(this, null);
+  }
+
+  visitTypeVariableType(TypeVariableType type, _) {
+    builder.write(onVariable(type));
+  }
+
+  visitDynamicType(DynamicType type, _) {
+    builder.write('null');
+  }
+
+  visitInterfaceType(InterfaceType type, _) {
+    String name = getJsName(type.element);
+    if (type.isRaw) {
+      builder.write(name);
+    } else {
+      builder.write('[');
+      builder.write(name);
+      builder.write(', ');
+      visitList(type.typeArguments);
+      builder.write(']');
+    }
+  }
+
+  visitList(Link<DartType> types) {
+    bool first = true;
+    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
+      if (!first) {
+        builder.write(', ');
+      }
+      visit(link.head);
+      first = false;
+    }
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    builder.write('{func: true');
+    if (type.returnType.isVoid) {
+      builder.write(', retvoid: true');
+    } else if (!type.returnType.isDynamic) {
+      builder.write(', ret: ');
+      visit(type.returnType);
+    }
+    if (!type.parameterTypes.isEmpty) {
+      builder.write(', args: [');
+      visitList(type.parameterTypes);
+      builder.write(']');
+    }
+    if (!type.optionalParameterTypes.isEmpty) {
+      builder.write(', opt: [');
+      visitList(type.optionalParameterTypes);
+      builder.write(']');
+    }
+    if (!type.namedParameterTypes.isEmpty) {
+      builder.write(', named: {');
+      bool first = true;
+      Link<SourceString> names = type.namedParameters;
+      Link<DartType> types = type.namedParameterTypes;
+      while (!types.isEmpty) {
+        assert(!names.isEmpty);
+        if (!first) {
+          builder.write(', ');
+        }
+        builder.write('${names.head.slowToString()}: ');
+        visit(types.head);
+        first = false;
+        names = names.tail;
+        types = types.tail;
+      }
+      builder.write('}');
+    }
+    builder.write('}');
+  }
+
+  visitType(DartType type, _) {
+    compiler.internalError('Unexpected type: $type');
   }
 }
 
@@ -309,9 +449,50 @@ class TypeCheckMapping implements TypeChecks {
     StringBuffer sb = new StringBuffer();
     for (ClassElement holder in this) {
       for (ClassElement check in [holder]) {
-        sb.add('${holder.name.slowToString()}.${check.name.slowToString()}, ');
+        sb.write('${holder.name.slowToString()}.'
+                 '${check.name.slowToString()}, ');
       }
     }
     return '[$sb]';
+  }
+}
+
+class ArgumentCollector extends DartTypeVisitor {
+  final Set<ClassElement> classes = new Set<ClassElement>();
+
+  collect(DartType type) {
+    type.accept(this, false);
+  }
+
+  visit(DartType type) {
+    type.accept(this, true);
+  }
+
+  visitList(Link<DartType> types) {
+    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
+      link.head.accept(this, true);
+    }
+  }
+
+  visitType(DartType type, _) {
+    // Do nothing.
+  }
+
+  visitDynamicType(DynamicType type, _) {
+    // Do not collect [:dynamic:].
+  }
+
+  visitInterfaceType(InterfaceType type, bool isTypeArgument) {
+    if (isTypeArgument) {
+      classes.add(type.element);
+    }
+    visitList(type.typeArguments);
+  }
+
+  visitFunctionType(FunctionType type, _) {
+    visit(type.returnType);
+    visitList(type.parameterTypes);
+    visitList(type.optionalParameterTypes);
+    visitList(type.namedParameterTypes);
   }
 }

@@ -4,6 +4,7 @@
 
 // Simulates a use of test_progress during a failing run of test.dart.
 
+import "dart:io";
 import "../../../tools/testing/dart/test_progress.dart";
 import "../../../tools/testing/dart/test_runner.dart";
 import "../../../tools/testing/dart/test_options.dart";

@@ -1,11 +1,9 @@
 name: intl
-author: "Dart Team <misc@dartlang.org>"
+author: Dart Team <misc@dartlang.org>
+description: Contains code to deal with internationalized/localized messages, date and number formatting and parsing, bi-directional text, and other internationalization issues.
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/intl
-description: >
-  Contains code to deal with internationalized/localized
-  messages, date and number formatting and parsing,
-  bi-directional text, and other internationalization issues.
 dependencies:
-  unittest:
-    sdk: unittest
+  unittest: any
+  analyzer_experimental: any
+  pathos: any

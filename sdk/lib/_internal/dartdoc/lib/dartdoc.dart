@@ -18,20 +18,22 @@ library dartdoc;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
-import 'dart:json' as json;
 
+import 'classify.dart';
+import 'markdown.dart' as md;
+import 'universe_serializer.dart';
+
+import 'src/dartdoc/nav.dart';
+import 'src/json_serializer.dart' as json_serializer;
+
+// TODO(rnystrom): Use "package:" URL (#4968).
+import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
-import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
-import 'classify.dart';
-import 'universe_serializer.dart';
-import 'markdown.dart' as md;
-import 'src/json_serializer.dart' as json_serializer;
-import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
 import '../../libraries.dart';
-import 'src/dartdoc/nav.dart';
 
 part 'src/dartdoc/utils.dart';
 
@@ -119,29 +121,26 @@ Future copyDirectory(Path from, Path to) {
           fromFile.openRead().pipe(toFile.openWrite());
         }
       },
-      onDone: () => completer.complete(true));
+      onDone: () => completer.complete(),
+      onError: (e) => completer.completeError(e.error, e.stackTrace));
   return completer.future;
 }
 
 /**
  * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
-Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
+Future compileScript(int mode, Path outputDir, Path libPath) {
+  print('Compiling client JavaScript...');
   var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
   var dartPath = libPath.append(
       'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
   var jsPath = outputDir.append('client-$clientScript.js');
 
-  var completer = new Completer<bool>();
-  var compilation = new Compilation(
-      dartPath, libPath, null, const <String>['--categories=Client,Server']);
-  Future<String> result = compilation.compileToJavaScript();
-  result.then((jsCode) {
-    writeString(new File.fromPath(jsPath), jsCode);
-    completer.complete(true);
-  });
-  result.catchError((e) => completer.completeError(e.error, e.stackTrace));
-  return completer.future;
+  return dart2js.compile(dartPath, libPath,
+      options: const <String>['--categories=Client,Server'])
+    .then((jsCode) {
+      writeString(new File.fromPath(jsPath), jsCode);
+    });
 }
 
 /**
@@ -290,6 +289,39 @@ class Dartdoc {
   int get totalTypes => _totalTypes;
   int get totalMembers => _totalMembers;
 
+  // Check if the compilation has started and finished.
+  bool _started = false;
+  bool _finished = false;
+
+  /**
+   * Prints the status of dartdoc.
+   *
+   * Prints whether dartdoc is running, whether dartdoc has finished
+   * succesfully or not, and how many libraries, types, and members were
+   * documented.
+   */
+  String get status {
+    // TODO(amouravski): Make this more full featured and remove all other
+    // prints and put them under verbose flag.
+    if (!_started) {
+      return 'Documentation has not yet started.';
+    } else if (!_finished) {
+      return 'Documentation in progress -- documented $_statisticsSummary so far.';
+    } else {
+      if (totals == 0) {
+        return 'Documentation complete -- warning: nothing was documented!';
+      } else {
+        return 'Documentation complete -- documented $_statisticsSummary.';
+      }
+    }
+  }
+
+  int get totals => totalLibraries + totalTypes + totalMembers;
+
+  String get _statisticsSummary =>
+      '${totalLibraries} libraries, ${totalTypes} types, and '
+      '${totalMembers} members';
+
   static const List<String> COMPILER_OPTIONS =
       const <String>['--preserve-comments', '--categories=Client,Server'];
 
@@ -364,29 +396,35 @@ class Dartdoc {
     var content = '';
     for (int i = 0; i < footerItems.length; i++) {
       if (i > 0) {
-        content = content.concat('\n');
+        content += '\n';
       }
-      content = content.concat('<div>${footerItems[i]}</div>');
+      content += '<div>${footerItems[i]}</div>';
     }
     return content;
   }
 
-  void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
-    final compilation = new Compilation(entrypoint, libPath, pkgPath,
-        COMPILER_OPTIONS);
-    _document(compilation);
+  Future documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
+    return documentLibraries(<Path>[entrypoint], libPath, pkgPath);
   }
 
-  void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
-    final compilation = new Compilation.library(libraryList, libPath, pkgPath,
-        COMPILER_OPTIONS);
-    _document(compilation);
+  Future documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
+    // TODO(amouravski): make all of these print statements into logging
+    // statements.
+    print('Analyzing libraries...');
+    return dart2js.analyze(libraryList, libPath, packageRoot: pkgPath,
+        options: COMPILER_OPTIONS)
+      .then((MirrorSystem mirrors) {
+        print('Generating documentation...');
+        _document(mirrors);
+      });
   }
 
-  void _document(Compilation compilation) {
+  void _document(MirrorSystem mirrors) {
+    _started = true;
+
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors.libraries.values.where(shouldIncludeLibrary));
+        mirrors.libraries.values.where(shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return displayName(x).toUpperCase().compareTo(
           displayName(y).toUpperCase());
@@ -442,8 +480,10 @@ class Dartdoc {
     packageManifest.location = revision;
     write(json_serializer.serialize(packageManifest));
     endFile();
+
+    _finished = true;
   }
-  
+
   MdnComment lookupMdnComment(Mirror mirror) => null;
 
   void startFile(String path) {
@@ -578,7 +618,7 @@ class Dartdoc {
         <title>$title / $mainTitle</title>
         <link rel="stylesheet" type="text/css"
             href="${relativePath('styles.css')}">
-        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
         <link rel="shortcut icon" href="${relativePath('favicon.ico')}">
         ''');
   }
@@ -825,7 +865,7 @@ class Dartdoc {
     // Look for a comment for the entire library.
     final comment = getLibraryComment(library);
     if (comment != null) {
-      writeln('<div class="doc">${markdownFromComment(comment)}</div>');
+      writeln('<div class="doc">${comment.html}</div>');
     }
 
     // Document the top-level members.
@@ -1521,15 +1561,9 @@ class Dartdoc {
     write(')');
   }
 
-  String markdownFromComment(DocComment comment) {
-    return md.markdownToHtml(comment.text,
-        inlineSyntaxes: dartdocSyntaxes,
-        linkResolver: dartdocResolver);
-  }
-
   void docComment(ContainerMirror host, DocComment comment) {
     if (comment != null) {
-      var html = markdownFromComment(comment);
+      var html = comment.html;
 
       if (comment.inheritedFrom != null) {
         writeln('<div class="inherited">');
@@ -1598,7 +1632,8 @@ class Dartdoc {
       }
     }
     if (comment == null) return null;
-    return new DocComment(comment, inheritedFrom);
+    return new DocComment(comment, inheritedFrom, dartdocSyntaxes,
+        dartdocResolver);
   }
 
   /**
@@ -1671,7 +1706,7 @@ class Dartdoc {
   annotateType(ContainerMirror enclosingType,
                TypeMirror type,
                [String paramName = null]) {
-    // Don't bother explicitly displaying Dynamic.
+    // Don't bother explicitly displaying dynamic.
     if (type.isDynamic) {
       if (paramName != null) write(paramName);
       return;
@@ -1701,7 +1736,7 @@ class Dartdoc {
       return;
     }
     if (type.isDynamic) {
-      // Do not generate links for Dynamic.
+      // Do not generate links for dynamic.
       write('dynamic');
       return;
     }
@@ -1988,17 +2023,26 @@ List<String> computeUntrimmedCommentAsList(DeclarationMirror mirror) {
 
 class DocComment {
   final String text;
+  md.Resolver dartdocResolver;
+  List<md.InlineSyntax> dartdocSyntaxes;
 
   /**
    * Non-null if the comment is inherited from another declaration.
    */
   final ClassMirror inheritedFrom;
 
-  DocComment(this.text, [this.inheritedFrom = null]) {
+  DocComment(this.text, [this.inheritedFrom = null, this.dartdocSyntaxes,
+      this.dartdocResolver]) {
     assert(text != null && !text.trim().isEmpty);
   }
 
   String toString() => text;
+
+  String get html {
+    return md.markdownToHtml(text,
+        inlineSyntaxes: dartdocSyntaxes,
+        linkResolver: dartdocResolver);
+  }
 }
 
 class MdnComment implements DocComment {

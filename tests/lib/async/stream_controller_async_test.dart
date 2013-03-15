@@ -86,7 +86,7 @@ testSingleController() {
 
   test("Single-subscription StreamController subscription changes", () {
     StreamController c = new StreamController();
-    StreamSink sink = c.sink;
+    EventSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
     var subscription;
@@ -110,7 +110,7 @@ testSingleController() {
        " there is no subscriber",
        () {
     StreamController c = new StreamController();
-    StreamSink sink = c.sink;
+    EventSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
     sink.add(1);
@@ -129,7 +129,7 @@ testSingleController() {
   test("Single-subscription StreamController subscription changes while firing",
        () {
     StreamController c = new StreamController();
-    StreamSink sink = c.sink;
+    EventSink sink = c.sink;
     Stream stream = c.stream;
     int counter = 0;
     var subscription = stream.listen(null);
@@ -156,59 +156,59 @@ testSingleController() {
 testExtraMethods() {
   Events sentEvents = new Events()..add(7)..add(9)..add(13)..add(87)..close();
 
-  test("firstMatching", () {
+  test("firstWhere", () {
     StreamController c = new StreamController();
-    Future f = c.stream.firstMatching((x) => (x % 3) == 0);
+    Future f = c.stream.firstWhere((x) => (x % 3) == 0);
     f.then(expectAsync1((v) { Expect.equals(9, v); }));
     sentEvents.replay(c);
   });
 
-  test("firstMatching 2", () {
+  test("firstWhere 2", () {
     StreamController c = new StreamController();
-    Future f = c.stream.firstMatching((x) => (x % 4) == 0);
+    Future f = c.stream.firstWhere((x) => (x % 4) == 0);
     f.catchError(expectAsync1((e) {}));
     sentEvents.replay(c);
   });
 
-  test("firstMatching 3", () {
+  test("firstWhere 3", () {
     StreamController c = new StreamController();
-    Future f = c.stream.firstMatching((x) => (x % 4) == 0, defaultValue: () => 999);
+    Future f = c.stream.firstWhere((x) => (x % 4) == 0, defaultValue: () => 999);
     f.then(expectAsync1((v) { Expect.equals(999, v); }));
     sentEvents.replay(c);
   });
 
 
-  test("lastMatching", () {
+  test("lastWhere", () {
     StreamController c = new StreamController();
-    Future f = c.stream.lastMatching((x) => (x % 3) == 0);
+    Future f = c.stream.lastWhere((x) => (x % 3) == 0);
     f.then(expectAsync1((v) { Expect.equals(87, v); }));
     sentEvents.replay(c);
   });
 
-  test("lastMatching 2", () {
+  test("lastWhere 2", () {
     StreamController c = new StreamController();
-    Future f = c.stream.lastMatching((x) => (x % 4) == 0);
+    Future f = c.stream.lastWhere((x) => (x % 4) == 0);
     f.catchError(expectAsync1((e) {}));
     sentEvents.replay(c);
   });
 
-  test("lastMatching 3", () {
+  test("lastWhere 3", () {
     StreamController c = new StreamController();
-    Future f = c.stream.lastMatching((x) => (x % 4) == 0, defaultValue: () => 999);
+    Future f = c.stream.lastWhere((x) => (x % 4) == 0, defaultValue: () => 999);
     f.then(expectAsync1((v) { Expect.equals(999, v); }));
     sentEvents.replay(c);
   });
 
-  test("singleMatching", () {
+  test("singleWhere", () {
     StreamController c = new StreamController();
-    Future f = c.stream.singleMatching((x) => (x % 9) == 0);
+    Future f = c.stream.singleWhere((x) => (x % 9) == 0);
     f.then(expectAsync1((v) { Expect.equals(9, v); }));
     sentEvents.replay(c);
   });
 
-  test("singleMatching 2", () {
+  test("singleWhere 2", () {
     StreamController c = new StreamController();
-    Future f = c.stream.singleMatching((x) => (x % 3) == 0);  // Matches both 9 and 87..
+    Future f = c.stream.singleWhere((x) => (x % 3) == 0);  // Matches both 9 and 87..
     f.catchError(expectAsync1((e) { Expect.isTrue(e.error is StateError); }));
     sentEvents.replay(c);
   });
@@ -420,7 +420,7 @@ testRethrow() {
       Stream s = streamErrorTransform(c.stream, (e) { throw error; });
       s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync1(
           (AsyncError e) { Expect.identical(error, e); }));
-      c.signalError(null);
+      c.addError(null);
       c.close();
     });
   }

@@ -72,8 +72,8 @@ abstract class Collection<E> extends Iterable<E> {
    *
    * An elements [:e:] satisfies [test] if [:test(e):] is true.
    */
-  void removeMatching(bool test(E element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(E element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
   /**
@@ -81,14 +81,14 @@ abstract class Collection<E> extends Iterable<E> {
    *
    * An elements [:e:] satisfies [test] if [:test(e):] is true.
    */
-  void retainMatching(bool test(E element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(E element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   /**
    * Removes all elements of this collection.
    */
   void clear() {
-    IterableMixinWorkaround.removeMatching(this, (E e) => true);
+    IterableMixinWorkaround.removeWhere(this, (E e) => true);
   }
 }

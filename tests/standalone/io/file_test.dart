@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -88,10 +88,10 @@ class FileTest {
         Expect.equals(42, buffer.length);
         // Write the contents of the file just read into another file.
         String outFilename =
-            tempDirectory.path.concat("/out_read_write_stream");
+            tempDirectory.path + "/out_read_write_stream";
         var file2 = new File(outFilename);
         var output = file2.openWrite();
-        output.add(buffer);
+        output.writeBytes(buffer);
         output.close();
         output.done.then((_) {
           // Now read the contents of the file just written.
@@ -126,11 +126,11 @@ class FileTest {
       buffer[i] = i % 256;
     }
     String filename =
-        tempDirectory.path.concat("/out_read_write_stream_large_file");
+        tempDirectory.path + "/out_read_write_stream_large_file";
     File file = new File(filename);
     IOSink output = file.openWrite();
-    output.add(buffer);
-    output.add(buffer);
+    output.writeBytes(buffer);
+    output.writeBytes(buffer);
     output.close();
     output.done.then((_) {
       Stream input = file.openRead();
@@ -268,7 +268,7 @@ class FileTest {
         Expect.equals(42, bytes_read);
         openedFile.close().then((ignore) {
           // Write the contents of the file just read into another file.
-          String outFilename = tempDirectory.path.concat("/out_read_write");
+          String outFilename = tempDirectory.path + "/out_read_write";
           final File file2 = new File(outFilename);
           file2.create().then((ignore) {
             file2.fullPath().then((s) {
@@ -315,7 +315,7 @@ class FileTest {
 
   static void testWriteAppend() {
     String content = "foobar";
-    String filename = tempDirectory.path.concat("/write_append");
+    String filename = tempDirectory.path + "/write_append";
     File file = new File(filename);
     file.createSync();
     Expect.isTrue(new File(filename).existsSync());
@@ -339,17 +339,17 @@ class FileTest {
 
   static void testOutputStreamWriteAppend() {
     String content = "foobar";
-    String filename = tempDirectory.path.concat("/outstream_write_append");
+    String filename = tempDirectory.path + "/outstream_write_append";
     File file = new File(filename);
     file.createSync();
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
-    output.add(buffer);
+    output.writeBytes(buffer);
     output.close();
     output.done.then((_) {
       File file2 = new File(filename);
-      var appendingOutput = file2.openWrite(FileMode.APPEND);
-      appendingOutput.add(buffer);
+      var appendingOutput = file2.openWrite(mode: FileMode.APPEND);
+      appendingOutput.writeBytes(buffer);
       appendingOutput.close();
       appendingOutput.done.then((_) {
         File file3 = new File(filename);
@@ -371,16 +371,20 @@ class FileTest {
   // Test for file read and write functionality.
   static void testOutputStreamWriteString() {
     String content = "foobar";
-    String filename = tempDirectory.path.concat("/outstream_write_string");
+    String filename = tempDirectory.path + "/outstream_write_string";
     File file = new File(filename);
     file.createSync();
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
-    output.addString("abcdABCD");
-    output.addString("abcdABCD", Encoding.UTF_8);
-    output.addString("abcdABCD", Encoding.ISO_8859_1);
-    output.addString("abcdABCD", Encoding.ASCII);
-    output.addString("æøå", Encoding.UTF_8);
+    output.write("abcdABCD");
+    output.encoding = Encoding.UTF_8;
+    output.write("abcdABCD");
+    output.encoding = Encoding.ISO_8859_1;
+    output.write("abcdABCD");
+    output.encoding = Encoding.ASCII;
+    output.write("abcdABCD");
+    output.encoding = Encoding.UTF_8;
+    output.write("æøå");
     output.close();
     output.done.then((_) {
       RandomAccessFile raf = file.openSync();
@@ -404,7 +408,7 @@ class FileTest {
     Expect.equals(42, bytes_read);
     file.closeSync();
     // Write the contents of the file just read into another file.
-    String outFilename = tempDirectory.path.concat("/out_read_write_sync");
+    String outFilename = tempDirectory.path + "/out_read_write_sync";
     File outFile = new File(outFilename);
     outFile.createSync();
     String path = outFile.fullPathSync();
@@ -432,7 +436,7 @@ class FileTest {
   }
 
   static void testReadEmptyFileSync() {
-    String fileName = tempDirectory.path.concat("/empty_file_sync");
+    String fileName = tempDirectory.path + "/empty_file_sync";
     File file = new File(fileName);
     file.createSync();
     RandomAccessFile openedFile = file.openSync();
@@ -442,7 +446,7 @@ class FileTest {
   }
 
   static void testReadEmptyFile() {
-    String fileName = tempDirectory.path.concat("/empty_file");
+    String fileName = tempDirectory.path + "/empty_file";
     File file = new File(fileName);
     asyncTestStarted();
     file.create().then((ignore) {
@@ -623,7 +627,7 @@ class FileTest {
   }
 
   static void testTruncate() {
-    File file = new File(tempDirectory.path.concat("/out_truncate"));
+    File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.open(FileMode.WRITE).then((RandomAccessFile openedFile) {
       openedFile.writeList(buffer, 0, 10).then((ignore) {
@@ -649,7 +653,7 @@ class FileTest {
   }
 
   static void testTruncateSync() {
-    File file = new File(tempDirectory.path.concat("/out_truncate_sync"));
+    File file = new File(tempDirectory.path + "/out_truncate_sync");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     openedFile.writeListSync(buffer, 0, 10);
@@ -665,7 +669,7 @@ class FileTest {
   static void testCloseException() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
-    File input = new File(tempDirectory.path.concat("/out_close_exception"));
+    File input = new File(tempDirectory.path + "/out_close_exception");
     RandomAccessFile openedFile = input.openSync(FileMode.WRITE);
     openedFile.closeSync();
     try {
@@ -757,11 +761,11 @@ class FileTest {
     asyncTestStarted();
     List<int> buffer = new List<int>(42);
     File file =
-        new File(tempDirectory.path.concat("/out_close_exception_stream"));
+        new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
     var output = file.openWrite();
     output.close();
-    Expect.throws(() => output.add(buffer));
+    Expect.throws(() => output.writeBytes(buffer));
     output.done.then((_) {
       file.deleteSync();
       asyncTestDone("testCloseExceptionStream");
@@ -773,7 +777,7 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     File file =
-        new File(tempDirectory.path.concat("/out_buffer_out_of_bounds"));
+        new File(tempDirectory.path + "/out_buffer_out_of_bounds");
     RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     try {
       List<int> buffer = new List<int>(10);

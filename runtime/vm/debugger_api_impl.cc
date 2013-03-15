@@ -568,9 +568,8 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetScriptSource(
-                            Dart_Handle library_url_in,
-                            Dart_Handle script_url_in) {
+DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
+                                                  Dart_Handle script_url_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
@@ -589,7 +588,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
                          library_url.ToCString());
   }
 
-  return Api::NewHandle(isolate, script.Source());
+  return Api::NewHandle(isolate, script.GenerateSource());
 }
 
 

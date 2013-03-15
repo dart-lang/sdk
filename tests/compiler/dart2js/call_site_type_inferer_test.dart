@@ -236,11 +236,11 @@ void test() {
   runTest(TEST_4, [HType.DOUBLE]);
   runTest(TEST_5, [HType.NUMBER]);
   runTest(TEST_6, [HType.NUMBER]);
-  runTest(TEST_7);
-  runTest(TEST_8, [HType.INTEGER, HType.UNKNOWN]);
+  runTest(TEST_7, [HType.NON_NULL]);
+  runTest(TEST_8, [HType.INTEGER, HType.NON_NULL]);
   runTest(TEST_9, [HType.INTEGER, HType.INTEGER]);
   runTest(TEST_10, [HType.INTEGER, HType.INTEGER]);
-  runTest(TEST_11);
+  runTest(TEST_11, [HType.NON_NULL, HType.NON_NULL]);
 
   defaultTypes = new OptionalParameterTypes(1);
   defaultTypes.update(0, const SourceString("p2"), HType.INTEGER);
@@ -266,7 +266,7 @@ void test() {
   defaultTypes.update(1, const SourceString("p3"), HType.STRING);
   runTest(TEST_17, [HType.INTEGER, HType.BOOLEAN, HType.DOUBLE], defaultTypes);
 
-  runTest(TEST_18);
+  runTest(TEST_18, [HType.NON_NULL, HType.NON_NULL]);
 }
 
 void main() {

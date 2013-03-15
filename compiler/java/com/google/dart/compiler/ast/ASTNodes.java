@@ -21,7 +21,6 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
@@ -196,7 +195,7 @@ public class ASTNodes {
    *         {@link DartIdentifier} is the field reference, or <code>null</code> in the other case.
    */
   public static FieldElement getFieldElement(DartIdentifier node) {
-    NodeElement element = node.getElement();
+    Element element = node.getElement();
     if (ElementKind.of(element) == ElementKind.FIELD) {
       return (FieldElement) element;
     }
@@ -867,7 +866,7 @@ public class ASTNodes {
    *         other case.
    */
   public static VariableElement getVariableElement(DartIdentifier node) {
-    NodeElement element = node.getElement();
+    Element element = node.getElement();
     if (ElementKind.of(element) == ElementKind.VARIABLE) {
       return (VariableElement) element;
     }
@@ -880,7 +879,7 @@ public class ASTNodes {
    *         local variable or parameter, or <code>null</code> in the other case.
    */
   public static VariableElement getVariableOrParameterElement(DartIdentifier node) {
-    NodeElement element = node.getElement();
+    Element element = node.getElement();
     if (element instanceof VariableElement) {
       return (VariableElement) element;
     }

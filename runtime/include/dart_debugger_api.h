@@ -128,22 +128,6 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url);
 
 
 /**
- * DEPRECATED --- use Dart_ScriptGetSource
- *
- * Returns a string containing the source code of the given script
- * in the given library.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to string containing the source text if no error
- * occurs.
- */
-DART_EXPORT Dart_Handle Dart_GetScriptSource(
-                            Dart_Handle library_url_in,
-                            Dart_Handle script_url_in);
-
-
-/**
  * Returns a string containing the source code of the given script
  * in the given library.
  *
@@ -155,6 +139,20 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
 DART_EXPORT Dart_Handle Dart_ScriptGetSource(
                             intptr_t library_id,
                             Dart_Handle script_url_in);
+
+
+/**
+ * Returns a string containing a generated source code of the given script
+ * in the given library. This is essentially used to pretty print dart code
+ * generated from any tool (e.g: dart2dart).
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to string containing the source text if no error
+ * occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
+                                                  Dart_Handle script_url_in);
 
 
 /**

@@ -10,9 +10,9 @@ library coin_test;
 import 'dart:math';
 
 main() {
-  var seed = new Random().nextInt((1<<32) - 1);
+  var seed = new Random().nextInt(1<<16);
   print("coin_test seed: $seed");
-  var rnd = new Random();
+  var rnd = new Random(seed);
   var heads = 0;
   var tails = 0;
   for (var i = 0; i < 10000; i++) {

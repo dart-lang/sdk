@@ -86,7 +86,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
                                    Compiler compiler) {
     HInstruction index = instruction.inputs[2];
     if (input == instruction.inputs[1] &&
-        (index.isTypeUnknown() || index.isNumber())) {
+        index.instructionType.canBePrimitiveNumber(compiler)) {
       return HType.MUTABLE_ARRAY;
     }
     // The index should be an int when the receiver is a string or array.
@@ -114,7 +114,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
                                    Compiler compiler) {
     HInstruction index = instruction.inputs[2];
     if (input == instruction.inputs[1] &&
-        (index.isTypeUnknown() || index.isNumber())) {
+        index.instructionType.canBePrimitiveNumber(compiler)) {
       return HType.INDEXABLE_PRIMITIVE;
     }
     // The index should be an int when the receiver is a string or array.
@@ -480,7 +480,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     // is desired, then numbers are incorrect, though.
     if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
       HInstruction left = instruction.inputs[1];
-      if (left.isTypeUnknown() || left.isNumber()) {
+      if (left.instructionType.canBePrimitiveNumber(compiler)) {
         return HType.NUMBER;
       }
     }
@@ -507,7 +507,6 @@ class EqualsSpecializer extends RelationalSpecializer {
                                    Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    HType propagatedType = instruction.instructionType;
     if (input == left && right.instructionType.isUseful()) {
       // All our useful types have 'identical' semantics. But we don't want to
       // speculatively test for all possible types. Therefore we try to match

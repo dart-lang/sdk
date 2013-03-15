@@ -87,9 +87,15 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   LoadIndexedInstr* BuildStringCodeUnitAt(InstanceCallInstr* call,
                                           intptr_t cid);
 
-  LoadIndexedInstr* BuildByteArrayViewLoad(InstanceCallInstr* call,
-                                           intptr_t receiver_cid,
-                                           intptr_t view_cid);
+  bool BuildByteArrayViewLoad(InstanceCallInstr* call,
+                              intptr_t receiver_cid,
+                              intptr_t view_cid);
+  bool BuildByteArrayViewStore(InstanceCallInstr* call,
+                               intptr_t receiver_cid,
+                               intptr_t view_cid);
+  void PrepareByteArrayViewOp(InstanceCallInstr* call,
+                              intptr_t receiver_cid,
+                              intptr_t view_cid);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
@@ -257,6 +263,35 @@ class ConstantPropagator : public FlowGraphVisitor {
   // Worklists of blocks and definitions.
   GrowableArray<BlockEntryInstr*> block_worklist_;
   GrowableArray<Definition*> definition_worklist_;
+};
+
+
+// Rewrite branches to eliminate materialization of boolean values after
+// inlining, and to expose other optimizations (e.g., constant folding of
+// branches, unreachable code elimination).
+class BranchSimplifier : public AllStatic {
+ public:
+  static void Simplify(FlowGraph* flow_graph);
+
+ private:
+  // Match an instance of the pattern to rewrite.  See the implementation
+  // for the patterns that are handled by this pass.
+  static bool Match(JoinEntryInstr* block);
+
+  // Replace a target entry instruction with a join entry instruction.  Does
+  // not update the original target's predecessors to point to the new block
+  // and does not replace the target in already computed block order lists.
+  static JoinEntryInstr* ToJoinEntry(TargetEntryInstr* target);
+
+  // Duplicate a constant, assigning it a new SSA name.
+  static ConstantInstr* CloneConstant(FlowGraph* flow_graph,
+                                      ConstantInstr* constant);
+
+  // Duplicate a branch while replacing its comparison's left and right
+  // inputs.
+  static BranchInstr* CloneBranch(BranchInstr* branch,
+                                  Value* left,
+                                  Value* right);
 };
 
 

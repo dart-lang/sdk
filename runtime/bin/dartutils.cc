@@ -530,6 +530,11 @@ Dart_Handle DartUtils::NewDartArgumentError(const char* message) {
 }
 
 
+Dart_Handle DartUtils::NewInternalError(const char* message) {
+  return NewDartExceptionWithMessage(kCoreLibURL, "InternalError", message);
+}
+
+
 void DartUtils::SetOriginalWorkingDirectory() {
   original_working_directory = Directory::Current();
 }

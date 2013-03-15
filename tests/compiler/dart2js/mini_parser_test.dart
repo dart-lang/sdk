@@ -4,6 +4,7 @@
 
 // Simple test to ensure that mini_parser keeps working.
 
+import 'dart:io';
 import '../../../sdk/lib/_internal/compiler/implementation/tools/mini_parser.dart'
     as tool;
 

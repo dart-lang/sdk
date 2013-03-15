@@ -86,10 +86,10 @@ stringReplaceAllUnchecked(receiver, from, to) {
       } else {
         StringBuffer result = new StringBuffer();
         int length = receiver.length;
-        result.add(to);
+        result.write(to);
         for (int i = 0; i < length; i++) {
-          result.add(receiver[i]);
-          result.add(to);
+          result.write(receiver[i]);
+          result.write(to);
         }
         return result.toString();
       }
@@ -125,11 +125,11 @@ stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
   StringBuffer buffer = new StringBuffer();
   int startIndex = 0;
   for (Match match in pattern.allMatches(receiver)) {
-    buffer.add(onNonMatch(receiver.substring(startIndex, match.start)));
-    buffer.add(onMatch(match));
+    buffer.write(onNonMatch(receiver.substring(startIndex, match.start)));
+    buffer.write(onMatch(match));
     startIndex = match.end;
   }
-  buffer.add(onNonMatch(receiver.substring(startIndex)));
+  buffer.write(onNonMatch(receiver.substring(startIndex)));
   return buffer.toString();
 }
 
@@ -138,9 +138,9 @@ stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
   StringBuffer buffer = new StringBuffer();
   int length = receiver.length;
   int i = 0;
-  buffer.add(onNonMatch(""));
+  buffer.write(onNonMatch(""));
   while (i < length) {
-    buffer.add(onMatch(new StringMatch(i, receiver, "")));
+    buffer.write(onMatch(new StringMatch(i, receiver, "")));
     // Special case to avoid splitting a surrogate pair.
     int code = receiver.codeUnitAt(i);
     if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
@@ -148,16 +148,16 @@ stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
       code = receiver.codeUnitAt(i + 1);
       if ((code & ~0x3FF) == 0xDC00) {
         // Matching trailing surrogate.
-        buffer.add(onNonMatch(receiver.substring(i, i + 2)));
+        buffer.write(onNonMatch(receiver.substring(i, i + 2)));
         i += 2;
         continue;
       }
     }
-    buffer.add(onNonMatch(receiver[i]));
+    buffer.write(onNonMatch(receiver[i]));
     i++;
   }
-  buffer.add(onMatch(new StringMatch(i, receiver, "")));
-  buffer.add(onNonMatch(""));
+  buffer.write(onMatch(new StringMatch(i, receiver, "")));
+  buffer.write(onNonMatch(""));
   return buffer.toString();
 }
 
@@ -174,11 +174,11 @@ stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     if (position == -1) {
       break;
     }
-    buffer.add(onNonMatch(receiver.substring(startIndex, position)));
-    buffer.add(onMatch(new StringMatch(position, receiver, pattern)));
+    buffer.write(onNonMatch(receiver.substring(startIndex, position)));
+    buffer.write(onMatch(new StringMatch(position, receiver, pattern)));
     startIndex = position + patternLength;
   }
-  buffer.add(onNonMatch(receiver.substring(startIndex)));
+  buffer.write(onNonMatch(receiver.substring(startIndex)));
   return buffer.toString();
 }
 

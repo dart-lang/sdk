@@ -271,6 +271,7 @@ static bool IsRecognizedLibrary(const Library& library) {
   // List of libraries where methods can be recognized.
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
+      || (library.raw() == Library::TypedDataLibrary())
       || (library.raw() == Library::ScalarlistLibrary());
 }
 
@@ -494,6 +495,15 @@ void Value::RemoveFromUseList() {
 
   set_previous_use(NULL);
   set_next_use(NULL);
+}
+
+
+bool Definition::HasOnlyUse(Value* use) const {
+  if (((input_use_list() == use) && (env_use_list() == NULL)) ||
+      ((input_use_list() == NULL) && (env_use_list() == use))) {
+    return (use->next_use() == NULL);
+  }
+  return false;
 }
 
 
@@ -1103,6 +1113,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
     case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kStringBaseLength:
       return true;
     default:
@@ -1113,6 +1124,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
 
 MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
     intptr_t cid) {
+  if (RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsExternalTypedDataClassId(cid)) {
+    return MethodRecognizer::kTypedDataLength;
+  }
   switch (cid) {
     case kArrayCid:
       return MethodRecognizer::kObjectArrayLength;
@@ -1141,6 +1156,33 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
 }
 
 
+bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+Definition* ConstantInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  return HasUses() ? this : NULL;
+}
+
+
 Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   if (!IsImmutableLengthLoad()) return this;
 
@@ -1148,9 +1190,9 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // call we can replace the length load with the length argument passed to
   // the constructor.
   StaticCallInstr* call = value()->definition()->AsStaticCall();
-  if (call != NULL &&
-      call->is_known_constructor() &&
-      (call->Type()->ToCid() == kArrayCid)) {
+  if ((call != NULL) &&
+      call->is_known_list_constructor() &&
+      IsFixedLengthArrayCid(call->Type()->ToCid())) {
     return call->ArgumentAt(1);
   }
   return this;
@@ -1184,7 +1226,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     const TypeArguments& instantiator_type_args =
         TypeArguments::Cast(constant_type_args->value());
     const AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args));
+        dst_type().InstantiateFrom(instantiator_type_args, NULL));
     set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
     ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
     // It is ok to insert instructions before the current during
@@ -1300,7 +1342,7 @@ void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 
 void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetBlockLabel(this));
+  __ Bind(compiler->GetJumpLabel(this));
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -1308,13 +1350,19 @@ void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 
 void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetBlockLabel(this));
-  if (IsCatchEntry()) {
-    compiler->AddExceptionHandler(catch_try_index(),
-                                  try_index(),
-                                  compiler->assembler()->CodeSize(),
-                                  catch_handler_types_);
+  __ Bind(compiler->GetJumpLabel(this));
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
+}
+
+
+void CatchBlockEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+  compiler->AddExceptionHandler(catch_try_index(),
+                                try_index(),
+                                compiler->assembler()->CodeSize(),
+                                catch_handler_types_);
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -1350,6 +1398,17 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
 
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
+LocationSummary* CatchBlockEntryInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -1871,7 +1930,8 @@ void LoadFieldInstr::InferRange() {
     return;
   }
   if ((range_ == NULL) &&
-      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength)) {
+      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength ||
+       recognized_kind() == MethodRecognizer::kTypedDataLength)) {
     range_ = new Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
     return;
   }
@@ -1889,6 +1949,7 @@ void LoadFieldInstr::InferRange() {
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
     case kInt8ArrayCid:
+    case kTypedDataInt8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-128),
                          RangeBoundary::FromConstant(127));
       break;
@@ -1896,14 +1957,20 @@ void LoadIndexedInstr::InferRange() {
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
     case kExternalUint8ClampedArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
     case kInt16ArrayCid:
+    case kTypedDataInt16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-32768),
                          RangeBoundary::FromConstant(32767));
       break;
     case kUint16ArrayCid:
+    case kTypedDataUint16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(65535));
       break;
@@ -2095,24 +2162,7 @@ bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
 
 
 bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
-      return true;
-    default:
-      return false;
-  }
+  return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
 
@@ -2154,6 +2204,12 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
 
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+    return ExternalTypedData::length_offset();
+  }
+  if (RawObject::IsTypedDataClassId(class_id)) {
+    return TypedData::length_offset();
+  }
   switch (class_id) {
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::length_offset();

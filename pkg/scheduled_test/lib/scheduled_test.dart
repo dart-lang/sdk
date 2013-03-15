@@ -175,18 +175,19 @@ library scheduled_test;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart' as unittest;
+import '../../../pkg/unittest/lib/unittest.dart' as unittest;
 
 import 'src/schedule.dart';
 import 'src/schedule_error.dart';
 import 'src/utils.dart';
 
-export 'package:unittest/matcher.dart';
-export 'package:unittest/unittest.dart' show
+export '../../../pkg/unittest/lib/matcher.dart' hide completes, completion;
+export '../../../pkg/unittest/lib/unittest.dart' show
     config, configure, Configuration, logMessage, expectThrow;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
+export 'src/scheduled_future_matchers.dart';
 export 'src/task.dart';
 
 /// The [Schedule] for the current test. This is used to add new tasks and
@@ -316,13 +317,13 @@ void _setUpScheduledTest([void setUpFn()]) {
 /// initialized.
 void _ensureInitialized() {
   unittest.ensureInitialized();
-  unittest.wrapAsync = (f, [id = '']) {
+  unittest.wrapAsync = (f, [description]) {
     if (currentSchedule == null) {
       throw new StateError("Unexpected call to wrapAsync with no current "
           "schedule.");
     }
 
-    return currentSchedule.wrapAsync(f);
+    return currentSchedule.wrapAsync(f, description);
   };
 }
 
@@ -332,11 +333,14 @@ void _ensureInitialized() {
 /// a single callback.
 ///
 /// The returned [Future] completes to the same value or error as [future].
-Future wrapFuture(Future future) {
+///
+/// [description] provides an optional description of the future, which is
+/// used when generating error messages.
+Future wrapFuture(Future future, [String description]) {
   if (currentSchedule == null) {
     throw new StateError("Unexpected call to wrapFuture with no current "
         "schedule.");
   }
 
-  return currentSchedule.wrapFuture(future);
+  return currentSchedule.wrapFuture(future, description);
 }

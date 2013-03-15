@@ -20,7 +20,7 @@ void test() {
   stream.reduce(
       new StringBuffer(),
       (b, e) {
-        b.add(e);
+        b.write(e);
         return b;
       })
       .then((b) => b.toString())

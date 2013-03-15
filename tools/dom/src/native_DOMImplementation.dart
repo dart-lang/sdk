@@ -7,8 +7,15 @@ part of html;
 class _Utils {
   static double dateTimeToDouble(DateTime dateTime) =>
       dateTime.millisecondsSinceEpoch.toDouble();
-  static DateTime doubleToDateTime(double dateTime) =>
-      new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+  static DateTime doubleToDateTime(double dateTime) {
+    try {
+      return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+    } catch(_) {
+      // TODO(antonnm): treat exceptions properly in bindings and
+      // find out how to treat NaNs.
+      return null;
+    }
+  }
 
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
@@ -40,6 +47,7 @@ class _Utils {
 
   static window() native "Utils_window";
   static print(String message) native "Utils_print";
+  static forwardingPrint(String message) native "Utils_forwardingPrint";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
@@ -119,3 +127,5 @@ get _printClosure => (s) {
     _Utils.print(s);
   }
 };
+
+final _forwardingPrintClosure = _Utils.forwardingPrint;

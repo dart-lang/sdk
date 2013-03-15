@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_arm.h"
+#include "vm/simulator.h"
 
 namespace dart {
 
@@ -64,11 +65,20 @@ class Label : public ValueObject {
 
 class CPUFeatures : public AllStatic {
  public:
-  static void InitOnce() { }
+  static void InitOnce();
   static bool double_truncate_round_supported() {
     UNIMPLEMENTED();
     return false;
   }
+  static bool integer_division_supported();
+#if defined(USING_SIMULATOR)
+  static void set_integer_division_supported(bool supported);
+#endif
+ private:
+  static bool integer_division_supported_;
+#if defined(DEBUG)
+  static bool initialized_;
+#endif
 };
 
 
@@ -249,8 +259,12 @@ class Address : public ValueObject {
     encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 
-  static bool CanHoldLoadOffset(LoadOperandType type, int offset);
-  static bool CanHoldStoreOffset(StoreOperandType type, int offset);
+  static bool CanHoldLoadOffset(LoadOperandType type,
+                                int32_t offset,
+                                int32_t* offset_mask);
+  static bool CanHoldStoreOffset(StoreOperandType type,
+                                 int32_t offset,
+                                 int32_t* offset_mask);
 
  private:
   uint32_t encoding() const { return encoding_; }
@@ -380,12 +394,17 @@ class Assembler : public ValueObject {
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
+  void muls(Register rd, Register rn, Register rm, Condition cond = AL);
   void mla(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
   void mls(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
   void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
+
+  // Division instructions.
+  void sdiv(Register rd, Register rn, Register rm, Condition cond = AL);
+  void udiv(Register rd, Register rn, Register rm, Condition cond = AL);
 
   // Load/store instructions.
   void ldr(Register rd, Address ad, Condition cond = AL);
@@ -491,9 +510,16 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
+  // Move to ARM core register from Coprocessor.
+  void mrc(Register rd, int32_t coproc, int32_t opc1,
+           int32_t crn, int32_t crm, int32_t opc2, Condition cond = AL);
+
   // Macros.
   // Branch to an entry address. Call sequence is never patched.
   void Branch(const ExternalLabel* label, Condition cond = AL);
+
+  // Branch to an entry address. Call sequence can be patched or even replaced.
+  void BranchPatchable(const ExternalLabel* label);
 
   // Branch and link to an entry address. Call sequence is never patched.
   void BranchLink(const ExternalLabel* label);
@@ -506,7 +532,7 @@ class Assembler : public ValueObject {
   void BranchLinkStore(const ExternalLabel* label, Address ad);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
-  void BranchLinkOffset(Register base, int offset);
+  void BranchLinkOffset(Register base, int32_t offset);
 
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL);
@@ -528,6 +554,8 @@ class Assembler : public ValueObject {
   void MarkExceptionHandler(Label* label);
   void Drop(intptr_t stack_elements);
   void LoadObject(Register rd, const Object& object);
+  void PushObject(const Object& object);
+  void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadFromOffset(LoadOperandType type,
                       Register reg,
                       Register base,
@@ -593,6 +621,31 @@ class Assembler : public ValueObject {
 
   void CallRuntime(const RuntimeEntry& entry);
 
+  // Set up a Dart frame on entry with a frame pointer and PC information to
+  // enable easy access to the RawInstruction object of code corresponding
+  // to this frame.
+  void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  void EnterStubFrame();
+  void LeaveStubFrame();
+
+  // Instruction pattern from entrypoint is used in Dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = Instr::kPCReadOffset;
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                   Label* failure,
+                   bool near_jump,
+                   Register instance_reg);
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 
@@ -629,7 +682,7 @@ class Assembler : public ValueObject {
                   Register rd,
                   ShifterOperand so);
 
-  void EmitType5(Condition cond, int offset, bool link);
+  void EmitType5(Condition cond, int32_t offset, bool link);
 
   void EmitMemOp(Condition cond,
                  bool load,
@@ -666,6 +719,12 @@ class Assembler : public ValueObject {
                  Register rn,
                  Register rm,
                  Register rs);
+
+  void EmitDivOp(Condition cond,
+                 int32_t opcode,
+                 Register rd,
+                 Register rn,
+                 Register rm);
 
   void EmitMultiVSMemOp(Condition cond,
                         BlockAddressMode am,
@@ -704,9 +763,9 @@ class Assembler : public ValueObject {
                  SRegister sm);
 
   void EmitBranch(Condition cond, Label* label, bool link);
-  static int32_t EncodeBranchOffset(int offset, int32_t inst);
+  static int32_t EncodeBranchOffset(int32_t offset, int32_t inst);
   static int DecodeBranchOffset(int32_t inst);
-  int32_t EncodeTstOffset(int offset, int32_t inst);
+  int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int DecodeTstOffset(int32_t inst);
 
   // Returns whether or not the given register is used for passing parameters.

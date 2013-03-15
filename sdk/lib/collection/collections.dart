@@ -74,13 +74,13 @@ class IterableMixinWorkaround {
     } else {
       setToRemove = elementsToRemove.toSet();
     }
-    collection.removeMatching(setToRemove.contains);
+    collection.removeWhere(setToRemove.contains);
   }
 
   /**
    * Simple implemenation for [Collection.retainAll].
    *
-   * This implementation assumes that [Collecton.retainMatching] on [collection]
+   * This implementation assumes that [Collecton.retainWhere] on [collection]
    * is efficient.
    */
   static void retainAll(Collection collection, Iterable elementsToRetain) {
@@ -94,16 +94,16 @@ class IterableMixinWorkaround {
       collection.clear();
       return;
     }
-    collection.retainMatching(lookup.contains);
+    collection.retainWhere(lookup.contains);
   }
 
   /**
-   * Simple implemenation for [Collection.removeMatching].
+   * Simple implemenation for [Collection.removeWhere].
    *
    * This implementation assumes that [Collecton.removeAll] on [collection] is
    * efficient.
    */
-  static void removeMatching(Collection collection, bool test(var element)) {
+  static void removeWhere(Collection collection, bool test(var element)) {
     List elementsToRemove = [];
     for (var element in collection) {
       if (test(element)) elementsToRemove.add(element);
@@ -118,7 +118,7 @@ class IterableMixinWorkaround {
    * to the [test] function. First the elements to retain are found, and then
    * the original list is updated to contain those elements.
    */
-  static void removeMatchingList(List list, bool test(var element)) {
+  static void removeWhereList(List list, bool test(var element)) {
     List retained = [];
     int length = list.length;
     for (int i = 0; i < length; i++) {
@@ -138,12 +138,12 @@ class IterableMixinWorkaround {
   }
 
   /**
-   * Simple implemenation for [Collection.retainMatching].
+   * Simple implemenation for [Collection.retainWhere].
    *
    * This implementation assumes that [Collecton.removeAll] on [collection] is
    * efficient.
    */
-  static void retainMatching(Collection collection, bool test(var element)) {
+  static void retainWhere(Collection collection, bool test(var element)) {
     List elementsToRemove = [];
     for (var element in collection) {
       if (!test(element)) elementsToRemove.add(element);
@@ -209,7 +209,7 @@ class IterableMixinWorkaround {
     return result;
   }
 
-  static dynamic firstMatching(Iterable iterable,
+  static dynamic firstWhere(Iterable iterable,
                                bool test(dynamic value),
                                dynamic orElse()) {
     for (dynamic element in iterable) {
@@ -219,9 +219,9 @@ class IterableMixinWorkaround {
     throw new StateError("No matching element");
   }
 
-  static dynamic lastMatching(Iterable iterable,
-                              bool test(dynamic value),
-                              dynamic orElse()) {
+  static dynamic lastWhere(Iterable iterable,
+                           bool test(dynamic value),
+                           dynamic orElse()) {
     dynamic result = null;
     bool foundMatching = false;
     for (dynamic element in iterable) {
@@ -235,9 +235,9 @@ class IterableMixinWorkaround {
     throw new StateError("No matching element");
   }
 
-  static dynamic lastMatchingInList(List list,
-                                    bool test(dynamic value),
-                                    dynamic orElse()) {
+  static dynamic lastWhereList(List list,
+                               bool test(dynamic value),
+                               dynamic orElse()) {
     // TODO(floitsch): check that arguments are of correct type?
     for (int i = list.length - 1; i >= 0; i--) {
       dynamic element = list[i];
@@ -247,7 +247,7 @@ class IterableMixinWorkaround {
     throw new StateError("No matching element");
   }
 
-  static dynamic singleMatching(Iterable iterable, bool test(dynamic value)) {
+  static dynamic singleWhere(Iterable iterable, bool test(dynamic value)) {
     dynamic result = null;
     bool foundMatching = false;
     for (dynamic element in iterable) {
@@ -279,13 +279,13 @@ class IterableMixinWorkaround {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       do {
-        buffer.add("${iterator.current}");
+        buffer.write("${iterator.current}");
       } while (iterator.moveNext());
     } else {
-      buffer.add("${iterator.current}");
+      buffer.write("${iterator.current}");
       while (iterator.moveNext()) {
-        buffer.add(separator);
-        buffer.add("${iterator.current}");
+        buffer.write(separator);
+        buffer.write("${iterator.current}");
       }
     }
     return buffer.toString();
@@ -297,13 +297,13 @@ class IterableMixinWorkaround {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       for (int i = 0; i < list.length; i++) {
-        buffer.add("${list[i]}");
+        buffer.write("${list[i]}");
       }
     } else {
-      buffer.add("${list[0]}");
+      buffer.write("${list[0]}");
       for (int i = 1; i < list.length; i++) {
-        buffer.add(separator);
-        buffer.add("${list[i]}");
+        buffer.write(separator);
+        buffer.write("${list[i]}");
       }
     }
     return buffer.toString();
@@ -369,13 +369,6 @@ class IterableMixinWorkaround {
                            List from, int startFrom) {
     if (length == 0) return;
 
-    // TODO(floitsch): decide what to do with these checks. Currently copied
-    // since that was the old behavior of dart2js, and some co19 tests rely on
-    // it.
-    if (start is! int) throw new ArgumentError(start);
-    if (length is! int) throw new ArgumentError(length);
-    if (from is! List) throw new ArgumentError(from);
-    if (startFrom is! int) throw new ArgumentError(startFrom);
     if (length < 0) throw new ArgumentError(length);
     if (start < 0) throw new RangeError.value(start);
     if (start + length > list.length) {
@@ -387,6 +380,46 @@ class IterableMixinWorkaround {
 
   static Map<int, dynamic> asMapList(List l) {
     return new ListMapView(l);
+  }
+
+  static bool setContainsAll(Set set, Iterable other) {
+    for (var element in other) {
+      if (!set.contains(element)) return false;
+    }
+    return true;
+  }
+
+  static Set setIntersection(Set set, Set other, Set result) {
+    Set smaller;
+    Set larger;
+    if (set.length < other.length) {
+      smaller = set;
+      larger = other;
+    } else {
+      smaller = other;
+      larger = set;
+    }
+    for (var element in smaller) {
+      if (larger.contains(element)) {
+        result.add(element);
+      }
+    }
+    return result;
+  }
+
+  static Set setUnion(Set set, Set other, Set result) {
+    result.addAll(set);
+    result.addAll(other);
+    return result;
+  }
+
+  static Set setDifference(Set set, Set other, Set result) {
+    for (var element in set) {
+      if (!other.contains(element)) {
+        result.add(element);
+      }
+    }
+    return result;
   }
 }
 

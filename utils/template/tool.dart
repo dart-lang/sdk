@@ -93,7 +93,7 @@ void main() {
     if (world.errors == 0) {
       // Generate the Dart class(es) for all template(s).
       codegenElapsed = time(() {
-        code.add(Codegen.generate(templates, outFilename));
+        code.write(Codegen.generate(templates, outFilename));
       });
     }
 

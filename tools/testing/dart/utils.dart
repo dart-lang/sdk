@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:utf' as utf;
 
 class DebugLogger {
-  static OutputStream _stream;
+  static IOSink _sink;
 
   /**
    * If [path] was null, the DebugLogger will write messages to stdout.
@@ -16,14 +16,14 @@ class DebugLogger {
   static init(Path path, {append: false}) {
     if (path != null) {
       var mode = append ? FileMode.APPEND : FileMode.WRITE;
-      _stream = new File.fromPath(path).openOutputStream(mode);
+      _sink = new File.fromPath(path).openWrite(mode: mode);
     }
   }
 
   static void close() {
-    if (_stream != null) {
-      _stream.close();
-      _stream = null;
+    if (_sink != null) {
+      _sink.close();
+      _sink = null;
     }
   }
 
@@ -40,9 +40,8 @@ class DebugLogger {
   }
 
   static void _print(String msg) {
-    if (_stream != null) {
-      _stream.write(encodeUtf8(msg));
-      _stream.write([0x0a]);
+    if (_sink != null) {
+      _sink.writeln(msg);
     } else {
       print(msg);
     }

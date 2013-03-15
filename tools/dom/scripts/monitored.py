@@ -19,7 +19,7 @@ class MonitoredCollection(object):
     _monitored_values.append(self)
 
 class Dict(MonitoredCollection):
-  """Wrapper for a read-only dict that reports unused keys."""
+  """Wrapper for a dict that reports unused keys."""
 
   def __init__(self, name, map):
     super(Dict, self).__init__(name)
@@ -50,7 +50,7 @@ class Dict(MonitoredCollection):
 
 
 class Set(MonitoredCollection):
-  """Wrapper for a read-only set that reports unused keys."""
+  """Wrapper for a set that reports unused keys."""
 
   def __init__(self, name, a_set):
     super(Set, self).__init__(name)
@@ -59,6 +59,12 @@ class Set(MonitoredCollection):
   def __contains__(self, key):
     self._used_keys.add(key)
     return key in self._set
+
+  def __iter__(self):
+    return self._set.__iter__()
+
+  def add(self, key):
+    self._set += [key]
 
   def CheckUsage(self):
     for v in sorted(self._set):

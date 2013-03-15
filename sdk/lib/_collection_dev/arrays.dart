@@ -8,9 +8,6 @@ part of dart._collection.dev;
 class Arrays {
   static void copy(List src, int srcStart,
                    List dst, int dstStart, int count) {
-    if (srcStart == null) srcStart = 0;
-    if (dstStart == null) dstStart = 0;
-
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;
            i >= srcStart; i--, j--) {
@@ -76,6 +73,15 @@ class Arrays {
       }
     }
     return -1;
+  }
+
+  static void indicesCheck(List a, int start, int end) {
+    if (start < 0 || start > a.length) {
+      throw new RangeError.range(start, 0, a.length);
+    }
+    if (end != null && (end < start || end > a.length)) {
+      throw new RangeError.range(end, start, a.length);
+    }
   }
 
   static void rangeCheck(List a, int start, int length) {

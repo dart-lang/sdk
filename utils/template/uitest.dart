@@ -385,12 +385,12 @@ void runTemplate([bool debug = false, bool parseOnly = false]) {
     try {
       List<Template> templates = templateParseAndValidate(htmlTemplate);
       for (var tmpl in templates) {
-        dumpTree.add(tmpl.toDebugString());
+        dumpTree.write(tmpl.toDebugString());
       }
 
       // Generate the Dart class(es) for all template(s).
       // Pass in filename of 'foo' for testing in UITest.
-      code.add(Codegen.generate(templates, 'foo'));
+      code.write(Codegen.generate(templates, 'foo'));
     } catch (htmlException) {
       // TODO(terry): TBD
       print("ERROR unhandled EXCEPTION");

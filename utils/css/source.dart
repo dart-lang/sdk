@@ -80,7 +80,7 @@ class SourceFile implements Comparable<SourceFile> {
     var buf = new StringBuffer(
         '${filename}:${line + 1}:${column + 1}: $message');
     if (includeText) {
-      buf.add('\n');
+      buf.write('\n');
       var textLine;
       // +1 for 0-indexing, +1 again to avoid the last line of the file
       if ((line + 2) < _lineStarts.length) {
@@ -91,25 +91,25 @@ class SourceFile implements Comparable<SourceFile> {
 
       int toColumn = Math.min(column + (end-start), textLine.length);
       if (options.useColors) {
-        buf.add(textLine.substring(0, column));
-        buf.add(_RED_COLOR);
-        buf.add(textLine.substring(column, toColumn));
-        buf.add(_NO_COLOR);
-        buf.add(textLine.substring(toColumn));
+        buf.write(textLine.substring(0, column));
+        buf.write(_RED_COLOR);
+        buf.write(textLine.substring(column, toColumn));
+        buf.write(_NO_COLOR);
+        buf.write(textLine.substring(toColumn));
       } else {
-        buf.add(textLine);
+        buf.write(textLine);
       }
 
       int i = 0;
       for (; i < column; i++) {
-        buf.add(' ');
+        buf.write(' ');
       }
 
-      if (options.useColors) buf.add(_RED_COLOR);
+      if (options.useColors) buf.write(_RED_COLOR);
       for (; i < toColumn; i++) {
-        buf.add('^');
+        buf.write('^');
       }
-      if (options.useColors) buf.add(_NO_COLOR);
+      if (options.useColors) buf.write(_NO_COLOR);
     }
 
     return buf.toString();

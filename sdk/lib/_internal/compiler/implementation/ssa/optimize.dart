@@ -183,8 +183,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = inputs[0];
     HType type = input.instructionType;
     if (type.isBoolean()) return input;
-    // All values !== true are boolified to false.
-    if (!type.isBooleanOrNull() && !type.isUnknown()) {
+    // All values that cannot be 'true' are boolified to false.
+    DartType booleanType = backend.jsBoolClass.computeType(compiler);
+    TypeMask mask = type.computeMask(compiler);
+    // TODO(kasperl): Get rid of the null check here once all HTypes
+    // have a proper mask.
+    if (mask != null && !mask.contains(booleanType, compiler)) {
       return graph.addConstantBool(false, constantSystem);
     }
     return node;
@@ -306,7 +310,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // bounds check will become explicit, so we won't need this
         // optimization.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-            node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+            node.selector, node.inputs.sublist(1));
         result.element = target;
         return result;
       }
@@ -322,36 +326,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (node is !HOneShotInterceptor
         && interceptor.isConstant()
         && selector.isCall()) {
-      DartType type = interceptor.instructionType.computeType(compiler);
-      ClassElement cls = type.element;
+      assert(interceptor.constant.isInterceptor());
+      ClassElement cls = interceptor.constant.dispatchedType.element;
       Element target = cls.lookupSelector(selector);
       if (target != null && selector.applies(target, compiler)) {
         node.element = target;
       }
-    }
-    return node;
-  }
-
-  bool isFixedSizeListConstructor(HInvokeStatic node) {
-    Element element = node.target.element;
-    if (backend.fixedLengthListConstructor == null) {
-      backend.fixedLengthListConstructor =
-        compiler.listClass.lookupConstructor(
-            new Selector.callConstructor(const SourceString(""),
-                                         compiler.listClass.getLibrary()));
-    }
-    // TODO(ngeoffray): checking if the second input is an integer
-    // should not be necessary but it currently makes it easier for
-    // other optimizations to reason on a fixed length constructor
-    // that we know takes an int.
-    return element == backend.fixedLengthListConstructor
-        && node.inputs.length == 2
-        && node.inputs[1].isInteger();
-  }
-
-  HInstruction visitInvokeStatic(HInvokeStatic node) {
-    if (isFixedSizeListConstructor(node)) {
-      node.instructionType = HType.FIXED_ARRAY;
     }
     return node;
   }
@@ -435,7 +415,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HType leftType = left.instructionType;
     HType rightType = right.instructionType;
 
-    // We don't optimize on numbers to preserve the runtime semantics.
+    // Intersection of int and double return conflicting, so
+    // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull() && right.isNumberOrNull()) &&
         leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, constantSystem);
@@ -480,9 +461,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIs(HIs node) {
     DartType type = node.typeExpression;
     Element element = type.element;
-    if (element.isTypeVariable()) {
-      compiler.unimplemented("visitIs for type variables");
-    } if (element.isTypedef()) {
+
+    if (!node.isRawCheck) {
+      return node;
+    } else if (element.isTypedef()) {
       return node;
     }
 
@@ -536,15 +518,18 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         return graph.addConstantBool(false, constantSystem);
       }
-    // TODO(karlklose): remove the hasTypeArguments check.
+    // Wee need the [:hasTypeArguments:] check because we don't have
+    // the notion of generics in the backend. For example, [:this:] in
+    // a class [:A<T>:], is currently always considered to have the
+    // raw type.
     } else if (expressionType.isUseful()
                && !expressionType.canBeNull()
-               && !RuntimeTypeInformation.hasTypeArguments(type)) {
-      DartType receiverType = expressionType.computeType(compiler);
+               && !RuntimeTypes.hasTypeArguments(type)) {
+      var receiverType = expressionType.computeType(compiler);
       if (receiverType != null) {
         if (!receiverType.isMalformed &&
             !type.isMalformed &&
-            compiler.types.isSubtype(receiverType, type)) {
+            compiler.types.isSubtype(receiverType.element.rawType, type)) {
           return graph.addConstantBool(true, constantSystem);
         } else if (expressionType.isExact()) {
           return graph.addConstantBool(false, constantSystem);
@@ -556,16 +541,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
-    DartType type = node.instructionType.computeType(compiler);
-    if (identical(type.element, compiler.dynamicClass)
-        || identical(type.element, compiler.objectClass)) {
-      return value;
-    }
-    if (value.instructionType.canBeNull() && node.isBooleanConversionCheck) {
-      return node;
-    }
-    HType combinedType =
-        value.instructionType.intersection(node.instructionType, compiler);
+    DartType type = node.typeExpression;
+    if (type != null && !type.isRaw) return node;
+    HType convertedType = node.instructionType;
+    if (convertedType.isUnknown()) return node;
+    HType combinedType = value.instructionType.intersection(
+        convertedType, compiler);
     return (combinedType == value.instructionType) ? value : node;
   }
 
@@ -582,7 +563,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // Try to recognize the length getter with input
         // [:new List(int):].
         HInvokeStatic call = node.receiver;
-        if (isFixedSizeListConstructor(call)) {
+        Element element = call.target.element;
+        // TODO(ngeoffray): checking if the second input is an integer
+        // should not be necessary but it currently makes it easier for
+        // other optimizations to reason about a fixed length constructor
+        // that we know takes an int.
+        if (element == compiler.unnamedListConstructor
+            && call.inputs.length == 2
+            && call.inputs[1].isInteger()) {
           return call.inputs[1];
         }
       }
@@ -598,28 +586,27 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (field == null) return node;
 
     Modifiers modifiers = field.modifiers;
-    bool isFinalOrConst = modifiers.isFinal() || modifiers.isConst();
+    bool isAssignable = !(modifiers.isFinal() || modifiers.isConst());
     if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
       // If no setter is ever used for this field it is only initialized in the
       // initializer list.
-      isFinalOrConst = true;
+      isAssignable = false;
+    }
+    if (field.isNative()) {
+      // Some native fields are views of data that may be changed by operations.
+      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
+      // TODO(sra): Refine the effect classification so that native effects are
+      // distinct from ordinary Dart effects.
+      isAssignable = true;
     }
     HFieldGet result = new HFieldGet(
-        field, node.inputs[0], isAssignable: !isFinalOrConst);
-
-    // Some native fields are views of data that may be changed by operations.
-    // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
-    // TODO(sra): Refine the effect classification so that native effects are
-    // distinct from ordinary Dart effects.
-    if (field.isNative()) {
-      result.setDependsOnSomething();
-    }
+        field, node.inputs[0], isAssignable: isAssignable);
 
     if (field.getEnclosingClass().isNative()) {
       result.instructionType =
           new HType.subtype(field.computeType(compiler), compiler);
     } else {
-      HType type = new HType.inferredForElement(field, compiler);
+      HType type = new HType.inferredTypeForElement(field, compiler);
       if (type.isUnknown()) {
         type = backend.optimisticFieldType(field);
         if (type != null) {
@@ -676,17 +663,37 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // return the object (the [:getInterceptor:] method would have
     // returned the object).
     HType type = node.receiver.instructionType;
-    if (!type.canBePrimitive(compiler)) {
-      if (!(type.canBeNull()
-            && node.interceptedClasses.contains(compiler.objectClass))) {
-        return node.receiver;
-      }
+    if (canUseSelfForInterceptor(type, node.interceptedClasses)) {
+      return node.receiver;
     }
     HInstruction constant = tryComputeConstantInterceptor(
         node.inputs[0], node.interceptedClasses);
     if (constant == null) return node;
 
     return constant;
+  }
+
+  bool canUseSelfForInterceptor(HType receiverType,
+                                Set<ClassElement> interceptedClasses) {
+    if (receiverType.canBePrimitive(compiler)) {
+      // Primitives always need interceptors.
+      return false;
+    }
+    if (receiverType.canBeNull()
+        && interceptedClasses.contains(backend.jsNullClass)) {
+      // Need the JSNull interceptor.
+      return false;
+    }
+
+    // [interceptedClasses] is sparse - it is just the classes that define some
+    // intercepted method.  Their subclasses (that inherit the method) are
+    // implicit, so we have to extend them.
+
+    TypeMask receiverMask = receiverType.computeMask(compiler);
+    return interceptedClasses
+        .where((cls) => cls != compiler.objectClass)
+        .map((cls) => new TypeMask.subclass(cls.rawType))
+        .every((mask) => receiverMask.intersection(mask, compiler).isEmpty);
   }
 
   HInstruction tryComputeConstantInterceptor(HInstruction input,
@@ -706,10 +713,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (type.isNull()) {
       constantInterceptor = backend.jsNullClass;
     } else if (type.isNumber()) {
-      // If the method being intercepted is not defined in [int] or
-      // [double] we can safely use the number interceptor.
-      if (!intercepted.contains(compiler.intClass)
-          && !intercepted.contains(compiler.doubleClass)) {
+      // If the method being intercepted is not defined in [int] or [double] we
+      // can safely use the number interceptor.  This is because none of the
+      // [int] or [double] methods are called from a method defined on [num].
+      if (!intercepted.contains(backend.jsIntClass)
+          && !intercepted.contains(backend.jsDoubleClass)) {
         constantInterceptor = backend.jsNumberClass;
       }
     }
@@ -719,8 +727,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return graph.thisInstruction;
     }
 
-    Constant constant = new ConstructedConstant(
-        constantInterceptor.computeType(compiler), <Constant>[]);
+    Constant constant = new InterceptorConstant(
+        constantInterceptor.computeType(compiler));
     return graph.addConstant(constant);
   }
 
@@ -1266,7 +1274,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
     Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
-    HTypeConversion newInput = new HTypeConversion(convertedType, input);
+    HTypeConversion newInput = new HTypeConversion(
+        null, HTypeConversion.NO_CHECK, convertedType, input);
     dominator.addBefore(dominator.first, newInput);
     dominatedUsers.forEach((HInstruction user) {
       user.changeUse(input, newInput);
@@ -1274,13 +1283,16 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   void visitIs(HIs instruction) {
-    HInstruction input = instruction.expression;
-    HType convertedType = new HType.nonNullSubtype(
-        instruction.typeExpression, compiler);
+    DartType type = instruction.typeExpression;
+    Element element = type.element;
+    if (!instruction.isRawCheck) {
+      return;
+    } else if (element.isTypedef()) {
+      return;
+    }
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];
-
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
         ifUsers.add(user);
@@ -1293,6 +1305,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
+    HType convertedType = new HType.nonNullSubtype(type, compiler);
+    HInstruction input = instruction.expression;
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the else block on a HType

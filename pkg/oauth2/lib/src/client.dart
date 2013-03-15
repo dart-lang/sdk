@@ -7,7 +7,7 @@ library client;
 import 'dart:async';
 import 'dart:uri';
 
-import '../../../http/lib/http.dart' as http;
+import '../../../../pkg/http/lib/http.dart' as http;
 
 import 'authorization_exception.dart';
 import 'credentials.dart';

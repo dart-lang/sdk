@@ -8,7 +8,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $if DART2JS
   factory $CLASSNAME(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
-        '${_browserPropertyPrefix}RTCPeerConnection');
+        '${Device.propertyPrefix}RTCPeerConnection');
     if (?mediaConstraints) {
       return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
           convertDartToNative_SerializedScriptValue(rtcIceServers),
@@ -21,18 +21,18 @@ $if DART2JS
 $endif
 
   /**
-   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on
    * the current platform.
    */
 $if DART2JS
   static bool get supported {
     // Currently in Firefox some of the RTC elements are defined but throw an
-    // error unless the user has specifically enabled them in their 
+    // error unless the user has specifically enabled them in their
     // about:config. So we have to construct an element to actually test if RTC
     // is supported at at the given time.
     try {
       var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
-      return c is RtcPeerConnection; 
+      return c is RtcPeerConnection;
     } catch (_) {}
     return false;
   }

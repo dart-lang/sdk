@@ -61,6 +61,10 @@ _methods_with_named_formals = monitored.Set(
   'DataView.setUint8',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
+  'Entry.copyTo',
+  'Entry.moveTo',
+  'HTMLInputElement.setRangeText',
+  'XMLHttpRequest.open',
   ])
 
 #
@@ -136,6 +140,12 @@ class ParamInfo(object):
         self.name, self.type_id, self.is_optional)
     return '<ParamInfo(%s)>' % content
 
+def GetCallbackInfo(interface):
+  """For the given interface, find operations that take callbacks (for use in
+  auto-transforming callbacks into futures)."""
+  callback_handlers = [operation for operation in interface.operations
+      if operation.id == 'handleEvent']
+  return AnalyzeOperation(interface, callback_handlers)
 
 # Given a list of overloaded arguments, render dart arguments.
 def _BuildArguments(args, interface, constructor=False):
@@ -212,7 +222,24 @@ def AnalyzeOperation(interface, operations):
   info.param_infos = _BuildArguments([op.arguments for op in split_operations], interface)
   full_name = '%s.%s' % (interface.id, info.declared_name)
   info.requires_named_arguments = full_name in _methods_with_named_formals
+  # The arguments in that the original operation took as callbacks (for
+  # conversion to futures).
+  info.callback_args = []
   return info
+
+def ConvertToFuture(info):
+  """Given an OperationInfo object, convert the operation's signature so that it
+  instead uses futures instead of callbacks."""
+  new_info = copy.deepcopy(info)
+  def IsNotCallbackType(param):
+    return 'Callback' not in param.type_id
+  # Success callback is the first argument (change if this no longer holds).
+  new_info.callback_args = filter(
+      lambda x: not IsNotCallbackType(x), new_info.param_infos)
+  new_info.param_infos = filter(IsNotCallbackType, new_info.param_infos)
+  new_info.type_name = 'Future'
+
+  return new_info
 
 
 def AnalyzeConstructor(interface):
@@ -341,15 +368,19 @@ class OperationInfo(object):
           right_bracket)
     return ', '.join(argtexts)
 
-  def ParametersAsArgumentList(self, parameter_count = None):
+  def ParametersAsArgumentList(self, parameter_count=None):
     """Returns a string of the parameter names suitable for passing the
     parameters as arguments.
     """
+    def param_name(param_info):
+      if self.requires_named_arguments and param_info.is_optional:
+        return '%s : %s' % (param_info.name, param_info.name)
+      else:
+        return param_info.name
+
     if parameter_count is None:
       parameter_count = len(self.param_infos)
-    return ', '.join(map(
-        lambda param_info: param_info.name,
-        self.param_infos[:parameter_count]))
+    return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
   def IsStatic(self):
     is_static = self.overloads[0].is_static
@@ -360,6 +391,13 @@ class OperationInfo(object):
     if self.constructor_name:
       return rename_type(self.type_name) + '.' + self.constructor_name
     else:
+      # TODO(antonm): temporary ugly hack.
+      # While in transition phase we allow both DOM's ArrayBuffer
+      # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
+      # hence ArrayBuffer is mapped to dynamic in arguments and return
+      # values.  To compensate for that when generating ArrayBuffer itself,
+      # we need to lie a bit:
+      if self.type_name == 'ArrayBuffer': return 'ArrayBuffer'
       return rename_type(self.type_name)
 
 def ConstantOutputOrder(a, b):
@@ -515,6 +553,16 @@ def FindConversion(idl_type, direction, interface, member):
 
 dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
+    'ArrayBuffer': [
+      "@Creates('ArrayBuffer')",
+      "@Returns('ArrayBuffer|Null')",
+    ],
+
+    'ArrayBufferView': [
+      "@Creates('ArrayBufferView')",
+      "@Returns('ArrayBufferView|Null')",
+    ],
+
     'CanvasRenderingContext2D.createImageData': [
       "@Creates('ImageData|=Object')",
     ],
@@ -572,7 +620,6 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
       "@Creates('Element|Document')",
       "@Returns('Element|Document')",
     ],
-
 
     'FileReader.result': ["@Creates('String|ArrayBuffer|Null')"],
 
@@ -692,6 +739,11 @@ _rtc_annotations = [ # Note: Firefox nightly builds also support this.
   "@Experimental",
 ]
 
+_shadow_dom_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME, '26')",
+  "@Experimental",
+]
+
 _speech_recognition_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
   "@Experimental",
@@ -724,6 +776,7 @@ _webkit_experimental_annotations = [
 dart_annotations = monitored.Dict('generator.dart_annotations', {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'CSSHostRule': _shadow_dom_annotations,
   'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
   'DatabaseSync': _web_sql_annotations,
@@ -760,10 +813,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   ],
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,
-  'HTMLContentElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
-  ],
+  'HTMLContentElement': _shadow_dom_annotations,
   'HTMLDataListElement': _all_but_ie9_annotations,
   'HTMLDetailsElement': _webkit_experimental_annotations,
   'HTMLEmbedElement': [
@@ -780,10 +830,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   ],
   'HTMLOutputElement': _no_ie_annotations,
   'HTMLProgressElement': _all_but_ie9_annotations,
-  'HTMLShadowElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
-  ],
+  'HTMLShadowElement': _shadow_dom_annotations,
   'HTMLTrackElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE, '10')",
@@ -808,10 +855,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   'RTCIceCandidate': _rtc_annotations,
   'RTCPeerConnection': _rtc_annotations,
   'RTCSessionDescription': _rtc_annotations,
-  'ShadowRoot': [
-    "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental",
-  ],
+  'ShadowRoot': _shadow_dom_annotations,
   'SpeechRecognition': _speech_recognition_annotations,
   'SpeechRecognitionAlternative': _speech_recognition_annotations,
   'SpeechRecognitionError': _speech_recognition_annotations,
@@ -1092,9 +1136,11 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
     self._type_registry = type_registry
 
   def dart_type(self):
+    if self._data.dart_type:
+      return self._data.dart_type
     if self.list_item_type() and not self.has_generated_interface():
       return 'List<%s>' % self._type_registry.TypeInfo(self._data.item_type).dart_type()
-    return self._data.dart_type or self._dart_interface_name
+    return self._dart_interface_name
 
   def narrow_dart_type(self):
     if self.list_item_type():
@@ -1315,7 +1361,13 @@ class TypeData(object):
 
 
 def TypedArrayTypeData(item_type):
-  return TypeData(clazz='Interface', item_type=item_type, is_typed_array=True)
+  return TypeData(
+      clazz='Interface',
+      dart_type='List<%s>' % item_type, # TODO(antonm): proper typeddata interfaces.
+      item_type=item_type,
+      # TODO(antonm): should be autogenerated. Let the dust settle down.
+      custom_to_dart=True, custom_to_native=True,
+      is_typed_array=True)
 
 
 _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
@@ -1345,6 +1397,8 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'any': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'Array': TypeData(clazz='Primitive', dart_type='List'),
     'custom': TypeData(clazz='Primitive', dart_type='dynamic'),
+    'ClientRect': TypeData(clazz='Interface',
+        dart_type='Rect', suppress_interface=True),
     'Date': TypeData(clazz='Primitive', dart_type='DateTime', native_type='double'),
     'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
@@ -1379,7 +1433,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
     'ClientRectList': TypeData(clazz='Interface',
-        item_type='ClientRect', suppress_interface=True),
+        item_type='ClientRect', dart_type='List<Rect>', suppress_interface=True),
     'CSSRuleList': TypeData(clazz='Interface',
         item_type='CSSRule', suppress_interface=True),
     'CSSValueList': TypeData(clazz='Interface',
@@ -1394,6 +1448,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'FileList': TypeData(clazz='Interface', item_type='File',
         dart_type='List<File>'),
+    'Future': TypeData(clazz='Interface', dart_type='Future'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
         suppress_interface=True),
     'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
@@ -1427,6 +1482,15 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'Uint8ClampedArray': TypedArrayTypeData('int'),
     'Uint16Array': TypedArrayTypeData('int'),
     'Uint32Array': TypedArrayTypeData('int'),
+    # TODO(antonm): temporary ugly hack.
+    # While in transition phase we allow both DOM's ArrayBuffer
+    # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
+    # hence ArrayBuffer is mapped to dynamic in arguments and return
+    # values.
+    'ArrayBufferView': TypeData(clazz='Interface', dart_type='dynamic',
+        custom_to_native=True, custom_to_dart=True),
+    'ArrayBuffer': TypeData(clazz='Interface', dart_type='dynamic',
+        custom_to_native=True, custom_to_dart=True),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),

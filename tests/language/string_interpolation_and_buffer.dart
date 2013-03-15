@@ -41,13 +41,13 @@ main() {
     var sb;
     if (checkedMode && object != null) {
       try {
-        sb = new StringBuffer().add(wrap(object));
+        sb = new StringBuffer()..write(wrap(object));
       } on TypeError {
         return 'Error';
       }
     } else {
       try {
-        sb = new StringBuffer().add(wrap(object));
+        sb = new StringBuffer()..write(wrap(object));
       } on ArgumentError {
         return 'Error';
       }

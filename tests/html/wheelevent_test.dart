@@ -17,7 +17,7 @@ main() {
     var eventType = Element.mouseWheelEvent.getEventType(element);
 
     element.onMouseWheel.listen(expectAsync1((e) {
-      expect(e.screenX, 100);
+      expect(e.screen.x, 100);
       expect(e.deltaX, 0);
       expect(e.deltaY, 240);
       expect(e.deltaMode, isNotNull);
@@ -34,7 +34,7 @@ main() {
     var eventType = Element.mouseWheelEvent.getEventType(element);
 
     element.onMouseWheel.listen(expectAsync1((e) {
-      expect(e.screenX, 100);
+      expect(e.screen.x, 100);
       expect(e.deltaX, 0);
       expect(e.deltaY, 240);
     }));

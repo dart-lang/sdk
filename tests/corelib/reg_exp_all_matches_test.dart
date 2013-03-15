@@ -33,7 +33,7 @@ class RegExpAllMatchesTest {
     var matches = new RegExp("foo").allMatches("foo foo");
     var strbuf = new StringBuffer();
     matches.forEach((Match m) {
-      strbuf.add(m.group(0));
+      strbuf.write(m.group(0));
     });
     Expect.equals("foofoo", strbuf.toString());
   }
@@ -44,7 +44,7 @@ class RegExpAllMatchesTest {
     Expect.equals(4, mapped.length);
     var strbuf = new StringBuffer();
     for (String s in mapped) {
-      strbuf.add(s);
+      strbuf.write(s);
     }
     Expect.equals("foobarfobarfoobarfobar", strbuf.toString());
   }
@@ -57,7 +57,7 @@ class RegExpAllMatchesTest {
     Expect.equals(2, filtered.length);
     var strbuf = new StringBuffer();
     for (Match m in filtered) {
-      strbuf.add(m.group(0));
+      strbuf.write(m.group(0));
     }
     Expect.equals("foofoo", strbuf.toString());
   }

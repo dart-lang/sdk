@@ -22,7 +22,7 @@ Future<HttpServer> startServer() {
         onDone: () {
           request.response.contentLength = 100;
           for (int i = 0; i < 10; i++) {
-            request.response.add([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            request.response.writeBytes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
           }
           request.response.close();
         });
@@ -43,7 +43,7 @@ void main() {
   List<int> body = <int>[];
   startServer().then((server) {
     SecureSocket.connect("localhost", server.port).then((socket) {
-      socket.add("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n".codeUnits);
+      socket.write("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n");
       socket.close();
       socket.listen(
         (List<int> data) {

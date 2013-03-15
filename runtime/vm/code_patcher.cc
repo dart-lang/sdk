@@ -3,19 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/code_patcher.h"
+#include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
 
-static void SwapCode(intptr_t num_bytes, char* a, char* b) {
+static void SwapCode(intptr_t num_bytes, char* code, char* buffer) {
+  uword code_address = reinterpret_cast<uword>(code);
   for (intptr_t i = 0; i < num_bytes; i++) {
-    char tmp = *a;
-    *a = *b;
-    *b = tmp;
-    a++;
-    b++;
+    char tmp = *code;
+    *code = *buffer;
+    *buffer = tmp;
+    code++;
+    buffer++;
   }
+  CPU::FlushICache(code_address, num_bytes);
+  // The buffer is not executed. No need to flush.
 }
 
 

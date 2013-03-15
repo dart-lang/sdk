@@ -61,16 +61,16 @@ $endif
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  $E firstMatching(bool test($E value), { $E orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  $E firstWhere(bool test($E value), { $E orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  $E lastMatching(bool test($E value), {$E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  $E lastWhere(bool test($E value), {$E orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  $E singleMatching(bool test($E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  $E singleWhere(bool test($E value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   $E elementAt(int index) {
@@ -144,6 +144,10 @@ $endif
   $E max([int compare($E a, $E b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, $E element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   $E removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -164,11 +168,11 @@ $endif
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test($E element)) {
+  void removeWhere(bool test($E element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test($E element)) {
+  void retainWhere(bool test($E element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -184,8 +188,13 @@ $endif
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<$E> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <$E>[]);
+  }
+
   List<$E> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <$E>[]);
+      sublist(start, start + rangeLength);
 
   Map<int, $E> asMap() =>
     IterableMixinWorkaround.asMapList(this);

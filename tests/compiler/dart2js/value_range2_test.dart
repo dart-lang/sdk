@@ -11,7 +11,7 @@ ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 Value instructionValue = info.newInstructionValue(new HReturn(null));
 Value lengthValue = info.newLengthValue(new HReturn(null));
 
-Range createSingleRange(Value value) => info.newRange(value, value);
+Range createSingleRange(Value value) => info.newNormalizedRange(value, value);
 
 Range createSingleIntRange(int value) {
   return createSingleRange(info.newIntValue(value));
@@ -22,15 +22,16 @@ Range createSingleInstructionRange() => createSingleRange(instructionValue);
 Range createSingleLengthRange() => createSingleRange(lengthValue);
 
 Range createIntRange(int lower, int upper) {
-  return info.newRange(info.newIntValue(lower), info.newIntValue(upper));
+  return info.newNormalizedRange(
+      info.newIntValue(lower), info.newIntValue(upper));
 }
 
 Range createLengthRange(int lower) {
-  return info.newRange(info.newIntValue(lower), lengthValue);
+  return info.newNormalizedRange(info.newIntValue(lower), lengthValue);
 }
 
 Range createInstructionRange(int lower) {
-  return info.newRange(info.newIntValue(lower), instructionValue);
+  return info.newNormalizedRange(info.newIntValue(lower), instructionValue);
 }
 
 Range instruction = createSingleInstructionRange();
@@ -48,7 +49,7 @@ Range _0_instruction = createInstructionRange(0);
 checkAndRange(Range one, Range two, lower, upper) {
   if (lower is num) lower = info.newIntValue(lower);
   if (upper is num) upper = info.newIntValue(upper);
-  Range range = info.newRange(lower, upper);
+  Range range = info.newNormalizedRange(lower, upper);
   Expect.equals(range, one & two);
 }
 
@@ -84,7 +85,7 @@ checkSubRange(Range one, Range two, [lower, upper]) {
     upper = info.newIntValue(upper);
   }
 
-  Expect.equals(info.newRange(lower, upper), one - two);
+  Expect.equals(info.newNormalizedRange(lower, upper), one - two);
 }
 
 checkNegateRange(Range range, [arg1, arg2]) {
@@ -106,7 +107,7 @@ checkNegateRange(Range range, [arg1, arg2]) {
     } else {
       up = arg2;
     }
-    Expect.equals(info.newRange(low, up), -range);
+    Expect.equals(info.newNormalizedRange(low, up), -range);
   }
 }
 

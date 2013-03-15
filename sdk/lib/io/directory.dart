@@ -166,19 +166,19 @@ class DirectoryIOException implements Exception {
                               OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add("DirectoryIOException");
+    sb.write("DirectoryIOException");
     if (!message.isEmpty) {
-      sb.add(": $message");
+      sb.write(": $message");
       if (path != null) {
-        sb.add(", path = $path");
+        sb.write(", path = $path");
       }
       if (osError != null) {
-        sb.add(" ($osError)");
+        sb.write(" ($osError)");
       }
     } else if (osError != null) {
-      sb.add(": $osError");
+      sb.write(": $osError");
       if (path != null) {
-        sb.add(", path = $path");
+        sb.write(", path = $path");
       }
     }
     return sb.toString();

@@ -29,8 +29,9 @@ class VMGlue {
   int CallShutdown();
   int OnMotionEvent(const char* funtion, int64_t when,
                     float move_x, float move_y);
-  int OnKeyEvent(const char* funtion, int64_t when, int32_t flags,
-             int32_t key_code, int32_t meta_state, int32_t repeat);
+  int OnKeyEvent(const char* funtion, int64_t when, int32_t key_code,
+                 bool isAltKeyDown, bool isCtrlKeyDown, bool isShiftKeyDown,
+                 int32_t repeat);
   void FinishMainIsolate();
 
  private:
@@ -52,9 +53,9 @@ class VMGlue {
   static Dart_Handle LoadSourceFromFile(const char* url);
   static void ShutdownIsolate(void* callback_data);
 
+  static bool initialized_vm_;
   ISized* surface_;
   Dart_Isolate isolate_;
-  bool initialized_vm_;
   bool initialized_script_;
   char* main_script_;
   static char* extension_script_;

@@ -8,6 +8,28 @@ class _GrowableObjectArray<T> implements List<T> {
         "GrowableObjectArray can only be allocated by the VM");
   }
 
+  void insert(int index, T element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == this.length) {
+      add(element);
+      return;
+    }
+    int oldLength = this.length;
+    // We are modifying the length just below the is-check. Without the check
+    // Array.copy could throw an exception, leaving the list in a bad state
+    // (with a length that has been increased, but without a new element).
+    if (index is! int) throw new ArgumentError(index);
+    this.length++;
+    Arrays.copy(this,
+                index,
+                this,
+                index + 1,
+                oldLength - index);
+    this[index] = element;
+  }
+
   T removeAt(int index) {
     if (index is! int) throw new ArgumentError(index);
     T result = this[index];
@@ -38,13 +60,13 @@ class _GrowableObjectArray<T> implements List<T> {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(T element)) {
-    IterableMixinWorkaround.removeMatchingList(this, test);
+  void removeWhere(bool test(T element)) {
+    IterableMixinWorkaround.removeWhereList(this, test);
   }
 
-  void retainMatching(bool test(T element)) {
-    IterableMixinWorkaround.removeMatchingList(this,
-                                               (T element) => !test(element));
+  void retainWhere(bool test(T element)) {
+    IterableMixinWorkaround.removeWhereList(this,
+                                            (T element) => !test(element));
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
@@ -86,14 +108,18 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  List<T> getRange(int start, int length) {
-    if (length == 0) return [];
-    Arrays.rangeCheck(this, start, length);
+  List<T> sublist(int start, [int end]) {
+    Arrays.indicesCheck(this, start, end);
+    if (end == null) end = length;
+    int length = end - start;
+    if (start == end) return <T>[];
     List list = new _GrowableObjectArray<T>.withCapacity(length);
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
+
+  List<T> getRange(int start, int length) => sublist(start, start + length);
 
   factory _GrowableObjectArray(int length) {
     var data = new _ObjectArray((length == 0) ? 4 : length);
@@ -226,13 +252,13 @@ class _GrowableObjectArray<T> implements List<T> {
     StringBuffer buffer = new StringBuffer();
     if (separator == null || separator == "") {
       for (int i = 0; i < this.length; i++) {
-        buffer.add("${this[i]}");
+        buffer.write("${this[i]}");
       }
     } else {
-      buffer.add("${this[0]}");
+      buffer.write("${this[0]}");
       for (int i = 1; i < this.length; i++) {
-        buffer.add(separator);
-        buffer.add("${this[i]}");
+        buffer.write(separator);
+        buffer.write("${this[i]}");
       }
     }
     return buffer.toString();
@@ -278,16 +304,16 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.any(this, f);
   }
 
-  T firstMatching(bool test(T value), {T orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  T firstWhere(bool test(T value), {T orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  T lastMatching(bool test(T value), {T orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  T lastWhere(bool test(T value), {T orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  T singleMatching(bool test(T value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  T singleWhere(bool test(T value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   T elementAt(int index) {

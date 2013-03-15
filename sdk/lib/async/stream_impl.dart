@@ -66,7 +66,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   /**
    * List of pending events.
    *
-   * If events are added to the stream (using [_add], [_signalError] or [_done])
+   * If events are added to the stream (using [_add], [_addError] or [_done])
    * while the stream is paused, or while another event is firing, events will
    * stored here.
    * Also supports scheduling the events for later execution.
@@ -94,7 +94,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   }
 
   // ------------------------------------------------------------------
-  // StreamSink interface-like methods for sending events into the stream.
+  // EventSink interface-like methods for sending events into the stream.
   // It's the responsibility of the caller to ensure that the stream is not
   // paused when adding events. If the stream is paused, the events will be
   // queued, but it's better to not send events at all.
@@ -123,7 +123,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
    * If a subscription has requested to be unsubscribed on errors,
    * it will be unsubscribed after receiving this event.
    */
-  void _signalError(AsyncError error) {
+  void _addError(AsyncError error) {
     if (_isClosed) throw new StateError("Sending on closed stream");
     if (!_mayFireState) {
       // Not the time to send events.
@@ -562,7 +562,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
  *
  * The user interface of [_SingleStreamImpl] are the following methods:
  * * [_add]: Add a data event to the stream.
- * * [_signalError]: Add an error event to the stream.
+ * * [_addError]: Add an error event to the stream.
  * * [_close]: Request to close the stream.
  * * [_onSubscriberStateChange]: Called when receiving the first subscriber or
  *                               when losing the last subscriber.
@@ -676,7 +676,7 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
  *
  * The user interface of [_MultiStreamImpl] are the following methods:
  * * [_add]: Add a data event to the stream.
- * * [_signalError]: Add an error event to the stream.
+ * * [_addError]: Add an error event to the stream.
  * * [_close]: Request to close the stream.
  * * [_onSubscriptionStateChange]: Called when receiving the first subscriber or
  *                                 when losing the last subscriber.
@@ -841,7 +841,7 @@ class _GeneratedSingleStreamImpl<T> extends _SingleStreamImpl<T> {
     throw new UnsupportedError("Cannot inject events into generated stream");
   }
 
-  void _signalError(AsyncError value) {
+  void _addError(AsyncError value) {
     throw new UnsupportedError("Cannot inject events into generated stream");
   }
 
@@ -1098,14 +1098,14 @@ abstract class _InternalLinkList extends _InternalLink {
 }
 
 /** Abstract type for an internal interface for sending events. */
-abstract class _StreamOutputSink<T> {
+abstract class _EventOutputSink<T> {
   _sendData(T data);
   _sendError(AsyncError error);
   _sendDone();
 }
 
 abstract class _StreamListener<T> extends _InternalLink
-                                  implements _StreamOutputSink<T> {
+                                  implements _EventOutputSink<T> {
   final _StreamImpl _source;
   int _state = _LISTENER_UNSUBSCRIBED;
 
@@ -1332,7 +1332,7 @@ class _SingleStreamMultiplexer<T> extends _MultiStreamImpl<T> {
     if (_hasSubscribers) {
       assert(_subscription == null);
       _subscription = _source.listen(this._add,
-                                     onError: this._signalError,
+                                     onError: this._addError,
                                      onDone: this._close);
     } else {
       // TODO(lrn): Check why this can happen.

@@ -28,6 +28,15 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 
 #define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
 
+#ifdef DEBUG
+#define SET_NATIVE_RETVAL(args, value)                                         \
+  RawObject* retval = value;                                                   \
+  ASSERT(retval->IsDartInstance());                                            \
+  arguments->SetReturnUnsafe(retval);
+#else
+#define SET_NATIVE_RETVAL(arguments, value)                                    \
+  arguments->SetReturnUnsafe(value);
+#endif
 
 #define DEFINE_NATIVE_ENTRY(name, argument_count)                              \
   static RawObject* DN_Helper##name(Isolate* isolate,                          \
@@ -41,8 +50,8 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     {                                                                          \
       StackZone zone(arguments->isolate());                                    \
       HANDLESCOPE(arguments->isolate());                                       \
-      arguments->SetReturnUnsafe(                                              \
-          DN_Helper##name(arguments->isolate(), arguments));                   \
+      SET_NATIVE_RETVAL(arguments,                                             \
+                        DN_Helper##name(arguments->isolate(), arguments));     \
       if (FLAG_deoptimize_alot) DeoptimizeAll();                               \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \

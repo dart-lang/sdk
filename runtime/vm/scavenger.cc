@@ -75,8 +75,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         delayed_weak_stack_(),
         growth_policy_(PageSpace::kControlGrowth),
         bytes_promoted_(0),
-        visiting_old_pointers_(false),
-        in_scavenge_pointer_(false) {}
+#ifdef DEBUG
+        in_scavenge_pointer_(false),
+#endif
+        visiting_old_pointers_(false) { }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -125,8 +127,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
   void ScavengePointer(RawObject** p) {
     // ScavengePointer cannot be called recursively.
+#ifdef DEBUG
     ASSERT(!in_scavenge_pointer_);
     BoolScope bs(&in_scavenge_pointer_, true);
+#endif
 
     RawObject* raw_obj = *p;
 
@@ -251,8 +255,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   // new space growth policy.
   intptr_t bytes_promoted_;
 
-  bool visiting_old_pointers_;
+#ifdef DEBUG
   bool in_scavenge_pointer_;
+#endif
+  bool visiting_old_pointers_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
 };

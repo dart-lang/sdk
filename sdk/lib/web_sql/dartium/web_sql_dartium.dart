@@ -328,16 +328,16 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Map firstMatching(bool test(Map value), { Map orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Map firstWhere(bool test(Map value), { Map orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Map lastMatching(bool test(Map value), {Map orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Map lastWhere(bool test(Map value), {Map orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Map singleMatching(bool test(Map value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Map singleWhere(bool test(Map value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Map elementAt(int index) {
@@ -405,6 +405,10 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   Map max([int compare(Map a, Map b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Map element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -425,11 +429,11 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Map element)) {
+  void removeWhere(bool test(Map element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Map element)) {
+  void retainWhere(bool test(Map element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -445,8 +449,16 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Map> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Map>[]);
+  }
+
   List<Map> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Map>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Map> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Map> mixins.
 

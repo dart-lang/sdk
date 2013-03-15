@@ -63,13 +63,13 @@ class TemplateSignature extends ASTNode {
     bool first = true;
     for (final param in params) {
       if (!first) {
-        buff.add(", ");
+        buff.write(", ");
       }
       if (param['type'] != null) {
-        buff.add(param['type']);
-        buff.add(' ');
+        buff.write(param['type']);
+        buff.write(' ');
       }
-      buff.add(param['name']);
+      buff.write(param['name']);
       first = false;
     }
 
@@ -102,7 +102,7 @@ class TemplateChildren extends ASTNode {
     StringBuffer buff = new StringBuffer();
     if (children != null) {
       for (final child in children) {
-        buff.add(child.toString());
+        buff.write(child.toString());
       }
     }
 
@@ -125,13 +125,13 @@ class TemplateGetter extends ASTNode {
     bool first = true;
     for (final param in params) {
       if (!first) {
-        buff.add(", ");
+        buff.write(", ");
       }
       if (param['type'] != null && param['type'].length > 0) {
-        buff.add(param['type']);
-        buff.add(' ');
+        buff.write(param['type']);
+        buff.write(' ');
       }
-      buff.add(param['name']);
+      buff.write(param['name']);
       first = false;
     }
 
@@ -182,7 +182,7 @@ class TemplateElement extends TemplateChildren {
 
     if (attributes != null) {
       for (final attr in attributes) {
-        buff.add(' ${attr.toString()}');
+        buff.write(' ${attr.toString()}');
       }
     }
 
@@ -203,10 +203,10 @@ class TemplateElement extends TemplateChildren {
 
     if (children != null) {
       for (final child in children) {
-        buff.add(child.toString());
+        buff.write(child.toString());
       }
 
-      buff.add(tagEndToString());
+      buff.write(tagEndToString());
     }
 
     return buff.toString();
@@ -361,10 +361,10 @@ class TreePrinter implements TreeVisitor {
   void visitTemplateDocument(TemplateDocument node) {
     output.heading('Content', node.span);
     output.depth++;
-    // TODO(terry): Ugly use of 'as Dynamic' instead of children[0] to
+    // TODO(terry): Ugly use of 'as dynamic' instead of children[0] to
     //              surpress warning.
     assert(node.children.length == 1 &&
-        (node.children as Dynamic)[0].tagTokenId == -1);
+        (node.children as dynamic)[0].tagTokenId == -1);
     output.writeNodeList("document", node.children);
     output.depth--;
   }

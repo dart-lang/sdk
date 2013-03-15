@@ -118,7 +118,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       subscription.resume();
       subscription.onData(controller.add);
       subscription.onDone(controller.close);
-      subscription.onError(controller.signalError);
+      subscription.onError(controller.addError);
     }
   }
 
@@ -566,17 +566,17 @@ class _HttpParser
               _controller.add(_incoming);
               break;
             }
-            if (_chunked) {
-              _state = _State.CHUNK_SIZE;
-              _remainingContent = 0;
-            } else if (_transferLength == 0 ||
-                         (_messageType == _MessageType.RESPONSE &&
-                          (_noMessageBody || _responseToMethod == "HEAD"))) {
+            if (_transferLength == 0 ||
+                (_messageType == _MessageType.RESPONSE &&
+                 (_noMessageBody || _responseToMethod == "HEAD"))) {
               _reset();
               var tmp = _incoming;
               _closeIncoming();
               _controller.add(tmp);
               break;
+            } else if (_chunked) {
+              _state = _State.CHUNK_SIZE;
+              _remainingContent = 0;
             } else if (_transferLength > 0) {
               _remainingContent = _transferLength;
               _state = _State.BODY;
@@ -642,13 +642,16 @@ class _HttpParser
             List<int> data;
             if (_remainingContent == null ||
                 dataAvailable <= _remainingContent) {
-              data = new Uint8List(dataAvailable);
-              data.setRange(0, dataAvailable, _buffer, _index);
+              if (_index == 0) {
+                data = _buffer;
+              } else {
+                data = new Uint8List(dataAvailable);
+                data.setRange(0, dataAvailable, _buffer, _index);
+              }
             } else {
               data = new Uint8List(_remainingContent);
               data.setRange(0, _remainingContent, _buffer, _index);
             }
-
             _bodyController.add(data);
             if (_remainingContent != null) {
               _remainingContent -= data.length;
@@ -708,7 +711,7 @@ class _HttpParser
       if (_state != _State.UPGRADED &&
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
-        _bodyController.signalError(
+        _bodyController.addError(
             new AsyncError(
                 new HttpParserException(
                     "Connection closed while receiving data")));
@@ -761,7 +764,7 @@ class _HttpParser
   }
 
   void _onError(e) {
-    _controller.signalError(e);
+    _controller.addError(e);
   }
 
   String get version {
@@ -792,7 +795,7 @@ class _HttpParser
   List<int> readUnparsedData() {
     if (_buffer == null) return null;
     if (_index == _buffer.length) return null;
-    var result = _buffer.getRange(_index, _buffer.length - _index);
+    var result = _buffer.sublist(_index);
     _releaseBuffer();
     return result;
   }
@@ -882,7 +885,8 @@ class _HttpParser
   }
 
   void _closeIncoming() {
-    assert(_incoming != null);
+    // Ignore multiple close (can happend in re-entrance).
+    if (_incoming == null) return;
     var tmp = _incoming;
     _incoming = null;
     tmp.close();
@@ -929,7 +933,7 @@ class _HttpParser
   void error(error) {
     if (_socketSubscription != null) _socketSubscription.cancel();
     _state = _State.FAILURE;
-    _controller.signalError(error);
+    _controller.addError(error);
     _controller.close();
   }
 

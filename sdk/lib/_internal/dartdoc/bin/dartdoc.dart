@@ -16,12 +16,14 @@
  */
 library dartdoc;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+
+import '../lib/dartdoc.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../lib/dartdoc.dart';
 import '../../../../../pkg/args/lib/args.dart';
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 /**
  * Run this from the `lib/_internal/dartdoc` directory.
@@ -136,7 +138,7 @@ main() {
               allLibs.add(lib);
             }
           }
-          dartdoc.excludedLibraries = allLibs;
+          dartdoc.includedLibraries = allLibs;
         }
       }, allowMultiple: true);
 
@@ -210,20 +212,48 @@ main() {
   }
 
   if (pkgPath == null) {
-    pkgPath = entrypoints[0].directoryPath.append('packages/');
+    // Check if there's a `packages` directory in the entry point directory.
+    var script = path.normalize(path.absolute(entrypoints[0].toNativePath()));
+    var dir = path.join(path.dirname(script), 'packages/');
+    if (new Directory(dir).existsSync()) {
+      // TODO(amouravski): convert all of dartdoc to use pathos.
+      pkgPath = new Path(dir);
+    } else {
+      // If there is not, then check if the entrypoint is somewhere in a `lib`
+      // directory.
+      dir = path.dirname(script);
+      var parts = path.split(dir);
+      var libDir = parts.lastIndexOf('lib');
+      if (libDir > 0) {
+        pkgPath = new Path(path.join(path.joinAll(parts.take(libDir)),
+              'packages'));
+      }
+    }
   }
 
   cleanOutputDirectory(dartdoc.outputDir);
 
-  dartdoc.documentLibraries(entrypoints, libPath, pkgPath);
-
-  Future compiled = compileScript(dartdoc.mode, dartdoc.outputDir, libPath);
-  Future filesCopied = copyDirectory(scriptDir.append('../static'),
-                                     dartdoc.outputDir);
-
-  Future.wait([compiled, filesCopied]).then((_) {
-    dartdoc.cleanup();
-    print('Documented ${dartdoc.totalLibraries} libraries, '
-          '${dartdoc.totalTypes} types, and ${dartdoc.totalMembers} members.');
-  });
+  // Start the analysis and documentation.
+  dartdoc.documentLibraries(entrypoints, libPath, pkgPath)
+    .then((_) {
+      print('Copying static files...');
+      Future.wait([
+        // Prepare the dart2js script code and copy static resources.
+        // TODO(amouravski): move compileScript out and pre-generate the client
+        // scripts. This takes a long time and the js hardly ever changes.
+        compileScript(dartdoc.mode, dartdoc.outputDir, libPath),
+        copyDirectory(scriptDir.append('../static'), dartdoc.outputDir)
+      ]);
+    })
+    .then((_) {
+      print(dartdoc.status);
+      if (dartdoc.totals == 0) {
+        exit(1);
+      }
+    })
+    .catchError((e) {
+        print('Error: generation failed: ${e.error}');
+        exit(1);
+    })
+    .whenComplete(() => dartdoc.cleanup());
 }

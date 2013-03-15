@@ -99,16 +99,16 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -133,7 +133,7 @@ class _ChildrenElementList implements List {
   }
 
   Element add(Element value) {
-    _element.$dom_appendChild(value);
+    _element.append(value);
     return value;
   }
 
@@ -147,7 +147,7 @@ class _ChildrenElementList implements List {
     }
 
     for (Element element in iterable) {
-      _element.$dom_appendChild(element);
+      _element.append(element);
     }
   }
 
@@ -185,12 +185,12 @@ class _ChildrenElementList implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Element element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Element element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Element element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Element element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -201,9 +201,13 @@ class _ChildrenElementList implements List {
     throw new UnimplementedError();
   }
 
+  List sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
+  }
+
   List getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(Lists.getRange(this, start, rangeLength,
-        []));
+      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -212,6 +216,17 @@ class _ChildrenElementList implements List {
   int lastIndexOf(Element element, [int start = null]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
+  }
+
+  void insert(int index, Element element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _element.append(element);
+    } else {
+      throw new UnimplementedError("insert on ElementLists");
+    }
   }
 
   void clear() {
@@ -342,16 +357,16 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -411,8 +426,12 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  List<Element> sublist(int start, [int end]) {
+    return new _FrozenElementList._wrap(_nodeList.sublist(start, end));
+  }
+
   List<Element> getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
+      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);
@@ -444,11 +463,11 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void removeMatching(bool test(Element element)) {
+  void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
-  void retainMatching(bool test(Element element)) {
+  void retainWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
@@ -616,25 +635,6 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   /**
-   * Finds the first descendant element of this element that matches the
-   * specified group of selectors.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *
-   *     // Gets the first descendant with the class 'classname'
-   *     var element = element.query('.className');
-   *     // Gets the element with id 'id'
-   *     var element = element.query('#id');
-   *     // Gets the first descendant [ImageElement]
-   *     var img = element.query('img');
-   *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
-   */
-  Element query(String selectors) => $dom_querySelector(selectors);
-
-  /**
    * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *
@@ -731,12 +731,37 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
-  /**
-   * Adds the specified element to after the last child of this element.
-   */
-  void append(Element e) {
-    this.children.add(e);
-  }
+  @deprecated
+  int get clientHeight => client.height;
+  @deprecated
+  int get clientLeft => client.left;
+  @deprecated
+  int get clientTop => client.top;
+  @deprecated
+  int get clientWidth => client.width;
+
+  @DomName('Element.clientHeight')
+  @DomName('Element.clientLeft')
+  @DomName('Element.clientTop')
+  @DomName('Element.clientWidth')
+  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
+      $dom_clientHeight);
+
+  @deprecated
+  int get offsetHeight => offset.height;
+  @deprecated
+  int get offsetLeft => offset.left;
+  @deprecated
+  int get offsetTop => offset.top;
+  @deprecated
+  int get offsetWidth => offset.width;
+
+  @DomName('Element.offsetHeight')
+  @DomName('Element.offsetLeft')
+  @DomName('Element.offsetTop')
+  @DomName('Element.offsetWidth')
+  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
+      $dom_offsetHeight);
 
   /**
    * Adds the specified text as a text node after the last child of this
@@ -850,9 +875,9 @@ $if DART2JS
 
   static String _determineTransitionEventType(EventTarget e) {
     // Unfortunately the normal 'ontransitionend' style checks don't work here.
-    if (_Device.isWebKit) {
+    if (Device.isWebKit) {
       return 'webkitTransitionEnd';
-    } else if (_Device.isOpera) {
+    } else if (Device.isOpera) {
       return 'oTransitionEnd';
     }
     return 'transitionend';
@@ -943,7 +968,7 @@ $if DART2JS
         this.insertBefore(node, first);
         break;
       case 'beforeend':
-        this.nodes.add(node);
+        this.append(node);
         break;
       case 'afterend':
         this.parentNode.insertBefore(node, this.nextNode);
@@ -1018,7 +1043,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -1061,7 +1086,8 @@ class _ElementFactoryProvider {
     switch (tag) {
       case 'td':
       case 'th':
-        element = _singleNode(_singleNode(table.rows).cells);
+        TableRowElement row = _singleNode(table.rows);
+        element = _singleNode(row.cells);
         break;
       case 'tr':
         element = _singleNode(table.rows);

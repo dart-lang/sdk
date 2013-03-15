@@ -55,7 +55,7 @@ class HashSet<E> extends Collection<E> implements Set<E> {
     IterableMixinWorkaround.retainAll(this, objectsToRetain);
   }
 
-  void _filterMatching(bool test(E element), bool removeMatching) {
+  void _filterWhere(bool test(E element), bool removeMatching) {
     int entrySize = _table._entrySize;
     int length = _table._table.length;
     for (int offset =  0; offset < length; offset += entrySize) {
@@ -73,12 +73,12 @@ class HashSet<E> extends Collection<E> implements Set<E> {
     _table._checkCapacity();
   }
 
-  void removeMatching(bool test(E element)) {
-    _filterMatching(test, true);
+  void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
   }
 
-  void retainMatching(bool test(E element)) {
-    _filterMatching(test, false);
+  void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
   }
 
   void clear() {
@@ -86,32 +86,33 @@ class HashSet<E> extends Collection<E> implements Set<E> {
   }
 
   // Set.
-  bool isSubsetOf(Collection<E> collection) {
+  bool isSubsetOf(Collection<E> other) {
+    // Deprecated, and using old signature.
     Set otherSet;
-    if (collection is Set) {
-      otherSet = collection;
+    if (other is Set) {
+      otherSet = other;
     } else {
-      otherSet = collection.toSet();
+      otherSet = other.toSet();
     }
-    return otherSet.containsAll(this);
+    return IterableMixinWorkaround.setContainsAll(otherSet, this);
   }
 
-  bool containsAll(Collection<E> collection) {
-    for (E element in collection) {
-      if (!this.contains(element)) return false;
-    }
-    return true;
+  bool containsAll(Iterable<E> other) {
+    return IterableMixinWorkaround.setContainsAll(this, other);
   }
 
-  Set<E> intersection(Collection<E> other) {
-    Set<E> result = new HashSet<E>();
-    for (E element in other) {
-      if (this.contains(element)) {
-        result.add(element);
-      }
-    }
-    return result;
+  Set<E> intersection(Set<E> other) {
+    return IterableMixinWorkaround.setIntersection(
+        this, other, new HashSet<E>());
   }
 
-  String toString() =>  Collections.collectionToString(this);
+  Set<E> union(Set<E> other) {
+    return IterableMixinWorkaround.setUnion(this, other, new HashSet<E>());
+  }
+
+  Set<E> difference(Set<E> other) {
+    return IterableMixinWorkaround.setDifference(this, other, new HashSet<E>());
+  }
+
+  String toString() => Collections.collectionToString(this);
 }

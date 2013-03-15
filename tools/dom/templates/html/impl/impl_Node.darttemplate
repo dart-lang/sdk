@@ -17,12 +17,12 @@ class _ChildNodeListLazy implements List {
 
 $if DART2JS
   Node get first {
-    Node result = JS('Node', '#.firstChild', _this);
+    Node result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
   Node get last {
-    Node result = JS('Node', '#.lastChild', _this);
+    Node result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -30,7 +30,7 @@ $if DART2JS
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this);
   }
 $else
   Node get first {
@@ -60,26 +60,38 @@ $endif
   }
 
   void add(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
   void addLast(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      if (iterable._this != _this) {
+      if (!identical(iterable._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = iterable.length; i < len; ++i) {
-          _this.$dom_appendChild(iterable[0]);
+          // Should use $dom_firstChild, Bug 8886.
+          _this.append(iterable[0]);
         }
       }
       return;
     }
     for (Node node in iterable) {
-      _this.$dom_appendChild(node);
+      _this.append(node);
+    }
+  }
+
+  void insert(int index, Node node) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _this.append(node);
+    } else {
+      this_.insertBefore(node, this[index]);
     }
   }
 
@@ -114,12 +126,12 @@ $endif
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Node node)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Node node)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Node node)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Node node)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void clear() {
@@ -187,16 +199,16 @@ $endif
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -232,8 +244,13 @@ $endif
     throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end == length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
 
   // -- end List<Node> mixins.
 
@@ -262,7 +279,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     List copy = new List.from(value);
     text = '';
     for (Node node in copy) {
-      $dom_appendChild(node);
+      append(node);
     }
   }
 
@@ -291,6 +308,114 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
     };
     return this;
+  }
+
+  /**
+   * Inserts all of the nodes into this node directly before refChild.
+   *
+   * See also:
+   *
+   * * [insertBefore]
+   */
+  Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+    if (newNodes is _ChildNodeListLazy) {
+      if (identical(newNodes._this, this)) {
+        throw new ArgumentError(newNodes);
+      }
+
+      // Optimized route for copying between nodes.
+      for (var i = 0, len = newNodes.length; i < len; ++i) {
+        // Should use $dom_firstChild, Bug 8886.
+        this.insertBefore(newNodes[0], refChild);
+      }
+    } else {
+      for (var node in newNodes) {
+        this.insertBefore(node, refChild);
+      }
+    }
+  }
+
+  // Note that this may either be the locally set model or a cached value
+  // of the inherited model. This is cached to minimize model change
+  // notifications.
+$if DART2JS
+  @Creates('Null')
+$endif
+  var _model;
+  bool _hasLocalModel;
+  StreamController<Node> _modelChangedStream;
+
+  /**
+   * The data model which is inherited through the tree.
+   *
+   * Setting this will propagate the value to all descendant nodes. If the
+   * model is not set on this node then it will be inherited from ancestor
+   * nodes.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   *
+   * [clearModel] must be used to remove the model property from this node
+   * and have the model inherit from ancestor nodes.
+   */
+  @Experimental
+  get model {
+    // If we have a change handler then we've cached the model locally.
+    if (_modelChangedStream != null) {
+      return _model;
+    }
+    // Otherwise start looking up the tree.
+    for (var node = this; node != null; node = node.parentNode) {
+      if (node._hasLocalModel == true) {
+        return node._model;
+      }
+    }
+    return null;
+  }
+
+  @Experimental
+  void set model(value) {
+    var changed = model != value;
+    _model = value;
+    _hasLocalModel = true;
+    _ModelTreeObserver.initialize();
+
+    if (changed) {
+      if (_modelChangedStream != null) {
+        _modelChangedStream.add(this);
+      }
+      // Propagate new model to all descendants.
+      _ModelTreeObserver.propagateModel(this, value, false);
+    }
+  }
+
+  /**
+   * Clears the locally set model and makes this model be inherited from parent
+   * nodes.
+   */
+  @Experimental
+  void clearModel() {
+    if (_hasLocalModel == true) {
+      _hasLocalModel = false;
+
+      // Propagate new model to all descendants.
+      if (parentNode != null) {
+        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
+      } else {
+        _ModelTreeObserver.propagateModel(this, null, false);
+      }
+    }
+  }
+
+  /**
+   * Get a stream of models, whenever the model changes.
+   */
+  Stream<Node> get onModelChanged {
+    if (_modelChangedStream == null) {
+      // Ensure the model is cached locally to minimize change notifications.
+      _model = model;
+      _modelChangedStream = new StreamController.broadcast();
+    }
+    return _modelChangedStream.stream;
   }
 
 $!MEMBERS

@@ -4,7 +4,7 @@
 
 #include "vm/stack_frame.h"
 
-#include "vm/assembler_macros.h"
+#include "vm/assembler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -61,8 +61,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   NoGCScope no_gc;
   RawObject** start_addr = reinterpret_cast<RawObject**>(sp());
-  RawObject** end_addr = reinterpret_cast<RawObject**>(fp()) +
-      ParsedFunction::kFirstLocalSlotIndex;
+  RawObject** end_addr =
+      reinterpret_cast<RawObject**>(fp()) + kFirstLocalSlotIndex;
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
@@ -143,7 +143,7 @@ RawCode* StackFrame::GetCodeObject() const {
       *(reinterpret_cast<uword*>(fp() + EntrypointMarkerOffsetFromFp()));
   if (saved_pc != 0) {
     uword entry_point =
-        (saved_pc - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint);
+        (saved_pc - Assembler::kOffsetOfSavedPCfromEntrypoint);
     RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
     if (instr != Instructions::null()) {
       return instr->ptr()->code_;

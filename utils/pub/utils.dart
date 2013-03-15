@@ -173,24 +173,15 @@ void chainToCompleter(Future future, Completer completer) {
 /// Returns a [Future] that will complete to the first element of [stream].
 /// Unlike [Stream.first], this is safe to use with single-subscription streams.
 Future streamFirst(Stream stream) {
-  // TODO(nweiz): remove this when issue 8512 is fixed.
-  var cancelled = false;
   var completer = new Completer();
   var subscription;
   subscription = stream.listen((value) {
-    if (!cancelled) {
-      cancelled = true;
-      subscription.cancel();
-      completer.complete(value);
-    }
+    subscription.cancel();
+    completer.complete(value);
   }, onError: (e) {
-    if (!cancelled) {
-      completer.completeError(e.error, e.stackTrace);
-    }
+    completer.completeError(e.error, e.stackTrace);
   }, onDone: () {
-    if (!cancelled) {
-      completer.completeError(new StateError("No elements"));
-    }
+    completer.completeError(new StateError("No elements"));
   }, unsubscribeOnError: true);
   return completer.future;
 }
@@ -202,7 +193,7 @@ Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
       new StreamController.broadcast() :
       new StreamController();
   var subscription = stream.listen(controller.add,
-      onError: controller.signalError,
+      onError: controller.addError,
       onDone: controller.close);
   return new Pair<Stream, StreamSubscription>(controller.stream, subscription);
 }
@@ -218,8 +209,8 @@ Pair<Stream, Stream> tee(Stream stream) {
     controller1.add(value);
     controller2.add(value);
   }, onError: (error) {
-    controller1.signalError(error);
-    controller2.signalError(error);
+    controller1.addError(error);
+    controller2.addError(error);
   }, onDone: () {
     controller1.close();
     controller2.close();
@@ -317,6 +308,24 @@ String mapToQuery(Map<String, String> map) {
     if (pair[1] == null) return pair[0];
     return "${pair[0]}=${pair[1]}";
   }).join("&");
+}
+
+// TODO(nweiz): remove this when issue 9068 has been fixed.
+/// Whether [uri1] and [uri2] are equal. This consider HTTP URIs to default to
+/// port 80, and HTTPs URIs to default to port 443.
+bool urisEqual(Uri uri1, Uri uri2) =>
+  canonicalizeUri(uri1) == canonicalizeUri(uri2);
+
+/// Return [uri] with redundant port information removed.
+Uri canonicalizeUri(Uri uri) {
+  if (uri == null) return null;
+
+  var sansPort = new Uri.fromComponents(
+      scheme: uri.scheme, userInfo: uri.userInfo, domain: uri.domain,
+      path: uri.path, query: uri.query, fragment: uri.fragment);
+  if (uri.scheme == 'http' && uri.port == 80) return sansPort;
+  if (uri.scheme == 'https' && uri.port == 443) return sansPort;
+  return uri;
 }
 
 /// Add all key/value pairs from [source] to [destination], overwriting any

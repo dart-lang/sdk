@@ -126,6 +126,7 @@ class IsolateStream extends Stream<dynamic> {
  * [IsolateSink]s can be transmitted to other isolates.
  */
 class IsolateSink extends StreamSink<dynamic> {
+  // TODO(8997): Implement EventSink instead.
   bool _isClosed = false;
   final SendPort _port;
   IsolateSink._fromPort(this._port);
@@ -149,7 +150,7 @@ class IsolateSink extends StreamSink<dynamic> {
     _port.send(mangled);
   }
 
-  void signalError(AsyncError errorEvent) {
+  void addError(AsyncError errorEvent) {
     throw new UnimplementedError("signalError on isolate streams");
   }
 

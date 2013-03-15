@@ -93,7 +93,7 @@ class HostedSource extends Source {
   /// from that site.
   Future<String> systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
-    var url = parsed.last.replaceAll(new RegExp(r"^https?://"), "");
+    var url = _getSourceDirectory(parsed.last);
     var urlDir = replace(url, new RegExp(r'[<>:"\\/|?*%]'), (match) {
       return '%${match[0].codeUnitAt(0)}';
     });
@@ -118,6 +118,19 @@ class HostedSource extends Source {
     return description;
   }
 
+  Future<List<Package>> getCachedPackages() {
+    return defer(() {
+      var cacheDir = path.join(systemCacheRoot, 
+                               _getSourceDirectory(_defaultUrl)); 
+      if (!dirExists(cacheDir)) return [];
+    
+      return listDir(path.join(cacheDir)).then((entries) {
+        return entries.map((entry) => 
+          new Package.load(null, entry, systemCache.sources));
+      });  
+    });
+  }
+  
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
@@ -144,6 +157,10 @@ class HostedSource extends Source {
 
 /// The URL of the default package repository.
 final _defaultUrl = "https://pub.dartlang.org";
+
+String _getSourceDirectory(String url) {
+  return url.replaceAll(new RegExp(r"^https?://"), "");
+}
 
 /// Parses [description] into its server and package name components, then
 /// converts that to a Uri given [pattern]. Ensures the package name is

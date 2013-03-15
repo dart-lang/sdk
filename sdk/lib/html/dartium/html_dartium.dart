@@ -7,7 +7,9 @@ import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
+import 'dart:math';
 import 'dart:nativewrappers';
+import 'dart:typeddata' as _typeddata;
 import 'dart:web_sql';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
@@ -525,7 +527,7 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
   @DocsEditable
   int get byteLength native "ArrayBuffer_byteLength_Getter";
 
-  ArrayBuffer slice(int begin, [int end]) {
+  dynamic slice(int begin, [int end]) {
     if (?end) {
       return _slice_1(begin, end);
     }
@@ -534,11 +536,11 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('ArrayBuffer._slice_1')
   @DocsEditable
-  ArrayBuffer _slice_1(begin, end) native "ArrayBuffer__slice_1_Callback";
+  dynamic _slice_1(begin, end) native "ArrayBuffer__slice_1_Callback";
 
   @DomName('ArrayBuffer._slice_2')
   @DocsEditable
-  ArrayBuffer _slice_2(begin) native "ArrayBuffer__slice_2_Callback";
+  dynamic _slice_2(begin) native "ArrayBuffer__slice_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -559,7 +561,7 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 
   @DomName('ArrayBufferView.buffer')
   @DocsEditable
-  ArrayBuffer get buffer native "ArrayBufferView_buffer_Getter";
+  dynamic get buffer native "ArrayBufferView_buffer_Getter";
 
   @DomName('ArrayBufferView.byteLength')
   @DocsEditable
@@ -1079,7 +1081,7 @@ class CDataSection extends Text {
 
 
 @DomName('HTMLCanvasElement')
-class CanvasElement extends _Element_Merged {
+class CanvasElement extends _Element_Merged implements CanvasImageSource {
   CanvasElement.internal() : super.internal();
 
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
@@ -1475,7 +1477,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
+  void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
   @DomName('CanvasRenderingContext2D.arcTo')
   @DocsEditable
@@ -1558,7 +1560,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
+  void $dom_drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
     if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
@@ -1873,6 +1875,107 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
 
+  @DomName('CanvasRenderingContext2D.arc')
+  void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
+      [bool anticlockwise = false]) {
+    $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
+  }
+
+  /**
+   * Draws an image from a CanvasImageSource to this canvas.
+   *
+   * The entire image from [source] will be drawn to this context with its top
+   * left corner at the point ([destinationX], [destinationY]). If the image is
+   * larger than canvas will allow, the image will be cropped to fit the
+   * available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     ImageElement img = document.query('img');
+   *
+   *     ctx.drawImage(img, 100, 100);
+   *
+   *     VideoElement video = document.query('video');
+   *     ctx.drawImage(video, 0, 0);
+   *
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     otherCanvas.width = 100;
+   *     otherCanvas.height = 100;
+   *     ctx.drawImage(otherCanvas, 590, 590); // will get cropped
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImage(CanvasImageSource source, num destinationX, num destinationY) {
+    $dom_drawImage(source, destinationX, destinationY);
+  }
+
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image will be drawn to an area of this canvas defined by
+   * [destinationRect]. If [sourceRect] is not provided, then
+   * the entire rectangular image from [source] will be drawn to this context.
+   * If the dimensions of [source] or [sourceRect]
+   * differ from [destinationRect], then the image will be scaled to fit.
+   * If the image is larger than canvas
+   * will allow, the image will be cropped to fit the available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     ImageElement img = document.query('img');
+   *     img.width = 100;
+   *     img.height = 100;
+   *
+   *     // Scale the image to 20x20.
+   *     ctx.drawImageAtScale(img, new Rect(50, 50, 20, 20));
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageAtScale(video, new Rect(50, 50, 100, 100),
+   *         sourceRect: new Rect(40, 40, 20, 20));
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageAtScale(otherCanvas, new Rect(0, 0, 100, 20),
+   *         sourceRect: new Rect(0, 0, 100, 20));
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImageAtScale(CanvasImageSource source, Rect destinationRect,
+      {Rect sourceRect}) {
+    if (sourceRect == null) {
+      $dom_drawImage(source,
+          destinationRect.left,
+          destinationRect.top,
+          destinationRect.width,
+          destinationRect.height);
+    } else {
+      $dom_drawImage(source,
+          sourceRect.left,
+          sourceRect.top,
+          sourceRect.width,
+          sourceRect.height,
+          destinationRect.left,
+          destinationRect.top,
+          destinationRect.width,
+          destinationRect.height);
+    }
+  }
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1917,43 +2020,6 @@ class CharacterData extends Node {
   @DomName('CharacterData.substringData')
   @DocsEditable
   String substringData(int offset, int length) native "CharacterData_substringData_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('ClientRect')
-class ClientRect extends NativeFieldWrapperClass1 {
-  ClientRect.internal();
-
-  @DomName('ClientRect.bottom')
-  @DocsEditable
-  num get bottom native "ClientRect_bottom_Getter";
-
-  @DomName('ClientRect.height')
-  @DocsEditable
-  num get height native "ClientRect_height_Getter";
-
-  @DomName('ClientRect.left')
-  @DocsEditable
-  num get left native "ClientRect_left_Getter";
-
-  @DomName('ClientRect.right')
-  @DocsEditable
-  num get right native "ClientRect_right_Getter";
-
-  @DomName('ClientRect.top')
-  @DocsEditable
-  num get top native "ClientRect_top_Getter";
-
-  @DomName('ClientRect.width')
-  @DocsEditable
-  num get width native "ClientRect_width_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2138,7 +2204,7 @@ class Console extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLContentElement')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
@@ -2257,7 +2323,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
-  ArrayBufferView getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
+  dynamic getRandomValues(/*ArrayBufferView*/ array) native "Crypto_getRandomValues_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2307,6 +2373,8 @@ class CssFontFaceRule extends CssRule {
 
 @DocsEditable
 @DomName('CSSHostRule')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
+@Experimental
 class CssHostRule extends CssRule {
   CssHostRule.internal() : super.internal();
 
@@ -2794,11 +2862,11 @@ class CssPrimitiveValue extends CssValue {
 
   @DomName('CSSPrimitiveValue.getRGBColorValue')
   @DocsEditable
-  RgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
+  CssRgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
   @DomName('CSSPrimitiveValue.getRectValue')
   @DocsEditable
-  Rect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
+  CssRect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
 
   @DomName('CSSPrimitiveValue.getStringValue')
   @DocsEditable
@@ -2811,6 +2879,60 @@ class CssPrimitiveValue extends CssValue {
   @DomName('CSSPrimitiveValue.setStringValue')
   @DocsEditable
   void setStringValue(int stringType, String stringValue) native "CSSPrimitiveValue_setStringValue_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Rect')
+class CssRect extends NativeFieldWrapperClass1 {
+  CssRect.internal();
+
+  @DomName('Rect.bottom')
+  @DocsEditable
+  CssPrimitiveValue get bottom native "Rect_bottom_Getter";
+
+  @DomName('Rect.left')
+  @DocsEditable
+  CssPrimitiveValue get left native "Rect_left_Getter";
+
+  @DomName('Rect.right')
+  @DocsEditable
+  CssPrimitiveValue get right native "Rect_right_Getter";
+
+  @DomName('Rect.top')
+  @DocsEditable
+  CssPrimitiveValue get top native "Rect_top_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('RGBColor')
+class CssRgbColor extends NativeFieldWrapperClass1 {
+  CssRgbColor.internal();
+
+  @DomName('RGBColor.blue')
+  @DocsEditable
+  CssPrimitiveValue get blue native "RGBColor_blue_Getter";
+
+  @DomName('RGBColor.green')
+  @DocsEditable
+  CssPrimitiveValue get green native "RGBColor_green_Getter";
+
+  @DomName('RGBColor.red')
+  @DocsEditable
+  CssPrimitiveValue get red native "RGBColor_red_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2872,41 +2994,6 @@ class CssRule extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-String _cachedBrowserPrefix;
-
-String get _browserPrefix {
-  if (_cachedBrowserPrefix == null) {
-    if (_Device.isFirefox) {
-      _cachedBrowserPrefix = '-moz-';
-    } else if (_Device.isIE) {
-      _cachedBrowserPrefix = '-ms-';
-    } else if (_Device.isOpera) {
-      _cachedBrowserPrefix = '-o-';
-    } else {
-      _cachedBrowserPrefix = '-webkit-';
-    }
-  }
-  return _cachedBrowserPrefix;
-}
-
-String _cachedBrowserPropertyPrefix;
-
-/// Prefix as used for JS property names.
-String get _browserPropertyPrefix {
-  if (_cachedBrowserPropertyPrefix == null) {
-    if (_Device.isFirefox) {
-      _cachedBrowserPropertyPrefix = 'moz';
-    } else if (_Device.isIE) {
-      _cachedBrowserPropertyPrefix = 'ms';
-    } else if (_Device.isOpera) {
-      _cachedBrowserPropertyPrefix = 'o';
-    } else {
-      _cachedBrowserPropertyPrefix = 'webkit';
-    }
-  }
-  return _cachedBrowserPropertyPrefix;
-}
 
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration extends NativeFieldWrapperClass1 {
@@ -2978,146 +3065,146 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
   String get alignContent =>
-    getPropertyValue('${_browserPrefix}align-content');
+    getPropertyValue('${Device.cssPrefix}align-content');
 
   /** Sets the value of "align-content" */
   void set alignContent(String value) {
-    setProperty('${_browserPrefix}align-content', value, '');
+    setProperty('${Device.cssPrefix}align-content', value, '');
   }
 
   /** Gets the value of "align-items" */
   String get alignItems =>
-    getPropertyValue('${_browserPrefix}align-items');
+    getPropertyValue('${Device.cssPrefix}align-items');
 
   /** Sets the value of "align-items" */
   void set alignItems(String value) {
-    setProperty('${_browserPrefix}align-items', value, '');
+    setProperty('${Device.cssPrefix}align-items', value, '');
   }
 
   /** Gets the value of "align-self" */
   String get alignSelf =>
-    getPropertyValue('${_browserPrefix}align-self');
+    getPropertyValue('${Device.cssPrefix}align-self');
 
   /** Sets the value of "align-self" */
   void set alignSelf(String value) {
-    setProperty('${_browserPrefix}align-self', value, '');
+    setProperty('${Device.cssPrefix}align-self', value, '');
   }
 
   /** Gets the value of "animation" */
   String get animation =>
-    getPropertyValue('${_browserPrefix}animation');
+    getPropertyValue('${Device.cssPrefix}animation');
 
   /** Sets the value of "animation" */
   void set animation(String value) {
-    setProperty('${_browserPrefix}animation', value, '');
+    setProperty('${Device.cssPrefix}animation', value, '');
   }
 
   /** Gets the value of "animation-delay" */
   String get animationDelay =>
-    getPropertyValue('${_browserPrefix}animation-delay');
+    getPropertyValue('${Device.cssPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
   void set animationDelay(String value) {
-    setProperty('${_browserPrefix}animation-delay', value, '');
+    setProperty('${Device.cssPrefix}animation-delay', value, '');
   }
 
   /** Gets the value of "animation-direction" */
   String get animationDirection =>
-    getPropertyValue('${_browserPrefix}animation-direction');
+    getPropertyValue('${Device.cssPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
   void set animationDirection(String value) {
-    setProperty('${_browserPrefix}animation-direction', value, '');
+    setProperty('${Device.cssPrefix}animation-direction', value, '');
   }
 
   /** Gets the value of "animation-duration" */
   String get animationDuration =>
-    getPropertyValue('${_browserPrefix}animation-duration');
+    getPropertyValue('${Device.cssPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
   void set animationDuration(String value) {
-    setProperty('${_browserPrefix}animation-duration', value, '');
+    setProperty('${Device.cssPrefix}animation-duration', value, '');
   }
 
   /** Gets the value of "animation-fill-mode" */
   String get animationFillMode =>
-    getPropertyValue('${_browserPrefix}animation-fill-mode');
+    getPropertyValue('${Device.cssPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
   void set animationFillMode(String value) {
-    setProperty('${_browserPrefix}animation-fill-mode', value, '');
+    setProperty('${Device.cssPrefix}animation-fill-mode', value, '');
   }
 
   /** Gets the value of "animation-iteration-count" */
   String get animationIterationCount =>
-    getPropertyValue('${_browserPrefix}animation-iteration-count');
+    getPropertyValue('${Device.cssPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
   void set animationIterationCount(String value) {
-    setProperty('${_browserPrefix}animation-iteration-count', value, '');
+    setProperty('${Device.cssPrefix}animation-iteration-count', value, '');
   }
 
   /** Gets the value of "animation-name" */
   String get animationName =>
-    getPropertyValue('${_browserPrefix}animation-name');
+    getPropertyValue('${Device.cssPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
   void set animationName(String value) {
-    setProperty('${_browserPrefix}animation-name', value, '');
+    setProperty('${Device.cssPrefix}animation-name', value, '');
   }
 
   /** Gets the value of "animation-play-state" */
   String get animationPlayState =>
-    getPropertyValue('${_browserPrefix}animation-play-state');
+    getPropertyValue('${Device.cssPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
   void set animationPlayState(String value) {
-    setProperty('${_browserPrefix}animation-play-state', value, '');
+    setProperty('${Device.cssPrefix}animation-play-state', value, '');
   }
 
   /** Gets the value of "animation-timing-function" */
   String get animationTimingFunction =>
-    getPropertyValue('${_browserPrefix}animation-timing-function');
+    getPropertyValue('${Device.cssPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
   void set animationTimingFunction(String value) {
-    setProperty('${_browserPrefix}animation-timing-function', value, '');
+    setProperty('${Device.cssPrefix}animation-timing-function', value, '');
   }
 
   /** Gets the value of "app-region" */
   String get appRegion =>
-    getPropertyValue('${_browserPrefix}app-region');
+    getPropertyValue('${Device.cssPrefix}app-region');
 
   /** Sets the value of "app-region" */
   void set appRegion(String value) {
-    setProperty('${_browserPrefix}app-region', value, '');
+    setProperty('${Device.cssPrefix}app-region', value, '');
   }
 
   /** Gets the value of "appearance" */
   String get appearance =>
-    getPropertyValue('${_browserPrefix}appearance');
+    getPropertyValue('${Device.cssPrefix}appearance');
 
   /** Sets the value of "appearance" */
   void set appearance(String value) {
-    setProperty('${_browserPrefix}appearance', value, '');
+    setProperty('${Device.cssPrefix}appearance', value, '');
   }
 
   /** Gets the value of "aspect-ratio" */
   String get aspectRatio =>
-    getPropertyValue('${_browserPrefix}aspect-ratio');
+    getPropertyValue('${Device.cssPrefix}aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
   void set aspectRatio(String value) {
-    setProperty('${_browserPrefix}aspect-ratio', value, '');
+    setProperty('${Device.cssPrefix}aspect-ratio', value, '');
   }
 
   /** Gets the value of "backface-visibility" */
   String get backfaceVisibility =>
-    getPropertyValue('${_browserPrefix}backface-visibility');
+    getPropertyValue('${Device.cssPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
   void set backfaceVisibility(String value) {
-    setProperty('${_browserPrefix}backface-visibility', value, '');
+    setProperty('${Device.cssPrefix}backface-visibility', value, '');
   }
 
   /** Gets the value of "background" */
@@ -3158,11 +3245,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "background-composite" */
   String get backgroundComposite =>
-    getPropertyValue('${_browserPrefix}background-composite');
+    getPropertyValue('${Device.cssPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
   void set backgroundComposite(String value) {
-    setProperty('${_browserPrefix}background-composite', value, '');
+    setProperty('${Device.cssPrefix}background-composite', value, '');
   }
 
   /** Gets the value of "background-image" */
@@ -3248,11 +3335,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "blend-mode" */
   String get blendMode =>
-    getPropertyValue('${_browserPrefix}blend-mode');
+    getPropertyValue('${Device.cssPrefix}blend-mode');
 
   /** Sets the value of "blend-mode" */
   void set blendMode(String value) {
-    setProperty('${_browserPrefix}blend-mode', value, '');
+    setProperty('${Device.cssPrefix}blend-mode', value, '');
   }
 
   /** Gets the value of "border" */
@@ -3266,74 +3353,74 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "border-after" */
   String get borderAfter =>
-    getPropertyValue('${_browserPrefix}border-after');
+    getPropertyValue('${Device.cssPrefix}border-after');
 
   /** Sets the value of "border-after" */
   void set borderAfter(String value) {
-    setProperty('${_browserPrefix}border-after', value, '');
+    setProperty('${Device.cssPrefix}border-after', value, '');
   }
 
   /** Gets the value of "border-after-color" */
   String get borderAfterColor =>
-    getPropertyValue('${_browserPrefix}border-after-color');
+    getPropertyValue('${Device.cssPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
   void set borderAfterColor(String value) {
-    setProperty('${_browserPrefix}border-after-color', value, '');
+    setProperty('${Device.cssPrefix}border-after-color', value, '');
   }
 
   /** Gets the value of "border-after-style" */
   String get borderAfterStyle =>
-    getPropertyValue('${_browserPrefix}border-after-style');
+    getPropertyValue('${Device.cssPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
   void set borderAfterStyle(String value) {
-    setProperty('${_browserPrefix}border-after-style', value, '');
+    setProperty('${Device.cssPrefix}border-after-style', value, '');
   }
 
   /** Gets the value of "border-after-width" */
   String get borderAfterWidth =>
-    getPropertyValue('${_browserPrefix}border-after-width');
+    getPropertyValue('${Device.cssPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
   void set borderAfterWidth(String value) {
-    setProperty('${_browserPrefix}border-after-width', value, '');
+    setProperty('${Device.cssPrefix}border-after-width', value, '');
   }
 
   /** Gets the value of "border-before" */
   String get borderBefore =>
-    getPropertyValue('${_browserPrefix}border-before');
+    getPropertyValue('${Device.cssPrefix}border-before');
 
   /** Sets the value of "border-before" */
   void set borderBefore(String value) {
-    setProperty('${_browserPrefix}border-before', value, '');
+    setProperty('${Device.cssPrefix}border-before', value, '');
   }
 
   /** Gets the value of "border-before-color" */
   String get borderBeforeColor =>
-    getPropertyValue('${_browserPrefix}border-before-color');
+    getPropertyValue('${Device.cssPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
   void set borderBeforeColor(String value) {
-    setProperty('${_browserPrefix}border-before-color', value, '');
+    setProperty('${Device.cssPrefix}border-before-color', value, '');
   }
 
   /** Gets the value of "border-before-style" */
   String get borderBeforeStyle =>
-    getPropertyValue('${_browserPrefix}border-before-style');
+    getPropertyValue('${Device.cssPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
   void set borderBeforeStyle(String value) {
-    setProperty('${_browserPrefix}border-before-style', value, '');
+    setProperty('${Device.cssPrefix}border-before-style', value, '');
   }
 
   /** Gets the value of "border-before-width" */
   String get borderBeforeWidth =>
-    getPropertyValue('${_browserPrefix}border-before-width');
+    getPropertyValue('${Device.cssPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
   void set borderBeforeWidth(String value) {
-    setProperty('${_browserPrefix}border-before-width', value, '');
+    setProperty('${Device.cssPrefix}border-before-width', value, '');
   }
 
   /** Gets the value of "border-bottom" */
@@ -3410,56 +3497,56 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "border-end" */
   String get borderEnd =>
-    getPropertyValue('${_browserPrefix}border-end');
+    getPropertyValue('${Device.cssPrefix}border-end');
 
   /** Sets the value of "border-end" */
   void set borderEnd(String value) {
-    setProperty('${_browserPrefix}border-end', value, '');
+    setProperty('${Device.cssPrefix}border-end', value, '');
   }
 
   /** Gets the value of "border-end-color" */
   String get borderEndColor =>
-    getPropertyValue('${_browserPrefix}border-end-color');
+    getPropertyValue('${Device.cssPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
   void set borderEndColor(String value) {
-    setProperty('${_browserPrefix}border-end-color', value, '');
+    setProperty('${Device.cssPrefix}border-end-color', value, '');
   }
 
   /** Gets the value of "border-end-style" */
   String get borderEndStyle =>
-    getPropertyValue('${_browserPrefix}border-end-style');
+    getPropertyValue('${Device.cssPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
   void set borderEndStyle(String value) {
-    setProperty('${_browserPrefix}border-end-style', value, '');
+    setProperty('${Device.cssPrefix}border-end-style', value, '');
   }
 
   /** Gets the value of "border-end-width" */
   String get borderEndWidth =>
-    getPropertyValue('${_browserPrefix}border-end-width');
+    getPropertyValue('${Device.cssPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
   void set borderEndWidth(String value) {
-    setProperty('${_browserPrefix}border-end-width', value, '');
+    setProperty('${Device.cssPrefix}border-end-width', value, '');
   }
 
   /** Gets the value of "border-fit" */
   String get borderFit =>
-    getPropertyValue('${_browserPrefix}border-fit');
+    getPropertyValue('${Device.cssPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
   void set borderFit(String value) {
-    setProperty('${_browserPrefix}border-fit', value, '');
+    setProperty('${Device.cssPrefix}border-fit', value, '');
   }
 
   /** Gets the value of "border-horizontal-spacing" */
   String get borderHorizontalSpacing =>
-    getPropertyValue('${_browserPrefix}border-horizontal-spacing');
+    getPropertyValue('${Device.cssPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
   void set borderHorizontalSpacing(String value) {
-    setProperty('${_browserPrefix}border-horizontal-spacing', value, '');
+    setProperty('${Device.cssPrefix}border-horizontal-spacing', value, '');
   }
 
   /** Gets the value of "border-image" */
@@ -3608,38 +3695,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "border-start" */
   String get borderStart =>
-    getPropertyValue('${_browserPrefix}border-start');
+    getPropertyValue('${Device.cssPrefix}border-start');
 
   /** Sets the value of "border-start" */
   void set borderStart(String value) {
-    setProperty('${_browserPrefix}border-start', value, '');
+    setProperty('${Device.cssPrefix}border-start', value, '');
   }
 
   /** Gets the value of "border-start-color" */
   String get borderStartColor =>
-    getPropertyValue('${_browserPrefix}border-start-color');
+    getPropertyValue('${Device.cssPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
   void set borderStartColor(String value) {
-    setProperty('${_browserPrefix}border-start-color', value, '');
+    setProperty('${Device.cssPrefix}border-start-color', value, '');
   }
 
   /** Gets the value of "border-start-style" */
   String get borderStartStyle =>
-    getPropertyValue('${_browserPrefix}border-start-style');
+    getPropertyValue('${Device.cssPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
   void set borderStartStyle(String value) {
-    setProperty('${_browserPrefix}border-start-style', value, '');
+    setProperty('${Device.cssPrefix}border-start-style', value, '');
   }
 
   /** Gets the value of "border-start-width" */
   String get borderStartWidth =>
-    getPropertyValue('${_browserPrefix}border-start-width');
+    getPropertyValue('${Device.cssPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
   void set borderStartWidth(String value) {
-    setProperty('${_browserPrefix}border-start-width', value, '');
+    setProperty('${Device.cssPrefix}border-start-width', value, '');
   }
 
   /** Gets the value of "border-style" */
@@ -3707,11 +3794,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "border-vertical-spacing" */
   String get borderVerticalSpacing =>
-    getPropertyValue('${_browserPrefix}border-vertical-spacing');
+    getPropertyValue('${Device.cssPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
   void set borderVerticalSpacing(String value) {
-    setProperty('${_browserPrefix}border-vertical-spacing', value, '');
+    setProperty('${Device.cssPrefix}border-vertical-spacing', value, '');
   }
 
   /** Gets the value of "border-width" */
@@ -3734,92 +3821,92 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "box-align" */
   String get boxAlign =>
-    getPropertyValue('${_browserPrefix}box-align');
+    getPropertyValue('${Device.cssPrefix}box-align');
 
   /** Sets the value of "box-align" */
   void set boxAlign(String value) {
-    setProperty('${_browserPrefix}box-align', value, '');
+    setProperty('${Device.cssPrefix}box-align', value, '');
   }
 
   /** Gets the value of "box-decoration-break" */
   String get boxDecorationBreak =>
-    getPropertyValue('${_browserPrefix}box-decoration-break');
+    getPropertyValue('${Device.cssPrefix}box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
   void set boxDecorationBreak(String value) {
-    setProperty('${_browserPrefix}box-decoration-break', value, '');
+    setProperty('${Device.cssPrefix}box-decoration-break', value, '');
   }
 
   /** Gets the value of "box-direction" */
   String get boxDirection =>
-    getPropertyValue('${_browserPrefix}box-direction');
+    getPropertyValue('${Device.cssPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
   void set boxDirection(String value) {
-    setProperty('${_browserPrefix}box-direction', value, '');
+    setProperty('${Device.cssPrefix}box-direction', value, '');
   }
 
   /** Gets the value of "box-flex" */
   String get boxFlex =>
-    getPropertyValue('${_browserPrefix}box-flex');
+    getPropertyValue('${Device.cssPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
   void set boxFlex(String value) {
-    setProperty('${_browserPrefix}box-flex', value, '');
+    setProperty('${Device.cssPrefix}box-flex', value, '');
   }
 
   /** Gets the value of "box-flex-group" */
   String get boxFlexGroup =>
-    getPropertyValue('${_browserPrefix}box-flex-group');
+    getPropertyValue('${Device.cssPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
   void set boxFlexGroup(String value) {
-    setProperty('${_browserPrefix}box-flex-group', value, '');
+    setProperty('${Device.cssPrefix}box-flex-group', value, '');
   }
 
   /** Gets the value of "box-lines" */
   String get boxLines =>
-    getPropertyValue('${_browserPrefix}box-lines');
+    getPropertyValue('${Device.cssPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
   void set boxLines(String value) {
-    setProperty('${_browserPrefix}box-lines', value, '');
+    setProperty('${Device.cssPrefix}box-lines', value, '');
   }
 
   /** Gets the value of "box-ordinal-group" */
   String get boxOrdinalGroup =>
-    getPropertyValue('${_browserPrefix}box-ordinal-group');
+    getPropertyValue('${Device.cssPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
   void set boxOrdinalGroup(String value) {
-    setProperty('${_browserPrefix}box-ordinal-group', value, '');
+    setProperty('${Device.cssPrefix}box-ordinal-group', value, '');
   }
 
   /** Gets the value of "box-orient" */
   String get boxOrient =>
-    getPropertyValue('${_browserPrefix}box-orient');
+    getPropertyValue('${Device.cssPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
   void set boxOrient(String value) {
-    setProperty('${_browserPrefix}box-orient', value, '');
+    setProperty('${Device.cssPrefix}box-orient', value, '');
   }
 
   /** Gets the value of "box-pack" */
   String get boxPack =>
-    getPropertyValue('${_browserPrefix}box-pack');
+    getPropertyValue('${Device.cssPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
   void set boxPack(String value) {
-    setProperty('${_browserPrefix}box-pack', value, '');
+    setProperty('${Device.cssPrefix}box-pack', value, '');
   }
 
   /** Gets the value of "box-reflect" */
   String get boxReflect =>
-    getPropertyValue('${_browserPrefix}box-reflect');
+    getPropertyValue('${Device.cssPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
   void set boxReflect(String value) {
-    setProperty('${_browserPrefix}box-reflect', value, '');
+    setProperty('${Device.cssPrefix}box-reflect', value, '');
   }
 
   /** Gets the value of "box-shadow" */
@@ -3869,11 +3956,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "clip-path" */
   String get clipPath =>
-    getPropertyValue('${_browserPrefix}clip-path');
+    getPropertyValue('${Device.cssPrefix}clip-path');
 
   /** Sets the value of "clip-path" */
   void set clipPath(String value) {
-    setProperty('${_browserPrefix}clip-path', value, '');
+    setProperty('${Device.cssPrefix}clip-path', value, '');
   }
 
   /** Gets the value of "color" */
@@ -3887,137 +3974,137 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "color-correction" */
   String get colorCorrection =>
-    getPropertyValue('${_browserPrefix}color-correction');
+    getPropertyValue('${Device.cssPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
   void set colorCorrection(String value) {
-    setProperty('${_browserPrefix}color-correction', value, '');
+    setProperty('${Device.cssPrefix}color-correction', value, '');
   }
 
   /** Gets the value of "column-axis" */
   String get columnAxis =>
-    getPropertyValue('${_browserPrefix}column-axis');
+    getPropertyValue('${Device.cssPrefix}column-axis');
 
   /** Sets the value of "column-axis" */
   void set columnAxis(String value) {
-    setProperty('${_browserPrefix}column-axis', value, '');
+    setProperty('${Device.cssPrefix}column-axis', value, '');
   }
 
   /** Gets the value of "column-break-after" */
   String get columnBreakAfter =>
-    getPropertyValue('${_browserPrefix}column-break-after');
+    getPropertyValue('${Device.cssPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
   void set columnBreakAfter(String value) {
-    setProperty('${_browserPrefix}column-break-after', value, '');
+    setProperty('${Device.cssPrefix}column-break-after', value, '');
   }
 
   /** Gets the value of "column-break-before" */
   String get columnBreakBefore =>
-    getPropertyValue('${_browserPrefix}column-break-before');
+    getPropertyValue('${Device.cssPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
   void set columnBreakBefore(String value) {
-    setProperty('${_browserPrefix}column-break-before', value, '');
+    setProperty('${Device.cssPrefix}column-break-before', value, '');
   }
 
   /** Gets the value of "column-break-inside" */
   String get columnBreakInside =>
-    getPropertyValue('${_browserPrefix}column-break-inside');
+    getPropertyValue('${Device.cssPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
   void set columnBreakInside(String value) {
-    setProperty('${_browserPrefix}column-break-inside', value, '');
+    setProperty('${Device.cssPrefix}column-break-inside', value, '');
   }
 
   /** Gets the value of "column-count" */
   String get columnCount =>
-    getPropertyValue('${_browserPrefix}column-count');
+    getPropertyValue('${Device.cssPrefix}column-count');
 
   /** Sets the value of "column-count" */
   void set columnCount(String value) {
-    setProperty('${_browserPrefix}column-count', value, '');
+    setProperty('${Device.cssPrefix}column-count', value, '');
   }
 
   /** Gets the value of "column-gap" */
   String get columnGap =>
-    getPropertyValue('${_browserPrefix}column-gap');
+    getPropertyValue('${Device.cssPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
   void set columnGap(String value) {
-    setProperty('${_browserPrefix}column-gap', value, '');
+    setProperty('${Device.cssPrefix}column-gap', value, '');
   }
 
   /** Gets the value of "column-progression" */
   String get columnProgression =>
-    getPropertyValue('${_browserPrefix}column-progression');
+    getPropertyValue('${Device.cssPrefix}column-progression');
 
   /** Sets the value of "column-progression" */
   void set columnProgression(String value) {
-    setProperty('${_browserPrefix}column-progression', value, '');
+    setProperty('${Device.cssPrefix}column-progression', value, '');
   }
 
   /** Gets the value of "column-rule" */
   String get columnRule =>
-    getPropertyValue('${_browserPrefix}column-rule');
+    getPropertyValue('${Device.cssPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
   void set columnRule(String value) {
-    setProperty('${_browserPrefix}column-rule', value, '');
+    setProperty('${Device.cssPrefix}column-rule', value, '');
   }
 
   /** Gets the value of "column-rule-color" */
   String get columnRuleColor =>
-    getPropertyValue('${_browserPrefix}column-rule-color');
+    getPropertyValue('${Device.cssPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
   void set columnRuleColor(String value) {
-    setProperty('${_browserPrefix}column-rule-color', value, '');
+    setProperty('${Device.cssPrefix}column-rule-color', value, '');
   }
 
   /** Gets the value of "column-rule-style" */
   String get columnRuleStyle =>
-    getPropertyValue('${_browserPrefix}column-rule-style');
+    getPropertyValue('${Device.cssPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
   void set columnRuleStyle(String value) {
-    setProperty('${_browserPrefix}column-rule-style', value, '');
+    setProperty('${Device.cssPrefix}column-rule-style', value, '');
   }
 
   /** Gets the value of "column-rule-width" */
   String get columnRuleWidth =>
-    getPropertyValue('${_browserPrefix}column-rule-width');
+    getPropertyValue('${Device.cssPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
   void set columnRuleWidth(String value) {
-    setProperty('${_browserPrefix}column-rule-width', value, '');
+    setProperty('${Device.cssPrefix}column-rule-width', value, '');
   }
 
   /** Gets the value of "column-span" */
   String get columnSpan =>
-    getPropertyValue('${_browserPrefix}column-span');
+    getPropertyValue('${Device.cssPrefix}column-span');
 
   /** Sets the value of "column-span" */
   void set columnSpan(String value) {
-    setProperty('${_browserPrefix}column-span', value, '');
+    setProperty('${Device.cssPrefix}column-span', value, '');
   }
 
   /** Gets the value of "column-width" */
   String get columnWidth =>
-    getPropertyValue('${_browserPrefix}column-width');
+    getPropertyValue('${Device.cssPrefix}column-width');
 
   /** Sets the value of "column-width" */
   void set columnWidth(String value) {
-    setProperty('${_browserPrefix}column-width', value, '');
+    setProperty('${Device.cssPrefix}column-width', value, '');
   }
 
   /** Gets the value of "columns" */
   String get columns =>
-    getPropertyValue('${_browserPrefix}columns');
+    getPropertyValue('${Device.cssPrefix}columns');
 
   /** Sets the value of "columns" */
   void set columns(String value) {
-    setProperty('${_browserPrefix}columns', value, '');
+    setProperty('${Device.cssPrefix}columns', value, '');
   }
 
   /** Gets the value of "content" */
@@ -4058,11 +4145,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "dashboard-region" */
   String get dashboardRegion =>
-    getPropertyValue('${_browserPrefix}dashboard-region');
+    getPropertyValue('${Device.cssPrefix}dashboard-region');
 
   /** Sets the value of "dashboard-region" */
   void set dashboardRegion(String value) {
-    setProperty('${_browserPrefix}dashboard-region', value, '');
+    setProperty('${Device.cssPrefix}dashboard-region', value, '');
   }
 
   /** Gets the value of "direction" */
@@ -4094,74 +4181,74 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "filter" */
   String get filter =>
-    getPropertyValue('${_browserPrefix}filter');
+    getPropertyValue('${Device.cssPrefix}filter');
 
   /** Sets the value of "filter" */
   void set filter(String value) {
-    setProperty('${_browserPrefix}filter', value, '');
+    setProperty('${Device.cssPrefix}filter', value, '');
   }
 
   /** Gets the value of "flex" */
   String get flex =>
-    getPropertyValue('${_browserPrefix}flex');
+    getPropertyValue('${Device.cssPrefix}flex');
 
   /** Sets the value of "flex" */
   void set flex(String value) {
-    setProperty('${_browserPrefix}flex', value, '');
+    setProperty('${Device.cssPrefix}flex', value, '');
   }
 
   /** Gets the value of "flex-basis" */
   String get flexBasis =>
-    getPropertyValue('${_browserPrefix}flex-basis');
+    getPropertyValue('${Device.cssPrefix}flex-basis');
 
   /** Sets the value of "flex-basis" */
   void set flexBasis(String value) {
-    setProperty('${_browserPrefix}flex-basis', value, '');
+    setProperty('${Device.cssPrefix}flex-basis', value, '');
   }
 
   /** Gets the value of "flex-direction" */
   String get flexDirection =>
-    getPropertyValue('${_browserPrefix}flex-direction');
+    getPropertyValue('${Device.cssPrefix}flex-direction');
 
   /** Sets the value of "flex-direction" */
   void set flexDirection(String value) {
-    setProperty('${_browserPrefix}flex-direction', value, '');
+    setProperty('${Device.cssPrefix}flex-direction', value, '');
   }
 
   /** Gets the value of "flex-flow" */
   String get flexFlow =>
-    getPropertyValue('${_browserPrefix}flex-flow');
+    getPropertyValue('${Device.cssPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
   void set flexFlow(String value) {
-    setProperty('${_browserPrefix}flex-flow', value, '');
+    setProperty('${Device.cssPrefix}flex-flow', value, '');
   }
 
   /** Gets the value of "flex-grow" */
   String get flexGrow =>
-    getPropertyValue('${_browserPrefix}flex-grow');
+    getPropertyValue('${Device.cssPrefix}flex-grow');
 
   /** Sets the value of "flex-grow" */
   void set flexGrow(String value) {
-    setProperty('${_browserPrefix}flex-grow', value, '');
+    setProperty('${Device.cssPrefix}flex-grow', value, '');
   }
 
   /** Gets the value of "flex-shrink" */
   String get flexShrink =>
-    getPropertyValue('${_browserPrefix}flex-shrink');
+    getPropertyValue('${Device.cssPrefix}flex-shrink');
 
   /** Sets the value of "flex-shrink" */
   void set flexShrink(String value) {
-    setProperty('${_browserPrefix}flex-shrink', value, '');
+    setProperty('${Device.cssPrefix}flex-shrink', value, '');
   }
 
   /** Gets the value of "flex-wrap" */
   String get flexWrap =>
-    getPropertyValue('${_browserPrefix}flex-wrap');
+    getPropertyValue('${Device.cssPrefix}flex-wrap');
 
   /** Sets the value of "flex-wrap" */
   void set flexWrap(String value) {
-    setProperty('${_browserPrefix}flex-wrap', value, '');
+    setProperty('${Device.cssPrefix}flex-wrap', value, '');
   }
 
   /** Gets the value of "float" */
@@ -4175,20 +4262,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "flow-from" */
   String get flowFrom =>
-    getPropertyValue('${_browserPrefix}flow-from');
+    getPropertyValue('${Device.cssPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
   void set flowFrom(String value) {
-    setProperty('${_browserPrefix}flow-from', value, '');
+    setProperty('${Device.cssPrefix}flow-from', value, '');
   }
 
   /** Gets the value of "flow-into" */
   String get flowInto =>
-    getPropertyValue('${_browserPrefix}flow-into');
+    getPropertyValue('${Device.cssPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
   void set flowInto(String value) {
-    setProperty('${_browserPrefix}flow-into', value, '');
+    setProperty('${Device.cssPrefix}flow-into', value, '');
   }
 
   /** Gets the value of "font" */
@@ -4211,20 +4298,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "font-feature-settings" */
   String get fontFeatureSettings =>
-    getPropertyValue('${_browserPrefix}font-feature-settings');
+    getPropertyValue('${Device.cssPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
   void set fontFeatureSettings(String value) {
-    setProperty('${_browserPrefix}font-feature-settings', value, '');
+    setProperty('${Device.cssPrefix}font-feature-settings', value, '');
   }
 
   /** Gets the value of "font-kerning" */
   String get fontKerning =>
-    getPropertyValue('${_browserPrefix}font-kerning');
+    getPropertyValue('${Device.cssPrefix}font-kerning');
 
   /** Sets the value of "font-kerning" */
   void set fontKerning(String value) {
-    setProperty('${_browserPrefix}font-kerning', value, '');
+    setProperty('${Device.cssPrefix}font-kerning', value, '');
   }
 
   /** Gets the value of "font-size" */
@@ -4238,20 +4325,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "font-size-delta" */
   String get fontSizeDelta =>
-    getPropertyValue('${_browserPrefix}font-size-delta');
+    getPropertyValue('${Device.cssPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
   void set fontSizeDelta(String value) {
-    setProperty('${_browserPrefix}font-size-delta', value, '');
+    setProperty('${Device.cssPrefix}font-size-delta', value, '');
   }
 
   /** Gets the value of "font-smoothing" */
   String get fontSmoothing =>
-    getPropertyValue('${_browserPrefix}font-smoothing');
+    getPropertyValue('${Device.cssPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
   void set fontSmoothing(String value) {
-    setProperty('${_browserPrefix}font-smoothing', value, '');
+    setProperty('${Device.cssPrefix}font-smoothing', value, '');
   }
 
   /** Gets the value of "font-stretch" */
@@ -4283,11 +4370,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "font-variant-ligatures" */
   String get fontVariantLigatures =>
-    getPropertyValue('${_browserPrefix}font-variant-ligatures');
+    getPropertyValue('${Device.cssPrefix}font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
   void set fontVariantLigatures(String value) {
-    setProperty('${_browserPrefix}font-variant-ligatures', value, '');
+    setProperty('${Device.cssPrefix}font-variant-ligatures', value, '');
   }
 
   /** Gets the value of "font-weight" */
@@ -4301,38 +4388,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "grid-column" */
   String get gridColumn =>
-    getPropertyValue('${_browserPrefix}grid-column');
+    getPropertyValue('${Device.cssPrefix}grid-column');
 
   /** Sets the value of "grid-column" */
   void set gridColumn(String value) {
-    setProperty('${_browserPrefix}grid-column', value, '');
+    setProperty('${Device.cssPrefix}grid-column', value, '');
   }
 
   /** Gets the value of "grid-columns" */
   String get gridColumns =>
-    getPropertyValue('${_browserPrefix}grid-columns');
+    getPropertyValue('${Device.cssPrefix}grid-columns');
 
   /** Sets the value of "grid-columns" */
   void set gridColumns(String value) {
-    setProperty('${_browserPrefix}grid-columns', value, '');
+    setProperty('${Device.cssPrefix}grid-columns', value, '');
   }
 
   /** Gets the value of "grid-row" */
   String get gridRow =>
-    getPropertyValue('${_browserPrefix}grid-row');
+    getPropertyValue('${Device.cssPrefix}grid-row');
 
   /** Sets the value of "grid-row" */
   void set gridRow(String value) {
-    setProperty('${_browserPrefix}grid-row', value, '');
+    setProperty('${Device.cssPrefix}grid-row', value, '');
   }
 
   /** Gets the value of "grid-rows" */
   String get gridRows =>
-    getPropertyValue('${_browserPrefix}grid-rows');
+    getPropertyValue('${Device.cssPrefix}grid-rows');
 
   /** Sets the value of "grid-rows" */
   void set gridRows(String value) {
-    setProperty('${_browserPrefix}grid-rows', value, '');
+    setProperty('${Device.cssPrefix}grid-rows', value, '');
   }
 
   /** Gets the value of "height" */
@@ -4346,56 +4433,56 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "highlight" */
   String get highlight =>
-    getPropertyValue('${_browserPrefix}highlight');
+    getPropertyValue('${Device.cssPrefix}highlight');
 
   /** Sets the value of "highlight" */
   void set highlight(String value) {
-    setProperty('${_browserPrefix}highlight', value, '');
+    setProperty('${Device.cssPrefix}highlight', value, '');
   }
 
   /** Gets the value of "hyphenate-character" */
   String get hyphenateCharacter =>
-    getPropertyValue('${_browserPrefix}hyphenate-character');
+    getPropertyValue('${Device.cssPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
   void set hyphenateCharacter(String value) {
-    setProperty('${_browserPrefix}hyphenate-character', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-character', value, '');
   }
 
   /** Gets the value of "hyphenate-limit-after" */
   String get hyphenateLimitAfter =>
-    getPropertyValue('${_browserPrefix}hyphenate-limit-after');
+    getPropertyValue('${Device.cssPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
   void set hyphenateLimitAfter(String value) {
-    setProperty('${_browserPrefix}hyphenate-limit-after', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-limit-after', value, '');
   }
 
   /** Gets the value of "hyphenate-limit-before" */
   String get hyphenateLimitBefore =>
-    getPropertyValue('${_browserPrefix}hyphenate-limit-before');
+    getPropertyValue('${Device.cssPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
   void set hyphenateLimitBefore(String value) {
-    setProperty('${_browserPrefix}hyphenate-limit-before', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-limit-before', value, '');
   }
 
   /** Gets the value of "hyphenate-limit-lines" */
   String get hyphenateLimitLines =>
-    getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
+    getPropertyValue('${Device.cssPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
   void set hyphenateLimitLines(String value) {
-    setProperty('${_browserPrefix}hyphenate-limit-lines', value, '');
+    setProperty('${Device.cssPrefix}hyphenate-limit-lines', value, '');
   }
 
   /** Gets the value of "hyphens" */
   String get hyphens =>
-    getPropertyValue('${_browserPrefix}hyphens');
+    getPropertyValue('${Device.cssPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
   void set hyphens(String value) {
-    setProperty('${_browserPrefix}hyphens', value, '');
+    setProperty('${Device.cssPrefix}hyphens', value, '');
   }
 
   /** Gets the value of "image-orientation" */
@@ -4427,11 +4514,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "justify-content" */
   String get justifyContent =>
-    getPropertyValue('${_browserPrefix}justify-content');
+    getPropertyValue('${Device.cssPrefix}justify-content');
 
   /** Sets the value of "justify-content" */
   void set justifyContent(String value) {
-    setProperty('${_browserPrefix}justify-content', value, '');
+    setProperty('${Device.cssPrefix}justify-content', value, '');
   }
 
   /** Gets the value of "left" */
@@ -4454,47 +4541,47 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "line-align" */
   String get lineAlign =>
-    getPropertyValue('${_browserPrefix}line-align');
+    getPropertyValue('${Device.cssPrefix}line-align');
 
   /** Sets the value of "line-align" */
   void set lineAlign(String value) {
-    setProperty('${_browserPrefix}line-align', value, '');
+    setProperty('${Device.cssPrefix}line-align', value, '');
   }
 
   /** Gets the value of "line-box-contain" */
   String get lineBoxContain =>
-    getPropertyValue('${_browserPrefix}line-box-contain');
+    getPropertyValue('${Device.cssPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
   void set lineBoxContain(String value) {
-    setProperty('${_browserPrefix}line-box-contain', value, '');
+    setProperty('${Device.cssPrefix}line-box-contain', value, '');
   }
 
   /** Gets the value of "line-break" */
   String get lineBreak =>
-    getPropertyValue('${_browserPrefix}line-break');
+    getPropertyValue('${Device.cssPrefix}line-break');
 
   /** Sets the value of "line-break" */
   void set lineBreak(String value) {
-    setProperty('${_browserPrefix}line-break', value, '');
+    setProperty('${Device.cssPrefix}line-break', value, '');
   }
 
   /** Gets the value of "line-clamp" */
   String get lineClamp =>
-    getPropertyValue('${_browserPrefix}line-clamp');
+    getPropertyValue('${Device.cssPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
   void set lineClamp(String value) {
-    setProperty('${_browserPrefix}line-clamp', value, '');
+    setProperty('${Device.cssPrefix}line-clamp', value, '');
   }
 
   /** Gets the value of "line-grid" */
   String get lineGrid =>
-    getPropertyValue('${_browserPrefix}line-grid');
+    getPropertyValue('${Device.cssPrefix}line-grid');
 
   /** Sets the value of "line-grid" */
   void set lineGrid(String value) {
-    setProperty('${_browserPrefix}line-grid', value, '');
+    setProperty('${Device.cssPrefix}line-grid', value, '');
   }
 
   /** Gets the value of "line-height" */
@@ -4508,11 +4595,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "line-snap" */
   String get lineSnap =>
-    getPropertyValue('${_browserPrefix}line-snap');
+    getPropertyValue('${Device.cssPrefix}line-snap');
 
   /** Sets the value of "line-snap" */
   void set lineSnap(String value) {
-    setProperty('${_browserPrefix}line-snap', value, '');
+    setProperty('${Device.cssPrefix}line-snap', value, '');
   }
 
   /** Gets the value of "list-style" */
@@ -4553,29 +4640,29 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "locale" */
   String get locale =>
-    getPropertyValue('${_browserPrefix}locale');
+    getPropertyValue('${Device.cssPrefix}locale');
 
   /** Sets the value of "locale" */
   void set locale(String value) {
-    setProperty('${_browserPrefix}locale', value, '');
+    setProperty('${Device.cssPrefix}locale', value, '');
   }
 
   /** Gets the value of "logical-height" */
   String get logicalHeight =>
-    getPropertyValue('${_browserPrefix}logical-height');
+    getPropertyValue('${Device.cssPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
   void set logicalHeight(String value) {
-    setProperty('${_browserPrefix}logical-height', value, '');
+    setProperty('${Device.cssPrefix}logical-height', value, '');
   }
 
   /** Gets the value of "logical-width" */
   String get logicalWidth =>
-    getPropertyValue('${_browserPrefix}logical-width');
+    getPropertyValue('${Device.cssPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
   void set logicalWidth(String value) {
-    setProperty('${_browserPrefix}logical-width', value, '');
+    setProperty('${Device.cssPrefix}logical-width', value, '');
   }
 
   /** Gets the value of "margin" */
@@ -4589,38 +4676,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "margin-after" */
   String get marginAfter =>
-    getPropertyValue('${_browserPrefix}margin-after');
+    getPropertyValue('${Device.cssPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
   void set marginAfter(String value) {
-    setProperty('${_browserPrefix}margin-after', value, '');
+    setProperty('${Device.cssPrefix}margin-after', value, '');
   }
 
   /** Gets the value of "margin-after-collapse" */
   String get marginAfterCollapse =>
-    getPropertyValue('${_browserPrefix}margin-after-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
   void set marginAfterCollapse(String value) {
-    setProperty('${_browserPrefix}margin-after-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-after-collapse', value, '');
   }
 
   /** Gets the value of "margin-before" */
   String get marginBefore =>
-    getPropertyValue('${_browserPrefix}margin-before');
+    getPropertyValue('${Device.cssPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
   void set marginBefore(String value) {
-    setProperty('${_browserPrefix}margin-before', value, '');
+    setProperty('${Device.cssPrefix}margin-before', value, '');
   }
 
   /** Gets the value of "margin-before-collapse" */
   String get marginBeforeCollapse =>
-    getPropertyValue('${_browserPrefix}margin-before-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
   void set marginBeforeCollapse(String value) {
-    setProperty('${_browserPrefix}margin-before-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-before-collapse', value, '');
   }
 
   /** Gets the value of "margin-bottom" */
@@ -4634,29 +4721,29 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "margin-bottom-collapse" */
   String get marginBottomCollapse =>
-    getPropertyValue('${_browserPrefix}margin-bottom-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
   void set marginBottomCollapse(String value) {
-    setProperty('${_browserPrefix}margin-bottom-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-bottom-collapse', value, '');
   }
 
   /** Gets the value of "margin-collapse" */
   String get marginCollapse =>
-    getPropertyValue('${_browserPrefix}margin-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
   void set marginCollapse(String value) {
-    setProperty('${_browserPrefix}margin-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-collapse', value, '');
   }
 
   /** Gets the value of "margin-end" */
   String get marginEnd =>
-    getPropertyValue('${_browserPrefix}margin-end');
+    getPropertyValue('${Device.cssPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
   void set marginEnd(String value) {
-    setProperty('${_browserPrefix}margin-end', value, '');
+    setProperty('${Device.cssPrefix}margin-end', value, '');
   }
 
   /** Gets the value of "margin-left" */
@@ -4679,11 +4766,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "margin-start" */
   String get marginStart =>
-    getPropertyValue('${_browserPrefix}margin-start');
+    getPropertyValue('${Device.cssPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
   void set marginStart(String value) {
-    setProperty('${_browserPrefix}margin-start', value, '');
+    setProperty('${Device.cssPrefix}margin-start', value, '');
   }
 
   /** Gets the value of "margin-top" */
@@ -4697,236 +4784,236 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "margin-top-collapse" */
   String get marginTopCollapse =>
-    getPropertyValue('${_browserPrefix}margin-top-collapse');
+    getPropertyValue('${Device.cssPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
   void set marginTopCollapse(String value) {
-    setProperty('${_browserPrefix}margin-top-collapse', value, '');
+    setProperty('${Device.cssPrefix}margin-top-collapse', value, '');
   }
 
   /** Gets the value of "marquee" */
   String get marquee =>
-    getPropertyValue('${_browserPrefix}marquee');
+    getPropertyValue('${Device.cssPrefix}marquee');
 
   /** Sets the value of "marquee" */
   void set marquee(String value) {
-    setProperty('${_browserPrefix}marquee', value, '');
+    setProperty('${Device.cssPrefix}marquee', value, '');
   }
 
   /** Gets the value of "marquee-direction" */
   String get marqueeDirection =>
-    getPropertyValue('${_browserPrefix}marquee-direction');
+    getPropertyValue('${Device.cssPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
   void set marqueeDirection(String value) {
-    setProperty('${_browserPrefix}marquee-direction', value, '');
+    setProperty('${Device.cssPrefix}marquee-direction', value, '');
   }
 
   /** Gets the value of "marquee-increment" */
   String get marqueeIncrement =>
-    getPropertyValue('${_browserPrefix}marquee-increment');
+    getPropertyValue('${Device.cssPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
   void set marqueeIncrement(String value) {
-    setProperty('${_browserPrefix}marquee-increment', value, '');
+    setProperty('${Device.cssPrefix}marquee-increment', value, '');
   }
 
   /** Gets the value of "marquee-repetition" */
   String get marqueeRepetition =>
-    getPropertyValue('${_browserPrefix}marquee-repetition');
+    getPropertyValue('${Device.cssPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
   void set marqueeRepetition(String value) {
-    setProperty('${_browserPrefix}marquee-repetition', value, '');
+    setProperty('${Device.cssPrefix}marquee-repetition', value, '');
   }
 
   /** Gets the value of "marquee-speed" */
   String get marqueeSpeed =>
-    getPropertyValue('${_browserPrefix}marquee-speed');
+    getPropertyValue('${Device.cssPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
   void set marqueeSpeed(String value) {
-    setProperty('${_browserPrefix}marquee-speed', value, '');
+    setProperty('${Device.cssPrefix}marquee-speed', value, '');
   }
 
   /** Gets the value of "marquee-style" */
   String get marqueeStyle =>
-    getPropertyValue('${_browserPrefix}marquee-style');
+    getPropertyValue('${Device.cssPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
   void set marqueeStyle(String value) {
-    setProperty('${_browserPrefix}marquee-style', value, '');
+    setProperty('${Device.cssPrefix}marquee-style', value, '');
   }
 
   /** Gets the value of "mask" */
   String get mask =>
-    getPropertyValue('${_browserPrefix}mask');
+    getPropertyValue('${Device.cssPrefix}mask');
 
   /** Sets the value of "mask" */
   void set mask(String value) {
-    setProperty('${_browserPrefix}mask', value, '');
+    setProperty('${Device.cssPrefix}mask', value, '');
   }
 
   /** Gets the value of "mask-attachment" */
   String get maskAttachment =>
-    getPropertyValue('${_browserPrefix}mask-attachment');
+    getPropertyValue('${Device.cssPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
   void set maskAttachment(String value) {
-    setProperty('${_browserPrefix}mask-attachment', value, '');
+    setProperty('${Device.cssPrefix}mask-attachment', value, '');
   }
 
   /** Gets the value of "mask-box-image" */
   String get maskBoxImage =>
-    getPropertyValue('${_browserPrefix}mask-box-image');
+    getPropertyValue('${Device.cssPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
   void set maskBoxImage(String value) {
-    setProperty('${_browserPrefix}mask-box-image', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image', value, '');
   }
 
   /** Gets the value of "mask-box-image-outset" */
   String get maskBoxImageOutset =>
-    getPropertyValue('${_browserPrefix}mask-box-image-outset');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
   void set maskBoxImageOutset(String value) {
-    setProperty('${_browserPrefix}mask-box-image-outset', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-outset', value, '');
   }
 
   /** Gets the value of "mask-box-image-repeat" */
   String get maskBoxImageRepeat =>
-    getPropertyValue('${_browserPrefix}mask-box-image-repeat');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
   void set maskBoxImageRepeat(String value) {
-    setProperty('${_browserPrefix}mask-box-image-repeat', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-repeat', value, '');
   }
 
   /** Gets the value of "mask-box-image-slice" */
   String get maskBoxImageSlice =>
-    getPropertyValue('${_browserPrefix}mask-box-image-slice');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
   void set maskBoxImageSlice(String value) {
-    setProperty('${_browserPrefix}mask-box-image-slice', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-slice', value, '');
   }
 
   /** Gets the value of "mask-box-image-source" */
   String get maskBoxImageSource =>
-    getPropertyValue('${_browserPrefix}mask-box-image-source');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
   void set maskBoxImageSource(String value) {
-    setProperty('${_browserPrefix}mask-box-image-source', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-source', value, '');
   }
 
   /** Gets the value of "mask-box-image-width" */
   String get maskBoxImageWidth =>
-    getPropertyValue('${_browserPrefix}mask-box-image-width');
+    getPropertyValue('${Device.cssPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
   void set maskBoxImageWidth(String value) {
-    setProperty('${_browserPrefix}mask-box-image-width', value, '');
+    setProperty('${Device.cssPrefix}mask-box-image-width', value, '');
   }
 
   /** Gets the value of "mask-clip" */
   String get maskClip =>
-    getPropertyValue('${_browserPrefix}mask-clip');
+    getPropertyValue('${Device.cssPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
   void set maskClip(String value) {
-    setProperty('${_browserPrefix}mask-clip', value, '');
+    setProperty('${Device.cssPrefix}mask-clip', value, '');
   }
 
   /** Gets the value of "mask-composite" */
   String get maskComposite =>
-    getPropertyValue('${_browserPrefix}mask-composite');
+    getPropertyValue('${Device.cssPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
   void set maskComposite(String value) {
-    setProperty('${_browserPrefix}mask-composite', value, '');
+    setProperty('${Device.cssPrefix}mask-composite', value, '');
   }
 
   /** Gets the value of "mask-image" */
   String get maskImage =>
-    getPropertyValue('${_browserPrefix}mask-image');
+    getPropertyValue('${Device.cssPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
   void set maskImage(String value) {
-    setProperty('${_browserPrefix}mask-image', value, '');
+    setProperty('${Device.cssPrefix}mask-image', value, '');
   }
 
   /** Gets the value of "mask-origin" */
   String get maskOrigin =>
-    getPropertyValue('${_browserPrefix}mask-origin');
+    getPropertyValue('${Device.cssPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
   void set maskOrigin(String value) {
-    setProperty('${_browserPrefix}mask-origin', value, '');
+    setProperty('${Device.cssPrefix}mask-origin', value, '');
   }
 
   /** Gets the value of "mask-position" */
   String get maskPosition =>
-    getPropertyValue('${_browserPrefix}mask-position');
+    getPropertyValue('${Device.cssPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
   void set maskPosition(String value) {
-    setProperty('${_browserPrefix}mask-position', value, '');
+    setProperty('${Device.cssPrefix}mask-position', value, '');
   }
 
   /** Gets the value of "mask-position-x" */
   String get maskPositionX =>
-    getPropertyValue('${_browserPrefix}mask-position-x');
+    getPropertyValue('${Device.cssPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
   void set maskPositionX(String value) {
-    setProperty('${_browserPrefix}mask-position-x', value, '');
+    setProperty('${Device.cssPrefix}mask-position-x', value, '');
   }
 
   /** Gets the value of "mask-position-y" */
   String get maskPositionY =>
-    getPropertyValue('${_browserPrefix}mask-position-y');
+    getPropertyValue('${Device.cssPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
   void set maskPositionY(String value) {
-    setProperty('${_browserPrefix}mask-position-y', value, '');
+    setProperty('${Device.cssPrefix}mask-position-y', value, '');
   }
 
   /** Gets the value of "mask-repeat" */
   String get maskRepeat =>
-    getPropertyValue('${_browserPrefix}mask-repeat');
+    getPropertyValue('${Device.cssPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
   void set maskRepeat(String value) {
-    setProperty('${_browserPrefix}mask-repeat', value, '');
+    setProperty('${Device.cssPrefix}mask-repeat', value, '');
   }
 
   /** Gets the value of "mask-repeat-x" */
   String get maskRepeatX =>
-    getPropertyValue('${_browserPrefix}mask-repeat-x');
+    getPropertyValue('${Device.cssPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
   void set maskRepeatX(String value) {
-    setProperty('${_browserPrefix}mask-repeat-x', value, '');
+    setProperty('${Device.cssPrefix}mask-repeat-x', value, '');
   }
 
   /** Gets the value of "mask-repeat-y" */
   String get maskRepeatY =>
-    getPropertyValue('${_browserPrefix}mask-repeat-y');
+    getPropertyValue('${Device.cssPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
   void set maskRepeatY(String value) {
-    setProperty('${_browserPrefix}mask-repeat-y', value, '');
+    setProperty('${Device.cssPrefix}mask-repeat-y', value, '');
   }
 
   /** Gets the value of "mask-size" */
   String get maskSize =>
-    getPropertyValue('${_browserPrefix}mask-size');
+    getPropertyValue('${Device.cssPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
   void set maskSize(String value) {
-    setProperty('${_browserPrefix}mask-size', value, '');
+    setProperty('${Device.cssPrefix}mask-size', value, '');
   }
 
   /** Gets the value of "max-height" */
@@ -4940,20 +5027,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "max-logical-height" */
   String get maxLogicalHeight =>
-    getPropertyValue('${_browserPrefix}max-logical-height');
+    getPropertyValue('${Device.cssPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
   void set maxLogicalHeight(String value) {
-    setProperty('${_browserPrefix}max-logical-height', value, '');
+    setProperty('${Device.cssPrefix}max-logical-height', value, '');
   }
 
   /** Gets the value of "max-logical-width" */
   String get maxLogicalWidth =>
-    getPropertyValue('${_browserPrefix}max-logical-width');
+    getPropertyValue('${Device.cssPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
   void set maxLogicalWidth(String value) {
-    setProperty('${_browserPrefix}max-logical-width', value, '');
+    setProperty('${Device.cssPrefix}max-logical-width', value, '');
   }
 
   /** Gets the value of "max-width" */
@@ -4985,20 +5072,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "min-logical-height" */
   String get minLogicalHeight =>
-    getPropertyValue('${_browserPrefix}min-logical-height');
+    getPropertyValue('${Device.cssPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
   void set minLogicalHeight(String value) {
-    setProperty('${_browserPrefix}min-logical-height', value, '');
+    setProperty('${Device.cssPrefix}min-logical-height', value, '');
   }
 
   /** Gets the value of "min-logical-width" */
   String get minLogicalWidth =>
-    getPropertyValue('${_browserPrefix}min-logical-width');
+    getPropertyValue('${Device.cssPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
   void set minLogicalWidth(String value) {
-    setProperty('${_browserPrefix}min-logical-width', value, '');
+    setProperty('${Device.cssPrefix}min-logical-width', value, '');
   }
 
   /** Gets the value of "min-width" */
@@ -5021,11 +5108,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "nbsp-mode" */
   String get nbspMode =>
-    getPropertyValue('${_browserPrefix}nbsp-mode');
+    getPropertyValue('${Device.cssPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
   void set nbspMode(String value) {
-    setProperty('${_browserPrefix}nbsp-mode', value, '');
+    setProperty('${Device.cssPrefix}nbsp-mode', value, '');
   }
 
   /** Gets the value of "opacity" */
@@ -5039,11 +5126,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "order" */
   String get order =>
-    getPropertyValue('${_browserPrefix}order');
+    getPropertyValue('${Device.cssPrefix}order');
 
   /** Sets the value of "order" */
   void set order(String value) {
-    setProperty('${_browserPrefix}order', value, '');
+    setProperty('${Device.cssPrefix}order', value, '');
   }
 
   /** Gets the value of "orientation" */
@@ -5120,11 +5207,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "overflow-scrolling" */
   String get overflowScrolling =>
-    getPropertyValue('${_browserPrefix}overflow-scrolling');
+    getPropertyValue('${Device.cssPrefix}overflow-scrolling');
 
   /** Sets the value of "overflow-scrolling" */
   void set overflowScrolling(String value) {
-    setProperty('${_browserPrefix}overflow-scrolling', value, '');
+    setProperty('${Device.cssPrefix}overflow-scrolling', value, '');
   }
 
   /** Gets the value of "overflow-wrap" */
@@ -5165,20 +5252,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "padding-after" */
   String get paddingAfter =>
-    getPropertyValue('${_browserPrefix}padding-after');
+    getPropertyValue('${Device.cssPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
   void set paddingAfter(String value) {
-    setProperty('${_browserPrefix}padding-after', value, '');
+    setProperty('${Device.cssPrefix}padding-after', value, '');
   }
 
   /** Gets the value of "padding-before" */
   String get paddingBefore =>
-    getPropertyValue('${_browserPrefix}padding-before');
+    getPropertyValue('${Device.cssPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
   void set paddingBefore(String value) {
-    setProperty('${_browserPrefix}padding-before', value, '');
+    setProperty('${Device.cssPrefix}padding-before', value, '');
   }
 
   /** Gets the value of "padding-bottom" */
@@ -5192,11 +5279,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "padding-end" */
   String get paddingEnd =>
-    getPropertyValue('${_browserPrefix}padding-end');
+    getPropertyValue('${Device.cssPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
   void set paddingEnd(String value) {
-    setProperty('${_browserPrefix}padding-end', value, '');
+    setProperty('${Device.cssPrefix}padding-end', value, '');
   }
 
   /** Gets the value of "padding-left" */
@@ -5219,11 +5306,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "padding-start" */
   String get paddingStart =>
-    getPropertyValue('${_browserPrefix}padding-start');
+    getPropertyValue('${Device.cssPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
   void set paddingStart(String value) {
-    setProperty('${_browserPrefix}padding-start', value, '');
+    setProperty('${Device.cssPrefix}padding-start', value, '');
   }
 
   /** Gets the value of "padding-top" */
@@ -5273,38 +5360,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "perspective" */
   String get perspective =>
-    getPropertyValue('${_browserPrefix}perspective');
+    getPropertyValue('${Device.cssPrefix}perspective');
 
   /** Sets the value of "perspective" */
   void set perspective(String value) {
-    setProperty('${_browserPrefix}perspective', value, '');
+    setProperty('${Device.cssPrefix}perspective', value, '');
   }
 
   /** Gets the value of "perspective-origin" */
   String get perspectiveOrigin =>
-    getPropertyValue('${_browserPrefix}perspective-origin');
+    getPropertyValue('${Device.cssPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
   void set perspectiveOrigin(String value) {
-    setProperty('${_browserPrefix}perspective-origin', value, '');
+    setProperty('${Device.cssPrefix}perspective-origin', value, '');
   }
 
   /** Gets the value of "perspective-origin-x" */
   String get perspectiveOriginX =>
-    getPropertyValue('${_browserPrefix}perspective-origin-x');
+    getPropertyValue('${Device.cssPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
   void set perspectiveOriginX(String value) {
-    setProperty('${_browserPrefix}perspective-origin-x', value, '');
+    setProperty('${Device.cssPrefix}perspective-origin-x', value, '');
   }
 
   /** Gets the value of "perspective-origin-y" */
   String get perspectiveOriginY =>
-    getPropertyValue('${_browserPrefix}perspective-origin-y');
+    getPropertyValue('${Device.cssPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
   void set perspectiveOriginY(String value) {
-    setProperty('${_browserPrefix}perspective-origin-y', value, '');
+    setProperty('${Device.cssPrefix}perspective-origin-y', value, '');
   }
 
   /** Gets the value of "pointer-events" */
@@ -5327,11 +5414,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "print-color-adjust" */
   String get printColorAdjust =>
-    getPropertyValue('${_browserPrefix}print-color-adjust');
+    getPropertyValue('${Device.cssPrefix}print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
   void set printColorAdjust(String value) {
-    setProperty('${_browserPrefix}print-color-adjust', value, '');
+    setProperty('${Device.cssPrefix}print-color-adjust', value, '');
   }
 
   /** Gets the value of "quotes" */
@@ -5345,38 +5432,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "region-break-after" */
   String get regionBreakAfter =>
-    getPropertyValue('${_browserPrefix}region-break-after');
+    getPropertyValue('${Device.cssPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
   void set regionBreakAfter(String value) {
-    setProperty('${_browserPrefix}region-break-after', value, '');
+    setProperty('${Device.cssPrefix}region-break-after', value, '');
   }
 
   /** Gets the value of "region-break-before" */
   String get regionBreakBefore =>
-    getPropertyValue('${_browserPrefix}region-break-before');
+    getPropertyValue('${Device.cssPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
   void set regionBreakBefore(String value) {
-    setProperty('${_browserPrefix}region-break-before', value, '');
+    setProperty('${Device.cssPrefix}region-break-before', value, '');
   }
 
   /** Gets the value of "region-break-inside" */
   String get regionBreakInside =>
-    getPropertyValue('${_browserPrefix}region-break-inside');
+    getPropertyValue('${Device.cssPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
   void set regionBreakInside(String value) {
-    setProperty('${_browserPrefix}region-break-inside', value, '');
+    setProperty('${Device.cssPrefix}region-break-inside', value, '');
   }
 
   /** Gets the value of "region-overflow" */
   String get regionOverflow =>
-    getPropertyValue('${_browserPrefix}region-overflow');
+    getPropertyValue('${Device.cssPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
   void set regionOverflow(String value) {
-    setProperty('${_browserPrefix}region-overflow', value, '');
+    setProperty('${Device.cssPrefix}region-overflow', value, '');
   }
 
   /** Gets the value of "resize" */
@@ -5399,47 +5486,47 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "rtl-ordering" */
   String get rtlOrdering =>
-    getPropertyValue('${_browserPrefix}rtl-ordering');
+    getPropertyValue('${Device.cssPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
   void set rtlOrdering(String value) {
-    setProperty('${_browserPrefix}rtl-ordering', value, '');
+    setProperty('${Device.cssPrefix}rtl-ordering', value, '');
   }
 
   /** Gets the value of "shape-inside" */
   String get shapeInside =>
-    getPropertyValue('${_browserPrefix}shape-inside');
+    getPropertyValue('${Device.cssPrefix}shape-inside');
 
   /** Sets the value of "shape-inside" */
   void set shapeInside(String value) {
-    setProperty('${_browserPrefix}shape-inside', value, '');
+    setProperty('${Device.cssPrefix}shape-inside', value, '');
   }
 
   /** Gets the value of "shape-margin" */
   String get shapeMargin =>
-    getPropertyValue('${_browserPrefix}shape-margin');
+    getPropertyValue('${Device.cssPrefix}shape-margin');
 
   /** Sets the value of "shape-margin" */
   void set shapeMargin(String value) {
-    setProperty('${_browserPrefix}shape-margin', value, '');
+    setProperty('${Device.cssPrefix}shape-margin', value, '');
   }
 
   /** Gets the value of "shape-outside" */
   String get shapeOutside =>
-    getPropertyValue('${_browserPrefix}shape-outside');
+    getPropertyValue('${Device.cssPrefix}shape-outside');
 
   /** Sets the value of "shape-outside" */
   void set shapeOutside(String value) {
-    setProperty('${_browserPrefix}shape-outside', value, '');
+    setProperty('${Device.cssPrefix}shape-outside', value, '');
   }
 
   /** Gets the value of "shape-padding" */
   String get shapePadding =>
-    getPropertyValue('${_browserPrefix}shape-padding');
+    getPropertyValue('${Device.cssPrefix}shape-padding');
 
   /** Sets the value of "shape-padding" */
   void set shapePadding(String value) {
-    setProperty('${_browserPrefix}shape-padding', value, '');
+    setProperty('${Device.cssPrefix}shape-padding', value, '');
   }
 
   /** Gets the value of "size" */
@@ -5489,11 +5576,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "tap-highlight-color" */
   String get tapHighlightColor =>
-    getPropertyValue('${_browserPrefix}tap-highlight-color');
+    getPropertyValue('${Device.cssPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
   void set tapHighlightColor(String value) {
-    setProperty('${_browserPrefix}tap-highlight-color', value, '');
+    setProperty('${Device.cssPrefix}tap-highlight-color', value, '');
   }
 
   /** Gets the value of "text-align" */
@@ -5507,20 +5594,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "text-align-last" */
   String get textAlignLast =>
-    getPropertyValue('${_browserPrefix}text-align-last');
+    getPropertyValue('${Device.cssPrefix}text-align-last');
 
   /** Sets the value of "text-align-last" */
   void set textAlignLast(String value) {
-    setProperty('${_browserPrefix}text-align-last', value, '');
+    setProperty('${Device.cssPrefix}text-align-last', value, '');
   }
 
   /** Gets the value of "text-combine" */
   String get textCombine =>
-    getPropertyValue('${_browserPrefix}text-combine');
+    getPropertyValue('${Device.cssPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
   void set textCombine(String value) {
-    setProperty('${_browserPrefix}text-combine', value, '');
+    setProperty('${Device.cssPrefix}text-combine', value, '');
   }
 
   /** Gets the value of "text-decoration" */
@@ -5534,74 +5621,74 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "text-decoration-line" */
   String get textDecorationLine =>
-    getPropertyValue('${_browserPrefix}text-decoration-line');
+    getPropertyValue('${Device.cssPrefix}text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
   void set textDecorationLine(String value) {
-    setProperty('${_browserPrefix}text-decoration-line', value, '');
+    setProperty('${Device.cssPrefix}text-decoration-line', value, '');
   }
 
   /** Gets the value of "text-decoration-style" */
   String get textDecorationStyle =>
-    getPropertyValue('${_browserPrefix}text-decoration-style');
+    getPropertyValue('${Device.cssPrefix}text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
   void set textDecorationStyle(String value) {
-    setProperty('${_browserPrefix}text-decoration-style', value, '');
+    setProperty('${Device.cssPrefix}text-decoration-style', value, '');
   }
 
   /** Gets the value of "text-decorations-in-effect" */
   String get textDecorationsInEffect =>
-    getPropertyValue('${_browserPrefix}text-decorations-in-effect');
+    getPropertyValue('${Device.cssPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
   void set textDecorationsInEffect(String value) {
-    setProperty('${_browserPrefix}text-decorations-in-effect', value, '');
+    setProperty('${Device.cssPrefix}text-decorations-in-effect', value, '');
   }
 
   /** Gets the value of "text-emphasis" */
   String get textEmphasis =>
-    getPropertyValue('${_browserPrefix}text-emphasis');
+    getPropertyValue('${Device.cssPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
   void set textEmphasis(String value) {
-    setProperty('${_browserPrefix}text-emphasis', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis', value, '');
   }
 
   /** Gets the value of "text-emphasis-color" */
   String get textEmphasisColor =>
-    getPropertyValue('${_browserPrefix}text-emphasis-color');
+    getPropertyValue('${Device.cssPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
   void set textEmphasisColor(String value) {
-    setProperty('${_browserPrefix}text-emphasis-color', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis-color', value, '');
   }
 
   /** Gets the value of "text-emphasis-position" */
   String get textEmphasisPosition =>
-    getPropertyValue('${_browserPrefix}text-emphasis-position');
+    getPropertyValue('${Device.cssPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
   void set textEmphasisPosition(String value) {
-    setProperty('${_browserPrefix}text-emphasis-position', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis-position', value, '');
   }
 
   /** Gets the value of "text-emphasis-style" */
   String get textEmphasisStyle =>
-    getPropertyValue('${_browserPrefix}text-emphasis-style');
+    getPropertyValue('${Device.cssPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
   void set textEmphasisStyle(String value) {
-    setProperty('${_browserPrefix}text-emphasis-style', value, '');
+    setProperty('${Device.cssPrefix}text-emphasis-style', value, '');
   }
 
   /** Gets the value of "text-fill-color" */
   String get textFillColor =>
-    getPropertyValue('${_browserPrefix}text-fill-color');
+    getPropertyValue('${Device.cssPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
   void set textFillColor(String value) {
-    setProperty('${_browserPrefix}text-fill-color', value, '');
+    setProperty('${Device.cssPrefix}text-fill-color', value, '');
   }
 
   /** Gets the value of "text-indent" */
@@ -5660,11 +5747,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "text-orientation" */
   String get textOrientation =>
-    getPropertyValue('${_browserPrefix}text-orientation');
+    getPropertyValue('${Device.cssPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
   void set textOrientation(String value) {
-    setProperty('${_browserPrefix}text-orientation', value, '');
+    setProperty('${Device.cssPrefix}text-orientation', value, '');
   }
 
   /** Gets the value of "text-overflow" */
@@ -5732,11 +5819,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "text-security" */
   String get textSecurity =>
-    getPropertyValue('${_browserPrefix}text-security');
+    getPropertyValue('${Device.cssPrefix}text-security');
 
   /** Sets the value of "text-security" */
   void set textSecurity(String value) {
-    setProperty('${_browserPrefix}text-security', value, '');
+    setProperty('${Device.cssPrefix}text-security', value, '');
   }
 
   /** Gets the value of "text-shadow" */
@@ -5750,38 +5837,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "text-size-adjust" */
   String get textSizeAdjust =>
-    getPropertyValue('${_browserPrefix}text-size-adjust');
+    getPropertyValue('${Device.cssPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
   void set textSizeAdjust(String value) {
-    setProperty('${_browserPrefix}text-size-adjust', value, '');
+    setProperty('${Device.cssPrefix}text-size-adjust', value, '');
   }
 
   /** Gets the value of "text-stroke" */
   String get textStroke =>
-    getPropertyValue('${_browserPrefix}text-stroke');
+    getPropertyValue('${Device.cssPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
   void set textStroke(String value) {
-    setProperty('${_browserPrefix}text-stroke', value, '');
+    setProperty('${Device.cssPrefix}text-stroke', value, '');
   }
 
   /** Gets the value of "text-stroke-color" */
   String get textStrokeColor =>
-    getPropertyValue('${_browserPrefix}text-stroke-color');
+    getPropertyValue('${Device.cssPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
   void set textStrokeColor(String value) {
-    setProperty('${_browserPrefix}text-stroke-color', value, '');
+    setProperty('${Device.cssPrefix}text-stroke-color', value, '');
   }
 
   /** Gets the value of "text-stroke-width" */
   String get textStrokeWidth =>
-    getPropertyValue('${_browserPrefix}text-stroke-width');
+    getPropertyValue('${Device.cssPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
   void set textStrokeWidth(String value) {
-    setProperty('${_browserPrefix}text-stroke-width', value, '');
+    setProperty('${Device.cssPrefix}text-stroke-width', value, '');
   }
 
   /** Gets the value of "text-transform" */
@@ -5849,56 +5936,56 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "transform" */
   String get transform =>
-    getPropertyValue('${_browserPrefix}transform');
+    getPropertyValue('${Device.cssPrefix}transform');
 
   /** Sets the value of "transform" */
   void set transform(String value) {
-    setProperty('${_browserPrefix}transform', value, '');
+    setProperty('${Device.cssPrefix}transform', value, '');
   }
 
   /** Gets the value of "transform-origin" */
   String get transformOrigin =>
-    getPropertyValue('${_browserPrefix}transform-origin');
+    getPropertyValue('${Device.cssPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
   void set transformOrigin(String value) {
-    setProperty('${_browserPrefix}transform-origin', value, '');
+    setProperty('${Device.cssPrefix}transform-origin', value, '');
   }
 
   /** Gets the value of "transform-origin-x" */
   String get transformOriginX =>
-    getPropertyValue('${_browserPrefix}transform-origin-x');
+    getPropertyValue('${Device.cssPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
   void set transformOriginX(String value) {
-    setProperty('${_browserPrefix}transform-origin-x', value, '');
+    setProperty('${Device.cssPrefix}transform-origin-x', value, '');
   }
 
   /** Gets the value of "transform-origin-y" */
   String get transformOriginY =>
-    getPropertyValue('${_browserPrefix}transform-origin-y');
+    getPropertyValue('${Device.cssPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
   void set transformOriginY(String value) {
-    setProperty('${_browserPrefix}transform-origin-y', value, '');
+    setProperty('${Device.cssPrefix}transform-origin-y', value, '');
   }
 
   /** Gets the value of "transform-origin-z" */
   String get transformOriginZ =>
-    getPropertyValue('${_browserPrefix}transform-origin-z');
+    getPropertyValue('${Device.cssPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
   void set transformOriginZ(String value) {
-    setProperty('${_browserPrefix}transform-origin-z', value, '');
+    setProperty('${Device.cssPrefix}transform-origin-z', value, '');
   }
 
   /** Gets the value of "transform-style" */
   String get transformStyle =>
-    getPropertyValue('${_browserPrefix}transform-style');
+    getPropertyValue('${Device.cssPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
   void set transformStyle(String value) {
-    setProperty('${_browserPrefix}transform-style', value, '');
+    setProperty('${Device.cssPrefix}transform-style', value, '');
   }
 
   /** Gets the value of "transition" */
@@ -5907,7 +5994,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
-    getPropertyValue('${_browserPrefix}transition');
+    getPropertyValue('${Device.cssPrefix}transition');
 
   /** Sets the value of "transition" */
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -5915,43 +6002,43 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
-    setProperty('${_browserPrefix}transition', value, '');
+    setProperty('${Device.cssPrefix}transition', value, '');
   }
 
   /** Gets the value of "transition-delay" */
   String get transitionDelay =>
-    getPropertyValue('${_browserPrefix}transition-delay');
+    getPropertyValue('${Device.cssPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
   void set transitionDelay(String value) {
-    setProperty('${_browserPrefix}transition-delay', value, '');
+    setProperty('${Device.cssPrefix}transition-delay', value, '');
   }
 
   /** Gets the value of "transition-duration" */
   String get transitionDuration =>
-    getPropertyValue('${_browserPrefix}transition-duration');
+    getPropertyValue('${Device.cssPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
   void set transitionDuration(String value) {
-    setProperty('${_browserPrefix}transition-duration', value, '');
+    setProperty('${Device.cssPrefix}transition-duration', value, '');
   }
 
   /** Gets the value of "transition-property" */
   String get transitionProperty =>
-    getPropertyValue('${_browserPrefix}transition-property');
+    getPropertyValue('${Device.cssPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
   void set transitionProperty(String value) {
-    setProperty('${_browserPrefix}transition-property', value, '');
+    setProperty('${Device.cssPrefix}transition-property', value, '');
   }
 
   /** Gets the value of "transition-timing-function" */
   String get transitionTimingFunction =>
-    getPropertyValue('${_browserPrefix}transition-timing-function');
+    getPropertyValue('${Device.cssPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
   void set transitionTimingFunction(String value) {
-    setProperty('${_browserPrefix}transition-timing-function', value, '');
+    setProperty('${Device.cssPrefix}transition-timing-function', value, '');
   }
 
   /** Gets the value of "unicode-bidi" */
@@ -5974,29 +6061,29 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "user-drag" */
   String get userDrag =>
-    getPropertyValue('${_browserPrefix}user-drag');
+    getPropertyValue('${Device.cssPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
   void set userDrag(String value) {
-    setProperty('${_browserPrefix}user-drag', value, '');
+    setProperty('${Device.cssPrefix}user-drag', value, '');
   }
 
   /** Gets the value of "user-modify" */
   String get userModify =>
-    getPropertyValue('${_browserPrefix}user-modify');
+    getPropertyValue('${Device.cssPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
   void set userModify(String value) {
-    setProperty('${_browserPrefix}user-modify', value, '');
+    setProperty('${Device.cssPrefix}user-modify', value, '');
   }
 
   /** Gets the value of "user-select" */
   String get userSelect =>
-    getPropertyValue('${_browserPrefix}user-select');
+    getPropertyValue('${Device.cssPrefix}user-select');
 
   /** Sets the value of "user-select" */
   void set userSelect(String value) {
-    setProperty('${_browserPrefix}user-select', value, '');
+    setProperty('${Device.cssPrefix}user-select', value, '');
   }
 
   /** Gets the value of "user-zoom" */
@@ -6082,38 +6169,38 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   /** Gets the value of "wrap" */
   String get wrap =>
-    getPropertyValue('${_browserPrefix}wrap');
+    getPropertyValue('${Device.cssPrefix}wrap');
 
   /** Sets the value of "wrap" */
   void set wrap(String value) {
-    setProperty('${_browserPrefix}wrap', value, '');
+    setProperty('${Device.cssPrefix}wrap', value, '');
   }
 
   /** Gets the value of "wrap-flow" */
   String get wrapFlow =>
-    getPropertyValue('${_browserPrefix}wrap-flow');
+    getPropertyValue('${Device.cssPrefix}wrap-flow');
 
   /** Sets the value of "wrap-flow" */
   void set wrapFlow(String value) {
-    setProperty('${_browserPrefix}wrap-flow', value, '');
+    setProperty('${Device.cssPrefix}wrap-flow', value, '');
   }
 
   /** Gets the value of "wrap-through" */
   String get wrapThrough =>
-    getPropertyValue('${_browserPrefix}wrap-through');
+    getPropertyValue('${Device.cssPrefix}wrap-through');
 
   /** Sets the value of "wrap-through" */
   void set wrapThrough(String value) {
-    setProperty('${_browserPrefix}wrap-through', value, '');
+    setProperty('${Device.cssPrefix}wrap-through', value, '');
   }
 
   /** Gets the value of "writing-mode" */
   String get writingMode =>
-    getPropertyValue('${_browserPrefix}writing-mode');
+    getPropertyValue('${Device.cssPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
   void set writingMode(String value) {
-    setProperty('${_browserPrefix}writing-mode', value, '');
+    setProperty('${Device.cssPrefix}writing-mode', value, '');
   }
 
   /** Gets the value of "z-index" */
@@ -6472,7 +6559,14 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 
   @DomName('DataTransferItem.getAsString')
   @DocsEditable
-  void getAsString([StringCallback callback]) native "DataTransferItem_getAsString_Callback";
+  void _getAsString([_StringCallback callback]) native "DataTransferItem_getAsString_Callback";
+
+  Future<String> getAsString() {
+    var completer = new Completer<String>();
+    _getAsString(
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('DataTransferItem.webkitGetAsEntry')
   @DocsEditable
@@ -6538,7 +6632,7 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 @DomName('DataView')
 class DataView extends ArrayBufferView {
   DataView.internal() : super.internal();
-  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _create(buffer, byteOffset, byteLength);
+  factory DataView(/*ArrayBuffer*/ buffer, [int byteOffset, int byteLength]) => _create(buffer, byteOffset, byteLength);
 
   @DocsEditable
   static DataView _create(buffer, byteOffset, byteLength) native "DataView_constructorCallback";
@@ -6883,15 +6977,39 @@ class DirectoryEntry extends Entry {
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
+  void _getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
+
+  Future<Entry> getDirectory(String path, {Map options}) {
+    var completer = new Completer<Entry>();
+    _getDirectory(path, options : options,
+        successCallback : (value) { completer.complete(value); },
+        errorCallback : (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
+  void _getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
+
+  Future<Entry> getFile(String path, {Map options}) {
+    var completer = new Completer<Entry>();
+    _getFile(path, options : options,
+        successCallback : (value) { completer.complete(value); },
+        errorCallback : (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DirectoryEntry.removeRecursively')
   @DocsEditable
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
+  void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
+
+  Future removeRecursively() {
+    var completer = new Completer();
+    _removeRecursively(
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6937,7 +7055,15 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
 
   @DomName('DirectoryReader.readEntries')
   @DocsEditable
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
+  void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
+
+  Future<List<Entry>> readEntries() {
+    var completer = new Completer<List<Entry>>();
+    _readEntries(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7228,22 +7354,21 @@ class Document extends Node
   @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
-  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.getElementById')
   @DocsEditable
-  Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
+  Element getElementById(String elementId) native "Document_getElementById_Callback";
 
   @DomName('Document.getElementsByClassName')
   @DocsEditable
-  List<Node> $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
 
   @DomName('Document.getElementsByName')
   @DocsEditable
-  List<Node> $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
+  List<Node> getElementsByName(String elementName) native "Document_getElementsByName_Callback";
 
   @DomName('Document.getElementsByTagName')
   @DocsEditable
-  List<Node> $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
+  List<Node> getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable
@@ -7265,10 +7390,24 @@ class Document extends Node
   @DocsEditable
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
-  /// Deprecated: renamed to the shorter name [query].
+  /**
+ * Finds the first descendant element of this document that matches the
+ * specified group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level query
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *     var element1 = document.query('.className');
+ *     var element2 = document.query('#id');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
   @DomName('Document.querySelector')
   @DocsEditable
-  Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
+  Element query(String selectors) native "Document_querySelector_Callback";
 
   /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
@@ -7497,30 +7636,6 @@ class Document extends Node
 
 
   /**
-   * Finds the first descendant element of this document that matches the
-   * specified group of selectors.
-   *
-   * Unless your webpage contains multiple documents, the top-level query
-   * method behaves the same as this method, so you should use it instead to
-   * save typing a few characters.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *     var element1 = document.query('.className');
-   *     var element2 = document.query('#id');
-   *
-   * For details about CSS selector syntax, see the
-   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
-   */
-  Element query(String selectors) {
-    // It is fine for our RegExp to detect element id query selectors to have
-    // false negatives but not false positives.
-    if (new RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
-      return $dom_getElementById(selectors.substring(1));
-    }
-    return $dom_querySelector(selectors);
-  }
-
-  /**
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
    *
@@ -7535,26 +7650,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   List<Element> queryAll(String selectors) {
-    if (new RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByName(
-          selectors.substring(7,selectors.length - 2));
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else if (new RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
-      final mutableMatches = $dom_getElementsByTagName(selectors);
-      int len = mutableMatches.length;
-      final copyOfMatches = new List<Element>(len);
-      for (int i = 0; i < len; ++i) {
-        copyOfMatches[i] = mutableMatches[i];
-      }
-      return new _FrozenElementList._wrap(copyOfMatches);
-    } else {
-      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
-    }
+    return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7596,7 +7692,7 @@ class DocumentFragment extends Node {
 
   String get innerHtml {
     final e = new Element.tag("div");
-    e.nodes.add(this.clone(true));
+    e.append(this.clone(true));
     return e.innerHtml;
   }
 
@@ -7614,19 +7710,11 @@ class DocumentFragment extends Node {
   }
 
   /**
-   * Adds the specified element after the last child of this
-   * document fragment.
-   */
-  void append(Element element) {
-    this.children.add(element);
-  }
-
-  /**
    * Adds the specified text as a text node after the last child of this
    * document fragment.
    */
   void appendText(String text) {
-    this.nodes.add(new Text(text));
+    this.append(new Text(text));
   }
 
 
@@ -7635,7 +7723,7 @@ class DocumentFragment extends Node {
    * last child of this document fragment.
    */
   void appendHtml(String text) {
-    this.nodes.add(new DocumentFragment.html(text));
+    this.append(new DocumentFragment.html(text));
   }
 
   DocumentFragment.internal() : super.internal();
@@ -7862,16 +7950,16 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  DomMimeType firstWhere(bool test(DomMimeType value), { DomMimeType orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  DomMimeType lastWhere(bool test(DomMimeType value), {DomMimeType orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  DomMimeType singleMatching(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  DomMimeType singleWhere(bool test(DomMimeType value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   DomMimeType elementAt(int index) {
@@ -7939,6 +8027,10 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, DomMimeType element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7959,11 +8051,11 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(DomMimeType element)) {
+  void removeWhere(bool test(DomMimeType element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(DomMimeType element)) {
+  void retainWhere(bool test(DomMimeType element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7979,8 +8071,16 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<DomMimeType> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <DomMimeType>[]);
+  }
+
   List<DomMimeType> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <DomMimeType>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, DomMimeType> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<DomMimeType> mixins.
 
@@ -8132,16 +8232,16 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  DomPlugin firstWhere(bool test(DomPlugin value), { DomPlugin orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  DomPlugin lastWhere(bool test(DomPlugin value), {DomPlugin orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  DomPlugin singleMatching(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  DomPlugin singleWhere(bool test(DomPlugin value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   DomPlugin elementAt(int index) {
@@ -8209,6 +8309,10 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, DomPlugin element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8229,11 +8333,11 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(DomPlugin element)) {
+  void removeWhere(bool test(DomPlugin element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(DomPlugin element)) {
+  void retainWhere(bool test(DomPlugin element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8249,8 +8353,16 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<DomPlugin> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <DomPlugin>[]);
+  }
+
   List<DomPlugin> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <DomPlugin>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, DomPlugin> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<DomPlugin> mixins.
 
@@ -8520,16 +8632,16 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  String firstMatching(bool test(String value), { String orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  String firstWhere(bool test(String value), { String orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  String lastMatching(bool test(String value), {String orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  String lastWhere(bool test(String value), {String orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  String singleMatching(bool test(String value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  String singleWhere(bool test(String value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   String elementAt(int index) {
@@ -8597,6 +8709,10 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   String max([int compare(String a, String b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, String element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8617,11 +8733,11 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(String element)) {
+  void removeWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(String element)) {
+  void retainWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8637,8 +8753,16 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<String> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <String>[]);
+  }
+
   List<String> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <String>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, String> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<String> mixins.
 
@@ -8808,16 +8932,16 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -8842,7 +8966,7 @@ class _ChildrenElementList implements List {
   }
 
   Element add(Element value) {
-    _element.$dom_appendChild(value);
+    _element.append(value);
     return value;
   }
 
@@ -8856,7 +8980,7 @@ class _ChildrenElementList implements List {
     }
 
     for (Element element in iterable) {
-      _element.$dom_appendChild(element);
+      _element.append(element);
     }
   }
 
@@ -8894,12 +9018,12 @@ class _ChildrenElementList implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Element element)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Element element)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Element element)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Element element)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -8910,9 +9034,13 @@ class _ChildrenElementList implements List {
     throw new UnimplementedError();
   }
 
+  List sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
+  }
+
   List getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(Lists.getRange(this, start, rangeLength,
-        []));
+      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -8921,6 +9049,17 @@ class _ChildrenElementList implements List {
   int lastIndexOf(Element element, [int start = null]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
+  }
+
+  void insert(int index, Element element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _element.append(element);
+    } else {
+      throw new UnimplementedError("insert on ElementLists");
+    }
   }
 
   void clear() {
@@ -8968,6 +9107,10 @@ class _ChildrenElementList implements List {
 
   Element max([int compare(Element a, Element b)]) {
     return IterableMixinWorkaround.max(this, compare);
+  }
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 
@@ -9047,16 +9190,16 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Element firstWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Element lastWhere(bool test(Element value), {Element orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Element singleMatching(bool test(Element value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Element singleWhere(bool test(Element value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Element elementAt(int index) {
@@ -9116,8 +9259,12 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  List<Element> sublist(int start, [int end]) {
+    return new _FrozenElementList._wrap(_nodeList.sublist(start, end));
+  }
+
   List<Element> getRange(int start, int rangeLength) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
+      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);
@@ -9149,11 +9296,11 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void removeMatching(bool test(Element element)) {
+  void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
-  void retainMatching(bool test(Element element)) {
+  void retainWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 
@@ -9169,6 +9316,10 @@ class _FrozenElementList implements List {
 
   Element max([int compare(Element a, Element b)]) {
     return IterableMixinWorkaround.max(this, compare);
+  }
+
+  Map<int, Element> asMap() {
+    return IterableMixinWorkaround.asMapList(this);
   }
 }
 
@@ -9318,25 +9469,6 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   /**
-   * Finds the first descendant element of this element that matches the
-   * specified group of selectors.
-   *
-   * [selectors] should be a string using CSS selector syntax.
-   *
-   *     // Gets the first descendant with the class 'classname'
-   *     var element = element.query('.className');
-   *     // Gets the element with id 'id'
-   *     var element = element.query('#id');
-   *     // Gets the first descendant [ImageElement]
-   *     var img = element.query('img');
-   *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
-   */
-  Element query(String selectors) => $dom_querySelector(selectors);
-
-  /**
    * Finds all descendent elements of this element that match the specified
    * group of selectors.
    *
@@ -9433,12 +9565,37 @@ abstract class Element extends Node implements ElementTraversal {
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
-  /**
-   * Adds the specified element to after the last child of this element.
-   */
-  void append(Element e) {
-    this.children.add(e);
-  }
+  @deprecated
+  int get clientHeight => client.height;
+  @deprecated
+  int get clientLeft => client.left;
+  @deprecated
+  int get clientTop => client.top;
+  @deprecated
+  int get clientWidth => client.width;
+
+  @DomName('Element.clientHeight')
+  @DomName('Element.clientLeft')
+  @DomName('Element.clientTop')
+  @DomName('Element.clientWidth')
+  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
+      $dom_clientHeight);
+
+  @deprecated
+  int get offsetHeight => offset.height;
+  @deprecated
+  int get offsetLeft => offset.left;
+  @deprecated
+  int get offsetTop => offset.top;
+  @deprecated
+  int get offsetWidth => offset.width;
+
+  @DomName('Element.offsetHeight')
+  @DomName('Element.offsetLeft')
+  @DomName('Element.offsetTop')
+  @DomName('Element.offsetWidth')
+  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
+      $dom_offsetHeight);
 
   /**
    * Adds the specified text as a text node after the last child of this
@@ -9781,19 +9938,19 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.clientHeight')
   @DocsEditable
-  int get clientHeight native "Element_clientHeight_Getter";
+  int get $dom_clientHeight native "Element_clientHeight_Getter";
 
   @DomName('Element.clientLeft')
   @DocsEditable
-  int get clientLeft native "Element_clientLeft_Getter";
+  int get $dom_clientLeft native "Element_clientLeft_Getter";
 
   @DomName('Element.clientTop')
   @DocsEditable
-  int get clientTop native "Element_clientTop_Getter";
+  int get $dom_clientTop native "Element_clientTop_Getter";
 
   @DomName('Element.clientWidth')
   @DocsEditable
-  int get clientWidth native "Element_clientWidth_Getter";
+  int get $dom_clientWidth native "Element_clientWidth_Getter";
 
   @DomName('Element.firstElementChild')
   @DocsEditable
@@ -9809,11 +9966,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.offsetHeight')
   @DocsEditable
-  int get offsetHeight native "Element_offsetHeight_Getter";
+  int get $dom_offsetHeight native "Element_offsetHeight_Getter";
 
   @DomName('Element.offsetLeft')
   @DocsEditable
-  int get offsetLeft native "Element_offsetLeft_Getter";
+  int get $dom_offsetLeft native "Element_offsetLeft_Getter";
 
   @DomName('Element.offsetParent')
   @DocsEditable
@@ -9821,11 +9978,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.offsetTop')
   @DocsEditable
-  int get offsetTop native "Element_offsetTop_Getter";
+  int get $dom_offsetTop native "Element_offsetTop_Getter";
 
   @DomName('Element.offsetWidth')
   @DocsEditable
-  int get offsetWidth native "Element_offsetWidth_Getter";
+  int get $dom_offsetWidth native "Element_offsetWidth_Getter";
 
   @DomName('Element.previousElementSibling')
   @DocsEditable
@@ -9902,15 +10059,15 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.getBoundingClientRect')
   @DocsEditable
-  ClientRect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
+  Rect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
   @DomName('Element.getClientRects')
   @DocsEditable
-  List<ClientRect> getClientRects() native "Element_getClientRects_Callback";
+  List<Rect> getClientRects() native "Element_getClientRects_Callback";
 
   @DomName('Element.getElementsByClassName')
   @DocsEditable
-  List<Node> $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
   @DomName('Element.getElementsByTagName')
   @DocsEditable
@@ -9924,9 +10081,26 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
+  /**
+ * Finds the first descendant element of this element that matches the
+ * specified group of selectors.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     // Gets the first descendant with the class 'classname'
+ *     var element = element.query('.className');
+ *     // Gets the element with id 'id'
+ *     var element = element.query('#id');
+ *     // Gets the first descendant [ImageElement]
+ *     var img = element.query('img');
+ *
+ * See also:
+ *
+ * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+ */
   @DomName('Element.querySelector')
   @DocsEditable
-  Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
+  Element query(String selectors) native "Element_querySelector_Callback";
 
   @DomName('Element.querySelectorAll')
   @DocsEditable
@@ -10267,7 +10441,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -10310,7 +10484,8 @@ class _ElementFactoryProvider {
     switch (tag) {
       case 'td':
       case 'th':
-        element = _singleNode(_singleNode(table.rows).cells);
+        TableRowElement row = _singleNode(table.rows);
+        element = _singleNode(row.cells);
         break;
       case 'tr':
         element = _singleNode(table.rows);
@@ -10495,7 +10670,7 @@ class EntityReference extends Node {
 // WARNING: Do not edit - generated code.
 
 
-typedef void EntriesCallback(List<Entry> entries);
+typedef void _EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10528,7 +10703,7 @@ class Entry extends NativeFieldWrapperClass1 {
   @DocsEditable
   String get name native "Entry_name_Getter";
 
-  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
+  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?name) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10545,15 +10720,39 @@ class Entry extends NativeFieldWrapperClass1 {
   @DocsEditable
   void _copyTo_2(parent) native "Entry__copyTo_2_Callback";
 
+  Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
+    var completer = new Completer<Entry>();
+    _copyTo(parent, name : name,
+        successCallback : (value) { completer.complete(value); },
+        errorCallback : (error) { completer.completeError(error); });
+    return completer.future;
+  }
+
   @DomName('Entry.getMetadata')
   @DocsEditable
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
+  void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
+
+  Future<Metadata> getMetadata() {
+    var completer = new Completer<Metadata>();
+    _getMetadata(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('Entry.getParent')
   @DocsEditable
-  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
+  void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
-  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
+  Future<Entry> getParent() {
+    var completer = new Completer<Entry>();
+    _getParent(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
+
+  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?name) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10570,9 +10769,25 @@ class Entry extends NativeFieldWrapperClass1 {
   @DocsEditable
   void _moveTo_2(parent) native "Entry__moveTo_2_Callback";
 
+  Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
+    var completer = new Completer<Entry>();
+    _moveTo(parent, name : name,
+        successCallback : (value) { completer.complete(value); },
+        errorCallback : (error) { completer.completeError(error); });
+    return completer.future;
+  }
+
   @DomName('Entry.remove')
   @DocsEditable
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native "Entry_remove_Callback";
+  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) native "Entry_remove_Callback";
+
+  Future remove() {
+    var completer = new Completer();
+    _remove(
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('Entry.toURL')
   @DocsEditable
@@ -10586,7 +10801,7 @@ class Entry extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void EntryCallback(Entry entry);
+typedef void _EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10651,7 +10866,7 @@ class EntrySync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void ErrorCallback(FileError error);
+typedef void _ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10822,18 +11037,6 @@ class Event extends NativeFieldWrapperClass1 {
   @DocsEditable
   void stopPropagation() native "Event_stopPropagation_Callback";
 
-
-  /**
-   * Checks to see if the event class is supported by the current platform.
-   */
-  static bool _isTypeSupported(String eventType) {
-    // Browsers throw for unsupported event names.
-    try {
-      var e = document.$dom_createEvent(eventType);
-      return e is Event;
-    } catch (_) { }
-    return false;
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11038,6 +11241,87 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('EXTDrawBuffers')
+class ExtDrawBuffers extends NativeFieldWrapperClass1 {
+  ExtDrawBuffers.internal();
+
+  static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
+
+  static const int COLOR_ATTACHMENT10_EXT = 0x8CEA;
+
+  static const int COLOR_ATTACHMENT11_EXT = 0x8CEB;
+
+  static const int COLOR_ATTACHMENT12_EXT = 0x8CEC;
+
+  static const int COLOR_ATTACHMENT13_EXT = 0x8CED;
+
+  static const int COLOR_ATTACHMENT14_EXT = 0x8CEE;
+
+  static const int COLOR_ATTACHMENT15_EXT = 0x8CEF;
+
+  static const int COLOR_ATTACHMENT1_EXT = 0x8CE1;
+
+  static const int COLOR_ATTACHMENT2_EXT = 0x8CE2;
+
+  static const int COLOR_ATTACHMENT3_EXT = 0x8CE3;
+
+  static const int COLOR_ATTACHMENT4_EXT = 0x8CE4;
+
+  static const int COLOR_ATTACHMENT5_EXT = 0x8CE5;
+
+  static const int COLOR_ATTACHMENT6_EXT = 0x8CE6;
+
+  static const int COLOR_ATTACHMENT7_EXT = 0x8CE7;
+
+  static const int COLOR_ATTACHMENT8_EXT = 0x8CE8;
+
+  static const int COLOR_ATTACHMENT9_EXT = 0x8CE9;
+
+  static const int DRAW_BUFFER0_EXT = 0x8825;
+
+  static const int DRAW_BUFFER10_EXT = 0x882F;
+
+  static const int DRAW_BUFFER11_EXT = 0x8830;
+
+  static const int DRAW_BUFFER12_EXT = 0x8831;
+
+  static const int DRAW_BUFFER13_EXT = 0x8832;
+
+  static const int DRAW_BUFFER14_EXT = 0x8833;
+
+  static const int DRAW_BUFFER15_EXT = 0x8834;
+
+  static const int DRAW_BUFFER1_EXT = 0x8826;
+
+  static const int DRAW_BUFFER2_EXT = 0x8827;
+
+  static const int DRAW_BUFFER3_EXT = 0x8828;
+
+  static const int DRAW_BUFFER4_EXT = 0x8829;
+
+  static const int DRAW_BUFFER5_EXT = 0x882A;
+
+  static const int DRAW_BUFFER6_EXT = 0x882B;
+
+  static const int DRAW_BUFFER7_EXT = 0x882C;
+
+  static const int DRAW_BUFFER8_EXT = 0x882D;
+
+  static const int DRAW_BUFFER9_EXT = 0x882E;
+
+  static const int MAX_COLOR_ATTACHMENTS_EXT = 0x8CDF;
+
+  static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
   ExtTextureFilterAnisotropic.internal();
@@ -11147,7 +11431,7 @@ class File extends Blob {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileCallback(File file);
+typedef void _FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11162,11 +11446,27 @@ class FileEntry extends Entry {
 
   @DomName('FileEntry.createWriter')
   @DocsEditable
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
+  void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
+
+  Future<FileWriter> createWriter() {
+    var completer = new Completer<FileWriter>();
+    _createWriter(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('FileEntry.file')
   @DocsEditable
-  void file(FileCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_file_Callback";
+  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) native "FileEntry_file_Callback";
+
+  Future<File> file() {
+    var completer = new Completer<File>();
+    _file(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11360,16 +11660,16 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  File firstMatching(bool test(File value), { File orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  File firstWhere(bool test(File value), { File orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  File lastMatching(bool test(File value), {File orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  File lastWhere(bool test(File value), {File orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  File singleMatching(bool test(File value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  File singleWhere(bool test(File value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   File elementAt(int index) {
@@ -11437,6 +11737,10 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   File max([int compare(File a, File b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, File element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11457,11 +11761,11 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(File element)) {
+  void removeWhere(bool test(File element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(File element)) {
+  void retainWhere(bool test(File element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -11477,8 +11781,16 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<File> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <File>[]);
+  }
+
   List<File> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <File>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, File> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<File> mixins.
 
@@ -11643,7 +11955,7 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 
   @DomName('FileReaderSync.readAsArrayBuffer')
   @DocsEditable
-  ArrayBuffer readAsArrayBuffer(Blob blob) native "FileReaderSync_readAsArrayBuffer_Callback";
+  dynamic readAsArrayBuffer(Blob blob) native "FileReaderSync_readAsArrayBuffer_Callback";
 
   @DomName('FileReaderSync.readAsBinaryString')
   @DocsEditable
@@ -11702,7 +12014,7 @@ class FileSystem extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileSystemCallback(FileSystem fileSystem);
+typedef void _FileSystemCallback(FileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11844,7 +12156,7 @@ class FileWriter extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-typedef void FileWriterCallback(FileWriter fileWriter);
+typedef void _FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11973,16 +12285,16 @@ class Float32Array extends ArrayBufferView implements List<num> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  num firstMatching(bool test(num value), { num orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  num firstWhere(bool test(num value), { num orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  num lastMatching(bool test(num value), {num orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  num lastWhere(bool test(num value), {num orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  num singleMatching(bool test(num value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  num singleWhere(bool test(num value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   num elementAt(int index) {
@@ -12050,6 +12362,10 @@ class Float32Array extends ArrayBufferView implements List<num> {
   num max([int compare(num a, num b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, num element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12070,11 +12386,11 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(num element)) {
+  void removeWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(num element)) {
+  void retainWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12090,8 +12406,16 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<num> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <num>[]);
+  }
+
   List<num> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <num>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, num> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<num> mixins.
 
@@ -12099,7 +12423,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(int start, [int end]) {
+  List<double> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -12108,11 +12432,11 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   @DomName('Float32Array._subarray_1')
   @DocsEditable
-  Float32Array _subarray_1(start, end) native "Float32Array__subarray_1_Callback";
+  List<double> _subarray_1(start, end) native "Float32Array__subarray_1_Callback";
 
   @DomName('Float32Array._subarray_2')
   @DocsEditable
-  Float32Array _subarray_2(start) native "Float32Array__subarray_2_Callback";
+  List<double> _subarray_2(start) native "Float32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12210,16 +12534,16 @@ class Float64Array extends ArrayBufferView implements List<num> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  num firstMatching(bool test(num value), { num orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  num firstWhere(bool test(num value), { num orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  num lastMatching(bool test(num value), {num orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  num lastWhere(bool test(num value), {num orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  num singleMatching(bool test(num value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  num singleWhere(bool test(num value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   num elementAt(int index) {
@@ -12287,6 +12611,10 @@ class Float64Array extends ArrayBufferView implements List<num> {
   num max([int compare(num a, num b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, num element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12307,11 +12635,11 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(num element)) {
+  void removeWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(num element)) {
+  void retainWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12327,8 +12655,16 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<num> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <num>[]);
+  }
+
   List<num> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <num>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, num> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<num> mixins.
 
@@ -12336,7 +12672,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(int start, [int end]) {
+  List<double> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -12345,11 +12681,11 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   @DomName('Float64Array._subarray_1')
   @DocsEditable
-  Float64Array _subarray_1(start, end) native "Float64Array__subarray_1_Callback";
+  List<double> _subarray_1(start, end) native "Float64Array__subarray_1_Callback";
 
   @DomName('Float64Array._subarray_2')
   @DocsEditable
-  Float64Array _subarray_2(start) native "Float64Array__subarray_2_Callback";
+  List<double> _subarray_2(start) native "Float64Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12599,7 +12935,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
                 controller.add(_ensurePosition(position));
               },
               (error) {
-                controller.signalError(error);
+                controller.addError(error);
               },
               options);
         } else {
@@ -12612,14 +12948,9 @@ class Geolocation extends NativeFieldWrapperClass1 {
   }
 
   Geoposition _ensurePosition(domPosition) {
-    try {
-      // Firefox may throw on this.
-      if (domPosition is Geoposition) {
-        return domPosition;
-      }
-    } catch(e) {}
-    return new _GeopositionWrapper(domPosition);
+    return domPosition;
   }
+
   Geolocation.internal();
 
   @DomName('Geolocation.clearWatch')
@@ -12901,16 +13232,16 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -12978,6 +13309,10 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12998,11 +13333,11 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -13018,8 +13353,16 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Node> mixins.
 
@@ -13112,16 +13455,16 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -13189,6 +13532,10 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -13209,11 +13556,11 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -13229,8 +13576,16 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Node> mixins.
 
@@ -13516,7 +13871,7 @@ class HttpRequest extends EventTarget {
     if (method == null) {
       method = 'GET';
     }
-    xhr.open(method, url, true);
+    xhr.open(method, url, async: true);
 
     if (withCredentials != null) {
       xhr.withCredentials = withCredentials;
@@ -13826,7 +14181,7 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.open')
   @DocsEditable
-  void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
+  void open(String method, String url, {bool async, String user, String password}) native "XMLHttpRequest_open_Callback";
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -14163,12 +14518,9 @@ class ImageData extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('HTMLImageElement')
-class ImageElement extends _Element_Merged {
+class ImageElement extends _Element_Merged implements CanvasImageSource {
   ImageElement.internal() : super.internal();
 
   @DomName('HTMLImageElement.HTMLImageElement')
@@ -14720,7 +15072,7 @@ class InputElement extends _Element_Merged implements
   @DocsEditable
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
-  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
     if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
       _setRangeText_1(replacement);
       return;
@@ -15434,16 +15786,16 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -15511,6 +15863,10 @@ class Int16Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -15531,11 +15887,11 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -15551,8 +15907,16 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -15560,7 +15924,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15569,11 +15933,11 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   @DomName('Int16Array._subarray_1')
   @DocsEditable
-  Int16Array _subarray_1(start, end) native "Int16Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Int16Array__subarray_1_Callback";
 
   @DomName('Int16Array._subarray_2')
   @DocsEditable
-  Int16Array _subarray_2(start) native "Int16Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Int16Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15671,16 +16035,16 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -15748,6 +16112,10 @@ class Int32Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -15768,11 +16136,11 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -15788,8 +16156,16 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -15797,7 +16173,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -15806,11 +16182,11 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   @DomName('Int32Array._subarray_1')
   @DocsEditable
-  Int32Array _subarray_1(start, end) native "Int32Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Int32Array__subarray_1_Callback";
 
   @DomName('Int32Array._subarray_2')
   @DocsEditable
-  Int32Array _subarray_2(start) native "Int32Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Int32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15908,16 +16284,16 @@ class Int8Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -15985,6 +16361,10 @@ class Int8Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -16005,11 +16385,11 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -16025,8 +16405,16 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -16034,7 +16422,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -16043,11 +16431,11 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   @DomName('Int8Array._subarray_1')
   @DocsEditable
-  Int8Array _subarray_1(start, end) native "Int8Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Int8Array__subarray_1_Callback";
 
   @DomName('Int8Array._subarray_2')
   @DocsEditable
-  Int8Array _subarray_2(start) native "Int8Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Int8Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17090,7 +17478,7 @@ class MediaElement extends _Element_Merged {
   @DocsEditable
   void play() native "HTMLMediaElement_play_Callback";
 
-  void addKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) {
+  void addKey(String keySystem, List<int> key, [List<int> initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -17114,7 +17502,7 @@ class MediaElement extends _Element_Merged {
   @Experimental
   void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void generateKeyRequest(String keySystem, [Uint8Array initData]) {
+  void generateKeyRequest(String keySystem, [List<int> initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -17310,7 +17698,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable
-  Uint8Array get initData native "MediaKeyEvent_initData_Getter";
+  List<int> get initData native "MediaKeyEvent_initData_Getter";
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable
@@ -17318,7 +17706,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable
-  Uint8Array get message native "MediaKeyEvent_message_Getter";
+  List<int> get message native "MediaKeyEvent_message_Getter";
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable
@@ -18091,11 +18479,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DocsEditable
-  int get clientX native "MouseEvent_clientX_Getter";
+  int get $dom_clientX native "MouseEvent_clientX_Getter";
 
   @DomName('MouseEvent.clientY')
   @DocsEditable
-  int get clientY native "MouseEvent_clientY_Getter";
+  int get $dom_clientY native "MouseEvent_clientY_Getter";
 
   @DomName('MouseEvent.ctrlKey')
   @DocsEditable
@@ -18115,11 +18503,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.offsetX')
   @DocsEditable
-  int get offsetX native "MouseEvent_offsetX_Getter";
+  int get $dom_offsetX native "MouseEvent_offsetX_Getter";
 
   @DomName('MouseEvent.offsetY')
   @DocsEditable
-  int get offsetY native "MouseEvent_offsetY_Getter";
+  int get $dom_offsetY native "MouseEvent_offsetY_Getter";
 
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable
@@ -18127,11 +18515,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.screenX')
   @DocsEditable
-  int get screenX native "MouseEvent_screenX_Getter";
+  int get $dom_screenX native "MouseEvent_screenX_Getter";
 
   @DomName('MouseEvent.screenY')
   @DocsEditable
-  int get screenY native "MouseEvent_screenY_Getter";
+  int get $dom_screenY native "MouseEvent_screenY_Getter";
 
   @DomName('MouseEvent.shiftKey')
   @DocsEditable
@@ -18146,19 +18534,60 @@ class MouseEvent extends UIEvent {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  int get movementX native "MouseEvent_webkitMovementX_Getter";
+  int get $dom_webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  int get movementY native "MouseEvent_webkitMovementY_Getter";
+  int get $dom_webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
+
+  @deprecated
+  int get clientX => client.x;
+  @deprecated
+  int get clientY => client.y;
+  @deprecated
+  int get offsetX => offset.x;
+  @deprecated
+  int get offsetY => offset.y;
+  @deprecated
+  int get movementX => movement.x;
+  @deprecated
+  int get movementY => movement.y;
+  @deprecated
+  int get screenX => screen.x;
+  @deprecated
+  int get screenY => screen.y;
+
+  @DomName('MouseEvent.clientX')
+  @DomName('MouseEvent.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('MouseEvent.movementX')
+  @DomName('MouseEvent.movementY')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
+
+  /**
+   * The coordinates of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
+  Point get offset => new Point($dom_offsetX, $dom_offsetY);
+
+  @DomName('MouseEvent.screenX')
+  @DomName('MouseEvent.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18582,26 +19011,38 @@ class _ChildNodeListLazy implements List {
   }
 
   void add(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
   void addLast(Node value) {
-    _this.$dom_appendChild(value);
+    _this.append(value);
   }
 
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      if (iterable._this != _this) {
+      if (!identical(iterable._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = iterable.length; i < len; ++i) {
-          _this.$dom_appendChild(iterable[0]);
+          // Should use $dom_firstChild, Bug 8886.
+          _this.append(iterable[0]);
         }
       }
       return;
     }
     for (Node node in iterable) {
-      _this.$dom_appendChild(node);
+      _this.append(node);
+    }
+  }
+
+  void insert(int index, Node node) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _this.append(node);
+    } else {
+      this_.insertBefore(node, this[index]);
     }
   }
 
@@ -18636,12 +19077,12 @@ class _ChildNodeListLazy implements List {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(Node node)) {
-    IterableMixinWorkaround.removeMatching(this, test);
+  void removeWhere(bool test(Node node)) {
+    IterableMixinWorkaround.removeWhere(this, test);
   }
 
-  void retainMatching(bool test(Node node)) {
-    IterableMixinWorkaround.retainMatching(this, test);
+  void retainWhere(bool test(Node node)) {
+    IterableMixinWorkaround.retainWhere(this, test);
   }
 
   void clear() {
@@ -18709,16 +19150,16 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -18754,8 +19195,13 @@ class _ChildNodeListLazy implements List {
     throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end == length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
 
   // -- end List<Node> mixins.
 
@@ -18769,6 +19215,8 @@ class _ChildNodeListLazy implements List {
   }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
+
+  Map<int, Node> asMap() => IterableMixinWorkaround.asMapList(this);
 }
 
 @DomName('Node')
@@ -18783,7 +19231,7 @@ class Node extends EventTarget {
     List copy = new List.from(value);
     text = '';
     for (Node node in copy) {
-      $dom_appendChild(node);
+      append(node);
     }
   }
 
@@ -18812,6 +19260,111 @@ class Node extends EventTarget {
 
     };
     return this;
+  }
+
+  /**
+   * Inserts all of the nodes into this node directly before refChild.
+   *
+   * See also:
+   *
+   * * [insertBefore]
+   */
+  Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+    if (newNodes is _ChildNodeListLazy) {
+      if (identical(newNodes._this, this)) {
+        throw new ArgumentError(newNodes);
+      }
+
+      // Optimized route for copying between nodes.
+      for (var i = 0, len = newNodes.length; i < len; ++i) {
+        // Should use $dom_firstChild, Bug 8886.
+        this.insertBefore(newNodes[0], refChild);
+      }
+    } else {
+      for (var node in newNodes) {
+        this.insertBefore(node, refChild);
+      }
+    }
+  }
+
+  // Note that this may either be the locally set model or a cached value
+  // of the inherited model. This is cached to minimize model change
+  // notifications.
+  var _model;
+  bool _hasLocalModel;
+  StreamController<Node> _modelChangedStream;
+
+  /**
+   * The data model which is inherited through the tree.
+   *
+   * Setting this will propagate the value to all descendant nodes. If the
+   * model is not set on this node then it will be inherited from ancestor
+   * nodes.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   *
+   * [clearModel] must be used to remove the model property from this node
+   * and have the model inherit from ancestor nodes.
+   */
+  @Experimental
+  get model {
+    // If we have a change handler then we've cached the model locally.
+    if (_modelChangedStream != null) {
+      return _model;
+    }
+    // Otherwise start looking up the tree.
+    for (var node = this; node != null; node = node.parentNode) {
+      if (node._hasLocalModel == true) {
+        return node._model;
+      }
+    }
+    return null;
+  }
+
+  @Experimental
+  void set model(value) {
+    var changed = model != value;
+    _model = value;
+    _hasLocalModel = true;
+    _ModelTreeObserver.initialize();
+
+    if (changed) {
+      if (_modelChangedStream != null) {
+        _modelChangedStream.add(this);
+      }
+      // Propagate new model to all descendants.
+      _ModelTreeObserver.propagateModel(this, value, false);
+    }
+  }
+
+  /**
+   * Clears the locally set model and makes this model be inherited from parent
+   * nodes.
+   */
+  @Experimental
+  void clearModel() {
+    if (_hasLocalModel == true) {
+      _hasLocalModel = false;
+
+      // Propagate new model to all descendants.
+      if (parentNode != null) {
+        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
+      } else {
+        _ModelTreeObserver.propagateModel(this, null, false);
+      }
+    }
+  }
+
+  /**
+   * Get a stream of models, whenever the model changes.
+   */
+  Stream<Node> get onModelChanged {
+    if (_modelChangedStream == null) {
+      // Ensure the model is cached locally to minimize change notifications.
+      _model = model;
+      _modelChangedStream = new StreamController.broadcast();
+    }
+    return _modelChangedStream.stream;
   }
 
   Node.internal() : super.internal();
@@ -18878,7 +19431,7 @@ class Node extends EventTarget {
 
   @DomName('Node.appendChild')
   @DocsEditable
-  Node $dom_appendChild(Node newChild) native "Node_appendChild_Callback";
+  Node append(Node newChild) native "Node_appendChild_Callback";
 
   @DomName('Node.cloneNode')
   @DocsEditable
@@ -19087,16 +19640,16 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -19164,6 +19717,10 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -19184,11 +19741,11 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -19204,8 +19761,16 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Node> mixins.
 
@@ -19326,7 +19891,14 @@ class Notification extends EventTarget {
 
   @DomName('Notification.requestPermission')
   @DocsEditable
-  static void requestPermission(NotificationPermissionCallback callback) native "Notification_requestPermission_Callback";
+  static void _requestPermission([_NotificationPermissionCallback callback]) native "Notification_requestPermission_Callback";
+
+  static Future<String> requestPermission() {
+    var completer = new Completer<String>();
+    _requestPermission(
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('Notification.show')
   @DocsEditable
@@ -19385,7 +19957,14 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 
   @DomName('NotificationCenter.requestPermission')
   @DocsEditable
-  void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
+  void _requestPermission([VoidCallback callback]) native "NotificationCenter_requestPermission_Callback";
+
+  Future requestPermission() {
+    var completer = new Completer();
+    _requestPermission(
+        () { completer.complete(); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19395,7 +19974,7 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void NotificationPermissionCallback(String permission);
+typedef void _NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19579,6 +20158,19 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 @DomName('OESTextureFloat')
 class OesTextureFloat extends NativeFieldWrapperClass1 {
   OesTextureFloat.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('OESTextureHalfFloat')
+class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
+  OesTextureHalfFloat.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20317,7 +20909,7 @@ class QuoteElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-typedef void RtcErrorCallback(String errorInformation);
+typedef void _RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20325,7 +20917,7 @@ typedef void RtcErrorCallback(String errorInformation);
 // WARNING: Do not edit - generated code.
 
 
-typedef void RtcSessionDescriptionCallback(RtcSessionDescription sdp);
+typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20450,11 +21042,11 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.getBoundingClientRect')
   @DocsEditable
-  ClientRect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
+  Rect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
 
   @DomName('Range.getClientRects')
   @DocsEditable
-  List<ClientRect> getClientRects() native "Range_getClientRects_Callback";
+  List<Rect> getClientRects() native "Range_getClientRects_Callback";
 
   @DomName('Range.insertNode')
   @DocsEditable
@@ -20549,61 +21141,7 @@ class RangeException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('Rect')
-class Rect extends NativeFieldWrapperClass1 {
-  Rect.internal();
-
-  @DomName('Rect.bottom')
-  @DocsEditable
-  CssPrimitiveValue get bottom native "Rect_bottom_Getter";
-
-  @DomName('Rect.left')
-  @DocsEditable
-  CssPrimitiveValue get left native "Rect_left_Getter";
-
-  @DomName('Rect.right')
-  @DocsEditable
-  CssPrimitiveValue get right native "Rect_right_Getter";
-
-  @DomName('Rect.top')
-  @DocsEditable
-  CssPrimitiveValue get top native "Rect_top_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 typedef void RequestAnimationFrameCallback(num highResTime);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('RGBColor')
-class RgbColor extends NativeFieldWrapperClass1 {
-  RgbColor.internal();
-
-  @DomName('RGBColor.blue')
-  @DocsEditable
-  CssPrimitiveValue get blue native "RGBColor_blue_Getter";
-
-  @DomName('RGBColor.green')
-  @DocsEditable
-  CssPrimitiveValue get green native "RGBColor_green_Getter";
-
-  @DomName('RGBColor.red')
-  @DocsEditable
-  CssPrimitiveValue get red native "RGBColor_red_Getter";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20673,11 +21211,11 @@ class RtcDataChannel extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
-    if ((data is ArrayBuffer || data == null)) {
+    if ((data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
       _send_1(data);
       return;
     }
-    if ((data is ArrayBufferView || data == null)) {
+    if ((data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
       _send_2(data);
       return;
     }
@@ -20806,7 +21344,7 @@ class RtcIceCandidateEvent extends Event {
 class RtcPeerConnection extends EventTarget {
 
   /**
-   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on
    * the current platform.
    */
   static bool get supported => true;
@@ -20895,7 +21433,15 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable
-  void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
+  void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
+
+  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createAnswer(mediaConstraints,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable
@@ -20907,7 +21453,15 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
-  void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
+  void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
+
+  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createOffer(mediaConstraints,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
@@ -20935,11 +21489,27 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable
-  void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
+  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
+
+  Future setLocalDescription(RtcSessionDescription description) {
+    var completer = new Completer();
+    _setLocalDescription(description,
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.setRemoteDescription')
   @DocsEditable
-  void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
+  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
+
+  Future setRemoteDescription(RtcSessionDescription description) {
+    var completer = new Completer();
+    _setRemoteDescription(description,
+        () { completer.complete(); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable
@@ -21170,33 +21740,38 @@ class RtcdtmfToneChangeEvent extends Event {
   String get tone native "RTCDTMFToneChangeEvent_tone_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
 @DomName('Screen')
 class Screen extends NativeFieldWrapperClass1 {
+
+  @DomName('Screen.availHeight')
+  @DomName('Screen.availLeft')
+  @DomName('Screen.availTop')
+  @DomName('Screen.availWidth')
+  Rect get available => new Rect($dom_availLeft, $dom_availTop, $dom_availWidth,
+      $dom_availHeight);
   Screen.internal();
 
   @DomName('Screen.availHeight')
   @DocsEditable
-  int get availHeight native "Screen_availHeight_Getter";
+  int get $dom_availHeight native "Screen_availHeight_Getter";
 
   @DomName('Screen.availLeft')
   @DocsEditable
-  int get availLeft native "Screen_availLeft_Getter";
+  int get $dom_availLeft native "Screen_availLeft_Getter";
 
   @DomName('Screen.availTop')
   @DocsEditable
-  int get availTop native "Screen_availTop_Getter";
+  int get $dom_availTop native "Screen_availTop_Getter";
 
   @DomName('Screen.availWidth')
   @DocsEditable
-  int get availWidth native "Screen_availWidth_Getter";
+  int get $dom_availWidth native "Screen_availWidth_Getter";
 
   @DomName('Screen.colorDepth')
   @DocsEditable
@@ -21213,7 +21788,6 @@ class Screen extends NativeFieldWrapperClass1 {
   @DomName('Screen.width')
   @DocsEditable
   int get width native "Screen_width_Getter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21526,7 +22100,7 @@ class SelectElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLShadowElement')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
@@ -21555,7 +22129,7 @@ class ShadowElement extends _Element_Merged {
 
 
 @DomName('ShadowRoot')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
@@ -21598,15 +22172,15 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.getElementById')
   @DocsEditable
-  Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
+  Element getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable
-  List<Node> $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable
-  List<Node> $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
+  List<Node> getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable
@@ -21695,7 +22269,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('SourceBuffer.append')
   @DocsEditable
-  void append(Uint8Array data) native "SourceBuffer_append_Callback";
+  void append(List<int> data) native "SourceBuffer_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21774,16 +22348,16 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SourceBuffer firstWhere(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SourceBuffer lastWhere(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SourceBuffer singleMatching(bool test(SourceBuffer value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SourceBuffer singleWhere(bool test(SourceBuffer value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SourceBuffer elementAt(int index) {
@@ -21851,6 +22425,10 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SourceBuffer element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -21871,11 +22449,11 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SourceBuffer element)) {
+  void removeWhere(bool test(SourceBuffer element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SourceBuffer element)) {
+  void retainWhere(bool test(SourceBuffer element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -21891,8 +22469,16 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<SourceBuffer> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <SourceBuffer>[]);
+  }
+
   List<SourceBuffer> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <SourceBuffer>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, SourceBuffer> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<SourceBuffer> mixins.
 
@@ -22094,16 +22680,16 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SpeechGrammar firstWhere(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SpeechGrammar lastWhere(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SpeechGrammar singleWhere(bool test(SpeechGrammar value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SpeechGrammar elementAt(int index) {
@@ -22171,6 +22757,10 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SpeechGrammar element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -22191,11 +22781,11 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SpeechGrammar element)) {
+  void removeWhere(bool test(SpeechGrammar element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SpeechGrammar element)) {
+  void retainWhere(bool test(SpeechGrammar element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22211,8 +22801,16 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<SpeechGrammar> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <SpeechGrammar>[]);
+  }
+
   List<SpeechGrammar> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <SpeechGrammar>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, SpeechGrammar> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<SpeechGrammar> mixins.
 
@@ -22746,11 +23344,27 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
-  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
+  void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
+
+  Future<int> queryUsageAndQuota(int storageType) {
+    var completer = new Completer<int>();
+    _queryUsageAndQuota(storageType,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('StorageInfo.requestQuota')
   @DocsEditable
-  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
+  void _requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, _StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
+
+  Future<int> requestQuota(int storageType, int newQuotaInBytes) {
+    var completer = new Completer<int>();
+    _requestQuota(storageType, newQuotaInBytes,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22760,7 +23374,7 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoErrorCallback(DomException error);
+typedef void _StorageInfoErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22776,7 +23390,7 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22784,7 +23398,7 @@ typedef void StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaI
 // WARNING: Do not edit - generated code.
 
 
-typedef void StringCallback(String data);
+typedef void _StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23763,16 +24377,16 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  TextTrackCue firstWhere(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  TextTrackCue lastWhere(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  TextTrackCue singleMatching(bool test(TextTrackCue value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  TextTrackCue singleWhere(bool test(TextTrackCue value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   TextTrackCue elementAt(int index) {
@@ -23840,6 +24454,10 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, TextTrackCue element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -23860,11 +24478,11 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(TextTrackCue element)) {
+  void removeWhere(bool test(TextTrackCue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(TextTrackCue element)) {
+  void retainWhere(bool test(TextTrackCue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -23880,8 +24498,16 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<TextTrackCue> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <TextTrackCue>[]);
+  }
+
   List<TextTrackCue> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <TextTrackCue>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, TextTrackCue> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<TextTrackCue> mixins.
 
@@ -23974,16 +24600,16 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  TextTrack firstWhere(bool test(TextTrack value), { TextTrack orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  TextTrack lastWhere(bool test(TextTrack value), {TextTrack orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  TextTrack singleMatching(bool test(TextTrack value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  TextTrack singleWhere(bool test(TextTrack value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   TextTrack elementAt(int index) {
@@ -24051,6 +24677,10 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   TextTrack max([int compare(TextTrack a, TextTrack b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, TextTrack element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -24071,11 +24701,11 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(TextTrack element)) {
+  void removeWhere(bool test(TextTrack element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(TextTrack element)) {
+  void retainWhere(bool test(TextTrack element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24091,8 +24721,16 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<TextTrack> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <TextTrack>[]);
+  }
+
   List<TextTrack> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <TextTrack>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, TextTrack> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<TextTrack> mixins.
 
@@ -24171,8 +24809,6 @@ class TitleElement extends _Element_Merged {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable
 @DomName('Touch')
@@ -24181,11 +24817,11 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.clientX')
   @DocsEditable
-  int get clientX native "Touch_clientX_Getter";
+  int get $dom_clientX native "Touch_clientX_Getter";
 
   @DomName('Touch.clientY')
   @DocsEditable
-  int get clientY native "Touch_clientY_Getter";
+  int get $dom_clientY native "Touch_clientY_Getter";
 
   @DomName('Touch.identifier')
   @DocsEditable
@@ -24193,19 +24829,19 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.pageX')
   @DocsEditable
-  int get pageX native "Touch_pageX_Getter";
+  int get $dom_pageX native "Touch_pageX_Getter";
 
   @DomName('Touch.pageY')
   @DocsEditable
-  int get pageY native "Touch_pageY_Getter";
+  int get $dom_pageY native "Touch_pageY_Getter";
 
   @DomName('Touch.screenX')
   @DocsEditable
-  int get screenX native "Touch_screenX_Getter";
+  int get $dom_screenX native "Touch_screenX_Getter";
 
   @DomName('Touch.screenY')
   @DocsEditable
-  int get screenY native "Touch_screenY_Getter";
+  int get $dom_screenY native "Touch_screenY_Getter";
 
   @DomName('Touch.target')
   @DocsEditable
@@ -24239,6 +24875,18 @@ class Touch extends NativeFieldWrapperClass1 {
   @Experimental
   num get rotationAngle native "Touch_webkitRotationAngle_Getter";
 
+
+  @DomName('Touch.clientX')
+  @DomName('Touch.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('Touch.pageX')
+  @DomName('Touch.pageY')
+  Point get page => new Point($dom_pageX, $dom_pageY);
+
+  @DomName('Touch.screenX')
+  @DomName('Touch.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24307,7 +24955,7 @@ class TouchEvent extends UIEvent {
     // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
     // Basically, this is a fairly common check and it'd be great if it did not
     // throw exceptions.
-    return Event._isTypeSupported('TouchEvent');
+    return Device.isEventTypeSupported('TouchEvent');
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -24392,16 +25040,16 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Touch firstWhere(bool test(Touch value), { Touch orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Touch lastWhere(bool test(Touch value), {Touch orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Touch singleMatching(bool test(Touch value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Touch singleWhere(bool test(Touch value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Touch elementAt(int index) {
@@ -24469,6 +25117,10 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   Touch max([int compare(Touch a, Touch b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Touch element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -24489,11 +25141,11 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Touch element)) {
+  void removeWhere(bool test(Touch element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Touch element)) {
+  void retainWhere(bool test(Touch element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24509,8 +25161,16 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Touch> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Touch>[]);
+  }
+
   List<Touch> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Touch>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Touch> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Touch> mixins.
 
@@ -24746,19 +25406,19 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.layerX')
   @DocsEditable
-  int get layerX native "UIEvent_layerX_Getter";
+  int get $dom_layerX native "UIEvent_layerX_Getter";
 
   @DomName('UIEvent.layerY')
   @DocsEditable
-  int get layerY native "UIEvent_layerY_Getter";
+  int get $dom_layerY native "UIEvent_layerY_Getter";
 
   @DomName('UIEvent.pageX')
   @DocsEditable
-  int get pageX native "UIEvent_pageX_Getter";
+  int get $dom_pageX native "UIEvent_pageX_Getter";
 
   @DomName('UIEvent.pageY')
   @DocsEditable
-  int get pageY native "UIEvent_pageY_Getter";
+  int get $dom_pageY native "UIEvent_pageY_Getter";
 
   @DomName('UIEvent.view')
   @DocsEditable
@@ -24772,6 +25432,24 @@ class UIEvent extends Event {
   @DocsEditable
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
+
+  @deprecated
+  int get layerX => layer.x;
+  @deprecated
+  int get layerY => layer.y;
+
+  @deprecated
+  int get pageX => page.x;
+  @deprecated
+  int get pageY => page.y;
+
+  @DomName('UIEvent.layerX')
+  @DomName('UIEvent.layerY')
+  Point get layer => new Point($dom_layerX, $dom_layerY);
+
+  @DomName('UIEvent.pageX')
+  @DomName('UIEvent.pageY')
+  Point get page => new Point($dom_pageX, $dom_pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24885,16 +25563,16 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -24962,6 +25640,10 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -24982,11 +25664,11 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25002,8 +25684,16 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -25011,7 +25701,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25020,11 +25710,11 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   @DomName('Uint16Array._subarray_1')
   @DocsEditable
-  Uint16Array _subarray_1(start, end) native "Uint16Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint16Array__subarray_1_Callback";
 
   @DomName('Uint16Array._subarray_2')
   @DocsEditable
-  Uint16Array _subarray_2(start) native "Uint16Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint16Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25122,16 +25812,16 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -25199,6 +25889,10 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25219,11 +25913,11 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25239,8 +25933,16 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -25248,7 +25950,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25257,11 +25959,11 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   @DomName('Uint32Array._subarray_1')
   @DocsEditable
-  Uint32Array _subarray_1(start, end) native "Uint32Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint32Array__subarray_1_Callback";
 
   @DomName('Uint32Array._subarray_2')
   @DocsEditable
-  Uint32Array _subarray_2(start) native "Uint32Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25359,16 +26061,16 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -25436,6 +26138,10 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25456,11 +26162,11 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25476,8 +26182,16 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -25485,7 +26199,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25494,11 +26208,11 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   @DomName('Uint8Array._subarray_1')
   @DocsEditable
-  Uint8Array _subarray_1(start, end) native "Uint8Array__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint8Array__subarray_1_Callback";
 
   @DomName('Uint8Array._subarray_2')
   @DocsEditable
-  Uint8Array _subarray_2(start) native "Uint8Array__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint8Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25594,16 +26308,16 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  int firstMatching(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   int elementAt(int index) {
@@ -25671,6 +26385,10 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   int max([int compare(int a, int b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25691,11 +26409,11 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(int element)) {
+  void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(int element)) {
+  void retainWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25711,8 +26429,16 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
   List<int> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <int>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<int> mixins.
 
@@ -25720,7 +26446,7 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   @DocsEditable
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(int start, [int end]) {
+  List<int> subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
@@ -25729,11 +26455,11 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   @DomName('Uint8ClampedArray._subarray_1')
   @DocsEditable
-  Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray__subarray_1_Callback";
+  List<int> _subarray_1(start, end) native "Uint8ClampedArray__subarray_1_Callback";
 
   @DomName('Uint8ClampedArray._subarray_2')
   @DocsEditable
-  Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray__subarray_2_Callback";
+  List<int> _subarray_2(start) native "Uint8ClampedArray__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25848,12 +26574,9 @@ class ValidityState extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('HTMLVideoElement')
-class VideoElement extends MediaElement {
+class VideoElement extends MediaElement implements CanvasImageSource {
   VideoElement.internal() : super.internal();
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
@@ -26419,6 +27142,8 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   static const int GREEN_BITS = 0x0D53;
 
+  static const int HALF_FLOAT_OES = 0x8D61;
+
   static const int HIGH_FLOAT = 0x8DF2;
 
   static const int HIGH_INT = 0x8DF5;
@@ -26868,11 +27593,11 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
   void bufferData(int target, data_OR_size, int usage) {
-    if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((target is int || target == null) && (data_OR_size is ArrayBufferView || data_OR_size is _typeddata.TypedData || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target == null) && (data_OR_size is ArrayBufferView || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size is _typeddata.ByteBuffer || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_2(target, data_OR_size, usage);
       return;
     }
@@ -26895,12 +27620,12 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   @DocsEditable
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
-  void bufferSubData(int target, int offset, data) {
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data == null)) {
+  void bufferSubData(int target, int offset, /*ArrayBuffer*/ data) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
     }
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data == null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
       _bufferSubData_2(target, offset, data);
       return;
     }
@@ -26945,11 +27670,11 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, /*ArrayBufferView*/ data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, /*ArrayBufferView*/ data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable
@@ -27221,7 +27946,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable
-  void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native "WebGLRenderingContext_readPixels_Callback";
+  void readPixels(int x, int y, int width, int height, int format, int type, /*ArrayBufferView*/ pixels) native "WebGLRenderingContext_readPixels_Callback";
 
   @DomName('WebGLRenderingContext.releaseShaderCompiler')
   @DocsEditable
@@ -27267,8 +27992,8 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   @DocsEditable
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, /*ArrayBufferView*/ pixels]) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels is _typeddata.TypedData || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -27319,8 +28044,8 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   @DocsEditable
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, /*ArrayBufferView*/ pixels]) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels is _typeddata.TypedData || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
@@ -27369,7 +28094,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable
-  void uniform1fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform1fv_Callback";
+  void uniform1fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform1fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable
@@ -27377,7 +28102,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable
-  void uniform1iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform1iv_Callback";
+  void uniform1iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform1iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable
@@ -27385,7 +28110,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable
-  void uniform2fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform2fv_Callback";
+  void uniform2fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform2fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable
@@ -27393,7 +28118,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable
-  void uniform2iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform2iv_Callback";
+  void uniform2iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform2iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable
@@ -27401,7 +28126,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable
-  void uniform3fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform3fv_Callback";
+  void uniform3fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform3fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable
@@ -27409,7 +28134,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable
-  void uniform3iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform3iv_Callback";
+  void uniform3iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform3iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable
@@ -27417,7 +28142,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable
-  void uniform4fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform4fv_Callback";
+  void uniform4fv(WebGLUniformLocation location, List<double> v) native "WebGLRenderingContext_uniform4fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable
@@ -27425,19 +28150,19 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable
-  void uniform4iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform4iv_Callback";
+  void uniform4iv(WebGLUniformLocation location, List<int> v) native "WebGLRenderingContext_uniform4iv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable
-  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
+  void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable
-  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
+  void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable
-  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
+  void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable
@@ -27453,7 +28178,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable
-  void vertexAttrib1fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
+  void vertexAttrib1fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable
@@ -27461,7 +28186,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable
-  void vertexAttrib2fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
+  void vertexAttrib2fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable
@@ -27469,7 +28194,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable
-  void vertexAttrib3fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
+  void vertexAttrib3fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable
@@ -27477,7 +28202,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable
-  void vertexAttrib4fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
+  void vertexAttrib4fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable
@@ -27895,7 +28620,7 @@ class WheelEvent extends MouseEvent {
       view = window;
     }
     var eventType = 'WheelEvent';
-    if (_Device.isFirefox) {
+    if (Device.isFirefox) {
       eventType = 'MouseScrollEvents';
     }
     final event = document.$dom_createEvent(eventType);
@@ -28004,8 +28729,10 @@ class Window extends EventTarget implements WindowBase {
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
-    var completer = new Completer<int>();
-    requestAnimationFrame(completer.complete);
+    var completer = new Completer<num>();
+    requestAnimationFrame((time) {
+      completer.complete(time);
+    });
     return completer.future;
   }
 
@@ -28446,11 +29173,11 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.setInterval')
   @DocsEditable
-  int _setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
+  int _setInterval(Object handler, int timeout) native "DOMWindow_setInterval_Callback";
 
   @DomName('DOMWindow.setTimeout')
   @DocsEditable
-  int _setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
+  int _setTimeout(Object handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
   @DomName('DOMWindow.showModalDialog')
   @DocsEditable
@@ -28478,13 +29205,29 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+  void _requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
+
+  Future<FileSystem> requestFileSystem(int type, int size) {
+    var completer = new Completer<FileSystem>();
+    _requestFileSystem(type, size,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+
+  Future<Entry> resolveLocalFileSystemUrl(String url) {
+    var completer = new Completer<Entry>();
+    _resolveLocalFileSystemUrl(url,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('DOMWindow.onDOMContentLoaded')
   @DocsEditable
@@ -28832,17 +29575,25 @@ class WorkerContext extends EventTarget {
 
   @DomName('WorkerContext.setInterval')
   @DocsEditable
-  int setInterval(TimeoutHandler handler, int timeout) native "WorkerContext_setInterval_Callback";
+  int setInterval(Object handler, int timeout) native "WorkerContext_setInterval_Callback";
 
   @DomName('WorkerContext.setTimeout')
   @DocsEditable
-  int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
+  int setTimeout(Object handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
+  void _requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
+
+  Future<FileSystem> requestFileSystem(int type, int size) {
+    var completer = new Completer<FileSystem>();
+    _requestFileSystem(type, size,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @DocsEditable
@@ -28860,7 +29611,15 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+
+  Future<Entry> resolveLocalFileSystemUrl(String url) {
+    var completer = new Completer<Entry>();
+    _resolveLocalFileSystemUrl(url,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('WorkerContext.onerror')
   @DocsEditable
@@ -29205,6 +29964,132 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('ClientRect')
+class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
+
+  // NOTE! All code below should be common with Rect.
+  // TODO(blois): implement with mixins when available.
+
+  String toString() {
+    return '($left, $top, $width, $height)';
+  }
+
+  bool operator ==(other) {
+    if (other is !Rect) return false;
+    return left == other.left && top == other.top && width == other.width &&
+        height == other.height;
+  }
+
+  /**
+   * Computes the intersection of this rectangle and the rectangle parameter.
+   * Returns null if there is no intersection.
+   */
+  Rect intersection(Rect rect) {
+    var x0 = max(left, rect.left);
+    var x1 = min(left + width, rect.left + rect.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, rect.top);
+      var y1 = min(top + height, rect.top + rect.height);
+
+      if (y0 <= y1) {
+        return new Rect(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns whether a rectangle intersects this rectangle.
+   */
+  bool intersects(Rect other) {
+    return (left <= other.left + other.width && other.left <= left + width &&
+        top <= other.top + other.height && other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains this rectangle and the
+   * input rectangle.
+   */
+  Rect union(Rect rect) {
+    var right = max(this.left + this.width, rect.left + rect.width);
+    var bottom = max(this.top + this.height, rect.top + rect.height);
+
+    var left = min(this.left, rect.left);
+    var top = min(this.top, rect.top);
+
+    return new Rect(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains another rectangle.
+   */
+  bool containsRect(Rect another) {
+    return left <= another.left &&
+           left + width >= another.left + another.width &&
+           top <= another.top &&
+           top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains a point.
+   */
+  bool containsPoint(Point another) {
+    return another.x >= left &&
+           another.x <= left + width &&
+           another.y >= top &&
+           another.y <= top + height;
+  }
+
+  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
+  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
+      height.floor());
+  Rect round() => new Rect(left.round(), top.round(), width.round(),
+      height.round());
+
+  /**
+   * Truncates coordinates to integers and returns the result as a new
+   * rectangle.
+   */
+  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
+      height.toInt());
+
+  Point get topLeft => new Point(this.left, this.top);
+  Point get bottomRight => new Point(this.left + this.width,
+      this.top + this.height);
+  _ClientRect.internal();
+
+  @DomName('ClientRect.bottom')
+  @DocsEditable
+  num get bottom native "ClientRect_bottom_Getter";
+
+  @DomName('ClientRect.height')
+  @DocsEditable
+  num get height native "ClientRect_height_Getter";
+
+  @DomName('ClientRect.left')
+  @DocsEditable
+  num get left native "ClientRect_left_Getter";
+
+  @DomName('ClientRect.right')
+  @DocsEditable
+  num get right native "ClientRect_right_Getter";
+
+  @DomName('ClientRect.top')
+  @DocsEditable
+  num get top native "ClientRect_top_Getter";
+
+  @DomName('ClientRect.width')
+  @DocsEditable
+  num get width native "ClientRect_width_Getter";
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29214,104 +30099,104 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRect> {
+class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
   _ClientRectList.internal();
 
   @DomName('ClientRectList.length')
   @DocsEditable
   int get length native "ClientRectList_length_Getter";
 
-  ClientRect operator[](int index) native "ClientRectList_item_Callback";
+  Rect operator[](int index) native "ClientRectList_item_Callback";
 
-  void operator[]=(int index, ClientRect value) {
+  void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<ClientRect> mixins.
-  // ClientRect is the element type.
+  // -- start List<Rect> mixins.
+  // Rect is the element type.
 
-  // From Iterable<ClientRect>:
+  // From Iterable<Rect>:
 
-  Iterator<ClientRect> get iterator {
+  Iterator<Rect> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<ClientRect>(this);
+    return new FixedSizeListIterator<Rect>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Rect)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(ClientRect element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(Rect element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => IterableMixinWorkaround.forEach(this, f);
+  void forEach(void f(Rect element)) => IterableMixinWorkaround.forEach(this, f);
 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(ClientRect element)) =>
+  Iterable map(f(Rect element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  Iterable<ClientRect> where(bool f(ClientRect element)) =>
+  Iterable<Rect> where(bool f(Rect element)) =>
       IterableMixinWorkaround.where(this, f);
 
-  Iterable expand(Iterable f(ClientRect element)) =>
+  Iterable expand(Iterable f(Rect element)) =>
       IterableMixinWorkaround.expand(this, f);
 
-  bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool f(Rect element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool f(Rect element)) => IterableMixinWorkaround.any(this, f);
 
-  List<ClientRect> toList({ bool growable: true }) =>
-      new List<ClientRect>.from(this, growable: growable);
+  List<Rect> toList({ bool growable: true }) =>
+      new List<Rect>.from(this, growable: growable);
 
-  Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
+  Set<Rect> toSet() => new Set<Rect>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Rect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
-  Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
+  Iterable<Rect> takeWhile(bool test(Rect value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Rect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
-  Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
+  Iterable<Rect> skipWhile(bool test(Rect value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Rect firstWhere(bool test(Rect value), { Rect orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Rect lastWhere(bool test(Rect value), {Rect orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  ClientRect singleMatching(bool test(ClientRect value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Rect singleWhere(bool test(Rect value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
-  ClientRect elementAt(int index) {
+  Rect elementAt(int index) {
     return this[index];
   }
 
-  // From Collection<ClientRect>:
+  // From Collection<Rect>:
 
-  void add(ClientRect value) {
+  void add(Rect value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(ClientRect value) {
+  void addLast(Rect value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Iterable<ClientRect> iterable) {
+  void addAll(Iterable<Rect> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<ClientRect>:
+  // From List<Rect>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
@@ -29320,49 +30205,53 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  Iterable<ClientRect> get reversed {
+  Iterable<Rect> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
-  void sort([int compare(ClientRect a, ClientRect b)]) {
+  void sort([int compare(Rect a, Rect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(ClientRect element, [int start = 0]) =>
+  int indexOf(Rect element, [int start = 0]) =>
       Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(ClientRect element, [int start]) {
+  int lastIndexOf(Rect element, [int start]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
   }
 
-  ClientRect get first {
+  Rect get first {
     if (this.length > 0) return this[0];
     throw new StateError("No elements");
   }
 
-  ClientRect get last {
+  Rect get last {
     if (this.length > 0) return this[this.length - 1];
     throw new StateError("No elements");
   }
 
-  ClientRect get single {
+  Rect get single {
     if (length == 1) return this[0];
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) =>
+  Rect min([int compare(Rect a, Rect b)]) =>
       IterableMixinWorkaround.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) =>
+  Rect max([int compare(Rect a, Rect b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
-  ClientRect removeAt(int pos) {
+  void insert(int index, Rect element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  Rect removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  ClientRect removeLast() {
+  Rect removeLast() {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29378,15 +30267,15 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(ClientRect element)) {
+  void removeWhere(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(ClientRect element)) {
+  void retainWhere(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Rect> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29394,18 +30283,26 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [ClientRect initialValue]) {
+  void insertRange(int start, int rangeLength, [Rect initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<ClientRect> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <ClientRect>[]);
+  List<Rect> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Rect>[]);
+  }
 
-  // -- end List<ClientRect> mixins.
+  List<Rect> getRange(int start, int rangeLength) =>
+      sublist(start, start + rangeLength);
+
+  Map<int, Rect> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
   @DocsEditable
-  ClientRect item(int index) native "ClientRectList_item_Callback";
+  Rect item(int index) native "ClientRectList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29484,16 +30381,16 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  CssRule firstWhere(bool test(CssRule value), { CssRule orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  CssRule lastWhere(bool test(CssRule value), {CssRule orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  CssRule singleMatching(bool test(CssRule value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  CssRule singleWhere(bool test(CssRule value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   CssRule elementAt(int index) {
@@ -29561,6 +30458,10 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   CssRule max([int compare(CssRule a, CssRule b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, CssRule element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -29581,11 +30482,11 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(CssRule element)) {
+  void removeWhere(bool test(CssRule element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(CssRule element)) {
+  void retainWhere(bool test(CssRule element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29601,8 +30502,16 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<CssRule> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <CssRule>[]);
+  }
+
   List<CssRule> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <CssRule>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, CssRule> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<CssRule> mixins.
 
@@ -29687,16 +30596,16 @@ class _CssValueList extends CssValue implements List<CssValue> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  CssValue firstWhere(bool test(CssValue value), { CssValue orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  CssValue lastWhere(bool test(CssValue value), {CssValue orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  CssValue singleMatching(bool test(CssValue value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  CssValue singleWhere(bool test(CssValue value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   CssValue elementAt(int index) {
@@ -29764,6 +30673,10 @@ class _CssValueList extends CssValue implements List<CssValue> {
   CssValue max([int compare(CssValue a, CssValue b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, CssValue element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -29784,11 +30697,11 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(CssValue element)) {
+  void removeWhere(bool test(CssValue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(CssValue element)) {
+  void retainWhere(bool test(CssValue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29804,8 +30717,16 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<CssValue> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <CssValue>[]);
+  }
+
   List<CssValue> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <CssValue>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, CssValue> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<CssValue> mixins.
 
@@ -30033,16 +30954,16 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Entry firstWhere(bool test(Entry value), { Entry orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Entry lastWhere(bool test(Entry value), {Entry orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Entry singleMatching(bool test(Entry value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Entry singleWhere(bool test(Entry value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Entry elementAt(int index) {
@@ -30110,6 +31031,10 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   Entry max([int compare(Entry a, Entry b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Entry element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30130,11 +31055,11 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Entry element)) {
+  void removeWhere(bool test(Entry element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Entry element)) {
+  void retainWhere(bool test(Entry element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30150,8 +31075,16 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Entry> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Entry>[]);
+  }
+
   List<Entry> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Entry>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Entry> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Entry> mixins.
 
@@ -30236,16 +31169,16 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  EntrySync firstWhere(bool test(EntrySync value), { EntrySync orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  EntrySync lastWhere(bool test(EntrySync value), {EntrySync orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  EntrySync singleMatching(bool test(EntrySync value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  EntrySync singleWhere(bool test(EntrySync value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   EntrySync elementAt(int index) {
@@ -30313,6 +31246,10 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   EntrySync max([int compare(EntrySync a, EntrySync b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, EntrySync element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30333,11 +31270,11 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(EntrySync element)) {
+  void removeWhere(bool test(EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(EntrySync element)) {
+  void retainWhere(bool test(EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30353,8 +31290,16 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<EntrySync> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <EntrySync>[]);
+  }
+
   List<EntrySync> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <EntrySync>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, EntrySync> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<EntrySync> mixins.
 
@@ -30439,16 +31384,16 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Gamepad firstWhere(bool test(Gamepad value), { Gamepad orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Gamepad lastWhere(bool test(Gamepad value), {Gamepad orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Gamepad singleMatching(bool test(Gamepad value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Gamepad singleWhere(bool test(Gamepad value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Gamepad elementAt(int index) {
@@ -30516,6 +31461,10 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   Gamepad max([int compare(Gamepad a, Gamepad b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Gamepad element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30536,11 +31485,11 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Gamepad element)) {
+  void removeWhere(bool test(Gamepad element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Gamepad element)) {
+  void retainWhere(bool test(Gamepad element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30556,8 +31505,16 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Gamepad> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Gamepad>[]);
+  }
+
   List<Gamepad> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Gamepad>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Gamepad> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Gamepad> mixins.
 
@@ -30733,16 +31690,16 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  Node firstWhere(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  Node lastWhere(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  Node singleWhere(bool test(Node value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   Node elementAt(int index) {
@@ -30810,6 +31767,10 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   Node max([int compare(Node a, Node b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, Node element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30830,11 +31791,11 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(Node element)) {
+  void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(Node element)) {
+  void retainWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30850,8 +31811,16 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<Node> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Node>[]);
+  }
+
   List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, Node> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<Node> mixins.
 
@@ -30960,16 +31929,16 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SpeechInputResult firstWhere(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SpeechInputResult lastWhere(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SpeechInputResult singleWhere(bool test(SpeechInputResult value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SpeechInputResult elementAt(int index) {
@@ -31037,6 +32006,10 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SpeechInputResult element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31057,11 +32030,11 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SpeechInputResult element)) {
+  void removeWhere(bool test(SpeechInputResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SpeechInputResult element)) {
+  void retainWhere(bool test(SpeechInputResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31077,8 +32050,16 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<SpeechInputResult> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <SpeechInputResult>[]);
+  }
+
   List<SpeechInputResult> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <SpeechInputResult>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, SpeechInputResult> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<SpeechInputResult> mixins.
 
@@ -31163,16 +32144,16 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  SpeechRecognitionResult firstWhere(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  SpeechRecognitionResult lastWhere(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  SpeechRecognitionResult singleWhere(bool test(SpeechRecognitionResult value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   SpeechRecognitionResult elementAt(int index) {
@@ -31240,6 +32221,10 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, SpeechRecognitionResult element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31260,11 +32245,11 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(SpeechRecognitionResult element)) {
+  void removeWhere(bool test(SpeechRecognitionResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(SpeechRecognitionResult element)) {
+  void retainWhere(bool test(SpeechRecognitionResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31280,8 +32265,16 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<SpeechRecognitionResult> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <SpeechRecognitionResult>[]);
+  }
+
   List<SpeechRecognitionResult> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <SpeechRecognitionResult>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, SpeechRecognitionResult> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<SpeechRecognitionResult> mixins.
 
@@ -31366,16 +32359,16 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  StyleSheet firstWhere(bool test(StyleSheet value), { StyleSheet orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  StyleSheet lastWhere(bool test(StyleSheet value), {StyleSheet orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  StyleSheet singleMatching(bool test(StyleSheet value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  StyleSheet singleWhere(bool test(StyleSheet value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   StyleSheet elementAt(int index) {
@@ -31443,6 +32436,10 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
+  void insert(int index, StyleSheet element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -31463,11 +32460,11 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeMatching(bool test(StyleSheet element)) {
+  void removeWhere(bool test(StyleSheet element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainMatching(bool test(StyleSheet element)) {
+  void retainWhere(bool test(StyleSheet element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -31483,8 +32480,16 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  List<StyleSheet> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <StyleSheet>[]);
+  }
+
   List<StyleSheet> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
+      sublist(start, start + rangeLength);
+
+  Map<int, StyleSheet> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
 
   // -- end List<StyleSheet> mixins.
 
@@ -31744,6 +32749,32 @@ class _DataAttributeMap implements Map<String, String> {
 
 
 /**
+ * An object that can be drawn to a [CanvasRenderingContext2D] object with
+ * [CanvasRenderingContext2D.drawImage] or
+ * [CanvasRenderingContext2D.drawImageAtScale].
+ *
+ * If the CanvasImageSource is an [ImageElement] then the element's image is
+ * used. If the [ImageElement] is an animated image, then the poster frame is
+ * used. If there is no poster frame, then the first frame of animation is used.
+ *
+ * If the CanvasImageSource is a [VideoElement] then the frame at the current
+ * playback position is used as the image.
+ *
+ * If the CanvasImageSource is a [CanvasElement] then the element's bitmap is
+ * used.
+ *
+ * See also:
+ *
+ *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
+ * from the WHATWG.
+ */
+abstract class CanvasImageSource {}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
  * An object representing the top-level context object for web scripting.
  *
  * In a web browser, a [Window] object represents the actual browser window.
@@ -31915,7 +32946,7 @@ abstract class CssClassSet implements Set<String> {
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
-  Iterable expand(Iterable f(String element)) => readClasses.expand(f);
+  Iterable expand(Iterable f(String element)) => readClasses().expand(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
@@ -31961,22 +32992,28 @@ abstract class CssClassSet implements Set<String> {
     _modify((s) => s.retainAll(iterable));
   }
 
-  void removeMatching(bool test(String name)) {
-    _modify((s) => s.removeMatching(test));
+  void removeWhere(bool test(String name)) {
+    _modify((s) => s.removeWhere(test));
   }
 
-  void retainMatching(bool test(String name)) {
-    _modify((s) => s.retainMatching(test));
+  void retainWhere(bool test(String name)) {
+    _modify((s) => s.retainWhere(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
     readClasses().isSubsetOf(collection);
 
-  bool containsAll(Collection<String> collection) =>
+  bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
 
-  Set<String> intersection(Collection<String> other) =>
+  Set<String> intersection(Set<String> other) =>
     readClasses().intersection(other);
+
+  Set<String> union(Set<String> other) =>
+    readClasses().union(other);
+
+  Set<String> difference(Set<String> other) =>
+    readClasses().difference(other);
 
   String get first => readClasses().first;
   String get last => readClasses().last;
@@ -31994,12 +33031,12 @@ abstract class CssClassSet implements Set<String> {
   Iterable<String> skip(int n) => readClasses().skip(n);
   Iterable<String> skipWhile(bool test(String value)) =>
       readClasses().skipWhile(test);
-  String firstMatching(bool test(String value), { String orElse() }) =>
-      readClasses().firstMatching(test, orElse: orElse);
-  String lastMatching(bool test(String value), {String orElse()}) =>
-      readClasses().lastMatching(test, orElse: orElse);
-  String singleMatching(bool test(String value)) =>
-      readClasses().singleMatching(test);
+  String firstWhere(bool test(String value), { String orElse() }) =>
+      readClasses().firstWhere(test, orElse: orElse);
+  String lastWhere(bool test(String value), {String orElse()}) =>
+      readClasses().lastWhere(test, orElse: orElse);
+  String singleWhere(bool test(String value)) =>
+      readClasses().singleWhere(test);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
@@ -32469,11 +33506,11 @@ class KeyboardEventController {
    * Returns true if the key fires a keypress event in the current browser.
    */
   bool _firesKeyPressEvent(KeyEvent event) {
-    if (!_Device.isIE && !_Device.isWebKit) {
+    if (!Device.isIE && !Device.isWebKit) {
       return true;
     }
 
-    if (_Device.userAgent.contains('Mac') && event.altKey) {
+    if (Device.userAgent.contains('Mac') && event.altKey) {
       return KeyCode.isCharacterKey(event.keyCode);
     }
 
@@ -32486,13 +33523,13 @@ class KeyboardEventController {
     if (!event.shiftKey &&
         (_keyDownList.last.keyCode == KeyCode.CTRL ||
          _keyDownList.last.keyCode == KeyCode.ALT ||
-         _Device.userAgent.contains('Mac') &&
+         Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META)) {
       return false;
     }
 
     // Some keys with Ctrl/Shift do not issue keypress in WebKit.
-    if (_Device.isWebKit && event.ctrlKey && event.shiftKey && (
+    if (Device.isWebKit && event.ctrlKey && event.shiftKey && (
         event.keyCode == KeyCode.BACKSLASH ||
         event.keyCode == KeyCode.OPEN_SQUARE_BRACKET ||
         event.keyCode == KeyCode.CLOSE_SQUARE_BRACKET ||
@@ -32508,9 +33545,9 @@ class KeyboardEventController {
     switch (event.keyCode) {
       case KeyCode.ENTER:
         // IE9 does not fire keypress on ENTER.
-        return !_Device.isIE;
+        return !Device.isIE;
       case KeyCode.ESC:
-        return !_Device.isWebKit;
+        return !Device.isWebKit;
     }
 
     return KeyCode.isCharacterKey(event.keyCode);
@@ -32522,7 +33559,7 @@ class KeyboardEventController {
    */
   int _normalizeKeyCodes(KeyboardEvent event) {
     // Note: This may change once we get input about non-US keyboards.
-    if (_Device.isFirefox) {
+    if (Device.isFirefox) {
       switch(event.keyCode) {
         case KeyCode.FF_EQUALS:
           return KeyCode.EQUALS;
@@ -32545,7 +33582,7 @@ class KeyboardEventController {
     if (_keyDownList.length > 0 &&
         (_keyDownList.last.keyCode == KeyCode.CTRL && !e.ctrlKey ||
          _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
-         _Device.userAgent.contains('Mac') &&
+         Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
       _keyDownList = [];
     }
@@ -32572,13 +33609,13 @@ class KeyboardEventController {
     var e = new KeyEvent(event);
     // IE reports the character code in the keyCode field for keypress events.
     // There are two exceptions however, Enter and Escape.
-    if (_Device.isIE) {
+    if (Device.isIE) {
       if (e.keyCode == KeyCode.ENTER || e.keyCode == KeyCode.ESC) {
         e._shadowCharCode = 0;
       } else {
         e._shadowCharCode = e.keyCode;
       }
-    } else if (_Device.isOpera) {
+    } else if (Device.isOpera) {
       // Opera reports the character code in the keyCode field.
       e._shadowCharCode = KeyCode.isCharacterKey(e.keyCode) ? e.keyCode : 0;
     }
@@ -32624,9 +33661,9 @@ class KeyboardEventController {
 
 
 /**
- * Defines the keycode values for keys that are returned by 
+ * Defines the keycode values for keys that are returned by
  * KeyboardEvent.keyCode.
- * 
+ *
  * Important note: There is substantial divergence in how different browsers
  * handle keycodes and their variants in different locales/keyboard layouts. We
  * provide these constants to help make code processing keys more readable.
@@ -32634,7 +33671,7 @@ class KeyboardEventController {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html  
+  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -32829,12 +33866,12 @@ abstract class KeyCode {
         (keyCode >= A && keyCode <= Z)) {
       return true;
     }
- 
+
     // Safari sends zero key code for non-latin characters.
-    if (_Device.isWebKit && keyCode == 0) {
+    if (Device.isWebKit && keyCode == 0) {
       return true;
     }
- 
+
     return (keyCode == SPACE || keyCode == QUESTION_MARK || keyCode == NUM_PLUS
         || keyCode == NUM_MINUS || keyCode == NUM_PERIOD ||
         keyCode == NUM_DIVISION || keyCode == SEMICOLON ||
@@ -33385,6 +34422,168 @@ abstract class KeyName {
    */
   static const String UNIDENTIFIED = "Unidentified";
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class _ModelTreeObserver {
+  static bool _initialized = false;
+
+  /**
+   * Start an observer watching the document for tree changes to automatically
+   * propagate model changes.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   */
+  static void initialize() {
+    if (!_initialized) {
+      _initialized = true;
+
+      if (MutationObserver.supported) {
+        var observer = new MutationObserver(_processTreeChange);
+        observer.observe(document, childList: true, subtree: true);
+      } else {
+        document.on['DOMNodeInserted'].listen(_handleNodeInserted);
+        document.on['DOMNodeRemoved'].listen(_handleNodeRemoved);
+      }
+    }
+  }
+
+  static void _processTreeChange(List<MutationRecord> mutations,
+      MutationObserver observer) {
+    for (var record in mutations) {
+      for (var node in record.addedNodes) {
+        // When nodes enter the document we need to make sure that all of the
+        // models are properly propagated through the entire sub-tree.
+        propagateModel(node, _calculatedModel(node), true);
+      }
+      for (var node in record.removedNodes) {
+        propagateModel(node, _calculatedModel(node), false);
+      }
+    }
+  }
+
+  static void _handleNodeInserted(MutationEvent e) {
+    var node = e.target;
+    window.setImmediate(() {
+      propagateModel(node, _calculatedModel(node), true);
+    });
+  }
+
+  static void _handleNodeRemoved(MutationEvent e) {
+    var node = e.target;
+    window.setImmediate(() {
+      propagateModel(node, _calculatedModel(node), false);
+    });
+  }
+
+  /**
+   * Figures out what the model should be for a node, avoiding any cached
+   * model values.
+   */
+  static _calculatedModel(node) {
+    if (node._hasLocalModel == true) {
+      return node._model;
+    } else if (node.parentNode != null) {
+      return node.parentNode._model;
+    }
+    return null;
+  }
+
+  /**
+   * Pushes model changes down through the tree.
+   *
+   * Set fullTree to true if the state of the tree is unknown and model changes
+   * should be propagated through the entire tree.
+   */
+  static void propagateModel(Node node, model, bool fullTree) {
+    // Calling into user code with the != call could generate exceptions.
+    // Catch and report them a global exceptions.
+    try {
+      if (node._hasLocalModel != true && node._model != model &&
+          node._modelChangedStream != null) {
+        node._model = model;
+        node._modelChangedStream.add(node);
+      }
+    } on AsyncError catch (e) {
+      e.throwDelayed();
+    } catch (e, s) {
+      new AsyncError(e, s).throwDelayed();
+    }
+    for (var child = node.$dom_firstChild; child != null;
+        child = child.nextNode) {
+      if (child._hasLocalModel != true) {
+        propagateModel(child, model, fullTree);
+      } else if (fullTree) {
+        propagateModel(child, child._model, true);
+      }
+    }
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A utility class for representing two-dimensional positions.
+ */
+class Point {
+  final num x;
+  final num y;
+
+  const Point([num x = 0, num y = 0]): x = x, y = y;
+
+  String toString() => '($x, $y)';
+
+  bool operator ==(other) {
+    if (other is !Point) return false;
+    return x == other.x && y == other.y;
+  }
+
+  Point operator +(Point other) {
+    return new Point(x + other.x, y + other.y);
+  }
+
+  Point operator -(Point other) {
+    return new Point(x - other.x, y - other.y);
+  }
+
+  Point operator *(num factor) {
+    return new Point(x * factor, y * factor);
+  }
+
+  /**
+   * Returns the distance between two points.
+   */
+  double distanceTo(Point other) {
+    var dx = x - other.x;
+    var dy = y - other.y;
+    return sqrt(dx * dx + dy * dy);
+  }
+
+  /**
+   * Returns the squared distance between two points.
+   *
+   * Squared distances can be used for comparisons when the actual value is not
+   * required.
+   */
+  num squaredDistanceTo(Point other) {
+    var dx = x - other.x;
+    var dy = y - other.y;
+    return dx * dx + dy * dy;
+  }
+
+  Point ceil() => new Point(x.ceil(), y.ceil());
+  Point floor() => new Point(x.floor(), y.floor());
+  Point round() => new Point(x.round(), y.round());
+
+  /**
+   * Truncates x and y to integers and returns the result as a new point.
+   */
+  Point toInt() => new Point(x.toInt(), y.toInt());
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -33409,6 +34608,140 @@ abstract class ReadyState {
    * Indicates the document and all subresources have been loaded.
    */
   static const String COMPLETE = "complete";
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * A class for representing two-dimensional rectangles.
+ */
+class Rect {
+  final num left;
+  final num top;
+  final num width;
+  final num height;
+
+  const Rect(this.left, this.top, this.width, this.height);
+
+  factory Rect.fromPoints(Point a, Point b) {
+    var left;
+    var width;
+    if (a.x < b.x) {
+      left = a.x;
+      width = b.x - left;
+    } else {
+      left = b.x;
+      width = a.x - left;
+    }
+    var top;
+    var height;
+    if (a.y < b.y) {
+      top = a.y;
+      height = b.y - top;
+    } else {
+      top = b.y;
+      height = a.y - top;
+    }
+
+    return new Rect(left, top, width, height);
+  }
+
+  num get right => left + width;
+  num get bottom => top + height;
+
+  // NOTE! All code below should be common with Rect.
+  // TODO: implement with mixins when available.
+
+  String toString() {
+    return '($left, $top, $width, $height)';
+  }
+
+  bool operator ==(other) {
+    if (other is !Rect) return false;
+    return left == other.left && top == other.top && width == other.width &&
+        height == other.height;
+  }
+
+  /**
+   * Computes the intersection of this rectangle and the rectangle parameter.
+   * Returns null if there is no intersection.
+   */
+  Rect intersection(Rect rect) {
+    var x0 = max(left, rect.left);
+    var x1 = min(left + width, rect.left + rect.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, rect.top);
+      var y1 = min(top + height, rect.top + rect.height);
+
+      if (y0 <= y1) {
+        return new Rect(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns whether a rectangle intersects this rectangle.
+   */
+  bool intersects(Rect other) {
+    return (left <= other.left + other.width && other.left <= left + width &&
+        top <= other.top + other.height && other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains this rectangle and the
+   * input rectangle.
+   */
+  Rect union(Rect rect) {
+    var right = max(this.left + this.width, rect.left + rect.width);
+    var bottom = max(this.top + this.height, rect.top + rect.height);
+
+    var left = min(this.left, rect.left);
+    var top = min(this.top, rect.top);
+
+    return new Rect(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains another rectangle.
+   */
+  bool containsRect(Rect another) {
+    return left <= another.left &&
+           left + width >= another.left + another.width &&
+           top <= another.top &&
+           top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains a point.
+   */
+  bool containsPoint(Point another) {
+    return another.x >= left &&
+           another.x <= left + width &&
+           another.y >= top &&
+           another.y <= top + height;
+  }
+
+  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
+  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
+      height.floor());
+  Rect round() => new Rect(left.round(), top.round(), width.round(),
+      height.round());
+
+  /**
+   * Truncates coordinates to integers and returns the result as a new
+   * rectangle.
+   */
+  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
+      height.toInt());
+
+  Point get topLeft => new Point(this.left, this.top);
+  Point get bottomRight => new Point(this.left + this.width,
+      this.top + this.height);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33503,13 +34836,13 @@ class _WrappedList<E> implements List<E> {
 
   E get single => _list.single;
 
-  E firstMatching(bool test(E value), { E orElse() }) =>
-      _list.firstMatching(test, orElse: orElse);
+  E firstWhere(bool test(E value), { E orElse() }) =>
+      _list.firstWhere(test, orElse: orElse);
 
-  E lastMatching(bool test(E value), {E orElse()}) =>
-      _list.lastMatching(test, orElse: orElse);
+  E lastWhere(bool test(E value), {E orElse()}) =>
+      _list.lastWhere(test, orElse: orElse);
 
-  E singleMatching(bool test(E value)) => _list.singleMatching(test);
+  E singleWhere(bool test(E value)) => _list.singleWhere(test);
 
   E elementAt(int index) => _list.elementAt(index);
 
@@ -33525,9 +34858,9 @@ class _WrappedList<E> implements List<E> {
 
   void retainAll(Iterable elements) { _list.retainAll(elements); }
 
-  void removeMatching(bool test(E element)) { _list.removeMatching(test); }
+  void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 
-  void retainMatching(bool test(E element)) { _list.retainMatching(test); }
+  void retainWhere(bool test(E element)) { _list.retainWhere(test); }
 
   void clear() { _list.clear(); }
 
@@ -33539,7 +34872,7 @@ class _WrappedList<E> implements List<E> {
 
   void set length(int newLength) { _list.length = newLength; }
 
-  void addLast(E value) { _list.addLast(value); }
+  void addLast(E value) { _list.add(value); }
 
   Iterable<E> get reversed => _list.reversed;
 
@@ -33549,11 +34882,15 @@ class _WrappedList<E> implements List<E> {
 
   int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
 
+  void insert(int index, E element) => _list.insert(index, element);
+
   E removeAt(int index) => _list.removeAt(index);
 
   E removeLast() => _list.removeLast();
 
-  List<E> getRange(int start, int length) => _list.getRange(start, length);
+  List<E> sublist(int start, [int end]) => _list.sublist(start, end);
+
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
     _list.setRange(start, length, from, startFrom);
@@ -33564,6 +34901,8 @@ class _WrappedList<E> implements List<E> {
   void insertRange(int start, int length, [E fill]) {
     _list.insertRange(start, length, fill);
   }
+
+  Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
 }
 
 /**
@@ -33733,12 +35072,10 @@ class KeyEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  int get layerX => _parent.layerX;
-  int get layerY => _parent.layerY;
+  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  int get pageX => _parent.pageX;
-  int get pageY => _parent.pageY;
+  Point get page => _parent.page;
   bool get returnValue => _parent.returnValue;
   void set returnValue(bool value) {
     _parent.returnValue = value;
@@ -33854,42 +35191,6 @@ class _TypedArrayFactoryProvider {
 
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Utils for device detection.
- */
-class _Device {
-  /**
-   * Gets the browser's user agent. Using this function allows tests to inject
-   * the user agent.
-   * Returns the user agent.
-   */
-  static String get userAgent => window.navigator.userAgent;
-
-  /**
-   * Determines if the current device is running Opera.
-   */
-  static bool get isOpera => userAgent.contains("Opera", 0);
-
-  /**
-   * Determines if the current device is running Internet Explorer.
-   */
-  static bool get isIE => !isOpera && userAgent.contains("MSIE", 0);
-
-  /**
-   * Determines if the current device is running Firefox.
-   */
-  static bool get isFirefox => userAgent.contains("Firefox", 0);
-
-  /**
-   * Determines if the current device is running WebKit.
-   */
-  static bool get isWebKit => !isOpera && userAgent.contains("WebKit", 0);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34540,8 +35841,15 @@ class TestRunner {
 class _Utils {
   static double dateTimeToDouble(DateTime dateTime) =>
       dateTime.millisecondsSinceEpoch.toDouble();
-  static DateTime doubleToDateTime(double dateTime) =>
-      new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+  static DateTime doubleToDateTime(double dateTime) {
+    try {
+      return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
+    } catch(_) {
+      // TODO(antonnm): treat exceptions properly in bindings and
+      // find out how to treat NaNs.
+      return null;
+    }
+  }
 
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
@@ -34573,6 +35881,7 @@ class _Utils {
 
   static window() native "Utils_window";
   static print(String message) native "Utils_print";
+  static forwardingPrint(String message) native "Utils_forwardingPrint";
   static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
@@ -34652,3 +35961,5 @@ get _printClosure => (s) {
     _Utils.print(s);
   }
 };
+
+final _forwardingPrintClosure = _Utils.forwardingPrint;

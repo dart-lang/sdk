@@ -5,6 +5,7 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32)
 
+#include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
@@ -32,6 +33,7 @@ uword CallOrJumpPattern::TargetAddress() const {
 void CallOrJumpPattern::SetTargetAddress(uword target) const {
   ASSERT(IsValid());
   *reinterpret_cast<uword*>(start() + 1) = target - start() - kLengthInBytes;
+  CPU::FlushICache(start() + 1, kWordSize);
 }
 
 

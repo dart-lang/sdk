@@ -29,7 +29,7 @@ main() {
               serverOnClosed = true;
               checkDone();
             });
-            request.response.addString("hello!");
+            request.response.write("hello!");
             request.response.close();
           });
       });
@@ -41,7 +41,7 @@ main() {
             clientOnClosed = true;
             checkDone();
           });
-          request.addString("hello!");
+          request.write("hello!");
           return request.close();
         })
         .then((response) {

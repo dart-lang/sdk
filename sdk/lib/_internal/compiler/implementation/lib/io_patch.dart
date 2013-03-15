@@ -53,12 +53,21 @@ patch class _FileUtils {
   }
 }
 
+patch class FileSystemEntity {
+  patch static int _getType(String path, bool followLinks) {
+    throw new UnsupportedError("FileSystemEntity._getType");
+  }
+}
+
 patch class _File {
   patch static _exists(String path) {
     throw new UnsupportedError("File._exists");
   }
   patch static _create(String path) {
     throw new UnsupportedError("File._create");
+  }
+  patch static _createLink(String path, String target) {
+    throw new UnsupportedError("File._createLink");
   }
   patch static _delete(String path) {
     throw new UnsupportedError("File._delete");
@@ -233,5 +242,14 @@ patch class _WindowsCodePageDecoder {
 patch class _WindowsCodePageEncoder {
   patch static List<int> _encodeString(String string) {
     throw new UnsupportedError("_WindowsCodePageEncoder._encodeString");
+  }
+}
+
+patch class _Filter {
+  patch static _Filter newZLibDeflateFilter(bool gzip, int level) {
+    throw new UnsupportedError("newZLibDeflateFilter");
+  }
+  patch static _Filter newZLibInflateFilter() {
+    throw new UnsupportedError("newZLibInflateFilter");
   }
 }

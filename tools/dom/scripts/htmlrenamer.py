@@ -18,13 +18,27 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
+    'EntryCallback': '_EntryCallback',
+    'EntriesCallback': '_EntriesCallback',
+    'ErrorCallback': '_ErrorCallback',
+    'FileCallback': '_FileCallback',
+    'FileSystemCallback': '_FileSystemCallback',
+    'FileWriterCallback': '_FileWriterCallback',
     'HTMLDocument' : 'HtmlDocument',
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'NamedNodeMap': '_NamedNodeMap',
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
+    'NotificationPermissionCallback': '_NotificationPermissionCallback',
     'PositionCallback': '_PositionCallback',
     'PositionErrorCallback': '_PositionErrorCallback',
+    'Rect': 'CssRect',
+    'RGBColor': 'CssRgbColor',
+    'RTCErrorCallback': '_RtcErrorCallback',
+    'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
+    'StorageInfoErrorCallback': '_StorageInfoErrorCallback',
+    'StorageInfoUsageCallback': '_StorageInfoUsageCallback',
+    'StringCallback': '_StringCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
@@ -79,10 +93,40 @@ _removed_html_interfaces = [
 for interface in _removed_html_interfaces:
   html_interface_renames[interface] = '_' + interface
 
+convert_to_future_members = monitored.Set(
+    'htmlrenamer.converted_to_future_members', [
+  'DataTransferItem.getAsString',
+  'DirectoryEntry.getDirectory',
+  'DirectoryEntry.getFile',
+  'DirectoryEntry.removeRecursively',
+  'DirectoryReader.readEntries',
+  'DOMWindow.webkitRequestFileSystem',
+  'DOMWindow.webkitResolveLocalFileSystemURL',
+  'Entry.copyTo',
+  'Entry.getMetadata',
+  'Entry.getParent',
+  'Entry.moveTo',
+  'Entry.remove',
+  'FileEntry.createWriter',
+  'FileEntry.file',
+  'Notification.requestPermission',
+  'NotificationCenter.requestPermission',
+  'RTCPeerConnection.createAnswer',
+  'RTCPeerConnection.createOffer',
+  'RTCPeerConnection.setLocalDescription',
+  'RTCPeerConnection.setRemoteDescription',
+  'StorageInfo.queryUsageAndQuota',
+  'StorageInfo.requestQuota',
+  'WorkerContext.webkitResolveLocalFileSystemURL',
+  'WorkerContext.webkitRequestFileSystem',
+])
+
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
 _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
+  'CanvasRenderingContext2D.arc',
+  'CanvasRenderingContext2D.drawImage',
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
@@ -93,11 +137,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Document.createTextNode',
   'Document.createTouch',
   'Document.createTouchList',
-  'Document.getElementById',
-  'Document.getElementsByClassName',
-  'Document.getElementsByName',
-  'Document.getElementsByTagName',
-  'Document.querySelector',
   'Document.querySelectorAll',
 
   # Moved to HTMLDocument.
@@ -127,15 +166,21 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Element.childElementCount',
   'Element.children',
   'Element.className',
+  'Element.clientHeight',
+  'Element.clientLeft',
+  'Element.clientTop',
+  'Element.clientWidth',
   'Element.firstElementChild',
   'Element.getAttribute',
   'Element.getAttributeNS',
-  'Element.getElementsByClassName',
   'Element.getElementsByTagName',
   'Element.hasAttribute',
   'Element.hasAttributeNS',
   'Element.lastElementChild',
-  'Element.querySelector',
+  'Element.offsetHeight',
+  'Element.offsetLeft',
+  'Element.offsetTop',
+  'Element.offsetWidth',
   'Element.querySelectorAll',
   'Element.removeAttribute',
   'Element.removeAttributeNS',
@@ -188,8 +233,15 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'KeyboardEvent.keyIdentifier',
   'MessageEvent.initMessageEvent',
   'MouseEvent.initMouseEvent',
+  'MouseEvent.clientX',
+  'MouseEvent.clientY',
+  'MouseEvent.webkitMovementX',
+  'MouseEvent.webkitMovementY',
+  'MouseEvent.offsetX',
+  'MouseEvent.offsetY',
+  'MouseEvent.screenX',
+  'MouseEvent.screenY',
   'MutationEvent.initMutationEvent',
-  'Node.appendChild',
   'Node.attributes',
   'Node.childNodes',
   'Node.firstChild',
@@ -198,9 +250,10 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Node.namespaceURI',
   'Node.removeChild',
   'Node.replaceChild',
-  'ShadowRoot.getElementById',
-  'ShadowRoot.getElementsByClassName',
-  'ShadowRoot.getElementsByTagName',
+  'Screen.availHeight',
+  'Screen.availLeft',
+  'Screen.availTop',
+  'Screen.availWidth',
   'Storage.clear',
   'Storage.getItem',
   'Storage.key',
@@ -209,10 +262,20 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Storage.setItem',
   'StorageEvent.initStorageEvent',
   'TextEvent.initTextEvent',
+  'Touch.clientX',
+  'Touch.clientY',
+  'Touch.pageX',
+  'Touch.pageY',
+  'Touch.screenX',
+  'Touch.screenY',
   'TouchEvent.initTouchEvent',
   'UIEvent.charCode',
   'UIEvent.initUIEvent',
   'UIEvent.keyCode',
+  'UIEvent.layerX',
+  'UIEvent.layerY',
+  'UIEvent.pageX',
+  'UIEvent.pageY',
   'WheelEvent.wheelDeltaX',
   'WheelEvent.wheelDeltaY',
   'WheelEvent.initWebKitWheelEvent',
@@ -224,6 +287,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
+    'Document.querySelector': 'query',
     'DOMURL.createObjectURL': 'createObjectUrl',
     'DOMURL.revokeObjectURL': 'revokeObjectUrl',
     'DOMWindow.clearTimeout': '_clearTimeout',
@@ -235,18 +299,20 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DOMWindow.webkitNotifications': 'notifications',
     'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
-    'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
+    'Element.querySelector': 'query',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
+    'Node.appendChild': 'append',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',
     'Node.parentElement': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
+    'SVGComponentTransferFunctionElement.offset': 'gradientOffset',
     'SVGElement.className': '$dom_svgClassName',
+    'SVGStopElement.offset': 'gradientOffset',
     'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
     'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
     'WorkerContext.webkitResolveLocalFileSystemSyncURL':
@@ -254,6 +320,12 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'WorkerContext.webkitResolveLocalFileSystemURL':
         'resolveLocalFileSystemUrl',
 })
+
+for member in convert_to_future_members:
+  if member in renamed_html_members:
+    renamed_html_members[member] = '_' + renamed_html_members[member]
+  else:
+    renamed_html_members[member] = '_' + member[member.find('.') + 1 :]
 
 # Members and classes from the dom that should be removed completely from
 # dart:html.  These could be expressed in the IDL instead but expressing this

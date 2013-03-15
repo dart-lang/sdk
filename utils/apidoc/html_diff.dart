@@ -8,25 +8,29 @@
  */
 library html_diff;
 
-import 'dart:io';
 import 'dart:async';
-import '../../sdk/lib/html/html_common/metadata.dart';
+import 'dart:io';
+
 import 'lib/metadata.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
+import '../../sdk/lib/html/html_common/metadata.dart';
 
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
 // changes. We should only need to look at the library 'html'.
 const List<String> HTML_LIBRARY_NAMES = const [
     'dart:html',
+    'dart:indexed_db',
     'dart:svg',
     'dart:web_audio'];
 const List<String> HTML_DECLARED_NAMES = const [
     'dart.dom.html',
+    'dart.dom.indexed_db',
     'dart.dom.svg',
     'dart.dom.web_audio'];
 
@@ -69,22 +73,7 @@ class HtmlDiff {
   /** If true, then print warning messages. */
   final bool _printWarnings;
 
-  static Compilation _compilation;
-  static MirrorSystem _mirrors;
   static LibraryMirror dom;
-
-  /**
-   * Perform static initialization of [world]. This should be run before
-   * calling [HtmlDiff.run].
-   */
-  static void initialize(Path libDir) {
-    var paths = <Path>[];
-    for (var libraryName in HTML_LIBRARY_NAMES) {
-      paths.add(new Path(libraryName));
-    }
-    _compilation = new Compilation.library(paths, libDir);
-    _mirrors = _compilation.mirrors;
-  }
 
   HtmlDiff({bool printWarnings: false}) :
     _printWarnings = printWarnings,
@@ -103,24 +92,33 @@ class HtmlDiff {
    * should be initialized (via [parseOptions] and [initializeWorld]) and
    * [HtmlDiff.initialize] should be called.
    */
-  void run() {
-    for (var libraryName in HTML_DECLARED_NAMES) {
-      var library = _mirrors.libraries[libraryName];
-      if (library == null) {
-        warn('Could not find $libraryName');
-        return;
-      }
-      for (ClassMirror type in library.classes.values) {
-        final domTypes = htmlToDomTypes(type);
-        if (domTypes.isEmpty) continue;
-
-        htmlTypesToDom.putIfAbsent(type.qualifiedName,
-            () => new Set()).addAll(domTypes);
-
-        type.members.forEach(
-            (_, m) => _addMemberDiff(m, domTypes, library.simpleName));
-      }
+  Future run(Path libDir) {
+    var result = new Completer();
+    var paths = <Path>[];
+    for (var libraryName in HTML_LIBRARY_NAMES) {
+      paths.add(new Path(libraryName));
     }
+    analyze(paths, libDir).then((MirrorSystem mirrors) {
+      for (var libraryName in HTML_DECLARED_NAMES) {
+        var library = mirrors.libraries[libraryName];
+        if (library == null) {
+          warn('Could not find $libraryName');
+          result.complete(false);
+        }
+        for (ClassMirror type in library.classes.values) {
+          final domTypes = htmlToDomTypes(type);
+          if (domTypes.isEmpty) continue;
+
+          htmlTypesToDom.putIfAbsent(type.qualifiedName,
+              () => new Set()).addAll(domTypes);
+
+          type.members.forEach(
+              (_, m) => _addMemberDiff(m, domTypes, library.simpleName));
+        }
+      }
+      result.complete(true);
+    });
+    return result.future;
   }
 
   /**

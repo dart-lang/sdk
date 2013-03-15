@@ -52,9 +52,7 @@ Future asynchronously(function()) {
   if (function == null) return new Future.immediate(null);
 
   var completer = new Completer();
-  new Timer(0, (_) {
-    completer.complete(function());
-  });
+  Timer.run(() => completer.complete(function()));
 
   return completer.future;
 }
@@ -81,7 +79,7 @@ class FutureGroup {
     _pending++;
     var handledTaskFuture = task.catchError((e) {
       if (!wasCompleted) {
-        _completer.completeError(e.error, task.stackTrace);
+        _completer.completeError(e.error, e.stackTrace);
         wasCompleted = true;
       }
     }).then((_) {
@@ -142,7 +140,9 @@ abstract class TestSuite {
     var name;
     switch (configuration['compiler']) {
       case 'dartc':
+      case 'new_analyzer':
         name = executablePath;
+        break;
       case 'dart2js':
       case 'dart2dart':
         var prefix = 'sdk/bin/';
@@ -181,6 +181,8 @@ abstract class TestSuite {
         return '$buildDir/dart$suffix';
       case 'dartc':
         return '$buildDir/analyzer/bin/dart_analyzer$suffix';
+      case 'new_analyzer':
+        return 'sdk/bin/analyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -253,10 +255,12 @@ abstract class TestSuite {
 void ccTestLister() {
   port.receive((String runnerPath, SendPort replyTo) {
     Future processFuture = Process.start(runnerPath, ["--list"]);
-    processFuture.then((p) {
+    processFuture.then((Process p) {
       // Drain stderr to not leak resources.
-      p.stderr.onData = p.stderr.read;
-      StringInputStream stdoutStream = new StringInputStream(p.stdout);
+      p.stderr.listen((_) { });
+      Stream<String> stdoutStream =
+          p.stdout.transform(new StringDecoder())
+                  .transform(new LineTransformer());
       var streamDone = false;
       var processExited = false;
       checkDone() {
@@ -264,15 +268,15 @@ void ccTestLister() {
           replyTo.send("");
         }
       }
-      stdoutStream.onLine = () {
-        String line = stdoutStream.readLine();
+      stdoutStream.listen((String line) {
         replyTo.send(line);
-      };
-      stdoutStream.onClosed = () {
+      },
+      onDone: () {
         streamDone = true;
         checkDone();
-      };
-      p.onExit = (code) {
+      });
+
+      p.exitCode.then((code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
           replyTo.send("");
@@ -280,7 +284,7 @@ void ccTestLister() {
           processExited = true;
           checkDone();
         }
-      };
+      });
       port.close();
     }).catchError((e) {
       print("Failed to list tests: $runnerPath --list");
@@ -582,9 +586,11 @@ class StandardTestSuite extends TestSuite {
     var listCompleter = new Completer();
     group.add(listCompleter.future);
 
-    var lister = dir.list(recursive: listRecursively);
-    lister.onFile = (file) => enqueueFile(file, group);
-    lister.onDone = listCompleter.complete;
+    var lister = dir.list(recursive: listRecursively)
+        .listen((FileSystemEntity fse) {
+          if (fse is File) enqueueFile(fse.path, group);
+        },
+        onDone: listCompleter.complete);
   }
 
   void enqueueFile(String filename, FutureGroup group) {
@@ -699,8 +705,8 @@ class StandardTestSuite extends TestSuite {
       isNegative = true;
     }
 
-    if (configuration['compiler'] == 'dartc') {
-      // dartc can detect static type warnings by the
+    if (configuration['analyzer']) {
+      // An analyzer can detect static type warnings by the
       // format of the error line
       if (info.hasFatalTypeErrors) {
         isNegative = true;
@@ -775,6 +781,7 @@ class StandardTestSuite extends TestSuite {
 
     case 'none':
     case 'dartc':
+    case 'new_analyzer':
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
       return <Command>[new Command(dartShellFileName, arguments)];
@@ -815,7 +822,7 @@ class StandardTestSuite extends TestSuite {
    */
   String _createUrlPathFromFile(Path file) {
     file = TestUtils.absolutePath(file);
-    
+
     var relativeBuildDir = new Path(TestUtils.buildDir(configuration));
     var buildDir = TestUtils.absolutePath(relativeBuildDir);
     var dartDir = TestUtils.absolutePath(TestUtils.dartDir());
@@ -829,10 +836,10 @@ class StandardTestSuite extends TestSuite {
       return "/$PREFIX_DARTDIR/$fileRelativeToDartDir";
     }
     // Unreachable
-    Except.fail('This should be unreachable.');
+    Expect.fail('This should be unreachable.');
   }
 
-  void _getUriForBrowserTest(TestInformation info,
+  String _getUriForBrowserTest(TestInformation info,
                             String pathComponent,
                             subtestNames,
                             subtestIndex) {
@@ -1017,7 +1024,7 @@ class StandardTestSuite extends TestSuite {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
               '--browser=$runtime',
-              '--timeout=${configuration["timeout"] - 2}',
+              '--timeout=${configuration["timeout"]~/2}',
               '--out=$fullHtmlPath'];
           if (runtime == 'dartium') {
             args.add('--executable=$dartiumFilename');
@@ -1163,6 +1170,7 @@ class StandardTestSuite extends TestSuite {
       case 'dart2dart':
         return 'application/dart';
       case 'dart2js':
+      case 'new_analyzer':
       case 'dartc':
         return 'text/javascript';
       default:
@@ -1223,9 +1231,8 @@ class StandardTestSuite extends TestSuite {
       args.add(packageRoot);
     }
     args.addAll(additionalOptions(filePath));
-    if (configuration['compiler'] == 'dartc') {
-      args.add('--error_format');
-      args.add('machine');
+    if (configuration['analyzer']) {
+      args.add('--machine');
     }
 
     bool isMultitest = optionsFromFile["isMultitest"];
@@ -1324,7 +1331,7 @@ class StandardTestSuite extends TestSuite {
    * This method is static as the map is cached and shared amongst
    * configurations, so it may not use [configuration].
    */
-  static Map readOptionsFromFile(Path filePath) {
+  Map readOptionsFromFile(Path filePath) {
     if (filePath.segments().contains('co19')) {
       return readOptionsFromCo19File(filePath);
     }
@@ -1339,7 +1346,6 @@ class StandardTestSuite extends TestSuite {
     RegExp compileTimeRegExp =
         new RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
     RegExp staticCleanRegExp = new RegExp(r"// @static-clean");
-    RegExp leadingHashRegExp = new RegExp(r"^#", multiLine: true);
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
@@ -1404,7 +1410,6 @@ class StandardTestSuite extends TestSuite {
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
-    bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
     bool containsDomImport = domImportRegExp.hasMatch(contents);
@@ -1443,7 +1448,6 @@ class StandardTestSuite extends TestSuite {
              "isMultitest": isMultitest,
              "isMultiHtmlTest": isMultiHtmlTest,
              "subtestNames": subtestNames,
-             "containsLeadingHash": containsLeadingHash,
              "isolateStubs": isolateStubs,
              "containsDomImport": containsDomImport,
              "isLibraryDefinition": isLibraryDefinition,
@@ -1480,7 +1484,7 @@ class StandardTestSuite extends TestSuite {
    * pass the co19 test suite as is, and not require extra flags,
    * environment variables, configuration files, etc.
    */
-  static Map readOptionsFromCo19File(Path filePath) {
+  Map readOptionsFromCo19File(Path filePath) {
     String contents = decodeUtf8(new File.fromPath(filePath).readAsBytesSync());
 
     bool hasCompileError = contents.contains("@compile-error");
@@ -1499,8 +1503,8 @@ class StandardTestSuite extends TestSuite {
 
       // Using stderr.writeString to avoid breaking dartc/junit_tests
       // which parses the output of the --list option.
-      stderr.writeString(
-          "Warning: deprecated @dynamic-type-error tag used in $filePath\n");
+      stderr.writeln(
+          "Warning: deprecated @dynamic-type-error tag used in $filePath");
     }
 
     return {
@@ -1514,7 +1518,6 @@ class StandardTestSuite extends TestSuite {
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,
       "subtestNames": <String>[],
-      "containsLeadingHash": false,
       "isolateStubs": '',
       "containsDomImport": false,
       "isLibraryDefinition": false,
@@ -1526,14 +1529,24 @@ class StandardTestSuite extends TestSuite {
 }
 
 
+/// A DartcCompilationTestSuite will run dartc on all of the tests.
+///
+/// Usually, the result of a dartc run is determined by the output of
+/// dartc in connection with annotations in the test file.
+///
+/// If you want each file that you are running as a test to have no
+/// static warnings or errors you can create a DartcCompilationTestSuite
+/// with the optional allStaticClean constructor parameter set to true.
 class DartcCompilationTestSuite extends StandardTestSuite {
   List<String> _testDirs;
+  bool allStaticClean;
 
   DartcCompilationTestSuite(Map configuration,
                             String suiteName,
                             String directoryPath,
                             List<String> this._testDirs,
-                            List<String> expectations)
+                            List<String> expectations,
+                            {bool this.allStaticClean: false})
       : super(configuration,
               suiteName,
               new Path(directoryPath),
@@ -1554,6 +1567,14 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     }
 
     return group.future;
+  }
+
+  Map readOptionsFromFile(Path p) {
+    Map options = super.readOptionsFromFile(p);
+    if (allStaticClean) {
+      options['isStaticClean'] = true;
+    }
+    return options;
   }
 }
 
@@ -1585,7 +1606,7 @@ class JUnitTestSuite extends TestSuite {
     doTest = onTest;
     doDone = onDone;
 
-    if (configuration['compiler'] != 'dartc') {
+    if (!configuration['analyzer']) {
       // Do nothing. Asynchronously report that the suite is enqueued.
       asynchronously(doDone);
       return;
@@ -1607,9 +1628,10 @@ class JUnitTestSuite extends TestSuite {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
-    var lister = dir.list(recursive: true);
-    lister.onFile = processFile;
-    lister.onDone = createTest;
+    dir.list(recursive: true).listen((FileSystemEntity fse) {
+      if (fse is File) processFile(fse.path);
+    },
+    onDone: createTest);
   }
 
   void processFile(String filename) {
@@ -1625,7 +1647,7 @@ class JUnitTestSuite extends TestSuite {
     }
   }
 
-  void createTest(successIgnored) {
+  void createTest() {
     var sdkDir = "$buildDir/dart-sdk".trim();
     List<String> args = <String>[
         '-ea',
@@ -1671,7 +1693,7 @@ class JUnitTestSuite extends TestSuite {
 }
 
 class LastModifiedCache {
-  Map<String, Date> _cache = <String, Date>{};
+  Map<String, DateTime> _cache = <String, DateTime>{};
 
   /**
    * Returns the last modified date of the given [uri].
@@ -1682,7 +1704,7 @@ class LastModifiedCache {
    * In case [uri] is not a local file, this method will always return
    * the current date.
    */
-  Date getLastModified(Uri uri) {
+  DateTime getLastModified(Uri uri) {
     if (uri.scheme == "file") {
       if (_cache.containsKey(uri.path)) {
         return _cache[uri.path];
@@ -1740,11 +1762,8 @@ class TestUtils {
    * Assumes that the directory for [dest] already exists.
    */
   static Future copyFile(Path source, Path dest) {
-    var output = new File.fromPath(dest).openOutputStream();
-    new File.fromPath(source).openInputStream().pipe(output);
-    var completer = new Completer();
-    output.onClosed = (){ completer.complete(null); };
-    return completer.future;
+    return new File.fromPath(source).openRead()
+        .pipe(new File.fromPath(dest).openWrite());
   }
 
   static Path debugLogfile() {
@@ -1838,6 +1857,9 @@ class TestUtils {
 
   static bool isJsCommandLineRuntime(String runtime) =>
       const ['d8', 'jsshell'].contains(runtime);
+
+  static bool isCommandLineAnalyzer(String compiler) =>
+      compiler == 'dartc' || compiler == 'new_analyzer';
 
   static String buildDir(Map configuration) {
     // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'

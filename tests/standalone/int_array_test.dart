@@ -7,7 +7,7 @@
 // Library tag to be able to run in html test framework.
 library IntArrayTest;
 
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 void testInt16() {
   Int16List intArray = new Int16List(4);

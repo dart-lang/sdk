@@ -1,0 +1,89 @@
+library java.io;
+
+import "dart:io";
+import "dart:uri";
+
+class JavaSystemIO {
+  static Map<String, String> _properties = new Map();
+  static String getProperty(String name) {
+    {
+      String value = _properties[name];
+      if (value != null) {
+        return value;
+      }
+    }
+    if (name == 'os.name') {
+      return Platform.operatingSystem;
+    }
+    if (name == 'line.separator') {
+      if (Platform.operatingSystem == 'windows') {
+        return '\r\n';
+      }
+      return '\n';
+    }
+    if (name == 'com.google.dart.sdk') {
+      String exec = new Options().executable;
+      if (exec.length != 0) {
+        String sdkPath;
+        // may be "xcodebuild/ReleaseIA32/dart" with "dart-sdk" sibling
+        {
+          sdkPath = new Path(exec).directoryPath.append("dart-sdk").toNativePath();
+          if (new Directory(sdkPath).existsSync()) {
+            _properties[name] = sdkPath;
+            return sdkPath;
+          }
+        }
+        // probably be "dart-sdk/bin/dart"
+        sdkPath = new Path(exec).directoryPath.directoryPath.toString();
+        _properties[name] = sdkPath;
+        return sdkPath;
+      }
+    }
+    return null;
+  }
+  static String setProperty(String name, String value) {
+    String oldValue = _properties[name];
+    _properties[name] = value;
+    return oldValue;
+  }
+  static String getenv(String name) => Platform.environment[name];
+}
+
+class JavaFile {
+  static final String separator = Platform.pathSeparator;
+  static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
+  Path _path;
+  JavaFile(String path) {
+    this._path = new Path(path);
+  }
+  JavaFile.relative(JavaFile base, String child) {
+    this._path = base._path.join(new Path(child));
+  }
+  JavaFile.fromUri(Uri uri) : this(uri.path);
+  int get hashCode => _path.hashCode;
+  bool operator ==(other) {
+    return other is JavaFile && other._path.toNativePath() == _path.toNativePath();
+  }
+  String getPath() => _path.toNativePath();
+  String getName() => _path.filename;
+  String getParent() => _path.directoryPath.toNativePath();
+  JavaFile getParentFile() => new JavaFile(getParent());
+  String getAbsolutePath() => _path.canonicalize().toNativePath();
+  String getCanonicalPath() => _path.canonicalize().toNativePath();
+  JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());
+  JavaFile getCanonicalFile() => new JavaFile(getCanonicalPath());
+  bool exists() {
+    if (_newFile().existsSync()) {
+      return true;
+    }
+    if (_newDirectory().existsSync()) {
+      return true;
+    }
+    return false;
+  }
+  Uri toURI() => new Uri.fromComponents(path: _path.toString());
+  String readAsStringSync() => _newFile().readAsStringSync();
+  int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;
+  File _newFile() => new File.fromPath(_path);
+  Directory _newDirectory() => new Directory.fromPath(_path);
+}

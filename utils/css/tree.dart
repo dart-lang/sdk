@@ -60,9 +60,9 @@ class SelectorGroup extends ASTNode {
     int idx = 0;
     for (final selector in _selectors) {
       if (idx++ > 0) {
-        buff.add(', ');
+        buff.write(', ');
       }
-      buff.add(selector.toString());
+      buff.write(selector.toString());
     }
     return buff.toString();
   }
@@ -94,7 +94,7 @@ class Selector extends ASTNode {
   String toString() {
     StringBuffer buff = new StringBuffer();
     for (final simpleSelectorSequence in _simpleSelectorSequences) {
-      buff.add(simpleSelectorSequence.toString());
+      buff.write(simpleSelectorSequence.toString());
     }
     return buff.toString();
   }
@@ -301,7 +301,7 @@ class Stylesheet extends ASTNode {
   String toString() {
     StringBuffer buff = new StringBuffer();
     for (final topLevel in _topLevels) {
-      buff.add(topLevel.toString());
+      buff.write(topLevel.toString());
     }
     return buff.toString();
   }
@@ -363,13 +363,13 @@ class ImportDirective extends Directive {
   String toString() {
     StringBuffer buff = new StringBuffer();
 
-    buff.add('@import url(${_import})');
+    buff.write('@import url(${_import})');
 
     int idx = 0;
     for (final medium in _media) {
-      buff.add(idx++ == 0 ? ' $medium' : ',$medium');
+      buff.write(idx++ == 0 ? ' $medium' : ',$medium');
     }
-    buff.add('\n');
+    buff.write('\n');
 
     return buff.toString();
   }
@@ -387,14 +387,14 @@ class MediaDirective extends Directive {
   String toString() {
     StringBuffer buff = new StringBuffer();
 
-    buff.add('@media');
+    buff.write('@media');
     int idx = 0;
     for (var medium in _media) {
-      buff.add(idx++ == 0 ? ' $medium' : ',$medium');
+      buff.write(idx++ == 0 ? ' $medium' : ',$medium');
     }
-    buff.add(' {\n');
-    buff.add(_ruleset.toString());
-    buff.add('\n\}\n');
+    buff.write(' {\n');
+    buff.write(_ruleset.toString());
+    buff.write('\n\}\n');
 
     return buff.toString();
   }
@@ -415,11 +415,11 @@ class PageDirective extends Directive {
   String toString() {
     StringBuffer buff = new StringBuffer();
 
-    buff.add('@page ');
+    buff.write('@page ');
     if (_pseudoPage != null) {
-      buff.add(': ${_pseudoPage} ');
+      buff.write(': ${_pseudoPage} ');
     }
-    buff.add('{\n${_decls.toString()}\n}\n');
+    buff.write('{\n${_decls.toString()}\n}\n');
 
     return buff.toString();
   }
@@ -442,11 +442,11 @@ class KeyFrameDirective extends Directive {
 
   String toString() {
     StringBuffer buff = new StringBuffer();
-    buff.add('@-webkit-keyframes ${_name} {\n');
+    buff.write('@-webkit-keyframes ${_name} {\n');
     for (final block in _blocks) {
-      buff.add(block.toString());
+      buff.write(block.toString());
     }
-    buff.add('}\n');
+    buff.write('}\n');
     return buff.toString();
   }
 }
@@ -462,9 +462,9 @@ class KeyFrameBlock extends Expression {
 
   String toString() {
     StringBuffer buff = new StringBuffer();
-    buff.add('  ${_blockSelectors.toString()} {\n');
-    buff.add(_declarations.toString());
-    buff.add('  }\n');
+    buff.write('  ${_blockSelectors.toString()} {\n');
+    buff.write(_declarations.toString());
+    buff.write('  }\n');
     return buff.toString();
   }
 }
@@ -498,9 +498,9 @@ class IncludeDirective extends Directive {
 
   String toString() {
     StringBuffer buff = new StringBuffer();
-    buff.add('/****** @include ${_include} ******/\n');
-    buff.add(_stylesheet != null ? _stylesheet.toString() : '// <EMPTY>');
-    buff.add('/****** End of ${_include} ******/\n\n');
+    buff.write('/****** @include ${_include} ******/\n');
+    buff.write(_stylesheet != null ? _stylesheet.toString() : '// <EMPTY>');
+    buff.write('/****** End of ${_include} ******/\n\n');
     return buff.toString();
   }
 }
@@ -558,7 +558,7 @@ class DeclarationGroup extends ASTNode {
     StringBuffer buff = new StringBuffer();
     int idx = 0;
     for (final declaration in _declarations) {
-      buff.add("  ${declaration.toString()};\n");
+      buff.write("  ${declaration.toString()};\n");
     }
     return buff.toString();
   }
@@ -725,9 +725,9 @@ class FunctionTerm extends LiteralTerm {
     // TODO(terry): Optimize rgb to a hexcolor.
     StringBuffer buff = new StringBuffer();
 
-    buff.add('${text}(');
-    buff.add(_params.toString());
-    buff.add(')');
+    buff.write('${text}(');
+    buff.write(_params.toString());
+    buff.write(')');
 
     return buff.toString();
   }
@@ -746,15 +746,15 @@ class GroupTerm extends Expression {
 
   String toString() {
     StringBuffer buff = new StringBuffer();
-    buff.add('(');
+    buff.write('(');
     int idx = 0;
     for (final term in _terms) {
       if (idx++ > 0) {
-        buff.add(' ');
+        buff.write(' ');
       }
-      buff.add(term.toString());
+      buff.write(term.toString());
     }
-    buff.add(')');
+    buff.write(')');
     return buff.toString();
   }
 }
@@ -788,9 +788,9 @@ class Expressions extends Expression {
       // TODO(terry): Should have a BinaryExpression to solve this problem.
       if (idx > 0 &&
           !(expression is OperatorComma || expression is OperatorSlash)) {
-        buff.add(' ');
+        buff.write(' ');
       }
-      buff.add(expression.toString());
+      buff.write(expression.toString());
       idx++;
     }
     return buff.toString();

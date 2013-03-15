@@ -6,7 +6,6 @@
 #if defined(TARGET_ARCH_ARM)
 
 #include "vm/assembler.h"
-#include "vm/assembler_macros.h"
 #include "vm/code_generator.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
@@ -29,6 +28,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
+
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Load current Isolate pointer from Context structure into R0.
@@ -36,26 +36,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, R0, offset12_hi);
-    __ str(SP, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, SP, R0, Isolate::top_exit_frame_info_offset());
 
   // Save current Context pointer into Isolate structure.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, R0, offset12_hi);
-    __ str(CTX, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, CTX, R0, Isolate::top_context_offset());
 
   // Cache Isolate pointer into CTX while executing runtime code.
   __ mov(CTX, ShifterOperand(R0));
@@ -69,7 +53,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Registers R0, R1, R2, and R3 are used.
 
   ASSERT(isolate_offset == 0 * kWordSize);
-  __ mov(R0, ShifterOperand(CTX));  // Set isolate in NativeArgs.
+  // Set isolate in NativeArgs: R0 already contains CTX.
 
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -88,38 +72,14 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, CTX, offset12_hi);
-    __ str(R2, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, R2, CTX, Isolate::top_exit_frame_info_offset());
 
   // Load Context pointer from Isolate structure into R2.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, CTX, offset12_hi);
-    __ ldr(R2, Address(IP, offset12_lo));
-  }
+  __ LoadFromOffset(kLoadWord, R2, CTX, Isolate::top_context_offset());
 
   // Reset Context pointer in Isolate structure.
   __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(IP, CTX, offset12_hi);
-    __ str(R3, Address(IP, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, R3, CTX, Isolate::top_context_offset());
 
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, ShifterOperand(R2));
@@ -129,20 +89,106 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
+
+
+// Input parameters:
+//   R0 : stop message (const char*).
+// Must preserve all registers.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ Unimplemented("PrintStopMessage stub");
+  __ EnterCallRuntimeFrame(0);
+  // Call the runtime leaf function. R0 already contains the parameter.
+  __ CallRuntime(kPrintStopMessageRuntimeEntry);
+  __ LeaveCallRuntimeFrame();
+  __ Ret();
 }
 
 
+// Input parameters:
+//   LR : return address.
+//   SP : address of return value.
+//   R5 : address of the native function to call.
+//   R2 : address of first argument in argument array.
+//   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
-  __ Unimplemented("CallNativeCFunction stub");
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+
+  // Load current Isolate pointer from Context structure into R0.
+  __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to native code.
+  __ StoreToOffset(kStoreWord, SP, R0, Isolate::top_exit_frame_info_offset());
+
+  // Save current Context pointer into Isolate structure.
+  __ StoreToOffset(kStoreWord, CTX, R0, Isolate::top_context_offset());
+
+  // Cache Isolate pointer into CTX while executing native code.
+  __ mov(CTX, ShifterOperand(R0));
+
+  // Reserve space for the native arguments structure passed on the stack (the
+  // outgoing pointer parameter to the native arguments structure is passed in
+  // R0) and align frame before entering the C++ world.
+  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
+
+  // Initialize NativeArguments structure and call native function.
+  // Registers R0, R1, R2, and R3 are used.
+
+  ASSERT(isolate_offset == 0 * kWordSize);
+  // Set isolate in NativeArgs: R0 already contains CTX.
+
+  // There are no native calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  // Set argc in NativeArguments: R1 already contains argc.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  // Set argv in NativeArguments: R2 already contains argv.
+
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ add(R3, FP, ShifterOperand(2 * kWordSize));  // Set retval in NativeArgs.
+
+  // TODO(regis): Should we pass the structure by value as in runtime calls?
+  // It would require changing Dart API for native functions.
+  // For now, space is reserved on the stack and we pass a pointer to it.
+  __ stm(IA, SP,  (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
+  __ mov(R0, ShifterOperand(SP));  // Pass the pointer to the NativeArguments.
+
+  // Call native function or redirection via simulator.
+  __ blx(R5);
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kStoreWord, R2, CTX, Isolate::top_exit_frame_info_offset());
+
+  // Load Context pointer from Isolate structure into R2.
+  __ LoadFromOffset(kLoadWord, R2, CTX, Isolate::top_context_offset());
+
+  // Reset Context pointer in Isolate structure.
+  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+  __ StoreToOffset(kStoreWord, R3, CTX, Isolate::top_context_offset());
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ mov(CTX, ShifterOperand(R2));
+
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ Ret();
 }
 
 
 // Input parameters:
 //   R4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   __ PushList((1 << R0) | (1 << R4));
@@ -150,7 +196,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Get Code object result and restore arguments descriptor array.
   __ PopList((1 << R0) | (1 << R4));
   // Remove the stub frame as we are about to jump to the dart function.
-  AssemblerMacros::LeaveStubFrame(assembler);
+  __ LeaveStubFrame();
 
   __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
   __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
@@ -202,7 +248,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
-  AssemblerMacros::EnterStubFrame(assembler);
+  __ EnterStubFrame();
 
   // Save new context and C++ ABI callee-saved registers.
   const intptr_t kNewContextOffset =
@@ -223,30 +269,16 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save the top exit frame info. Use R5 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  {
-    // TODO(regis): Add assembler macro for {Load,Store}BasedOffset with no
-    // restriction on the offset.
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, R8, offset12_hi);
-    __ ldr(R5, Address(R7, offset12_lo));
-    __ LoadImmediate(R6, 0);
-    __ str(R6, Address(R7, offset12_lo));
-  }
+  __ LoadFromOffset(kLoadWord, R5, R8, Isolate::top_exit_frame_info_offset());
+  __ LoadImmediate(R6, 0);
+  __ StoreToOffset(kStoreWord, R6, R8, Isolate::top_exit_frame_info_offset());
 
   // Save the old Context pointer. Use R4 as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
   // FP - kExitLinkOffsetInEntryFrame.
   // EntryFrame::SavedContext reads the context saved in this frame.
-  {
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, R8, offset12_hi);
-    __ ldr(R4, Address(R7, offset12_lo));
-  }
+  __ LoadFromOffset(kLoadWord, R4, R8, Isolate::top_context_offset());
 
   // The constants kSavedContextOffsetInEntryFrame and
   // kExitLinkOffsetInEntryFrame must be kept in sync with the code below.
@@ -299,27 +331,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info back into the Isolate structure.
   // Uses R5 as a temporary register for this.
   __ PopList((1 << R4) | (1 << R5));
-  {
-    const intptr_t offset = Isolate::top_context_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, CTX, offset12_hi);
-    __ str(R4, Address(R7, offset12_lo));
-  }
-  {
-    const intptr_t offset = Isolate::top_exit_frame_info_offset();
-    const int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
-    const uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
-    __ AddImmediate(R7, CTX, offset12_hi);
-    __ str(R5, Address(R7, offset12_lo));
-  }
+  __ StoreToOffset(kStoreWord, R4, CTX, Isolate::top_context_offset());
+  __ StoreToOffset(kStoreWord, R5, CTX, Isolate::top_exit_frame_info_offset());
 
   // Restore C++ ABI callee-saved registers.
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
 
-  // Restore the frame pointer.
-  AssemblerMacros::LeaveStubFrame(assembler);
-
+  // Restore the frame pointer and return.
+  __ LeaveStubFrame();
   __ Ret();
 }
 

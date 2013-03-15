@@ -45,6 +45,8 @@ Future<String> provider(Uri uri) {
                     var removeLast;
                     var add;
                   }
+                  class JSFixedArray {}
+                  class JSExtendableArray {}
                   class JSString {
                     var length;
                     var split;
@@ -59,7 +61,8 @@ Future<String> provider(Uri uri) {
                   class JSBool {}
                   var getInterceptor;""";
     } else if (uri.path.endsWith('js_helper.dart')) {
-      source = 'library jshelper; class JSInvocationMirror {}';
+      source = 'library jshelper; class JSInvocationMirror {} '
+               'class ConstantMap {} class TypeImpl {}';
     } else if (uri.path.endsWith('isolate_helper.dart')) {
       source = 'library isolatehelper; class _WorkerStub {}';
     } else {

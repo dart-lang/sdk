@@ -6,6 +6,7 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.util.StringInterner;
 
 /**
  * <code>[new Class.name]</code> in {@link DartComment}.
@@ -22,9 +23,9 @@ public final class DartCommentNewName extends DartNode {
       int constructorOffset) {
     assert className != null;
     assert constructorName != null;
-    this.className = className;
+    this.className = StringInterner.intern(className);
     this.classOffset = classOffset;
-    this.constructorName = constructorName;
+    this.constructorName = StringInterner.intern(constructorName);
     this.constructorOffset = constructorOffset;
   }
 

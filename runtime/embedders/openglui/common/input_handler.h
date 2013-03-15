@@ -15,8 +15,9 @@ class InputHandler {
     virtual void Stop() { }
     virtual int OnMotionEvent(MotionEvent event, int64_t when,
                     float move_x, float move_y);
-    virtual int OnKeyEvent(KeyEvent event, int64_t when, int32_t flags,
-             int32_t key_code, int32_t meta_state, int32_t repeat);
+    virtual int OnKeyEvent(KeyEvent event, int64_t when, int32_t key_code,
+                           bool isAltKeyDown, bool isCtrlKeyDown,
+                           bool isShiftKeyDown, int32_t repeat);
     virtual ~InputHandler() {}
 
   protected:

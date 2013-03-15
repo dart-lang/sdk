@@ -50,7 +50,7 @@ class EventHandler {
 
   static EventHandler* Start() {
     EventHandler* handler = new EventHandler();
-    handler->delegate_.Start();
+    handler->delegate_.Start(handler);
     IsolateData* isolate_data =
         reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
     isolate_data->event_handler = handler;
@@ -58,6 +58,7 @@ class EventHandler {
   }
 
  private:
+  friend class EventHandlerImplementation;
   EventHandlerImplementation delegate_;
 };
 

@@ -51,6 +51,8 @@ namespace dart {
     V(AbstractType)                                                            \
       V(Type)                                                                  \
       V(TypeParameter)                                                         \
+      V(BoundedType)                                                           \
+      V(MixinAppType)                                                          \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -86,6 +88,8 @@ namespace dart {
       V(ExternalFloat32x4Array)                                                \
       V(ExternalFloat32Array)                                                  \
       V(ExternalFloat64Array)                                                  \
+    V(TypedData)                                                               \
+    V(ExternalTypedData)                                                       \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
@@ -100,6 +104,19 @@ namespace dart {
     V(TwoByteString)                                                           \
     V(ExternalOneByteString)                                                   \
     V(ExternalTwoByteString)
+
+#define CLASS_LIST_TYPED_DATA(V)                                               \
+  V(Int8Array)                                                                 \
+  V(Uint8Array)                                                                \
+  V(Uint8ClampedArray)                                                         \
+  V(Int16Array)                                                                \
+  V(Uint16Array)                                                               \
+  V(Int32Array)                                                                \
+  V(Uint32Array)                                                               \
+  V(Int64Array)                                                                \
+  V(Uint64Array)                                                               \
+  V(Float32Array)                                                              \
+  V(Float64Array)                                                              \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_OR_STRING(V)                                            \
@@ -130,6 +147,16 @@ enum ClassId {
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   k##clazz##Cid,
 CLASS_LIST(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz)                                              \
+  kTypedData##clazz##Cid,
+CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz)                                              \
+  kExternalTypedData##clazz##Cid,
+CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
   // The following entries do not describe a predefined class, but instead
@@ -315,6 +342,10 @@ class RawObject {
     ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
   }
 
+  bool IsDartInstance() {
+    return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
+  }
+
   intptr_t Size() const {
     uword tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
@@ -360,6 +391,10 @@ class RawObject {
   static bool IsBuiltinListClassId(intptr_t index);
   static bool IsByteArrayClassId(intptr_t index);
   static bool IsExternalByteArrayClassId(intptr_t index);
+  static bool IsTypedDataClassId(intptr_t index);
+  static bool IsExternalTypedDataClassId(intptr_t index);
+
+  static intptr_t NumberOfTypedDataClasses();
 
  private:
   uword tags_;  // Various object tags (bits).
@@ -395,6 +430,7 @@ class RawObject {
   friend class Array;
   friend class FreeListElement;
   friend class GCMarker;
+  friend class ExternalTypedData;
   friend class Heap;
   friend class HeapProfiler;
   friend class HeapProfilerRootVisitor;
@@ -404,12 +440,15 @@ class RawObject {
   friend class HeapTraceVisitor;
   friend class MarkingVisitor;
   friend class Object;
+  friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
+  friend class RawTypedData;
   friend class Scavenger;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
+  friend class TypedData;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -437,7 +476,7 @@ class RawClass : public RawObject {
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawType* super_type_;
+  RawAbstractType* super_type_;
   RawType* mixin_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
@@ -1119,6 +1158,38 @@ class RawTypeParameter : public RawAbstractType {
 };
 
 
+class RawBoundedType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(BoundedType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_);
+  }
+  RawAbstractType* type_;
+  RawAbstractType* bound_;
+  RawTypeParameter* type_parameter_;  // For more detailed error reporting.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
+  }
+  bool is_being_checked_;
+};
+
+
+class RawMixinAppType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->super_type_);
+  }
+  RawAbstractType* super_type_;
+  RawArray* mixin_types_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
+  }
+};
+
+
 class RawNumber : public RawInstance {
   RAW_OBJECT_IMPLEMENTATION(Number);
 };
@@ -1334,6 +1405,32 @@ class RawUint32x4 : public RawInstance {
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif  // ARCH_IS_32_BIT
+
+
+class RawTypedData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypedData);
+
+ protected:
+  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  RawSmi* length_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+
+  // Variable length data follows here.
+  uint8_t data_[0];
+};
+
+
+class RawExternalTypedData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
+
+ protected:
+  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+  RawSmi* length_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+
+  uint8_t* data_;
+  void* peer_;
+};
 
 
 class RawByteArray : public RawInstance {
@@ -1726,9 +1823,10 @@ inline bool RawObject::IsByteArrayClassId(intptr_t index) {
          kExternalFloat32x4ArrayCid == kByteArrayCid + 22 &&
          kExternalFloat32ArrayCid == kByteArrayCid + 23 &&
          kExternalFloat64ArrayCid == kByteArrayCid + 24 &&
-         kStacktraceCid == kByteArrayCid + 25);
+         kTypedDataCid == kByteArrayCid + 25);
   return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
 }
+
 
 inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
   // Make sure this function is updated when new ByteArray types are added.
@@ -1743,8 +1841,62 @@ inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
          kExternalFloat32x4ArrayCid == kExternalInt8ArrayCid + 9 &&
          kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 10 &&
          kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 11 &&
-         kStacktraceCid == kExternalInt8ArrayCid + 12);
+         kTypedDataCid == kExternalInt8ArrayCid + 12);
   return (index >= kExternalInt8ArrayCid && index <= kExternalFloat64ArrayCid);
+}
+
+
+inline bool RawObject::IsTypedDataClassId(intptr_t index) {
+  // Make sure this is updated when new TypedData types are added.
+  ASSERT(kTypedDataUint8ArrayCid == kTypedDataInt8ArrayCid + 1 &&
+         kTypedDataUint8ClampedArrayCid == kTypedDataInt8ArrayCid + 2 &&
+         kTypedDataInt16ArrayCid == kTypedDataInt8ArrayCid + 3 &&
+         kTypedDataUint16ArrayCid == kTypedDataInt8ArrayCid + 4 &&
+         kTypedDataInt32ArrayCid == kTypedDataInt8ArrayCid + 5 &&
+         kTypedDataUint32ArrayCid == kTypedDataInt8ArrayCid + 6 &&
+         kTypedDataInt64ArrayCid == kTypedDataInt8ArrayCid + 7 &&
+         kTypedDataUint64ArrayCid == kTypedDataInt8ArrayCid + 8 &&
+         kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
+         kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
+         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayCid + 11);
+  return (index >= kTypedDataInt8ArrayCid &&
+          index <= kTypedDataFloat64ArrayCid);
+}
+
+
+inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
+  // Make sure this is updated when new ExternalTypedData types are added.
+  ASSERT((kExternalTypedDataUint8ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 1) &&
+         (kExternalTypedDataUint8ClampedArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 2) &&
+         (kExternalTypedDataInt16ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 3) &&
+         (kExternalTypedDataUint16ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 4) &&
+         (kExternalTypedDataInt32ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 5) &&
+         (kExternalTypedDataUint32ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 6) &&
+         (kExternalTypedDataInt64ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 7) &&
+         (kExternalTypedDataUint64ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 8) &&
+         (kExternalTypedDataFloat32ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 9) &&
+         (kExternalTypedDataFloat64ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 10) &&
+         (kNullCid == kExternalTypedDataInt8ArrayCid + 11));
+  return (index >= kExternalTypedDataInt8ArrayCid &&
+          index <= kExternalTypedDataFloat64ArrayCid);
+}
+
+
+inline intptr_t RawObject::NumberOfTypedDataClasses() {
+  // Make sure this is updated when new TypedData types are added.
+  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayCid + 11);
+  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 11);
+  return (kNullCid - kTypedDataInt8ArrayCid);
 }
 
 }  // namespace dart

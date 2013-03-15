@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -128,6 +128,11 @@ void compile(List<String> argv) {
     passThrough(argument);
   }
 
+  setVerbose(_) {
+    diagnosticHandler.verbose = true;
+    passThrough('--verbose');
+  }
+
   setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
     Set<String> allowedCategories =
@@ -156,7 +161,7 @@ void compile(List<String> argv) {
     for (var shortOption in shortOptions) {
       switch (shortOption) {
         case 'v':
-          diagnosticHandler.verbose = true;
+          setVerbose(null);
           break;
         case 'h':
         case '?':
@@ -179,7 +184,7 @@ void compile(List<String> argv) {
     new OptionHandler('--suppress-warnings',
                       (_) => diagnosticHandler.showWarnings = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
-    new OptionHandler('--verbose', (_) => diagnosticHandler.verbose = true),
+    new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
@@ -199,6 +204,7 @@ void compile(List<String> argv) {
     new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
+    new OptionHandler('--analyze-signatures-only', passThrough),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
     new OptionHandler('--reject-deprecated-language-features', passThrough),
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
@@ -225,7 +231,7 @@ void compile(List<String> argv) {
     helpAndFail('Error: No Dart file specified.');
   }
   if (arguments.length > 1) {
-    var extra = arguments.getRange(1, arguments.length - 1);
+    var extra = arguments.sublist(1);
     helpAndFail('Error: Extra arguments: ${extra.join(" ")}');
   }
 
@@ -261,7 +267,7 @@ void compile(List<String> argv) {
     }
   }
 
-  StreamSink<String> outputProvider(String name, String extension) {
+  EventSink<String> outputProvider(String name, String extension) {
     Uri uri;
     String sourceMapFileName;
     bool isPrimaryOutput = false;
@@ -292,7 +298,7 @@ void compile(List<String> argv) {
       if (sourceMapFileName != null) {
         String sourceMapTag = '//@ sourceMappingURL=$sourceMapFileName\n';
         sink.count += sourceMapTag.length;
-        output.addString(sourceMapTag);
+        output.write(sourceMapTag);
       }
       output.close();
       if (isPrimaryOutput) {
@@ -301,7 +307,7 @@ void compile(List<String> argv) {
     }
 
     var controller = new StreamController<String>();
-    controller.stream.listen(output.addString, onDone: onDone);
+    controller.stream.listen(output.write, onDone: onDone);
     sink = new CountingSink(controller);
     return sink;
   }
@@ -313,20 +319,20 @@ void compile(List<String> argv) {
 }
 
 // TODO(ahe): Get rid of this class if http://dartbug.com/8118 is fixed.
-class CountingSink implements StreamSink<String> {
-  final StreamSink<String> sink;
+class CountingSink implements EventSink<String> {
+  final EventSink<String> sink;
   int count = 0;
 
   CountingSink(this.sink);
 
-  add(String value) {
+  void add(String value) {
     sink.add(value);
     count += value.length;
   }
 
-  signalError(AsyncError error) => sink.signalError(error);
+  void addError(AsyncError error) { sink.addError(error); }
 
-  close() => sink.close();
+  void close() { sink.close(); }
 }
 
 class AbortLeg {
@@ -402,6 +408,10 @@ Supported options:
 
   --analyze-only
     Analyze but do not generate code.
+
+  --analyze-signatures-only
+    Skip analysis of method bodies and field initializers. This option implies
+    --analyze-only.
 
   --minify
     Generate minified output.

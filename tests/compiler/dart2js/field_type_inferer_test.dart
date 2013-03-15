@@ -358,7 +358,7 @@ void test() {
   runTest(TEST_1, {'f': HType.NULL});
   runTest(TEST_2, {'f1': HType.NULL, 'f2': HType.INTEGER});
   runTest(TEST_3, {'f1': HType.INTEGER, 'f2': HType.INTEGER_OR_NULL});
-  runTest(TEST_4, {'f1': HType.UNKNOWN, 'f2': HType.STRING_OR_NULL});
+  runTest(TEST_4, {'f1': HType.NON_NULL, 'f2': HType.STRING_OR_NULL});
   runTest(TEST_5, {'f1': HType.STRING, 'f2': HType.STRING});
   runTest(TEST_6, {'f1': HType.STRING, 'f2': HType.EXTENDABLE_ARRAY});
   runTest(TEST_7, {'f1': HType.INDEXABLE_PRIMITIVE,
@@ -377,7 +377,7 @@ void test() {
   runTest(TEST_17, {'f': HType.UNKNOWN});
   runTest(TEST_18, {'f1': HType.INTEGER,
                     'f2': HType.STRING,
-                    'f3': HType.UNKNOWN});
+                    'f3': HType.NON_NULL});
   runTest(TEST_19, {'f1': HType.UNKNOWN,
                     'f2': HType.UNKNOWN,
                     'f3': HType.UNKNOWN});

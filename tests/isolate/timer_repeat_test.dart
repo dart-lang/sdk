@@ -29,7 +29,7 @@ main() {
   test("timer_repeat", () {
     iteration = 0;
     startTime = new DateTime.now().millisecondsSinceEpoch;
-    timer = new Timer.repeating(TIMEOUT, 
+    timer = new Timer.periodic(TIMEOUT,
         expectAsync1(timeoutHandler, count: ITERATIONS));
   });
 }

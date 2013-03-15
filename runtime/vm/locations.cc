@@ -89,11 +89,10 @@ Location Location::AnyOrConstant(Value* value) {
 Address Location::ToStackSlotAddress() const {
   const intptr_t index = stack_index();
   if (index < 0) {
-    const intptr_t offset = (1 - index)  * kWordSize;
+    const intptr_t offset = (kLastParamSlotIndex - index - 1)  * kWordSize;
     return Address(FPREG, offset);
   } else {
-    const intptr_t offset =
-        (ParsedFunction::kFirstLocalSlotIndex - index) * kWordSize;
+    const intptr_t offset = (kFirstLocalSlotIndex - index) * kWordSize;
     return Address(FPREG, offset);
   }
 }

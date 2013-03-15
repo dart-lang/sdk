@@ -102,9 +102,9 @@ void test() {
   runTest(TEST_FOUR, [HType.DOUBLE]);
   runTest(TEST_FIVE, [HType.NUMBER]);
   runTest(TEST_SIX, [HType.NUMBER]);
-  runTest(TEST_SEVEN);
-  runTest(TEST_EIGHT, [HType.INTEGER, HType.UNKNOWN]);
-  runTest(TEST_NINE);
+  runTest(TEST_SEVEN, [HType.NON_NULL]);
+  runTest(TEST_EIGHT, [HType.INTEGER, HType.NON_NULL]);
+  runTest(TEST_NINE, [HType.NON_NULL, HType.NON_NULL]);
   runTest(TEST_TEN);
 }
 

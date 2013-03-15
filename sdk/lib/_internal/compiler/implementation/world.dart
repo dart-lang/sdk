@@ -6,20 +6,25 @@ part of dart2js;
 
 class World {
   final Compiler compiler;
-  final Map<ClassElement, Set<ClassElement>> subtypes;
   final Map<ClassElement, Set<MixinApplicationElement>> mixinUses;
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
-  final Set<ClassElement> classesNeedingRti;
-  final Map<ClassElement, Set<ClassElement>> rtiDependencies;
   final FullFunctionSet allFunctions;
 
+  // We keep track of subtype and subclass relationships in four
+  // distinct sets to make class hierarchy analysis faster.
+  final Map<ClassElement, Set<ClassElement>> subclasses =
+      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, Set<ClassElement>> superclasses =
+      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, Set<ClassElement>> subtypes =
+      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, Set<ClassElement>> supertypes =
+      new Map<ClassElement, Set<ClassElement>>();
+
   World(Compiler compiler)
-      : subtypes = new Map<ClassElement, Set<ClassElement>>(),
-        mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
+      : mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
         typesImplementedBySubclasses =
             new Map<ClassElement, Set<ClassElement>>(),
-        classesNeedingRti = new Set<ClassElement>(),
-        rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
         allFunctions = new FullFunctionSet(compiler),
         this.compiler = compiler;
 
@@ -31,18 +36,28 @@ class World {
       }
 
       for (DartType type in cls.allSupertypes) {
-        Set<Element> subtypesOfCls =
-          subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
-        subtypesOfCls.add(cls);
+        Set<Element> supertypesOfClass =
+            supertypes.putIfAbsent(cls, () => new Set<ClassElement>());
+        Set<Element> subtypesOfSupertype =
+            subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
+        supertypesOfClass.add(type.element);
+        subtypesOfSupertype.add(cls);
       }
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
       DartType type = cls.supertype;
       while (type != null) {
+        Set<Element> superclassesOfClass =
+            superclasses.putIfAbsent(cls, () => new Set<ClassElement>());
+        Set<Element> subclassesOfSuperclass =
+            subclasses.putIfAbsent(type.element, () => new Set<ClassElement>());
+        superclassesOfClass.add(type.element);
+        subclassesOfSuperclass.add(cls);
+
         Set<Element> typesImplementedBySubclassesOfCls =
-          typesImplementedBySubclasses.putIfAbsent(
-              type.element, () => new Set<ClassElement>());
+            typesImplementedBySubclasses.putIfAbsent(
+                type.element, () => new Set<ClassElement>());
         for (DartType current in cls.allSupertypes) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
@@ -56,61 +71,22 @@ class World {
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
     compiler.enqueuer.resolution.seenClasses.forEach(addSubtypes);
+  }
 
-    // Find the classes that need runtime type information. Such
-    // classes are:
-    // (1) used in a is check with type variables,
-    // (2) dependencies of classes in (1),
-    // (3) subclasses of (2) and (3).
-
-    void potentiallyAddForRti(ClassElement cls) {
-      if (cls.typeVariables.isEmpty) return;
-      if (classesNeedingRti.contains(cls)) return;
-      classesNeedingRti.add(cls);
-
-      // TODO(ngeoffray): This should use subclasses, not subtypes.
-      Set<ClassElement> classes = subtypes[cls];
-      if (classes != null) {
-        classes.forEach((ClassElement sub) {
-          potentiallyAddForRti(sub);
-        });
-      }
-
-      Set<ClassElement> dependencies = rtiDependencies[cls];
-      if (dependencies != null) {
-        dependencies.forEach((ClassElement other) {
-          potentiallyAddForRti(other);
-        });
-      }
+  Iterable<ClassElement> commonSupertypesOf(ClassElement x, ClassElement y) {
+    Set<ClassElement> xSet = supertypes[x];
+    if (xSet == null) return const <ClassElement>[];
+    Set<ClassElement> ySet = supertypes[y];
+    if (ySet == null) return const <ClassElement>[];
+    Set<ClassElement> smallSet, largeSet;
+    if (xSet.length <= ySet.length) {
+      smallSet = xSet;
+      largeSet = ySet;
+    } else {
+      smallSet = ySet;
+      largeSet = xSet;
     }
-
-    Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
-    compiler.resolverWorld.isChecks.forEach((DartType type) {
-      if (type.kind == TypeKind.TYPE_VARIABLE) {
-        TypeVariableElement variable = type.element;
-        classesUsingTypeVariableTests.add(variable.enclosingElement);
-      }
-    });
-    // Add is-checks that result from classes using type variables in checks.
-    compiler.resolverWorld.addImplicitChecks(classesUsingTypeVariableTests);
-    // Add the rti dependencies that are implicit in the way the backend
-    // generates code: when we create a new [List], we actually create
-    // a JSArray in the backend and we need to add type arguments to
-    // the calls of the list constructor whenever we determine that
-    // JSArray needs type arguments.
-    compiler.backend.addBackendRtiDependencies(this);
-    // Compute the set of all classes that need runtime type information.
-    compiler.resolverWorld.isChecks.forEach((DartType type) {
-      if (type.kind == TypeKind.INTERFACE) {
-        InterfaceType itf = type;
-        if (!itf.isRaw) {
-          potentiallyAddForRti(itf.element);
-        }
-      } else if (type.kind == TypeKind.TYPE_VARIABLE) {
-        TypeVariableElement variable = type.element;
-        potentiallyAddForRti(variable.enclosingElement);
-      }
-    });
+    return smallSet.where((ClassElement each) => largeSet.contains(each));
   }
 
   void registerMixinUse(MixinApplicationElement mixinApplication,
@@ -126,16 +102,14 @@ class World {
     return uses != null && !uses.isEmpty;
   }
 
-  void registerRtiDependency(Element element, Element dependency) {
-    // We're not dealing with typedef for now.
-    if (!element.isClass() || !dependency.isClass()) return;
-    Set<ClassElement> classes =
-        rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
-    classes.add(dependency);
+  bool hasAnySubclass(ClassElement cls) {
+    Set<ClassElement> classes = subclasses[cls];
+    return classes != null && !classes.isEmpty;
   }
 
-  bool needsRti(ClassElement cls) {
-    return classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
+  bool hasAnySubtype(ClassElement cls) {
+    Set<ClassElement> classes = subtypes[cls];
+    return classes != null && !classes.isEmpty;
   }
 
   bool hasAnyUserDefinedGetter(Selector selector) {

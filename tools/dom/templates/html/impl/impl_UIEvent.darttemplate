@@ -24,4 +24,22 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e;
   }
 $!MEMBERS
+
+  @deprecated
+  int get layerX => layer.x;
+  @deprecated
+  int get layerY => layer.y;
+
+  @deprecated
+  int get pageX => page.x;
+  @deprecated
+  int get pageY => page.y;
+
+  @DomName('UIEvent.layerX')
+  @DomName('UIEvent.layerY')
+  Point get layer => new Point($dom_layerX, $dom_layerY);
+
+  @DomName('UIEvent.pageX')
+  @DomName('UIEvent.pageY')
+  Point get page => new Point($dom_pageX, $dom_pageY);
 }

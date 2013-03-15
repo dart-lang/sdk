@@ -12,6 +12,11 @@ fixnum/test/int_64_vm_test: Skip
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 
+# WebDriver tests have 3rd party dependencies (we need to run
+# selenium_standalone.jar), so we skip these in our automated
+# testing.
+webdriver/test/webdriver_test: Skip
+
 [$compiler == dart2dart]
 *: Skip
 
@@ -33,11 +38,13 @@ pathos/test/*: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
-analyzer-experimental/test/options_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/parser_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/element_test: Skip # Imports dart:io.
-analyzer-experimental/test/generated/ast_test: Skip # Imports dart:io.
+intl/test/message_extraction/message_extraction_test: Skip
+analyzer_experimental/test/options_test: Skip # Imports dart:io.
+analyzer_experimental/test/generated/ast_test: Skip # Imports dart:io.
+analyzer_experimental/test/generated/element_test: Skip # Imports dart:io.
+analyzer_experimental/test/generated/parser_test: Skip # Imports dart:io.
+analyzer_experimental/test/generated/resolver_test: Skip # Imports dart:io.
+analyzer_experimental/test/generated/scanner_test: Skip # Imports dart:io.
 
 # Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
@@ -47,16 +54,17 @@ scheduled_test/test/*: Skip
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
+[ $runtime == ie9 ]
+intl/test/date_time_format_http_request_test: Fail # Issue 8983
+
 # Skip browser-specific Intl tests on VM
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
-# Fails to recognize HashMap as an instance of Map.
-analyzer-experimental/test/generated/ast_test: Fail
-
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
@@ -66,13 +74,12 @@ intl/test/date_time_format_http_request_test: Skip
 [ $compiler == dart2js ]
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
-intl/test/intl_message_test: Skip
-intl/test/intl_message_basic_example_test: Skip
 serialization/test/serialization_test: Skip
-analyzer-experimental/test/generated/parser_test: Skip
-analyzer-experimental/test/generated/scanner_test: Skip
-analyzer-experimental/test/generated/element_test: Skip
-analyzer-experimental/test/generated/ast_test: Skip
+analyzer_experimental/test/generated/ast_test: Skip
+analyzer_experimental/test/generated/element_test: Skip
+analyzer_experimental/test/generated/parser_test: Skip
+analyzer_experimental/test/generated/resolver_test: Skip
+analyzer_experimental/test/generated/scanner_test: Skip
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
@@ -81,6 +88,15 @@ unittest/test/mock_stepwise_negative_test: Fail
 
 [ $compiler == dart2js ]
 unittest/test/instance_test: Skip
+
+[ $compiler == dart2js && $runtime == drt ]
+intl/test/date_time_format_uninitialized_test: Pass, Fail # http://dartbug.com/9000
+
+[ $compiler == dart2js && $minified ]
+# The unittest package relies on getting the original (non-minified) method
+# names in InvocationMirrors.  You can't get that when minifying.
+unittest/test/mock_test: Fail
+unittest/test/mock_regexp_negative_test: Fail
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.

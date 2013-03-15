@@ -131,6 +131,11 @@ class _IntegerImplementation {
   int ceil() { return this; }
   int truncate() { return this; }
 
+  double roundToDouble() { return this.toDouble(); }
+  double floorToDouble() { return this.toDouble(); }
+  double ceilToDouble() { return this.toDouble(); }
+  double truncateToDouble() { return this.toDouble(); }
+
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
     if (upperLimit is! num) throw new ArgumentError(upperLimit);
@@ -197,9 +202,9 @@ class _IntegerImplementation {
       return "0";
     }
     StringBuffer buffer = new StringBuffer();
-    if (isNegative) buffer.add("-");
+    if (isNegative) buffer.write("-");
     for (int i = temp.length - 1; i >= 0; i--) {
-      buffer.add(table[temp[i]]);
+      buffer.write(table[temp[i]]);
     }
     return buffer.toString();
   }

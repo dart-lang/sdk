@@ -29,7 +29,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
   for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
+    ASSERT(!block_info_[i]->jump_label()->IsLinked());
   }
 }
 
@@ -187,7 +187,22 @@ void FlowGraphCompiler::EmitFrameEntry() {
     const bool can_optimize = !is_optimizing() || may_reoptimize();
     const Register function_reg = R6;
     if (can_optimize) {
-      __ LoadObject(function_reg, function);
+      // The pool pointer is not setup before entering the Dart frame.
+
+      // Preserve PP of caller.
+      __ mov(R7, ShifterOperand(PP));
+
+      // Temporarily setup pool pointer for this dart function.
+      const intptr_t object_pool_pc_dist =
+         Instructions::HeaderSize() - Instructions::object_pool_offset() +
+         assembler()->CodeSize() + Instr::kPCReadOffset;
+      __ ldr(PP, Address(PC, -object_pool_pc_dist));
+
+      // Load function object from object pool.
+      __ LoadObject(function_reg, function);  // Uses PP.
+
+      // Restore PP of caller.
+      __ mov(PP, ShifterOperand(R7));
     }
     // Patch point is after the eventually inlined function object.
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
@@ -216,7 +231,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
                          0);  // No token position.
   }
   __ Comment("Enter frame");
-  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+  __ EnterDartFrame((StackSize() * kWordSize));
 }
 
 
@@ -306,7 +321,7 @@ void FlowGraphCompiler::CompileGraph() {
                                             0);  // No registers.
         }
         // The noSuchMethod call may return.
-        AssemblerMacros::LeaveDartFrame(assembler());
+        __ LeaveDartFrame();
         __ Ret();
       } else {
         __ Stop("Wrong number of arguments");
@@ -374,7 +389,9 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
 }
 
 
@@ -571,7 +588,6 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
 
 
 Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t cid,
     intptr_t index_scale,
     Register array,
     intptr_t index) {
@@ -581,7 +597,6 @@ Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
 
 
 Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t cid,
     intptr_t index_scale,
     Register array,
     Register index) {

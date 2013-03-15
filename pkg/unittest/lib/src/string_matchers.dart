@@ -178,8 +178,8 @@ class _MatchesRegExp extends _StringMatcher {
     }
   }
 
-  bool matches(String item, MatchState matchState) =>
-        _regexp.hasMatch(item);
+  bool matches(item, MatchState matchState) =>
+    item is String ? _regexp.hasMatch(item) : false;
 
   Description describe(Description description) =>
       description.add("match '${_regexp.pattern}'");

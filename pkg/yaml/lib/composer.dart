@@ -98,13 +98,13 @@ class _Composer extends _Visitor {
 
   /// Parses a null scalar.
   _ScalarNode parseNull(String content) {
-    if (!new RegExp("^(null|Null|NULL|~|)\$").hasMatch(content)) return null;
+    if (!new RegExp(r"^(null|Null|NULL|~|)$").hasMatch(content)) return null;
     return new _ScalarNode(_Tag.yaml("null"), value: null);
   }
 
   /// Parses a boolean scalar.
   _ScalarNode parseBool(String content) {
-    var match = new RegExp("^(?:(true|True|TRUE)|(false|False|FALSE))\$").
+    var match = new RegExp(r"^(?:(true|True|TRUE)|(false|False|FALSE))$").
       firstMatch(content);
     if (match == null) return null;
     return new _ScalarNode(_Tag.yaml("bool"), value: match.group(1) != null);
@@ -112,19 +112,19 @@ class _Composer extends _Visitor {
 
   /// Parses an integer scalar.
   _ScalarNode parseInt(String content) {
-    var match = new RegExp("^[-+]?[0-9]+\$").firstMatch(content);
+    var match = new RegExp(r"^[-+]?[0-9]+$").firstMatch(content);
     if (match != null) {
       return new _ScalarNode(_Tag.yaml("int"),
           value: int.parse(match.group(0)));
     }
 
-    match = new RegExp("^0o([0-7]+)\$").firstMatch(content);
+    match = new RegExp(r"^0o([0-7]+)$").firstMatch(content);
     if (match != null) {
       int n = int.parse(match.group(1), radix: 8);
       return new _ScalarNode(_Tag.yaml("int"), value: n);
     }
 
-    match = new RegExp("^0x[0-9a-fA-F]+\$").firstMatch(content);
+    match = new RegExp(r"^0x[0-9a-fA-F]+$").firstMatch(content);
     if (match != null) {
       return new _ScalarNode(_Tag.yaml("int"),
           value: int.parse(match.group(0)));
@@ -136,7 +136,7 @@ class _Composer extends _Visitor {
   /// Parses a floating-point scalar.
   _ScalarNode parseFloat(String content) {
     var match = new RegExp(
-        "^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?\$").
+        r"^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$").
       firstMatch(content);
     if (match != null) {
       // YAML allows floats of the form "0.", but Dart does not. Fix up those
@@ -146,13 +146,13 @@ class _Composer extends _Visitor {
           value: double.parse(matchStr));
     }
 
-    match = new RegExp("^([+-]?)\.(inf|Inf|INF)\$").firstMatch(content);
+    match = new RegExp(r"^([+-]?)\.(inf|Inf|INF)$").firstMatch(content);
     if (match != null) {
       var value = match.group(1) == "-" ? -double.INFINITY : double.INFINITY;
       return new _ScalarNode(_Tag.yaml("float"), value: value);
     }
 
-    match = new RegExp("^\.(nan|NaN|NAN)\$").firstMatch(content);
+    match = new RegExp(r"^\.(nan|NaN|NAN)$").firstMatch(content);
     if (match != null) {
       return new _ScalarNode(_Tag.yaml("float"), value: double.NAN);
     }

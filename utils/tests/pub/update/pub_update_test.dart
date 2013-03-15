@@ -10,6 +10,7 @@ import '../../../../pkg/unittest/lib/unittest.dart';
 import '../test_pub.dart';
 
 main() {
+  initConfig();
   group('requires', () {
     integration('a pubspec', () {
       dir(appPath, []).scheduleCreate();
@@ -67,17 +68,13 @@ main() {
 
   integration('does not add a package if it does not have a "lib" '
       'directory', () {
-    // Using an SDK source, but this should be true of all sources.
-    dir(sdkPath, [
-      dir('pkg', [
-        dir('foo', [
-          libPubspec('foo', '0.0.0-not.used')
-        ])
-      ])
+    // Using a path source, but this should be true of all sources.
+    dir('foo', [
+      libPubspec('foo', '0.0.0-not.used')
     ]).scheduleCreate();
 
     dir(appPath, [
-      pubspec({"name": "myapp", "dependencies": {"foo": {"sdk": "foo"}}})
+      pubspec({"name": "myapp", "dependencies": {"foo": {"path": "../foo"}}})
     ]).scheduleCreate();
 
     schedulePub(args: ['update'],

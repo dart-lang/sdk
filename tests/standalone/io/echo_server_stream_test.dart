@@ -63,7 +63,7 @@ class EchoServerGame {
       _socket.listen(onData,
                      onError: errorHandler,
                      onDone: onClosed);
-      _socket.add(_buffer);
+      _socket.writeBytes(_buffer);
       _socket.close();
       data = new List<int>(MSGSIZE);
     }
@@ -120,7 +120,7 @@ class EchoServer extends TestingServer {
           Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
         }
         if (offset == MSGSIZE) {
-          connection.add(buffer);
+          connection.writeBytes(buffer);
           connection.close();
         }
       }

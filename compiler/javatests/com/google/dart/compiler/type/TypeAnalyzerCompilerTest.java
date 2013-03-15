@@ -46,7 +46,6 @@ import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -1553,9 +1552,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
     }
     // Check that unqualified foo() invocation is resolved to the top-level (library) function.
-    NodeElement element = invocation.getTarget().getElement();
+    Element element = invocation.getTarget().getElement();
     assertNotNull(element);
-    assertSame(testUnit, element.getNode().getParent());
+    assertTrue(element.getEnclosingElement() instanceof LibraryElement);
   }
 
   /**
@@ -2010,6 +2009,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  Collection<int> test = true ? new Set<int>() : const [null];",
         "}",
         "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * <p>
+   * https://codereview.chromium.org/12787002/
+   */
+  public void test_typeVariableBounds_12787002() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A<T> {",
+            "  m() {",
+            "    B a = this;",
+            "  }",
+            "}",
+            "class B extends A<String> {}");
     assertErrors(result.getErrors());
   }
 
@@ -5170,7 +5186,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertSame(typeA, type);
       // .named
       DartIdentifier nameNode = findNode(DartIdentifier.class, "named;");
-      NodeElement nameElement = nameNode.getElement();
+      Element nameElement = nameNode.getElement();
       assertNotNull(nameElement);
       assertSame(elementA.lookupConstructor("named"), nameElement);
     }
@@ -6510,4 +6526,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_MIXINS, 2, 25, 1));
   }
 
+  public void test_StringPlus() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v1 = '1' + '2';",
+        "  var v2 = '1' + 2;",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 18, 1));
+  }
 }

@@ -7,9 +7,7 @@
  */
 library intl_message_test_2;
 
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:intl//message_lookup_local.dart';
 import '../example/basic/basic_example.dart';
 import 'package:unittest/unittest.dart';
 import 'dart:async';

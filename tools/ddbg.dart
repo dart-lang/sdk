@@ -69,7 +69,7 @@ Future sendCmd(Map<String, dynamic> cmd) {
   if (verbose) {
     print("sending: '${json.stringify(cmd)}'");
   }
-  vmSock.addString(json.stringify(cmd));
+  vmSock.write(json.stringify(cmd));
   return completer.future;
 }
 
@@ -454,7 +454,7 @@ void processVmData(String data) {
   if (vmData == null || vmData.length == 0) {
     vmData = data;
   } else {
-    vmData = vmData.concat(data);
+    vmData = vmData + data;
   }
   int msg_len = jsonObjectLength(vmData);
   if (printMessages && msg_len == 0) {

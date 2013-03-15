@@ -14,8 +14,10 @@
 
 namespace dart {
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Compiler only implemented on IA32, X64, and ARM.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 // Setup function for invocation.
 static void SetupFunction(const char* test_library_name,
@@ -219,6 +221,6 @@ TEST_CASE(DartDynamicResolve) {
   }
 }
 
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

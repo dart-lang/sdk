@@ -129,18 +129,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
     int receiverIndex = instruction.isInterceptorCall ? 1 : 0;
     HType receiverType = instruction.inputs[receiverIndex].instructionType;
     Selector refined = receiverType.refine(instruction.selector, compiler);
-    // TODO(kasperl): Ask the type inferrer about the type of the
-    // selector not the individual elements. This is basically code
-    // lifted out of the inferrer. Not good.
-    HType type = HType.CONFLICTING;
-    DartType functionType = compiler.functionClass.computeType(compiler);
-    for (Element each in compiler.world.allFunctions.filter(refined)) {
-      HType inferred = (refined.isGetter() && each.isFunction())
-          ? new HType.nonNullExact(functionType, compiler)
-          : new HType.inferredForElement(each, compiler);
-      type = type.union(inferred, compiler);
-      if (type.isUnknown()) break;
-    }
+    HType type = new HType.inferredTypeForSelector(refined, compiler);
     if (type.isUseful()) return type;
     return instruction.specializer.computeTypeFromInputTypes(
         instruction, compiler);
@@ -184,8 +173,8 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
   }
 
   void convertInput(HInstruction instruction, HInstruction input, HType type) {
-    HTypeConversion converted =
-        new HTypeConversion.argumentTypeCheck(type, input);
+    HTypeConversion converted = new HTypeConversion(
+        null, HTypeConversion.ARGUMENT_TYPE_CHECK, type, input);
     instruction.block.addBefore(instruction, converted);
     Set<HInstruction> dominatedUsers = input.dominatedUsers(instruction);
     for (HInstruction user in dominatedUsers) {

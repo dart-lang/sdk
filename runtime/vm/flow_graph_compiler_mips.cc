@@ -15,7 +15,7 @@ FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
   for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
+    ASSERT(!block_info_[i]->jump_label()->IsLinked());
   }
 }
 
@@ -322,7 +322,6 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
 
 
 Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
-    intptr_t cid,
     intptr_t index_scale,
     Register array,
     intptr_t index) {
@@ -332,7 +331,6 @@ Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
 
 
 Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
-    intptr_t cid,
     intptr_t index_scale,
     Register array,
     Register index) {

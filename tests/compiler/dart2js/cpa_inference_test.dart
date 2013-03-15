@@ -56,7 +56,7 @@ class AnalysisResult {
     string = inferrer.baseTypes.stringBaseType;
     list = inferrer.baseTypes.listBaseType;
     map = inferrer.baseTypes.mapBaseType;
-    nullType = new NullBaseType();
+    nullType = const NullBaseType();
     Element mainElement = compiler.mainApp.find(buildSourceString('main'));
     ast = mainElement.parseNode(compiler);
   }
@@ -89,12 +89,11 @@ class AnalysisResult {
   ConcreteType concreteFrom(List<BaseType> baseTypes) {
     ConcreteType result = inferrer.emptyConcreteType;
     for (final baseType in baseTypes) {
-      result = result.union(compiler.maxConcreteTypeSize,
-          inferrer.singletonConcreteType(baseType));
+      result = result.union(inferrer.singletonConcreteType(baseType));
     }
     // We make sure the concrete types expected by the tests don't default to
     // dynamic because of widening.
-    assert(!result.isUnkown());
+    assert(!result.isUnknown());
     return result;
   }
 
@@ -114,7 +113,7 @@ class AnalysisResult {
    * occurence of [: variable; :] in the program is the unknown concrete type.
    */
   void checkNodeHasUnknownType(String variable) {
-    return Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnkown());
+    return Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnknown());
   }
 
   /**
@@ -135,20 +134,25 @@ class AnalysisResult {
   void checkFieldHasUknownType(String className, String fieldName) {
     return Expect.isTrue(
         inferrer.inferredFieldTypes[findField(className, fieldName)]
-                .isUnkown());
+                .isUnknown());
   }
 }
 
 const String CORELIB = r'''
   print(var obj) {}
   abstract class num { 
-    operator +(x);
-    operator *(x);
-    operator -(x);
+    num operator +(num x);
+    num operator *(num x);
+    num operator -(num x);
     operator ==(x);
+    num floor();
   }
-  abstract class int extends num { }
-  abstract class double extends num { }
+  abstract class int extends num {
+    bool get isEven;
+  }
+  abstract class double extends num {
+    bool get isNaN;
+  }
   class bool {}
   class String {}
   class Object {}
@@ -163,9 +167,7 @@ const String CORELIB = r'''
   class Null {}
   class Type {}
   class Dynamic_ {}
-  bool identical(Object a, Object b) {}
-  dynamic JS(String typeDescription, String codeTemplate,
-             [var arg0, var arg1, var arg2]) {}''';
+  bool identical(Object a, Object b) {}''';
 
 AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
@@ -206,7 +208,7 @@ testLiterals() {
   result.checkNodeHasType('v2', [result.double]);
   result.checkNodeHasType('v3', [result.string]);
   result.checkNodeHasType('v4', [result.bool]);
-  result.checkNodeHasType('v5', [new NullBaseType()]);
+  result.checkNodeHasType('v5', [result.nullType]);
 }
 
 testRedefinition() {
@@ -312,10 +314,18 @@ testFor2() {
 testToplevelVariable() {
   final String source = r"""
       final top = 'abc';
-      main() { var foo = top; foo; }
+      class A {
+         f() => top;
+      }
+      main() { 
+        var foo = top;
+        var bar = new A().f();
+        foo; bar;
+      }
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('foo', [result.string]);
+  result.checkNodeHasType('bar', [result.string]);
 }
 
 testNonRecusiveFunction() {
@@ -438,8 +448,9 @@ testConstructor() {
       """;
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'x', [result.int, result.bool]);
-  result.checkFieldHasType('A', 'y', [result.string, new NullBaseType()]);
-  result.checkFieldHasType('A', 'z', [result.string]);
+  result.checkFieldHasType('A', 'y', [result.string, result.nullType]);
+  // TODO(polux): we can be smarter and infer {string} for z
+  result.checkFieldHasType('A', 'z', [result.string, result.nullType]);
 }
 
 testGetters() {
@@ -577,7 +588,7 @@ testOptionalNamedParameters() {
   AnalysisResult result = analyze(source);
 
   final foo = result.base('Foo');
-  final nil = new NullBaseType();
+  final nil = result.nullType;
 
   result.checkFieldHasType('A', 'x', [result.int, result.string]);
   result.checkFieldHasType('A', 'y', [nil]);
@@ -649,7 +660,7 @@ testOptionalPositionalParameters() {
   AnalysisResult result = analyze(source);
 
   final foo = result.base('Foo');
-  final nil = new NullBaseType();
+  final nil = result.nullType;
 
   result.checkFieldHasType('A', 'x', [result.int, result.string]);
   result.checkFieldHasType('A', 'y', [nil, result.bool]);
@@ -799,10 +810,8 @@ testSetIndexOperator() {
       """;
   AnalysisResult result = analyze(source);
   result.checkNodeHasType('x', [result.string]);
-  // TODO(polux): the two following results should be [:[null, string:], see
-  // testFieldInitialization().
-  result.checkFieldHasType('A', 'witness1', [result.int]);
-  result.checkFieldHasType('A', 'witness2', [result.string]);
+  result.checkFieldHasType('A', 'witness1', [result.int, result.nullType]);
+  result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
 }
 
 testCompoundOperators1() {
@@ -862,12 +871,10 @@ testCompoundOperators2() {
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'xx', [result.int]);
   result.checkFieldHasType('A', 'yy', [result.int]);
-  // TODO(polux): the four following results should be [:[null, string]:], see
-  // testFieldInitialization().
-  result.checkFieldHasType('A', 'witness1', [result.string]);
-  result.checkFieldHasType('A', 'witness2', [result.string]);
-  result.checkFieldHasType('A', 'witness3', [result.string]);
-  result.checkFieldHasType('A', 'witness4', [result.string]);
+  result.checkFieldHasType('A', 'witness1', [result.string, result.nullType]);
+  result.checkFieldHasType('A', 'witness2', [result.string, result.nullType]);
+  result.checkFieldHasType('A', 'witness3', [result.string, result.nullType]);
+  result.checkFieldHasType('A', 'witness4', [result.string, result.nullType]);
 }
 
 testInequality() {
@@ -890,24 +897,68 @@ testInequality() {
   result.checkNodeHasType('foo', [result.bool]);
   result.checkNodeHasType('bar', [result.bool]);
   result.checkNodeHasType('baz', []);
-  // TODO(polux): the following result should be [:[null, string]:], see
-  // testFieldInitialization().
-  result.checkFieldHasType('A', 'witness', [result.string]);
+  result.checkFieldHasType('A', 'witness', [result.string, result.nullType]);
 }
 
-testFieldInitialization() {
+testFieldInitialization1() {
   final String source = r"""
     class A {
       var x;
       var y = 1;
+    }
+    class B extends A {
+      var z = "foo";
+    }
+    main () {
+      new B();
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkFieldHasType('A', 'x', [result.nullType]);
+  result.checkFieldHasType('A', 'y', [result.int]);
+  result.checkFieldHasType('B', 'z', [result.string]);
+}
+
+testFieldInitialization2() {
+  final String source = r"""
+    var top = 42;
+    class A {
+      var x = top;
     }
     main () {
       new A();
     }
     """;
   AnalysisResult result = analyze(source);
-  result.checkFieldHasType('A', 'x', [result.nullType]);
-  result.checkFieldHasType('A', 'y', [result.int]);
+  result.checkFieldHasType('A', 'x', [result.int]);
+}
+
+testFieldInitialization3() {
+  final String source = r"""
+    class A {
+      var x;
+    }
+    f() => new A().x;
+    class B {
+      var x = new A().x;
+      var y = f();
+    }
+    main () {
+      var foo = new B().x;
+      var bar = new B().y;
+      new A().x = "a";
+      foo; bar;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  // checks that B.B is set as a reader of A.x
+  result.checkFieldHasType('B', 'x', [result.nullType, result.string]);
+  // checks that B.B is set as a caller of f
+  result.checkFieldHasType('B', 'y', [result.nullType, result.string]);
+  // checks that readers of x are notified by changes in x's type
+  result.checkNodeHasType('foo', [result.nullType, result.string]);
+  // checks that readers of y are notified by changes in y's type
+  result.checkNodeHasType('bar', [result.nullType, result.string]);
 }
 
 testLists() {
@@ -1022,13 +1073,45 @@ testDynamicIsAbsorbing() {
 
 testJsCall() {
   final String source = r"""
+    import 'dart:foreign';
+
+    class A {}
+    class B extends A {}
+    class BB extends B {}
+    class C extends A {}
+    class D extends A {}
+
+    class X {}
+
     main () {
-      var x = JS('', '', null);
-      x;
+      // we don't create any D on purpose
+      new B(); new BB(); new C();
+
+      var a = JS('', '');
+      var b = JS('Object', '');
+      var c = JS('=List', '');
+      var d = JS('String', '');
+      var e = JS('int', '');
+      var f = JS('double', '');
+      var g = JS('num', '');
+      var h = JS('bool', '');
+      var i = JS('A', '');
+      var j = JS('X', '');
+      a; b; c; d; e; f; g; h; i; j;
     }
     """;
   AnalysisResult result = analyze(source);
-  result.checkNodeHasUnknownType('x');
+  result.checkNodeHasUnknownType('a');
+  result.checkNodeHasUnknownType('b');
+  result.checkNodeHasType('c', [result.nullType, result.list]);
+  result.checkNodeHasType('d', [result.nullType, result.string]);
+  result.checkNodeHasType('e', [result.nullType, result.int]);
+  result.checkNodeHasType('f', [result.nullType, result.double]);
+  result.checkNodeHasType('g', [result.nullType, result.num]);
+  result.checkNodeHasType('h', [result.nullType, result.bool]);
+  result.checkNodeHasType('i', [result.nullType, result.base('B'),
+                                result.base('BB'), result.base('C')]);
+  result.checkNodeHasType('j', [result.nullType]);
 }
 
 testIsCheck() {
@@ -1069,6 +1152,38 @@ testSeenClasses() {
   result.checkNodeHasType('foo', [result.int]);
 }
 
+testGoodGuys() {
+  final String source = r"""
+      main() {
+        var a = 1.isEven;
+        var b = 3.14.isNaN;
+        var c = 1.floor();
+        var d = 3.14.floor();
+        a; b; c; d;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('a', [result.bool]);
+  result.checkNodeHasType('b', [result.bool]);
+  result.checkNodeHasType('c', [result.num]);
+  result.checkNodeHasType('d', [result.num]);
+}
+
+testIntDoubleNum() {
+  final String source = r"""
+      main() {
+        var a = 1;
+        var b = 1.0;
+        var c = true ? 1 : 1.0;
+        a; b; c;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('a', [result.int]);
+  result.checkNodeHasType('b', [result.double]);
+  result.checkNodeHasType('c', [result.num]);
+}
+
 void main() {
   testDynamicBackDoor();
   testLiterals();
@@ -1078,7 +1193,7 @@ void main() {
   testWhile();
   testFor1();
   testFor2();
-  // testToplevelVariable();  // toplevel variables are not yet supported
+  testToplevelVariable();
   testNonRecusiveFunction();
   testRecusiveFunction();
   testMutuallyRecusiveFunction();
@@ -1101,7 +1216,9 @@ void main() {
   testCompoundOperators2();
   testSetIndexOperator();
   testInequality();
-  // testFieldInitialization(); // TODO(polux)
+  testFieldInitialization1();
+  testFieldInitialization2();
+  testFieldInitialization3();
   testSendWithWrongArity();
   testBigTypesWidening1();
   testBigTypesWidening2();
@@ -1112,4 +1229,6 @@ void main() {
   testJsCall();
   testIsCheck();
   testSeenClasses();
+  testGoodGuys();
+  testIntDoubleNum();
 }

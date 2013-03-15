@@ -31,7 +31,7 @@ int addMissing(StringBuffer sb, String type, Map members) {
       for(final name in sortStringCollection(expected.keys)) {
         if (!members.containsKey(name)) {
           total++;
-        sb.add("""
+        sb.write("""
                 <tr class="missing">
                   <td>$name</td>
                   <td></td>
@@ -71,7 +71,7 @@ void main() {
 
   // TODO(jacobr): switch to using a real template system instead of string
   // interpolation combined with StringBuffers.
-  sb.add("""
+  sb.write("""
 <html>
   <head>
     <style type="text/css">
@@ -156,7 +156,7 @@ void main() {
   	final entry = database[type];
     if (entry == null || entry.containsKey('skipped')) {
       numSkipped++;
-      sbSkipped.add("""
+      sbSkipped.write("""
     <li id="$type">
       <a target="_blank" href="http://www.google.com/cse?cx=017193972565947830266%3Awpqsk6dy6ee&ie=UTF-8&q=$type">
         $type
@@ -178,7 +178,7 @@ void main() {
     StringBuffer sbExamples = new StringBuffer();
     if (entry.containsKey("members")) {
       Map members = getMembersMap(entry);
-      sbMembers.add("""
+      sbMembers.write("""
   	    <div class="members">
           <h3><span class="debug">[dart]</span> Members</h3>
           <table>
@@ -191,7 +191,7 @@ void main() {
         Map memberData = members[name];
         bool unknown = !hasAny(type, name);
         StringBuffer classes = new StringBuffer();
-        if (unknown) classes.add("unknown ");
+        if (unknown) classes.write("unknown ");
         if (unknown) {
           numExtraMethods++;
         } else {
@@ -201,15 +201,15 @@ void main() {
         final sbMember = new StringBuffer();
 
         if (memberData.containsKey('url')) {
-          sbMember.add("""
+          sbMember.write("""
 		         <td><a href="${memberData['url']}">$name</a></td>
 """);
         } else {
-          sbMember.add("""
+          sbMember.write("""
 		         <td>$name</td>
 """);
         }
-        sbMember.add("""
+        sbMember.write("""
 		  	     <td>${memberData['help']}</td>
              <td>
                <pre>${orEmpty(memberData['idl'])}</pre>
@@ -217,14 +217,14 @@ void main() {
              <td>${memberData['obsolete'] == true ? "Obsolete" : ""}</td>
 """);
         if (memberData['obsolete'] == true) {
-          sbObsolete.add("<tr class='$classes'><td>$type</td>$sbMember</tr>");
+          sbObsolete.write("<tr class='$classes'><td>$type</td>$sbMember</tr>");
         }
-        sbMembers.add("<tr class='$classes'>$sbMember</tr>");
+        sbMembers.write("<tr class='$classes'>$sbMember</tr>");
     	}
 
       numMissingMethods += addMissing(sbMembers, type, members);
 
-      sbMembers.add("""
+      sbMembers.write("""
             </tbody>
           </table>
         </div>
@@ -234,7 +234,7 @@ void main() {
         ["summary", "constructor", "compatibility", "specification",
          "seeAlso"]) {
       if (entry.containsKey(sectionName)) {
-        sbSections.add("""
+        sbSections.write("""
       <div class="$sectionName">
         <h3><span class="debug">[Dart]</span> $sectionName</h3>
         ${entry[sectionName]}
@@ -243,25 +243,25 @@ void main() {
       }
     }
     if (entry.containsKey("links")) {
-      sbSections.add("""
+      sbSections.write("""
       <div class="links">
         <h3><span class="debug">[Dart]</span> Specification</h3>
         <ul>
 """);
     	List links = entry["links"];
     	for (Map link in links) {
-    	  sbSections.add("""
+    	  sbSections.write("""
       <li><a href="${link['href']}">${link['title']}</a></li>
 """);
       }
-      sbSections.add("""
+      sbSections.write("""
         </ul>
       </div>
 """);
     }
     if (entry.containsKey("examples")) {
     	for (String example in entry["examples"]) {
-  	  sbExamples.add("""
+  	  sbExamples.write("""
 	    <div class="example">
 	  	  <h3><span class="debug">[Dart]</span> Example</h3>
 	  	  $example
@@ -276,7 +276,7 @@ void main() {
     } else {
       title = '<h2>$title</h2>';
     }
-    sb.add("""
+    sb.write("""
     <div class='type' id="$type">
       <a href='${entry['srcUrl']}'>$title</a>
 $sbSections
@@ -285,7 +285,7 @@ $sbMembers
     </div>
 """);
     if (sbExamples.length > 0) {
-      sbAllExamples.add("""
+      sbAllExamples.write("""
     <div class='type' id="$type">
       <a href='${entry['srcUrl']}'>$title</a>
       $sbExamples
@@ -298,7 +298,7 @@ $sbMembers
     if (!matchedTypes.contains(type) &&
         !database.containsKey(type)) {
       numSkipped++;
-      sbSkipped.add("""
+      sbSkipped.write("""
     <li class="unknown" id="$type">
       <a target="_blank" href="http://www.google.com/cse?cx=017193972565947830266%3Awpqsk6dy6ee&ie=UTF-8&q=$type">
         $type
@@ -308,7 +308,7 @@ $sbMembers
     }
   }
 
-  sb.add("""
+  sb.write("""
 <div id="#dart_summary">
   <h2>Summary</h2>
   <h3>
@@ -332,7 +332,7 @@ $sbSkipped
   </ul>
 </div>
 """);
-  sb.add("""
+  sb.write("""
   </body>
 </html>
 """);

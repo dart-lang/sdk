@@ -12,7 +12,7 @@ main() {
   } while (b != 'r');
 
   if (a is Comparable) {
-    a = a.concat(a);
+    a += a;
   }
   Expect.equals('barbar', a);
 }

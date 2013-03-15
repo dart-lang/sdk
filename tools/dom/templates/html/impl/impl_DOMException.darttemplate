@@ -33,10 +33,10 @@ $if DART2JS
     var errorName = JS('String', '#.name', this);
     // Although Safari nightly has updated the name to SecurityError, Safari 5
     // and 6 still return SECURITY_ERR.
-    if (_Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
+    if (Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
     // Chrome release still uses old string, remove this line when Chrome stable
     // also prints out SyntaxError.
-    if (_Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
+    if (Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
     return errorName;
   }
 $endif

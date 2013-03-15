@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_js_helper' show Creates, Returns;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
@@ -84,7 +85,9 @@ class AudioBuffer native "*AudioBuffer" {
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable
-  Float32Array getChannelData(int channelIndex) native;
+  @Returns('Float32Array')
+  @Creates('Float32Array')
+  List<double> getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -267,7 +270,7 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable
-  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
+  void decodeAudioData(/*ArrayBuffer*/ audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
   @DomName('AudioContext.startRendering')
   @DocsEditable
@@ -363,6 +366,18 @@ class AudioListener native "*AudioListener" {
 @DocsEditable
 @DomName('AudioNode')
 class AudioNode native "*AudioNode" {
+
+  @DomName('AudioNode.channelCount')
+  @DocsEditable
+  int channelCount;
+
+  @DomName('AudioNode.channelCountMode')
+  @DocsEditable
+  String channelCountMode;
+
+  @DomName('AudioNode.channelInterpretation')
+  @DocsEditable
+  String channelInterpretation;
 
   @DomName('AudioNode.context')
   @DocsEditable
@@ -822,7 +837,9 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
-  Float32Array curve;
+  @Returns('Float32Array')
+  @Creates('Float32Array')
+  List<double> curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

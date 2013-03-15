@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,6 +18,11 @@ class FileMode {
 
 /**
  * [File] objects are references to files.
+ *
+ * If [path] is a symbolic link, rather than a file, then
+ * the methods of [File] operate on the ultimate target of the
+ * link, except for File.delete and File.deleteSync, which operate on
+ * the link.
  *
  * To operate on the underlying file data there are two options:
  *
@@ -174,8 +179,14 @@ abstract class File extends FileSystemEntity {
    * * [FileMode.WRITE]: truncates the file to length zero.
    * * [FileMode.APPEND]: sets the initial write position to the end
    *   of the file.
+   *
+   *  When writing strings through the returned [IOSink] the encoding
+   *  specified using [encoding] will be used. The returned [IOSink]
+   *  has an [:encoding:] property which can be changed after the
+   *  [IOSink] has been created.
    */
-  IOSink<File> openWrite([FileMode mode = FileMode.WRITE]);
+  IOSink<File> openWrite({FileMode mode: FileMode.WRITE,
+                          Encoding encoding: Encoding.UTF_8});
 
   /**
    * Read the entire file contents as a list of bytes. Returns a
@@ -455,14 +466,14 @@ class FileIOException implements Exception {
                          OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add("FileIOException");
+    sb.write("FileIOException");
     if (!message.isEmpty) {
-      sb.add(": $message");
+      sb.write(": $message");
       if (osError != null) {
-        sb.add(" ($osError)");
+        sb.write(" ($osError)");
       }
     } else if (osError != null) {
-      sb.add(": osError");
+      sb.write(": osError");
     }
     return sb.toString();
   }

@@ -8,16 +8,71 @@ part of dart.io;
  * String encodings.
  */
 class Encoding {
-  static const Encoding UTF_8 = const Encoding._internal("UTF-8");
-  static const Encoding ISO_8859_1 = const Encoding._internal("ISO-8859-1");
-  static const Encoding ASCII = const Encoding._internal("ASCII");
+  static const Encoding UTF_8 = const Encoding._internal("utf-8");
+  static const Encoding ISO_8859_1 = const Encoding._internal("iso-8859-1");
+  static const Encoding ASCII = const Encoding._internal("us-ascii");
+
+  // All aliasses (in lowercase) of supported encoding from
+  // http://www.iana.org/assignments/character-sets/character-sets.xml.
+  static Map<String, Encoding> _nameToEncoding = <String, Encoding> {
+    // ISO_8859-1:1987.
+    "iso_8859-1:1987": ISO_8859_1,
+    "iso-ir-100": ISO_8859_1,
+    "iso_8859-1": ISO_8859_1,
+    "iso-8859-1": ISO_8859_1,
+    "latin1": ISO_8859_1,
+    "l1": ISO_8859_1,
+    "ibm819": ISO_8859_1,
+    "cp819": ISO_8859_1,
+    "csisolatin1": ISO_8859_1,
+
+    // US-ASCII.
+    "iso-ir-6": ASCII,
+    "ansi_x3.4-1968": ASCII,
+    "ansi_x3.4-1986": ASCII,
+    "iso_646.irv:1991": ASCII,
+    "iso646-us": ASCII,
+    "us-ascii": ASCII,
+    "us": ASCII,
+    "ibm367": ASCII,
+    "cp367": ASCII,
+    "csascii": ASCII,
+    "ascii": ASCII,  // This is not in the IANA official names.
+
+    // UTF-8.
+    "csutf8": UTF_8,
+    "utf-8": UTF_8
+  };
+
+  /**
+   * Gets an [Encoding] object from the name of the character set
+   * name. The names used are the IANA official names for the
+   * character set (see
+   * http://www.iana.org/assignments/character-sets/character-sets.xml).
+   *
+   * The [name] passed is case insensitive.
+   *
+   * If character set is not supported [:null:] is returned.
+   */
+  static Encoding fromName(String name) {
+    if (name == null) return null;
+    name = name.toLowerCase();
+    return _nameToEncoding[name];
+  }
+
+  /**
+   * Name of the encoding. This will be the lower-case version of one of the
+   * IANA official names for the character set (see
+   * http://www.iana.org/assignments/character-sets/character-sets.xml)
+   */
+  final String name;
+
   /**
    * SYSTEM encoding is the current code page on Windows and UTF-8 on
    * Linux and Mac.
    */
-  static const Encoding SYSTEM = const Encoding._internal("SYSTEM");
+  static const Encoding SYSTEM = const Encoding._internal("system");
   const Encoding._internal(String this.name);
-  final String name;
 }
 
 
@@ -157,12 +212,12 @@ class LineTransformer extends StreamEventTransformer<String, String> {
   const int _LF = 10;
   const int _CR = 13;
 
-  final StringBuffer _buffer = new StringBuffer();
+  StringBuffer _buffer = new StringBuffer();
   String _carry;
 
-  void _handle(String data, StreamSink<String> sink, bool isClosing) {
+  void _handle(String data, EventSink<String> sink, bool isClosing) {
     if (_carry != null) {
-      data = _carry.concat(data);
+      data = _carry + data;
       _carry = null;
     }
     int startPos = 0;
@@ -184,9 +239,9 @@ class LineTransformer extends StreamEventTransformer<String, String> {
         }
       }
       if (skip > 0) {
-        _buffer.add(data.substring(startPos, pos));
+        _buffer.write(data.substring(startPos, pos));
         sink.add(_buffer.toString());
-        _buffer.clear();
+        _buffer = new StringBuffer();
         startPos = pos = pos + skip;
       } else {
         pos++;
@@ -194,19 +249,19 @@ class LineTransformer extends StreamEventTransformer<String, String> {
     }
     if (pos != startPos) {
       // Add remaining
-      _buffer.add(data.substring(startPos, pos));
+      _buffer.write(data.substring(startPos, pos));
     }
     if (isClosing && !_buffer.isEmpty) {
       sink.add(_buffer.toString());
-      _buffer.clear();
+      _buffer = new StringBuffer();
     }
   }
 
-  void handleData(String data, StreamSink<String> sink) {
+  void handleData(String data, EventSink<String> sink) {
     _handle(data, sink, false);
   }
 
-  void handleDone(StreamSink<String> sink) {
+  void handleDone(EventSink<String> sink) {
     _handle("", sink, true);
     sink.close();
   }
@@ -219,7 +274,7 @@ abstract class _SingleByteDecoder
 
   _SingleByteDecoder(this._replacementChar);
 
-  void handleData(List<int> data, StreamSink<String> sink) {
+  void handleData(List<int> data, EventSink<String> sink) {
     var buffer = new List<int>(data.length);
     for (int i = 0; i < data.length; i++) {
       int char = _decodeByte(data[i]);
@@ -253,10 +308,10 @@ class _Latin1Decoder extends _SingleByteDecoder {
 
 abstract class _SingleByteEncoder
     extends StreamEventTransformer<String, List<int>> {
-  void handleData(String data, StreamSink<List<int>> sink) {
+  void handleData(String data, EventSink<List<int>> sink) {
     var bytes = _encode(data);
     if (bytes == null) {
-      sink.signalError(
+      sink.addError(
           new AsyncError(
               new FormatException("Invalid character for encoding")));
       sink.close();
@@ -307,7 +362,7 @@ class _WindowsCodePageEncoder extends _SingleByteEncoder {
 // Utility class for decoding Windows current code page data delivered
 // as a stream of bytes.
 class _WindowsCodePageDecoder extends StreamEventTransformer<List<int>, String> {
-  void handleData(List<int> data, StreamSink<String> sink) {
+  void handleData(List<int> data, EventSink<String> sink) {
     sink.add(_decodeBytes(data));
   }
 

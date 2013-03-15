@@ -1,0 +1,101 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
+
+  // NOTE! All code below should be common with Rect.
+  // TODO(blois): implement with mixins when available.
+
+  String toString() {
+    return '($left, $top, $width, $height)';
+  }
+
+  bool operator ==(other) {
+    if (other is !Rect) return false;
+    return left == other.left && top == other.top && width == other.width &&
+        height == other.height;
+  }
+
+  /**
+   * Computes the intersection of this rectangle and the rectangle parameter.
+   * Returns null if there is no intersection.
+   */
+  Rect intersection(Rect rect) {
+    var x0 = max(left, rect.left);
+    var x1 = min(left + width, rect.left + rect.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, rect.top);
+      var y1 = min(top + height, rect.top + rect.height);
+
+      if (y0 <= y1) {
+        return new Rect(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns whether a rectangle intersects this rectangle.
+   */
+  bool intersects(Rect other) {
+    return (left <= other.left + other.width && other.left <= left + width &&
+        top <= other.top + other.height && other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains this rectangle and the
+   * input rectangle.
+   */
+  Rect union(Rect rect) {
+    var right = max(this.left + this.width, rect.left + rect.width);
+    var bottom = max(this.top + this.height, rect.top + rect.height);
+
+    var left = min(this.left, rect.left);
+    var top = min(this.top, rect.top);
+
+    return new Rect(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains another rectangle.
+   */
+  bool containsRect(Rect another) {
+    return left <= another.left &&
+           left + width >= another.left + another.width &&
+           top <= another.top &&
+           top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether this rectangle entirely contains a point.
+   */
+  bool containsPoint(Point another) {
+    return another.x >= left &&
+           another.x <= left + width &&
+           another.y >= top &&
+           another.y <= top + height;
+  }
+
+  Rect ceil() => new Rect(left.ceil(), top.ceil(), width.ceil(), height.ceil());
+  Rect floor() => new Rect(left.floor(), top.floor(), width.floor(),
+      height.floor());
+  Rect round() => new Rect(left.round(), top.round(), width.round(),
+      height.round());
+
+  /**
+   * Truncates coordinates to integers and returns the result as a new
+   * rectangle.
+   */
+  Rect toInt() => new Rect(left.toInt(), top.toInt(), width.toInt(),
+      height.toInt());
+
+  Point get topLeft => new Point(this.left, this.top);
+  Point get bottomRight => new Point(this.left + this.width,
+      this.top + this.height);
+$!MEMBERS}

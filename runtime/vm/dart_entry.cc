@@ -55,14 +55,13 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
-#ifdef USING_SIMULATOR
+#if defined(USING_SIMULATOR)
     return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
         reinterpret_cast<int32_t>(entrypoint),
         static_cast<int32_t>(code.EntryPoint()),
         reinterpret_cast<int32_t>(&arguments_descriptor),
         reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(&context),
-        0));
+        reinterpret_cast<int32_t>(&context)));
 #else
     return entrypoint(code.EntryPoint(),
                       arguments_descriptor,

@@ -37,7 +37,7 @@ String forBailout() {
   for (int i = 0; i < n; i++) {
     var o = myString;
     if (false) o[1] = 2;
-    res = res.concat(o[i]);
+    res += o[i];
   }
   return res;
 }
@@ -48,7 +48,7 @@ String forInBailout() {
   for (int i in myString.codeUnits) {
     var o = myString;
     if (false) o[1] = 2;
-    res = res.concat(new String.fromCharCodes([i]));
+    res += new String.fromCharCodes([i]);
   }
   return res;
 }
@@ -60,7 +60,7 @@ String innerForBailout() {
     for (int j = 0; j < n; j++) {
       var o = myString;
       if (false) o[1] = 2;
-      res = res.concat(o[j]);
+      res += o[j];
     }
   }
   return res;
@@ -73,7 +73,7 @@ String whileBailout() {
   while (i < n) {
     var o = myString;
     if (false) o[1] = 2;
-    res = res.concat(o[i]);
+    res += o[i];
     i++;
   }
   return res;
@@ -86,7 +86,7 @@ String doWhileBailout() {
   do {
     var o = myString;
     if (false) o[1] = 2;
-    res = res.concat(o[i]);
+    res += o[i];
     i++;
   } while (i < n);
   return res;

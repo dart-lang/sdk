@@ -65,7 +65,7 @@ class StringTest {
   static testConcat() {
     var a = "One";
     var b = "Four";
-    var c = a.concat(b);
+    var c = a + b;
     Expect.equals(7, c.length);
     Expect.equals("OneFour", c);
   }
@@ -73,8 +73,8 @@ class StringTest {
   static testEquals() {
     Expect.equals("str", "str");
 
-    Expect.equals("str", "s".concat("t").concat("r"));
-    Expect.equals("s".concat("t").concat("r"), "str");
+    Expect.equals("str", "s" + "t" + "r");
+    Expect.equals("s" + "t" + "r", "str");
 
     Expect.equals(false, "str" == "s");
     Expect.equals(false, "str" == "r");

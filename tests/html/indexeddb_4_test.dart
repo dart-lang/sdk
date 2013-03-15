@@ -4,7 +4,6 @@ import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db';
-import 'utils.dart';
 
 // Test for KeyRange and Cursor.
 
@@ -82,40 +81,40 @@ main() {
   // Support is tested in indexeddb_1_test
   if (IdbFactory.supported) {
     var db;
-    futureTest('prepare', () {
+    test('prepare', () {
       return setupDb().then((result) {
           db = result;
         });
     });
 
-    futureTest('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
+    test('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
 
-    futureTest('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
-    futureTest('only2', () => testRange(db, new KeyRange.only(100), null, null));
-    futureTest('only3', () => testRange(db, new KeyRange.only(-1), null, null));
+    test('only1', () => testRange(db, new KeyRange.only(55), 55, 55));
+    test('only2', () => testRange(db, new KeyRange.only(100), null, null));
+    test('only3', () => testRange(db, new KeyRange.only(-1), null, null));
 
-    futureTest('lower1', () =>
+    test('lower1', () =>
         testRange(db, new KeyRange.lowerBound(40), 40, 99));
     // OPTIONALS lower2() => testRange(db, new KeyRange.lowerBound(40, open: true), 41, 99);
-    futureTest('lower2', () =>
+    test('lower2', () =>
         testRange(db, new KeyRange.lowerBound(40, true), 41, 99));
     // OPTIONALS lower3() => testRange(db, new KeyRange.lowerBound(40, open: false), 40, 99);
-    futureTest('lower3', () =>
+    test('lower3', () =>
         testRange(db, new KeyRange.lowerBound(40, false), 40, 99));
 
-    futureTest('upper1', () =>
+    test('upper1', () =>
         testRange(db, new KeyRange.upperBound(40), 0, 40));
     // OPTIONALS upper2() => testRange(db, new KeyRange.upperBound(40, open: true), 0, 39);
-    futureTest('upper2', () =>
+    test('upper2', () =>
         testRange(db, new KeyRange.upperBound(40, true), 0, 39));
     // upper3() => testRange(db, new KeyRange.upperBound(40, open: false), 0, 40);
-    futureTest('upper3', () =>
+    test('upper3', () =>
         testRange(db, new KeyRange.upperBound(40, false), 0, 40));
 
-    futureTest('bound1', () =>
+    test('bound1', () =>
         testRange(db, new KeyRange.bound(20, 30), 20, 30));
 
-    futureTest('bound2', () =>
+    test('bound2', () =>
         testRange(db, new KeyRange.bound(-100, 200), 0, 99));
 
     bound3() =>

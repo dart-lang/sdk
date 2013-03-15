@@ -112,7 +112,7 @@
 					match = '\b(static|final|const)\b';
 				},
 				{	name = 'storage.type.primitive.dart';
-					match = '\b(?:void|bool|num|int|double|Dynamic|var|String)\b';
+					match = '\b(?:void|bool|num|int|double|dynamic|var|String)\b';
 				},
 			);
 		};

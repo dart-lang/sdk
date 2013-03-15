@@ -198,7 +198,7 @@ class _HttpHeaders implements HttpHeaders {
     if (values != null) {
       return new ContentType.fromString(values[0]);
     } else {
-      return new ContentType();
+      return null;
     }
   }
 
@@ -277,7 +277,7 @@ class _HttpHeaders implements HttpHeaders {
     } else if (lowerCaseName == HttpHeaders.CONTENT_TYPE) {
       _set(HttpHeaders.CONTENT_TYPE, value);
     } else {
-        _addValue(lowerCaseName, value);
+      _addValue(lowerCaseName, value);
     }
   }
 
@@ -320,7 +320,7 @@ class _HttpHeaders implements HttpHeaders {
     return true;
   }
 
-  void _finalize() {
+  void _synchronize() {
     // If the content length is not known make sure chunked transfer
     // encoding is used for HTTP 1.1.
     if (contentLength < 0) {
@@ -337,80 +337,59 @@ class _HttpHeaders implements HttpHeaders {
         protocolVersion == "1.1") {
       contentLength = -1;
     }
+  }
+
+  void _finalize() {
+    _synchronize();
     _mutable = false;
   }
 
-  _write(IOSink sink) {
+  _write(_BufferList buffer) {
     final COLONSP = const [_CharCode.COLON, _CharCode.SP];
     final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
     final CRLF = const [_CharCode.CR, _CharCode.LF];
 
-    var bufferSize = 16 * 1024;
-    var buffer = new Uint8List(bufferSize);
-    var bufferPos = 0;
-
-    void writeBuffer() {
-      sink.add(buffer.getRange(0, bufferPos));
-      bufferPos = 0;
-    }
-
     // Format headers.
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
-      List<int> nameData;
-      nameData = name.codeUnits;
-      int nameDataLen = nameData.length;
-      if (nameDataLen + 2 > bufferSize - bufferPos) writeBuffer();
-      buffer.setRange(bufferPos, nameDataLen, nameData);
-      bufferPos += nameDataLen;
-      buffer[bufferPos++] = _CharCode.COLON;
-      buffer[bufferPos++] = _CharCode.SP;
+      var nameData = name.codeUnits;
+      buffer.add(nameData);
+      buffer.add(const [_CharCode.COLON, _CharCode.SP]);
       for (int i = 0; i < values.length; i++) {
-        List<int> data = values[i].codeUnits;
-        int dataLen = data.length;
-        // Worst case here is writing the name, value and 6 additional bytes.
-        if (nameDataLen + dataLen + 6 > bufferSize - bufferPos) writeBuffer();
         if (i > 0) {
           if (fold) {
-            buffer[bufferPos++] = _CharCode.COMMA;
-            buffer[bufferPos++] = _CharCode.SP;
+            buffer.add(const [_CharCode.COMMA, _CharCode.SP]);
           } else {
-            buffer[bufferPos++] = _CharCode.CR;
-            buffer[bufferPos++] = _CharCode.LF;
-            buffer.setRange(bufferPos, nameDataLen, nameData);
-            bufferPos += nameDataLen;
-            buffer[bufferPos++] = _CharCode.COLON;
-            buffer[bufferPos++] = _CharCode.SP;
+            buffer.add(const [_CharCode.CR, _CharCode.LF]);
+            buffer.add(nameData);
+            buffer.add(const [_CharCode.COLON, _CharCode.SP]);
           }
         }
-        buffer.setRange(bufferPos, dataLen, data);
-        bufferPos += dataLen;
+        buffer.add(values[i].codeUnits);
       }
-      buffer[bufferPos++] = _CharCode.CR;
-      buffer[bufferPos++] = _CharCode.LF;
+      buffer.add(const [_CharCode.CR, _CharCode.LF]);
     });
-    writeBuffer();
   }
 
   String toString() {
     StringBuffer sb = new StringBuffer();
     _headers.forEach((String name, List<String> values) {
-      sb.add(name);
-      sb.add(": ");
+      sb.write(name);
+      sb.write(": ");
       bool fold = _foldHeader(name);
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
-            sb.add(", ");
+            sb.write(", ");
           } else {
-            sb.add("\n");
-            sb.add(name);
-            sb.add(": ");
+            sb.write("\n");
+            sb.write(name);
+            sb.write(": ");
           }
         }
-        sb.add(values[i]);
+        sb.write(values[i]);
       }
-      sb.add("\n");
+      sb.write("\n");
     });
     return sb.toString();
   }
@@ -493,12 +472,17 @@ class _HttpHeaders implements HttpHeaders {
 
 
 class _HeaderValue implements HeaderValue {
-  _HeaderValue([String this.value = ""]);
+  String _value;
+  Map<String, String> _parameters;
 
-  _HeaderValue.fromString(String value, {this.parameterSeparator: ";"}) {
+  _HeaderValue([String this._value = "", this._parameters]);
+
+  _HeaderValue.fromString(String value, {parameterSeparator: ";"}) {
     // Parse the string.
-    _parse(value);
+    _parse(value, parameterSeparator);
   }
+
+  String get value => _value;
 
   Map<String, String> get parameters {
     if (_parameters == null) _parameters = new Map<String, String>();
@@ -507,19 +491,19 @@ class _HeaderValue implements HeaderValue {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add(value);
+    sb.write(_value);
     if (parameters != null && parameters.length > 0) {
       _parameters.forEach((String name, String value) {
-        sb.add("; ");
-        sb.add(name);
-        sb.add("=");
-        sb.add(value);
+        sb.write("; ");
+        sb.write(name);
+        sb.write("=");
+        sb.write(value);
       });
     }
     return sb.toString();
   }
 
-  void _parse(String s) {
+  void _parse(String s, String parameterSeparator) {
     int index = 0;
 
     bool done() => index == s.length;
@@ -580,7 +564,7 @@ class _HeaderValue implements HeaderValue {
               index++;
               break;
             }
-            sb.add(s[index]);
+            sb.write(s[index]);
             index++;
           }
           return sb.toString();
@@ -606,58 +590,53 @@ class _HeaderValue implements HeaderValue {
     }
 
     skipWS();
-    value = parseValue();
+    _value = parseValue();
     skipWS();
     if (done()) return;
     maybeExpect(parameterSeparator);
     parseParameters();
   }
-
-  String value;
-  String parameterSeparator;
-  Map<String, String> _parameters;
 }
 
 
 class _ContentType extends _HeaderValue implements ContentType {
-  _ContentType(String primaryType, String subType)
-      : _primaryType = primaryType, _subType = subType, super("");
+  String _primaryType = "";
+  String _subType = "";
 
-  _ContentType.fromString(String value) : super.fromString(value);
+  _ContentType(String primaryType,
+               String subType,
+               String charset,
+               Map<String, String> parameters)
+      : _primaryType = primaryType, _subType = subType, super("") {
+    if (_primaryType == null) _primaryType = "";
+    if (_subType == null) _subType = "";
+    _value = "$_primaryType/$_subType";;
+    if (parameters != null) {
+      parameters.forEach((String key, String value) {
+        this.parameters[key.toLowerCase()] = value.toLowerCase();
+      });
+    }
+    if (charset != null) {
+      this.parameters["charset"] = charset.toLowerCase();
+    }
+  }
 
-  String get value => "$_primaryType/$_subType";
-
-  void set value(String s) {
-    int index = s.indexOf("/");
-    if (index == -1 || index == (s.length - 1)) {
-      primaryType = s.trim().toLowerCase();
-      subType = "";
+  _ContentType.fromString(String value) : super.fromString(value) {
+    int index = _value.indexOf("/");
+    if (index == -1 || index == (_value.length - 1)) {
+      _primaryType = _value.trim().toLowerCase();
+      _subType = "";
     } else {
-      primaryType = s.substring(0, index).trim().toLowerCase();
-      subType = s.substring(index + 1).trim().toLowerCase();
+      _primaryType = _value.substring(0, index).trim().toLowerCase();
+      _subType = _value.substring(index + 1).trim().toLowerCase();
     }
   }
 
   String get primaryType => _primaryType;
 
-  void set primaryType(String s) {
-    _primaryType = s;
-  }
-
   String get subType => _subType;
 
-  void set subType(String s) {
-    _subType = s;
-  }
-
   String get charset => parameters["charset"];
-
-  void set charset(String s) {
-    parameters["charset"] = s;
-  }
-
-  String _primaryType = "";
-  String _subType = "";
 }
 
 
@@ -757,27 +736,27 @@ class _Cookie implements Cookie {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add(name);
-    sb.add("=");
-    sb.add(value);
+    sb.write(name);
+    sb.write("=");
+    sb.write(value);
     if (expires != null) {
-      sb.add("; Expires=");
-      sb.add(_HttpUtils.formatDate(expires));
+      sb.write("; Expires=");
+      sb.write(_HttpUtils.formatDate(expires));
     }
     if (maxAge != null) {
-      sb.add("; Max-Age=");
-      sb.add(maxAge);
+      sb.write("; Max-Age=");
+      sb.write(maxAge);
     }
     if (domain != null) {
-      sb.add("; Domain=");
-      sb.add(domain);
+      sb.write("; Domain=");
+      sb.write(domain);
     }
     if (path != null) {
-      sb.add("; Path=");
-      sb.add(path);
+      sb.write("; Path=");
+      sb.write(path);
     }
-    if (secure) sb.add("; Secure");
-    if (httpOnly) sb.add("; HttpOnly");
+    if (secure) sb.write("; Secure");
+    if (httpOnly) sb.write("; HttpOnly");
     return sb.toString();
   }
 

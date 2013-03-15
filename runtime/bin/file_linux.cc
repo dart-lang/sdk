@@ -107,7 +107,8 @@ File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
-    if (!S_ISREG(st.st_mode)) {
+    // Only accept regular files and character devices.
+    if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
       return NULL;
     }
@@ -156,6 +157,12 @@ bool File::Create(const char* name) {
     return false;
   }
   return (close(fd) == 0);
+}
+
+
+bool File::CreateLink(const char* name, const char* target) {
+  int status = TEMP_FAILURE_RETRY(symlink(target, name));
+  return (status == 0);
 }
 
 
@@ -244,6 +251,22 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   if (S_ISSOCK(buf.st_mode)) return kSocket;
   if (S_ISREG(buf.st_mode)) return kFile;
   return kOther;
+}
+
+
+File::Type File::GetType(const char* pathname, bool follow_links) {
+  struct stat entry_info;
+  int stat_success;
+  if (follow_links) {
+    stat_success = TEMP_FAILURE_RETRY(stat(pathname, &entry_info));
+  } else {
+    stat_success = TEMP_FAILURE_RETRY(lstat(pathname, &entry_info));
+  }
+  if (stat_success == -1) return File::kDoesNotExist;
+  if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
+  if (S_ISREG(entry_info.st_mode)) return File::kIsFile;
+  if (S_ISLNK(entry_info.st_mode)) return File::kIsLink;
+  return File::kDoesNotExist;
 }
 
 #endif  // defined(TARGET_OS_LINUX)

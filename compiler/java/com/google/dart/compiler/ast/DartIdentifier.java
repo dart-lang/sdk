@@ -5,7 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.NodeElement;
+import com.google.dart.compiler.util.StringInterner;
 
 /**
  * Represents a Dart identifier expression.
@@ -13,20 +13,20 @@ import com.google.dart.compiler.resolver.NodeElement;
 public class DartIdentifier extends DartExpression {
 
   private final String name;
-  private NodeElement element;
+  private Element element;
   private boolean resolutionAlreadyReportedThatTheMethodCouldNotBeFound;
 
   public DartIdentifier(String name) {
     assert name != null;
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   public DartIdentifier(DartIdentifier original) {
-    this.name = original.name;
+    this.name = StringInterner.intern(original.name);
   }
 
   @Override
-  public NodeElement getElement() {
+  public Element getElement() {
     return element;
   }
 
@@ -47,7 +47,7 @@ public class DartIdentifier extends DartExpression {
 
   @Override
   public void setElement(Element element) {
-    this.element = (NodeElement) element;
+    this.element = element;
   }
 
   /**

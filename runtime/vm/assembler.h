@@ -80,6 +80,11 @@ class AssemblerBuffer : public ValueObject {
     cursor_ += sizeof(T);
   }
 
+  template<typename T> void Remit() {
+    ASSERT(Size() >= static_cast<intptr_t>(sizeof(T)));
+    cursor_ -= sizeof(T);
+  }
+
   template<typename T> T Load(int position) {
     ASSERT(position >= 0 && position <= (Size() - static_cast<int>(sizeof(T))));
     return *reinterpret_cast<T*>(contents_ + position);

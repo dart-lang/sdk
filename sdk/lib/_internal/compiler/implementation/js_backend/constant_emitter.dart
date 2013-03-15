@@ -143,6 +143,10 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitConstructed(ConstructedConstant constant) {
     return emitCanonicalVersion(constant);
   }
+
+  jsAst.Expression visitInterceptor(InterceptorConstant constant) {
+    return emitCanonicalVersion(constant);
+  }
 }
 
 /**
@@ -290,6 +294,13 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
             new jsAst.VariableUse(namer.CURRENT_ISOLATE),
             helperName),
         [typeName]);
+  }
+
+  jsAst.Expression visitInterceptor(InterceptorConstant constant) {
+    return new jsAst.PropertyAccess.field(
+        new jsAst.VariableUse(
+            getJsConstructor(constant.dispatchedType.element)),
+        'prototype');
   }
 
   jsAst.Expression visitConstructed(ConstructedConstant constant) {

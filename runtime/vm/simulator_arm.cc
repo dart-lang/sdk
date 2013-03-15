@@ -293,6 +293,7 @@ void SimulatorDebugger::RedoBreakpoints() {
 void SimulatorDebugger::Debug() {
   intptr_t last_pc = -1;
   bool done = false;
+  bool decoded = true;
 
 #define COMMAND_SIZE 63
 #define ARG_SIZE 255
@@ -316,7 +317,7 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      decoded = Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {
@@ -346,14 +347,26 @@ void SimulatorDebugger::Debug() {
                   "pd/printdouble <dreg or *addr> -- print double value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
-                  "unstop -- if current pc is a stop instr make it a nop\n");
+                  "unstop -- if current pc is a stop instr make it a nop\n"
+                  "q/quit -- Quit the debugger and exit the program\n");
+      } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
+        OS::Print("Quitting\n");
+        OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
-        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        if (decoded) {
+          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        } else {
+          OS::Print("Instruction could not be decoded. Stepping disabled.\n");
+        }
       } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
-        // Execute the one instruction we broke at with breakpoints disabled.
-        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-        // Leave the debugger shell.
-        done = true;
+        if (decoded) {
+          // Execute the one instruction we broke at with breakpoints disabled.
+          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+          // Leave the debugger shell.
+          done = true;
+        } else {
+          OS::Print("Instruction could not be decoded. Cannot continue.\n");
+        }
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint32_t value;
@@ -682,14 +695,15 @@ class Redirection {
 
   uword external_function() const { return external_function_; }
 
-  uint32_t argument_count() const { return argument_count_; }
+  Simulator::CallKind call_kind() const { return call_kind_; }
 
-  static Redirection* Get(uword external_function, uint32_t argument_count) {
+  static Redirection* Get(uword external_function,
+                          Simulator::CallKind call_kind) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, argument_count);
+    return new Redirection(external_function, call_kind);
   }
 
   static Redirection* FromSvcInstruction(Instr* svc_instruction) {
@@ -702,16 +716,16 @@ class Redirection {
  private:
   static const int32_t kRedirectSvcInstruction =
     ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
-  Redirection(uword external_function, uint32_t argument_count)
+  Redirection(uword external_function, Simulator::CallKind call_kind)
       : external_function_(external_function),
-        argument_count_(argument_count),
+        call_kind_(call_kind),
         svc_instruction_(kRedirectSvcInstruction),
         next_(list_) {
     list_ = this;
   }
 
   uword external_function_;
-  const uint32_t argument_count_;
+  Simulator::CallKind call_kind_;
   uint32_t svc_instruction_;
   Redirection* next_;
   static Redirection* list_;
@@ -721,9 +735,8 @@ class Redirection {
 Redirection* Redirection::list_ = NULL;
 
 
-uword Simulator::RedirectExternalReference(uword function,
-                                           uint32_t argument_count) {
-  Redirection* redirection = Redirection::Get(function, argument_count);
+uword Simulator::RedirectExternalReference(uword function, CallKind call_kind) {
+  Redirection* redirection = Redirection::Get(function, call_kind);
   return redirection->address_of_svc_instruction();
 }
 
@@ -1298,15 +1311,15 @@ void Simulator::HandleRList(Instr* instr, bool load) {
 }
 
 
-// Calls into the Dart runtime are based on this simple interface.
+// Calls into the Dart runtime are based on this interface.
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 
+// Calls to leaf Dart runtime functions are based on this interface.
+typedef int32_t (*SimulatorLeafRuntimeCall)(
+    int32_t r0, int32_t r1, int32_t r2, int32_t r3);
 
-static void PrintExternalCallTrace(intptr_t external,
-                                   NativeArguments arguments) {
-  // TODO(regis): Do a reverse lookup on this address and print the symbol.
-  UNIMPLEMENTED();
-}
+// Calls to native Dart functions are based on this interface.
+typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
 
 
 void Simulator::SupervisorCall(Instr* instr) {
@@ -1316,25 +1329,45 @@ void Simulator::SupervisorCall(Instr* instr) {
       SimulatorSetjmpBuffer buffer(this);
 
       if (!setjmp(buffer.buffer_)) {
-        NativeArguments arguments;
-        ASSERT(sizeof(NativeArguments) == 4*kWordSize);
-        arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(R0));
-        arguments.argc_tag_ = get_register(R1);
-        arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
-        arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
-
         int32_t saved_lr = get_register(LR);
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
         uword external = redirection->external_function();
-        SimulatorRuntimeCall target =
-            reinterpret_cast<SimulatorRuntimeCall>(external);
         if (FLAG_trace_sim) {
-          PrintExternalCallTrace(external, arguments);
+          OS::Print("Call to host function at 0x%"Pd"\n", external);
         }
-        target(arguments);
+        if (redirection->call_kind() == kRuntimeCall) {
+          NativeArguments arguments;
+          ASSERT(sizeof(NativeArguments) == 4*kWordSize);
+          arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(R0));
+          arguments.argc_tag_ = get_register(R1);
+          arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
+          arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
+          SimulatorRuntimeCall target =
+              reinterpret_cast<SimulatorRuntimeCall>(external);
+          target(arguments);
+          set_register(R0, icount_);  // Zap result register from void function.
+        } else if (redirection->call_kind() == kLeafRuntimeCall) {
+          int32_t r0 = get_register(R0);
+          int32_t r1 = get_register(R1);
+          int32_t r2 = get_register(R2);
+          int32_t r3 = get_register(R3);
+          SimulatorLeafRuntimeCall target =
+              reinterpret_cast<SimulatorLeafRuntimeCall>(external);
+          r0 = target(r0, r1, r2, r3);
+          set_register(R0, r0);  // Set returned result from function.
+        } else {
+          ASSERT(redirection->call_kind() == kNativeCall);
+          NativeArguments* arguments;
+          arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
+          SimulatorNativeCall target =
+              reinterpret_cast<SimulatorNativeCall>(external);
+          target(arguments);
+          set_register(R0, icount_);  // Zap result register from void function.
+        }
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.
+        set_register(R1, icount_);
         set_register(R2, icount_);
         set_register(R3, icount_);
         set_register(IP, icount_);
@@ -1350,9 +1383,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         }
 #endif  // VFPv3_D32
 
-        // Zap result register pair R0:R1 and return.
-        set_register(R0, icount_);
-        set_register(R1, icount_);
+        // Return.
         set_pc(saved_lr);
       }
 
@@ -1996,7 +2027,46 @@ void Simulator::DecodeType2(Instr* instr) {
 }
 
 
+void Simulator::DoDivision(Instr* instr) {
+  ASSERT(CPUFeatures::integer_division_supported());
+  Register rd = instr->RdField();
+  Register rn = instr->RnField();
+  Register rm = instr->RmField();
+
+  // TODO(zra): Does the hardware trap on divide-by-zero?
+  //     Revisit when we test on ARM hardware.
+  if (get_register(rm) == 0) {
+    set_register(rd, 0);
+    return;
+  }
+
+  if (instr->Bit(21) == 1) {
+    // unsigned division.
+    uint32_t rn_val = static_cast<uint32_t>(get_register(rn));
+    uint32_t rm_val = static_cast<uint32_t>(get_register(rm));
+    uint32_t result = rn_val / rm_val;
+    set_register(rd, static_cast<int32_t>(result));
+  } else {
+    // signed division.
+    int32_t rn_val = get_register(rn);
+    int32_t rm_val = get_register(rm);
+    int32_t result;
+    if ((rn_val == static_cast<int32_t>(0x80000000)) &&
+        (rm_val == static_cast<int32_t>(0xffffffff))) {
+      result = 0x80000000;
+    } else {
+      result = rn_val / rm_val;
+    }
+    set_register(rd, result);
+  }
+}
+
+
 void Simulator::DecodeType3(Instr* instr) {
+  if (instr->IsDivision()) {
+    DoDivision(instr);
+    return;
+  }
   Register rd = instr->RdField();
   Register rn = instr->RnField();
   int32_t rn_val = get_register(rn);
@@ -2584,6 +2654,14 @@ void Simulator::DecodeType7(Instr* instr) {
         UNIMPLEMENTED();
       }
     }
+  } else if (instr->IsMrcIdIsar0()) {
+    // mrc of ID_ISAR0.
+    Register rd = instr->RdField();
+    if (CPUFeatures::integer_division_supported()) {
+      set_register(rd, 0x02100010);  // sim has sdiv, udiv, bkpt and clz.
+    } else {
+      set_register(rd, 0x00100010);  // simulator has only bkpt and clz.
+    }
   } else {
     UNIMPLEMENTED();
   }
@@ -2694,8 +2772,7 @@ int64_t Simulator::Call(int32_t entry,
                         int32_t parameter0,
                         int32_t parameter1,
                         int32_t parameter2,
-                        int32_t parameter3,
-                        int32_t parameter4) {
+                        int32_t parameter3) {
   // Save the SP register before the call so we can restore it.
   int32_t sp_before_call = get_register(SP);
 
@@ -2705,18 +2782,12 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R2, parameter2);
   set_register(R3, parameter3);
 
-  // Reserve room for one stack parameter.
-  int32_t stack_pointer = sp_before_call;
-  stack_pointer -= kWordSize;
-
   // Make sure the activation frames are properly aligned.
+  int32_t stack_pointer = sp_before_call;
   static const int kFrameAlignment = OS::ActivationFrameAlignment();
   if (kFrameAlignment > 0) {
     stack_pointer = Utils::RoundDown(stack_pointer, kFrameAlignment);
   }
-
-  // Write the fourth parameter to the stack and update register SP.
-  *reinterpret_cast<int32_t*>(stack_pointer) = parameter4;
   set_register(SP, stack_pointer);
 
   // Prepare to execute the code at entry.

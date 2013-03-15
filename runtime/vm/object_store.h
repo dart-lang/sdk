@@ -63,6 +63,16 @@ class ObjectStore {
     type_parameter_class_ = value.raw();
   }
 
+  RawClass* bounded_type_class() const { return bounded_type_class_; }
+  void set_bounded_type_class(const Class& value) {
+    bounded_type_class_ = value.raw();
+  }
+
+  RawClass* mixin_app_type_class() const { return mixin_app_type_class_; }
+  void set_mixin_app_type_class(const Class& value) {
+    mixin_app_type_class_ = value.raw();
+  }
+
   RawType* number_type() const { return number_type_; }
   void set_number_type(const Type& value) {
     number_type_ = value.raw();
@@ -346,6 +356,13 @@ class ObjectStore {
     external_float64_array_class_ = value.raw();
   }
 
+  RawArray* typeddata_classes() const {
+    return typeddata_classes_;
+  }
+  void set_typeddata_classes(const Array& value) {
+    typeddata_classes_ = value.raw();
+  }
+
   RawClass* stacktrace_class() const {
     return stacktrace_class_;
   }
@@ -471,6 +488,13 @@ class ObjectStore {
     scalarlist_library_ = value.raw();
   }
 
+  RawLibrary* typeddata_library() const {
+    return typeddata_library_;
+  }
+  void set_typeddata_library(const Library& value) {
+    typeddata_library_ = value.raw();
+  }
+
   RawLibrary* uri_library() const {
     return uri_library_;
   }
@@ -581,6 +605,8 @@ class ObjectStore {
   RawType* function_type_;
   RawClass* type_class_;
   RawClass* type_parameter_class_;
+  RawClass* bounded_type_class_;
+  RawClass* mixin_app_type_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;
@@ -629,6 +655,7 @@ class ObjectStore {
   RawClass* external_float32x4_array_class_;
   RawClass* external_float32_array_class_;
   RawClass* external_float64_array_class_;
+  RawArray* typeddata_classes_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
@@ -648,6 +675,7 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* scalarlist_library_;
+  RawLibrary* typeddata_library_;
   RawLibrary* uri_library_;
   RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;

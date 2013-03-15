@@ -22,7 +22,7 @@ class Test {
       }
       return "";
     } catch (e, stacktrace) {
-      var result = e.concat(stacktrace.toString());
+      var result = e + stacktrace.toString();
       return result;
     }
   }

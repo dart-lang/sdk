@@ -10,6 +10,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
+import com.google.dart.compiler.util.StringInterner;
 
 abstract class AbstractNodeElement implements Element, NodeElement {
   private final DartNode node;
@@ -20,7 +21,7 @@ abstract class AbstractNodeElement implements Element, NodeElement {
     // TODO(scheglov) in the future we will not use ASTNode and remove null check
     this.sourceInfo = node != null ? node.getSourceInfo() : SourceInfo.UNKNOWN;
     this.node = node;
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   @Override

@@ -10,6 +10,7 @@ import 'dart:html';
 import 'metadata.dart';
 export 'metadata.dart';
 
+part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
 

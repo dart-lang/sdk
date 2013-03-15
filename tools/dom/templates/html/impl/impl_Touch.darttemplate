@@ -1,0 +1,22 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+
+  @DomName('Touch.clientX')
+  @DomName('Touch.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('Touch.pageX')
+  @DomName('Touch.pageY')
+  Point get page => new Point($dom_pageX, $dom_pageY);
+
+  @DomName('Touch.screenX')
+  @DomName('Touch.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
+}

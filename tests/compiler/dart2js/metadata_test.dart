@@ -150,9 +150,12 @@ void testLibraryTags() {
 
     Uri uri = new Uri.fromComponents(scheme: 'source', path: 'main.dart');
 
+    Uri async = new Uri.fromComponents(scheme: 'dart', path: 'async');
+
     var compiler = compilerFor(source, uri)
         ..registerSource(partUri, partSource)
         ..registerSource(libUri, libSource)
+        ..registerSource(async, 'class DeferredLibrary {}')
         ..runCompiler(uri);
     compiler.enqueuer.resolution.queueIsClosed = false;
     LibraryElement element = compiler.libraries['$uri'];

@@ -8,13 +8,13 @@ check(DateTime expected, String str) {
   Expect.equals(expected.isUtc, actual.isUtc);
 }
 main() {
-  check(new Date(2012, 02, 27, 13, 27), "2012-02-27 13:27:00");
-  check(new Date.utc(2012, 02, 27, 13, 27, 0, 123),
+  check(new DateTime(2012, 02, 27, 13, 27), "2012-02-27 13:27:00");
+  check(new DateTime.utc(2012, 02, 27, 13, 27, 0, 123),
         "2012-02-27 13:27:00.123456z");
-  check(new Date(2012, 02, 27, 13, 27), "20120227 13:27:00");
-  check(new Date(2012, 02, 27, 13, 27), "20120227T132700");
-  check(new Date(2012, 02, 27), "20120227");
-  check(new Date(2012, 02, 27), "+20120227");
-  check(new Date.utc(2012, 02, 27, 14), "2012-02-27T14Z");
-  check(new Date.utc(-12345, 1, 1), "-123450101 00:00:00 Z");
+  check(new DateTime(2012, 02, 27, 13, 27), "20120227 13:27:00");
+  check(new DateTime(2012, 02, 27, 13, 27), "20120227T132700");
+  check(new DateTime(2012, 02, 27), "20120227");
+  check(new DateTime(2012, 02, 27), "+20120227");
+  check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14Z");
+  check(new DateTime.utc(-12345, 1, 1), "-123450101 00:00:00 Z");
 }

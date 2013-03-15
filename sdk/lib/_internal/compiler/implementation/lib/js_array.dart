@@ -10,7 +10,7 @@ part of _interceptors;
  * actually use the receiver of the method, which is generated as an extra
  * argument added to each member.
  */
-class JSArray<E> implements List<E> {
+class JSArray<E> implements List<E>, JSIndexable {
   const JSArray();
 
   void add(E value) {
@@ -25,6 +25,15 @@ class JSArray<E> implements List<E> {
     }
     checkGrowable(this, 'removeAt');
     return JS('var', r'#.splice(#, 1)[0]', this, index);
+  }
+
+  void insert(int index, E value) {
+    if (index is !int) throw new ArgumentError(index);
+    if (index < 0 || index > length) {
+      throw new RangeError.value(index);
+    }
+    checkGrowable(this, 'insert');
+    JS('void', r'#.splice(#, 0, #)', this, index, value);
   }
 
   E removeLast() {
@@ -51,14 +60,14 @@ class JSArray<E> implements List<E> {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(E element)) {
+  void removeWhere(bool test(E element)) {
     // This could, and should, be optimized.
-    IterableMixinWorkaround.removeMatchingList(this, test);
+    IterableMixinWorkaround.removeWhereList(this, test);
   }
 
-  void retainMatching(bool test(E element)) {
-    IterableMixinWorkaround.removeMatchingList(this,
-                                               (E element) => !test(element));
+  void retainWhere(bool test(E element)) {
+    IterableMixinWorkaround.removeWhereList(this,
+                                            (E element) => !test(element));
   }
 
   Iterable<E> where(bool f(E element)) {
@@ -121,37 +130,44 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  E firstWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  E lastWhere(bool test(E value), {E orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+  E singleWhere(bool test(E value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
   }
 
   E elementAt(int index) {
     return this[index];
   }
 
-  List<E> getRange(int start, int length) {
-    // TODO(ngeoffray): Parameterize the return value.
-    if (0 == length) return [];
+  List<E> sublist(int start, [int end]) {
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
     if (start is !int) throw new ArgumentError(start);
-    if (length is !int) throw new ArgumentError(length);
-    if (length < 0) throw new ArgumentError(length);
-    if (start < 0) throw new RangeError.value(start);
-    int end = start + length;
-    if (end > this.length) {
-      throw new RangeError.value(length);
+    if (start < 0 || start > length) {
+      throw new RangeError.range(start, 0, length);
     }
-    if (length < 0) throw new ArgumentError(length);
+    if (end == null) {
+      end = length;
+    } else {
+      if (end is !int) throw new ArgumentError(end);
+      if (end < start || end > length) {
+        throw new RangeError.range(end, start, length);
+      }
+    }
+    // TODO(ngeoffray): Parameterize the return value.
+    if (start == end) return [];
     return JS('=List', r'#.slice(#, #)', this, start, end);
+  }
+
+
+  List<E> getRange(int start, int length) {
+    return sublist(start, start + length);
   }
 
   void insertRange(int start, int length, [E initialValue]) {
@@ -302,3 +318,11 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.asMapList(this);
   }
 }
+
+/**
+ * Dummy subclasses that allow the backend to track more precise
+ * information about arrays through their type.
+ */
+class JSMutableArray extends JSArray {}
+class JSFixedArray extends JSMutableArray {}
+class JSExtendableArray extends JSMutableArray {}

@@ -10,6 +10,7 @@
 library file_data_reader;
 
 import 'dart:async';
+import 'package:pathos/path.dart';
 import 'dart:io';
 import 'intl_helpers.dart';
 
@@ -22,7 +23,7 @@ class FileDataReader implements LocaleDataReader {
 
   /// Read the locale data found for [locale] on our [path].
   Future read(String locale) {
-    var file = new File('$path$locale.json');
+    var file = new File(join(path, '$locale.json'));
     return file.readAsString();
   }
 }

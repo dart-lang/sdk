@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -68,7 +68,7 @@ testFileToFilePipe1() {
   var srcStream = new File(srcFileName).openRead();
 
   var tempDir = new Directory('').createTempSync();
-  String dstFileName = tempDir.path.concat("/readline_test1.dat");
+  String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
   var output = new File(dstFileName).openWrite();
   srcStream.pipe(output).then((_) {
@@ -95,12 +95,12 @@ testFileToFilePipe2() {
   var srcStream = srcFile.openRead();
 
   var tempDir = new Directory('').createTempSync();
-  var dstFileName = tempDir.path.concat("/readline_test1.dat");
+  var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.addStream(srcStream).then((_) {
-    output.add([32]);
+  output.writeStream(srcStream).then((_) {
+    output.writeBytes([32]);
     output.close();
     output.done.then((_) {
       var src = srcFile.openSync();
@@ -138,13 +138,13 @@ testFileToFilePipe3() {
   var srcStream = srcFile.openRead();
 
   var tempDir = new Directory('').createTempSync();
-  var dstFileName = tempDir.path.concat("/readline_test1.dat");
+  var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.addStream(srcStream).then((_) {
+  output.writeStream(srcStream).then((_) {
     var srcStream2 = srcFile.openRead();
-    output.addStream(srcStream2).then((_) {
+    output.writeStream(srcStream2).then((_) {
       output.close();
       output.done.then((_) {
         var src = srcFile.openSync();

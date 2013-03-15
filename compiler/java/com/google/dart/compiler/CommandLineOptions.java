@@ -36,6 +36,10 @@ public class CommandLineOptions {
         usage = "Format errors as normal or machine")
     private String errorFormat = "";
     
+    @Option(name = "--machine", //
+    usage = "Print errors in a format suitable for parsing")
+    private boolean machineFormat = false;
+    
     @Option(name = "--extended-exit-code",
         usage = "0 - clean; 1 - has warnings; 2 - has errors")
     private boolean extendedExitCode = false;
@@ -262,10 +266,16 @@ public class CommandLineOptions {
      * @return the format to use for printing errors
      */
     public ErrorFormat printErrorFormat() {
+      if (machineFormat) {
+        return ErrorFormat.MACHINE;
+      }
+      
       String lowerError = errorFormat.toLowerCase();
+      
       if ("machine".equals(lowerError)) {
         return ErrorFormat.MACHINE;
       }
+      
       return ErrorFormat.NORMAL;
     }
   }

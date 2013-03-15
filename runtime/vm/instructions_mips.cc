@@ -5,14 +5,27 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_MIPS.
 #if defined(TARGET_ARCH_MIPS)
 
+#include "vm/constants_mips.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
 
-bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
+CallPattern::CallPattern(uword pc, const Code& code)
+    : end_(reinterpret_cast<uword*>(pc)),
+      pool_index_(DecodePoolIndex()),
+      object_pool_(Array::Handle(code.ObjectPool())) { }
+
+
+uword CallPattern::Back(int n) const {
+  ASSERT(n > 0);
+  return *(end_ - n);
+}
+
+
+int CallPattern::DecodePoolIndex() {
   UNIMPLEMENTED();
-  return false;
+  return 0;
 }
 
 
@@ -22,33 +35,28 @@ uword CallPattern::TargetAddress() const {
 }
 
 
+void CallPattern::SetTargetAddress(uword target_address) const {
+  UNIMPLEMENTED();
+}
+
+
+JumpPattern::JumpPattern(uword pc) : pc_(pc) { }
+
+
+bool JumpPattern::IsValid() const {
+  UNIMPLEMENTED();
+  return false;
+}
+
+
 uword JumpPattern::TargetAddress() const {
   UNIMPLEMENTED();
   return 0;
 }
 
 
-
-void CallPattern::SetTargetAddress(uword target) const {
+void JumpPattern::SetTargetAddress(uword target_address) const {
   UNIMPLEMENTED();
-}
-
-
-void JumpPattern::SetTargetAddress(uword target) const {
-  UNIMPLEMENTED();
-}
-
-
-
-const int* CallPattern::pattern() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-const int* JumpPattern::pattern() const {
-  UNIMPLEMENTED();
-  return NULL;
 }
 
 }  // namespace dart

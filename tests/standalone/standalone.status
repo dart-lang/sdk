@@ -4,20 +4,13 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $runtime == vm ]
-# Temporarily disabled until the test scripts are rewritten for
-# dart:io v2.
-io/skipping_dart2js_compilations_test: skip # Non-fatal process error.
-io/status_file_parser_test: fail
-io/test_runner_exit_code_test: fail
-io/test_runner_test: fail
-
 [ $runtime == vm && ( $system == windows ) ]
-io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 io/raw_socket_test: Pass, Fail # Issue 8901
+io/http_shutdown_test: Pass, Fail # Issue  9101
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
+io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 
 # Fails with a connection refused error on the buildbot.
 # Issue 8232.
@@ -88,9 +81,13 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
+typed_data_test: Skip # This is a VM test
+typed_data_view_test: Skip # This is a VM test
 typed_array_test: Skip # This is a VM test
 float_array_test: Skip # This is a VM test
 int_array_test: Skip  # This is a VM test
+byte_array_view_optimized_test: Skip # This is a VM test
+io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.

@@ -642,6 +642,12 @@ class JavaScriptBackend extends Backend {
   ClassElement jsFunctionClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
+
+  ClassElement jsIndexableClass;
+  ClassElement jsMutableArrayClass;
+  ClassElement jsFixedArrayClass;
+  ClassElement jsExtendableArrayClass;
+
   Element jsArrayLength;
   Element jsStringLength;
   Element jsArrayRemoveLast;
@@ -649,9 +655,14 @@ class JavaScriptBackend extends Backend {
   Element jsStringSplit;
   Element jsStringConcat;
   Element jsStringToString;
+
+  ClassElement typeLiteralClass;
+  ClassElement mapLiteralClass;
+  ClassElement constMapLiteralClass;
+
   Element getInterceptorMethod;
   Element interceptedNames;
-  Element fixedLengthListConstructor;
+
   bool seenAnyClass = false;
 
   final Namer namer;
@@ -688,11 +699,16 @@ class JavaScriptBackend extends Backend {
   final Map<String, Selector> oneShotInterceptors;
 
   /**
-   * The members of instantiated interceptor classes: maps a member
-   * name to the list of members that have that name. This map is used
-   * by the codegen to know whether a send must be intercepted or not.
+   * The members of instantiated interceptor classes: maps a member name to the
+   * list of members that have that name. This map is used by the codegen to
+   * know whether a send must be intercepted or not.
    */
   final Map<SourceString, Set<Element>> interceptedElements;
+  // TODO(sra): Not all methods in the Set always require an interceptor.  A
+  // method may be mixed into a true interceptor *and* a plain class. For the
+  // method to work on the interceptor class it needs to use the explicit
+  // receiver.  This constrains the call on a known plain receiver to pass the
+  // explicit receiver.  https://code.google.com/p/dart/issues/detail?id=8942
 
   /**
    * A map of specialized versions of the [getInterceptorMethod].
@@ -710,6 +726,11 @@ class JavaScriptBackend extends Backend {
   final Set<ClassElement> interceptedClasses;
 
   /**
+   * Set of classes whose `operator ==` methods handle `null` themselves.
+   */
+  final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
+
+  /**
    * Set of selectors that are used from within loops. Used by the
    * builder to allow speculative optimizations for functions without
    * loops themselves.
@@ -721,7 +742,7 @@ class JavaScriptBackend extends Backend {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
-  final RuntimeTypeInformation rti;
+  final RuntimeTypes rti;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
@@ -730,7 +751,7 @@ class JavaScriptBackend extends Backend {
         usedInterceptors = new Set<Selector>(),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
-        rti = new RuntimeTypeInformation(compiler),
+        rti = new RuntimeTypes(compiler),
         specializedGetInterceptors =
             new Map<String, Collection<ClassElement>>(),
         interceptedClasses = new Set<ClassElement>(),
@@ -751,8 +772,9 @@ class JavaScriptBackend extends Backend {
         new Namer(compiler);
   }
 
-  bool isInterceptorClass(Element element) {
+  bool isInterceptorClass(ClassElement element) {
     if (element == null) return false;
+    if (element.isNative()) return true;
     return interceptedClasses.contains(element);
   }
 
@@ -775,6 +797,16 @@ class JavaScriptBackend extends Backend {
         && interceptedElements[element.name] != null;
   }
 
+  bool fieldHasInterceptedGetter(Element element) {
+    assert(element.isField());
+    return interceptedElements[element.name] != null;
+  }
+
+  bool fieldHasInterceptedSetter(Element element) {
+    assert(element.isField());
+    return interceptedElements[element.name] != null;
+  }
+
   bool isInterceptedName(SourceString name) {
     return interceptedElements[name] != null;
   }
@@ -794,10 +826,16 @@ class JavaScriptBackend extends Backend {
       // determine if the given selector applies to them.
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
-        result.add(element.getEnclosingClass());
+        ClassElement classElement = element.getEnclosingClass();
+        result.add(classElement);
       }
       return result;
     });
+  }
+
+  bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
+    return specialOperatorEqClasses.contains(
+        operatorEqfunction.getEnclosingClass());
   }
 
   void initializeHelperClasses() {
@@ -817,7 +855,26 @@ class JavaScriptBackend extends Backend {
       jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
       jsFunctionClass =
           compiler.findInterceptor(const SourceString('JSFunction')),
-      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool'))];
+      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool')),
+      jsMutableArrayClass =
+          compiler.findInterceptor(const SourceString('JSMutableArray')),
+      jsFixedArrayClass =
+          compiler.findInterceptor(const SourceString('JSFixedArray')),
+      jsExtendableArrayClass =
+          compiler.findInterceptor(const SourceString('JSExtendableArray'))];
+
+    jsIndexableClass =
+        compiler.findInterceptor(const SourceString('JSIndexable'));
+
+    // TODO(kasperl): Some tests do not define the special JSArray
+    // subclasses, so we check to see if they are defined before
+    // trying to resolve them.
+    if (jsFixedArrayClass != null) {
+      jsFixedArrayClass.ensureResolved(compiler);
+    }
+    if (jsExtendableArrayClass != null) {
+      jsExtendableArrayClass.ensureResolved(compiler);
+    }
 
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength = compiler.lookupElementIn(
@@ -840,9 +897,20 @@ class JavaScriptBackend extends Backend {
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses.add(cls);
     }
+
+    typeLiteralClass = compiler.findHelper(const SourceString('TypeImpl'));
+    mapLiteralClass =
+        compiler.coreLibrary.find(const SourceString('LinkedHashMap'));
+    constMapLiteralClass =
+        compiler.findHelper(const SourceString('ConstantMap'));
+
+    specialOperatorEqClasses
+        ..add(jsNullClass)
+        ..add(jsNumberClass);
   }
 
-  void addInterceptors(ClassElement cls, Enqueuer enqueuer) {
+  void addInterceptorsForNativeClassMembers(
+      ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
@@ -852,7 +920,21 @@ class JavaScriptBackend extends Backend {
         },
         includeSuperMembers: true);
     }
-    enqueuer.registerInstantiatedClass(cls);
+  }
+
+  void addInterceptors(ClassElement cls,
+                       Enqueuer enqueuer,
+                       TreeElements elements) {
+    if (enqueuer.isResolutionQueue) {
+      cls.ensureResolved(compiler);
+      cls.forEachMember((ClassElement classElement, Element member) {
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
+          set.add(member);
+        },
+        includeSuperMembers: true);
+    }
+    enqueuer.registerInstantiatedClass(cls, elements);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
@@ -877,7 +959,9 @@ class JavaScriptBackend extends Backend {
     argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());
   }
 
-  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
+  void registerInstantiatedClass(ClassElement cls,
+                                 Enqueuer enqueuer,
+                                 TreeElements elements) {
     if (!seenAnyClass) {
       initializeNoSuchMethod();
       seenAnyClass = true;
@@ -901,37 +985,41 @@ class JavaScriptBackend extends Backend {
         enqueuer.registerStaticUse(
             compiler.findHelper(const SourceString('iae')));
       } else if (cls == compiler.functionClass) {
-        enqueuer.registerInstantiatedClass(compiler.closureClass);
+        enqueuer.registerInstantiatedClass(compiler.closureClass, elements);
       } else if (cls == compiler.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
-        enqueuer.registerInstantiatedClass(compiler.listClass);
-        enqueuer.registerInstantiatedClass(compiler.mapLiteralClass);
-        enqueueInResolution(getMapMaker());
+        enqueuer.registerInstantiatedClass(compiler.listClass, elements);
+        enqueuer.registerInstantiatedClass(mapLiteralClass, elements);
+        enqueueInResolution(getMapMaker(), elements);
       }
     }
     ClassElement result = null;
     if (cls == compiler.stringClass) {
-      addInterceptors(jsStringClass, enqueuer);
+      addInterceptors(jsStringClass, enqueuer, elements);
     } else if (cls == compiler.listClass) {
-      addInterceptors(jsArrayClass, enqueuer);
+      addInterceptors(jsArrayClass, enqueuer, elements);
+      enqueuer.registerInstantiatedClass(jsFixedArrayClass, elements);
+      enqueuer.registerInstantiatedClass(jsExtendableArrayClass, elements);
     } else if (cls == compiler.intClass) {
-      addInterceptors(jsIntClass, enqueuer);
-      addInterceptors(jsNumberClass, enqueuer);
+      addInterceptors(jsIntClass, enqueuer, elements);
+      addInterceptors(jsNumberClass, enqueuer, elements);
     } else if (cls == compiler.doubleClass) {
-      addInterceptors(jsDoubleClass, enqueuer);
-      addInterceptors(jsNumberClass, enqueuer);
+      addInterceptors(jsDoubleClass, enqueuer, elements);
+      addInterceptors(jsNumberClass, enqueuer, elements);
     } else if (cls == compiler.functionClass) {
-      addInterceptors(jsFunctionClass, enqueuer);
+      addInterceptors(jsFunctionClass, enqueuer, elements);
     } else if (cls == compiler.boolClass) {
-      addInterceptors(jsBoolClass, enqueuer);
+      addInterceptors(jsBoolClass, enqueuer, elements);
     } else if (cls == compiler.nullClass) {
-      addInterceptors(jsNullClass, enqueuer);
+      addInterceptors(jsNullClass, enqueuer, elements);
     } else if (cls == compiler.numClass) {
-      addInterceptors(jsIntClass, enqueuer);
-      addInterceptors(jsDoubleClass, enqueuer);
-      addInterceptors(jsNumberClass, enqueuer);
+      addInterceptors(jsIntClass, enqueuer, elements);
+      addInterceptors(jsDoubleClass, enqueuer, elements);
+      addInterceptors(jsNumberClass, enqueuer, elements);
     } else if (cls == compiler.mapClass) {
+    } else if (cls.isNative()) {
+      addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
 
     if (compiler.enableTypeAssertions) {
@@ -939,7 +1027,7 @@ class JavaScriptBackend extends Backend {
       cls.forEachLocalMember((Element member) {
         if (!member.isInstanceMember() || !member.isField()) return;
         DartType type = member.computeType(compiler);
-        enqueuer.registerIsCheck(type);
+        enqueuer.registerIsCheck(type, elements);
       });
     }
   }
@@ -948,17 +1036,12 @@ class JavaScriptBackend extends Backend {
     return new JavaScriptItemCompilationContext();
   }
 
-  void addBackendRtiDependencies(World world) {
-    if (jsArrayClass != null) {
-      world.registerRtiDependency(jsArrayClass, compiler.listClass);
-    }
-  }
-
-  void enqueueHelpers(ResolutionEnqueuer world) {
+  void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements) {
     jsIndexingBehaviorInterface =
         compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
     if (jsIndexingBehaviorInterface != null) {
-      world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler));
+      world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
+                            elements);
     }
 
     if (compiler.enableTypeAssertions) {
@@ -971,54 +1054,66 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerStringInterpolation() {
-    enqueueInResolution(getStringInterpolationHelper());
+  onResolutionComplete() => rti.computeClassesNeedingRti();
+
+  void registerStringInterpolation(TreeElements elements) {
+    enqueueInResolution(getStringInterpolationHelper(), elements);
   }
 
-  void registerCatchStatement() {
-    enqueueInResolution(getExceptionUnwrapper());
+  void registerCatchStatement(TreeElements elements) {
+    enqueueInResolution(getExceptionUnwrapper(), elements);
   }
 
-  void registerThrow() {
-    enqueueInResolution(getThrowHelper());
+  void registerThrow(TreeElements elements) {
+    enqueueInResolution(getThrowHelper(), elements);
   }
 
-  void registerLazyField() {
-    enqueueInResolution(getCyclicThrowHelper());
+  void registerLazyField(TreeElements elements) {
+    enqueueInResolution(getCyclicThrowHelper(), elements);
   }
 
-  void registerTypeLiteral() {
-    enqueueInResolution(getCreateRuntimeType());
+  void registerTypeLiteral(TreeElements elements) {
+    enqueueInResolution(getCreateRuntimeType(), elements);
   }
 
-  void registerStackTraceInCatch() {
-    enqueueInResolution(getTraceFromException());
+  void registerStackTraceInCatch(TreeElements elements) {
+    enqueueInResolution(getTraceFromException(), elements);
   }
 
-  void registerSetRuntimeType() {
-    enqueueInResolution(getSetRuntimeTypeInfo());
+  void registerSetRuntimeType(TreeElements elements) {
+    enqueueInResolution(getSetRuntimeTypeInfo(), elements);
   }
 
-  void registerGetRuntimeTypeArgument() {
-    enqueueInResolution(getGetRuntimeTypeArgument());
+  void registerGetRuntimeTypeArgument(TreeElements elements) {
+    enqueueInResolution(getGetRuntimeTypeArgument(), elements);
   }
 
-  void registerRuntimeType() {
-    enqueueInResolution(getSetRuntimeTypeInfo());
-    enqueueInResolution(getGetRuntimeTypeInfo());
-    enqueueInResolution(getGetRuntimeTypeArgument());
-    compiler.enqueuer.resolution.registerInstantiatedClass(compiler.listClass);
+  void registerRuntimeType(TreeElements elements) {
+    enqueueInResolution(getSetRuntimeTypeInfo(), elements);
+    enqueueInResolution(getGetRuntimeTypeInfo(), elements);
+    enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.listClass, elements);
   }
 
-  void registerIsCheck(DartType type, Enqueuer world) {
+  void registerTypeVariableExpression(TreeElements elements) {
+    registerRuntimeType(elements);
+    enqueueInResolution(getRuntimeTypeToString(), elements);
+    enqueueInResolution(getCreateRuntimeType(), elements);
+  }
+
+  void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
+    world.registerInstantiatedClass(compiler.boolClass, elements);
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
     if (!type.isRaw || isTypeVariable) {
-      enqueueInResolution(getSetRuntimeTypeInfo());
-      enqueueInResolution(getGetRuntimeTypeInfo());
-      enqueueInResolution(getGetRuntimeTypeArgument());
-      enqueueInResolution(getCheckArguments());
-      if (isTypeVariable) enqueueInResolution(getGetObjectIsSubtype());
-      world.registerInstantiatedClass(compiler.listClass);
+      enqueueInResolution(getSetRuntimeTypeInfo(), elements);
+      enqueueInResolution(getGetRuntimeTypeInfo(), elements);
+      enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+      enqueueInResolution(getCheckSubtype(), elements);
+      if (isTypeVariable) {
+        enqueueInResolution(getGetObjectIsSubtype(), elements);
+      }
+      world.registerInstantiatedClass(compiler.listClass, elements);
     }
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
@@ -1029,48 +1124,104 @@ class JavaScriptBackend extends Backend {
       e = getNativeCheckedModeHelper(type, typeCast: false);
       if (e != null) world.addToWorkList(e);
     }
+    if (type.element.isNative()) {
+      // We will neeed to add the "$is" and "$as" properties on the
+      // JavaScript object prototype, so we make sure
+      // [:defineProperty:] is compiled.
+      world.addToWorkList(
+          compiler.findHelper(const SourceString('defineProperty')));
+    }
   }
 
-  void registerAsCheck(DartType type) {
+  void registerAsCheck(DartType type, TreeElements elements) {
     Element e = getCheckedModeHelper(type, typeCast: true);
-    enqueueInResolution(e);
+    enqueueInResolution(e, elements);
     // We also need the native variant of the check (for DOM types).
     e = getNativeCheckedModeHelper(type, typeCast: true);
-    enqueueInResolution(e);
+    enqueueInResolution(e, elements);
   }
 
-  void registerThrowNoSuchMethod() {
-    enqueueInResolution(getThrowNoSuchMethod());
+  void registerThrowNoSuchMethod(TreeElements elements) {
+    enqueueInResolution(getThrowNoSuchMethod(), elements);
   }
 
-  void registerThrowRuntimeError() {
-    enqueueInResolution(getThrowRuntimeError());
+  void registerThrowRuntimeError(TreeElements elements) {
+    enqueueInResolution(getThrowRuntimeError(), elements);
   }
 
-  void registerAbstractClassInstantiation() {
-    enqueueInResolution(getThrowAbstractClassInstantiationError());
+  void registerAbstractClassInstantiation(TreeElements elements) {
+    enqueueInResolution(getThrowAbstractClassInstantiationError(), elements);
   }
 
-  void registerFallThroughError() {
-    enqueueInResolution(getFallThroughError());
+  void registerFallThroughError(TreeElements elements) {
+    enqueueInResolution(getFallThroughError(), elements);
   }
 
-  void registerSuperNoSuchMethod() {
-    enqueueInResolution(getCreateInvocationMirror());
+  void registerSuperNoSuchMethod(TreeElements elements) {
+    enqueueInResolution(getCreateInvocationMirror(), elements);
     enqueueInResolution(
-        compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD));
-    compiler.enqueuer.resolution.registerInstantiatedClass(compiler.listClass);
+        compiler.objectClass.lookupLocalMember(Compiler.NO_SUCH_METHOD),
+        elements);
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.listClass, elements);
   }
 
-  void enqueueInResolution(Element e) {
-    if (e != null) compiler.enqueuer.resolution.addToWorkList(e);
+  void registerRequiredType(DartType type, Element enclosingElement) {
+    /**
+     * If [argument] has type variables or is a type variable, this
+     * method registers a RTI dependency between the class where the
+     * type variable is defined (that is the enclosing class of the
+     * current element being resolved) and the class of [annotation].
+     * If the class of [annotation] requires RTI, then the class of
+     * the type variable does too.
+     */
+    void analyzeTypeArgument(DartType annotation, DartType argument) {
+      if (argument == null) return;
+      if (argument.element.isTypeVariable()) {
+        ClassElement enclosing = argument.element.getEnclosingClass();
+        assert(enclosing == enclosingElement.getEnclosingClass());
+        rti.registerRtiDependency(annotation.element, enclosing);
+      } else if (argument is InterfaceType) {
+        InterfaceType type = argument;
+        type.typeArguments.forEach((DartType argument) {
+          analyzeTypeArgument(annotation, argument);
+        });
+      }
+    }
+
+    if (type is InterfaceType) {
+      InterfaceType itf = type;
+      itf.typeArguments.forEach((DartType argument) {
+        analyzeTypeArgument(type, argument);
+      });
+    }
+    // TODO(ngeoffray): Also handle T a (in checked mode).
   }
 
-  void registerConstantMap() {
+  void registerClassUsingVariableExpression(ClassElement cls) {
+    rti.classesUsingTypeVariableExpression.add(cls);
+  }
+
+  bool needsRti(ClassElement cls) {
+    return rti.classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
+  }
+
+  void enqueueInResolution(Element e, TreeElements elements) {
+    if (e == null) return;
+    ResolutionEnqueuer enqueuer = compiler.enqueuer.resolution;
+    enqueuer.addToWorkList(e);
+    elements.registerDependency(e);
+  }
+
+  void registerConstantMap(TreeElements elements) {
     Element e = compiler.findHelper(const SourceString('ConstantMap'));
-    if (e != null) compiler.enqueuer.resolution.registerInstantiatedClass(e);
+    if (e != null) {
+      compiler.enqueuer.resolution.registerInstantiatedClass(e, elements);
+    }
     e = compiler.findHelper(const SourceString('ConstantProtoMap'));
-    if (e != null) compiler.enqueuer.resolution.registerInstantiatedClass(e);
+    if (e != null) {
+      compiler.enqueuer.resolution.registerInstantiatedClass(e, elements);
+    }
   }
 
   void codegen(CodegenWorkItem work) {
@@ -1462,8 +1613,12 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper(const SourceString('getRuntimeTypeArgument'));
   }
 
-  Element getCheckArguments() {
-    return compiler.findHelper(const SourceString('checkArguments'));
+  Element getRuntimeTypeToString() {
+    return compiler.findHelper(const SourceString('runtimeTypeToString'));
+  }
+
+  Element getCheckSubtype() {
+    return compiler.findHelper(const SourceString('checkSubtype'));
   }
 
   Element getGetObjectIsSubtype() {
@@ -1502,4 +1657,23 @@ class JavaScriptBackend extends Backend {
     generatedBailoutCode.remove(element);
     compiler.enqueuer.codegen.addToWorkList(element);
   }
+
+  bool isNullImplementation(ClassElement cls) {
+    return cls == jsNullClass;
+  }
+
+  ClassElement get intImplementation => jsIntClass;
+  ClassElement get doubleImplementation => jsDoubleClass;
+  ClassElement get numImplementation => jsNumberClass;
+  ClassElement get stringImplementation => jsStringClass;
+  ClassElement get listImplementation => jsArrayClass;
+  ClassElement get constListImplementation => jsArrayClass;
+  ClassElement get fixedListImplementation => jsFixedArrayClass;
+  ClassElement get growableListImplementation => jsExtendableArrayClass;
+  ClassElement get mapImplementation => mapLiteralClass;
+  ClassElement get constMapImplementation => constMapLiteralClass;
+  ClassElement get functionImplementation => jsFunctionClass;
+  ClassElement get typeImplementation => typeLiteralClass;
+  ClassElement get boolImplementation => jsBoolClass;
+  ClassElement get nullImplementation => jsNullClass;
 }

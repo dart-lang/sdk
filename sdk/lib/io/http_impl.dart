@@ -92,15 +92,14 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
     if (_httpServer._sessionManagerInstance != null) {
       // Map to session if exists.
-      var sessionId = cookies.reduce(null, (last, cookie) {
-        if (last != null) return last;
-        return cookie.name.toUpperCase() == _DART_SESSION_ID ?
-            cookie.value : null;
-      });
-      if (sessionId != null) {
+      var sessionIds = cookies
+          .where((cookie) => cookie.name.toUpperCase() == _DART_SESSION_ID)
+          .map((cookie) => cookie.value);
+      for (var sessionId in sessionIds) {
         _session = _httpServer._sessionManager.getSession(sessionId);
         if (_session != null) {
           _session._markSeen();
+          break;
         }
       }
     }
@@ -323,16 +322,15 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   // requests and in error handling.
   bool _ignoreBody = false;
   bool _headersWritten = false;
-  bool _chunked = false;
 
-  final IOSink _ioSink;
+  IOSink _ioSink;
   final _HttpOutgoing _outgoing;
 
   final _HttpHeaders headers;
 
   _HttpOutboundMessage(String protocolVersion, _HttpOutgoing outgoing)
       : _outgoing = outgoing,
-        _ioSink = new IOSink(outgoing),
+        _ioSink = new IOSink(outgoing, encoding: Encoding.ASCII),
         headers = new _HttpHeaders(protocolVersion);
 
   int get contentLength => headers.contentLength;
@@ -345,75 +343,176 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     headers.persistentConnection = p;
   }
 
+  Encoding get encoding {
+    var charset;
+    if (headers.contentType != null && headers.contentType.charset != null) {
+      charset = headers.contentType.charset;
+    } else {
+      charset = "iso-8859-1";
+    }
+    return Encoding.fromName(charset);
+  }
+
+  void set encoding(Encoding value) {
+    throw new StateError("IOSink encoding is not mutable");
+  }
+
+  void write(Object obj) {
+    _writeHeaders();
+    // This comment is copied from runtime/lib/string_buffer_patch.dart.
+    // TODO(srdjan): The following four lines could be replaced by
+    // '$obj', but apparently this is too slow on the Dart VM.
+    String string;
+    if (obj is String) {
+      string = obj;
+    } else {
+      string = obj.toString();
+      if (string is! String) {
+        throw new ArgumentError('toString() did not return a string');
+      }
+    }
+    if (string.isEmpty) return;
+    _ioSink.write(string);
+  }
+
+  void writeAll(Iterable objects) {
+    for (Object obj in objects) write(obj);
+  }
+
+  void writeln([Object obj = ""]) {
+    write(obj);
+    write("\n");
+  }
+
+  void writeCharCode(int charCode) {
+    write(new String.fromCharCode(charCode));
+  }
+
+  void writeBytes(List<int> data) {
+    _writeHeaders();
+    if (data.length == 0) return;
+    _ioSink.writeBytes(data);
+  }
+
   Future<T> consume(Stream<List<int>> stream) {
     _writeHeaders();
-    if (_ignoreBody) return new Future.immediate(this);
-    if (_chunked) {
-      // Transform when chunked.
-      stream = stream.transform(new _ChunkedTransformer());
-    }
-    return _ioSink.consume(stream).then((_) => this);
+    return _ioSink.consume(stream);
   }
 
-  void add(List<int> data) {
+  Future<T> writeStream(Stream<List<int>> stream) {
     _writeHeaders();
-    if (_ignoreBody || data.length == 0) return;
-    if (_chunked) {
-      _ChunkedTransformer._addChunk(data, _ioSink.add);
-    } else {
-      _ioSink.add(data);
-    }
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    add(_encodeString(string, encoding));
-  }
-
-  Future<T> addStream(Stream<List<int>> stream) {
-    _writeHeaders();
-    if (_ignoreBody) return new Future.immediate(this);
-    if (_chunked) {
-      // Transform when chunked.
-      stream = stream.transform(new _ChunkedTransformer(writeEnd: false));
-    }
-    return _ioSink.addStream(stream).then((_) => this);
+    return _ioSink.writeStream(stream).then((_) => this);
   }
 
   void close() {
-    if (!_headersWritten && !_ignoreBody && headers.chunkedTransferEncoding) {
+    // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
+    // persistentConnection is not guaranteed to be in sync.
+    if (!_headersWritten && !_ignoreBody && headers.contentLength == -1) {
       // If no body was written, _ignoreBody is false (it's not a HEAD
       // request) and the content-length is unspecified, set contentLength to 0.
+      headers.chunkedTransferEncoding = false;
       headers.contentLength = 0;
     }
     _writeHeaders();
-    if (!_ignoreBody) {
-      if (_chunked) {
-        _ChunkedTransformer._addChunk([], _ioSink.add);
-      }
-    }
     _ioSink.close();
   }
 
-  Future<T> get done => _ioSink.done.then((_) => this);
+  Future<T> get done {
+    _writeHeaders();
+    return _ioSink.done;
+  }
 
   void _writeHeaders() {
     if (_headersWritten) return;
-    bool _tmpIgnoreBody = _ignoreBody;
-    _ignoreBody = false;
     _headersWritten = true;
+    _ioSink.encoding = Encoding.ASCII;
+    headers._synchronize();  // Be sure the 'chunked' option is updated.
+    bool asGZip = false;
+    bool isServerSide = this is _HttpResponse;
+    if (isServerSide && headers.chunkedTransferEncoding) {
+      var response = this;
+      List acceptEncodings =
+          response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
+      List contentEncoding = headers[HttpHeaders.CONTENT_ENCODING];
+      if (acceptEncodings != null &&
+          acceptEncodings
+              .expand((list) => list.split(","))
+              .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
+          contentEncoding == null) {
+        headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        asGZip = true;
+      }
+    }
     _writeHeader();
-    _ignoreBody = _tmpIgnoreBody;
+    _ioSink = new IOSink(new _HttpOutboundConsumer(_ioSink, _consume, asGZip));
+    _ioSink.encoding = encoding;
+  }
+
+  Future _consume(IOSink ioSink, Stream<List<int>> stream, bool asGZip) {
+    int contentLength = headers.contentLength;
     if (_ignoreBody) {
-      _ioSink.close();
-      return;
+      ioSink.close();
+      return stream.reduce(null, (x, y) {}).then((_) => this);
     }
-    _chunked = headers.chunkedTransferEncoding;
-    if (headers.contentLength >= 0) {
-      _outgoing.setTransferLength(headers.contentLength);
+    stream = stream.transform(new _BufferTransformer());
+    if (headers.chunkedTransferEncoding) {
+      if (asGZip) {
+        stream = stream.transform(new ZLibDeflater(gzip: true, level: 6));
+      }
+      stream = stream.transform(new _ChunkedTransformer());
+    } else if (contentLength >= 0) {
+      stream = stream.transform(new _ContentLengthValidator(contentLength));
     }
+    return stream.pipe(ioSink).then((_) => this);
   }
 
   void _writeHeader();  // TODO(ajohnsen): Better name.
+}
+
+
+class _HttpOutboundConsumer implements StreamConsumer {
+  Function _consume;
+  IOSink _ioSink;
+  bool _asGZip;
+  _HttpOutboundConsumer(IOSink this._ioSink,
+                        Function this._consume,
+                        bool this._asGZip);
+
+  Future consume(var stream) => _consume(_ioSink, stream, _asGZip);
+}
+
+
+class _BufferTransformer extends StreamEventTransformer<List<int>, List<int>> {
+  const int MIN_CHUNK_SIZE = 4 * 1024;
+  const int MAX_BUFFER_SIZE = 16 * 1024;
+
+  final _BufferList _buffer = new _BufferList();
+
+  void handleData(List<int> data, EventSink<List<int>> sink) {
+    // TODO(ajohnsen): Use timeout?
+    if (data.length == 0) return;
+    if (data.length >= MIN_CHUNK_SIZE) {
+      flush(sink);
+      sink.add(data);
+    } else {
+      _buffer.add(data);
+      if (_buffer.length >= MAX_BUFFER_SIZE) {
+        flush(sink);
+      }
+    }
+  }
+
+  void handleDone(EventSink<List<int>> sink) {
+    flush(sink);
+    sink.close();
+  }
+
+  void flush(EventSink<List<int>> sink) {
+    if (_buffer.length > 0) {
+      sink.add(_buffer.readBytes());
+      _buffer.clear();
+    }
+  }
 }
 
 
@@ -445,25 +544,30 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     var future = _httpRequest._httpConnection.detachSocket();
     // Close connection so the socket is 'free'.
     close();
+    done.catchError((_) {
+      // Catch any error on done, as they automatically will be propegated to
+      // the websocket.
+    });
     return future;
   }
 
   HttpConnectionInfo get connectionInfo => _httpRequest.connectionInfo;
 
   void _writeHeader() {
-    writeSP() => add([_CharCode.SP]);
-    writeCRLF() => add([_CharCode.CR, _CharCode.LF]);
+    var buffer = new _BufferList();
+    writeSP() => buffer.add(const [_CharCode.SP]);
+    writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      add(_Const.HTTP11);
+      buffer.add(_Const.HTTP11);
     } else {
-      add(_Const.HTTP10);
+      buffer.add(_Const.HTTP10);
     }
     writeSP();
-    addString(statusCode.toString());
+    buffer.add(statusCode.toString().codeUnits);
     writeSP();
-    addString(reasonPhrase);
+    buffer.add(reasonPhrase.codeUnits);
     writeCRLF();
 
     var session = _httpRequest._session;
@@ -476,12 +580,15 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
         if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
           cookies[i].value = session.id;
           cookies[i].httpOnly = true;
+          cookies[i].path = "/";
           found = true;
-          break;
         }
       }
       if (!found) {
-        cookies.add(new Cookie(_DART_SESSION_ID, session.id)..httpOnly = true);
+        var cookie = new Cookie(_DART_SESSION_ID, session.id);
+        cookie.httpOnly = true;
+        cookie.path = "/";
+        cookies.add(cookie);
       }
     }
     // Add all the cookies set to the headers.
@@ -494,8 +601,9 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(this);
+    headers._write(buffer);
     writeCRLF();
+    _ioSink.writeBytes(buffer.readBytes());
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -644,10 +752,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
   }
 
   void _writeHeader() {
-    writeSP() => add([_CharCode.SP]);
-    writeCRLF() => add([_CharCode.CR, _CharCode.LF]);
+    var buffer = new _BufferList();
+    writeSP() => buffer.add(const [_CharCode.SP]);
+    writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
 
-    addString(method);
+    buffer.add(method.codeUnits);
     writeSP();
     // Send the path for direct connections and the whole URL for
     // proxy connections.
@@ -661,22 +770,22 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
           path = "${path}?${uri.query}";
         }
       }
-      addString(path);
+      buffer.add(path.codeUnits);
     } else {
-      addString(uri.toString());
+      buffer.add(uri.toString().codeUnits);
     }
     writeSP();
-    add(_Const.HTTP11);
+    buffer.add(_Const.HTTP11);
     writeCRLF();
 
     // Add the cookies to the headers.
     if (!cookies.isEmpty) {
       StringBuffer sb = new StringBuffer();
       for (int i = 0; i < cookies.length; i++) {
-        if (i > 0) sb.add("; ");
-        sb.add(cookies[i].name);
-        sb.add("=");
-        sb.add(cookies[i].value);
+        if (i > 0) sb.write("; ");
+        sb.write(cookies[i].name);
+        sb.write("=");
+        sb.write(cookies[i].value);
       }
       headers.add(HttpHeaders.COOKIE, sb.toString());
     }
@@ -684,32 +793,24 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     headers._finalize();
 
     // Write headers.
-    headers._write(this);
+    headers._write(buffer);
     writeCRLF();
+    _ioSink.writeBytes(buffer.readBytes());
   }
 }
 
 
 // Transformer that transforms data to HTTP Chunked Encoding.
 class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
-  final bool writeEnd;
-  _ChunkedTransformer({this.writeEnd: true});
-
-  void handleData(List<int> data, StreamSink<List<int>> sink) {
-    _addChunk(data, sink.add);
+  void handleData(List<int> data, EventSink<List<int>> sink) {
+    sink.add(_chunkHeader(data.length));
+    if (data.length > 0) sink.add(data);
+    sink.add(_chunkFooter);
   }
 
-  void handleDone(StreamSink<List<int>> sink) {
-    if (writeEnd) {
-      _addChunk([], sink.add);
-    }
+  void handleDone(EventSink<List<int>> sink) {
+    handleData(const [], sink);
     sink.close();
-  }
-
-  static void _addChunk(List<int> data, void add(List<int> data)) {
-    add(_chunkHeader(data.length));
-    if (data.length > 0) add(data);
-    add(_chunkFooter);
   }
 
   static List<int> _chunkHeader(int length) {
@@ -734,76 +835,42 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
 }
 
 
-// Transformer that invokes [_onDone] when completed.
-class _DoneTransformer implements StreamTransformer<List<int>, List<int>> {
-  final StreamController<List<int>> _controller
-      = new StreamController<List<int>>();
-  final Function _onDone;
-
-  _DoneTransformer(this._onDone);
-
-  Stream<List<int>> bind(Stream<List<int>> stream) {
-    var subscription = stream.listen(
-        _controller.add,
-        onError: _controller.signalError,
-        onDone: () {
-          _onDone();
-          _controller.close();
-        });
-    return _controller.stream;
-  }
-}
-
-// Transformer that validates the data written.
-class _DataValidatorTransformer
-    implements StreamTransformer<List<int>, List<int>> {
-  final StreamController<List<int>> _controller =
-      new StreamController<List<int>>();
+// Transformer that validates the content length.
+class _ContentLengthValidator
+    extends StreamEventTransformer<List<int>, List<int>> {
+  final int expectedContentLength;
   int _bytesWritten = 0;
 
-  int expectedTransferLength;
+  _ContentLengthValidator(int this.expectedContentLength);
 
-  Stream<List<int>> bind(Stream<List<int>> stream) {
-    var subscription;
-    subscription = stream.listen(
-        (data) {
-          if (expectedTransferLength != null) {
-            _bytesWritten += data.length;
-            if (_bytesWritten > expectedTransferLength) {
-              subscription.cancel();
-              _controller.signalError(new HttpException(
-                  "Content size exceeds specified contentLength. "
-                  "$_bytesWritten bytes written while expected "
-                  "$expectedTransferLength."));
-              _controller.close();
-              return;
-            }
-          }
-          _controller.add(data);
-        },
-        onError: (error) {
-          _controller.signalError(error);
-          _controller.close();
-        },
-        onDone: () {
-          if (expectedTransferLength != null) {
-            if (_bytesWritten < expectedTransferLength) {
-              _controller.signalError(new HttpException(
-                  "Content size below specified contentLength. "
-                  " $_bytesWritten bytes written while expected "
-                  "$expectedTransferLength."));
-            }
-          }
-          _controller.close();
-        },
-        unsubscribeOnError: true);
-    return _controller.stream;
+  void handleData(List<int> data, EventSink<List<int>> sink) {
+    _bytesWritten += data.length;
+    if (_bytesWritten > expectedContentLength) {
+      sink.addError(new AsyncError(new HttpException(
+          "Content size exceeds specified contentLength. "
+          "$_bytesWritten bytes written while expected "
+          "$expectedContentLength. "
+          "[${new String.fromCharCodes(data)}]")));
+      sink.close();
+    } else {
+      sink.add(data);
+    }
+  }
+
+  void handleDone(EventSink<List<int>> sink) {
+    if (_bytesWritten < expectedContentLength) {
+      sink.addError(new AsyncError(new HttpException(
+          "Content size below specified contentLength. "
+          " $_bytesWritten bytes written while expected "
+          "$expectedContentLength.")));
+    }
+    sink.close();
   }
 }
+
 
 // Extends StreamConsumer as this is an internal type, only used to pipe to.
 class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
-  final _DataValidatorTransformer _validator = new _DataValidatorTransformer();
   Function _onStream;
   final Completer _consumeCompleter = new Completer();
 
@@ -812,12 +879,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
     return _consumeCompleter.future;
   }
 
-  void setTransferLength(int transferLength) {
-    _validator.expectedTransferLength = transferLength;
-  }
-
   Future consume(Stream<List<int>> stream) {
-    _onStream(stream.transform(_validator))
+    _onStream(stream)
         .then((_) => _consumeCompleter.complete(),
               onError: _consumeCompleter.completeError);
     // Use .then to ensure a Future branch.
@@ -900,7 +963,7 @@ class _HttpClientConnection {
         // Sending request, set up response completer.
         _nextResponseCompleter = new Completer();
 
-        var requestFuture = _socket.addStream(stream)
+        var requestFuture = _socket.writeStream(stream)
             .catchError((e) {
               destroy();
               throw e;
@@ -1163,6 +1226,7 @@ class _HttpClient implements HttpClient {
                                          sendClientCertificate: true)
                   : Socket.connect(host, port))
         .then((socket) {
+          socket.setOption(SocketOption.TCP_NODELAY, true);
           var connection = new _HttpClientConnection(key, socket, this);
           _activeConnections.add(connection);
           return new _ConnnectionInfo(connection, proxy);
@@ -1227,7 +1291,7 @@ class _HttpConnection {
                                            outgoing);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
           outgoing.onStream((stream) {
-            return _streamFuture = _socket.addStream(stream)
+            return _streamFuture = _socket.writeStream(stream)
                 .then((_) {
                   if (_state == _DETACHED) return;
                   if (response.persistentConnection &&
@@ -1325,11 +1389,12 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
                                          bool unsubscribeOnError}) {
     _serverSocket.listen(
         (Socket socket) {
+          socket.setOption(SocketOption.TCP_NODELAY, true);
           // Accept the client connection.
           _HttpConnection connection = new _HttpConnection(socket, this);
           _connections.add(connection);
         },
-        onError: _controller.signalError,
+        onError: _controller.addError,
         onDone: _controller.close);
     return _controller.stream.listen(onData,
                                      onError: onError,
@@ -1366,7 +1431,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   }
 
   void _handleError(AsyncError error) {
-    if (!closed) _controller.signalError(error);
+    if (!closed) _controller.addError(error);
   }
 
   void _connectionClosed(_HttpConnection connection) {
@@ -1508,25 +1573,45 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
                             unsubscribeOnError: unsubscribeOnError);
   }
 
+  Encoding get encoding => _socket.encoding;
+
+  void set encoding(Encoding value) {
+    _socket.encoding = value;
+  }
+
+  void write(Object obj) => _socket.write(obj);
+
+  void writeln([Object obj = ""]) => _socket.writeln(obj);
+
+  void writeCharCode(int charCode) => _socket.writeCharCode(charCode);
+
+  void writeAll(Iterable objects) => _socket.writeAll(objects);
+
+  void writeBytes(List<int> bytes) => _socket.writeBytes(bytes);
+
   Future<Socket> consume(Stream<List<int>> stream) {
     return _socket.consume(stream);
   }
 
-  Future<Socket> addStream(Stream<List<int>> stream) {
-    return _socket.addStream(stream);
-  }
-
-  void addString(String string, [Encoding encoding = Encoding.UTF_8]) {
-    return _socket.addString(string, encoding);
+  Future<Socket> writeStream(Stream<List<int>> stream) {
+    return _socket.writeStream(stream);
   }
 
   void destroy() => _socket.destroy();
-  void add(List<int> data) => _socket.add(data);
+
   void close() => _socket.close();
+
   Future<Socket> get done => _socket.done;
+
   int get port => _socket.port;
+
   String get remoteHost => _socket.remoteHost;
+
   int get remotePort => _socket.remotePort;
+
+  bool setOption(SocketOption option, bool enabled) {
+    return _socket.setOption(option, enabled);
+  }
 }
 
 

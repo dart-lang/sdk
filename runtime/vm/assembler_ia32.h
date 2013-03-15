@@ -683,6 +683,58 @@ class Assembler : public ValueObject {
     buffer_.FinalizeInstructions(region);
   }
 
+  // Set up a Dart frame on entry with a frame pointer and PC information to
+  // enable easy access to the RawInstruction object of code corresponding
+  // to this frame.
+  // The dart frame layout is as follows:
+  //   ....
+  //   ret PC
+  //   saved EBP     <=== EBP
+  //   pc (used to derive the RawInstruction Object of the dart code)
+  //   locals space  <=== ESP
+  //   .....
+  // This code sets this up with the sequence:
+  //   pushl ebp
+  //   movl ebp, esp
+  //   call L
+  //   L: <code to adjust saved pc if there is any intrinsification code>
+  //   .....
+  void EnterDartFrame(intptr_t frame_size);
+
+  // Set up a stub frame so that the stack traversal code can easily identify
+  // a stub frame.
+  // The stub frame layout is as follows:
+  //   ....
+  //   ret PC
+  //   saved EBP
+  //   0 (used to indicate frame is a stub frame)
+  //   .....
+  // This code sets this up with the sequence:
+  //   pushl ebp
+  //   movl ebp, esp
+  //   pushl immediate(0)
+  //   .....
+  void EnterStubFrame();
+
+  // Instruction pattern from entrypoint is used in dart frame prologs
+  // to set up the frame and save a PC which can be used to figure out the
+  // RawInstruction object corresponding to the code running in the frame.
+  // entrypoint:
+  //   pushl ebp          (size is 1 byte)
+  //   movl ebp, esp      (size is 2 bytes)
+  //   call L             (size is 5 bytes)
+  //   L:
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = 8;
+
+  // Inlined allocation of an instance of class 'cls', code has no runtime
+  // calls. Jump to 'failure' if the instance cannot be allocated here.
+  // Allocated instance is returned in 'instance_reg'.
+  // Only the tags field of the object is initialized.
+  void TryAllocate(const Class& cls,
+                          Label* failure,
+                          bool near_jump,
+                          Register instance_reg);
+
   // Debugging and bringup support.
   void Stop(const char* message);
   void Unimplemented(const char* message);

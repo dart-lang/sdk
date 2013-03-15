@@ -191,6 +191,7 @@ function(cls, desc) {
 
   List<jsAst.Statement> generateParameterStubStatements(
       Element member,
+      bool isInterceptedMethod,
       String invocationName,
       List<jsAst.Parameter> stubParameters,
       List<jsAst.Expression> argumentsBuffer,
@@ -211,6 +212,7 @@ function(cls, desc) {
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
 
     String target;
+    jsAst.Expression receiver;
     List<jsAst.Expression> arguments;
 
     if (!nativeMethods.contains(member)) {
@@ -222,12 +224,18 @@ function(cls, desc) {
       // When calling a JS method, we call it with the native name, and only the
       // arguments up until the last one provided.
       target = member.fixedBackendName();
-      arguments = argumentsBuffer.getRange(
-          0, indexOfLastOptionalArgumentInParameters + 1);
+
+      if (isInterceptedMethod) {
+        receiver = argumentsBuffer[0];
+        arguments = argumentsBuffer.sublist(1,
+            indexOfLastOptionalArgumentInParameters + 1);
+      } else {
+        receiver = new jsAst.VariableUse('this');
+        arguments = argumentsBuffer.sublist(0,
+            indexOfLastOptionalArgumentInParameters + 1);
+      }
     }
-    statements.add(
-        new jsAst.Return(
-            new jsAst.VariableUse('this')[target](arguments)));
+    statements.add(new jsAst.Return(receiver[target](arguments)));
 
     if (!overriddenMethods.contains(member)) {
       // Call the method directly.
@@ -365,6 +373,7 @@ function(cls, desc) {
       walk(classElement);
 
       if (!subtags.isEmpty) {
+        subtags.sort();
         expressions.add(js.string(subtags.join('|')));
       }
       jsAst.Expression expression;
@@ -455,11 +464,6 @@ function(cls, desc) {
   }
 
   void assembleCode(CodeBuffer targetBuffer) {
-    if (nativeClasses.isEmpty) return;
-    emitDynamicDispatchMetadata();
-    targetBuffer.add('$defineNativeClassName = '
-                     '$defineNativeClassFunction$N$n');
-
     List<jsAst.Property> objectProperties = <jsAst.Property>[];
 
     void addProperty(String name, jsAst.Expression value) {
@@ -476,9 +480,13 @@ function(cls, desc) {
                Elements.sortedByPosition(emitter.checkedClasses)) {
         if (!requiresNativeIsCheck(element)) continue;
         if (element.isObject(compiler)) continue;
+        // Add function for the is-test.
         String name = backend.namer.operatorIs(element);
         addProperty(name,
             js.fun([], js.return_(js['false'])));
+        // Add a function for the (trivial) substitution.
+        addProperty(backend.namer.substitutionName(element),
+                    js.fun([], js.return_(js['null'])));
       }
     }
     emitIsChecks();
@@ -489,29 +497,35 @@ function(cls, desc) {
       return js.fun(['_'], js.return_(js['$functionName(this)']));
     }
 
-    // In order to have the toString method on every native class,
-    // we must patch the JS Object prototype with a helper method.
-    String toStringName = backend.namer.publicInstanceMethodNameByArity(
-        const SourceString('toString'), 0);
-    addProperty(toStringName, makeCallOnThis(toStringHelperName));
+    if (!nativeClasses.isEmpty) {
+      emitDynamicDispatchMetadata();
+      targetBuffer.add('$defineNativeClassName = '
+                       '$defineNativeClassFunction$N$n');
 
-    // Same as above, but for hashCode.
-    String hashCodeName =
-        backend.namer.publicGetterName(const SourceString('hashCode'));
-    addProperty(hashCodeName, makeCallOnThis(hashCodeHelperName));
+      // In order to have the toString method on every native class,
+      // we must patch the JS Object prototype with a helper method.
+      String toStringName = backend.namer.publicInstanceMethodNameByArity(
+          const SourceString('toString'), 0);
+      addProperty(toStringName, makeCallOnThis(toStringHelperName));
 
-    // Same as above, but for operator==.
-    String equalsName = backend.namer.publicInstanceMethodNameByArity(
-        const SourceString('=='), 1);
-    // Because we know the function is intercepted, we need an extra
-    // parameter.
-    addProperty(equalsName, js.fun(['_', 'a'],
-        js.return_(js['this === a'])));
+      // Same as above, but for hashCode.
+      String hashCodeName =
+          backend.namer.publicGetterName(const SourceString('hashCode'));
+      addProperty(hashCodeName, makeCallOnThis(hashCodeHelperName));
 
-    // If the native emitter has been asked to take care of the
-    // noSuchMethod handlers, we do that now.
-    if (handleNoSuchMethod) {
-      emitter.emitNoSuchMethodHandlers(addProperty);
+      // Same as above, but for operator==.
+      String equalsName = backend.namer.publicInstanceMethodNameByArity(
+          const SourceString('=='), 1);
+      // Because we know the function is intercepted, we need an extra
+      // parameter.
+      addProperty(equalsName, js.fun(['_', 'a'],
+          js.return_(js['this === a'])));
+
+      // If the native emitter has been asked to take care of the
+      // noSuchMethod handlers, we do that now.
+      if (handleNoSuchMethod) {
+        emitter.emitNoSuchMethodHandlers(addProperty);
+      }
     }
 
     // If we have any properties to add to Object.prototype, we run

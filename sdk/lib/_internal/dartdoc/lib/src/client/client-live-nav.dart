@@ -37,14 +37,14 @@ buildNavigation(List libraries) {
   final html = new StringBuffer();
   for (Map libraryInfo in libraries) {
     String libraryName = libraryInfo[NAME];
-    html.add('<h2><div class="icon-library"></div>');
+    html.write('<h2><div class="icon-library"></div>');
     if (currentLibrary == libraryName && currentType == null) {
-      html.add('<strong>${md.escapeHtml(libraryName)}</strong>');
+      html.write('<strong>${md.escapeHtml(libraryName)}</strong>');
     } else {
       final url = getLibraryUrl(libraryName);
-      html.add('<a href="$url">${md.escapeHtml(libraryName)}</a>');
+      html.write('<a href="$url">${md.escapeHtml(libraryName)}</a>');
     }
-    html.add('</h2>');
+    html.write('</h2>');
 
     // Only list the types for the current library.
     if (currentLibrary == libraryName && libraryInfo.containsKey(TYPES)) {
@@ -75,24 +75,24 @@ buildLibraryNavigation(StringBuffer html, Map libraryInfo) {
   if (types.length == 0 && exceptions.length == 0) return;
 
   writeType(String icon, Map typeInfo) {
-    html.add('<li>');
+    html.write('<li>');
     if (currentType == typeInfo[NAME]) {
-      html.add(
+      html.write(
           '<div class="icon-$icon"></div><strong>${getTypeName(typeInfo)}</strong>');
     } else {
-      html.add(
+      html.write(
           '''
           <a href="${getTypeUrl(currentLibrary, typeInfo)}">
             <div class="icon-$icon"></div>${getTypeName(typeInfo)}
           </a>
           ''');
     }
-    html.add('</li>');
+    html.write('</li>');
   }
 
-  html.add('<ul class="icon">');
+  html.write('<ul class="icon">');
   types.forEach((typeInfo) =>
       writeType(kindToString(typeInfo[KIND]), typeInfo));
   exceptions.forEach((typeInfo) => writeType('exception', typeInfo));
-  html.add('</ul>');
+  html.write('</ul>');
 }

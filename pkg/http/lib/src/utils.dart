@@ -78,28 +78,18 @@ List<String> split1(String toSplit, String pattern) {
 Encoding encodingForCharset(
     String charset, [Encoding fallback = Encoding.ISO_8859_1]) {
   if (charset == null) return fallback;
-  var encoding = _encodingForCharset(charset);
+  var encoding = Encoding.fromName(charset);
   return encoding == null ? fallback : encoding;
 }
+
 
 /// Returns the [Encoding] that corresponds to [charset]. Throws a
 /// [FormatException] if no [Encoding] was found that corresponds to [charset].
 /// [charset] may not be null.
 Encoding requiredEncodingForCharset(String charset) {
-  var encoding = _encodingForCharset(charset);
+  var encoding = Encoding.fromName(charset);
   if (encoding != null) return encoding;
   throw new FormatException('Unsupported encoding "$charset".');
-}
-
-/// Returns the [Encoding] that corresponds to [charset]. Returns null if no
-/// [Encoding] was found that corresponds to [charset]. [charset] may not be
-/// null.
-Encoding _encodingForCharset(String charset) {
-  charset = charset.toLowerCase();
-  if (charset == 'ascii' || charset == 'us-ascii') return Encoding.ASCII;
-  if (charset == 'utf-8') return Encoding.UTF_8;
-  if (charset == 'iso-8859-1') return Encoding.ISO_8859_1;
-  return null;
 }
 
 /// Converts [bytes] into a [String] according to [encoding].
@@ -152,10 +142,10 @@ Stream onDone(Stream stream, void onDone()) {
 // TODO(nweiz): remove this when issue 7786 is fixed.
 /// Pipes all data and errors from [stream] into [sink]. When [stream] is done,
 /// [sink] is closed and the returned [Future] is completed.
-Future store(Stream stream, StreamSink sink) {
+Future store(Stream stream, EventSink sink) {
   var completer = new Completer();
   stream.listen(sink.add,
-      onError: sink.signalError,
+      onError: sink.addError,
       onDone: () {
         sink.close();
         completer.complete();
@@ -166,10 +156,10 @@ Future store(Stream stream, StreamSink sink) {
 /// Pipes all data and errors from [stream] into [sink]. Completes [Future] once
 /// [stream] is done. Unlike [store], [sink] remains open after [stream] is
 /// done.
-Future writeStreamToSink(Stream stream, StreamSink sink) {
+Future writeStreamToSink(Stream stream, EventSink sink) {
   var completer = new Completer();
   stream.listen(sink.add,
-      onError: sink.signalError,
+      onError: sink.addError,
       onDone: () => completer.complete());
   return completer.future;
 }
@@ -200,8 +190,8 @@ Pair<Stream, Stream> tee(Stream stream) {
     controller1.add(value);
     controller2.add(value);
   }, onError: (error) {
-    controller1.signalError(error);
-    controller2.signalError(error);
+    controller1.addError(error);
+    controller2.addError(error);
   }, onDone: () {
     controller1.close();
     controller2.close();

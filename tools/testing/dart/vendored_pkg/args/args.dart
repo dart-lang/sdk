@@ -331,7 +331,7 @@ class ArgParser {
    * that abbreviation.
    */
   Option findByAbbreviation(String abbr) {
-    return options.values.firstMatching((option) => option.abbreviation == abbr,
+    return options.values.firstWhere((option) => option.abbreviation == abbr,
         orElse: () => null);
   }
 }

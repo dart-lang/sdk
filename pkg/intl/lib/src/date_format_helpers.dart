@@ -98,7 +98,7 @@ class _Stream {
           min(index + howMany, contents.length));
     } else {
       // Assume List
-      result = contents.getRange(index, howMany);
+      result = contents.sublist(index, index + howMany);
     }
     return result;
   }

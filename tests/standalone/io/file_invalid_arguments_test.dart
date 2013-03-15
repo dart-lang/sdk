@@ -62,7 +62,7 @@ void testReadListInvalidArgs(buffer, offset, length) {
 void testWriteByteInvalidArgs(value) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
-  var file = (new File(filename.concat("_out"))).openSync(FileMode.WRITE);
+  var file = (new File("${filename}_out")).openSync(FileMode.WRITE);
   try {
     file.writeByteSync(value);
     Expect.fail('exception expected');
@@ -86,7 +86,7 @@ void testWriteByteInvalidArgs(value) {
 void testWriteListInvalidArgs(buffer, offset, bytes) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
-  var file = (new File(filename.concat("_out"))).openSync(FileMode.WRITE);
+  var file = (new File("${filename}_out")).openSync(FileMode.WRITE);
   try {
     file.writeListSync(buffer, offset, bytes);
     Expect.fail('exception expected');
@@ -110,7 +110,7 @@ void testWriteListInvalidArgs(buffer, offset, bytes) {
 void testWriteStringInvalidArgs(string) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
-  var file = new File(filename.concat("_out"));
+  var file = new File("${filename}_out");
   file.openSync(FileMode.WRITE);
   try {
     file.writeString(string);

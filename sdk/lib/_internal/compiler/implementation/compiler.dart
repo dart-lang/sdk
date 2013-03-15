@@ -106,12 +106,7 @@ abstract class Backend {
     });
   }
 
-  // TODO(karlklose): get rid of this and add a factory constructor to [List]
-  // that creates an instance of JSArray to make the dependency visible in from
-  // the source code.
-  void addBackendRtiDependencies(World world);
-
-  void enqueueHelpers(ResolutionEnqueuer world);
+  void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
   void codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
@@ -126,6 +121,8 @@ abstract class Backend {
   void assembleProgram();
   List<CompilerTask> get tasks;
 
+  void onResolutionComplete() {}
+
   // TODO(ahe,karlklose): rename this?
   void dumpInferredTypes() {}
 
@@ -133,24 +130,52 @@ abstract class Backend {
     return new ItemCompilationContext();
   }
 
+  bool needsRti(ClassElement cls);
+
   // The following methods are hooks for the backend to register its
   // helper methods.
-  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {}
-  void registerStringInterpolation() {}
-  void registerCatchStatement() {}
-  void registerThrow() {}
-  void registerLazyField() {}
-  void registerTypeLiteral() {}
-  void registerStackTraceInCatch() {}
-  void registerIsCheck(DartType type, Enqueuer enqueuer) {}
-  void registerAsCheck(DartType type) {}
-  void registerThrowNoSuchMethod() {}
-  void registerThrowRuntimeError() {}
-  void registerAbstractClassInstantiation() {}
-  void registerFallThroughError() {}
-  void registerSuperNoSuchMethod() {}
-  void registerConstantMap() {}
-  void registerRuntimeType() {}
+  void registerInstantiatedClass(ClassElement cls,
+                                 Enqueuer enqueuer,
+                                 TreeElements elements) {}
+  void registerStringInterpolation(TreeElements elements) {}
+  void registerCatchStatement(TreeElements elements) {}
+  void registerThrow(TreeElements elements) {}
+  void registerLazyField(TreeElements elements) {}
+  void registerTypeVariableExpression(TreeElements elements) {}
+  void registerTypeLiteral(TreeElements elements) {}
+  void registerStackTraceInCatch(TreeElements elements) {}
+  void registerIsCheck(DartType type,
+                       Enqueuer enqueuer,
+                       TreeElements elements) {}
+  void registerAsCheck(DartType type, TreeElements elements) {}
+  void registerThrowNoSuchMethod(TreeElements elements) {}
+  void registerThrowRuntimeError(TreeElements elements) {}
+  void registerAbstractClassInstantiation(TreeElements elements) {}
+  void registerFallThroughError(TreeElements elements) {}
+  void registerSuperNoSuchMethod(TreeElements elements) {}
+  void registerConstantMap(TreeElements elements) {}
+  void registerRuntimeType(TreeElements elements) {}
+
+  void registerRequiredType(DartType type, Element enclosingElement) {}
+  void registerClassUsingVariableExpression(ClassElement cls) {}
+
+  bool isNullImplementation(ClassElement cls) {
+    return cls == compiler.nullClass;
+  }
+  ClassElement get intImplementation => compiler.intClass;
+  ClassElement get doubleImplementation => compiler.doubleClass;
+  ClassElement get numImplementation => compiler.numClass;
+  ClassElement get stringImplementation => compiler.stringClass;
+  ClassElement get listImplementation => compiler.listClass;
+  ClassElement get growableListImplementation => compiler.listClass;
+  ClassElement get fixedListImplementation => compiler.listClass;
+  ClassElement get constListImplementation => compiler.listClass;
+  ClassElement get mapImplementation => compiler.mapClass;
+  ClassElement get constMapImplementation => compiler.mapClass;
+  ClassElement get functionImplementation => compiler.functionClass;
+  ClassElement get typeImplementation => compiler.typeClass;
+  ClassElement get boolImplementation => compiler.boolClass;
+  ClassElement get nullImplementation => compiler.nullClass;
 }
 
 /**
@@ -205,6 +230,15 @@ abstract class Compiler implements DiagnosticListener {
    */
   final TokenMap commentMap = new TokenMap();
 
+  /**
+   * Records global dependencies, that is, dependencies that don't
+   * correspond to a particular element.
+   *
+   * We should get rid of this and ensure that all dependencies are
+   * associated with a particular element.
+   */
+  final TreeElements globalDependencies = new TreeElementMapping(null);
+
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
@@ -216,6 +250,11 @@ abstract class Compiler implements DiagnosticListener {
   final int maxConcreteTypeSize;
   final bool analyzeAll;
   final bool analyzeOnly;
+  /**
+   * If true, skip analysis of method bodies and field initializers. Implies
+   * [analyzeOnly].
+   */
+  final bool analyzeSignaturesOnly;
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
   final bool checkDeprecationInSdk;
@@ -224,6 +263,11 @@ abstract class Compiler implements DiagnosticListener {
    * If [:true:], comment tokens are collected in [commentMap] during scanning.
    */
   final bool preserveComments;
+
+  /**
+   * Is the compiler in verbose mode.
+   */
+  final bool verbose;
 
   final api.CompilerOutputProvider outputProvider;
 
@@ -256,7 +300,6 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement listClass;
   ClassElement typeClass;
   ClassElement mapClass;
-  ClassElement mapLiteralClass;
   ClassElement jsInvocationMirrorClass;
   /// Document class from dart:mirrors.
   ClassElement documentClass;
@@ -335,34 +378,52 @@ abstract class Compiler implements DiagnosticListener {
 
   static const int PHASE_SCANNING = 0;
   static const int PHASE_RESOLVING = 1;
-  static const int PHASE_COMPILING = 2;
+  static const int PHASE_DONE_RESOLVING = 2;
+  static const int PHASE_COMPILING = 3;
   int phase;
 
   bool compilationFailed = false;
 
   bool hasCrashed = false;
 
-  Compiler({this.tracer: const Tracer(),
-            this.enableTypeAssertions: false,
-            this.enableUserAssertions: false,
-            this.enableConcreteTypeInference: false,
-            this.maxConcreteTypeSize: 5,
-            this.enableMinification: false,
-            this.enableNativeLiveTypeAnalysis: false,
+  Compiler({Tracer tracer: const Tracer(),
+            bool enableTypeAssertions: false,
+            bool enableUserAssertions: false,
+            bool enableConcreteTypeInference: false,
+            int maxConcreteTypeSize: 5,
+            bool enableMinification: false,
+            bool enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
-            this.analyzeAll: false,
-            this.analyzeOnly: false,
-            this.rejectDeprecatedFeatures: false,
-            this.checkDeprecationInSdk: false,
-            this.preserveComments: false,
+            bool analyzeAll: false,
+            bool analyzeOnly: false,
+            bool analyzeSignaturesOnly: false,
+            bool rejectDeprecatedFeatures: false,
+            bool checkDeprecationInSdk: false,
+            bool preserveComments: false,
+            bool verbose: false,
             outputProvider,
             List<String> strips: const []})
-      : libraries = new Map<String, LibraryElement>(),
+      : tracer = tracer,
+        enableTypeAssertions = enableTypeAssertions,
+        enableUserAssertions = enableUserAssertions,
+        enableConcreteTypeInference = enableConcreteTypeInference,
+        maxConcreteTypeSize = maxConcreteTypeSize,
+        enableMinification = enableMinification,
+        enableNativeLiveTypeAnalysis = enableNativeLiveTypeAnalysis,
+        analyzeAll = analyzeAll,
+        rejectDeprecatedFeatures = rejectDeprecatedFeatures,
+        checkDeprecationInSdk = checkDeprecationInSdk,
+        preserveComments = preserveComments,
+        verbose = verbose,
+        libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch(),
+        this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
+        this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.outputProvider =
             (outputProvider == null) ? NullSink.outputProvider : outputProvider
+
   {
     progress.start();
     world = new World(this);
@@ -502,6 +563,19 @@ abstract class Compiler implements DiagnosticListener {
     } on CompilerCancelledException catch (exception) {
       log('Error: $exception');
       return false;
+    } catch (exception) {
+      try {
+        if (!hasCrashed) {
+          hasCrashed = true;
+          reportDiagnostic(new SourceSpan(uri, 0, 0),
+                           MessageKind.COMPILER_CRASHED.error().toString(),
+                           api.Diagnostic.CRASH);
+          pleaseReportCrash();
+        }
+      } catch (doubleFault) {
+        // Ignoring exceptions in exception handling.
+      }
+      throw;
     } finally {
       tracer.close();
       totalCompileTime.stop();
@@ -547,8 +621,6 @@ abstract class Compiler implements DiagnosticListener {
     listClass = lookupCoreClass('List');
     typeClass = lookupCoreClass('Type');
     mapClass = lookupCoreClass('Map');
-    // TODO: find a proper way to get to the implementation class.
-    mapLiteralClass = lookupCoreClass('LinkedHashMap');
     if (!missingCoreClasses.isEmpty) {
       internalErrorOnElement(coreLibrary,
           'dart:core library does not contain required classes: '
@@ -575,6 +647,17 @@ abstract class Compiler implements DiagnosticListener {
 
     types = new Types(this, dynamicClass);
     backend.initializeHelperClasses();
+
+    dynamicClass.ensureResolved(this);
+  }
+
+  Element _unnamedListConstructor;
+  Element get unnamedListConstructor {
+    if (_unnamedListConstructor != null) return _unnamedListConstructor;
+    Selector callConstructor = new Selector.callConstructor(
+        const SourceString(""), listClass.getLibrary());
+    return _unnamedListConstructor =
+        listClass.lookupConstructor(callConstructor);
   }
 
   void scanBuiltinLibraries() {
@@ -662,26 +745,40 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError('main cannot have parameters', parameter);
         });
       }
-    }
 
-    deferredLoadTask.registerMainApp(mainApp);
+      // In order to see if a library is deferred, we must compute the
+      // compile-time constants that are metadata.  This means adding
+      // something to the resolution queue.  So we cannot wait with
+      // this until after the resolution queue is processed.
+      // TODO(ahe): Clean this up, for example, by not enqueueing
+      // classes only used for metadata.
+      deferredLoadTask.findDeferredLibraries(mainApp);
+    }
 
     log('Resolving...');
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
       libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
     }
-    backend.enqueueHelpers(enqueuer.resolution);
+    // Elements required by enqueueHelpers are global dependencies
+    // that are not pulled in by a particular element.
+    backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
     if (analyzeOnly) return;
     assert(main != null);
+    phase = PHASE_DONE_RESOLVING;
 
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
     // should know this.
     world.populate();
+    // Compute whole-program-knowledge that the backend needs. (This might
+    // require the information computed in [world.populate].)
+    backend.onResolutionComplete();
+
+    deferredLoadTask.onResolutionComplete(main);
 
     log('Inferring types...');
     typesTask.onResolutionComplete(main);
@@ -1051,12 +1148,15 @@ class CompilerTask {
   final Compiler compiler;
   final Stopwatch watch;
 
-  CompilerTask(this.compiler) : watch = new Stopwatch();
+  CompilerTask(Compiler compiler)
+      : this.compiler = compiler,
+        watch = (compiler.verbose) ? new Stopwatch() : null;
 
   String get name => 'Unknown task';
-  int get timing => watch.elapsedMilliseconds;
+  int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
 
   measure(action()) {
+    if (watch == null) return action();
     CompilerTask previous = compiler.measuredTask;
     if (identical(this, previous)) return action();
     compiler.measuredTask = this;
@@ -1147,14 +1247,14 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
 }
 
 /// A sink that drains into /dev/null.
-class NullSink extends StreamSink<String> {
+class NullSink implements EventSink<String> {
   final String name;
 
   NullSink(this.name);
 
   add(String value) {}
 
-  void signalError(AsyncError error) {}
+  void addError(AsyncError error) {}
 
   void close() {}
 

@@ -22,18 +22,46 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 $!MEMBERS
 
-  // TODO(amouravski): Move this documentation out of thise template files and
-  // put it into docs.json. Remember to add @DomName here.
+  @deprecated
+  int get clientX => client.x;
+  @deprecated
+  int get clientY => client.y;
+  @deprecated
+  int get offsetX => offset.x;
+  @deprecated
+  int get offsetY => offset.y;
+  @deprecated
+  int get movementX => movement.x;
+  @deprecated
+  int get movementY => movement.y;
+  @deprecated
+  int get screenX => screen.x;
+  @deprecated
+  int get screenY => screen.y;
+
+  @DomName('MouseEvent.clientX')
+  @DomName('MouseEvent.clientY')
+  Point get client => new Point($dom_clientX, $dom_clientY);
+
+  @DomName('MouseEvent.movementX')
+  @DomName('MouseEvent.movementY')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point get movement => new Point($dom_webkitMovementX, $dom_webkitMovementY);
+
   /**
-   * The X coordinate of the mouse pointer in target node coordinates.
+   * The coordinates of the mouse pointer in target node coordinates.
    *
    * This value may vary between platforms if the target node moves
    * after the event has fired or if the element has CSS transforms affecting
    * it.
    */
-  int get offsetX {
-  if (JS('bool', '!!#.offsetX', this)) {
-      return JS('int', '#.offsetX', this);
+  Point get offset {
+    if (JS('bool', '!!#.offsetX', this)) {
+      var x = JS('int', '#.offsetX', this);
+      var y = JS('int', '#.offsetX', this);
+      return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
       var target = this.target;
@@ -41,28 +69,12 @@ $!MEMBERS
         throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
-      return this.clientX - this.target.getBoundingClientRect().left;
+      return (this.client -
+          this.target.getBoundingClientRect().topLeft).toInt();
     }
   }
 
-  /**
-   * The Y coordinate of the mouse pointer in target node coordinates.
-   *
-   * This value may vary between platforms if the target node moves
-   * after the event has fired or if the element has CSS transforms affecting
-   * it.
-   */
-  int get offsetY {
-    if (JS('bool', '!!#.offsetY', this)) {
-      return JS('int', '#.offsetY', this);
-    } else {
-      // Firefox does not support offsetY.
-      var target = this.target;
-      if (!(target is Element)) {
-        throw new UnsupportedError(
-            'offsetY is only supported on elements');
-      }
-      return this.clientY - this.target.getBoundingClientRect().top;
-    }
-  }
+  @DomName('MouseEvent.screenX')
+  @DomName('MouseEvent.screenY')
+  Point get screen => new Point($dom_screenX, $dom_screenY);
 }

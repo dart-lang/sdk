@@ -5,9 +5,9 @@
 /**
  * This provides a basic example of internationalization usage. It uses the
  * local variant of all the facilities, meaning that libraries with the
- * data for all the locales are directly imported by the program. More realistic
- * examples might read the data from files or over the web, which uses the
- * same APIs but requires different imports.
+ * data for all the locales are directly imported by the program. Once lazy
+ * loading is available, we expect this to be the preferred mode, with
+ * the initialization code actually loading the specific libraries needed.
  *
  * This defines messages for an English locale directly in the program and
  * has separate libraries that define German and Thai messages that say more or
@@ -16,15 +16,18 @@
  */
 
 library intl_basic_example;
-// These can be replaced with package:intl/... references if using this in
-// a separate package.
-// TODO(alanknight): Replace these with package: once pub works in buildbots.
 import 'dart:async';
-import '../../lib/date_symbol_data_local.dart';
-import '../../lib/intl.dart';
-import '../../lib/message_lookup_local.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/message_lookup_by_library.dart';
 import 'messages_all.dart';
 
+/**
+ * In order to use this both as an example and as a test case, we pass in
+ * the function for what we're going to do with the output. For a simple
+ * example we just pass in [print] and for tests we pass in a function that
+ * adds it a list to be verified.
+ */
 Function doThisWithTheOutput;
 
 void setup(Function program, Function output) {
@@ -58,8 +61,8 @@ runProgram(List<Future> _) {
   printForLocale(aDate, de, runAt);
   printForLocale(aDate, th, runAt);
   // Example making use of the return value from withLocale;
-  Intl.withLocale(th.locale, () => runAt('now', 'today'))
-    .then(doThisWithTheOutput);
+  var returnValue = Intl.withLocale(th.locale, () => runAt('now', 'today'));
+  doThisWithTheOutput(returnValue);
 }
 
 printForLocale(aDate, intl, operation) {
@@ -67,7 +70,5 @@ printForLocale(aDate, intl, operation) {
   var dayFormat = intl.date().add_yMMMMEEEEd();
   var time = hmsFormat.format(aDate);
   var day = dayFormat.format(aDate);
-  Intl.withLocale(intl.locale, () {
-    operation(time,day).then(doThisWithTheOutput);
-  });
+  Intl.withLocale(intl.locale, () => doThisWithTheOutput(operation(time,day)));
 }

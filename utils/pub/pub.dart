@@ -18,6 +18,7 @@ import 'command_lish.dart';
 import 'command_update.dart';
 import 'command_uploader.dart';
 import 'command_version.dart';
+import 'command_cache.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
@@ -35,13 +36,14 @@ import 'version.dart';
 /// The commands that Pub understands.
 Map<String, PubCommand> get pubCommands {
   var commands = {
+    'cache': new CacheCommand(),
     'help': new HelpCommand(),
     'install': new InstallCommand(),
     'publish': new LishCommand(),
     'update': new UpdateCommand(),
     'uploader': new UploaderCommand(),
     'version': new VersionCommand()
-  };
+   };
   for (var command in commands.values.toList()) {
     for (var alias in command.aliases) {
       commands[alias] = command;
@@ -135,8 +137,7 @@ main() {
       return;
     }
 
-    var commandArgs =
-        globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
+    var commandArgs = globalOptions.rest.sublist(1);
     command.run(cache, globalOptions, commandArgs);
   });
 }
@@ -160,14 +161,14 @@ Future validatePlatform() {
 void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // Build up a buffer so it shows up as a single log entry.
   var buffer = new StringBuffer();
-  buffer.add(description);
-  buffer.add('\n\n');
-  buffer.add('Usage: pub command [arguments]\n\n');
-  buffer.add('Global options:\n');
-  buffer.add('${pubArgParser.getUsage()}\n\n');
+  buffer.write(description);
+  buffer.write('\n\n');
+  buffer.write('Usage: pub command [arguments]\n\n');
+  buffer.write('Global options:\n');
+  buffer.write('${pubArgParser.getUsage()}\n\n');
 
   // Show the commands sorted.
-  buffer.add('Available commands:\n');
+  buffer.write('Available commands:\n');
 
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
@@ -182,12 +183,13 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
   names.sort((a, b) => a.compareTo(b));
 
   for (var name in names) {
-    buffer.add('  ${padRight(name, length)}   '
+    buffer.write('  ${padRight(name, length)}   '
         '${pubCommands[name].description}\n');
   }
 
-  buffer.add('\n');
-  buffer.add('Use "pub help [command]" for more information about a command.');
+  buffer.write('\n');
+  buffer.write(
+      'Use "pub help [command]" for more information about a command.');
   log.message(buffer.toString());
 }
 
@@ -301,12 +303,12 @@ abstract class PubCommand {
     if (description == null) description = this.description;
 
     var buffer = new StringBuffer();
-    buffer.add('$description\n\nUsage: $usage');
+    buffer.write('$description\n\nUsage: $usage');
 
     var commandUsage = commandParser.getUsage();
     if (!commandUsage.isEmpty) {
-      buffer.add('\n');
-      buffer.add(commandUsage);
+      buffer.write('\n');
+      buffer.write(commandUsage);
     }
 
     log.message(buffer.toString());

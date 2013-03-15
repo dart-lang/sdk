@@ -425,6 +425,29 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
+      Dart_IsString(Dart_GetNativeArgument(args, 1))) {
+    const char* name =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+    const char* target =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+    if (!File::CreateLink(name, target)) {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    }
+  } else  {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =
@@ -493,6 +516,26 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   ASSERT(fd == 0 || fd == 1 || fd == 2);
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(type));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
+      Dart_IsBoolean(Dart_GetNativeArgument(args, 1))) {
+    const char* str =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+    bool follow_links =
+        DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+    File::Type type = File::GetType(str, follow_links);
+    Dart_SetReturnValue(args, Dart_NewInteger(static_cast<int>(type)));
+  } else  {
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
   Dart_ExitScope();
 }
 

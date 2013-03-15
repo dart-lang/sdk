@@ -79,10 +79,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
         // arguments, the emitter will generate stubs to handle them,
         // and needs to know if the method is overridden.
         nativeEmitter.overriddenMethods.add(element);
-        StringBuffer buffer = new StringBuffer();
-        body =
-            nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
-                element, codegen.body, codegen.parameters);
+        body = nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
+                  element, codegen.body, codegen.parameters);
       } else {
         body = codegen.body;
       }
@@ -1526,7 +1524,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           methodName = 'split';
           // Split returns a List, so we make sure the backend knows the
           // list class is instantiated.
-          world.registerInstantiatedClass(compiler.listClass);
+          world.registerInstantiatedClass(
+              compiler.listClass, work.resolutionTree);
         } else if (target == backend.jsStringConcat) {
           push(new js.Binary('+', object, arguments[0]), node);
           return;
@@ -1625,7 +1624,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
-      assert(selector.mask != null);
       world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;
@@ -1647,7 +1645,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerGetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     world.registerDynamicGetter(selector.name, selector);
-    world.registerInstantiatedClass(compiler.functionClass);
+    world.registerInstantiatedClass(
+        compiler.functionClass, work.resolutionTree);
     registerInvoke(node, selector);
   }
 
@@ -1739,8 +1738,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
     String name = _fieldPropertyName(element);
-    DartType type = node.receiver.instructionType.computeType(compiler);
-    if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
+    if (!node.receiver.instructionType.isUnknown()) {
       // Field setters in the generative constructor body are handled in a
       // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {
@@ -1770,12 +1768,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerForeignType(HType type) {
+    // TODO(kasperl): This looks shaky. It makes sense if the type is
+    // exact, but otherwise we should be registering more types as
+    // instantiated. We should find a way of using something along the
+    // lines of the NativeEnqueuerBase.processNativeBehavior method.
+    if (type.isUnknown()) return;
     DartType dartType = type.computeType(compiler);
-    if (dartType == null) {
-      assert(type == HType.UNKNOWN);
-      return;
-    }
-    world.registerInstantiatedClass(dartType.element);
+    world.registerInstantiatedClass(dartType.element, work.resolutionTree);
   }
 
   visitForeign(HForeign node) {
@@ -1835,11 +1834,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(isGenerateAtUseSite(node));
     generateConstant(node.constant);
     DartType type = node.constant.computeType(compiler);
-    if (node.constant is ConstructedConstant) {
+    if (node.constant is ConstructedConstant ||
+        node.constant is InterceptorConstant) {
       ConstantHandler handler = compiler.constantHandler;
-      handler.registerCompileTimeConstant(node.constant);
+      handler.registerCompileTimeConstant(node.constant, work.resolutionTree);
     }
-    world.registerInstantiatedClass(type.element);
+    if (node.constant is! InterceptorConstant) {
+      world.registerInstantiatedClass(type.element, work.resolutionTree);
+    }
   }
 
   visitNot(HNot node) {
@@ -2048,7 +2050,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instr is !HInvokeStatic) {
         backend.registerNonCallStaticUse(node);
         if (node.element.isFunction()) {
-          world.registerInstantiatedClass(compiler.functionClass);
+          world.registerInstantiatedClass(
+              compiler.functionClass, work.resolutionTree);
         }
       } else if (instr.target != node) {
         backend.registerNonCallStaticUse(node);
@@ -2059,7 +2062,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     ClassElement cls = element.getEnclosingClass();
     if (element.isGenerativeConstructor()
         || (element.isFactoryConstructor() && cls == compiler.listClass)) {
-      world.registerInstantiatedClass(cls);
+      world.registerInstantiatedClass(cls, work.resolutionTree);
     }
     push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
   }
@@ -2115,7 +2118,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
-    world.registerInstantiatedClass(compiler.listClass);
+    world.registerInstantiatedClass(
+        compiler.listClass, work.resolutionTree);
     generateArrayLiteral(node);
   }
 
@@ -2249,7 +2253,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
-    world.registerIsCheck(type);
+    world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
     use(input);
     js.PropertyAccess field =
@@ -2311,68 +2315,70 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitIs(HIs node) {
     DartType type = node.typeExpression;
-    world.registerIsCheck(type);
-    Element element = type.element;
-    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
-      compiler.unimplemented("visitIs for type variables",
-                             instruction: node.expression);
-    }
-    LibraryElement coreLibrary = compiler.coreLibrary;
-    ClassElement objectClass = compiler.objectClass;
+    world.registerIsCheck(type, work.resolutionTree);
     HInstruction input = node.expression;
 
-    if (identical(element, objectClass) ||
-        identical(element, compiler.dynamicClass)) {
-      // The constant folder also does this optimization, but we make
-      // it safe by assuming it may have not run.
-      push(newLiteralBool(true), node);
-    } else if (element == compiler.stringClass) {
-      checkString(input, '===');
-      attachLocationToLast(node);
-    } else if (element == compiler.doubleClass) {
-      checkDouble(input, '===');
-      attachLocationToLast(node);
-    } else if (element == compiler.numClass) {
-      checkNum(input, '===');
-      attachLocationToLast(node);
-    } else if (element == compiler.boolClass) {
-      checkBool(input, '===');
-      attachLocationToLast(node);
-    } else if (element == compiler.functionClass) {
-      checkFunction(input, type);
-      attachLocationToLast(node);
-    } else if (element == compiler.intClass) {
-      // The is check in the code tells us that it might not be an
-      // int. So we do a typeof first to avoid possible
-      // deoptimizations on the JS engine due to the Math.floor check.
-      checkNum(input, '===');
-      js.Expression numTest = pop();
-      checkBigInt(input, '===');
-      push(new js.Binary('&&', numTest, pop()), node);
-    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
-      handleNumberOrStringSupertypeCheck(input, type);
-      attachLocationToLast(node);
-    } else if (Elements.isStringOnlySupertype(element, compiler)) {
-      handleStringSupertypeCheck(input, type);
-      attachLocationToLast(node);
-    } else if (identical(element, compiler.listClass)
-               || Elements.isListSupertype(element, compiler)) {
-      handleListOrSupertypeCheck(input, type);
-      attachLocationToLast(node);
-    } else if (element.isTypedef()) {
-      checkNonNull(input);
-      js.Expression nullTest = pop();
-      checkType(input, type);
-      push(new js.Binary('&&', nullTest, pop()));
-      attachLocationToLast(node);
-    } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
-      checkObject(input, '===');
-      js.Expression objectTest = pop();
-      checkType(input, type);
-      push(new js.Binary('&&', objectTest, pop()), node);
+    if (node.isVariableCheck || node.isCompoundCheck) {
+      use(node.checkCall);
     } else {
-      checkType(input, type);
-      attachLocationToLast(node);
+      assert(node.isRawCheck);
+      LibraryElement coreLibrary = compiler.coreLibrary;
+      ClassElement objectClass = compiler.objectClass;
+      Element element = type.element;
+
+      if (identical(element, objectClass) ||
+          identical(element, compiler.dynamicClass)) {
+        // The constant folder also does this optimization, but we make
+        // it safe by assuming it may have not run.
+        push(newLiteralBool(true), node);
+      } else if (element == compiler.stringClass) {
+        checkString(input, '===');
+        attachLocationToLast(node);
+      } else if (element == compiler.doubleClass) {
+        checkDouble(input, '===');
+        attachLocationToLast(node);
+      } else if (element == compiler.numClass) {
+        checkNum(input, '===');
+        attachLocationToLast(node);
+      } else if (element == compiler.boolClass) {
+        checkBool(input, '===');
+        attachLocationToLast(node);
+      } else if (element == compiler.functionClass) {
+        checkFunction(input, type);
+        attachLocationToLast(node);
+      } else if (element == compiler.intClass) {
+        // The is check in the code tells us that it might not be an
+        // int. So we do a typeof first to avoid possible
+        // deoptimizations on the JS engine due to the Math.floor check.
+        checkNum(input, '===');
+        js.Expression numTest = pop();
+        checkBigInt(input, '===');
+        push(new js.Binary('&&', numTest, pop()), node);
+      } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+        handleNumberOrStringSupertypeCheck(input, type);
+        attachLocationToLast(node);
+      } else if (Elements.isStringOnlySupertype(element, compiler)) {
+        handleStringSupertypeCheck(input, type);
+        attachLocationToLast(node);
+      } else if (identical(element, compiler.listClass)
+                 || Elements.isListSupertype(element, compiler)) {
+        handleListOrSupertypeCheck(input, type);
+        attachLocationToLast(node);
+      } else if (element.isTypedef()) {
+        checkNonNull(input);
+        js.Expression nullTest = pop();
+        checkType(input, type);
+        push(new js.Binary('&&', nullTest, pop()));
+        attachLocationToLast(node);
+      } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
+        checkObject(input, '===');
+        js.Expression objectTest = pop();
+        checkType(input, type);
+        push(new js.Binary('&&', objectTest, pop()), node);
+      } else {
+        checkType(input, type);
+        attachLocationToLast(node);
+      }
     }
     if (node.nullOk) {
       checkNull(input);
@@ -2382,15 +2388,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isChecked) {
-      DartType type = node.instructionType.computeType(compiler);
-      Element element = type.element;
-      world.registerIsCheck(type);
-
       if (node.isArgumentTypeCheck) {
-        if (element == backend.jsIntClass) {
+        if (node.isInteger()) {
           checkInt(node.checkedInput, '!==');
         } else {
-          assert(element == backend.jsNumberClass);
+          assert(node.isNumber());
           checkNum(node.checkedInput, '!==');
         }
         js.Expression test = pop();
@@ -2403,7 +2405,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         pushStatement(new js.If.noElse(test, body), node);
         return;
       }
+
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
+      DartType type = node.typeExpression;
+      world.registerIsCheck(type, work.resolutionTree);
+
+      // TODO(kasperl): For now, we ignore type checks against type
+      // variables. This is clearly wrong.
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        use(node.checkedInput);
+        return;
+      }
 
       FunctionElement helperElement;
       if (node.isBooleanConversionCheck) {
@@ -2425,7 +2437,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // 2 arguments implies that the method is either [propertyTypeCheck]
         // or [propertyTypeCast].
         assert(!type.isMalformed);
-        String additionalArgument = backend.namer.operatorIs(element);
+        String additionalArgument = backend.namer.operatorIs(type.element);
         arguments.add(js.string(additionalArgument));
       } else if (parameterCount == 3) {
         // 3 arguments implies that the method is [malformedTypeCheck].
@@ -2621,7 +2633,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   String pushLabel() {
     String label = 'L${labelId++}';
-    labels.addLast(label);
+    labels.add(label);
     return label;
   }
 

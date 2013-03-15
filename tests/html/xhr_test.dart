@@ -53,7 +53,7 @@ main() {
   group('xhr', () {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
-      xhr.open("GET", "NonExistingFile", true);
+      xhr.open("GET", "NonExistingFile", async: true);
       xhr.onReadyStateChange.listen(expectAsyncUntil1((event) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate404(xhr);
@@ -66,7 +66,7 @@ main() {
       var loadEndCalled = false;
 
       var xhr = new HttpRequest();
-      xhr.open('GET', url, true);
+      xhr.open('GET', url, async: true);
       xhr.onReadyStateChange.listen(expectAsyncUntil1((e) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate200Response(xhr);
@@ -142,7 +142,7 @@ main() {
         }));
     });
 
-    test('XHR.request responseType', () {
+    test('XHR.request responseType arraybuffer', () {
       if (ArrayBuffer.supported) {
         HttpRequest.request(url, responseType: 'arraybuffer').then(
           expectAsync1((xhr) {
@@ -161,6 +161,20 @@ main() {
         var event = new Event.eventType('XMLHttpRequestProgressEvent', '');
         expect(event is HttpRequestProgressEvent, isTrue);
       }, expectation);
+    });
+  });
+
+  group('xhr_requestBlob', () {
+    test('XHR.request responseType blob', () {
+      if (ArrayBuffer.supported) {
+        return HttpRequest.request(url, responseType: 'blob').then(
+          (xhr) {
+            expect(xhr.status, equals(200));
+            var blob = xhr.response;
+            expect(blob is Blob, isTrue);
+            expect(blob, isNotNull);
+          });
+      }
     });
   });
 }

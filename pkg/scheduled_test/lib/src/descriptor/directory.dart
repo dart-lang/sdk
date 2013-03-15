@@ -7,7 +7,7 @@ library descriptor.file;
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:pathos/path.dart' as path;
+import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../descriptor.dart' as descriptor;
 import '../../scheduled_test.dart';
@@ -62,7 +62,7 @@ class Directory extends descriptor.Entry {
         throw "Found multiple entries named '${split.first}' within "
             "$nameDescription.";
       } else {
-        var remainingPath = split.getRange(1, split.length - 1);
+        var remainingPath = split.sublist(1);
         if (remainingPath.isEmpty) {
           return matchingEntries.first.read();
         } else {
@@ -90,7 +90,7 @@ class Directory extends descriptor.Entry {
 
     var lastEntryString = prefixLines(contents.last.describe(), prefix: '    ')
         .replaceFirst('    ', "'-- ");
-    buffer.add(lastEntryString);
+    buffer.write(lastEntryString);
     return buffer.toString();
   }
 }

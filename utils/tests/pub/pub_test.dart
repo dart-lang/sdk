@@ -27,6 +27,7 @@ final USAGE_STRING = """
     -v, --verbose         Shortcut for "--verbosity=all"
 
     Available commands:
+      cache      Inspect the system cache.
       help       Display help information for Pub.
       install    Install the current package's dependencies.
       publish    Publish the current package to pub.dartlang.org.

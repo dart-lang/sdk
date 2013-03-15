@@ -7,7 +7,7 @@
 // Library tag to be able to run in html test framework.
 library TypedArray;
 import 'dart:isolate';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 void main() {
   int8_receiver();
@@ -285,7 +285,7 @@ Float32List initFloat32() {
   float32[1] = 2.0;
   return float32;
 }
-Float32List float32 = new Float32List(2);
+Float32List float32 = initFloat32();
 
 void float32_receiver() {
   var sp = spawnFunction(float32_sender);

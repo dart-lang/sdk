@@ -242,7 +242,7 @@ runPixelLayoutTest(int testNum) {
         if (idx < 0) break;
         StringBuffer sb = new StringBuffer();
         for (var i = pos; i < idx; i++) {
-          sb.addCharCode(stdout[i]);
+          sb.writeCharCode(stdout[i]);
         }
         var line = sb.toString();
 

@@ -43,11 +43,8 @@ Language/07_Classes/6_Constructors_A01_t03: Fail # TODO(ahe): Please triage this
 Language/07_Classes/6_Constructors_A01_t04: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors_A01_t06: Fail # TODO(ahe): Please triage this failure.
-Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/01_Constants_A13_t06: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/01_Constants_A20_t03: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/08_Throw_A05_t02: Fail # TODO(ahe): Please triage this failure.
@@ -62,25 +59,6 @@ Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail # TODO(ahe): Please t
 Language/11_Expressions/18_Assignment_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/18_Assignment_A05_t05: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/19_Conditional_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/22_Equality_A01_t23: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/22_Equality_A01_t24: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t22: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/23_Relational_Expressions_A01_t23: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/24_Shift_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t13: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/25_Additive_Expressions_A01_t14: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t16: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t17: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t20: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t21: Fail # TODO(ahe): Please triage this failure.
-Language/11_Expressions/27_Unary_Expressions_A01_t22: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # TODO(ahe): Please triage this failure.
@@ -146,8 +124,6 @@ LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A11_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
@@ -160,16 +136,48 @@ Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially impleme
 
 Language/09_Generics/09_Generics_A04_t03: Fail # dart2js does not treat 2.0 as a double; dartbug.com/1533
 
-[ $compiler == dart2js && ($system == linux || $system == macos)]
-LibTest/math/exp_A01_t01: Fail # TODO(ahe): Please triage this failure.
+[ $compiler == dart2js && $runtime == ie9 ]
+Language/11_Expressions/03_Numbers_A01_t06: Fail # Issue: 8920
+Language/11_Expressions/03_Numbers_A01_t09: Fail # Issue: 8920
+Language/11_Expressions/06_Lists_A07_t02: Fail # Issue: 8920
+Language/11_Expressions/07_Maps_A06_t02: Fail # Issue: 8920
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # Issue: 8920
+LibTest/core/Date/Date_A01_t03: Fail # Issue: 8920
+LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue: 8920
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Issue: 8920
+LibTest/core/Date/year_A01_t01: Fail # Issue: 8920
+LibTest/core/double/round_A01_t01: Fail # Issue: 8920
+LibTest/core/double/toRadixString_A01_t01: Fail # Issue: 8920
+LibTest/core/double/toStringAsExponential_A01_t04: Fail # Issue: 8920
+LibTest/core/double/toStringAsPrecision_A01_t04: Fail # Issue: 8920
+LibTest/core/Expect/identical_A01_t01: Fail # Issue: 8920
+LibTest/core/int/compareTo_A01_t01: Fail # Issue: 8920
+LibTest/core/int/operator_left_shift_A01_t01: Fail # Issue: 8920
+LibTest/core/int/operator_remainder_A01_t03: Fail # Issue: 8920
+LibTest/core/int/operator_truncating_division_A01_t02: Fail # Issue: 8920
+LibTest/core/int/remainder_A01_t01: Fail # Issue: 8920
+LibTest/core/int/remainder_A01_t03: Fail # Issue: 8920
+LibTest/core/int/toRadixString_A01_t01: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue: 8920
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue: 8920
+LibTest/core/String/contains_A01_t02: Fail # Issue: 8920
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
 
+
+# These tests are passing with 'runtime == ie9' but are either skipped or fail
+# on other configurations
+[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera || $runtime == d8 || $runtime == jsshell) ]
+LibTest/math/exp_A01_t01: Fail, OK # co19 issue 44
+LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
+
+[ $compiler == dart2js ]
 LibTest/math/parseDouble_A02_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
 LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
-
-[ $compiler == dart2js && $unchecked ]
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Please triage this failure.
-
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
@@ -181,6 +189,17 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: F
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/math/acos_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/math/asin_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
+
+[ $compiler == dart2js && $minified ]
+
+# These tests assume that the invocation mirror gets the original name of the
+# method, but that information is not present when minifying.  They could be
+# fixed by using the invocation mirror to invoke a method on a different object
+# and checking that the correct method is invoked.
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK
+Language/11_Expressions/18_Assignment_A08_t04: Fail, OK
+
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
@@ -216,7 +235,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
@@ -273,7 +291,6 @@ LibTest/core/int/isEven_A01_t01: Fail, OK # co19 issue 277
 
 [ $compiler == dart2js ]
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t01: Fail # http://dartbug.com/5026
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters_A03_t03: Fail # TODO(ahe): Enforce optional parameter semantics.
 Language/06_Functions/2_Formal_Parameters_A03_t04: Fail # TODO(ahe): Enforce optional parameter semantics.
@@ -332,7 +349,6 @@ Language/11_Expressions/22_Equality_A01_t20: Fail, OK # co19 issue 241
 Language/11_Expressions/32_Type_Cast_A01_t04: Fail, OK # co19 issue 241
 
 Language/11_Expressions/22_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
-Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t14: Fail, OK # co19 issue 210
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t15: Fail, OK # co19 issue 210
@@ -549,6 +565,48 @@ LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to 
 
 LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379.
 
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: pass
+LibTest/core/Date/Date.fromString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.fromString_A03_t01: pass
+LibTest/core/Date/Date.now_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.now_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date.utc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t03: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/Date_A01_t04: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/add_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/compareTo_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/day_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/difference_A01_t02: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/hour_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/isUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecond_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/millisecondsSinceEpoch_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/minute_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/month_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_GT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LE_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/operator_LT_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/second_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A02_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/subtract_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneName_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/timeZoneOffset_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toLocal_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toString_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+
 Language/12_Statements/10_Try_A03_t01: Fail # co19 issue 381
 Language/12_Statements/10_Try_A03_t02: Fail # co19 issue 381
 Language/12_Statements/10_Try_A03_t03: Fail # co19 issue 381
@@ -563,12 +621,55 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t03: Fa
 LibTest/core/IllegalJSRegExpException/toString_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
 LibTest/core/IllegalJSRegExpException/IllegalJSRegExpException_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
 
+LibTest/core/StringBuffer/addAll_A01_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/add_A01_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/add_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/addAll_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/StringBuffer/toString_A01_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail # StringBuffer renamed add to write. co19 issue 388.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/12_Statements/01_Blocks_A01_t03: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t12: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t05: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A13_t03: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/11_Instance_Creation/1_New_A09_t06: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
+
+LibTest/core/double/operator_truncating_division_A01_t01: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t05: Fail # truncate/ceil/floor/round returns ints, issue 361
+LibTest/core/double/operator_truncating_division_A01_t06: Fail # truncate/ceil/floor/round returns ints, issue 361
+
+LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/isNaN_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
+LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
+
+LibTest/core/List/getRange_A02_t01: Fail # issue 391
+
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
 LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367
 
+LibTest/core/Set/intersection_A01_t01: Fail # issue 390
+LibTest/core/Set/intersection_A01_t02: Fail # issue 390
+LibTest/core/Set/intersection_A01_t03: Fail # issue 390
+
 # Issues with co19 test suite in unchecked mode.
 [ $compiler == dart2js && $unchecked ]
+LibTest/core/Set/intersection_A03_t01: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377). Passes in checked mode due to Issue 390.
+
 LibTest/core/Future/chain_A02_t05: Fail # Future is in async library. co19 issue 367
 LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 issue 367
 
@@ -601,7 +702,6 @@ LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 
-
 [ $compiler == dart2js && $system == macos ]
 LibTest/math/acos_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
@@ -627,11 +727,10 @@ Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessible
 
 Language/11_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
-Language/11_Expressions/27_Unary_Expressions_A01_t10: Fail # cannot deal with super in complex assignments
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 [ $compiler == dart2js && $jscl ]
-LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
+LibTest/core/Date/Date.fromString_A03_t01: Pass # Issue co19 - 121 (currently passing due to co19 issues 373 and 374)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
@@ -646,8 +745,11 @@ Language/11_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 [ $compiler == dart2js && $jscl ]
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
+[ $compiler == dart2js && $runtime == d8 ]
+Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
-[ $compiler == dart2js && $browser ]
+
+[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera) ]
 *: Skip
 
 
@@ -663,8 +765,6 @@ Language/05_Variables/05_Variables_A01_t13: Fail # Checks that variable declarat
 Language/05_Variables/05_Variables_A01_t14: Fail # Checks that variable declaration cannot contain 'const', 'final' and 'var' simultaneously.
 Language/05_Variables/05_Variables_A01_t15: Fail # Checks that a variable declaration cannot contain the 'abstract' keyword.
 Language/05_Variables/05_Variables_A04_t01: Fail # Checks that a compile-time error occurs if a local constant variable is redefined.
-Language/06_Functions/06_Functions_A01_t31: Fail # Checks that functions can't be declared as static inside of a function body.
-Language/06_Functions/1_Function_Declaration_A01_t01: Fail # Checks that it is a compile-time error to preface library function with 'static'.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t03: Fail # Checks that a required parameter can be constant. Reassigning it should produce a compile-time error.
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t04: Fail # Checks that static variable declaration can't be a required formal parameter
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # Checks that reassigning a final required parameter produces a compile-time error.
@@ -714,7 +814,6 @@ Language/11_Expressions/23_Relational_Expressions_A01_t10: Fail # Checks that a 
 Language/11_Expressions/23_Relational_Expressions_A01_t11: Fail # Checks that a relational expression cannot be the operand of another relational expression.
 Language/11_Expressions/23_Relational_Expressions_A01_t12: Fail # Checks that a relational expression cannot be the operand of another relational expression.
 Language/11_Expressions/23_Relational_Expressions_A01_t13: Fail # Checks that a relational expression cannot be the operand of another relational expression.
-Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # Checks that it is a compile-time error when a built-in identifier "abstract" is used as a type annotation of a local variable.
 Language/12_Statements/03_Variable_Declaration_A04_t01: Fail # Checks that if the variable declaration is prefixed with the const modifier, then variable must be initialized to a constant expression.
 Language/15_Reference/1_Lexical_Rules_A02_t06: Fail # Checks that Unicode whitespaces other than WHITESPACE are not permitted in the source code. Checks symbol U+00a0.
 
@@ -732,7 +831,13 @@ Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
 
-Language/14_Types/5_Function_Types_A01_t01: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A05_t04: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t04: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t06: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t07: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t08: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t09: Fail # http://dartbug.com/5022
+Language/14_Types/5_Function_Types_A06_t01: Fail # http://dartbug.com/5022
 
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683
@@ -767,11 +872,11 @@ LibTest/core/Map/remove_A01_t02: Fail # Doesn't expect null to be allowed in Set
 LibTest/core/Set/add_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/addAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/contains_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Set/containsAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Set/intersection_A03_t01: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
-LibTest/core/Set/isSubsetOf_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/remove_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
 LibTest/core/Set/removeAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/isSubsetOf_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+LibTest/core/Set/containsAll_A01_t02: Fail # Doesn't expect null to be allowed in Set or Map keys (issue 377).
+
 
 LibTest/core/Map/forEach_A01_t07: Fail # Doesn't expect concurrent modification error (issue 376).
 

@@ -10,58 +10,53 @@
 #error Do not include instructions_arm.h directly; use instructions.h instead.
 #endif
 
+#include "vm/constants_arm.h"
 #include "vm/object.h"
 
 namespace dart {
 
-// Abstract class for all instruction pattern classes.
-class InstructionPattern : public ValueObject {
- public:
-  explicit InstructionPattern(uword pc) : end_(reinterpret_cast<uword*>(pc)) {
-    ASSERT(pc != 0);
-  }
-  virtual ~InstructionPattern() { }
-
- protected:
-  uword Back(int n) const;
-
- private:
-  const uword* end_;
-
-  DISALLOW_COPY_AND_ASSIGN(InstructionPattern);
-};
-
-
-class CallPattern : public InstructionPattern {
+class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
+
+  RawICData* IcData();
+  RawArray* ArgumentsDescriptor();
 
   uword TargetAddress() const;
   void SetTargetAddress(uword target_address) const;
 
  private:
-  int DecodePoolIndex();
-  const int pool_index_;
+  uword Back(int n) const;
+  int DecodeLoadWordFromPool(int end, Register* reg, int* index);
+  const uword* end_;
+  int target_address_pool_index_;
+  int args_desc_load_end_;
+  int args_desc_pool_index_;
+  int ic_data_load_end_;
+  int ic_data_pool_index_;
   const Array& object_pool_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
 
-class JumpPattern : public InstructionPattern {
+class JumpPattern : public ValueObject {
  public:
-  explicit JumpPattern(uword pc) : InstructionPattern(pc) { }
+  explicit JumpPattern(uword pc);
 
-  static const int kLengthInBytes = 3*kWordSize;
+  static const int kLengthInBytes = 3 * Instr::kInstrSize;
 
   int pattern_length_in_bytes() const {
     return kLengthInBytes;
   }
+
   bool IsValid() const;
   uword TargetAddress() const;
   void SetTargetAddress(uword target_address) const;
 
  private:
+  const uword pc_;
+
   DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };
 

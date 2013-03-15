@@ -24,7 +24,7 @@ main() {
         'buffer': buffer
       }, '*', [buffer]);
 
-    return window.onMessage.firstMatching(
+    return window.onMessage.firstWhere(
       (e) {
         return e.data is Map && e.data['id'] == 'transferable data';
       }).then((messageEvent) {

@@ -24,7 +24,13 @@ class UninitializedLocaleData<F> {
 
   operator [](String key) =>
       (key == 'en_US') ? fallbackData : _throwException();
+
+  String lookupMessage(String message_str, [final String desc='',
+      final Map examples=const {}, String locale,
+      String name, List<String> args]) => _throwException();
+
   List get keys => _throwException();
+
   bool containsKey(String key) => (key == 'en_US') ? true : _throwException();
 
   _throwException() {
@@ -56,7 +62,7 @@ var messageLookup = const
 
 /**
  * Initialize the message lookup mechanism. This is for internal use only.
- * User applications should import `message_lookup_local.dart` and call
+ * User applications should import `message_lookup_by_library.dart` and call
  * `initializeMessages`
  */
 void initializeInternalMessageLookup(Function lookupFunction) {

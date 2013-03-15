@@ -613,10 +613,10 @@ TEST_CASE(SerializeByteArray) {
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
   const int kByteArrayLength = 256;
-  Uint8Array& byte_array =
-      Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
+  TypedData& byte_array = TypedData::Handle(
+      TypedData::New(kTypedDataUint8ArrayCid, kByteArrayLength));
   for (int i = 0; i < kByteArrayLength; i++) {
-    byte_array.SetAt(i, i);
+    byte_array.SetUint8(i, i);
   }
   writer.WriteMessage(byte_array);
   intptr_t buffer_len = writer.BytesWritten();
@@ -624,9 +624,9 @@ TEST_CASE(SerializeByteArray) {
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
                         Snapshot::kMessage, Isolate::Current());
-  ByteArray& serialized_byte_array = ByteArray::Handle();
+  TypedData& serialized_byte_array = TypedData::Handle();
   serialized_byte_array ^= reader.ReadObject();
-  EXPECT(serialized_byte_array.IsByteArray());
+  EXPECT(serialized_byte_array.IsTypedData());
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -719,17 +719,17 @@ TEST_CASE(SerializeEmptyByteArray) {
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator);
   const int kByteArrayLength = 0;
-  Uint8Array& byte_array =
-      Uint8Array::Handle(Uint8Array::New(kByteArrayLength));
+  TypedData& byte_array = TypedData::Handle(
+      TypedData::New(kTypedDataUint8ArrayCid, kByteArrayLength));
   writer.WriteMessage(byte_array);
   intptr_t buffer_len = writer.BytesWritten();
 
   // Read object back from the snapshot.
   SnapshotReader reader(buffer, buffer_len,
                         Snapshot::kMessage, Isolate::Current());
-  ByteArray& serialized_byte_array = ByteArray::Handle();
+  TypedData& serialized_byte_array = TypedData::Handle();
   serialized_byte_array ^= reader.ReadObject();
-  EXPECT(serialized_byte_array.IsByteArray());
+  EXPECT(serialized_byte_array.IsTypedData());
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -1763,7 +1763,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "import 'dart:scalarlist';\n"
+      "import 'dart:typeddata';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1934,7 +1934,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "import 'dart:scalarlist';\n"
+      "import 'dart:typeddata';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"

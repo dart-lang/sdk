@@ -13,6 +13,7 @@
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
@@ -65,13 +66,14 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // has its own return instruction. Method that have finally are currently
   // not optimized.
   if (!compiler->HasFinally()) {
+    __ Comment("Stack Check");
+    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
     __ sub(R2, FP, ShifterOperand(SP));
-    // + 1 for saved PP.
-    __ CompareImmediate(R2, (compiler->StackSize() + 1) * kWordSize);
+    __ CompareImmediate(R2, sp_fp_dist * kWordSize);
     __ bkpt(0, NE);
   }
 #endif
-  AssemblerMacros::LeaveDartFrame(compiler->assembler());
+  __ LeaveDartFrame();
   __ Ret();
 
   // Generate 2 NOP instructions so that the debugger can patch the return
@@ -91,13 +93,15 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
 
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  __ LoadFromOffset(kLoadWord, result, FP, local().index() * kWordSize);
 }
 
 
@@ -191,13 +195,47 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* NativeCallInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_temp(0, Location::RegisterLocation(R1));
+  locs->set_temp(1, Location::RegisterLocation(R2));
+  locs->set_temp(2, Location::RegisterLocation(R5));
+  locs->set_out(Location::RegisterLocation(R0));
+  return locs;
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == R1);
+  ASSERT(locs()->temp(1).reg() == R2);
+  ASSERT(locs()->temp(2).reg() == R5);
+  Register result = locs()->out().reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  // Pass a pointer to the first argument in R2.
+  if (!function().HasOptionalParameters()) {
+    __ AddImmediate(R2, FP, (kLastParamSlotIndex +
+                             function().NumParameters() - 1) * kWordSize);
+  } else {
+    __ AddImmediate(R2, FP, kFirstLocalSlotIndex * kWordSize);
+  }
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(native_c_function());
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(entry, Simulator::kNativeCall);
+#endif
+  __ LoadImmediate(R5, entry);
+  __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()));
+  compiler->GenerateCall(token_pos(),
+                         &StubCode::CallNativeCFunctionLabel(),
+                         PcDescriptors::kOther,
+                         locs());
+  __ Pop(result);
 }
 
 

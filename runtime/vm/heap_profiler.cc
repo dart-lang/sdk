@@ -208,11 +208,17 @@ const RawClass* HeapProfiler::GetClass(const RawObject* raw_obj) {
 
 const RawClass* HeapProfiler::GetSuperClass(const RawClass* raw_class) {
   ASSERT(raw_class != Class::null());
-  const RawType* super_type = raw_class->ptr()->super_type_;
-  if (super_type == Type::null()) {
+  const RawAbstractType* super_type = raw_class->ptr()->super_type_;
+  if (super_type == AbstractType::null()) {
     return Class::null();
   }
-  return reinterpret_cast<const RawClass*>(super_type->ptr()->type_class_);
+  while (super_type->GetClassId() == kBoundedTypeCid) {
+    super_type =
+        reinterpret_cast<const RawBoundedType*>(super_type)->ptr()->type_;
+  }
+  ASSERT(super_type->GetClassId() == kTypeCid);
+  return reinterpret_cast<const RawClass*>(
+      reinterpret_cast<const RawType*>(super_type)->ptr()->type_class_);
 }
 
 

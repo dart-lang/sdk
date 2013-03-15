@@ -4,7 +4,7 @@
 //
 // Dart deoptimization of Uint32Array and Int32Array loads.
 
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 loadI32(a) => a[0] + 1;
 loadUi32(a) => a[0] + 1;

@@ -1,33 +1,27 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, use the pub package manager.
- * Create a pubspec.yaml file in your project and add
- * a dependency on unittest with the following lines:
- *     dependencies:
- *       unittest: any
- *
- * Then run 'pub install' from your project directory or using
- * the DartEditor.
- *
- * Please see [Pub Getting Started](http://pub.dartlang.org/doc)
- * for more details about the pub package manager.
+ * To import this library, install the
+ * [unittest package](http://pub.dartlang.org/packages/unittest) via the pub
+ * package manager. See the [Getting Started](http://pub.dartlang.org/doc)
+ * guide for more details.
  *
  * ##Concepts##
  *
- *  * Tests: Tests are specified via the top-level function [test], they can be
+ *  * __Tests__: Tests are specified via the top-level function [test], they can be
  *    organized together using [group].
- *  * Checks: Test expectations can be specified via [expect]
- *  * Matchers: [expect] assertions are written declaratively using [Matcher]s
- *  * Configuration: The framework can be adapted by calling [configure] with a
- *    [Configuration].  Common configurations can be found in this package
- *    under: 'dom\_config.dart' (deprecated), 'html\_config.dart' (for running
- *    tests compiled to Javascript in a browser), and 'vm\_config.dart' (for
- *    running native Dart tests on the VM).
+ *  * __Checks__: Test expectations can be specified via [expect]
+ *  * __Matchers__: [expect] assertions are written declaratively using the
+ *    [Matcher] class.
+ *  * __Configuration__: The framework can be adapted by calling [configure] with a
+ *    [Configuration]. See the other libraries in the `unittest` package for
+ *    alternative implementations of [Configuration] including
+ *    `compact_vm_config.dart`, `html_config.dart` and
+ *    `html_enhanced_config.dart`.
  *
  * ##Examples##
  *
@@ -258,7 +252,7 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _tests.add(new TestCase(_tests.length + 1, _fullSpec(spec), body, 0));
+  _tests.add(new TestCase._internal(_tests.length + 1, _fullSpec(spec), body));
 }
 
 /**
@@ -280,7 +274,7 @@ void solo_test(String spec, TestFunction body) {
 
   ensureInitialized();
 
-  _soloTest = new TestCase(_tests.length + 1, _fullSpec(spec), body, 0);
+  _soloTest = new TestCase._internal(_tests.length + 1, _fullSpec(spec), body);
   _tests.add(_soloTest);
 }
 
@@ -326,7 +320,7 @@ class _SpreadArgsHelper {
            _tests[_currentTest] != null);
     testCase = _tests[_currentTest];
     if (isDone != null || minExpected > 0) {
-      testCase.callbackFunctionsOutstanding++;
+      testCase._callbackFunctionsOutstanding++;
       complete = false;
     } else {
       complete = true;
@@ -382,7 +376,7 @@ class _SpreadArgsHelper {
       // Mark this callback as complete and remove it from the testcase
       // oustanding callback count; if that hits zero the testcase is done.
       complete = true;
-      testCase.markCallbackComplete();
+      testCase._markCallbackComplete();
     }
   }
 
@@ -695,7 +689,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests.retainMatching(filterFunction);
+  _tests.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
@@ -768,7 +762,7 @@ _nextBatch() {
       break;
     }
     final testCase = _tests[_currentTest];
-    var f = _guardAsync(testCase.run, null, _currentTest);
+    var f = _guardAsync(testCase._run, null, _currentTest);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.

@@ -259,7 +259,7 @@ class _DateFormatPatternField extends _DateFormatField {
     var basic = padTo(3, date.millisecond);
     if (width - 3 > 0) {
       var extra = padTo(width - 3, 0);
-      return basic.concat(extra);
+      return basic + extra;
     } else {
       return basic;
     }
@@ -345,7 +345,7 @@ class _DateFormatPatternField extends _DateFormatField {
   }
 
   String formatQuarter(DateTime date) {
-    var quarter = (date.month / 3).truncate().toInt();
+    var quarter = (date.month / 3).truncate();
     if (width < 4) {
       return symbols.SHORTQUARTERS[quarter];
     } else {

@@ -88,8 +88,12 @@ namespace dart {
   V(::, cos, Math_cos, 1749547468)                                             \
 
 
+// Note that any intrinsified function is not inlined. Some optimizations
+// rely on seeing the factories below instead of their inlined code.
 #define SCALARLIST_LIB_INTRINSIC_LIST(V)                                       \
   V(_ByteArrayBase, get:length, ByteArrayBase_getLength, 1098081765)           \
+  V(_Int64Array, [], Int64Array_getIndexed, 504894128)                         \
+  V(_Uint64Array, [], Uint64Array_getIndexed, 31272531)                        \
   V(_Int8Array, _new, Int8Array_new, 535958453)                                \
   V(_Uint8Array, _new, Uint8Array_new, 604355565)                              \
   V(_Uint8ClampedArray, _new, Uint8ClampedArray_new, 1070949952)               \
@@ -97,13 +101,46 @@ namespace dart {
   V(_Uint16Array, _new, Uint16Array_new, 133542762)                            \
   V(_Int32Array, _new, Int32Array_new, 8218286)                                \
   V(_Uint32Array, _new, Uint32Array_new, 469402161)                            \
-  V(_Int64Array, [], Int64Array_getIndexed, 504894128)                         \
   V(_Int64Array, _new, Int64Array_new, 60605075)                               \
-  V(_Uint64Array, [], Uint64Array_getIndexed, 31272531)                        \
   V(_Uint64Array, _new, Uint64Array_new, 624354107)                            \
   V(_Float32Array, _new, Float32Array_new, 109944959)                          \
   V(_Float64Array, _new, Float64Array_new, 147668392)                          \
+  V(Int8List, ., Int8Array_factory, 817410959)                                 \
+  V(Uint8List, ., Uint8Array_factory, 220896178)                               \
+  V(Uint8ClampedList, ., Uint8ClampedArray_factory, 422034060)                 \
+  V(Int16List, ., Int16Array_factory, 214246025)                               \
+  V(Uint16List, ., Uint16Array_factory, 137929963)                             \
+  V(Int32List, ., Int32Array_factory, 1977571010)                              \
+  V(Uint32List, ., Uint32Array_factory, 407638944)                             \
+  V(Int64List, ., Int64Array_factory, 885130273)                               \
+  V(Uint64List, ., Uint64Array_factory, 1471017221)                            \
+  V(Float32List, ., Float32Array_factory, 2035252095)                          \
+  V(Float64List, ., Float64Array_factory, 1037441059)                          \
 
+#define TYPEDDATA_LIB_INTRINSIC_LIST(V)                                        \
+  V(_TypedList, get:length, TypedData_getLength, 231908172)                    \
+  V(_Int8Array, _new, TypedData_Int8Array_new, 844274443)                      \
+  V(_Uint8Array, _new, TypedData_Uint8Array_new, 997951645)                    \
+  V(_Uint8ClampedArray, _new, TypedData_Uint8ClampedArray_new, 1025045044)     \
+  V(_Int16Array, _new, TypedData_Int16Array_new, 1064563368)                   \
+  V(_Uint16Array, _new, TypedData_Uint16Array_new, 110927177)                  \
+  V(_Int32Array, _new, TypedData_Int32Array_new, 770802406)                    \
+  V(_Uint32Array, _new, TypedData_Uint32Array_new, 856841876)                  \
+  V(_Int64Array, _new, TypedData_Int64Array_new, 941769528)                    \
+  V(_Uint64Array, _new, TypedData_Uint64Array_new, 977566635)                  \
+  V(_Float32Array, _new, TypedData_Float32Array_new, 1053133615)               \
+  V(_Float64Array, _new, TypedData_Float64Array_new, 936673303)                \
+  V(_Int8Array, ., TypedData_Int8Array_factory, 1852699666)                    \
+  V(_Uint8Array, ., TypedData_Uint8Array_factory, 1014667000)                  \
+  V(_Uint8ClampedArray, ., TypedData_Uint8ClampedArray_factory, 519376744)     \
+  V(_Int16Array, ., TypedData_Int16Array_factory, 1069515268)                  \
+  V(_Uint16Array, ., TypedData_Uint16Array_factory, 1892182763)                \
+  V(_Int32Array, ., TypedData_Int32Array_factory, 1724127394)                  \
+  V(_Uint32Array, ., TypedData_Uint32Array_factory, 1251657079)                \
+  V(_Int64Array, ., TypedData_Int64Array_factory, 1922050636)                  \
+  V(_Uint64Array, ., TypedData_Uint64Array_factory, 1279581075)                \
+  V(_Float32Array, ., TypedData_Float32Array_factory, 112704438)               \
+  V(_Float64Array, ., TypedData_Float64Array_factory, 41426340)                \
 
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
 //   _FixedSizeArrayIterator, moveNext.
@@ -128,6 +165,7 @@ class Intrinsifier : public AllStatic {
   CORE_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   MATH_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   SCALARLIST_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
+  TYPEDDATA_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
 };

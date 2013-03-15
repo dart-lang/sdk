@@ -68,15 +68,13 @@ void testParse(String message,
     if (chunkSize == -1) chunkSize = data.length;
     reset();
     int written = 0;
-    int unparsed;
     for (int pos = 0; pos < data.length; pos += chunkSize) {
       int remaining = data.length - pos;
       int writeLength = min(chunkSize, remaining);
-      written += writeLength;
       int parsed =
-          parser.update(data.getRange(pos, writeLength), 0, writeLength);
-      unparsed = writeLength - parsed;
-      Expect.equals(0, unparsed);
+          parser.update(data.sublist(pos, pos + writeLength), 0, writeLength);
+      Expect.equals(writeLength, parsed);
+      written += writeLength;
     }
     Expect.isTrue(lastPartCalled);
   }
