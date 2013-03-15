@@ -391,99 +391,99 @@ main() {
       'ABHCIWFiIWEiAICAnWqA/gD+gINTRgA/v0hRf/kb+PnRv/I4//8WE8DijI//FRAo5WBACgAs'
       'QEAARAQABgAGFgv9AAIAAAcU7trAQAAAAAAAA67jLOBALeH94EB8YIBfw==';
 
-    test('drawImage from video element with 3 params', () {
-      var video = new VideoElement();
-
-      video.onLoadedData.listen(expectAsync1((_) {
-        context.drawImage(video, 50, 50);
-
-        expectPixelFilled(50, 50);
-        expectPixelFilled(54, 54);
-        expectPixelFilled(57, 57);
-        expectPixelUnfilled(58, 58);
-        expectPixelUnfilled(0, 0);
-        expectPixelUnfilled(70, 70);
-      }));
-      video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
-      });
-
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
-        video.src = webmVideoUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
-        video.src = mp4VideoUrl;
-      } else {
-        logMessage('Video is not supported on this system.');
-      }
-    });
-
-    test('drawImage from video element with 5 params', () {
-      var video = new VideoElement();
-
-      video.onLoadedData.listen(expectAsync1((_) {
-        context.drawImageAtScale(video, new Rect(50, 50, 20, 20));
-
-        expectPixelFilled(50, 50);
-        expectPixelFilled(55, 55);
-        expectPixelFilled(59, 59);
-        expectPixelFilled(60, 60);
-        expectPixelFilled(69, 69);
-        expectPixelUnfilled(70, 70);
-        expectPixelUnfilled(0, 0);
-        expectPixelUnfilled(80, 80);
-      }));
-      video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
-      });
-
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
-        video.src = webmVideoUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
-        video.src = mp4VideoUrl;
-      } else {
-        // TODO(amouravski): Better fallback?
-        logMessage('Video is not supported on this system.');
-      }
-    });
-
-    test('drawImage from video element with 9 params', () {
-      var video = new VideoElement();
-
-      video.onLoadedData.listen(expectAsync1((_) {
-        context.drawImageAtScale(video, new Rect(50, 50, 20, 20),
-          sourceRect: new Rect(2, 2, 6, 6));
-
-        expectPixelFilled(50, 50);
-        expectPixelFilled(55, 55);
-        expectPixelFilled(59, 59);
-        expectPixelFilled(60, 60);
-        expectPixelFilled(69, 69);
-        expectPixelUnfilled(70, 70);
-        expectPixelUnfilled(0, 0);
-        expectPixelUnfilled(80, 80);
-      }));
-      video.onError.listen((_) {
-        guardAsync(() {
-          fail('URL failed to load.');
-        });
-      });
-
-      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
-        video.src = webmVideoUrl;
-      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-            null) != '') {
-        video.src = mp4VideoUrl;
-      } else {
-        // TODO(amouravski): Better fallback?
-        logMessage('Video is not supported on this system.');
-      }
-    });
+//    test('drawImage from video element with 3 params', () {
+//      var video = new VideoElement();
+//
+//      video.onLoadedData.listen(expectAsync1((_) {
+//        context.drawImage(video, 50, 50);
+//
+//        expectPixelFilled(50, 50);
+//        expectPixelFilled(54, 54);
+//        expectPixelFilled(57, 57);
+//        expectPixelUnfilled(58, 58);
+//        expectPixelUnfilled(0, 0);
+//        expectPixelUnfilled(70, 70);
+//      }));
+//      video.onError.listen((_) {
+//        guardAsync(() {
+//          fail('URL failed to load.');
+//        });
+//      });
+//
+//      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+//        video.src = webmVideoUrl;
+//      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+//            null) != '') {
+//        video.src = mp4VideoUrl;
+//      } else {
+//        logMessage('Video is not supported on this system.');
+//      }
+//    });
+//
+//    test('drawImage from video element with 5 params', () {
+//      var video = new VideoElement();
+//
+//      video.onLoadedData.listen(expectAsync1((_) {
+//        context.drawImageAtScale(video, new Rect(50, 50, 20, 20));
+//
+//        expectPixelFilled(50, 50);
+//        expectPixelFilled(55, 55);
+//        expectPixelFilled(59, 59);
+//        expectPixelFilled(60, 60);
+//        expectPixelFilled(69, 69);
+//        expectPixelUnfilled(70, 70);
+//        expectPixelUnfilled(0, 0);
+//        expectPixelUnfilled(80, 80);
+//      }));
+//      video.onError.listen((_) {
+//        guardAsync(() {
+//          fail('URL failed to load.');
+//        });
+//      });
+//
+//      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+//        video.src = webmVideoUrl;
+//      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+//            null) != '') {
+//        video.src = mp4VideoUrl;
+//      } else {
+//        // TODO(amouravski): Better fallback?
+//        logMessage('Video is not supported on this system.');
+//      }
+//    });
+//
+//    test('drawImage from video element with 9 params', () {
+//      var video = new VideoElement();
+//
+//      video.onLoadedData.listen(expectAsync1((_) {
+//        context.drawImageAtScale(video, new Rect(50, 50, 20, 20),
+//          sourceRect: new Rect(2, 2, 6, 6));
+//
+//        expectPixelFilled(50, 50);
+//        expectPixelFilled(55, 55);
+//        expectPixelFilled(59, 59);
+//        expectPixelFilled(60, 60);
+//        expectPixelFilled(69, 69);
+//        expectPixelUnfilled(70, 70);
+//        expectPixelUnfilled(0, 0);
+//        expectPixelUnfilled(80, 80);
+//      }));
+//      video.onError.listen((_) {
+//        guardAsync(() {
+//          fail('URL failed to load.');
+//        });
+//      });
+//
+//      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+//        video.src = webmVideoUrl;
+//      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+//            null) != '') {
+//        video.src = mp4VideoUrl;
+//      } else {
+//        // TODO(amouravski): Better fallback?
+//        logMessage('Video is not supported on this system.');
+//      }
+//    });
 
     test('drawImage from canvas element with 3 params', () {
       // Draw an image to the canvas from a canvas element.
