@@ -656,6 +656,8 @@ LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
+LibTest/core/List/getRange_A02_t01: Fail # issue 391
+
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
 LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367
@@ -663,8 +665,6 @@ LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 i
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
-
-LibTest/core/List/getRange_A02_t01: Fail # issue 391
 
 # Issues with co19 test suite in unchecked mode.
 [ $compiler == dart2js && $unchecked ]
