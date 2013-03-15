@@ -1476,6 +1476,8 @@ Object invoke(function, arguments) {
   return JS('var', r'#.apply(null, #)', function, arguments);
 }
 
+Object call(target, name) => JS('var', r'#[#]()', target, name);
+
 substitute(var substitution, var arguments) {
   if (isJsArray(substitution)) {
     arguments = substitution;
@@ -1483,6 +1485,34 @@ substitute(var substitution, var arguments) {
     arguments = invoke(substitution, arguments);
   }
   return arguments;
+}
+
+/**
+ * Perform a type check with arguments on the Dart object [object].
+ *
+ * Parameters:
+ * - [isField]: the name of the flag/function to check if the object
+ *   is of the correct class.
+ * - [checks]: the (JavaScript) list of type representations for the
+ *   arguments to check against.
+ * - [asField]: the name of the function that transforms the type
+ *   arguments of [objects] to an instance of the class that we check
+ *   against.
+ * - [native]: [:true:] if we need to use calls (for handling native
+ *   objects).
+ */
+bool checkSubtype(Object object, String isField, List checks, String asField,
+                  bool native) {
+  if (object == null) return false;
+  var arguments = getRuntimeTypeInfo(object);
+  if (isJsArray(object)) {
+    object = getInterceptor(object);
+  }
+  bool isSubclass = native ? call(object, isField) : getField(object, isField);
+  // When we read the field and it is not there, [isSubclass] will be [:null:].
+  if (isSubclass == null || !isSubclass) return false;
+  var substitution = native ? call(object, asField) : getField(object, asField);
+  return checkArguments(substitution, arguments, checks);
 }
 
 /**
@@ -1548,7 +1578,6 @@ bool objectIsSubtype(Object o, var t) {
   }
   return isSubtype(type, t);
 }
-
 
 /**
  * Check whether the type represented by [s] is a subtype of the type
