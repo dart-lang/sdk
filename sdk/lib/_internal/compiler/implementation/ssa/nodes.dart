@@ -1459,8 +1459,7 @@ class HFieldGet extends HFieldAccess {
     }
   }
 
-  // TODO(ngeoffray): Only if input can be null.
-  bool canThrow() => true;
+  bool canThrow() => receiver.canBeNull();
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
@@ -1479,8 +1478,7 @@ class HFieldSet extends HFieldAccess {
     setChangesInstanceProperty();
   }
 
-  // TODO(ngeoffray): Only if input can be null.
-  bool canThrow() => true;
+  bool canThrow() => receiver.canBeNull();
 
   HInstruction get value => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
