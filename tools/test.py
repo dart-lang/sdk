@@ -17,10 +17,7 @@ def Main():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   current_directory = os.path.abspath('');
   client = os.path.abspath(os.path.join(tools_dir, '..'));
-  if current_directory == os.path.join(client, 'runtime'):
-    dart_script_name = 'test-runtime.dart'
-  else:
-    dart_script_name = 'test.dart'
+  dart_script_name = 'test.dart'
   dart_test_script = string.join([tools_dir, dart_script_name], os.sep)
   command = [utils.DartBinary(), dart_test_script] + args
   exit_code = subprocess.call(command)
