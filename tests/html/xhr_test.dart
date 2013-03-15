@@ -142,7 +142,7 @@ main() {
         }));
     });
 
-    test('XHR.request responseType', () {
+    test('XHR.request responseType arraybuffer', () {
       if (ArrayBuffer.supported) {
         HttpRequest.request(url, responseType: 'arraybuffer').then(
           expectAsync1((xhr) {
@@ -151,6 +151,18 @@ main() {
             expect(arrayBuffer, new isInstanceOf<ArrayBuffer>());
             expect(arrayBuffer, isNotNull);
           }));
+      }
+    });
+
+    test('XHR.request responseType blob', () {
+      if (ArrayBuffer.supported) {
+        return HttpRequest.request(url, responseType: 'blob').then(
+          (xhr) {
+            expect(xhr.status, equals(200));
+            var blob = xhr.response;
+            expect(blob is Blob, isTrue);
+            expect(blob, isNotNull);
+          });
       }
     });
 
