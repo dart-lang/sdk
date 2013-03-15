@@ -128,6 +128,7 @@ abstract class Path {
   /**
    * Converts a path to a string using the native filesystem's conventions.
    *
+   * Always returns '.' if the path is empty.
    * On Windows, converts '/'s to backwards slashes, and removes
    * the leading '/' if the path starts with a drive specification.
    * For most valid Windows paths, this should be the inverse of the

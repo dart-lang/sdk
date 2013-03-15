@@ -154,8 +154,9 @@ class _Path implements Path {
     return joined.canonicalize();
   }
 
-  // Note: The URI RFC names for these operations are normalize, resolve, and
-  // relativize.
+  // Note: The URI RFC names for canonicalize, join, and relativeTo
+  // are normalize, resolve, and relativize.  But resolve and relativize
+  // drop the last segment of the base path (the filename), on URIs.
   Path canonicalize() {
     if (isCanonical) return this;
     return makeCanonical();
@@ -245,6 +246,7 @@ class _Path implements Path {
   }
 
   String toNativePath() {
+    if (isEmpty) return '.';
     if (Platform.operatingSystem == 'windows') {
       String nativePath = _path;
       // Drop '/' before a drive letter.

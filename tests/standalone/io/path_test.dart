@@ -9,6 +9,7 @@ import "dart:io";
 void main() {
   testBaseFunctions();
   testRaw();
+  testToNativePath();
   testCanonicalize();
   testJoinAppend();
   testRelativeTo();
@@ -113,6 +114,12 @@ void testRaw() {
   Expect.equals(new Path.raw('c:\\foo/bar bad').toString(), 'c:\\foo/bar bad');
   Expect.equals(new Path.raw('').toString(), '');
   Expect.equals(new Path.raw('\\bar\u2603\n.').toString(), '\\bar\u2603\n.');
+}
+
+void testToNativePath() {
+  Expect.equals('.', new Path('').toNativePath());
+  Expect.equals('.', new Path('.').toNativePath());
+  Expect.equals('.', new Path('a_file').directoryPath.toNativePath());
 }
 
 void testCanonicalize() {
