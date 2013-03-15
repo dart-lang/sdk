@@ -889,7 +889,7 @@ class CDataSection extends Text native "*CDATASection" {
 
 
 @DomName('HTMLCanvasElement')
-class CanvasElement extends Element native "*HTMLCanvasElement" {
+class CanvasElement extends Element implements CanvasImageSource native "*HTMLCanvasElement" {
 
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
@@ -1264,9 +1264,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
+  @JSName('drawImage')
   @DomName('CanvasRenderingContext2D.drawImage')
   @DocsEditable
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
+  void $dom_drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
   @DomName('CanvasRenderingContext2D.fill')
   @DocsEditable
@@ -1482,6 +1483,100 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     $dom_arc(x, y, radius, startAngle, endAngle, anticlockwise);
   }
 
+  /**
+   * Draws an image from a CanvasImageSource to this canvas.
+   *
+   * The entire image from [source] will be drawn to this context with its top
+   * left corner at the point ([destinationX], [destinationY]). If the image is
+   * larger than canvas will allow, the image will be cropped to fit the
+   * available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     ImageElement img = document.query('img');
+   *
+   *     ctx.drawImage(img, 100, 100);
+   *
+   *     VideoElement video = document.query('video');
+   *     ctx.drawImage(video, 0, 0);
+   *
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     otherCanvas.width = 100;
+   *     otherCanvas.height = 100;
+   *     ctx.drawImage(otherCanvas, 590, 590); // will get cropped
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImage(CanvasImageSource source, num destinationX, num destinationY) {
+    $dom_drawImage(source, destinationX, destinationY);
+  }
+
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image will be drawn to an area of this canvas defined by
+   * [destinationRect]. If [sourceRect] is not provided, then
+   * the entire rectangular image from [source] will be drawn to this context.
+   * If the dimensions of [source] or [sourceRect]
+   * differ from [destinationRect], then the image will be scaled to fit.
+   * If the image is larger than canvas
+   * will allow, the image will be cropped to fit the available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     ImageElement img = document.query('img');
+   *     img.width = 100;
+   *     img.height = 100;
+   *
+   *     // Scale the image to 20x20.
+   *     ctx.drawImageAtScale(img, new Rect(50, 50, 20, 20));
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageAtScale(video, new Rect(50, 50, 100, 100),
+   *         sourceRect: new Rect(40, 40, 20, 20));
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageAtScale(otherCanvas, new Rect(0, 0, 100, 20),
+   *         sourceRect: new Rect(0, 0, 100, 20));
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImageAtScale(CanvasImageSource source, Rect destinationRect,
+      {Rect sourceRect}) {
+    if (sourceRect == null) {
+      $dom_drawImage(source,
+          destinationRect.left,
+          destinationRect.top,
+          destinationRect.width,
+          destinationRect.height);
+    } else {
+      $dom_drawImage(source,
+          sourceRect.left,
+          sourceRect.top,
+          sourceRect.width,
+          sourceRect.height,
+          destinationRect.left,
+          destinationRect.top,
+          destinationRect.width,
+          destinationRect.height);
+    }
+  }
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   num get lineDashOffset => JS('num',
@@ -13549,9 +13644,8 @@ class ImageData native "*ImageData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('HTMLImageElement')
-class ImageElement extends Element native "*HTMLImageElement" {
+class ImageElement extends Element implements CanvasImageSource native "*HTMLImageElement" {
 
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable
@@ -13618,6 +13712,7 @@ class ImageElement extends Element native "*HTMLImageElement" {
   @DomName('HTMLImageElement.y')
   @DocsEditable
   final int y;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24276,9 +24371,8 @@ class ValidityState native "*ValidityState" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('HTMLVideoElement')
-class VideoElement extends MediaElement native "*HTMLVideoElement" {
+class VideoElement extends MediaElement implements CanvasImageSource native "*HTMLVideoElement" {
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable
@@ -24367,6 +24461,7 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void exitFullscreen() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30339,6 +30434,32 @@ class _DataAttributeMap implements Map<String, String> {
   bool _matches(String key) => key.startsWith('data-');
   String _strip(String key) => key.substring(5);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * An object that can be drawn to a [CanvasRenderingContext2D] object with
+ * [CanvasRenderingContext2D.drawImage] or
+ * [CanvasRenderingContext2D.drawImageAtScale].
+ *
+ * If the CanvasImageSource is an [ImageElement] then the element's image is
+ * used. If the [ImageElement] is an animated image, then the poster frame is
+ * used. If there is no poster frame, then the first frame of animation is used.
+ *
+ * If the CanvasImageSource is a [VideoElement] then the frame at the current
+ * playback position is used as the image.
+ *
+ * If the CanvasImageSource is a [CanvasElement] then the element's bitmap is
+ * used.
+ *
+ * See also:
+ *
+ *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
+ * from the WHATWG.
+ */
+abstract class CanvasImageSource {}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

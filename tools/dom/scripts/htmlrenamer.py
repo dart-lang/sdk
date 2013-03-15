@@ -126,6 +126,7 @@ convert_to_future_members = monitored.Set(
 # browser.
 _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'CanvasRenderingContext2D.arc',
+  'CanvasRenderingContext2D.drawImage',
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
