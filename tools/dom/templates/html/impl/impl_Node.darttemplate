@@ -338,6 +338,9 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   // Note that this may either be the locally set model or a cached value
   // of the inherited model. This is cached to minimize model change
   // notifications.
+$if DART2JS
+  @Creates('Null')
+$endif
   var _model;
   bool _hasLocalModel;
   StreamController<Node> _modelChangedStream;

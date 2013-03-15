@@ -17839,6 +17839,7 @@ class Node extends EventTarget native "*Node" {
   // Note that this may either be the locally set model or a cached value
   // of the inherited model. This is cached to minimize model change
   // notifications.
+  @Creates('Null')
   var _model;
   bool _hasLocalModel;
   StreamController<Node> _modelChangedStream;
