@@ -109,6 +109,7 @@ serialized_script_value_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 window_open_test: Skip      # BUG(4016)
 xhr_cross_origin_test: Fail # Issue 6016.
+canvasrenderingcontext2d_test: Pass, Fail # flaky drawImage. BUG(9189)
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
