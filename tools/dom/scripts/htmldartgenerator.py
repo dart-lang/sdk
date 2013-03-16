@@ -23,10 +23,10 @@ _secure_base_types = {
   'History': 'HistoryBase',
 }
 
-_custom_factories = {
+_custom_factories = [
   'Notification',
   'EventSource',
-}
+]
 
 class HtmlDartGenerator(object):
   def __init__(self, interface, options):
