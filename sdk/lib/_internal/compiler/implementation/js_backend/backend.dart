@@ -794,6 +794,7 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptedMethod(Element element) {
     return element.isInstanceMember()
+        && !element.isGenerativeConstructorBody()
         && interceptedElements[element.name] != null;
   }
 
