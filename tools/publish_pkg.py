@@ -96,6 +96,9 @@ def Main(argv):
           pubspecFile.write(line)
       if not foundVersion:
         pubspecFile.write('\nversion: ' + version + '\n')
+      pubspecFile.write('environment:\n')
+      pubspecFile.write('  sdk: ">=' + version + '"\n')
+
   else:
     #
     # If there's a lib/ directory in the package, copy the package.
@@ -120,6 +123,8 @@ def Main(argv):
       pubspecFile.write('  ' + argv[1] + ' . This package will change in\n')
       pubspecFile.write('  unpredictable/incompatible ways without warning.\n')
       pubspecFile.write('dependencies:\n')
+      pubspecFile.write('environment:\n')
+      pubspecFile.write('  sdk: ">=' + version + '"\n')
 
     libpath = os.path.join(HOME, argv[1], '../libraries.dart')
     if os.path.exists(libpath):
