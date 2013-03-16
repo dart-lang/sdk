@@ -282,8 +282,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'DirectoryEntry.getDirectory': '_getDirectory',
-    'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Document.querySelector': 'query',
@@ -296,7 +294,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DOMWindow.webkitConvertPointFromNodeToPage': 'convertPointFromNodeToPage',
     'DOMWindow.webkitConvertPointFromPageToNode': 'convertPointFromPageToNode',
     'DOMWindow.webkitNotifications': 'notifications',
-    'DOMWindow.webkitRequestFileSystem': '_requestFileSystem',
+    'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Element.querySelector': 'query',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
@@ -315,8 +313,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'SVGComponentTransferFunctionElement.offset': 'gradientOffset',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
-    'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
-    'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
+    'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
+    'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
     'WorkerContext.webkitResolveLocalFileSystemSyncURL':
         'resolveLocalFileSystemSyncUrl',
     'WorkerContext.webkitResolveLocalFileSystemURL':

@@ -20,7 +20,8 @@ $endif
   }
 
   void observe(Node target,
-               {bool childList,
+               {Map options,
+                bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
@@ -30,6 +31,19 @@ $endif
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
+
+    if (options != null) {
+      options.forEach((k, v) {
+          if (_boolKeys.containsKey(k)) {
+            _add(parsedOptions, k, true == v);
+          } else if (k == 'attributeFilter') {
+            _add(parsedOptions, k, _fixupList(v));
+          } else {
+            throw new ArgumentError(
+                "Illegal MutationObserver.observe option '$k'");
+          }
+        });
+    }
 
     // Override options passed in the map with named optional arguments.
     override(key, value) {

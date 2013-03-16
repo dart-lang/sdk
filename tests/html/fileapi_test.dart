@@ -43,15 +43,17 @@ main() {
 
       test('directoryDoesntExist', () {
         return fs.root.getDirectory(
-            'directory2')
+            'directory2',
+            options: {})
               .catchError((e) {
                 expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
               }, test: (e) => e is FileError);
         });
 
       test('directoryCreate', () {
-        return fs.root.createDirectory(
-            'directory3')
+        return fs.root.getDirectory(
+            'directory3',
+            options: {'create': true})
               .then((DirectoryEntry e) {
                 expect(e.name, equals('directory3'));
               });
@@ -65,15 +67,17 @@ main() {
 
       test('fileDoesntExist', () {
         return fs.root.getFile(
-            'file2')
+            'file2',
+            options: {})
           .catchError((e) {
             expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
           }, test: (e) => e is FileError);
       });
 
       test('fileCreate', () {
-        return fs.root.createFile(
-            'file4')
+        return fs.root.getFile(
+            'file4',
+            options: {'create': true})
           .then((FileEntry e) {
             expect(e.name, equals('file4'));
             expect(e.isFile, isTrue);
@@ -93,11 +97,13 @@ main() {
   // Do the boilerplate to get several files and directories created to then
   // test the functions that use those items.
   Future doDirSetup() {
-    return fs.root.createFile(
-      'file4')
+    return fs.root.getFile(
+      'file4',
+      options: {'create': true})
         .then((FileEntry file) {
-          return fs.root.createDirectory(
-              'directory3')
+          return fs.root.getDirectory(
+              'directory3',
+              options: {'create': true})
             .then((DirectoryEntry dir) {
               return new Future.immediate(new FileAndDir(file, dir));
             });
@@ -151,7 +157,7 @@ main() {
           }).then((entry) {
             expect(entry.name, 'movedFile');
             expect(entry.fullPath, '/directory3/movedFile');
-            return fs.root.getFile('file4');
+            return fs.root.getFile('file4', options: {'create': false});
           }).catchError((e) {
             expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
           }, test: (e) => e is FileError);

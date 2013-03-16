@@ -23,10 +23,6 @@ _secure_base_types = {
   'History': 'HistoryBase',
 }
 
-_custom_factories = [
-  'Notification',
-  'EventSource',
-]
 
 class HtmlDartGenerator(object):
   def __init__(self, interface, options):
@@ -489,18 +485,12 @@ class HtmlDartGenerator(object):
       def IsOptional(signature_index, argument):
         return self.IsConstructorArgumentOptional(argument)
 
-      custom_factory_ctr = self._interface.id in _custom_factories
-      constructor_full_name = constructor_info._ConstructorFullName(
-          self._DartType)
       self._GenerateOverloadDispatcher(
           constructor_info.idl_args,
           False,
           [info.name for info in constructor_info.param_infos],
-          emitter.Format('$(ANNOTATIONS)$FACTORY_KEYWORD $CTOR($PARAMS)',
-            FACTORY_KEYWORD=('factory' if not custom_factory_ctr else
-                'static %s' % constructor_full_name),
-            CTOR=(('' if not custom_factory_ctr else '_factory')
-                + constructor_full_name),
+          emitter.Format('$(ANNOTATIONS)factory $CTOR($PARAMS)',
+            CTOR=constructor_info._ConstructorFullName(self._DartType),
             ANNOTATIONS=annotations,
             PARAMS=constructor_info.ParametersDeclaration(self._DartType)),
           GenerateCall,

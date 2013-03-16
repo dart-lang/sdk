@@ -75,6 +75,7 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'AudioContext',
     'Blob',
     'MutationObserver',
+    'Notification',
     'RTCIceCandidate',
     'RTCPeerConnection',
     'RTCSessionDescription',
