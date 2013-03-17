@@ -60,6 +60,10 @@ returnInt3(a) {
   throw 42;
 }
 
+returnInt4() {
+  return (42);
+}
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
 
@@ -97,6 +101,7 @@ main() {
   returnInt1(true);
   returnInt2(true);
   returnInt3(true);
+  returnInt4();
   returnDouble(true);
   returnGiveUp(true);
   returnNum3();
@@ -142,6 +147,7 @@ void main() {
   checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
   checkReturn('returnInt3', typesInferrer.intType);
   checkReturn('returnDynamic', typesInferrer.dynamicType);
+  checkReturn('returnInt4', typesInferrer.intType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

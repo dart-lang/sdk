@@ -104,6 +104,10 @@ class SentinelTypeMask extends TypeMask {
     return identical(this, other);
   }
 
+  TypeMask nullable() {
+    throw 'Unsupported operation';
+  }
+
   String toString() => '$name sentinel type mask';
 }
 
@@ -1038,7 +1042,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       if (returnType == null) {
         // No return in the body.
         returnType = inferrer.nullType;
-      } else if (!locals.seenReturn) {
+      } else if (!locals.seenReturn && !inferrer.isDynamicType(returnType)) {
+        assert(!inferrer.isGiveUpType(returnType));
         // We haven't seen returns on all branches. So the method may
         // also return null.
         returnType = returnType.nullable();
@@ -1776,6 +1781,28 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitThrow(Throw node) {
     node.visitChildren(this);
     locals.seenReturn = true;
+    return inferrer.dynamicType;
+  }
+
+  TypeMask visitCatchBlock(CatchBlock node) {
+    Node exception = node.exception;
+    if (exception != null) {
+      DartType type = elements.getType(node.type);
+      TypeMask mask = type == null
+          ? inferrer.dynamicType
+          : new TypeMask.nonNullSubtype(type.asRaw());
+      locals.update(elements[exception], mask);
+    }
+    Node trace = node.trace;
+    if (trace != null) {
+      locals.update(elements[trace], inferrer.dynamicType);
+    }
+    visit(node.block);
+    return inferrer.dynamicType;
+  }
+
+  TypeMask visitParenthesizedExpression(ParenthesizedExpression node) {
+    return visit(node.expression);
   }
 
   void internalError(String reason, {Node node}) {
