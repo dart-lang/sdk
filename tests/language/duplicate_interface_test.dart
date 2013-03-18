@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super class relationship.
 
+library duplicateInterfaceTest;
+
 import "duplicate_interface_lib.dart" as alib;
 
 class InterfB { }
