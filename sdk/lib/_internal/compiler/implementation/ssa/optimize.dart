@@ -698,6 +698,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction tryComputeConstantInterceptor(HInstruction input,
                                              Set<ClassElement> intercepted) {
+    if (input == graph.explicitReceiverParameter) {
+      // If `explicitReceiverParameter` is set it means the current method is an
+      // interceptor method, and `this` is the interceptor.  The caller just did
+      // `getInterceptor(foo).currentMethod(foo)` to enter the current method.
+      return graph.thisInstruction;
+    }
+
     HType type = input.instructionType;
     ClassElement constantInterceptor;
     if (type.isInteger()) {
