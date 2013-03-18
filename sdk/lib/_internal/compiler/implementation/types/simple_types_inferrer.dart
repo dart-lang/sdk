@@ -1419,11 +1419,15 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       }
 
       if (!Elements.isLocal(element)) {
-        // Recognize a constraint of the form [: field = other.field :]
-        // or [: field = field + 42 :].
+        // Recognize a constraint of the form [: field = other.field :].
+        // Note that we check if the right hand side is a local to
+        // recognize the situation [: var a = 42; this.a = a; :]. Our
+        // constraint mechanism only works with members or top level
+        // elements.
         var rhs = node.arguments.head;
         if (rhs.asSend() != null
             && rhs.isPropertyAccess
+            && !Elements.isLocal(elements[rhs])
             && rhs.selector.source == node.selector.asIdentifier().source) {
           // TODO(ngeoffray): We should update selectors in the
           // element tree and find out if the typed selector still

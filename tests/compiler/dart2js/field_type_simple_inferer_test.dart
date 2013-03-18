@@ -405,9 +405,12 @@ const String TEST_24 = r"""
     var f3 = 42;
     final f4;
     var f5;
+    var f6 = null;
     A() : f4 = 42 {
       f1++;
       f2 += 42;
+      var f6 = 'foo';
+      this.f6 = f6;
     }
     A.foo(other) : f3 = other.f3, f4 = other.f4, f5 = other.bar();
     operator+(other) => 'foo';
@@ -502,7 +505,8 @@ void test() {
                     'f2': (inferrer) => inferrer.numType,
                     'f3': (inferrer) => inferrer.intType,
                     'f4': (inferrer) => inferrer.intType,
-                    'f5': (inferrer) => inferrer.numType.nullable()});
+                    'f5': (inferrer) => inferrer.numType.nullable(),
+                    'f6': (inferrer) => inferrer.stringType.nullable()});
 }
 
 void main() {
