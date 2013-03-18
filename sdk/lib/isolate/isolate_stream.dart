@@ -196,10 +196,18 @@ class IsolateSink extends StreamSink<dynamic> {
  * [spawnFunction] returns an [IsolateSink] feeding into the child isolate's
  * default stream.
  *
+ * The optional [unhandledExceptionCallback] argument is invoked whenever an
+ * exception inside the isolate is unhandled. It can be seen as a big
+ * `try/catch` around everything that is executed inside the isolate. The
+ * callback should return `true` when it was able to handled the exception.
+ *
  * See comments at the top of this library for more details.
  */
-IsolateSink streamSpawnFunction(void topLevelFunction()) {
-  SendPort sendPort = spawnFunction(topLevelFunction);
+IsolateSink streamSpawnFunction(
+    void topLevelFunction(),
+    [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
+  SendPort sendPort = spawnFunction(topLevelFunction,
+                                    unhandledExceptionCallback);
   return new IsolateSink._fromPort(sendPort);
 }
 

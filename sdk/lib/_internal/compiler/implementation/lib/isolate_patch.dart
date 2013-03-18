@@ -17,8 +17,12 @@ patch class _Isolate {
   }
 
   patch static SendPort spawnFunction(void topLevelFunction(),
-      [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) {
-    // TODO(9012): Don't ignore the UnhandledExceptionCallback.
+      [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
+    if (unhandledExceptionCallback != null) {
+      // TODO(9012): Implement the UnhandledExceptionCallback.
+      throw new UnimplementedError(
+          "spawnFunction with unhandledExceptionCallback");
+    }
     return IsolateNatives.spawnFunction(topLevelFunction);
   }
 

@@ -31,11 +31,16 @@ ReceivePort get port => _Isolate.port;
  * [spawnFunction] returns a [SendPort] derived from the child isolate's default
  * port.
  *
+ * The optional [unhandledExceptionCallback] argument is invoked whenever an
+ * exception inside the isolate is unhandled. It can be seen as a big
+ * `try/catch` around everything that is executed inside the isolate. The
+ * callback should return `true` when it was able to handled the exception.
+ *
  * See comments at the top of this library for more details.
  */
 SendPort spawnFunction(void topLevelFunction(),
-    [bool UnhandledExceptionCallback(IsolateUnhandledException e)])
-    => _Isolate.spawnFunction(topLevelFunction, UnhandledExceptionCallback);
+    [bool unhandledExceptionCallback(IsolateUnhandledException e)])
+    => _Isolate.spawnFunction(topLevelFunction, unhandledExceptionCallback);
 
 /**
  * Creates and spawns an isolate whose code is available at [uri].  Like with
@@ -171,7 +176,7 @@ abstract class SendPortSync {
 abstract class _Isolate {
   external static ReceivePort get port;
   external static SendPort spawnFunction(void topLevelFunction(),
-    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]);
+    [bool unhandledExceptionCallback(IsolateUnhandledException e)]);
   external static SendPort spawnUri(String uri);
 }
 

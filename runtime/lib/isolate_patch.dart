@@ -131,7 +131,7 @@ patch class _Isolate {
   }
 
   /* patch */ static spawnFunction(void topLevelFunction(),
-      [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) 
+      [bool unhandledExceptionCallback(IsolateUnhandledException e)])
       native "isolate_spawnFunction";
 
   /* patch */ static spawnUri(String uri) native "isolate_spawnUri";
