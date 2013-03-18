@@ -374,12 +374,12 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
                                    HInstruction input,
                                    Compiler compiler) {
     if (input == instruction.inputs[0]) return HType.UNKNOWN;
-    HType propagatedType = instruction.instructionType;
-    // If the outgoing type should be a number we can get that only if both
-    // inputs are integers. If we don't know the outgoing type we try to make
-    // it an integer.
-    if (propagatedType.canBePrimitiveNumber(compiler)) {
-      return HType.INTEGER;
+    // We match the implementation of bit operations on the
+    // [:JSNumber:] class by requesting a number if the receiver can
+    // be a number.
+    HInstruction left = instruction.inputs[1];
+    if (left.instructionType.canBePrimitiveNumber(compiler)) {
+      return HType.NUMBER;
     }
     return HType.UNKNOWN;
   }
