@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,7 +11,7 @@ testWriteAsBytesSync(dir) {
   var data = [50,50,50];
   f.writeAsBytesSync(data);
   Expect.listEquals(data, f.readAsBytesSync());
-  f.writeAsBytesSync(data, FileMode.APPEND);
+  f.writeAsBytesSync(data, mode: FileMode.APPEND);
   var expected = [50, 50, 50, 50, 50, 50];
   Expect.listEquals(expected, f.readAsBytesSync());
 }
@@ -33,7 +33,7 @@ Future testWriteAsBytes(dir) {
     Expect.equals(f, file);
     f.readAsBytes().then((bytes) {
       Expect.listEquals(data, bytes);
-      f.writeAsBytes(data, FileMode.APPEND).then((file) {
+      f.writeAsBytes(data, mode: FileMode.APPEND).then((file) {
         Expect.equals(f, file);
         f.readAsBytes().then((bytes) {
           var expected = [50, 50, 50, 50, 50, 50];

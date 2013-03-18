@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,7 +62,7 @@ void testReadListInvalidArgs(buffer, offset, length) {
 void testWriteByteInvalidArgs(value) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
-  var file = (new File("${filename}_out")).openSync(FileMode.WRITE);
+  var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
   try {
     file.writeByteSync(value);
     Expect.fail('exception expected');
@@ -86,7 +86,7 @@ void testWriteByteInvalidArgs(value) {
 void testWriteListInvalidArgs(buffer, offset, bytes) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
-  var file = (new File("${filename}_out")).openSync(FileMode.WRITE);
+  var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
   try {
     file.writeListSync(buffer, offset, bytes);
     Expect.fail('exception expected');
@@ -107,34 +107,26 @@ void testWriteListInvalidArgs(buffer, offset, bytes) {
   });
 }
 
-void testWriteStringInvalidArgs(string) {
+void testWriteStringInvalidArgs(string, encoding) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
-  var file = new File("${filename}_out");
-  file.openSync(FileMode.WRITE);
+  var file = new File("${filename}_out").openSync(mode: FileMode.WRITE);
   try {
-    file.writeString(string);
+    file.writeStringSync(string, encoding: encoding);
     Expect.fail('exception expected');
   } catch (e) {
     Expect.isTrue(e is FileIOException);
-    Expect.isTrue(e.toString().contains('writeString failed'));
   }
 
-  var errors = 0;
-  file.onError = (s) {
-    errors++;
-    Expect.isTrue(s.contains('writeString failed'));
-  };
-  var calls = 0;
-  file.onNoPendingWrites = () {
-    if (++calls > 1) Expect.fail('write list invalid argument');
-  };
-  file.writeString(string);
-  file.onClosed = () {
-    Expect.equals(1, errors);
-    port.close();
-  };
-  file.close();
+  var writeStringFuture = file.writeString(string, encoding: encoding);
+  writeStringFuture.then((ignore) {
+    Expect.fail('exception expected');
+  }).catchError((s) {
+    Expect.isTrue(s.error is FileIOException);
+    file.close().then((ignore) {
+      port.close();
+    });
+  });
 }
 
 String getFilename(String path) {
@@ -150,4 +142,5 @@ main() {
   testWriteListInvalidArgs(12, 0, 1);
   testWriteListInvalidArgs(new List(10), '0', 1);
   testWriteListInvalidArgs(new List(10), 0, '1');
+  testWriteStringInvalidArgs("Hello, world", 42);
 }

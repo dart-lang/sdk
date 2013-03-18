@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -50,7 +50,7 @@ void testOpenNonExistent() {
   Expect.throws(() => file.openSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
-  var openFuture = file.open(FileMode.READ);
+  var openFuture = file.open(mode: FileMode.READ);
   openFuture.then((raf) => Expect.fail("Unreachable code"))
             .catchError((e) {
               checkOpenNonExistentFileException(e.error);
@@ -236,7 +236,7 @@ void testReadAsTextNonExistent() {
   Expect.throws(() => file.readAsStringSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
-  var readAsStringFuture = file.readAsString(Encoding.ASCII);
+  var readAsStringFuture = file.readAsString(encoding: Encoding.ASCII);
   readAsStringFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((e) {
     checkOpenNonExistentFileException(e.error);
@@ -257,7 +257,7 @@ testReadAsLinesNonExistent() {
   Expect.throws(() => file.readAsLinesSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
-  var readAsLinesFuture = file.readAsLines(Encoding.ASCII);
+  var readAsLinesFuture = file.readAsLines(encoding: Encoding.ASCII);
   readAsLinesFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((e) {
     checkOpenNonExistentFileException(e.error);
@@ -292,7 +292,7 @@ createTestFile(callback) {
 
 testWriteByteToReadOnlyFile() {
   createTestFile((file, port) {
-    var openedFile = file.openSync(FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.READ);
 
     // Writing to read only file should throw an exception.
     Expect.throws(() => openedFile.writeByteSync(0),
@@ -308,7 +308,7 @@ testWriteByteToReadOnlyFile() {
 
 testWriteListToReadOnlyFile() {
   createTestFile((file, port) {
-    var openedFile = file.openSync(FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.READ);
 
     List data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
@@ -325,10 +325,10 @@ testWriteListToReadOnlyFile() {
 
 testTruncateReadOnlyFile() {
   createTestFile((file, port) {
-    var openedFile = file.openSync(FileMode.WRITE);
+    var openedFile = file.openSync(mode: FileMode.WRITE);
     openedFile.writeByteSync(0);
     openedFile.closeSync();
-    openedFile = file.openSync(FileMode.READ);
+    openedFile = file.openSync(mode: FileMode.READ);
 
     // Truncating read only file should throw an exception.
     Expect.throws(() => openedFile.truncateSync(0),
@@ -352,7 +352,7 @@ bool checkFileClosedException(e) {
 
 testOperateOnClosedFile() {
   createTestFile((file, port) {
-    var openedFile = file.openSync(FileMode.READ);
+    var openedFile = file.openSync(mode: FileMode.READ);
     openedFile.closeSync();
 
     List data = [0, 1, 2, 3];

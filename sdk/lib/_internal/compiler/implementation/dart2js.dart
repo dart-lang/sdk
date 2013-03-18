@@ -345,7 +345,7 @@ void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
     fail('Error: Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uriPathToNative(uri.path)).openSync(FileMode.WRITE);
+  var file = new File(uriPathToNative(uri.path)).openSync(mode: FileMode.WRITE);
   file.writeStringSync(text);
   file.closeSync();
 }

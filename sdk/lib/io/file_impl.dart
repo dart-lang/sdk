@@ -104,7 +104,7 @@ class _FileStream extends Stream<List<int>> {
   void _start() {
     Future<RandomAccessFile> openFuture;
     if (_path != null) {
-      openFuture = new File(_path).open(FileMode.READ);
+      openFuture = new File(_path).open(mode: FileMode.READ);
     } else {
       openFuture = new Future.immediate(_File._openStdioSync(0));
     }
@@ -153,7 +153,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
   StreamSubscription _subscription;
 
   _FileStreamConsumer(File this._file, FileMode mode) {
-    _openFuture = _file.open(mode);
+    _openFuture = _file.open(mode: mode);
   }
 
   _FileStreamConsumer.fromStdio(int fd) {
@@ -349,7 +349,7 @@ class _File extends _FileBase implements File {
     return new Directory(result);
   }
 
-  Future<RandomAccessFile> open([FileMode mode = FileMode.READ]) {
+  Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (mode != FileMode.READ &&
@@ -421,7 +421,7 @@ class _File extends _FileBase implements File {
 
   external static _open(String path, int mode);
 
-  RandomAccessFile openSync([FileMode mode = FileMode.READ]) {
+  RandomAccessFile openSync({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
@@ -511,14 +511,14 @@ class _File extends _FileBase implements File {
     return result;
   }
 
-  Future<String> readAsString([Encoding encoding = Encoding.UTF_8]) {
+  Future<String> readAsString({Encoding encoding: Encoding.UTF_8}) {
     _ensureFileService();
     return readAsBytes().then((bytes) {
       return _decodeString(bytes, encoding);
     });
   }
 
-  String readAsStringSync([Encoding encoding = Encoding.UTF_8]) {
+  String readAsStringSync({Encoding encoding: Encoding.UTF_8}) {
     List<int> bytes = readAsBytesSync();
     return _decodeString(bytes, encoding);
   }
@@ -536,7 +536,7 @@ class _File extends _FileBase implements File {
     return list;
   }
 
-  Future<List<String>> readAsLines([Encoding encoding = Encoding.UTF_8]) {
+  Future<List<String>> readAsLines({Encoding encoding: Encoding.UTF_8}) {
     _ensureFileService();
     Completer<List<String>> completer = new Completer<List<String>>();
     return readAsBytes().then((bytes) {
@@ -544,12 +544,12 @@ class _File extends _FileBase implements File {
     });
   }
 
-  List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]) {
+  List<String> readAsLinesSync({Encoding encoding: Encoding.UTF_8}) {
     return _decodeLines(readAsBytesSync(), encoding);
   }
 
   Future<File> writeAsBytes(List<int> bytes,
-                            [FileMode mode = FileMode.WRITE]) {
+                            {FileMode mode: FileMode.WRITE}) {
     try {
       IOSink<File> sink = openWrite(mode: mode);
       sink.writeBytes(bytes);
@@ -560,8 +560,8 @@ class _File extends _FileBase implements File {
     }
   }
 
-  void writeAsBytesSync(List<int> bytes, [FileMode mode = FileMode.WRITE]) {
-    RandomAccessFile opened = openSync(mode);
+  void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE}) {
+    RandomAccessFile opened = openSync(mode: mode);
     opened.writeListSync(bytes, 0, bytes.length);
     opened.closeSync();
   }
@@ -570,7 +570,7 @@ class _File extends _FileBase implements File {
                              {FileMode mode: FileMode.WRITE,
                               Encoding encoding: Encoding.UTF_8}) {
     try {
-      return writeAsBytes(_encodeString(contents, encoding), mode);
+      return writeAsBytes(_encodeString(contents, encoding), mode: mode);
     } catch (e) {
       var completer = new Completer();
       Timer.run(() => completer.completeError(e));
@@ -581,7 +581,7 @@ class _File extends _FileBase implements File {
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
                           Encoding encoding: Encoding.UTF_8}) {
-    writeAsBytesSync(_encodeString(contents, encoding), mode);
+    writeAsBytesSync(_encodeString(contents, encoding), mode: mode);
   }
 
   String get path => _path;
@@ -865,7 +865,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeString(String string,
-                                       [Encoding encoding = Encoding.UTF_8]) {
+                                       {Encoding encoding: Encoding.UTF_8}) {
     if (encoding is! Encoding) {
       var completer = new Completer();
       Timer.run(() {
@@ -878,7 +878,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     return writeList(data, 0, data.length);
   }
 
-  int writeStringSync(String string, [Encoding encoding = Encoding.UTF_8]) {
+  int writeStringSync(String string, {Encoding encoding: Encoding.UTF_8}) {
     if (encoding is! Encoding) {
       throw new FileIOException(
           "Invalid encoding in writeStringSync: $encoding");

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 
 String readAll(String filename) {
-  var file = (new File(filename)).openSync(FileMode.READ);
+  var file = (new File(filename)).openSync();
   var length = file.lengthSync();
   var buffer = new List<int>(length);
   var bytes = file.readListSync(buffer, 0, length);
