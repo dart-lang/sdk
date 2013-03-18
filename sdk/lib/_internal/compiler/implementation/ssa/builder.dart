@@ -2667,76 +2667,76 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitIsSend(Send node) {
-      Node argument = node.arguments.head;
-      visit(node.receiver);
-      HInstruction expression = pop();
-      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
-      bool isNot = false;
-      // TODO(ngeoffray): Duplicating pattern in resolver. We should
-      // add a new kind of node.
-      if (typeAnnotation == null) {
-        typeAnnotation = argument.asSend().receiver;
-        isNot = true;
-      }
-      DartType type = elements.getType(typeAnnotation);
-      if (type.isMalformed) {
-        String reasons = Types.fetchReasonsFromMalformedType(type);
-        if (compiler.enableTypeAssertions) {
-          generateMalformedSubtypeError(node, expression, type, reasons);
-        } else {
-          generateRuntimeError(node, '$type is malformed: $reasons');
-        }
-        return;
-      }
-
-      HInstruction instruction;
-      if (type.kind == TypeKind.TYPE_VARIABLE) {
-        HInstruction runtimeType = addTypeVariableReference(type);
-        Element helper = backend.getGetObjectIsSubtype();
-        HInstruction helperCall = new HStatic(helper);
-        add(helperCall);
-        List<HInstruction> inputs = <HInstruction>[helperCall, expression,
-                                                   runtimeType];
-        HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
-        add(call);
-        instruction = new HIs(type, <HInstruction>[expression, call],
-                              HIs.VARIABLE_CHECK);
-      } else if (RuntimeTypes.hasTypeArguments(type)) {
-        Element element = type.element;
-        bool needsNativeCheck =
-            backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
-        Element helper = backend.getCheckSubtype();
-        HInstruction helperCall = new HStatic(helper);
-        add(helperCall);
-        HInstruction representations =
-          buildTypeArgumentRepresentations(type);
-        add(representations);
-        HInstruction isFieldName =
-            addConstantString(node, backend.namer.operatorIs(element));
-        // TODO(karlklose): use [:null:] for [asField] if [element] does not
-        // have a subclass.
-        HInstruction asFieldName =
-            addConstantString(node, backend.namer.substitutionName(element));
-        HInstruction native =
-            graph.addConstantBool(needsNativeCheck, constantSystem);
-        List<HInstruction> inputs = <HInstruction>[helperCall,
-                                                   expression,
-                                                   isFieldName,
-                                                   representations,
-                                                   asFieldName,
-                                                   native];
-        HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
-        add(call);
-        instruction = new HIs(type, <HInstruction>[expression, call],
-                              HIs.COMPOUND_CHECK);
+    Node argument = node.arguments.head;
+    visit(node.receiver);
+    HInstruction expression = pop();
+    TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
+    bool isNot = false;
+    // TODO(ngeoffray): Duplicating pattern in resolver. We should
+    // add a new kind of node.
+    if (typeAnnotation == null) {
+      typeAnnotation = argument.asSend().receiver;
+      isNot = true;
+    }
+    DartType type = elements.getType(typeAnnotation);
+    if (type.isMalformed) {
+      String reasons = Types.fetchReasonsFromMalformedType(type);
+      if (compiler.enableTypeAssertions) {
+        generateMalformedSubtypeError(node, expression, type, reasons);
       } else {
-        instruction = new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
+        generateRuntimeError(node, '$type is malformed: $reasons');
       }
-      if (isNot) {
-        add(instruction);
-        instruction = new HNot(instruction);
-      }
-      push(instruction);
+      return;
+    }
+
+    HInstruction instruction;
+    if (type.kind == TypeKind.TYPE_VARIABLE) {
+      HInstruction runtimeType = addTypeVariableReference(type);
+      Element helper = backend.getGetObjectIsSubtype();
+      HInstruction helperCall = new HStatic(helper);
+      add(helperCall);
+      List<HInstruction> inputs = <HInstruction>[helperCall, expression,
+                                                 runtimeType];
+      HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+      add(call);
+      instruction = new HIs(type, <HInstruction>[expression, call],
+                            HIs.VARIABLE_CHECK);
+    } else if (RuntimeTypes.hasTypeArguments(type)) {
+      Element element = type.element;
+      bool needsNativeCheck =
+          backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
+      Element helper = backend.getCheckSubtype();
+      HInstruction helperCall = new HStatic(helper);
+      add(helperCall);
+      HInstruction representations =
+        buildTypeArgumentRepresentations(type);
+      add(representations);
+      HInstruction isFieldName =
+          addConstantString(node, backend.namer.operatorIs(element));
+      // TODO(karlklose): use [:null:] for [asField] if [element] does not
+      // have a subclass.
+      HInstruction asFieldName =
+          addConstantString(node, backend.namer.substitutionName(element));
+      HInstruction native =
+          graph.addConstantBool(needsNativeCheck, constantSystem);
+      List<HInstruction> inputs = <HInstruction>[helperCall,
+                                                 expression,
+                                                 isFieldName,
+                                                 representations,
+                                                 asFieldName,
+                                                 native];
+      HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+      add(call);
+      instruction = new HIs(type, <HInstruction>[expression, call],
+                            HIs.COMPOUND_CHECK);
+    } else {
+      instruction = new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
+    }
+    if (isNot) {
+      add(instruction);
+      instruction = new HNot(instruction);
+    }
+    push(instruction);
   }
 
   void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
