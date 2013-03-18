@@ -420,9 +420,6 @@ class _HttpParser
 
           case _State.RESPONSE_LINE_REASON_PHRASE:
             if (byte == _CharCode.CR) {
-              if (_uri_or_reason_phrase.length == 0) {
-                throw new HttpParserException("Invalid response reason phrase");
-              }
               _state = _State.RESPONSE_LINE_ENDING;
             } else {
               if (byte == _CharCode.CR || byte == _CharCode.LF) {
