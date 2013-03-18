@@ -1411,7 +1411,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         var rhs = node.arguments.head;
         if (rhs.asSend() != null
             && rhs.isPropertyAccess
-            && rhs.selector.source == node.selector.source) {
+            && rhs.selector.source == node.selector.asIdentifier().source) {
           // TODO(ngeoffray): We should update selectors in the
           // element tree and find out if the typed selector still
           // applies to the receiver type.
