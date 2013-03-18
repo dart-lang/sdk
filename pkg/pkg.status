@@ -12,6 +12,9 @@ fixnum/test/int_64_vm_test: Skip
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 
+scheduled_test/test/scheduled_test_test: Pass, Slow # Issue 9231
+
+
 # WebDriver tests have 3rd party dependencies (we need to run
 # selenium_standalone.jar), so we skip these in our automated
 # testing.
