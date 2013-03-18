@@ -327,11 +327,14 @@ DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
  *
  * Provided for convenience.
  */
-#define DART_CHECK_VALID(handle)                                        \
-  if (Dart_IsError((handle))) {                                         \
-    _Dart_ReportErrorHandle(__FILE__, __LINE__,                       \
-                              #handle, Dart_GetError(handle));          \
-  }
+#define DART_CHECK_VALID(handle)                                               \
+  {                                                                            \
+    Dart_Handle __handle = handle;                                             \
+    if (Dart_IsError((__handle))) {                                            \
+      _Dart_ReportErrorHandle(__FILE__, __LINE__,                              \
+                              #handle, Dart_GetError(__handle));               \
+    }                                                                          \
+  }                                                                            \
 
 
 /**
