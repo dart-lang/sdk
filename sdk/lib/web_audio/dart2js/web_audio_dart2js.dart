@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show Creates, Returns;
+import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
@@ -183,6 +183,9 @@ class AudioContext extends EventTarget native "*AudioContext" {
   @DomName('AudioContext.completeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.AudioContext || window.webkitAudioContext)');
 
   @DomName('AudioContext.activeSourceCount')
   @DocsEditable
@@ -813,18 +816,46 @@ class PannerNode extends AudioNode native "*PannerNode" {
   @DocsEditable
   void setVelocity(num x, num y, num z) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('ScriptProcessorNode')
-class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
+class ScriptProcessorNode extends AudioNode native "*ScriptProcessorNode" {
+  Stream<AudioProcessingEvent> _eventStream;
+
+  /**
+   * Get a Stream that fires events when AudioProcessingEvents occur.
+   * This particular stream is special in that it only allows one listener to a
+   * given stream. Converting the returned Stream [asBroadcast] will likely ruin
+   * the soft-real-time properties which which these events are fired and can
+   * be processed.
+   */
+  Stream<AudioProcessingEvent> get onAudioProcess {
+    if (_eventStream == null) {
+      var controller = new StreamController();
+      var callback = (audioData) { 
+          if (controller.hasSubscribers) {
+            // This stream is a strange combination of broadcast and single
+            // subscriber streams. We only allow one listener, but if there is
+            // no listener, we don't queue up events, we just drop them on the
+            // floor.
+            controller.add(audioData);
+          }
+        };
+      JS('void', '#.onaudioprocess = #', this,
+          convertDartClosureToJS(callback, 1));
+
+      _eventStream = controller.stream;
+    }
+    return _eventStream;
+  }
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable
   final int bufferSize;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

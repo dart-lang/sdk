@@ -19,9 +19,12 @@ touchevent_test/supported: Fail
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
 webgl_1_test: Pass, Fail # Issue 8219
 
-[ $runtime == drt || $runtime == chrome]
+[ $runtime == drt || ($runtime == chrome && $system == windows) ]
 audiobuffersourcenode_test: Pass, Fail, Timeout, Crash # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
 audiocontext_test: Pass, Timeout, Crash  # Issue 8021.
+
+[ $compiler == none ]
+audiocontext_test: Skip  # Issue 9094.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
@@ -32,15 +35,10 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 
-[ $compiler == none && $runtime == drt && $system == macos]
-audiocontext_test: Pass, Fail
-
 [ $compiler == dart2js && $runtime == drt && $system == macos]
 audiobuffersourcenode_test: Pass, Fail
 
 [$runtime == ie10 ]
-audiobuffersourcenode_test: Fail
-audiocontext_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
@@ -54,6 +52,8 @@ window_open_test: Skip
 
 # IE10 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
+audiobuffersourcenode_test/supported: Fail
+audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
@@ -93,8 +93,6 @@ xhr_test/supported_HttpRequestProgressEvent: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 ]
-audiobuffersourcenode_test: Fail
-audiocontext_test: Fail
 blob_constructor_test: Fail
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
@@ -113,6 +111,8 @@ canvasrenderingcontext2d_test: Pass, Fail # flaky drawImage. BUG(9189)
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
+audiobuffersourcenode_test/supported: Fail
+audiocontext_test/supported: Fail
 cache_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supported_CssMatrix: Fail
@@ -271,8 +271,6 @@ svg_test/supported_langSpace: Fail
 websql_test/supported: Fail
 
 [ $runtime == ff ]
-audiobuffersourcenode_test: Fail # FF only has Audio element.
-audiocontext_test: Fail      # FF only has Audio element
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 dromaeo_smoke_test: Pass, Fail # Issue: 8257
 webgl_1_test: Pass, Fail   # Issue 8219
@@ -280,6 +278,8 @@ postmessage_structured_test: Fail
 
 # FireFox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
+audiobuffersourcenode_test/supported: Fail
+audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail

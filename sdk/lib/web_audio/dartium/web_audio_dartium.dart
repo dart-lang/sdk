@@ -236,6 +236,9 @@ class AudioContext extends EventTarget {
   @DocsEditable
   static AudioContext _create() native "AudioContext_constructorCallback";
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('AudioContext.activeSourceCount')
   @DocsEditable
   int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
@@ -1086,16 +1089,40 @@ class PannerNode extends AudioNode {
   void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('ScriptProcessorNode')
-class ScriptProcessorNode extends AudioNode implements EventTarget {
+class ScriptProcessorNode extends AudioNode {
+  Stream<AudioProcessingEvent> _eventStream;
+
+  /**
+   * Get a Stream that fires events when AudioProcessingEvents occur.
+   * This particular stream is special in that it only allows one listener to a
+   * given stream. Converting the returned Stream [asBroadcast] will likely ruin
+   * the soft-real-time properties which which these events are fired and can
+   * be processed.
+   */
+  Stream<AudioProcessingEvent> get onAudioProcess {
+    if (_eventStream == null) {
+      var controller = new StreamController();
+      var callback = (audioData) { 
+          if (controller.hasSubscribers) {
+            // This stream is a strange combination of broadcast and single
+            // subscriber streams. We only allow one listener, but if there is
+            // no listener, we don't queue up events, we just drop them on the
+            // floor.
+            controller.add(audioData);
+          }
+        };
+      // TODO(podivilov): Implement on Dartium.
+
+      _eventStream = controller.stream;
+    }
+    return _eventStream;
+  }
   ScriptProcessorNode.internal() : super.internal();
 
   @DomName('ScriptProcessorNode.bufferSize')
