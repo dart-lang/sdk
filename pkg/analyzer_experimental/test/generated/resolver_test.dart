@@ -5248,19 +5248,19 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 main() {
-  ElementResolverTest.dartSuite();
-  LibraryElementBuilderTest.dartSuite();
-  LibraryTest.dartSuite();
-  StaticTypeAnalyzerTest.dartSuite();
-  TypeProviderImplTest.dartSuite();
-  TypeResolverVisitorTest.dartSuite();
-  EnclosedScopeTest.dartSuite();
-  LibraryImportScopeTest.dartSuite();
-  LibraryScopeTest.dartSuite();
-  ScopeTest.dartSuite();
-  CompileTimeErrorCodeTest.dartSuite();
-  ErrorResolverTest.dartSuite();
-  SimpleResolverTest.dartSuite();
-  StaticTypeWarningCodeTest.dartSuite();
-  StaticWarningCodeTest.dartSuite();
+//  ElementResolverTest.dartSuite();
+//  LibraryElementBuilderTest.dartSuite();
+//  LibraryTest.dartSuite();
+//  StaticTypeAnalyzerTest.dartSuite();
+//  TypeProviderImplTest.dartSuite();
+//  TypeResolverVisitorTest.dartSuite();
+//  EnclosedScopeTest.dartSuite();
+//  LibraryImportScopeTest.dartSuite();
+//  LibraryScopeTest.dartSuite();
+//  ScopeTest.dartSuite();
+//  CompileTimeErrorCodeTest.dartSuite();
+//  ErrorResolverTest.dartSuite();
+//  SimpleResolverTest.dartSuite();
+//  StaticTypeWarningCodeTest.dartSuite();
+//  StaticWarningCodeTest.dartSuite();
 }
