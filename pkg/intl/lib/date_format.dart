@@ -558,7 +558,7 @@ class DateFormat {
   /** Parse the template pattern and return a list of field objects.*/
   List parsePattern(String pattern) {
     if (pattern == null) return null;
-    return _reverse(_parsePatternHelper(pattern));
+    return _parsePatternHelper(pattern).reversed.toList();
   }
 
   /** Recursive helper for parsing the template pattern. */
@@ -583,16 +583,5 @@ class DateFormat {
         return _fieldConstructors[i](match.group(0), this);
       }
     }
-  }
-
-  /** Polyfill for missing library function. */
-  List _reverse(List list) {
-    // TODO(alanknight): Use standardized list reverse when implemented.
-    // See Issue 2804.
-    var result = new List();
-    for (var i = list.length-1; i >= 0; i--) {
-      result.addLast(list[i]);
-    }
-    return result;
   }
 }
