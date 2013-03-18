@@ -50,8 +50,8 @@ main() {
         expect(gainNode is GainNode, isTrue);
 
         expect(context.createAnalyser() is AnalyserNode, isTrue);
-        expect(context.createChannelMerger() is ChannelMergerNode, isTrue);
-        expect(context.createChannelSplitter() is ChannelSplitterNode, isTrue);
+        expect(context.createChannelMerger() is AudioNode, isTrue);
+        expect(context.createChannelSplitter() is AudioNode, isTrue);
         expect(context.createOscillator() is OscillatorNode, isTrue);
         expect(context.createPanner() is PannerNode, isTrue);
         expect(context.createScriptProcessor(4096) is ScriptProcessorNode,
