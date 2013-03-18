@@ -30,9 +30,19 @@ void chainToCompleter(Future future, Completer completer) {
       onError: (e) => completer.completeError(e));
 }
 
-/// Prepends each line in [text] with [prefix].
-String prefixLines(String text, {String prefix: '| '}) =>
-  text.split('\n').map((line) => '$prefix$line').join('\n');
+/// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
+/// first line is prefixed with that instead.
+String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
+  var lines = text.split('\n');
+  if (firstPrefix == null) {
+    return lines.map((line) => '$prefix$line').join('\n');
+  }
+
+  var firstLine = "$firstPrefix${lines.first}";
+  lines = lines.skip(1).map((line) => '$prefix$line').toList();
+  lines.insert(0, firstLine);
+  return lines.join('\n');
+}
 
 /// Returns a [Future] that completes after pumping the event queue [times]
 /// times. By default, this should pump the event queue enough times to allow
@@ -166,4 +176,11 @@ Future awaitObject(object) {
     }
     return map;
   });
+}
+
+/// Returns whether [pattern] matches all of [string].
+bool fullMatch(String string, Pattern pattern) {
+  var matches = pattern.allMatches(string);
+  if (matches.isEmpty) return false;
+  return matches.first.start == 0 && matches.first.end == string.length;
 }

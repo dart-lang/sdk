@@ -13,6 +13,7 @@ import 'mock_clock.dart' as mock_clock;
 import 'schedule_error.dart';
 import 'substitute_future.dart';
 import 'task.dart';
+import 'utils.dart';
 import 'value_future.dart';
 
 /// The schedule of tasks to run for a single test. This has three separate task
@@ -554,14 +555,11 @@ class TaskQueue {
   String generateTree([Task highlight]) {
     assert(highlight == null || highlight.queue == this);
     return _contents.map((task) {
-      var lines = task.toString().split("\n");
-      var firstLine = task == highlight ?
-          "> ${lines.first}" : "* ${lines.first}";
-      lines = new List.from(lines.skip(1).map((line) => "| $line"));
-      lines.insertRange(0, 1, firstLine);
+      var taskString = prefixLines(task.toString(),
+          firstPrefix: task == highlight ? "> " : "* ");
 
       if (task == highlight && !task.children.isEmpty) {
-        for (var child in task.children) {
+        var childrenString = task.children.map((child) {
           var prefix = ">";
           if (child.state == TaskState.ERROR) {
             prefix = "X";
@@ -569,13 +567,13 @@ class TaskQueue {
             prefix = "*";
           }
 
-          var childLines = child.toString().split("\n");
-          lines.add("  $prefix ${childLines.first}");
-          lines.addAll(childLines.skip(1).map((line) => "  | $line"));
-        }
+          return prefixLines(child.toString(),
+              firstPrefix: "  $prefix ", prefix: "  | ");
+        }).join('\n');
+        taskString = '$taskString\n$childrenString';
       }
 
-      return lines.join("\n");
+      return taskString;
     }).join("\n");
   }
 }

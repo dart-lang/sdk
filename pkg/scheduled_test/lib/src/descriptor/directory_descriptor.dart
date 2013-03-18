@@ -5,41 +5,47 @@
 library descriptor.file;
 
 import 'dart:async';
-import 'dart:io' as io;
+import 'dart:io';
 
 import '../../../../../pkg/pathos/lib/path.dart' as path;
 
-import '../../descriptor.dart' as descriptor;
+import '../../descriptor.dart';
 import '../../scheduled_test.dart';
 import '../utils.dart';
-import 'utils.dart';
 
 /// A path builder to ensure that [load] uses POSIX paths.
 final path.Builder _path = new path.Builder(style: path.Style.posix);
 
 /// A descriptor describing a directory containing multiple files.
-class Directory extends descriptor.Entry {
+class DirectoryDescriptor extends Descriptor {
   /// The entries contained within this directory.
-  final Iterable<descriptor.Entry> contents;
+  final Iterable<Descriptor> contents;
 
-  Directory(Pattern name, this.contents)
+  DirectoryDescriptor(String name, this.contents)
       : super(name);
 
   Future create([String parent]) => schedule(() {
-    if (parent == null) parent = descriptor.defaultRoot;
-    var fullPath = path.join(parent, stringName);
-    return new io.Directory(fullPath).create(recursive: true).then((_) {
+    if (parent == null) parent = defaultRoot;
+    var fullPath = path.join(parent, name);
+    return new Directory(fullPath).create(recursive: true).then((_) {
       return Future.wait(
           contents.map((entry) => entry.create(fullPath)).toList());
     });
   }, 'creating directory:\n${describe()}');
 
-  Future validate([String parent]) => schedule(() {
-    if (parent == null) parent = descriptor.defaultRoot;
-    var fullPath = entryMatchingPattern('Directory', parent, name);
+  Future validate([String parent]) => schedule(() => validateNow(parent),
+      'validating directory:\n${describe()}');
+
+  Future validateNow([String parent]) {
+    if (parent == null) parent = defaultRoot;
+    var fullPath = path.join(parent, name);
+    if (!new Directory(fullPath).existsSync()) {
+      throw "Directory not found: '$fullPath'.";
+    }
+
     return Future.wait(
-        contents.map((entry) => entry.validate(fullPath)).toList());
-  }, 'validating directory:\n${describe()}');
+        contents.map((entry) => entry.validateNow(fullPath)).toList());
+  }
 
   Stream<List<int>> load(String pathToLoad) {
     return futureStream(new Future.immediate(null).then((_) {
@@ -49,18 +55,16 @@ class Directory extends descriptor.Entry {
 
       var split = _path.split(_path.normalize(pathToLoad));
       if (split.isEmpty || split.first == '.' || split.first == '..') {
-        throw "Can't load '$pathToLoad' from within $nameDescription.";
+        throw "Can't load '$pathToLoad' from within '$name'.";
       }
 
       var matchingEntries = contents.where((entry) =>
-          entry.stringName == split.first).toList();
+          entry.name == split.first).toList();
 
       if (matchingEntries.length == 0) {
-        throw "Couldn't find an entry named '${split.first}' within "
-            "$nameDescription.";
+        throw "Couldn't find an entry named '${split.first}' within '$name'.";
       } else if (matchingEntries.length > 1) {
-        throw "Found multiple entries named '${split.first}' within "
-            "$nameDescription.";
+        throw "Found multiple entries named '${split.first}' within '$name'.";
       } else {
         var remainingPath = split.sublist(1);
         if (remainingPath.isEmpty) {
@@ -72,16 +76,14 @@ class Directory extends descriptor.Entry {
     }));
   }
 
-  Stream<List<int>> read() => errorStream("Can't read the contents of "
-      "$nameDescription: is a directory.");
+  Stream<List<int>> read() => errorStream("Can't read the contents of '$name': "
+      "is a directory.");
 
   String describe() {
-    var description = name;
-    if (name is! String) description = 'directory matching $nameDescription';
-    if (contents.isEmpty) return description;
+    if (contents.isEmpty) return name;
 
     var buffer = new StringBuffer();
-    buffer.writeln(description);
+    buffer.writeln(name);
     for (var entry in contents.take(contents.length - 1)) {
       var entryString = prefixLines(entry.describe(), prefix: '|   ')
           .replaceFirst('|   ', '|-- ');
