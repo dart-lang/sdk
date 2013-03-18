@@ -276,6 +276,15 @@ class DartBackend extends Backend {
         fixedMemberNames.add(element.name.slowToString());
       });
     }
+    // As of now names of named optionals are not renamed. Therefore add all
+    // field names used as named optionals into [fixedMemberNames].
+    for (final element in resolvedElements.keys) {
+      if (!element.isConstructor()) continue;
+      for (final optional in element.functionSignature.optionalParameters) {
+        if (optional.kind != ElementKind.FIELD_PARAMETER) continue;
+        fixedMemberNames.add(optional.name.slowToString());
+      }
+    }
     // The VM will automatically invoke the call method of objects
     // that are invoked as functions. Make sure to not rename that.
     fixedMemberNames.add('call');
