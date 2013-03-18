@@ -194,7 +194,6 @@ xhr_test/supported_onProgress: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
-audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
 element_test/elements: Crash, Fail # Issue: 7414
 element_types_test/supported_track: Pass, Fail
@@ -226,8 +225,6 @@ speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 
 [ $runtime == opera ]
-audiobuffersourcenode_test: Fail
-audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_test: Fail
 canvas_test: Pass,Fail
@@ -256,6 +253,8 @@ url_test: Fail
 
 # Opera Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
+audiobuffersourcenode_test/supported: Fail
+audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
