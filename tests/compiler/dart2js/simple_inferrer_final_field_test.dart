@@ -33,5 +33,5 @@ void main() {
   }
 
   checkFieldTypeInClass('A', 'intField', typesInferrer.intType);
-  checkFieldTypeInClass('A', 'giveUpField', typesInferrer.giveUpType);
+  checkFieldTypeInClass('A', 'giveUpField', typesInferrer.dynamicType);
 }

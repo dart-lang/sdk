@@ -202,13 +202,6 @@ class SimpleTypesInferrer extends TypesInferrer {
   final int MAX_ANALYSIS_COUNT_PER_ELEMENT = 5;
 
   /**
-   * Sentinel used by the inferrer to notify that it gave up finding a type
-   * on a specific element.
-   */
-  final TypeMask giveUpType = new SentinelTypeMask('give up');
-  bool isGiveUpType(TypeMask type) => identical(type, giveUpType);
-
-  /**
    * Sentinel used by the inferrer to notify that it does not know
    * the type of a specific element.
    */
@@ -304,7 +297,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   bool isTypeValuable(TypeMask returnType) {
-    return !isDynamicType(returnType) && !isGiveUpType(returnType);
+    return !isDynamicType(returnType);
   }
 
   TypeMask getTypeIfValuable(TypeMask returnType) {
@@ -450,18 +443,13 @@ class SimpleTypesInferrer extends TypesInferrer {
 
   dump() {
     int interestingTypes = 0;
-    int giveUpTypes = 0;
     returnTypeOf.forEach((Element element, TypeMask type) {
-      if (isGiveUpType(type)) {
-        giveUpTypes++;
-      } else if (type != nullType && !isDynamicType(type)) {
+      if (type != nullType && !isDynamicType(type)) {
         interestingTypes++;
       }
     });
     typeOf.forEach((Element element, TypeMask type) {
-      if (isGiveUpType(type)) {
-        giveUpTypes++;
-      } else if (type != nullType && !isDynamicType(type)) {
+      if (type != nullType && !isDynamicType(type)) {
         interestingTypes++;
       }
     });
@@ -469,7 +457,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     compiler.log('Type inferrer re-analyzed methods $recompiles times '
                  'in ${recomputeWatch.elapsedMilliseconds} ms.');
     compiler.log('Type inferrer found $interestingTypes interesting '
-                 'types and gave up on $giveUpTypes elements.');
+                 'types.');
   }
 
   /**
@@ -582,7 +570,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       });
     }
     TypeMask returnType = returnTypeOf[element];
-    if (returnType == null || isGiveUpType(returnType)) {
+    if (returnType == null) {
       return dynamicType;
     }
     assert(returnType != null);
@@ -603,7 +591,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       return type;
     }
     TypeMask type = typeOf[element];
-    if (type == null || isGiveUpType(type)) {
+    if (type == null) {
       return dynamicType;
     }
     assert(type != null);
@@ -626,7 +614,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       result = computeLUB(result, type);
       return isTypeValuable(result);
     });
-    if (result == null || isGiveUpType(result)) {
+    if (result == null) {
       result = dynamicType;
     }
     return result;
@@ -793,7 +781,6 @@ class SimpleTypesInferrer extends TypesInferrer {
                                   TypeMask receiverType,
                                   Element caller,
                                   ArgumentsTypes arguments) {
-    assert(!isGiveUpType(receiverType));
     assert(isNotClosure(caller));
     Selector typedSelector = isDynamicType(receiverType)
         ? selector
@@ -817,7 +804,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       return true;
     });
 
-    if (result == null || isGiveUpType(result)) {
+    if (result == null) {
       result = dynamicType;
     }
     return result;
@@ -868,9 +855,7 @@ class SimpleTypesInferrer extends TypesInferrer {
       }
     });
 
-    if (!constraints.isEmpty
-        && !isDynamicType(fieldType)
-        && !isGiveUpType(fieldType)) {
+    if (!constraints.isEmpty && !isDynamicType(fieldType)) {
       // Now that we have found a type, we go over the collected
       // constraints, and make sure they apply to the found type. We
       // update [typeOf] to make sure [typeOfSelector] knows the field
@@ -953,7 +938,6 @@ class SimpleTypesInferrer extends TypesInferrer {
     info.typesOfFinalFields.forEach((Element field,
                                      Map<Node, TypeMask> types) {
       if (isNativeElement(field)) return;
-      if (isNativeElement(field)) return;
       assert(field.modifiers.isFinal());
       TypeMask fieldType = computeFieldTypeWithConstraints(field, types);
       if (recordType(field, fieldType)) {
@@ -970,10 +954,6 @@ class SimpleTypesInferrer extends TypesInferrer {
     assert(secondType != null);
     if (firstType == null) {
       return secondType;
-    } else if (isGiveUpType(firstType)) {
-      return firstType;
-    } else if (isGiveUpType(secondType)) {
-      return secondType;
     } else if (isDynamicType(secondType)) {
       return secondType;
     } else if (isDynamicType(firstType)) {
@@ -981,8 +961,8 @@ class SimpleTypesInferrer extends TypesInferrer {
     } else {
       TypeMask union = firstType.union(secondType, compiler);
       // TODO(kasperl): If the union isn't nullable it seems wasteful
-      // to give up. Fix that.
-      return union.containsAll(compiler) ? giveUpType : union;
+      // to use dynamic. Fix that.
+      return union.containsAll(compiler) ? dynamicType : union;
     }
   }
 
@@ -1058,7 +1038,6 @@ class LocalsHandler {
       // will be executed, so all assigments in that block are
       // potential types after we have left it.
       type = inferrer.computeLUB(locals[local], type);
-      if (inferrer.isGiveUpType(type)) type = inferrer.dynamicType;
     }
     locals[local] = type;
   }
@@ -1089,7 +1068,6 @@ class LocalsHandler {
         return;
       }
       TypeMask type = inferrer.computeLUB(oldType, otherType);
-      if (inferrer.isGiveUpType(type)) type = inferrer.dynamicType;
       if (type != oldType) changed = true;
       locals[local] = type;
     });
@@ -1211,7 +1189,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       Send send = node.asSendSet();
       inferrer.defaultTypeOfParameter[element] = (send == null)
           ? inferrer.nullType
-          : visit(node.arguments.head);
+          : visit(send.arguments.head);
       assert(inferrer.defaultTypeOfParameter[element] != null);
     });
 
@@ -1271,7 +1249,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         // No return in the body.
         returnType = inferrer.nullType;
       } else if (!locals.seenReturn && !inferrer.isDynamicType(returnType)) {
-        assert(!inferrer.isGiveUpType(returnType));
         // We haven't seen returns on all branches. So the method may
         // also return null.
         returnType = returnType.nullable();
@@ -1364,7 +1341,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       // parameters), as well as captured argument checks.
       if (locals.locals[variable] == null) return;
       inferrer.recordType(variable, locals.locals[variable]);
-      assert(!inferrer.isGiveUpType(inferrer.typeOf[variable]));
     });
 
     return inferrer.functionType;
@@ -1951,7 +1927,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     TypeMask secondType = node.elseExpression.accept(this);
     locals.merge(thenLocals);
     TypeMask type = inferrer.computeLUB(firstType, secondType);
-    if (inferrer.isGiveUpType(type)) type = inferrer.dynamicType;
     return type;
   }
 

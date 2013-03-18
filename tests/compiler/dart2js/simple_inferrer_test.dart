@@ -109,7 +109,7 @@ main() {
   returnNum4();
   returnIntOrNull(true);
   returnDynamic();
-  new A() == new B();
+  new A() == null;
   new A()..returnNum1()
          ..returnNum2()
          ..returnNum3()
@@ -143,7 +143,7 @@ void main() {
   checkReturn('returnInt1', typesInferrer.intType);
   checkReturn('returnInt2', typesInferrer.intType);
   checkReturn('returnDouble', typesInferrer.doubleType);
-  checkReturn('returnGiveUp', typesInferrer.giveUpType);
+  checkReturn('returnGiveUp', typesInferrer.dynamicType);
   checkReturn('returnNum3', typesInferrer.numType);
   checkReturn('returnNum4', typesInferrer.numType);
   checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
@@ -163,7 +163,7 @@ void main() {
   checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
-  checkReturnInClass('A', '==', typesInferrer.giveUpType);
+  checkReturnInClass('A', '==', typesInferrer.dynamicType);
 
   checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
   checkReturnInClass('B', 'returnNum2', typesInferrer.numType);

@@ -453,26 +453,26 @@ void test() {
                    'f2': (inferrer) => inferrer.intType});
   runTest(TEST_3, {'f1': (inferrer) => inferrer.intType,
                    'f2': (inferrer) => inferrer.intType.nullable()});
-  runTest(TEST_4, {'f1': (inferrer) => inferrer.giveUpType,
+  runTest(TEST_4, {'f1': (inferrer) => inferrer.dynamicType,
                    'f2': (inferrer) => inferrer.stringType.nullable()});
 
   // TODO(ngeoffray): We should try to infer that the initialization
   // code at the declaration site of the fields does not matter.
-  runTest(TEST_5, {'f1': (inferrer) => inferrer.giveUpType,
-                   'f2': (inferrer) => inferrer.giveUpType});
-  runTest(TEST_6, {'f1': (inferrer) => inferrer.giveUpType,
-                   'f2': (inferrer) => inferrer.giveUpType});
-  runTest(TEST_7, {'f1': (inferrer) => inferrer.giveUpType,
-                   'f2': (inferrer) => inferrer.giveUpType});
+  runTest(TEST_5, {'f1': (inferrer) => inferrer.dynamicType,
+                   'f2': (inferrer) => inferrer.dynamicType});
+  runTest(TEST_6, {'f1': (inferrer) => inferrer.dynamicType,
+                   'f2': (inferrer) => inferrer.dynamicType});
+  runTest(TEST_7, {'f1': (inferrer) => inferrer.dynamicType,
+                   'f2': (inferrer) => inferrer.dynamicType});
 
   runTest(TEST_8, {'f': (inferrer) => inferrer.stringType.nullable()});
   runTest(TEST_9, {'f': (inferrer) => inferrer.stringType.nullable()});
-  runTest(TEST_10, {'f': (inferrer) => inferrer.giveUpType});
+  runTest(TEST_10, {'f': (inferrer) => inferrer.dynamicType});
   runTest(TEST_11, {'fs': (inferrer) => inferrer.intType});
 
   // TODO(ngeoffray): We should try to infer that the initialization
   // code at the declaration site of the fields does not matter.
-  runTest(TEST_12, {'fs': (inferrer) => inferrer.giveUpType});
+  runTest(TEST_12, {'fs': (inferrer) => inferrer.dynamicType});
 
   runTest(TEST_13, {'fs': (inferrer) => inferrer.intType});
   runTest(TEST_14, {'f': (inferrer) => inferrer.intType});
@@ -481,7 +481,7 @@ void test() {
                                 inferrer.compiler.backend.jsIndexableClass;
                             return new TypeMask.nonNullSubtype(cls.rawType);
                          }});
-  runTest(TEST_16, {'f': (inferrer) => inferrer.giveUpType});
+  runTest(TEST_16, {'f': (inferrer) => inferrer.dynamicType});
   runTest(TEST_17, {'f': (inferrer) => inferrer.intType.nullable()});
   runTest(TEST_18, {'f1': (inferrer) => inferrer.intType,
                     'f2': (inferrer) => inferrer.stringType,

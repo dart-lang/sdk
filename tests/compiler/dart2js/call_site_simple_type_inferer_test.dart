@@ -210,7 +210,6 @@ void doTest(String test, bool enableInlining, Function f) {
       var expectedTypes = f(inferrer);
       var signature = element.computeSignature(inferrer.compiler);
       int index = 0;
-      print(inferrer.typeOf);
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++], inferrer.typeOf[element]);
       });
@@ -230,15 +229,15 @@ void test() {
   runTest(TEST_4, (inferrer) => [inferrer.numType]);
   runTest(TEST_5, (inferrer) => [inferrer.numType]);
   runTest(TEST_6, (inferrer) => [inferrer.numType]);
-  runTest(TEST_7, (inferrer) => [inferrer.giveUpType]);
+  runTest(TEST_7, (inferrer) => [inferrer.dynamicType]);
 
   // In the following tests, we can't infer the right types because we
   // have recursive calls with the same parameters. We should build a
   // constraint system for those, to find the types.
-  runTest(TEST_8, (inferrer) => [inferrer.dynamicType, inferrer.giveUpType]);
+  runTest(TEST_8, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
   runTest(TEST_9, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
   runTest(TEST_10, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
-  runTest(TEST_11, (inferrer) => [inferrer.giveUpType, inferrer.giveUpType]);
+  runTest(TEST_11, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
 
   runTest(TEST_12, (inferrer) => [inferrer.stringType, inferrer.intType]);
 
@@ -256,7 +255,7 @@ void test() {
                                   inferrer.boolType,
                                   inferrer.doubleType]);
 
-  runTest(TEST_18, (inferrer) => [inferrer.giveUpType, inferrer.giveUpType]);
+  runTest(TEST_18, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
 }
 
 void main() {
