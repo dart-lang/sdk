@@ -3266,10 +3266,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   cls.set_super_type(super_type);
 
   if (CurrentToken() == Token::kIMPLEMENTS) {
-    Array& interfaces = Array::Handle();
-    const intptr_t interfaces_pos = TokenPos();
-    interfaces = ParseInterfaceList(super_type);
-    AddInterfaces(interfaces_pos, cls, interfaces);
+    ParseInterfaceList(cls);
   }
 
   ExpectToken(Token::kLBRACE);
@@ -3442,10 +3439,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
 
   AddImplicitConstructor(mixin_application);
   if (CurrentToken() == Token::kIMPLEMENTS) {
-    Array& interfaces = Array::Handle();
-    const intptr_t interfaces_pos = TokenPos();
-    interfaces = ParseInterfaceList(type);
-    AddInterfaces(interfaces_pos, mixin_application, interfaces);
+    ParseInterfaceList(mixin_application);
   }
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
@@ -3779,40 +3773,33 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
 }
 
 
-// Parse and return an array of interface types.
-RawArray* Parser::ParseInterfaceList(const AbstractType& super_type) {
+// Parse interface list and add to class cls.
+void Parser::ParseInterfaceList(const Class& cls) {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT(CurrentToken() == Token::kIMPLEMENTS);
-  const GrowableObjectArray& interfaces =
+  const GrowableObjectArray& all_interfaces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  String& interface_name = String::Handle();
   AbstractType& interface = AbstractType::Handle();
-  String& other_name = String::Handle();
-  AbstractType& other_interface = AbstractType::Handle();
-  const String& super_type_name = String::Handle(super_type.Name());
+  // First get all the interfaces already implemented by class.
+  Array& cls_interfaces = Array::Handle(cls.interfaces());
+  for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
+    interface ^= cls_interfaces.At(i);
+    all_interfaces.Add(interface);
+  }
+  // Now parse and add the new interfaces.
   do {
     ConsumeToken();
     intptr_t interface_pos = TokenPos();
     interface = ParseType(ClassFinalizer::kTryResolve);
-    interface_name = interface.UserVisibleName();
-    if (interface_name.Equals(super_type_name)) {
-      // TODO(hausner): I think this check is not necessary. There is
-      // no such restriction. If the check is removed, the 'super_type'
-      // parameter to this function can be eliminated.
-      ErrorMsg(interface_pos, "class may not extend and implement '%s'",
-               interface_name.ToCString());
+    if (interface.IsTypeParameter()) {
+      ErrorMsg(interface_pos,
+               "type parameter '%s' may not be used in interface list",
+               String::Handle(interface.UserVisibleName()).ToCString());
     }
-    for (int i = 0; i < interfaces.Length(); i++) {
-      other_interface ^= interfaces.At(i);
-      other_name = other_interface.Name();
-      if (interface_name.Equals(other_name)) {
-        ErrorMsg(interface_pos, "duplicate interface '%s'",
-                 interface_name.ToCString());
-      }
-    }
-    interfaces.Add(interface);
+    all_interfaces.Add(interface);
   } while (CurrentToken() == Token::kCOMMA);
-  return Array::MakeArray(interfaces);
+  cls_interfaces = Array::MakeArray(all_interfaces);
+  cls.set_interfaces(cls_interfaces);
 }
 
 
@@ -3877,55 +3864,6 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   } while (CurrentToken() == Token::kCOMMA);
   return MixinAppType::New(super_type,
                            Array::Handle(Array::MakeArray(mixin_apps)));
-}
-
-
-// Add 'interface' to 'interface_list' if it is not already in the list.
-// An error is reported if the interface conflicts with an interface already in
-// the list with the same class and same type arguments.
-void Parser::AddInterfaceIfUnique(intptr_t interfaces_pos,
-                                  const GrowableObjectArray& interface_list,
-                                  const AbstractType& interface) {
-  String& interface_name = String::Handle(interface.Name());
-  String& existing_interface_name = String::Handle();
-  AbstractType& other_interface = AbstractType::Handle();
-  for (intptr_t i = 0; i < interface_list.Length(); i++) {
-    other_interface ^= interface_list.At(i);
-    existing_interface_name = other_interface.Name();
-    if (interface_name.Equals(existing_interface_name)) {
-      return;
-    }
-  }
-  interface_list.Add(interface);
-}
-
-
-void Parser::AddInterfaces(intptr_t interfaces_pos,
-                           const Class& cls,
-                           const Array& interfaces) {
-  const GrowableObjectArray& all_interfaces =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  AbstractType& interface = AbstractType::Handle();
-  // First get all the interfaces already implemented by class.
-  Array& cls_interfaces = Array::Handle(cls.interfaces());
-  for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
-    interface ^= cls_interfaces.At(i);
-    all_interfaces.Add(interface);
-  }
-  // Now add the new interfaces.
-  for (intptr_t i = 0; i < interfaces.Length(); i++) {
-    AbstractType& interface = AbstractType::ZoneHandle();
-    interface ^= interfaces.At(i);
-    if (interface.IsTypeParameter()) {
-      ErrorMsg(interfaces_pos,
-               "class '%s' may not implement type parameter '%s'",
-               String::Handle(cls.Name()).ToCString(),
-               String::Handle(interface.UserVisibleName()).ToCString());
-    }
-    AddInterfaceIfUnique(interfaces_pos, all_interfaces, interface);
-  }
-  cls_interfaces = Array::MakeArray(all_interfaces);
-  cls.set_interfaces(cls_interfaces);
 }
 
 

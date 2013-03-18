@@ -386,14 +386,8 @@ class Parser : public ValueObject {
                          LocalVariable* receiver,
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
-  RawArray* ParseInterfaceList(const AbstractType& super_type);
+  void ParseInterfaceList(const Class& cls);
   RawAbstractType* ParseMixins(const AbstractType& super_type);
-  void AddInterfaceIfUnique(intptr_t interfaces_pos,
-                            const GrowableObjectArray& interface_list,
-                            const AbstractType& interface);
-  void AddInterfaces(intptr_t interfaces_pos,
-                     const Class& cls,
-                     const Array& interfaces);
   StaticCallNode* BuildInvocationMirrorAllocation(
       intptr_t call_pos,
       const String& function_name,

@@ -1445,6 +1445,32 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     interface_type ^= interface_types.At(i);
     interface_type = FinalizeType(cls, interface_type, kCanonicalizeWellFormed);
     interface_types.SetAt(i, interface_type);
+
+    // Check whether the interface is duplicated. We need to wait with
+    // this check until the super type and interface types are finalized,
+    // so that we can use Type::Equals() for the test.
+    ASSERT(interface_type.IsFinalized());
+    ASSERT(super_type.IsFinalized());
+    if (interface_type.Equals(super_type)) {
+      const Script& script = Script::Handle(cls.script());
+      ReportError(script, cls.token_pos(),
+                  "super type '%s' may not be listed in "
+                  "implements clause of class '%s'",
+                  String::Handle(super_type.Name()).ToCString(),
+                  String::Handle(cls.Name()).ToCString());
+    }
+    AbstractType& seen_interf = AbstractType::Handle();
+    for (intptr_t j = 0; j < i; j++) {
+      seen_interf ^= interface_types.At(j);
+      if (interface_type.Equals(seen_interf)) {
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, cls.token_pos(),
+                    "interface '%s' appears twice in "
+                    "implements clause of class '%s'",
+                    String::Handle(interface_type.Name()).ToCString(),
+                    String::Handle(cls.Name()).ToCString());
+      }
+    }
   }
   // Mark as finalized before resolving type parameter upper bounds and member
   // types in order to break cycles.
