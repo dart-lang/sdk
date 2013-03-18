@@ -598,46 +598,6 @@ checkString(value) {
   return value;
 }
 
-class MathNatives {
-  static double sqrt(num value)
-    => JS('double', r'Math.sqrt(#)', checkNum(value));
-
-  static double sin(num value)
-    => JS('double', r'Math.sin(#)', checkNum(value));
-
-  static double cos(num value)
-    => JS('double', r'Math.cos(#)', checkNum(value));
-
-  static double tan(num value)
-    => JS('double', r'Math.tan(#)', checkNum(value));
-
-  static double acos(num value)
-    => JS('double', r'Math.acos(#)', checkNum(value));
-
-  static double asin(num value)
-    => JS('double', r'Math.asin(#)', checkNum(value));
-
-  static double atan(num value)
-    => JS('double', r'Math.atan(#)', checkNum(value));
-
-  static double atan2(num a, num b)
-    => JS('double', r'Math.atan2(#, #)', checkNum(a), checkNum(b));
-
-  static double exp(num value)
-    => JS('double', r'Math.exp(#)', checkNum(value));
-
-  static double log(num value)
-    => JS('double', r'Math.log(#)', checkNum(value));
-
-  static num pow(num value, num exponent) {
-    checkNum(value);
-    checkNum(exponent);
-    return JS('num', r'Math.pow(#, #)', value, exponent);
-  }
-
-  static double random() => JS('double', r'Math.random()');
-}
-
 /**
  * Wrap the given Dart object and record a stack trace.
  *
