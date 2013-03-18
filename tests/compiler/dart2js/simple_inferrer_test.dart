@@ -70,6 +70,7 @@ returnDynamic() => topLevelGetter(42);
 class A {
   factory A() = A.generative;
   A.generative();
+  operator==(other) => 42;
 
   get myField => 42;
   set myField(a) {}
@@ -108,6 +109,7 @@ main() {
   returnNum4();
   returnIntOrNull(true);
   returnDynamic();
+  new A() == new B();
   new A()..returnNum1()
          ..returnNum2()
          ..returnNum3()
@@ -161,6 +163,7 @@ void main() {
   checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
+  checkReturnInClass('A', '==', typesInferrer.giveUpType);
 
   checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
   checkReturnInClass('B', 'returnNum2', typesInferrer.numType);

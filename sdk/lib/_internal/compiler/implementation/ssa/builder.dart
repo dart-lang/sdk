@@ -3150,7 +3150,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     List<HInstruction> inputs = buildSuperAccessorInputs(element);
     if (node.isPropertyAccess) {
-      push(new HInvokeSuper(inputs));
+      HInstruction invokeSuper = new HInvokeSuper(inputs);
+      invokeSuper.instructionType =
+          new HType.inferredTypeForElement(element, compiler);
+      push(invokeSuper);
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [addStaticSendArgumentsToList].
@@ -3160,10 +3163,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!succeeded) {
         generateWrongArgumentCountError(node, element, node.arguments);
       } else {
-        push(new HInvokeSuper(inputs));
+        HInstruction invokeSuper = new HInvokeSuper(inputs);
+        invokeSuper.instructionType =
+            new HType.inferredReturnTypeForElement(element, compiler);
+        push(invokeSuper);
       }
     } else {
       HInstruction target = new HInvokeSuper(inputs);
+      target.instructionType =
+          new HType.inferredTypeForElement(element, compiler);
       add(target);
       inputs = <HInstruction>[target];
       addDynamicSendArgumentsToList(node, inputs);

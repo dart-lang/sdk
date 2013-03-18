@@ -113,6 +113,8 @@ class SentinelTypeMask extends TypeMask {
     throw 'Unsupported operation';
   }
 
+  bool get isNullable => true;
+
   String toString() => '$name sentinel type mask';
 }
 
@@ -1126,6 +1128,17 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         // We haven't seen returns on all branches. So the method may
         // also return null.
         returnType = returnType.nullable();
+      }
+
+      if (analyzedElement.name == const SourceString('==')) {
+        // TODO(ngeoffray): Should this be done at the call site?
+        // When the argument passed in is null, we know we return a
+        // bool.
+        signature.forEachParameter((Element parameter) {
+          if (inferrer.typeOfElement(parameter).isNullable){
+            returnType = inferrer.computeLUB(returnType, inferrer.boolType);
+          }
+        });
       }
     }
 
