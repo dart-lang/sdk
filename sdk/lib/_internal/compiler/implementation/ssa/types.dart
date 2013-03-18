@@ -195,6 +195,7 @@ abstract class HType {
   bool canBePrimitiveNumber(Compiler compiler) => false;
   bool canBePrimitiveString(Compiler compiler) => false;
   bool canBePrimitiveArray(Compiler compiler) => false;
+  bool canBePrimitiveBoolean(Compiler compiler) => false;
 
   /** A type is useful it is not unknown, not conflicting, and not null. */
   bool isUseful() => !isUnknown() && !isConflicting() && !isNull();
@@ -267,6 +268,7 @@ class HUnknownType extends HAnalysisType {
   bool canBePrimitiveNumber(Compiler compiler) => true;
   bool canBePrimitiveString(Compiler compiler) => true;
   bool canBePrimitiveArray(Compiler compiler) => true;
+  bool canBePrimitiveBoolean(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     return compiler.objectClass.computeType(compiler);
@@ -284,6 +286,7 @@ class HNonNullType extends HAnalysisType {
   bool canBePrimitiveNumber(Compiler compiler) => true;
   bool canBePrimitiveString(Compiler compiler) => true;
   bool canBePrimitiveArray(Compiler compiler) => true;
+  bool canBePrimitiveBoolean(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     return compiler.objectClass.computeType(compiler);
@@ -341,6 +344,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
   const HBooleanOrNullType();
   String toString() => "boolean or null";
   bool isBooleanOrNull() => true;
+  bool canBePrimitiveBoolean(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -358,6 +362,7 @@ class HBooleanType extends HPrimitiveType {
   bool isBooleanOrNull() => true;
   String toString() => "boolean";
   bool isExact() => true;
+  bool canBePrimitiveBoolean(Compiler compiler) => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -589,6 +594,7 @@ class HBoundedType extends HType {
   bool canBePrimitive(Compiler compiler) {
     return canBePrimitiveNumber(compiler)
         || canBePrimitiveArray(compiler)
+        || canBePrimitiveBoolean(compiler)
         || canBePrimitiveString(compiler);
   }
 
@@ -596,6 +602,12 @@ class HBoundedType extends HType {
     JavaScriptBackend backend = compiler.backend;
     DartType jsNumberType = backend.jsNumberClass.computeType(compiler);
     return mask.contains(jsNumberType, compiler);
+  }
+
+  bool canBePrimitiveBoolean(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    DartType jsBoolType = backend.jsBoolClass.computeType(compiler);
+    return mask.contains(jsBoolType, compiler);
   }
 
   bool canBePrimitiveArray(Compiler compiler) {

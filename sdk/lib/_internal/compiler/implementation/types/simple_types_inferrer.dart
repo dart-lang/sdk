@@ -4,8 +4,10 @@
 
 library simple_types_inferrer;
 
+import 'dart:collection' show Queue;
+
 import '../closure.dart' show ClosureClassMap, ClosureScope;
-import '../dart_types.dart' show DartType, FunctionType;
+import '../dart_types.dart' show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
@@ -20,21 +22,21 @@ import '../universe/universe.dart' show Selector, TypedSelector;
 
 /**
  * A work queue that ensures there are no duplicates, and adds and
- * removes in LIFO.
+ * removes in FIFO.
  */
 class WorkSet<E extends Element> {
-  final List<E> queue = new List<E>();
+  final Queue<E> queue = new Queue<E>();
   final Set<E> elementsInQueue = new Set<E>();
 
   void add(E element) {
     element = element.implementation;
     if (elementsInQueue.contains(element)) return;
-    queue.add(element);
+    queue.addLast(element);
     elementsInQueue.add(element);
   }
 
   E remove() {
-    E element = queue.removeLast();
+    E element = queue.removeFirst();
     elementsInQueue.remove(element);
     return element;
   }
@@ -52,8 +54,8 @@ class ClassInfoForFinalFields {
    * Maps a final field to a map from generative constructor to the
    * inferred type of the field in that generative constructor.
    */
-  final Map<Element, Map<Element, TypeMask>> typesOfFinalFields =
-      new Map<Element, Map<Element, TypeMask>>();
+  final Map<Element, Map<Node, TypeMask>> typesOfFinalFields =
+      new Map<Element, Map<Node, TypeMask>>();
 
   /**
    * The number of generative constructors that need to be visited
@@ -70,10 +72,13 @@ class ClassInfoForFinalFields {
    * Records that the generative [constructor] has inferred [type]
    * for the final [field].
    */
-  void recordFinalFieldType(Element constructor, Element field, TypeMask type) {
-    Map<Element, TypeMask> typesFor = typesOfFinalFields.putIfAbsent(
-        field, () => new Map<Element, TypeMask>());
-    typesFor[constructor] = type;
+  void recordFinalFieldType(Node node,
+                            Element constructor,
+                            Element field,
+                            TypeMask type) {
+    Map<Node, TypeMask> typesFor = typesOfFinalFields.putIfAbsent(
+        field, () => new Map<Node, TypeMask>());
+    typesFor[node] = type;
   }
 
   /**
@@ -148,6 +153,23 @@ class SimpleTypesInferrer extends TypesInferrer {
    */
   final Map<ClassElement, ClassInfoForFinalFields> classInfoForFinalFields =
       new Map<ClassElement, ClassInfoForFinalFields>();
+
+  /**
+   * A map of constraints on a setter. When computing the type
+   * of a field, these [Node] are initially discarded, and once the
+   * type is computed, we make sure these constraints are satisfied
+   * for that type. For example:
+   * 
+   * [: field++ ], or [: field += 42 :], the constraint is on the
+   * operator+, and we make sure that a typed selector with the found
+   * type returns that type.
+   * 
+   * [: field = other.field :], the constraint in on the [:field]
+   * getter selector, and we make sure that the getter selector
+   * returns that type.
+   *
+   */
+  final Map<Node, Selector> setterConstraints = new Map<Node, Selector>();
 
   /**
    * The work list of the inferrer.
@@ -301,8 +323,8 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Enqueues [e] in the work queue if it is valuable.
    */
   void enqueueAgain(Element e) {
-    TypeMask type = e.isField() ? typeOf[e] : returnTypeOf[e];
-    if (analyzeCount[e] > MAX_ANALYSIS_COUNT_PER_ELEMENT) return;
+    int count = analyzeCount[e];
+    if (count != null && count > MAX_ANALYSIS_COUNT_PER_ELEMENT) return;
     workSet.add(e);
   }
 
@@ -335,8 +357,8 @@ class SimpleTypesInferrer extends TypesInferrer {
         set.add(element);
     });
 
-    // This iteration assumes the [WorkSet] is LIFO.
-    for (int i = max; i >= 0; i--) {
+    // This iteration assumes the [WorkSet] is FIFO.
+    for (int i = 0; i <= max; i++) {
       Set<Element> set = methodSizes[i];
       if (set != null) {
         set.forEach((e) { workSet.add(e); });
@@ -438,6 +460,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     analyzeCount.clear();
     classInfoForFinalFields.clear();
     typeOfFields.clear();
+    setterConstraints.clear();
   }
 
   bool analyze(Element element) {
@@ -480,6 +503,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   bool recordType(Element analyzedElement, TypeMask type) {
+    assert(type != null);
     return internalRecordType(analyzedElement, type, typeOf);
   }
 
@@ -527,9 +551,11 @@ class SimpleTypesInferrer extends TypesInferrer {
       });
     } else if (element.isNative()) {
       return returnTypeOf.putIfAbsent(element, () {
-        // Only functions are native.
-        FunctionType functionType = element.computeType(compiler);
-        DartType returnType = functionType.returnType;
+        var elementType = element.computeType(compiler);
+        if (elementType.kind != TypeKind.FUNCTION) {
+          return dynamicType;
+        }
+        DartType returnType = elementType.returnType;
         return returnType.isVoid
             ? nullType
             : new TypeMask.subtype(returnType.asRaw());
@@ -550,9 +576,11 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask typeOfElement(Element element) {
     element = element.implementation;
     if (isNativeElement(element) && element.isField()) {
-      return typeOf.putIfAbsent(element, () {
+      var type = typeOf.putIfAbsent(element, () {
         return new TypeMask.subtype(element.computeType(compiler).asRaw());
       });
+      assert(type != null);
+      return type;
     }
     TypeMask type = typeOf[element];
     if (type == null || isGiveUpType(type)) {
@@ -577,27 +605,22 @@ class SimpleTypesInferrer extends TypesInferrer {
       TypeMask type;
       if (selector.isGetter()) {
         if (element.isFunction()) {
-          type = functionType;
+          // [functionType] is null if the inferrer did not run.
+          type = functionType == null ? dynamicType : functionType;
         } else if (element.isField()) {
-          type = typeOf[element];
-        } else if (element.isGetter()) {
-          type = returnTypeOf[element];
+          type = typeOfElement(element);
+        } else {
+          assert(element.isGetter());
+          type = returnTypeOfElement(element);
         }
       } else {
-        type = returnTypeOf[element];
+        type = returnTypeOfElement(element);
       }
-      if (type == null
-          || isDynamicType(type)
-          || isGiveUpType(type)
-          || (type != result && result != null)) {
-        result = dynamicType;
-        return false;
-      } else {
-        result = type;
-        return true;
-      }
+      result = computeLUB(result, type);
+      // Continue if the type is valuable.
+      return !isDynamicType(result) && !isGiveUpType(result);
     });
-    if (result == null) {
+    if (result == null || isGiveUpType(result)) {
       result = dynamicType;
     }
     return result;
@@ -696,7 +719,56 @@ class SimpleTypesInferrer extends TypesInferrer {
     map[node] = argumentType;
     // If we have analyzed all elements, we can update the type of the
     // field right away.
-    if (hasAnalyzedAll) updateNonFinalFieldType(element);
+    if (hasAnalyzedAll) {
+      // Only update if the new type provides value.
+      if (typeOf[element] != argumentType) {
+        updateNonFinalFieldType(element);
+      }
+    }
+  }
+
+  TypeMask computeFieldTypeWithConstraints(Element element, Map types) {
+    Set<Selector> constraints = new Set<Selector>();
+    TypeMask fieldType;
+    types.forEach((Node node, TypeMask mask) {
+      Selector constraint = setterConstraints[node];
+      if (constraint != null) {
+        // If this update has a constraint, we collect it and don't
+        // use its type.
+        constraints.add(constraint);
+      } else {
+        fieldType = computeLUB(fieldType, mask);
+      }
+    });
+
+    if (!constraints.isEmpty
+        && !isDynamicType(fieldType)
+        && !isGiveUpType(fieldType)) {
+      // Now that we have found a type, we go over the collected
+      // constraints, and make sure they apply to the found type. We
+      // update [typeOf] to make sure [typeOfSelector] knows the field
+      // type.
+      TypeMask existing = typeOf[element];
+      typeOf[element] = fieldType;
+
+      for (Selector constraint in constraints) {
+        if (constraint.isOperator()) {
+          // If the constraint is on an operator, we type the receiver
+          // to be the field.
+          constraint = new TypedSelector(fieldType, constraint);
+        } else {
+          // Otherwise the constraint is on the form [: field = other.field :].
+          assert(constraint.isGetter());
+        }
+        fieldType = computeLUB(fieldType, typeOfSelector(constraint));
+      }
+      if (existing == null) {
+        typeOf.remove(element);
+      } else {
+        typeOf[element] = existing;
+      }
+    }
+    return fieldType;
   }
 
   /**
@@ -705,12 +777,11 @@ class SimpleTypesInferrer extends TypesInferrer {
    * we have analyzed all elements in the world.
    */
   void updateNonFinalFieldType(Element element) {
+    if (isNativeElement(element)) return;
     assert(hasAnalyzedAll);
 
-    TypeMask fieldType;
-    typeOfFields[element].forEach((_, TypeMask mask) {
-      fieldType = computeLUB(fieldType, mask);
-    });
+    TypeMask fieldType = computeFieldTypeWithConstraints(
+        element, typeOfFields[element]);
 
     // If the type of [element] has changed, re-analyze its users.
     if (recordType(element, fieldType)) {
@@ -722,14 +793,15 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Records in [classInfoForFinalFields] that [constructor] has
    * inferred [type] for the final [field].
    */
-  void recordFinalFieldType(Element constructor, Element field, TypeMask type) {
+  void recordFinalFieldType(
+      Node node, Element constructor, Element field, TypeMask type) {
     // If the field is being set at its declaration site, it is not
     // being tracked in the [classInfoForFinalFields] map.
     if (constructor == field) return;
     assert(field.modifiers.isFinal() || field.modifiers.isConst());
     ClassElement cls = constructor.getEnclosingClass();
     ClassInfoForFinalFields info = classInfoForFinalFields[cls.implementation];
-    info.recordFinalFieldType(constructor, field, type);
+    info.recordFinalFieldType(node, constructor, field, type);
   }
 
   /**
@@ -752,13 +824,13 @@ class SimpleTypesInferrer extends TypesInferrer {
   void updateFinalFieldsType(ClassInfoForFinalFields info) {
     assert(info.isDone);
     info.typesOfFinalFields.forEach((Element field,
-                                     Map<Element, TypeMask> types) {
+                                     Map<Node, TypeMask> types) {
+      if (isNativeElement(field)) return;
       assert(field.modifiers.isFinal());
-      TypeMask fieldType;
-      types.forEach((_, TypeMask type) {
-        fieldType = computeLUB(fieldType, type);
-      });
-      recordType(field, fieldType);
+      TypeMask fieldType = computeFieldTypeWithConstraints(field, types);
+      if (recordType(field, fieldType)) {
+        enqueueCallersOf(field);
+      }
     });
   }
 
@@ -784,6 +856,10 @@ class SimpleTypesInferrer extends TypesInferrer {
       // to give up. Fix that.
       return union.containsAll(compiler) ? giveUpType : union;
     }
+  }
+
+  void recordSetterConstraint(Node node, Selector selector) {
+    setterConstraints[node] = selector;
   }
 }
 
@@ -995,7 +1071,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         if (element.kind == ElementKind.FIELD_PARAMETER) {
           if (element.fieldElement.modifiers.isFinal()) {
             inferrer.recordFinalFieldType(
-                analyzedElement, element.fieldElement, inferrer.dynamicType);
+                node,
+                analyzedElement,
+                element.fieldElement,
+                inferrer.dynamicType);
           } else {
             inferrer.recordNonFinalFieldElementType(
                 element.parseNode(compiler),
@@ -1312,7 +1391,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         handleDynamicSend(node, setterSelector, receiverType, arguments);
       } else if (element.isField()) {
         if (element.modifiers.isFinal()) {
-          inferrer.recordFinalFieldType(outermostElement, element, rhsType);
+          inferrer.recordFinalFieldType(
+              node, outermostElement, element, rhsType);
         } else {
           locals.updateField(element, rhsType);
           if (visitingInitializers) {
@@ -1323,6 +1403,21 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         }
       } else if (Elements.isLocal(element)) {
         locals.update(element, rhsType);
+      }
+
+      if (!Elements.isLocal(element)) {
+        // Recognize a constraint of the form [: field = other.field :]
+        // or [: field = field + 42 :].
+        var rhs = node.arguments.head;
+        if (rhs.asSend() != null
+            && rhs.isPropertyAccess
+            && rhs.selector.source == node.selector.source) {
+          // TODO(ngeoffray): We should update selectors in the
+          // element tree and find out if the typed selector still
+          // applies to the receiver type.
+          Selector constraint = elements.getSelector(rhs);
+          inferrer.recordSetterConstraint(node, constraint);
+        }
       }
       return rhsType;
     } else {
@@ -1371,6 +1466,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         getterType = inferrer.dynamicType;
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
+      }
+
+      if (!Elements.isLocal(element)) {
+        // Record a constraint of the form [: field++ :], or [: field += 42 :].
+        inferrer.recordSetterConstraint(node, operatorSelector);
       }
 
       if (node.isPostfix) {

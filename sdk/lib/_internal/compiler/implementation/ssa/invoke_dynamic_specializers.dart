@@ -144,7 +144,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
                                    Compiler compiler) {
     if (input == instruction.inputs[1]) {
       HType propagatedType = instruction.instructionType;
-      if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+      if (propagatedType.canBePrimitiveNumber(compiler)) {
         return HType.INTEGER;
       }
     }
@@ -182,7 +182,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
       // want the outgoing type to be the input too.
       // If we don't know the outgoing type we try to make it a number.
       if (propagatedType.isNumber()) return propagatedType;
-      if (propagatedType.isUnknown()) return HType.NUMBER;
+      if (propagatedType.canBePrimitiveNumber(compiler)) return HType.NUMBER;
     }
     return HType.UNKNOWN;
   }
@@ -228,7 +228,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     // If the outgoing type should be a number we can get that if both inputs
     // are numbers. If we don't know the outgoing type we try to make it a
     // number.
-    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+    if (propagatedType.canBePrimitiveNumber(compiler)) {
       return HType.NUMBER;
     }
     // Even if the desired outgoing type is not a number we still want the
@@ -378,7 +378,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     // If the outgoing type should be a number we can get that only if both
     // inputs are integers. If we don't know the outgoing type we try to make
     // it an integer.
-    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+    if (propagatedType.canBePrimitiveNumber(compiler)) {
       return HType.INTEGER;
     }
     return HType.UNKNOWN;
@@ -478,7 +478,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     // For all relational operations except HIdentity, we expect to get numbers
     // only. With numbers the outgoing type is a boolean. If something else
     // is desired, then numbers are incorrect, though.
-    if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
+    if (propagatedType.canBePrimitiveBoolean(compiler)) {
       HInstruction left = instruction.inputs[1];
       if (left.instructionType.canBePrimitiveNumber(compiler)) {
         return HType.NUMBER;
