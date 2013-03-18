@@ -1732,6 +1732,16 @@ class Parser {
     return new ContinueStatement.full(continueKeyword, label, semicolon);
   }
   /**
+   * Parse a declared identifier declaration.
+   * @param commentAndMetadata the metadata to be associated with the directive
+   * @return the declared identifier that was parsed
+   */
+  DeclaredIdentifier parseDeclaredIdentifier(CommentAndMetadata commentAndMetadata) {
+    FinalConstVarOrType finalConstVarOrType = parseFinalConstVarOrType(false);
+    SimpleIdentifier identifier = parseSimpleIdentifier();
+    return new DeclaredIdentifier.full(commentAndMetadata.comment, commentAndMetadata.metadata, finalConstVarOrType.keyword, finalConstVarOrType.type, identifier);
+  }
+  /**
    * Parse a directive.
    * <pre>
    * directive ::=
@@ -2151,7 +2161,7 @@ class Parser {
    * | declaredIdentifier 'in' expression
    * | identifier 'in' expression
    * forInitializerStatement ::=
-   * variableDeclarationList ';'
+   * localVariableDeclaration ';'
    * | expression? ';'
    * </pre>
    * @return the for statement that was parsed
@@ -2165,6 +2175,7 @@ class Parser {
       VariableDeclarationList variableList = null;
       Expression initialization = null;
       if (!matches5(TokenType.SEMICOLON)) {
+        CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
         if (matchesIdentifier() && matches3(peek(), Keyword.IN)) {
           List<VariableDeclaration> variables = new List<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
@@ -2188,7 +2199,7 @@ class Parser {
             if (variable.initializer != null) {
               reportError4(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
-            loopVariable = new DeclaredIdentifier.full(null, null, variableList.keyword, variableList.type, variable.name);
+            loopVariable = new DeclaredIdentifier.full(commentAndMetadata.comment, commentAndMetadata.metadata, variableList.keyword, variableList.type, variable.name);
           }
           Token inKeyword = expect(Keyword.IN);
           Expression iterator = parseExpression2();
@@ -4766,9 +4777,9 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con1(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_269_impl(___name, ___ordinal, severity2, message2);
+    _jtd_constructor_271_impl(___name, ___ordinal, severity2, message2);
   }
-  _jtd_constructor_269_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
+  _jtd_constructor_271_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._severity = severity2;
@@ -4779,10 +4790,10 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con2(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_270_impl(___name, ___ordinal, message);
+    _jtd_constructor_272_impl(___name, ___ordinal, message);
   }
-  _jtd_constructor_270_impl(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_269_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
+  _jtd_constructor_272_impl(String ___name, int ___ordinal, String message) {
+    _jtd_constructor_271_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
   }
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;
@@ -5097,10 +5108,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
-    NodeList<FormalParameter> parameters13 = node.parameters;
-    int size7 = parameters13.length;
+    NodeList<FormalParameter> parameters14 = node.parameters;
+    int size7 = parameters14.length;
     for (int i = 0; i < size7; i++) {
-      FormalParameter parameter = parameters13[i];
+      FormalParameter parameter = parameters14[i];
       if (i > 0) {
         _writer.print(", ");
       }

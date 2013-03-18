@@ -261,15 +261,15 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
         if (argument is SimpleStringLiteral) {
           library.path = ((argument as SimpleStringLiteral)).value;
         } else if (argument is NamedExpression) {
-          String name19 = ((argument as NamedExpression)).name.label.name;
+          String name20 = ((argument as NamedExpression)).name.label.name;
           Expression expression15 = ((argument as NamedExpression)).expression;
-          if (name19 == _CATEGORY) {
+          if (name20 == _CATEGORY) {
             library.category = ((expression15 as SimpleStringLiteral)).value;
-          } else if (name19 == _IMPLEMENTATION) {
+          } else if (name20 == _IMPLEMENTATION) {
             library.implementation = ((expression15 as BooleanLiteral)).value;
-          } else if (name19 == _DOCUMENTED) {
+          } else if (name20 == _DOCUMENTED) {
             library.documented = ((expression15 as BooleanLiteral)).value;
-          } else if (name19 == _PLATFORMS) {
+          } else if (name20 == _PLATFORMS) {
             if (expression15 is SimpleIdentifier) {
               String identifier = ((expression15 as SimpleIdentifier)).name;
               if (identifier == _VM_PLATFORM) {

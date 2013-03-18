@@ -577,13 +577,13 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitSimpleFormalParameter_type() {
-    InterfaceType intType8 = _typeProvider.intType;
-    ClassElement intElement = intType8.element;
+    InterfaceType intType9 = _typeProvider.intType;
+    ClassElement intElement = intType9.element;
     FormalParameter node = ASTFactory.simpleFormalParameter4(ASTFactory.typeName(intElement, []), "p");
     SimpleIdentifier identifier18 = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl(identifier18);
     identifier18.element = element;
-    JUnitTestCase.assertSame(intType8, resolve5(node, [intElement]));
+    JUnitTestCase.assertSame(intType9, resolve5(node, [intElement]));
     _listener.assertNoErrors();
   }
   void test_visitTypeName_noParameters_noArguments() {
@@ -921,12 +921,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION]);
     verify([source]);
   }
-  void fail_constEvalThrowsException() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class C {", "  const C() { throw null; }", "}", "f() { return const C(); }"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
-    verify([source]);
-  }
   void fail_constWithNonConstantArgument() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class T {", "  T(a) {};", "}", "f(p) { return const T(p); }"]));
     resolve(source, []);
@@ -949,12 +943,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  A(x) {}", "}", "f() {", "  return const A(0);", "}"]));
     resolve(source, []);
     assertErrors([CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
-    verify([source]);
-  }
-  void fail_defaultValueInFunctionTypeAlias() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["typedef F([x = 0]);"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
     verify([source]);
   }
   void fail_duplicateDefinition() {
@@ -988,76 +976,16 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY]);
     verify([source]);
   }
-  void fail_extendsOrImplementsDisallowedClass_extends_bool() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends bool {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_extends_double() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends double {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_extends_int() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends int {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
   void fail_extendsOrImplementsDisallowedClass_extends_null() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends Null {}"]));
     resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_extends_num() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends num {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_extends_String() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends String {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_implements_bool() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements bool {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_implements_double() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements double {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_implements_int() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements int {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
   void fail_extendsOrImplementsDisallowedClass_implements_null() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements Null {}"]));
     resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_implements_num() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements num {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-  void fail_extendsOrImplementsDisallowedClass_implements_String() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements String {}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
   void fail_fieldInitializedByMultipleInitializers() {
@@ -1652,6 +1580,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD]);
     verify([source]);
   }
+  void test_constEvalThrowsException() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class C {", "  const C() { throw null; }", "}", "f() { return const C(); }"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    verify([source]);
+  }
   void test_constFormalParameter_fieldFormalParameter() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  var x;", "  A(const this.x) {}", "}"]));
     resolve(source, []);
@@ -1682,6 +1616,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_WITH_NON_CONST]);
     verify([source]);
   }
+  void test_defaultValueInFunctionTypeAlias() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["typedef F([x = 0]);"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+    verify([source]);
+  }
   void test_duplicateMemberError() {
     Source librarySource = addSource("/lib.dart", EngineTestCase.createSource(["library lib;", "", "part 'a.dart';", "part 'b.dart';"]));
     Source sourceA = addSource("/a.dart", EngineTestCase.createSource(["part of lib;", "", "class A {}"]));
@@ -1694,6 +1634,66 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["int A;", "class B extends A {}"]));
     resolve(source, []);
     assertErrors([CompileTimeErrorCode.EXTENDS_NON_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_extends_bool() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends bool {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_extends_double() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends double {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_extends_int() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends int {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_extends_num() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends num {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_extends_String() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends String {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_implements_bool() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements bool {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_implements_double() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements double {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_implements_int() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements int {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_implements_num() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements num {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+  void test_extendsOrImplementsDisallowedClass_implements_String() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A implements String {}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
   void test_implementsNonClass() {
@@ -1797,6 +1797,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constConstructorWithNonFinalField);
       });
+      _ut.test('test_constEvalThrowsException', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constEvalThrowsException);
+      });
       _ut.test('test_constFormalParameter_fieldFormalParameter', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constFormalParameter_fieldFormalParameter);
@@ -1817,6 +1821,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constWithNonConst);
       });
+      _ut.test('test_defaultValueInFunctionTypeAlias', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_defaultValueInFunctionTypeAlias);
+      });
       _ut.test('test_duplicateMemberError', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_duplicateMemberError);
@@ -1824,6 +1832,46 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_extendsNonClass', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_extendsNonClass);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_extends_String', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_extends_String);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_extends_bool', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_extends_bool);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_extends_double', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_extends_double);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_extends_int', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_extends_int);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_extends_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_extends_num);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_implements_String', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_implements_String);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_implements_bool', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_implements_bool);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_implements_double', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_implements_double);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_implements_int', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_implements_int);
+      });
+      _ut.test('test_extendsOrImplementsDisallowedClass_implements_num', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_implements_num);
       });
       _ut.test('test_implementsNonClass', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -3314,10 +3362,10 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * structures that are expected to have been resolved have an element associated with them.
    */
   ResolutionVerifier() {
-    _jtd_constructor_317_impl();
+    _jtd_constructor_319_impl();
   }
-  _jtd_constructor_317_impl() {
-    _jtd_constructor_318_impl(null);
+  _jtd_constructor_319_impl() {
+    _jtd_constructor_320_impl(null);
   }
   /**
    * Initialize a newly created verifier to verify that all of the identifiers in the visited AST
@@ -3328,9 +3376,9 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * therefore not cause the test to fail
    */
   ResolutionVerifier.con1(Set<ASTNode> knownExceptions2) {
-    _jtd_constructor_318_impl(knownExceptions2);
+    _jtd_constructor_320_impl(knownExceptions2);
   }
-  _jtd_constructor_318_impl(Set<ASTNode> knownExceptions2) {
+  _jtd_constructor_320_impl(Set<ASTNode> knownExceptions2) {
     this._knownExceptions = knownExceptions2;
   }
   /**
@@ -3526,17 +3574,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     JUnitTestCase.fail("Not yet tested");
     _listener.assertNoErrors();
   }
-  void fail_visitIndexExpression_typeParameters() {
-    InterfaceType intType6 = _typeProvider.intType;
-    InterfaceType listType2 = _typeProvider.listType;
-    MethodElement methodElement = getMethod(listType2, "[]");
-    SimpleIdentifier identifier = ASTFactory.identifier2("list");
-    identifier.staticType = listType2.substitute5(<Type2> [intType6]);
-    IndexExpression indexExpression2 = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
-    indexExpression2.element = methodElement;
-    JUnitTestCase.assertSame(intType6, analyze(indexExpression2));
-    _listener.assertNoErrors();
-  }
   void fail_visitMethodInvocation() {
     JUnitTestCase.fail("Not yet tested");
     _listener.assertNoErrors();
@@ -3577,9 +3614,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitAssignmentExpression_simple() {
-    InterfaceType intType7 = _typeProvider.intType;
-    Expression node = ASTFactory.assignmentExpression(resolvedVariable(intType7, "i"), TokenType.EQ, resolvedInteger(0));
-    JUnitTestCase.assertSame(intType7, analyze(node));
+    InterfaceType intType6 = _typeProvider.intType;
+    Expression node = ASTFactory.assignmentExpression(resolvedVariable(intType6, "i"), TokenType.EQ, resolvedInteger(0));
+    JUnitTestCase.assertSame(intType6, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitBinaryExpression_equals() {
@@ -3767,20 +3804,43 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitIndexExpression_getter() {
-    InterfaceType listType3 = _typeProvider.listType;
-    SimpleIdentifier identifier = resolvedVariable(listType3, "a");
+    InterfaceType listType2 = _typeProvider.listType;
+    SimpleIdentifier identifier = resolvedVariable(listType2, "a");
     IndexExpression node = ASTFactory.indexExpression(identifier, resolvedInteger(2));
-    node.element = listType3.element.methods[0];
-    JUnitTestCase.assertSame(listType3.typeArguments[0], analyze(node));
+    node.element = listType2.element.methods[0];
+    JUnitTestCase.assertSame(listType2.typeArguments[0], analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitIndexExpression_setter() {
-    InterfaceType listType4 = _typeProvider.listType;
-    SimpleIdentifier identifier = resolvedVariable(listType4, "a");
+    InterfaceType listType3 = _typeProvider.listType;
+    SimpleIdentifier identifier = resolvedVariable(listType3, "a");
     IndexExpression node = ASTFactory.indexExpression(identifier, resolvedInteger(2));
-    node.element = listType4.element.methods[1];
+    node.element = listType3.element.methods[1];
     ASTFactory.assignmentExpression(node, TokenType.EQ, ASTFactory.integer(0));
-    JUnitTestCase.assertSame(listType4.typeArguments[0], analyze(node));
+    JUnitTestCase.assertSame(listType3.typeArguments[0], analyze(node));
+    _listener.assertNoErrors();
+  }
+  void test_visitIndexExpression_typeParameters() {
+    InterfaceType intType7 = _typeProvider.intType;
+    InterfaceType listType4 = _typeProvider.listType;
+    MethodElement methodElement = getMethod(listType4, "[]");
+    SimpleIdentifier identifier = ASTFactory.identifier2("list");
+    identifier.staticType = listType4.substitute5(<Type2> [intType7]);
+    IndexExpression indexExpression2 = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
+    indexExpression2.element = methodElement;
+    JUnitTestCase.assertSame(intType7, analyze(indexExpression2));
+    _listener.assertNoErrors();
+  }
+  void test_visitIndexExpression_typeParameters_inSetterContext() {
+    InterfaceType intType8 = _typeProvider.intType;
+    InterfaceType listType5 = _typeProvider.listType;
+    MethodElement methodElement = getMethod(listType5, "[]=");
+    SimpleIdentifier identifier = ASTFactory.identifier2("list");
+    identifier.staticType = listType5.substitute5(<Type2> [intType8]);
+    IndexExpression indexExpression3 = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
+    indexExpression3.element = methodElement;
+    ASTFactory.assignmentExpression(indexExpression3, TokenType.EQ, ASTFactory.integer(0));
+    JUnitTestCase.assertSame(intType8, analyze(indexExpression3));
     _listener.assertNoErrors();
   }
   void test_visitInstanceCreationExpression_named() {
@@ -4126,14 +4186,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param body the body of the function
    * @return a resolved function expression
    */
-  FunctionExpression resolvedFunctionExpression(FormalParameterList parameters15, FunctionBody body) {
-    for (FormalParameter parameter in parameters15.parameters) {
+  FunctionExpression resolvedFunctionExpression(FormalParameterList parameters16, FunctionBody body) {
+    for (FormalParameter parameter in parameters16.parameters) {
       ParameterElementImpl element = new ParameterElementImpl(parameter.identifier);
       element.parameterKind = parameter.kind;
       element.type = _typeProvider.dynamicType;
       parameter.identifier.element = element;
     }
-    FunctionExpression node = ASTFactory.functionExpression2(parameters15, body);
+    FunctionExpression node = ASTFactory.functionExpression2(parameters16, body);
     FunctionElementImpl element = new FunctionElementImpl.con1(null);
     element.type = new FunctionTypeImpl.con1(element);
     node.element = element;
@@ -4300,6 +4360,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       _ut.test('test_visitIndexExpression_setter', () {
         final __test = new StaticTypeAnalyzerTest();
         runJUnitTest(__test, __test.test_visitIndexExpression_setter);
+      });
+      _ut.test('test_visitIndexExpression_typeParameters', () {
+        final __test = new StaticTypeAnalyzerTest();
+        runJUnitTest(__test, __test.test_visitIndexExpression_typeParameters);
+      });
+      _ut.test('test_visitIndexExpression_typeParameters_inSetterContext', () {
+        final __test = new StaticTypeAnalyzerTest();
+        runJUnitTest(__test, __test.test_visitIndexExpression_typeParameters_inSetterContext);
       });
       _ut.test('test_visitInstanceCreationExpression_named', () {
         final __test = new StaticTypeAnalyzerTest();
@@ -4802,6 +4870,12 @@ class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_defaultValueInFunctionTypeAlias() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["typedef F([x]);"]));
+    resolve(source, []);
+    assertErrors([]);
+    verify([source]);
+  }
   void test_duplicateDefinition_getter() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["bool get a => true;"]));
     resolve(source, []);
@@ -4836,6 +4910,18 @@ class SimpleResolverTest extends ResolverTestCase {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int get f => 0;", "  void set f(String s) {}", "}", "g (A a) {", "  a.f = a.f.toString();", "}"]));
     resolve(source, []);
     assertNoErrors();
+    verify([source]);
+  }
+  void test_indexExpression_typeParameters() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  List<int> a;", "  a[0];", "  List<List<int>> b;", "  b[0][0];", "  List<List<List<int>>> c;", "  c[0][0][0];", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_indexExpression_typeParameters_invalidAssignmentWarning() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  List<List<int>> b;", "  b[0][0] = 'hi';", "}"]));
+    resolve(source, []);
+    assertErrors([StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
   void test_invalidAssignment() {
@@ -5038,6 +5124,10 @@ class SimpleResolverTest extends ResolverTestCase {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_syntheticField);
       });
+      _ut.test('test_defaultValueInFunctionTypeAlias', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_defaultValueInFunctionTypeAlias);
+      });
       _ut.test('test_duplicateDefinition_getter', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_duplicateDefinition_getter);
@@ -5061,6 +5151,14 @@ class SimpleResolverTest extends ResolverTestCase {
       _ut.test('test_getterAndSetterWithDifferentTypes', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_getterAndSetterWithDifferentTypes);
+      });
+      _ut.test('test_indexExpression_typeParameters', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_indexExpression_typeParameters);
+      });
+      _ut.test('test_indexExpression_typeParameters_invalidAssignmentWarning', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_indexExpression_typeParameters_invalidAssignmentWarning);
       });
       _ut.test('test_invalidAssignment', () {
         final __test = new SimpleResolverTest();
@@ -5150,19 +5248,19 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 main() {
-//  ElementResolverTest.dartSuite();
-//  LibraryElementBuilderTest.dartSuite();
-//  LibraryTest.dartSuite();
-//  StaticTypeAnalyzerTest.dartSuite();
-//  TypeProviderImplTest.dartSuite();
-//  TypeResolverVisitorTest.dartSuite();
-//  EnclosedScopeTest.dartSuite();
-//  LibraryImportScopeTest.dartSuite();
-//  LibraryScopeTest.dartSuite();
-//  ScopeTest.dartSuite();
-//  CompileTimeErrorCodeTest.dartSuite();
-//  ErrorResolverTest.dartSuite();
-//  SimpleResolverTest.dartSuite();
-//  StaticTypeWarningCodeTest.dartSuite();
-//  StaticWarningCodeTest.dartSuite();
+  ElementResolverTest.dartSuite();
+  LibraryElementBuilderTest.dartSuite();
+  LibraryTest.dartSuite();
+  StaticTypeAnalyzerTest.dartSuite();
+  TypeProviderImplTest.dartSuite();
+  TypeResolverVisitorTest.dartSuite();
+  EnclosedScopeTest.dartSuite();
+  LibraryImportScopeTest.dartSuite();
+  LibraryScopeTest.dartSuite();
+  ScopeTest.dartSuite();
+  CompileTimeErrorCodeTest.dartSuite();
+  ErrorResolverTest.dartSuite();
+  SimpleResolverTest.dartSuite();
+  StaticTypeWarningCodeTest.dartSuite();
+  StaticWarningCodeTest.dartSuite();
 }

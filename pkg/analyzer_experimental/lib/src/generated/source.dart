@@ -5,12 +5,17 @@ library engine.source;
 
 import 'dart:uri';
 import 'java_core.dart';
+import 'engine.dart' show AnalysisContext;
 
 /**
  * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing{@link Source source}.
  * @coverage dart.engine.source
  */
 class SourceFactory {
+  /**
+   * The analysis context that this source factory is associated with.
+   */
+  AnalysisContext _context;
   /**
    * The resolvers used to resolve absolute URI's.
    */
@@ -25,9 +30,9 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_300_impl(contentCache2, resolvers2);
+    _jtd_constructor_302_impl(contentCache2, resolvers2);
   }
-  _jtd_constructor_300_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
+  _jtd_constructor_302_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
     this._contentCache = contentCache2;
     this._resolvers = resolvers2;
   }
@@ -36,10 +41,10 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_301_impl(resolvers);
+    _jtd_constructor_303_impl(resolvers);
   }
-  _jtd_constructor_301_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_300_impl(new ContentCache(), resolvers);
+  _jtd_constructor_303_impl(List<UriResolver> resolvers) {
+    _jtd_constructor_302_impl(new ContentCache(), resolvers);
   }
   /**
    * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
@@ -65,6 +70,11 @@ class SourceFactory {
    */
   Source fromEncoding(String encoding) => forUri(encoding);
   /**
+   * Return the analysis context that this source factory is associated with.
+   * @return the analysis context that this source factory is associated with
+   */
+  AnalysisContext get context => _context;
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or{@code null} if either the contained URI is invalid or if it cannot be resolved against the
    * source object's URI.
@@ -74,7 +84,7 @@ class SourceFactory {
    */
   Source resolveUri(Source containingSource, String containedUri) {
     try {
-      return resolveUri2(containingSource, new Uri.fromComponents(path: containedUri));
+      return resolveUri2(containingSource, new Uri(containedUri));
     } on URISyntaxException catch (exception) {
       return null;
     }
@@ -88,6 +98,16 @@ class SourceFactory {
    */
   void setContents(Source source, String contents) {
     _contentCache.setContents(source, contents);
+  }
+  /**
+   * Set the analysis context that this source factory is associated with to the given context.
+   * <p>
+   * <b>Note:</b> This method should only be invoked by{@link AnalysisContextImpl#setSourceFactory(SourceFactory)} and is only public out of
+   * necessity.
+   * @param context the analysis context that this source factory is associated with
+   */
+  void set context(AnalysisContext context2) {
+    this._context = context2;
   }
   /**
    * Return the contents of the given source, or {@code null} if this factory does not override the
@@ -173,6 +193,11 @@ abstract class Source {
    * @return {@code true} if this source exists
    */
   bool exists();
+  /**
+   * Return the analysis context in which this source is defined.
+   * @return the analysis context in which this source is defined
+   */
+  AnalysisContext get context;
   /**
    * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
    * defined on the receiver will be invoked unless an exception is thrown. The method that will be

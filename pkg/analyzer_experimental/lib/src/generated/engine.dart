@@ -97,8 +97,14 @@ class AnalysisEngine {
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
  * which analysis can be performed. The context includes such information as the version of the SDK
- * being analyzed against as well as the package-root used to resolve 'package:' URI's. (The latter
- * is included indirectly through the {@link SourceFactory source factory}.)
+ * being analyzed against as well as the package-root used to resolve 'package:' URI's. (Both of
+ * which are known indirectly through the {@link SourceFactory source factory}.)
+ * <p>
+ * They also represent the state of a given analysis, which includes knowing which sources have been
+ * included in the analysis (either directly or indirectly) and the results of the analysis. Some
+ * analysis results are cached in order to allow the context to balance between memory usage and
+ * performance. TODO(brianwilkerson) Decide how this is reflected in the API: a getFoo() and
+ * getOrComputeFoo() pair of methods, or a single getFoo(boolean).
  * <p>
  * Analysis engine allows for having more than one context. This can be used, for example, to
  * perform one analysis based on the state of files on disk and a separate analysis based on the
@@ -107,34 +113,19 @@ class AnalysisEngine {
  */
 abstract class AnalysisContext {
   /**
-   * Respond to the given set of changes by removing any cached information that might now be
-   * out-of-date. The result indicates what operations need to be performed as a result of this
-   * change without actually performing those operations.
-   * @param changeSet a description of the changes that have occurred
-   * @return a result (not {@code null}) indicating operations to be performed
+   * Apply the changes specified by the given change set to this context. Any analysis results that
+   * have been invalidated by these changes will be removed.
+   * @param changeSet a description of the changes that are to be applied
    */
-  ChangeResult changed(ChangeSet changeSet);
+  void applyChanges(ChangeSet changeSet);
   /**
-   * Clear any cached information that is dependent on resolution. This method should be invoked if
-   * the assumptions used by resolution have changed but the contents of the file have not changed.
-   * Use {@link #sourceChanged(Source)} and {@link #sourcesDeleted(SourceContainer)} to indicate
-   * when the contents of a file or files have changed.
+   * Create a new context in which analysis can be performed. Any sources in the specified container
+   * will be removed from this context and added to the newly created context.
+   * @param container the container containing sources that should be removed from this context and
+   * added to the returned context
+   * @return the analysis context that was created
    */
-  void clearResolution();
-  /**
-   * Call this method when this context is no longer going to be used. At this point, the receiver
-   * may choose to push some of its information back into the global cache for consumption by
-   * another context for performance.
-   */
-  void discard();
-  /**
-   * Create a new context in which analysis can be performed. Any sources in the specified directory
-   * in the receiver will be removed from the receiver and added to the newly created context.
-   * @param directory the directory (not {@code null}) containing sources that should be removed
-   * from the receiver and added to the returned context
-   * @return the analysis context that was created (not {@code null})
-   */
-  AnalysisContext extractAnalysisContext(SourceContainer container);
+  AnalysisContext extractContext(SourceContainer container);
   /**
    * Return the element referenced by the given location.
    * @param location the reference describing the element to be returned
@@ -142,7 +133,8 @@ abstract class AnalysisContext {
    */
   Element getElement(ElementLocation location);
   /**
-   * Return an array containing all of the errors associated with the given source.
+   * Return an array containing all of the errors associated with the given source. The array will
+   * be empty if the source is not known to this context or if there are no errors in the source.
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source
    * @throws AnalysisException if the errors could not be determined because the analysis could not
@@ -150,11 +142,16 @@ abstract class AnalysisContext {
    */
   List<AnalysisError> getErrors(Source source);
   /**
-   * Parse and build an element model for the HTML file defined by the given source.
+   * Return the element model corresponding to the HTML file defined by the given source.
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
    */
   HtmlElement getHtmlElement(Source source);
+  /**
+   * Return an array containing all of the sources known to this context that represent HTML files.
+   * @return the sources known to this context that represent HTML files
+   */
+  List<Source> get htmlSources;
   /**
    * Return the kind of the given source if it is already known, or {@code null} if the kind is not
    * already known.
@@ -163,6 +160,22 @@ abstract class AnalysisContext {
    * @see #getOrComputeKindOf(Source)
    */
   SourceKind getKnownKindOf(Source source);
+  /**
+   * Return an array containing all of the sources known to this context that represent the defining
+   * compilation unit of a library that can be run within a browser. The sources that are returned
+   * represent libraries that have a 'main' method and are either referenced by an HTML file or
+   * import, directly or indirectly, a client-only library.
+   * @return the sources known to this context that represent the defining compilation unit of a
+   * library that can be run within a browser
+   */
+  List<Source> get launchableClientLibrarySources;
+  /**
+   * Return an array containing all of the sources known to this context that represent the defining
+   * compilation unit of a library that can be run outside of a browser.
+   * @return the sources known to this context that represent the defining compilation unit of a
+   * library that can be run outside of a browser
+   */
+  List<Source> get launchableServerLibrarySources;
   /**
    * Return the sources for the defining compilation units of any libraries of which the given
    * source is a part. The array will normally contain a single library because most Dart sources
@@ -186,11 +199,19 @@ abstract class AnalysisContext {
    */
   LibraryElement getLibraryElement(Source source);
   /**
-   * Return the element model corresponding to the library defined by the given source, or{@code null} if the element model does not yet exist.
+   * Return the element model corresponding to the library defined by the given source, or{@code null} if the element model does not currently exist or if the analysis could not be
+   * performed.
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source
    */
   LibraryElement getLibraryElementOrNull(Source source);
+  /**
+   * Return an array containing all of the sources known to this context that represent the defining
+   * compilation unit of a library.
+   * @return the sources known to this context that represent the defining compilation unit of a
+   * library
+   */
+  List<Source> get librarySources;
   /**
    * Return the kind of the given source, computing it's kind if it is not already known.
    * @param source the source whose kind is to be returned
@@ -199,33 +220,17 @@ abstract class AnalysisContext {
    */
   SourceKind getOrComputeKindOf(Source source);
   /**
-   * Return an array containing all of the parsing errors associated with the given source.
-   * @param source the source whose errors are to be returned
-   * @return all of the parsing errors associated with the given source
-   * @throws AnalysisException if the errors could not be determined because the analysis could not
-   * be performed
-   */
-  List<AnalysisError> getParsingErrors(Source source);
-  /**
-   * Return an array containing all of the resolution errors associated with the given source.
-   * @param source the source whose errors are to be returned
-   * @return all of the resolution errors associated with the given source
-   * @throws AnalysisException if the errors could not be determined because the analysis could not
-   * be performed
-   */
-  List<AnalysisError> getResolutionErrors(Source source);
-  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    * @return the source factory used to create the sources that can be analyzed in this context
    */
   SourceFactory get sourceFactory;
   /**
-   * Add the sources contained in the specified context to the receiver's collection of sources.
+   * Add the sources contained in the specified context to this context's collection of sources.
    * This method is called when an existing context's pubspec has been removed, and the contained
-   * sources should be reanalyzed as part of the receiver.
-   * @param context the context being merged (not {@code null})
+   * sources should be reanalyzed as part of this context.
+   * @param context the context being merged
    */
-  void mergeAnalysisContext(AnalysisContext context);
+  void mergeContext(AnalysisContext context);
   /**
    * Parse a single source to produce an AST structure. The resulting AST structure may or may not
    * be resolved, and may have a slightly different structure depending upon whether it is resolved.
@@ -244,6 +249,13 @@ abstract class AnalysisContext {
    */
   HtmlParseResult parseHtml(Source source);
   /**
+   * Perform the next unit of work required to keep the analysis results up-to-date and return
+   * information about the consequent changes to the analysis results. If there were no results the
+   * returned array will be empty. This method can be long running.
+   * @return an array containing notices of changes to the analysis results
+   */
+  List<ChangeNotice> performAnalysisTask();
+  /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
    * @param source the source to be parsed and resolved
    * @param library the library defining the context in which the source file is to be resolved
@@ -252,27 +264,13 @@ abstract class AnalysisContext {
    */
   CompilationUnit resolve(Source source, LibraryElement library);
   /**
-   * Scan a single source to produce a token stream.
-   * @param source the source to be scanned
-   * @param errorListener the listener to which errors should be reported
-   * @return the head of the token stream representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  Token scan(Source source, AnalysisErrorListener errorListener);
-  /**
-   * Scan a single source to produce an HTML token stream.
-   * @param source the source to be scanned
-   * @return the scan result (not {@code null})
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  HtmlScanResult scanHtml(Source source);
-  /**
    * Set the source factory used to create the sources that can be analyzed in this context to the
-   * given source factory.
-   * @param sourceFactory the source factory used to create the sources that can be analyzed in this
+   * given source factory. Clients can safely assume that all analysis results have been
+   * invalidated.
+   * @param factory the source factory used to create the sources that can be analyzed in this
    * context
    */
-  void set sourceFactory(SourceFactory sourceFactory4);
+  void set sourceFactory(SourceFactory factory);
   /**
    * Given a collection of sources with content that has changed, return an {@link Iterable}identifying the sources that need to be resolved.
    * @param changedSources an array of sources (not {@code null}, contains no {@code null}s)
@@ -324,11 +322,83 @@ class AnalysisException extends JavaException {
   }
 }
 /**
- * Instances of {@code ChangeResult} are returned by {@link AnalysisContext#changed(ChangeSet)} to
- * indicate what operations need to be performed as a result of the change.
- * @coverage dart.engine
+ * Instances of the class {@code ChangeNotice} represent a change to the analysis results associated
+ * with a given source.
  */
-class ChangeResult {
+class ChangeNotice {
+  /**
+   * The source for which the result is being reported.
+   */
+  Source _source;
+  /**
+   * The fully resolved AST that changed as a result of the analysis, or {@code null} if the AST was
+   * not changed.
+   */
+  CompilationUnit _compilationUnit;
+  /**
+   * The errors that changed as a result of the analysis, or {@code null} if errors were not
+   * changed.
+   */
+  List<AnalysisError> _errors;
+  /**
+   * The line information associated with the source, or {@code null} if errors were not changed.
+   */
+  LineInfo _lineInfo;
+  /**
+   * An empty array of change notices.
+   */
+  static List<ChangeNotice> EMPTY_ARRAY = new List<ChangeNotice>(0);
+  /**
+   * Initialize a newly created result representing the fact that the errors associated with a
+   * source have changed.
+   * @param source the source for which the result is being reported
+   * @param errors the errors that changed as a result of the analysis
+   * @param the line information associated with the source
+   */
+  ChangeNotice.con1(Source source2, List<AnalysisError> errors2, LineInfo lineInfo3) {
+    _jtd_constructor_127_impl(source2, errors2, lineInfo3);
+  }
+  _jtd_constructor_127_impl(Source source2, List<AnalysisError> errors2, LineInfo lineInfo3) {
+    this._source = source2;
+    this._errors = errors2;
+    this._lineInfo = lineInfo3;
+  }
+  /**
+   * Initialize a newly created result representing the fact that the resolution of a source has
+   * changed.
+   * @param source the source for which the result is being reported
+   * @param compilationUnit the fully resolved AST produced as a result of the analysis
+   */
+  ChangeNotice.con2(Source source3, CompilationUnit compilationUnit9) {
+    _jtd_constructor_128_impl(source3, compilationUnit9);
+  }
+  _jtd_constructor_128_impl(Source source3, CompilationUnit compilationUnit9) {
+    this._source = source3;
+    this._compilationUnit = compilationUnit9;
+  }
+  /**
+   * Return the fully resolved AST that changed as a result of the analysis, or {@code null} if the
+   * AST was not changed.
+   * @return the fully resolved AST that changed as a result of the analysis
+   */
+  CompilationUnit get compilationUnit => _compilationUnit;
+  /**
+   * Return the errors that changed as a result of the analysis, or {@code null} if errors were not
+   * changed.
+   * @return the errors that changed as a result of the analysis
+   */
+  List<AnalysisError> get errors => _errors;
+  /**
+   * Return the line information associated with the source, or {@code null} if errors were not
+   * changed.
+   * @return the line information associated with the source
+   */
+  LineInfo get lineInfo => _lineInfo;
+  /**
+   * Return the source for which the result is being reported.
+   * @return the source for which the result is being reported
+   */
+  Source get source => _source;
 }
 /**
  * Instances of the class {@code ChangeSet} indicate what sources have been added, changed, or
@@ -368,8 +438,8 @@ class ChangeSet {
   /**
    * Record that the specified source has been added and that it has the given content. If the
    * content is non-{@code null}, this has the effect of overriding the default contents of the
-   * source. If the contents are {@code null}, any previous the override is removed so that the
-   * default contents will be used.
+   * source. If the contents are {@code null}, any previous override is removed so that the default
+   * contents will be used.
    * @param source the source that was added
    * @param content the content of the new source
    */
@@ -389,8 +459,8 @@ class ChangeSet {
   /**
    * Record that the specified source has been changed and that it now has the given content. If the
    * content is non-{@code null}, this has the effect of overriding the default contents of the
-   * source. If the contents are {@code null}, any previous the override is removed so that the
-   * default contents will be used.
+   * source. If the contents are {@code null}, any previous override is removed so that the default
+   * contents will be used.
    * @param source the source that was changed
    * @param content the new content of the source
    */
@@ -482,62 +552,43 @@ class AnalysisContextImpl implements AnalysisContext {
    */
   Object _cacheLock = new Object();
   /**
-   * The suffix used by sources that contain Dart.
-   */
-  static String _DART_SUFFIX = ".dart";
-  /**
-   * The suffix used by sources that contain HTML.
-   */
-  static String _HTML_SUFFIX = ".html";
-  /**
    * Initialize a newly created analysis context.
    */
   AnalysisContextImpl() : super() {
   }
-  ChangeResult changed(ChangeSet changeSet) {
+  void applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty()) {
-      return new ChangeResult();
+      return;
     }
     {
+      List<Source> addedSources = new List<Source>();
       for (MapEntry<Source, String> entry in getMapEntrySet(changeSet.addedWithContent)) {
-        _sourceFactory.setContents(entry.getKey(), entry.getValue());
+        Source source = entry.getKey();
+        _sourceFactory.setContents(source, entry.getValue());
+        addedSources.add(source);
       }
+      List<Source> changedSources = new List<Source>();
       for (MapEntry<Source, String> entry in getMapEntrySet(changeSet.changedWithContent)) {
-        _sourceFactory.setContents(entry.getKey(), entry.getValue());
+        Source source = entry.getKey();
+        _sourceFactory.setContents(source, entry.getValue());
+        changedSources.add(source);
       }
-      for (Source source in changeSet.addedWithContent.keys.toSet()) {
+      List<Source> removedSources = new List<Source>.from(changeSet.removed);
+      for (SourceContainer container in changeSet.removedContainers) {
+        addSourcesInContainer(removedSources, container);
+      }
+      for (Source source in addedSources) {
         sourceAvailable(source);
       }
-      for (Source source in changeSet.changedWithContent.keys.toSet()) {
+      for (Source source in changedSources) {
         sourceChanged(source);
       }
-      for (Source source in changeSet.removed) {
-        sourceDeleted(source);
-      }
-      for (SourceContainer container in changeSet.removedContainers) {
-        sourcesDeleted(container);
+      for (Source source in removedSources) {
+        sourceRemoved(source);
       }
     }
-    return new ChangeResult();
   }
-  void clearResolution() {
-    {
-      _parseCache.clear();
-      _htmlParseCache.clear();
-      _libraryElementCache.clear();
-      _publicNamespaceCache.clear();
-    }
-  }
-  void discard() {
-    {
-      _sourceMap.clear();
-      _parseCache.clear();
-      _htmlParseCache.clear();
-      _libraryElementCache.clear();
-      _publicNamespaceCache.clear();
-    }
-  }
-  AnalysisContext extractAnalysisContext(SourceContainer container) {
+  AnalysisContext extractContext(SourceContainer container) {
     AnalysisContextImpl newContext = AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
     List<Source> sourcesToRemove = new List<Source>();
     {
@@ -558,13 +609,18 @@ class AnalysisContextImpl implements AnalysisContext {
     throw new UnsupportedOperationException();
   }
   HtmlElement getHtmlElement(Source source) {
+    if (!AnalysisEngine.isHtmlFileName(source.shortName)) {
+      return null;
+    }
     throw new UnsupportedOperationException();
   }
+  List<Source> get htmlSources => getSources(SourceKind.HTML);
   SourceKind getKnownKindOf(Source source) {
-    if (source.fullName.endsWith(_HTML_SUFFIX)) {
+    String name = source.shortName;
+    if (AnalysisEngine.isHtmlFileName(name)) {
       return SourceKind.HTML;
     }
-    if (!source.fullName.endsWith(_DART_SUFFIX)) {
+    if (!AnalysisEngine.isDartFileName(name)) {
       return SourceKind.UNKNOWN;
     }
     {
@@ -578,6 +634,8 @@ class AnalysisContextImpl implements AnalysisContext {
     }
     return null;
   }
+  List<Source> get launchableClientLibrarySources => librarySources;
+  List<Source> get launchableServerLibrarySources => librarySources;
   List<Source> getLibrariesContaining(Source source) {
     {
       SourceInfo info = _sourceMap[source];
@@ -588,6 +646,9 @@ class AnalysisContextImpl implements AnalysisContext {
     }
   }
   LibraryElement getLibraryElement(Source source) {
+    if (!AnalysisEngine.isDartFileName(source.shortName)) {
+      return null;
+    }
     {
       LibraryElement element = _libraryElementCache[source];
       if (element == null) {
@@ -617,22 +678,13 @@ class AnalysisContextImpl implements AnalysisContext {
       return _libraryElementCache[source];
     }
   }
+  List<Source> get librarySources => getSources(SourceKind.LIBRARY);
   SourceKind getOrComputeKindOf(Source source) {
     SourceKind kind = getKnownKindOf(source);
     if (kind != null) {
       return kind;
     }
-    try {
-      if (hasPartOfDirective(parse(source))) {
-        return SourceKind.PART;
-      }
-    } on AnalysisException catch (exception) {
-      return SourceKind.UNKNOWN;
-    }
-    return SourceKind.LIBRARY;
-  }
-  List<AnalysisError> getParsingErrors(Source source) {
-    throw new UnsupportedOperationException();
+    return computeKindOf(source);
   }
   /**
    * Return a namespace containing mappings for all of the public names defined by the given
@@ -641,13 +693,13 @@ class AnalysisContextImpl implements AnalysisContext {
    * @return the public namespace of the given library
    */
   Namespace getPublicNamespace(LibraryElement library) {
-    Source source8 = library.definingCompilationUnit.source;
+    Source source10 = library.definingCompilationUnit.source;
     {
-      Namespace namespace = _publicNamespaceCache[source8];
+      Namespace namespace = _publicNamespaceCache[source10];
       if (namespace == null) {
         NamespaceBuilder builder = new NamespaceBuilder();
         namespace = builder.createPublicNamespace(library);
-        _publicNamespaceCache[source8] = namespace;
+        _publicNamespaceCache[source10] = namespace;
       }
       return namespace;
     }
@@ -673,11 +725,8 @@ class AnalysisContextImpl implements AnalysisContext {
       return namespace;
     }
   }
-  List<AnalysisError> getResolutionErrors(Source source) {
-    throw new UnsupportedOperationException();
-  }
   SourceFactory get sourceFactory => _sourceFactory;
-  void mergeAnalysisContext(AnalysisContext context) {
+  void mergeContext(AnalysisContext context) {
     {
       for (MapEntry<Source, SourceInfo> entry in getMapEntrySet(((context as AnalysisContextImpl))._sourceMap)) {
         Source newSource = entry.getKey();
@@ -727,6 +776,7 @@ class AnalysisContextImpl implements AnalysisContext {
       return result;
     }
   }
+  List<ChangeNotice> performAnalysisTask() => ChangeNotice.EMPTY_ARRAY;
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to
    * the elements representing the libraries, record those mappings.
@@ -739,21 +789,16 @@ class AnalysisContextImpl implements AnalysisContext {
     }
   }
   CompilationUnit resolve(Source source, LibraryElement library) => parse(source);
-  Token scan(Source source, AnalysisErrorListener errorListener) {
-    AnalysisContextImpl_ScanResult result = internalScan(source, errorListener);
-    return result._token;
-  }
-  HtmlScanResult scanHtml(Source source) {
-    HtmlScanner scanner = new HtmlScanner(source);
-    try {
-      source.getContents(scanner);
-    } on JavaException catch (exception) {
-      throw new AnalysisException.con3(exception);
+  void set sourceFactory(SourceFactory factory) {
+    if (identical(_sourceFactory, factory)) {
+      return;
+    } else if (factory.context != null) {
+      throw new IllegalStateException("Source factories cannot be shared between contexts");
+    } else if (_sourceFactory != null) {
+      _sourceFactory.context = null;
     }
-    return scanner.result;
-  }
-  void set sourceFactory(SourceFactory sourceFactory2) {
-    this._sourceFactory = sourceFactory2;
+    factory.context = this;
+    _sourceFactory = factory;
   }
   Iterable<Source> sourcesToResolve(List<Source> changedSources) {
     List<Source> librarySources = new List<Source>();
@@ -763,6 +808,46 @@ class AnalysisContextImpl implements AnalysisContext {
       }
     }
     return librarySources;
+  }
+  /**
+   * Add all of the sources contained in the given source container to the given list of sources.
+   * <p>
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * @param sources the list to which sources are to be added
+   * @param container the source container containing the sources to be added to the list
+   */
+  void addSourcesInContainer(List<Source> sources, SourceContainer container) {
+    for (Source source in _sourceMap.keys.toSet()) {
+      if (container.contains(source)) {
+        sources.add(source);
+      }
+    }
+  }
+  SourceKind computeKindOf(Source source) {
+    try {
+      if (hasPartOfDirective(parse(source))) {
+        return SourceKind.PART;
+      }
+    } on AnalysisException catch (exception) {
+      return SourceKind.UNKNOWN;
+    }
+    return SourceKind.LIBRARY;
+  }
+  /**
+   * Return an array containing all of the sources known to this context that have the given kind.
+   * @param kind the kind of sources to be returned
+   * @return all of the sources known to this context that have the given kind
+   */
+  List<Source> getSources(SourceKind kind5) {
+    List<Source> sources = new List<Source>();
+    {
+      for (MapEntry<Source, SourceInfo> entry in getMapEntrySet(_sourceMap)) {
+        if (identical(entry.getValue().kind, kind5)) {
+          sources.add(entry.getKey());
+        }
+      }
+    }
+    return new List.from(sources);
   }
   /**
    * Return {@code true} if the given compilation unit has a part-of directive.
@@ -787,6 +872,15 @@ class AnalysisContextImpl implements AnalysisContext {
     }
     return result;
   }
+  HtmlScanResult scanHtml(Source source) {
+    HtmlScanner scanner = new HtmlScanner(source);
+    try {
+      source.getContents(scanner);
+    } on JavaException catch (exception) {
+      throw new AnalysisException.con3(exception);
+    }
+    return scanner.result;
+  }
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * @param source the source that has been added
@@ -794,7 +888,8 @@ class AnalysisContextImpl implements AnalysisContext {
   void sourceAvailable(Source source) {
     SourceInfo existingInfo = _sourceMap[source];
     if (existingInfo == null) {
-      _sourceMap[source] = new SourceInfo.con1(source, getOrComputeKindOf(source));
+      SourceKind kind = computeKindOf(source);
+      _sourceMap[source] = new SourceInfo.con1(source, kind);
     }
   }
   /**
@@ -810,6 +905,11 @@ class AnalysisContextImpl implements AnalysisContext {
     _htmlParseCache.remove(source);
     _libraryElementCache.remove(source);
     _publicNamespaceCache.remove(source);
+    SourceKind oldKind = info.kind;
+    SourceKind newKind = computeKindOf(source);
+    if (newKind != oldKind) {
+      info.kind = newKind;
+    }
     for (Source librarySource in info.librarySources) {
       _libraryElementCache.remove(librarySource);
       _publicNamespaceCache.remove(librarySource);
@@ -819,21 +919,19 @@ class AnalysisContextImpl implements AnalysisContext {
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * @param source the source that has been deleted
    */
-  void sourceDeleted(Source source) {
-    _sourceMap.remove(source);
-    sourceChanged(source);
-  }
-  /**
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
-   * @param container the source container specifying the sources that have been deleted
-   */
-  void sourcesDeleted(SourceContainer container) {
-    List<Source> sourcesToRemove = new List<Source>();
-    for (Source source in _sourceMap.keys.toSet()) {
-      if (container.contains(source)) {
-        sourcesToRemove.add(source);
-      }
+  void sourceRemoved(Source source) {
+    SourceInfo info = _sourceMap[source];
+    if (info == null) {
+      return;
     }
+    _parseCache.remove(source);
+    _libraryElementCache.remove(source);
+    _publicNamespaceCache.remove(source);
+    for (Source librarySource in info.librarySources) {
+      _libraryElementCache.remove(librarySource);
+      _publicNamespaceCache.remove(librarySource);
+    }
+    _sourceMap.remove(source);
   }
 }
 /**
@@ -911,11 +1009,11 @@ class RecordingErrorListener implements AnalysisErrorListener {
     }
   }
   void onError(AnalysisError event) {
-    Source source9 = event.source;
-    List<AnalysisError> errorsForSource = _errors[source9];
-    if (_errors[source9] == null) {
+    Source source11 = event.source;
+    List<AnalysisError> errorsForSource = _errors[source11];
+    if (_errors[source11] == null) {
       errorsForSource = new List<AnalysisError>();
-      _errors[source9] = errorsForSource;
+      _errors[source11] = errorsForSource;
     }
     errorsForSource.add(event);
   }
@@ -935,9 +1033,9 @@ class SourceInfo {
    */
   List<Source> _librarySources = null;
   SourceInfo.con1(Source source, SourceKind kind3) {
-    _jtd_constructor_161_impl(source, kind3);
+    _jtd_constructor_163_impl(source, kind3);
   }
-  _jtd_constructor_161_impl(Source source, SourceKind kind3) {
+  _jtd_constructor_163_impl(Source source, SourceKind kind3) {
     this._kind = kind3;
   }
   /**
@@ -945,9 +1043,9 @@ class SourceInfo {
    * @param info the information holder used to initialize this holder
    */
   SourceInfo.con2(SourceInfo info) {
-    _jtd_constructor_162_impl(info);
+    _jtd_constructor_164_impl(info);
   }
-  _jtd_constructor_162_impl(SourceInfo info) {
+  _jtd_constructor_164_impl(SourceInfo info) {
     _kind = info._kind;
     _librarySources = new List<Source>.from(info._librarySources);
   }

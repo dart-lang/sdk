@@ -408,6 +408,10 @@ bool javaStringEqualsIgnoreCase(String a, String b) {
   return a.toLowerCase() == b.toLowerCase();
 }
 
+bool javaBooleanOr(bool a, bool b) {
+  return a || b;
+}
+
 class JavaStringBuilder {
   StringBuffer sb = new StringBuffer();
   String toString() => sb.toString();

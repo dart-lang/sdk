@@ -122,8 +122,8 @@ class ErrorReporter {
    * the default source to be used.
    * @param source the source to be used when reporting errors
    */
-  void set source(Source source7) {
-    this._source = source7 == null ? _defaultSource : source7;
+  void set source(Source source9) {
+    this._source = source9 == null ? _defaultSource : source9;
   }
 }
 /**
@@ -165,11 +165,11 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(Source source2, ErrorCode errorCode2, List<Object> arguments) {
-    _jtd_constructor_129_impl(source2, errorCode2, arguments);
+  AnalysisError.con1(Source source4, ErrorCode errorCode2, List<Object> arguments) {
+    _jtd_constructor_131_impl(source4, errorCode2, arguments);
   }
-  _jtd_constructor_129_impl(Source source2, ErrorCode errorCode2, List<Object> arguments) {
-    this._source = source2;
+  _jtd_constructor_131_impl(Source source4, ErrorCode errorCode2, List<Object> arguments) {
+    this._source = source4;
     this._errorCode = errorCode2;
     this._message = JavaString.format(errorCode2.message, arguments);
   }
@@ -181,11 +181,11 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(Source source3, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
-    _jtd_constructor_130_impl(source3, offset2, length11, errorCode3, arguments);
+  AnalysisError.con2(Source source5, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
+    _jtd_constructor_132_impl(source5, offset2, length11, errorCode3, arguments);
   }
-  _jtd_constructor_130_impl(Source source3, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
-    this._source = source3;
+  _jtd_constructor_132_impl(Source source5, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
+    this._source = source5;
     this._offset = offset2;
     this._length = length11;
     this._errorCode = errorCode3;
@@ -228,8 +228,8 @@ class AnalysisError {
    * Set the source in which the error occurred to the given source.
    * @param source the source in which the error occurred
    */
-  void set source(Source source4) {
-    this._source = source4;
+  void set source(Source source6) {
+    this._source = source6;
   }
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
@@ -417,7 +417,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    */
-  static final CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION = new CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION', 15, "");
+  static final CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION = new CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION', 15, "'const' constructors cannot throw exceptions");
   /**
    * 12.11.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>, &hellip;,
    * U<sub>m</sub>&gt;</i>, let <i>R = S</i>; It is a compile time error if <i>S</i> is not a
@@ -462,7 +462,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * 15.3.1 Typedef: It is a compile-time error if any default values are specified in the signature
    * of a function type alias.
    */
-  static final CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS = new CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS', 22, "");
+  static final CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS = new CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS', 22, "Default values aren't allowed in typedefs");
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
@@ -508,159 +508,178 @@ class CompileTimeErrorCode implements ErrorCode {
    * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
    * <p>
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
+   * @param typeName the name of the type that cannot be extended
+   * @see #IMPLEMENTS_DISALLOWED_CLASS
    */
-  static final CompileTimeErrorCode EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS = new CompileTimeErrorCode('EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS', 29, "");
+  static final CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS = new CompileTimeErrorCode('EXTENDS_DISALLOWED_CLASS', 29, "Classes cannot extend '%s'");
+  /**
+   * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement double.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for any type other than the types int and double to
+   * attempt to extend or implement num.
+   * <p>
+   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
+   * <p>
+   * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
+   * @param typeName the name of the type that cannot be implemented
+   * @see #EXTENDS_DISALLOWED_CLASS
+   */
+  static final CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS = new CompileTimeErrorCode('IMPLEMENTS_DISALLOWED_CLASS', 30, "Classes cannot implement '%s'");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if more than one initializer corresponding to a given instance variable appears in
    * <i>k</i>‚Äôs list.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS = new CompileTimeErrorCode('FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS', 30, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS = new CompileTimeErrorCode('FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS', 31, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if <i>k</i>‚Äôs initializer list contains an initializer for a final variable <i>f</i>
    * whose declaration includes an initialization expression.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION', 31, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION', 32, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if <i>k</i>‚Äôs initializer list contains an initializer for a variable that is initialized
    * by means of an initializing formal of <i>k</i>.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER', 32, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER', 33, "");
   /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new CompileTimeErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 33, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new CompileTimeErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 34, "");
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has been initialized
    * at its point of declaration is also initialized in a constructor.
    */
-  static final CompileTimeErrorCode FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = new CompileTimeErrorCode('FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR', 34, "");
+  static final CompileTimeErrorCode FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = new CompileTimeErrorCode('FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR', 35, "");
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has is initialized by
    * means of an initializing formal of a constructor is also initialized elsewhere in the same
    * constructor.
    */
-  static final CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES = new CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES', 35, "");
+  static final CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES = new CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES', 36, "");
   /**
    * 5 Variables: It is a compile-time error if a library, static or local variable <i>v</i> is
    * final and <i>v</i> is not initialized at its point of declaration.
    */
-  static final CompileTimeErrorCode FINAL_NOT_INITIALIZED = new CompileTimeErrorCode('FINAL_NOT_INITIALIZED', 36, "");
+  static final CompileTimeErrorCode FINAL_NOT_INITIALIZED = new CompileTimeErrorCode('FINAL_NOT_INITIALIZED', 37, "");
   /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
    * name.
    */
-  static final CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME = new CompileTimeErrorCode('GETTER_AND_METHOD_WITH_SAME_NAME', 37, "");
+  static final CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME = new CompileTimeErrorCode('GETTER_AND_METHOD_WITH_SAME_NAME', 38, "");
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class includes
    * type dynamic.
    */
-  static final CompileTimeErrorCode IMPLEMENTS_DYNAMIC = new CompileTimeErrorCode('IMPLEMENTS_DYNAMIC', 38, "");
+  static final CompileTimeErrorCode IMPLEMENTS_DYNAMIC = new CompileTimeErrorCode('IMPLEMENTS_DYNAMIC', 39, "");
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
    * includes a type expression that does not denote a class available in the lexical scope of
    * <i>C</i>.
    * @param typeName the name of the interface that was not found
    */
-  static final CompileTimeErrorCode IMPLEMENTS_NON_CLASS = new CompileTimeErrorCode('IMPLEMENTS_NON_CLASS', 39, "Classes can only implement other classes");
+  static final CompileTimeErrorCode IMPLEMENTS_NON_CLASS = new CompileTimeErrorCode('IMPLEMENTS_NON_CLASS', 40, "Classes can only implement other classes");
   /**
    * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears more than once in
    * the implements clause of a class.
    */
-  static final CompileTimeErrorCode IMPLEMENTS_REPEATED = new CompileTimeErrorCode('IMPLEMENTS_REPEATED', 40, "");
+  static final CompileTimeErrorCode IMPLEMENTS_REPEATED = new CompileTimeErrorCode('IMPLEMENTS_REPEATED', 41, "");
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
    */
-  static final CompileTimeErrorCode IMPLEMENTS_SELF = new CompileTimeErrorCode('IMPLEMENTS_SELF', 41, "");
+  static final CompileTimeErrorCode IMPLEMENTS_SELF = new CompileTimeErrorCode('IMPLEMENTS_SELF', 42, "");
   /**
    * 14.1 Imports: It is a compile-time error to import two different libraries with the same name.
    */
-  static final CompileTimeErrorCode IMPORT_DUPLICATED_LIBRARY_NAME = new CompileTimeErrorCode('IMPORT_DUPLICATED_LIBRARY_NAME', 42, "");
+  static final CompileTimeErrorCode IMPORT_DUPLICATED_LIBRARY_NAME = new CompileTimeErrorCode('IMPORT_DUPLICATED_LIBRARY_NAME', 43, "");
   /**
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
    */
-  static final CompileTimeErrorCode IMPORT_OF_NON_LIBRARY = new CompileTimeErrorCode('IMPORT_OF_NON_LIBRARY', 43, "");
+  static final CompileTimeErrorCode IMPORT_OF_NON_LIBRARY = new CompileTimeErrorCode('IMPORT_OF_NON_LIBRARY', 44, "");
   /**
    * 13.9 Switch: It is a compile-time error if values of the expressions <i>e<sub>k</sub></i> are
    * not instances of the same class <i>C</i>, for all <i>1 &lt;= k &lt;= n</i>.
    */
-  static final CompileTimeErrorCode INCONSITENT_CASE_EXPRESSION_TYPES = new CompileTimeErrorCode('INCONSITENT_CASE_EXPRESSION_TYPES', 44, "");
+  static final CompileTimeErrorCode INCONSITENT_CASE_EXPRESSION_TYPES = new CompileTimeErrorCode('INCONSITENT_CASE_EXPRESSION_TYPES', 45, "");
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
    * compile-time error if <i>id</i> is not the name of an instance variable of the immediately
    * enclosing class.
    */
-  static final CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTANT_FIELD = new CompileTimeErrorCode('INITIALIZER_FOR_NON_EXISTANT_FIELD', 45, "");
+  static final CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTANT_FIELD = new CompileTimeErrorCode('INITIALIZER_FOR_NON_EXISTANT_FIELD', 46, "");
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
    */
-  static final CompileTimeErrorCode INVALID_CONSTANT = new CompileTimeErrorCode('INVALID_CONSTANT', 46, "");
+  static final CompileTimeErrorCode INVALID_CONSTANT = new CompileTimeErrorCode('INVALID_CONSTANT', 47, "");
   /**
    * 7.6 Constructors: It is a compile-time error if the name of a constructor is not a constructor
    * name.
    */
-  static final CompileTimeErrorCode INVALID_CONSTRUCTOR_NAME = new CompileTimeErrorCode('INVALID_CONSTRUCTOR_NAME', 47, "");
+  static final CompileTimeErrorCode INVALID_CONSTRUCTOR_NAME = new CompileTimeErrorCode('INVALID_CONSTRUCTOR_NAME', 48, "");
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>M</i> is not the name of the immediately
    * enclosing class.
    */
-  static final CompileTimeErrorCode INVALID_FACTORY_NAME_NOT_A_CLASS = new CompileTimeErrorCode('INVALID_FACTORY_NAME_NOT_A_CLASS', 48, "");
+  static final CompileTimeErrorCode INVALID_FACTORY_NAME_NOT_A_CLASS = new CompileTimeErrorCode('INVALID_FACTORY_NAME_NOT_A_CLASS', 49, "");
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  static final CompileTimeErrorCode INVALID_OVERRIDE_DEFAULT_VALUE = new CompileTimeErrorCode('INVALID_OVERRIDE_DEFAULT_VALUE', 49, "");
+  static final CompileTimeErrorCode INVALID_OVERRIDE_DEFAULT_VALUE = new CompileTimeErrorCode('INVALID_OVERRIDE_DEFAULT_VALUE', 50, "");
   /**
    * 7.1: It is a compile-time error if an instance method <i>m1</i> overrides an instance member
    * <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by <i>m2</i>.
    */
-  static final CompileTimeErrorCode INVALID_OVERRIDE_NAMED = new CompileTimeErrorCode('INVALID_OVERRIDE_NAMED', 50, "");
+  static final CompileTimeErrorCode INVALID_OVERRIDE_NAMED = new CompileTimeErrorCode('INVALID_OVERRIDE_NAMED', 51, "");
   /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method m1 overrides an instance
    * member <i>m2</i> and <i>m1</i> has fewer optional positional parameters than <i>m2</i>.
    */
-  static final CompileTimeErrorCode INVALID_OVERRIDE_POSITIONAL = new CompileTimeErrorCode('INVALID_OVERRIDE_POSITIONAL', 51, "");
+  static final CompileTimeErrorCode INVALID_OVERRIDE_POSITIONAL = new CompileTimeErrorCode('INVALID_OVERRIDE_POSITIONAL', 52, "");
   /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> has a different number of required parameters than
    * <i>m2</i>.
    */
-  static final CompileTimeErrorCode INVALID_OVERRIDE_REQUIRED = new CompileTimeErrorCode('INVALID_OVERRIDE_REQUIRED', 52, "");
+  static final CompileTimeErrorCode INVALID_OVERRIDE_REQUIRED = new CompileTimeErrorCode('INVALID_OVERRIDE_REQUIRED', 53, "");
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
    * initializer, in a factory constructor, or in a static method or variable initializer, or in the
    * initializer of an instance variable.
    */
-  static final CompileTimeErrorCode INVALID_REFERENCE_TO_THIS = new CompileTimeErrorCode('INVALID_REFERENCE_TO_THIS', 53, "");
+  static final CompileTimeErrorCode INVALID_REFERENCE_TO_THIS = new CompileTimeErrorCode('INVALID_REFERENCE_TO_THIS', 54, "");
   /**
    * 12.7 Maps: It is a compile-time error if the first type argument to a map literal is not
    * String.
    */
-  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_FOR_KEY = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_FOR_KEY', 54, "");
+  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_FOR_KEY = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_FOR_KEY', 55, "");
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant list literal includes
    * a type parameter.
    */
-  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_IN_CONST_LIST', 55, "");
+  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_LIST = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_IN_CONST_LIST', 56, "");
   /**
    * 12.7 Maps: It is a compile time error if the type arguments of a constant map literal include a
    * type parameter.
    */
-  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_IN_CONST_MAP', 56, "");
+  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_IN_CONST_MAP = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_IN_CONST_MAP', 57, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
    * instance variable declared in the immediately surrounding class.
    */
-  static final CompileTimeErrorCode INVALID_VARIABLE_IN_INITIALIZER = new CompileTimeErrorCode('INVALID_VARIABLE_IN_INITIALIZER', 57, "");
+  static final CompileTimeErrorCode INVALID_VARIABLE_IN_INITIALIZER = new CompileTimeErrorCode('INVALID_VARIABLE_IN_INITIALIZER', 58, "");
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
    * the innermost function in which <i>s<sub>b</sub></i> occurs.
@@ -669,7 +688,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
    * @param labelName the name of the unresolvable label
    */
-  static final CompileTimeErrorCode LABEL_IN_OUTER_SCOPE = new CompileTimeErrorCode('LABEL_IN_OUTER_SCOPE', 58, "Cannot reference label '%s' declared in an outer method");
+  static final CompileTimeErrorCode LABEL_IN_OUTER_SCOPE = new CompileTimeErrorCode('LABEL_IN_OUTER_SCOPE', 59, "Cannot reference label '%s' declared in an outer method");
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
    * the innermost function in which <i>s<sub>b</sub></i> occurs.
@@ -678,47 +697,47 @@ class CompileTimeErrorCode implements ErrorCode {
    * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
    * @param labelName the name of the unresolvable label
    */
-  static final CompileTimeErrorCode LABEL_UNDEFINED = new CompileTimeErrorCode('LABEL_UNDEFINED', 59, "Cannot reference undefined label '%s'");
+  static final CompileTimeErrorCode LABEL_UNDEFINED = new CompileTimeErrorCode('LABEL_UNDEFINED', 60, "Cannot reference undefined label '%s'");
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member with the same name
    * as <i>C</i>.
    */
-  static final CompileTimeErrorCode MEMBER_WITH_CLASS_NAME = new CompileTimeErrorCode('MEMBER_WITH_CLASS_NAME', 60, "");
+  static final CompileTimeErrorCode MEMBER_WITH_CLASS_NAME = new CompileTimeErrorCode('MEMBER_WITH_CLASS_NAME', 61, "");
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a
    * constructor.
    */
-  static final CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR = new CompileTimeErrorCode('MIXIN_DECLARES_CONSTRUCTOR', 61, "");
+  static final CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR = new CompileTimeErrorCode('MIXIN_DECLARES_CONSTRUCTOR', 62, "");
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class whose superclass is not
    * Object.
    */
-  static final CompileTimeErrorCode MIXIN_INHERITS_FROM_NOT_OBJECT = new CompileTimeErrorCode('MIXIN_INHERITS_FROM_NOT_OBJECT', 62, "");
+  static final CompileTimeErrorCode MIXIN_INHERITS_FROM_NOT_OBJECT = new CompileTimeErrorCode('MIXIN_INHERITS_FROM_NOT_OBJECT', 63, "");
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not denote a class or mixin
    * available in the immediately enclosing scope.
    * @param typeName the name of the mixin that was not found
    */
-  static final CompileTimeErrorCode MIXIN_OF_NON_CLASS = new CompileTimeErrorCode('MIXIN_OF_NON_CLASS', 63, "Classes can only mixin other classes");
+  static final CompileTimeErrorCode MIXIN_OF_NON_CLASS = new CompileTimeErrorCode('MIXIN_OF_NON_CLASS', 64, "Classes can only mixin other classes");
   /**
    * 9.1 Mixin Application: If <i>M</i> is a class, it is a compile time error if a well formed
    * mixin cannot be derived from <i>M</i>.
    */
-  static final CompileTimeErrorCode MIXIN_OF_NON_MIXIN = new CompileTimeErrorCode('MIXIN_OF_NON_MIXIN', 64, "");
+  static final CompileTimeErrorCode MIXIN_OF_NON_MIXIN = new CompileTimeErrorCode('MIXIN_OF_NON_MIXIN', 65, "");
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin refers to super.
    */
-  static final CompileTimeErrorCode MIXIN_REFERENCES_SUPER = new CompileTimeErrorCode('MIXIN_REFERENCES_SUPER', 65, "");
+  static final CompileTimeErrorCode MIXIN_REFERENCES_SUPER = new CompileTimeErrorCode('MIXIN_REFERENCES_SUPER', 66, "");
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not denote a class available
    * in the immediately enclosing scope.
    */
-  static final CompileTimeErrorCode MIXIN_WITH_NON_CLASS_SUPERCLASS = new CompileTimeErrorCode('MIXIN_WITH_NON_CLASS_SUPERCLASS', 66, "");
+  static final CompileTimeErrorCode MIXIN_WITH_NON_CLASS_SUPERCLASS = new CompileTimeErrorCode('MIXIN_WITH_NON_CLASS_SUPERCLASS', 67, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Then <i>k</i> may
    * include at most one superinitializer in its initializer list or a compile time error occurs.
    */
-  static final CompileTimeErrorCode MULTIPLE_SUPER_INITIALIZERS = new CompileTimeErrorCode('MULTIPLE_SUPER_INITIALIZERS', 67, "");
+  static final CompileTimeErrorCode MULTIPLE_SUPER_INITIALIZERS = new CompileTimeErrorCode('MULTIPLE_SUPER_INITIALIZERS', 68, "");
   /**
    * 12.11.1 New: It is a compile time error if <i>S</i> is not a generic type with <i>m</i> type
    * parameters.
@@ -726,12 +745,12 @@ class CompileTimeErrorCode implements ErrorCode {
    * @param argumentCount the number of type arguments provided
    * @param parameterCount the number of type parameters that were declared
    */
-  static final CompileTimeErrorCode NEW_WITH_INVALID_TYPE_PARAMETERS = new CompileTimeErrorCode('NEW_WITH_INVALID_TYPE_PARAMETERS', 68, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
+  static final CompileTimeErrorCode NEW_WITH_INVALID_TYPE_PARAMETERS = new CompileTimeErrorCode('NEW_WITH_INVALID_TYPE_PARAMETERS', 69, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
   /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant map literal that has
    * no explicit type arguments appears in a place where a statement is expected.
    */
-  static final CompileTimeErrorCode NON_CONST_MAP_AS_EXPRESSION_STATEMENT = new CompileTimeErrorCode('NON_CONST_MAP_AS_EXPRESSION_STATEMENT', 69, "");
+  static final CompileTimeErrorCode NON_CONST_MAP_AS_EXPRESSION_STATEMENT = new CompileTimeErrorCode('NON_CONST_MAP_AS_EXPRESSION_STATEMENT', 70, "");
   /**
    * 13.9 Switch: Given a switch statement of the form <i>switch (e) { label<sub>11</sub> &hellip;
    * label<sub>1j1</sub> case e<sub>1</sub>: s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip;
@@ -741,116 +760,116 @@ class CompileTimeErrorCode implements ErrorCode {
    * s<sub>n</sub>}</i>, it is a compile-time error if the expressions <i>e<sub>k</sub></i> are not
    * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION = new CompileTimeErrorCode('NON_CONSTANT_CASE_EXPRESSION', 70, "Case expressions must be constant");
+  static final CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION = new CompileTimeErrorCode('NON_CONSTANT_CASE_EXPRESSION', 71, "Case expressions must be constant");
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the default value of an optional
    * parameter is not a compile-time constant.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE = new CompileTimeErrorCode('NON_CONSTANT_DEFAULT_VALUE', 71, "Default values of an optional parameter must be constant");
+  static final CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE = new CompileTimeErrorCode('NON_CONSTANT_DEFAULT_VALUE', 72, "Default values of an optional parameter must be constant");
   /**
    * 12.6 Lists: It is a compile time error if an element of a constant list literal is not a
    * compile-time constant.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT = new CompileTimeErrorCode('NON_CONSTANT_LIST_ELEMENT', 72, "'const' lists must have all constant values");
+  static final CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT = new CompileTimeErrorCode('NON_CONSTANT_LIST_ELEMENT', 73, "'const' lists must have all constant values");
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_MAP_KEY = new CompileTimeErrorCode('NON_CONSTANT_MAP_KEY', 73, "The keys in a 'const' map must be constant");
+  static final CompileTimeErrorCode NON_CONSTANT_MAP_KEY = new CompileTimeErrorCode('NON_CONSTANT_MAP_KEY', 74, "The keys in a 'const' map must be constant");
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_MAP_VALUE = new CompileTimeErrorCode('NON_CONSTANT_MAP_VALUE', 74, "The values in a 'const' map must be constant");
+  static final CompileTimeErrorCode NON_CONSTANT_MAP_VALUE = new CompileTimeErrorCode('NON_CONSTANT_MAP_VALUE', 75, "The values in a 'const' map must be constant");
   /**
    * 7.6.3 Constant Constructors: Any expression that appears within the initializer list of a
    * constant constructor must be a potentially constant expression, or a compile-time error occurs.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER = new CompileTimeErrorCode('NON_CONSTANT_VALUE_IN_INITIALIZER', 75, "");
+  static final CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER = new CompileTimeErrorCode('NON_CONSTANT_VALUE_IN_INITIALIZER', 76, "");
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause for class Object.
    */
-  static final CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS = new CompileTimeErrorCode('OBJECT_CANNOT_EXTEND_ANOTHER_CLASS', 76, "");
+  static final CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS = new CompileTimeErrorCode('OBJECT_CANNOT_EXTEND_ANOTHER_CLASS', 77, "");
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional parameter in an operator.
    */
-  static final CompileTimeErrorCode OPTIONAL_PARAMETER_IN_OPERATOR = new CompileTimeErrorCode('OPTIONAL_PARAMETER_IN_OPERATOR', 77, "");
+  static final CompileTimeErrorCode OPTIONAL_PARAMETER_IN_OPERATOR = new CompileTimeErrorCode('OPTIONAL_PARAMETER_IN_OPERATOR', 78, "");
   /**
    * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
    * interface member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
    * <i>m2</i> in the same order.
    */
-  static final CompileTimeErrorCode OVERRIDE_MISSING_NAMED_PARAMETERS = new CompileTimeErrorCode('OVERRIDE_MISSING_NAMED_PARAMETERS', 78, "");
+  static final CompileTimeErrorCode OVERRIDE_MISSING_NAMED_PARAMETERS = new CompileTimeErrorCode('OVERRIDE_MISSING_NAMED_PARAMETERS', 79, "");
   /**
    * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
    * interface member <i>m2</i> and <i>m1</i> has a different number of required parameters than
    * <i>m2</i>.
    */
-  static final CompileTimeErrorCode OVERRIDE_MISSING_REQUIRED_PARAMETERS = new CompileTimeErrorCode('OVERRIDE_MISSING_REQUIRED_PARAMETERS', 79, "");
+  static final CompileTimeErrorCode OVERRIDE_MISSING_REQUIRED_PARAMETERS = new CompileTimeErrorCode('OVERRIDE_MISSING_REQUIRED_PARAMETERS', 80, "");
   /**
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
    * declaration.
    */
-  static final CompileTimeErrorCode PART_OF_NON_PART = new CompileTimeErrorCode('PART_OF_NON_PART', 80, "");
+  static final CompileTimeErrorCode PART_OF_NON_PART = new CompileTimeErrorCode('PART_OF_NON_PART', 81, "");
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a top-level member
    * named <i>p</i>.
    */
-  static final CompileTimeErrorCode PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER = new CompileTimeErrorCode('PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER', 81, "");
+  static final CompileTimeErrorCode PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER = new CompileTimeErrorCode('PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER', 82, "");
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named optional parameter
    * begins with an ‚Äò_‚Äô character.
    */
-  static final CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER = new CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER', 82, "");
+  static final CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER = new CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER', 83, "");
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time constant expression
    * depends on itself.
    */
-  static final CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT = new CompileTimeErrorCode('RECURSIVE_COMPILE_TIME_CONSTANT', 83, "");
+  static final CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT = new CompileTimeErrorCode('RECURSIVE_COMPILE_TIME_CONSTANT', 84, "");
   /**
    * 7.6.2 Factories: It is a compile-time error if a redirecting factory constructor redirects to
    * itself, either directly or indirectly via a sequence of redirections.
    */
-  static final CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT = new CompileTimeErrorCode('RECURSIVE_FACTORY_REDIRECT', 84, "");
+  static final CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT = new CompileTimeErrorCode('RECURSIVE_FACTORY_REDIRECT', 85, "");
   /**
    * 15.3.1 Typedef: It is a compile-time error if a typedef refers to itself via a chain of
    * references that does not include a class type.
    */
-  static final CompileTimeErrorCode RECURSIVE_FUNCTION_TYPE_ALIAS = new CompileTimeErrorCode('RECURSIVE_FUNCTION_TYPE_ALIAS', 85, "");
+  static final CompileTimeErrorCode RECURSIVE_FUNCTION_TYPE_ALIAS = new CompileTimeErrorCode('RECURSIVE_FUNCTION_TYPE_ALIAS', 86, "");
   /**
    * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
    */
-  static final CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE = new CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE', 86, "");
+  static final CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE = new CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE', 87, "");
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k‚Äô</i> is not a constant constructor.
    */
-  static final CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR = new CompileTimeErrorCode('REDIRECT_TO_NON_CONST_CONSTRUCTOR', 87, "");
+  static final CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR = new CompileTimeErrorCode('REDIRECT_TO_NON_CONST_CONSTRUCTOR', 88, "");
   /**
    * 13.3 Local Variable Declaration: It is a compile-time error if <i>e</i> refers to the name
    * <i>v</i> or the name <i>v=</i>.
    */
-  static final CompileTimeErrorCode REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER = new CompileTimeErrorCode('REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER', 88, "");
+  static final CompileTimeErrorCode REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER = new CompileTimeErrorCode('REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER', 89, "");
   /**
    * 16.1.1 Reserved Words: A reserved word may not be used as an identifier; it is a compile-time
    * error if a reserved word is used where an identifier is expected.
    */
-  static final CompileTimeErrorCode RESERVED_WORD_AS_IDENTIFIER = new CompileTimeErrorCode('RESERVED_WORD_AS_IDENTIFIER', 89, "");
+  static final CompileTimeErrorCode RESERVED_WORD_AS_IDENTIFIER = new CompileTimeErrorCode('RESERVED_WORD_AS_IDENTIFIER', 90, "");
   /**
    * 13.11 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
-  static final CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = new CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR', 90, "");
+  static final CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = new CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR', 91, "");
   /**
    * 6.1 Function Declarations: It is a compile-time error to preface a function declaration with
    * the built-in identifier static.
    */
-  static final CompileTimeErrorCode STATIC_TOP_LEVEL_FUNCTION = new CompileTimeErrorCode('STATIC_TOP_LEVEL_FUNCTION', 91, "");
+  static final CompileTimeErrorCode STATIC_TOP_LEVEL_FUNCTION = new CompileTimeErrorCode('STATIC_TOP_LEVEL_FUNCTION', 92, "");
   /**
    * 5 Variables: It is a compile-time error to preface a top level variable declaration with the
    * built-in identifier static.
    */
-  static final CompileTimeErrorCode STATIC_TOP_LEVEL_VARIABLE = new CompileTimeErrorCode('STATIC_TOP_LEVEL_VARIABLE', 92, "");
+  static final CompileTimeErrorCode STATIC_TOP_LEVEL_VARIABLE = new CompileTimeErrorCode('STATIC_TOP_LEVEL_VARIABLE', 93, "");
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
@@ -859,17 +878,17 @@ class CompileTimeErrorCode implements ErrorCode {
    * initializer list, in class Object, in a factory constructor, or in a static method or variable
    * initializer.
    */
-  static final CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = new CompileTimeErrorCode('SUPER_IN_INVALID_CONTEXT', 93, "");
+  static final CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = new CompileTimeErrorCode('SUPER_IN_INVALID_CONTEXT', 94, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if a generative constructor of class Object includes a superinitializer.
    */
-  static final CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = new CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT', 94, "");
+  static final CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = new CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT', 95, "");
   /**
    * 12.8 Throw: It is a compile-time error if an expression of the form throw; is not enclosed
    * within a on-catch clause.
    */
-  static final CompileTimeErrorCode THROW_WITHOUT_VALUE_OUTSIDE_ON = new CompileTimeErrorCode('THROW_WITHOUT_VALUE_OUTSIDE_ON', 95, "");
+  static final CompileTimeErrorCode THROW_WITHOUT_VALUE_OUTSIDE_ON = new CompileTimeErrorCode('THROW_WITHOUT_VALUE_OUTSIDE_ON', 96, "");
   /**
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a non-generic type
    * invoked by a new expression or a constant object expression is passed any type arguments.
@@ -878,14 +897,14 @@ class CompileTimeErrorCode implements ErrorCode {
    * <i>G&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i> and <i>G</i> is not a generic type with
    * <i>n</i> type parameters.
    */
-  static final CompileTimeErrorCode TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS = new CompileTimeErrorCode('TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS', 96, "");
+  static final CompileTimeErrorCode TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS = new CompileTimeErrorCode('TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS', 97, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
    * and let <i>S</i> be the superclass of <i>C</i>. Let <i>k</i> be a generative constructor. It is
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static final CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER = new CompileTimeErrorCode('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER', 97, "");
+  static final CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER = new CompileTimeErrorCode('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER', 98, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Each final instance
    * variable <i>f</i> declared in the immediately enclosing class must have an initializer in
@@ -897,7 +916,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * </ol>
    * or a compile-time error occurs.
    */
-  static final CompileTimeErrorCode UNINITIALIZED_FINAL_FIELD = new CompileTimeErrorCode('UNINITIALIZED_FINAL_FIELD', 98, "");
+  static final CompileTimeErrorCode UNINITIALIZED_FINAL_FIELD = new CompileTimeErrorCode('UNINITIALIZED_FINAL_FIELD', 99, "");
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if
    * <i>x</i> involves string interpolation.
@@ -908,7 +927,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
    * not a compile-time constant, or if <i>x</i> involves string interpolation.
    */
-  static final CompileTimeErrorCode URI_WITH_INTERPOLATION = new CompileTimeErrorCode('URI_WITH_INTERPOLATION', 99, "URIs cannot use string interpolation");
+  static final CompileTimeErrorCode URI_WITH_INTERPOLATION = new CompileTimeErrorCode('URI_WITH_INTERPOLATION', 100, "URIs cannot use string interpolation");
   /**
    * 7.1.1 Operators: It is a compile-time error if the arity of the user-declared operator []= is
    * not 2. It is a compile time error if the arity of a user-declared operator with one of the
@@ -916,12 +935,12 @@ class CompileTimeErrorCode implements ErrorCode {
    * It is a compile time error if the arity of the user-declared operator - is not 0 or 1. It is a
    * compile time error if the arity of the user-declared operator ~ is not 0.
    */
-  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = new CompileTimeErrorCode('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 100, "");
+  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = new CompileTimeErrorCode('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 101, "");
   /**
    * 7.3 Setters: It is a compile-time error if a setter‚Äôs formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
    */
-  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = new CompileTimeErrorCode('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 101, "");
+  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = new CompileTimeErrorCode('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 102, "");
   /**
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a generic type with
    * <i>n</i> type parameters invoked by a new expression or a constant object expression is passed
@@ -931,8 +950,8 @@ class CompileTimeErrorCode implements ErrorCode {
    * <i>G&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i> and <i>G</i> is not a generic type with
    * <i>n</i> type parameters.
    */
-  static final CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = new CompileTimeErrorCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 102, "");
-  static final List<CompileTimeErrorCode> values = [AMBIGUOUS_EXPORT, AMBIGUOUS_IMPORT, ARGUMENT_DEFINITION_TEST_NON_PARAMETER, BUILT_IN_IDENTIFIER_AS_TYPE, BUILT_IN_IDENTIFIER_AS_TYPE_NAME, BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO, CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, CONST_FORMAL_PARAMETER, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, CONST_EVAL_THROWS_EXCEPTION, CONST_WITH_INVALID_TYPE_PARAMETERS, CONST_WITH_NON_CONST, CONST_WITH_NON_CONSTANT_ARGUMENT, CONST_WITH_NON_TYPE, CONST_WITH_TYPE_PARAMETERS, CONST_WITH_UNDEFINED_CONSTRUCTOR, DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, DUPLICATE_DEFINITION, DUPLICATE_MEMBER_NAME, DUPLICATE_MEMBER_NAME_INSTANCE_STATIC, DUPLICATE_NAMED_ARGUMENT, EXPORT_OF_NON_LIBRARY, EXTENDS_NON_CLASS, EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS, FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, FINAL_INITIALIZED_MULTIPLE_TIMES, FINAL_NOT_INITIALIZED, GETTER_AND_METHOD_WITH_SAME_NAME, IMPLEMENTS_DYNAMIC, IMPLEMENTS_NON_CLASS, IMPLEMENTS_REPEATED, IMPLEMENTS_SELF, IMPORT_DUPLICATED_LIBRARY_NAME, IMPORT_OF_NON_LIBRARY, INCONSITENT_CASE_EXPRESSION_TYPES, INITIALIZER_FOR_NON_EXISTANT_FIELD, INVALID_CONSTANT, INVALID_CONSTRUCTOR_NAME, INVALID_FACTORY_NAME_NOT_A_CLASS, INVALID_OVERRIDE_DEFAULT_VALUE, INVALID_OVERRIDE_NAMED, INVALID_OVERRIDE_POSITIONAL, INVALID_OVERRIDE_REQUIRED, INVALID_REFERENCE_TO_THIS, INVALID_TYPE_ARGUMENT_FOR_KEY, INVALID_TYPE_ARGUMENT_IN_CONST_LIST, INVALID_TYPE_ARGUMENT_IN_CONST_MAP, INVALID_VARIABLE_IN_INITIALIZER, LABEL_IN_OUTER_SCOPE, LABEL_UNDEFINED, MEMBER_WITH_CLASS_NAME, MIXIN_DECLARES_CONSTRUCTOR, MIXIN_INHERITS_FROM_NOT_OBJECT, MIXIN_OF_NON_CLASS, MIXIN_OF_NON_MIXIN, MIXIN_REFERENCES_SUPER, MIXIN_WITH_NON_CLASS_SUPERCLASS, MULTIPLE_SUPER_INITIALIZERS, NEW_WITH_INVALID_TYPE_PARAMETERS, NON_CONST_MAP_AS_EXPRESSION_STATEMENT, NON_CONSTANT_CASE_EXPRESSION, NON_CONSTANT_DEFAULT_VALUE, NON_CONSTANT_LIST_ELEMENT, NON_CONSTANT_MAP_KEY, NON_CONSTANT_MAP_VALUE, NON_CONSTANT_VALUE_IN_INITIALIZER, OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, OPTIONAL_PARAMETER_IN_OPERATOR, OVERRIDE_MISSING_NAMED_PARAMETERS, OVERRIDE_MISSING_REQUIRED_PARAMETERS, PART_OF_NON_PART, PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, PRIVATE_OPTIONAL_PARAMETER, RECURSIVE_COMPILE_TIME_CONSTANT, RECURSIVE_FACTORY_REDIRECT, RECURSIVE_FUNCTION_TYPE_ALIAS, RECURSIVE_INTERFACE_INHERITANCE, REDIRECT_TO_NON_CONST_CONSTRUCTOR, REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER, RESERVED_WORD_AS_IDENTIFIER, RETURN_IN_GENERATIVE_CONSTRUCTOR, STATIC_TOP_LEVEL_FUNCTION, STATIC_TOP_LEVEL_VARIABLE, SUPER_IN_INVALID_CONTEXT, SUPER_INITIALIZER_IN_OBJECT, THROW_WITHOUT_VALUE_OUTSIDE_ON, TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS, UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, UNINITIALIZED_FINAL_FIELD, URI_WITH_INTERPOLATION, WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, WRONG_NUMBER_OF_TYPE_ARGUMENTS];
+  static final CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = new CompileTimeErrorCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 103, "");
+  static final List<CompileTimeErrorCode> values = [AMBIGUOUS_EXPORT, AMBIGUOUS_IMPORT, ARGUMENT_DEFINITION_TEST_NON_PARAMETER, BUILT_IN_IDENTIFIER_AS_TYPE, BUILT_IN_IDENTIFIER_AS_TYPE_NAME, BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO, CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, CONST_FORMAL_PARAMETER, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, CONST_EVAL_THROWS_EXCEPTION, CONST_WITH_INVALID_TYPE_PARAMETERS, CONST_WITH_NON_CONST, CONST_WITH_NON_CONSTANT_ARGUMENT, CONST_WITH_NON_TYPE, CONST_WITH_TYPE_PARAMETERS, CONST_WITH_UNDEFINED_CONSTRUCTOR, DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, DUPLICATE_DEFINITION, DUPLICATE_MEMBER_NAME, DUPLICATE_MEMBER_NAME_INSTANCE_STATIC, DUPLICATE_NAMED_ARGUMENT, EXPORT_OF_NON_LIBRARY, EXTENDS_NON_CLASS, EXTENDS_DISALLOWED_CLASS, IMPLEMENTS_DISALLOWED_CLASS, FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, FINAL_INITIALIZED_MULTIPLE_TIMES, FINAL_NOT_INITIALIZED, GETTER_AND_METHOD_WITH_SAME_NAME, IMPLEMENTS_DYNAMIC, IMPLEMENTS_NON_CLASS, IMPLEMENTS_REPEATED, IMPLEMENTS_SELF, IMPORT_DUPLICATED_LIBRARY_NAME, IMPORT_OF_NON_LIBRARY, INCONSITENT_CASE_EXPRESSION_TYPES, INITIALIZER_FOR_NON_EXISTANT_FIELD, INVALID_CONSTANT, INVALID_CONSTRUCTOR_NAME, INVALID_FACTORY_NAME_NOT_A_CLASS, INVALID_OVERRIDE_DEFAULT_VALUE, INVALID_OVERRIDE_NAMED, INVALID_OVERRIDE_POSITIONAL, INVALID_OVERRIDE_REQUIRED, INVALID_REFERENCE_TO_THIS, INVALID_TYPE_ARGUMENT_FOR_KEY, INVALID_TYPE_ARGUMENT_IN_CONST_LIST, INVALID_TYPE_ARGUMENT_IN_CONST_MAP, INVALID_VARIABLE_IN_INITIALIZER, LABEL_IN_OUTER_SCOPE, LABEL_UNDEFINED, MEMBER_WITH_CLASS_NAME, MIXIN_DECLARES_CONSTRUCTOR, MIXIN_INHERITS_FROM_NOT_OBJECT, MIXIN_OF_NON_CLASS, MIXIN_OF_NON_MIXIN, MIXIN_REFERENCES_SUPER, MIXIN_WITH_NON_CLASS_SUPERCLASS, MULTIPLE_SUPER_INITIALIZERS, NEW_WITH_INVALID_TYPE_PARAMETERS, NON_CONST_MAP_AS_EXPRESSION_STATEMENT, NON_CONSTANT_CASE_EXPRESSION, NON_CONSTANT_DEFAULT_VALUE, NON_CONSTANT_LIST_ELEMENT, NON_CONSTANT_MAP_KEY, NON_CONSTANT_MAP_VALUE, NON_CONSTANT_VALUE_IN_INITIALIZER, OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, OPTIONAL_PARAMETER_IN_OPERATOR, OVERRIDE_MISSING_NAMED_PARAMETERS, OVERRIDE_MISSING_REQUIRED_PARAMETERS, PART_OF_NON_PART, PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, PRIVATE_OPTIONAL_PARAMETER, RECURSIVE_COMPILE_TIME_CONSTANT, RECURSIVE_FACTORY_REDIRECT, RECURSIVE_FUNCTION_TYPE_ALIAS, RECURSIVE_INTERFACE_INHERITANCE, REDIRECT_TO_NON_CONST_CONSTRUCTOR, REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER, RESERVED_WORD_AS_IDENTIFIER, RETURN_IN_GENERATIVE_CONSTRUCTOR, STATIC_TOP_LEVEL_FUNCTION, STATIC_TOP_LEVEL_VARIABLE, SUPER_IN_INVALID_CONTEXT, SUPER_INITIALIZER_IN_OBJECT, THROW_WITHOUT_VALUE_OUTSIDE_ON, TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS, UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, UNINITIALIZED_FINAL_FIELD, URI_WITH_INTERPOLATION, WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, WRONG_NUMBER_OF_TYPE_ARGUMENTS];
   final String __name;
   final int __ordinal;
   int get ordinal => __ordinal;

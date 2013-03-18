@@ -761,6 +761,12 @@ abstract class MethodElement implements ExecutableElement {
    * @return {@code true} if this method is abstract
    */
   bool isAbstract();
+  /**
+   * Return {@code true} if this method is an operator. The test may be based on the name of the
+   * method, in which case the result will be correct when the name is legal.
+   * @return {@code true} if this method is an operator
+   */
+  bool isOperator();
 }
 /**
  * The interface {@code MultiplyDefinedElement} defines the behavior of pseudo-elements that
@@ -1308,10 +1314,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   ElementKind get kind => ElementKind.CLASS;
   List<MethodElement> get methods => _methods;
   List<InterfaceType> get mixins => _mixins;
-  ConstructorElement getNamedConstructor(String name23) {
+  ConstructorElement getNamedConstructor(String name24) {
     for (ConstructorElement element in constructors) {
       String elementName = element.name;
-      if (elementName != null && elementName == name23) {
+      if (elementName != null && elementName == name24) {
         return element;
       }
     }
@@ -1700,8 +1706,8 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * Set the source that corresponds to this compilation unit to the given source.
    * @param source the source that corresponds to this compilation unit
    */
-  void set source(Source source5) {
-    this._source = source5;
+  void set source(Source source7) {
+    this._source = source7;
   }
   /**
    * Set the top-level variables contained in this compilation unit to the given variables.
@@ -1944,11 +1950,11 @@ abstract class ElementImpl implements Element {
    * Initialize a newly created element to have the given name.
    * @param name the name of this element
    */
-  ElementImpl.con1(Identifier name24) {
-    _jtd_constructor_172_impl(name24);
+  ElementImpl.con1(Identifier name25) {
+    _jtd_constructor_174_impl(name25);
   }
-  _jtd_constructor_172_impl(Identifier name24) {
-    _jtd_constructor_173_impl(name24 == null ? "" : name24.name, name24 == null ? -1 : name24.offset);
+  _jtd_constructor_174_impl(Identifier name25) {
+    _jtd_constructor_175_impl(name25 == null ? "" : name25.name, name25 == null ? -1 : name25.offset);
   }
   /**
    * Initialize a newly created element to have the given name.
@@ -1957,9 +1963,9 @@ abstract class ElementImpl implements Element {
    * declaration of this element
    */
   ElementImpl.con2(String name8, int nameOffset2) {
-    _jtd_constructor_173_impl(name8, nameOffset2);
+    _jtd_constructor_175_impl(name8, nameOffset2);
   }
-  _jtd_constructor_173_impl(String name8, int nameOffset2) {
+  _jtd_constructor_175_impl(String name8, int nameOffset2) {
     this._name = name8;
     this._nameOffset = nameOffset2;
     this._modifiers = new Set();
@@ -2010,6 +2016,15 @@ abstract class ElementImpl implements Element {
    */
   void set metadata(List<Annotation> metadata2) {
     this._metadata = metadata2;
+  }
+  /**
+   * Set the offset of the name of this element in the file that contains the declaration of this
+   * element to the given value. This is normally done via the constructor, but this method is
+   * provided to support unnamed constructors.
+   * @param nameOffset the offset to the beginning of the name
+   */
+  void set nameOffset(int nameOffset3) {
+    this._nameOffset = nameOffset3;
   }
   /**
    * Set whether this element is synthetic to correspond to the given value.
@@ -2111,9 +2126,9 @@ class ElementLocationImpl implements ElementLocation {
    * @param element the element whose location is being represented
    */
   ElementLocationImpl.con1(Element element) {
-    _jtd_constructor_174_impl(element);
+    _jtd_constructor_176_impl(element);
   }
-  _jtd_constructor_174_impl(Element element) {
+  _jtd_constructor_176_impl(Element element) {
     List<String> components = new List<String>();
     Element ancestor = element;
     while (ancestor != null) {
@@ -2127,9 +2142,9 @@ class ElementLocationImpl implements ElementLocation {
    * @param encoding the encoded form of a location
    */
   ElementLocationImpl.con2(String encoding) {
-    _jtd_constructor_175_impl(encoding);
+    _jtd_constructor_177_impl(encoding);
   }
-  _jtd_constructor_175_impl(String encoding) {
+  _jtd_constructor_177_impl(String encoding) {
     this._components = decode(encoding);
   }
   bool operator ==(Object object) {
@@ -2268,9 +2283,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * @param name the name of this element
    */
   ExecutableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_177_impl(name);
+    _jtd_constructor_179_impl(name);
   }
-  _jtd_constructor_177_impl(Identifier name) {
+  _jtd_constructor_179_impl(Identifier name) {
   }
   /**
    * Initialize a newly created executable element to have the given name.
@@ -2279,9 +2294,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * declaration of this element
    */
   ExecutableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_178_impl(name, nameOffset);
+    _jtd_constructor_180_impl(name, nameOffset);
   }
-  _jtd_constructor_178_impl(String name, int nameOffset) {
+  _jtd_constructor_180_impl(String name, int nameOffset) {
   }
   ElementImpl getChild(String identifier27) {
     for (ExecutableElement function in _functions) {
@@ -2465,18 +2480,18 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
    * @param name the name of this element
    */
   FieldElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_181_impl(name);
+    _jtd_constructor_183_impl(name);
   }
-  _jtd_constructor_181_impl(Identifier name) {
+  _jtd_constructor_183_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic field element to have the given name.
    * @param name the name of this element
    */
   FieldElementImpl.con2(String name) : super.con2(name) {
-    _jtd_constructor_182_impl(name);
+    _jtd_constructor_184_impl(name);
   }
-  _jtd_constructor_182_impl(String name) {
+  _jtd_constructor_184_impl(String name) {
   }
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
@@ -2512,9 +2527,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * Initialize a newly created synthetic function element.
    */
   FunctionElementImpl() : super.con2("", -1) {
-    _jtd_constructor_183_impl();
+    _jtd_constructor_185_impl();
   }
-  _jtd_constructor_183_impl() {
+  _jtd_constructor_185_impl() {
     synthetic = true;
   }
   /**
@@ -2522,9 +2537,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * @param name the name of this element
    */
   FunctionElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_184_impl(name);
+    _jtd_constructor_186_impl(name);
   }
-  _jtd_constructor_184_impl(Identifier name) {
+  _jtd_constructor_186_impl(Identifier name) {
   }
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
   String get identifier => name;
@@ -2751,8 +2766,8 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
    * Set the source that corresponds to this HTML file to the given source.
    * @param source the source that corresponds to this HTML file
    */
-  void set source(Source source6) {
-    this._source = source6;
+  void set source(Source source8) {
+    this._source = source8;
   }
   void visitChildren(ElementVisitor<Object> visitor) {
     super.visitChildren(visitor);
@@ -3075,8 +3090,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     visited.add(this);
     for (int index = 0; index < visited.length; index++) {
       LibraryElement library = visited[index];
-      Source source10 = library.definingCompilationUnit.source;
-      if (source10 == htmlLibSource) {
+      Source source12 = library.definingCompilationUnit.source;
+      if (source12 == htmlLibSource) {
         return true;
       }
       for (LibraryElement importedLibrary in library.importedLibraries) {
@@ -3156,9 +3171,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * @param name the name of this element
    */
   MethodElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_193_impl(name);
+    _jtd_constructor_195_impl(name);
   }
-  _jtd_constructor_193_impl(Identifier name) {
+  _jtd_constructor_195_impl(Identifier name) {
   }
   /**
    * Initialize a newly created method element to have the given name.
@@ -3167,14 +3182,22 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * declaration of this element
    */
   MethodElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_194_impl(name, nameOffset);
+    _jtd_constructor_196_impl(name, nameOffset);
   }
-  _jtd_constructor_194_impl(String name, int nameOffset) {
+  _jtd_constructor_196_impl(String name, int nameOffset) {
   }
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.METHOD;
   bool isAbstract() => hasModifier(Modifier.ABSTRACT);
+  bool isOperator() {
+    String name14 = name;
+    if (name14.isEmpty) {
+      return false;
+    }
+    int first = name14.codeUnitAt(0);
+    return !((0x61 <= first && first <= 0x7A) || (0x41 <= first && first <= 0x5A) || first == 0x5F || first == 0x24);
+  }
   bool isStatic() => hasModifier(Modifier.STATIC);
   /**
    * Set whether this method is abstract to correspond to the given value.
@@ -3444,9 +3467,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    * @param name the name of this element
    */
   PropertyAccessorElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_199_impl(name);
+    _jtd_constructor_201_impl(name);
   }
-  _jtd_constructor_199_impl(Identifier name) {
+  _jtd_constructor_201_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic property accessor element to be associated with the given
@@ -3454,9 +3477,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    * @param variable the variable with which this access is associated
    */
   PropertyAccessorElementImpl.con2(PropertyInducingElementImpl variable2) : super.con2(variable2.name, -1) {
-    _jtd_constructor_200_impl(variable2);
+    _jtd_constructor_202_impl(variable2);
   }
-  _jtd_constructor_200_impl(PropertyInducingElementImpl variable2) {
+  _jtd_constructor_202_impl(PropertyInducingElementImpl variable2) {
     this._variable = variable2;
     synthetic = true;
   }
@@ -3521,18 +3544,18 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
    * @param name the name of this element
    */
   PropertyInducingElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_201_impl(name);
+    _jtd_constructor_203_impl(name);
   }
-  _jtd_constructor_201_impl(Identifier name) {
+  _jtd_constructor_203_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic element to have the given name.
    * @param name the name of this element
    */
   PropertyInducingElementImpl.con2(String name) : super.con2(name, -1) {
-    _jtd_constructor_202_impl(name);
+    _jtd_constructor_204_impl(name);
   }
-  _jtd_constructor_202_impl(String name) {
+  _jtd_constructor_204_impl(String name) {
     synthetic = true;
   }
   PropertyAccessorElement get getter => _getter;
@@ -3603,18 +3626,18 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
    * @param name the name of this element
    */
   TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_204_impl(name);
+    _jtd_constructor_206_impl(name);
   }
-  _jtd_constructor_204_impl(Identifier name) {
+  _jtd_constructor_206_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic top-level variable element to have the given name.
    * @param name the name of this element
    */
   TopLevelVariableElementImpl.con2(String name) : super.con2(name) {
-    _jtd_constructor_205_impl(name);
+    _jtd_constructor_207_impl(name);
   }
-  _jtd_constructor_205_impl(String name) {
+  _jtd_constructor_207_impl(String name) {
   }
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
@@ -3693,9 +3716,9 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    * @param name the name of this element
    */
   VariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_207_impl(name);
+    _jtd_constructor_209_impl(name);
   }
-  _jtd_constructor_207_impl(Identifier name) {
+  _jtd_constructor_209_impl(Identifier name) {
   }
   /**
    * Initialize a newly created variable element to have the given name.
@@ -3704,9 +3727,9 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    * declaration of this element
    */
   VariableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_208_impl(name, nameOffset);
+    _jtd_constructor_210_impl(name, nameOffset);
   }
-  _jtd_constructor_208_impl(String name, int nameOffset) {
+  _jtd_constructor_210_impl(String name, int nameOffset) {
   }
   /**
    * Return the result of evaluating this variable's initializer as a compile-time constant
@@ -3899,9 +3922,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con1(ExecutableElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_259_impl(element);
+    _jtd_constructor_261_impl(element);
   }
-  _jtd_constructor_259_impl(ExecutableElement element) {
+  _jtd_constructor_261_impl(ExecutableElement element) {
   }
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
@@ -3909,9 +3932,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_260_impl(element);
+    _jtd_constructor_262_impl(element);
   }
-  _jtd_constructor_260_impl(FunctionTypeAliasElement element) {
+  _jtd_constructor_262_impl(FunctionTypeAliasElement element) {
   }
   bool operator ==(Object object) {
     if (object is! FunctionTypeImpl) {
@@ -4200,9 +4223,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param element the element representing the declaration of the type
    */
   InterfaceTypeImpl.con1(ClassElement element) : super(element, element.name) {
-    _jtd_constructor_261_impl(element);
+    _jtd_constructor_263_impl(element);
   }
-  _jtd_constructor_261_impl(ClassElement element) {
+  _jtd_constructor_263_impl(ClassElement element) {
   }
   /**
    * Initialize a newly created type to have the given name. This constructor should only be used in
@@ -4210,9 +4233,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param name the name of the type
    */
   InterfaceTypeImpl.con2(String name) : super(null, name) {
-    _jtd_constructor_262_impl(name);
+    _jtd_constructor_264_impl(name);
   }
-  _jtd_constructor_262_impl(String name) {
+  _jtd_constructor_264_impl(String name) {
   }
   bool operator ==(Object object) {
     if (object is! InterfaceTypeImpl) {
