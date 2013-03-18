@@ -71,12 +71,8 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('sdk/lib/_internal/dartdoc'),
 ];
 
-main() {
+void testConfigurations(List<Map> configurations) {
   var startTime = new DateTime.now();
-  var optionsParser = new TestOptionsParser();
-  List<Map> configurations = optionsParser.parse(new Options().arguments);
-  if (configurations == null || configurations.length == 0) return;
-
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   Map<String, RegExp> selectors = firstConf['selectors'];
@@ -227,3 +223,12 @@ main() {
     Future.wait(serverFutures).then((_) => startProcessQueue());
   }
 }
+
+void main() {
+  var optionsParser = new TestOptionsParser();
+  var configurations = optionsParser.parse(new Options().arguments);
+  if (configurations != null || configurations.length > 0) {
+    testConfigurations(configurations);
+  }
+}
+
