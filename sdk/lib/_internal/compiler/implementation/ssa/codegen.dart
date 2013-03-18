@@ -1592,13 +1592,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerInvoke(HInvokeDynamic node, Selector selector) {
-    bool inLoop = node.block.enclosingLoopHeader != null;
-    if (inLoop) {
-      Set<Selector> selectors = backend.selectorsCalledInLoop.putIfAbsent(
-          selector.name, () => new Set<Selector>());
-      selectors.add(selector);
-    }
-
     if (node.isInterceptorCall) {
       backend.addInterceptedSelector(selector);
     }

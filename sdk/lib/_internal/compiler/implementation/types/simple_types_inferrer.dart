@@ -668,7 +668,21 @@ class SimpleTypesInferrer extends TypesInferrer {
                              Selector selector,
                              Element caller,
                              Element callee,
-                             ArgumentsTypes arguments) {
+                             ArgumentsTypes arguments,
+                             bool inLoop) {
+    if (inLoop) {
+      // For instance methods, we only register a selector called in a
+      // loop if it is a typed selector, to avoid marking too many
+      // methods as being called from within a loop. This cuts down
+      // on the code bloat.
+      // TODO(ngeoffray): We should move the filtering on the selector
+      // in the backend. It is not the inferrer role to do this kind
+      // of optimization.
+      if (Elements.isStaticOrTopLevel(callee) || selector.mask != null) {
+        compiler.world.addFunctionCalledInLoop(callee);
+      }
+    }
+
     assert(isNotClosure(caller));
     callee = callee.implementation;
     if (!analyzeCount.containsKey(caller)) {
@@ -780,7 +794,8 @@ class SimpleTypesInferrer extends TypesInferrer {
                                   Selector selector,
                                   TypeMask receiverType,
                                   Element caller,
-                                  ArgumentsTypes arguments) {
+                                  ArgumentsTypes arguments,
+                                  bool inLoop) {
     assert(isNotClosure(caller));
     Selector typedSelector = isDynamicType(receiverType)
         ? selector
@@ -793,7 +808,8 @@ class SimpleTypesInferrer extends TypesInferrer {
       // [: TypeMask.appliesTo(element) :] method, that will return
       // whether [: element :] is a potential target for the type.
       if (true) {
-        registerCalledElement(send, selector, caller, element, arguments);
+        registerCalledElement(
+            send, typedSelector, caller, element, arguments, inLoop);
       } else {
         unregisterCalledElement(send, selector, caller, element);
       }
@@ -1131,7 +1147,9 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
+  int loopLevel = 0;
 
+  bool get inLoop => loopLevel > 0;
   bool get isThisExposed => locals.isThisExposed;
   void set isThisExposed(value) { locals.isThisExposed = value; }
 
@@ -1518,8 +1536,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       ArgumentsTypes arguments =  new ArgumentsTypes([rhsType], null);
       if (Elements.isStaticOrTopLevelField(element)) {
         if (element.isSetter()) {
-          inferrer.registerCalledElement(
-              node, setterSelector, outermostElement, element, arguments);
+          handleStaticSend(node, setterSelector, element, arguments);
         } else {
           assert(element.isField());
           inferrer.recordNonFinalFieldElementType(node, element, rhsType);
@@ -1572,8 +1589,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
             ? inferrer.typeOfElement(element)
             : inferrer.returnTypeOfElement(element);
         if (getterElement.isGetter()) {
-          inferrer.registerCalledElement(
-              node, getterSelector, outermostElement, getterElement, null);
+          handleStaticSend(node, getterSelector, getterElement, null);
         }
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
@@ -1581,8 +1597,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
           inferrer.recordNonFinalFieldElementType(node, element, newType);
         } else {
           assert(element.isSetter());
-          inferrer.registerCalledElement(
-              node, setterSelector, outermostElement, element,
+          handleStaticSend(
+              node, setterSelector, element,
               new ArgumentsTypes([newType], null));
         }
       } else if (Elements.isUnresolved(element) || element.isSetter()) {
@@ -1643,14 +1659,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     // are calling does not expose this.
     isThisExposed = true;
     if (node.isPropertyAccess) {
-      inferrer.registerCalledElement(
-          node, selector, outermostElement, element, null);
+      handleStaticSend(node, selector, element, null);
       return inferrer.typeOfElement(element);
     } else if (element.isFunction()) {
       if (!selector.applies(element, compiler)) return inferrer.dynamicType;
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
-      inferrer.registerCalledElement(
-          node, selector, outermostElement, element, arguments);
+      handleStaticSend(node, selector, element, arguments);
       return inferrer.returnTypeOfElement(element);
     } else {
       analyzeArguments(node.arguments);
@@ -1674,16 +1688,15 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         || element.isGetter()
         || element.isField()) {
       if (element.isGetter()) {
-        inferrer.registerCalledElement(node, new Selector.getterFrom(selector),
-                                       outermostElement, element, null);
+        handleStaticSend(node, new Selector.getterFrom(selector),
+                         element, null);
       }
       return inferrer.dynamicType;
     }
 
     if (!selector.applies(element, compiler)) return inferrer.dynamicType;
 
-    inferrer.registerCalledElement(
-        node, selector, outermostElement, element, arguments);
+    handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.growableListType;
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
@@ -1813,14 +1826,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     if (Elements.isStaticOrTopLevelField(element)) {
-      inferrer.registerCalledElement(
-          node, selector, outermostElement, element, null);
+      handleStaticSend(node, selector, element, null);
       return inferrer.typeOfElement(element);
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      inferrer.registerCalledElement(
-          node, selector, outermostElement, element, null);
+      handleStaticSend(node, selector, element, null);
       return inferrer.functionType;
     } else if (Elements.isErroneousElement(element)) {
       return inferrer.dynamicType;
@@ -1846,12 +1857,20 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
+  void handleStaticSend(Node node,
+                        Selector selector,
+                        Element element,
+                        ArgumentsTypes arguments) {
+    return inferrer.registerCalledElement(
+        node, selector, outermostElement, element, arguments, inLoop);
+  }
+
   TypeMask handleDynamicSend(Node node,
                              Selector selector,
                              TypeMask receiver,
                              ArgumentsTypes arguments) {
     return inferrer.registerCalledSelector(
-        node, selector, receiver, outermostElement, arguments);
+        node, selector, receiver, outermostElement, arguments, inLoop);
   }
 
   TypeMask visitDynamicSend(Send node) {
@@ -1957,6 +1976,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitWhile(While node) {
+    loopLevel++;
     bool changed = false;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
@@ -1965,10 +1985,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       changed = saved.merge(locals);
       locals = saved;
     } while (changed);
+    loopLevel--;
     return inferrer.dynamicType;
   }
 
- TypeMask visitDoWhile(DoWhile node) {
+  TypeMask visitDoWhile(DoWhile node) {
+    loopLevel++;
     bool changed = false;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
@@ -1977,12 +1999,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       changed = saved.merge(locals);
       locals = saved;
     } while (changed);
+    loopLevel--;
     return inferrer.dynamicType;
   }
 
   TypeMask visitFor(For node) {
     bool changed = false;
     visit(node.initializer);
+    loopLevel++;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
       visit(node.condition);
@@ -1991,6 +2015,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       changed = saved.merge(locals);
       locals = saved;
     } while (changed);
+    loopLevel--;
     return inferrer.dynamicType;
   }
 
@@ -2016,12 +2041,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       variable = elements[variableDefinitions.definitions.nodes.head];
     }
     locals.update(variable, inferrer.dynamicType);
+    loopLevel++;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
       visit(node.body);
       changed = saved.merge(locals);
       locals = saved;
     } while (changed);
+    loopLevel--;
     return inferrer.dynamicType;
   }
 

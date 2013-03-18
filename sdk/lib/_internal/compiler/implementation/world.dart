@@ -9,6 +9,7 @@ class World {
   final Map<ClassElement, Set<MixinApplicationElement>> mixinUses;
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final FullFunctionSet allFunctions;
+  final Set<Element> functionsCalledInLoop = new Set<Element>();
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
@@ -174,5 +175,13 @@ class World {
         .filter(noSuchMethodSelector)
         .map((Element member) => member.getEnclosingClass())
         .where((ClassElement holder) => !identical(holder, objectClass));
+  }
+
+  void addFunctionCalledInLoop(Element element) {
+    functionsCalledInLoop.add(element);
+  }
+
+  bool isCalledInLoop(Element element) {
+    return functionsCalledInLoop.contains(element);
   }
 }

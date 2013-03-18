@@ -51,15 +51,8 @@ class SsaBuilderTask extends CompilerTask {
       }
       assert(graph.isValid());
       if (!identical(kind, ElementKind.FIELD)) {
-        Set<Selector> selectors = backend.selectorsCalledInLoop[element.name];
-        graph.calledInLoop = selectors != null &&
-            selectors.any((selector) => selector.applies(element, compiler));
-
-        // If there is an estimate of the parameter types assume these types
-        // when compiling.
-        // TODO(karlklose,ngeoffray): add a check to make sure that element is
-        // of type FunctionElement.
         FunctionElement function = element;
+        graph.calledInLoop = compiler.world.isCalledInLoop(function);
         OptionalParameterTypes defaultValueTypes = null;
         FunctionSignature signature = function.computeSignature(compiler);
         if (signature.optionalParameterCount > 0) {
