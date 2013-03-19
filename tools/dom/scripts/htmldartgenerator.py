@@ -342,8 +342,8 @@ class HtmlDartGenerator(object):
     implements = []
     if self._interface_type_info.is_typed_array():
       element_type = self._interface_type_info.list_item_type()
-      implements.append('List<%s>' % self._DartType(element_type))
-    if self._interface_type_info.list_item_type():
+      implements.append('List<%s>' % element_type)
+    elif self._interface_type_info.list_item_type():
       item_type_info = self._type_registry.TypeInfo(
           self._interface_type_info.list_item_type())
       implements.append('List<%s>' % item_type_info.dart_type())

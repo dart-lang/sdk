@@ -11520,7 +11520,7 @@ class FileWriterSync native "*FileWriterSync" {
 
 @DocsEditable
 @DomName('Float32Array')
-class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float32Array" {
+class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<double> native "*Float32Array" {
 
   @DomName('Float32Array.Float32Array')
   @DocsEditable
@@ -11752,7 +11752,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 @DocsEditable
 @DomName('Float64Array')
-class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float64Array" {
+class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<double> native "*Float64Array" {
 
   @DomName('Float64Array.Float64Array')
   @DocsEditable

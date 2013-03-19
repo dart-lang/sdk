@@ -12237,7 +12237,7 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Float32Array')
-class Float32Array extends ArrayBufferView implements List<num> {
+class Float32Array extends ArrayBufferView implements List<double> {
   Float32Array.internal() : super.internal();
 
   @DomName('Float32Array.Float32Array')
@@ -12486,7 +12486,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
 @DocsEditable
 @DomName('Float64Array')
-class Float64Array extends ArrayBufferView implements List<num> {
+class Float64Array extends ArrayBufferView implements List<double> {
   Float64Array.internal() : super.internal();
 
   @DomName('Float64Array.Float64Array')
