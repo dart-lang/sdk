@@ -274,7 +274,7 @@ websql_test/supported: Fail
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 dromaeo_smoke_test: Pass, Fail # Issue: 8257
 webgl_1_test: Pass, Fail   # Issue 8219
-postmessage_structured_test: Fail
+postmessage_structured_test/typed_arrays: Fail # FF incorrectly clones arrays.
 
 # FireFox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
