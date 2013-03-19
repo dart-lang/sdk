@@ -254,15 +254,6 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
 
-  // For optimized code, keep a bitmap of the frame in order to build
-  // stackmaps for GC safepoints in the prologue.
-  LocationSummary* prologue_locs = NULL;
-  if (is_optimizing()) {
-    // Spill slots are allocated but not initialized.
-    prologue_locs = new LocationSummary(0, 0, LocationSummary::kCall);
-    prologue_locs->stack_bitmap()->SetLength(StackSize());
-  }
-
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
   // No such checking code is generated if only fixed parameters are declared,

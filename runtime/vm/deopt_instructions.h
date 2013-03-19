@@ -165,9 +165,7 @@ class DeoptInfoBuilder : public ValueObject {
                              intptr_t to_index);
 
   // Copy from optimized frame to unoptimized.
-  void AddCopy(const Location& from_loc,
-               const Value& from_value,
-               intptr_t to_index);
+  void AddCopy(const Location& from_loc, intptr_t to_index);
   void AddPcMarker(const Function& function, intptr_t to_index);
   void AddCallerFp(intptr_t to_index);
   void AddCallerPc(intptr_t to_index);

@@ -79,7 +79,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   for (intptr_t i = current->Length() - 1;
        i >= current->fixed_parameter_count();
        i--) {
-    builder->AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
+    builder->AddCopy(current->LocationAt(i), slot_ix++);
   }
 
   // PC marker and caller FP.
@@ -98,15 +98,14 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
     for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-      builder->AddCopy(previous->LocationAt(i), *previous->ValueAt(i),
-                       slot_ix++);
+      builder->AddCopy(previous->LocationAt(i), slot_ix++);
     }
 
     // Set the locals, note that outgoing arguments are not in the environment.
     for (intptr_t i = current->Length() - 1;
          i >= current->fixed_parameter_count();
          i--) {
-      builder->AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
+      builder->AddCopy(current->LocationAt(i), slot_ix++);
     }
 
     // PC marker and caller FP.
@@ -125,7 +124,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-    builder->AddCopy(previous->LocationAt(i), *previous->ValueAt(i), slot_ix++);
+    builder->AddCopy(previous->LocationAt(i), slot_ix++);
   }
 
   const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());

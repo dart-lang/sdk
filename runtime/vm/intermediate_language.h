@@ -4462,11 +4462,6 @@ class Environment : public ZoneAllocated {
     return locations_[index];
   }
 
-  Location* LocationSlotAt(intptr_t index) const {
-    ASSERT((index >= 0) && (index < values_.length()));
-    return &locations_[index];
-  }
-
   // The use index is the index in the flattened environment.
   Value* ValueAtUseIndex(intptr_t index) const {
     const Environment* env = this;

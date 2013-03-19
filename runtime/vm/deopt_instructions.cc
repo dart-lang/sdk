@@ -691,7 +691,6 @@ void DeoptInfoBuilder::AddPcMarker(const Function& function,
 
 
 void DeoptInfoBuilder::AddCopy(const Location& from_loc,
-                               const Value& from_value,
                                const intptr_t to_index) {
   DeoptInstr* deopt_instr = NULL;
   if (from_loc.IsConstant()) {
