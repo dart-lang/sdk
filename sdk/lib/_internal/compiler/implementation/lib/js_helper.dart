@@ -16,7 +16,8 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF,
                                    UNINTERCEPTED;
 import 'dart:_interceptors' show getInterceptor,
-                                 interceptedNames;
+                                 interceptedNames,
+                                 JSIndexable;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -1284,7 +1285,7 @@ malformedTypeCast(value, type, reasons) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior {
+abstract class JavaScriptIndexingBehavior extends JSIndexable {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.
