@@ -1775,6 +1775,49 @@ class Field : public Object {
                                             raw_ptr()->kind_bits_));
   }
 
+  // Return class id that any non-null value read from this field is guaranteed
+  // to have or kDynamicCid if such class id is not known.
+  // Stores to this field must update this information hence the name.
+  intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
+  void set_guarded_cid(intptr_t cid) const {
+    raw_ptr()->guarded_cid_ = cid;
+  }
+  static intptr_t guarded_cid_offset() {
+    return OFFSET_OF(RawField, guarded_cid_);
+  }
+
+  // Returns false if any value read from this field is guaranteed to be
+  // not null.
+  // Internally we is_nullable_ field contains either kNullCid (nullable) or
+  // any other value (non-nullable) instead of boolean. This is done to simplify
+  // guarding sequence in the generated code.
+  bool is_nullable() const {
+    return raw_ptr()->is_nullable_ == kNullCid;
+  }
+  void set_is_nullable(bool val) const {
+    raw_ptr()->is_nullable_ = val ? kNullCid : kIllegalCid;
+  }
+  static intptr_t is_nullable_offset() {
+    return OFFSET_OF(RawField, is_nullable_);
+  }
+
+  // Update guarded class id and nullability of the field to reflect assignment
+  // of the value with the given class id to this field.
+  void UpdateCid(intptr_t cid) const;
+
+  // Return the list of optimized code objects that were optimized under
+  // assumptions about guarded class id and nullability of this field.
+  // These code objects must be deoptimized when field's properties change.
+  // Code objects are held weakly via an indirection through WeakProperty.
+  RawArray* dependent_code() const;
+  void set_dependent_code(const Array& array) const;
+
+  // Add the given code object to the list of dependent ones.
+  void RegisterDependentCode(const Code& code) const;
+
+  // Deoptimize all dependent code objects.
+  void DeoptimizeDependentCode() const;
+
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);
@@ -4694,6 +4737,9 @@ class Array : public Instance {
   }
   static intptr_t length_offset() { return OFFSET_OF(RawArray, length_); }
   static intptr_t data_offset() { return length_offset() + kWordSize; }
+  static intptr_t element_offset(intptr_t index) {
+    return data_offset() + kWordSize * index;
+  }
 
   RawObject* At(intptr_t index) const {
     return *ObjectAddr(index);

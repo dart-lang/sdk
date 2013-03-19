@@ -167,6 +167,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
     }
 
+    const ZoneGrowableArray<Field*>* guarded_fields = NULL;
+
     if (optimized) {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphoptimizer_timer,
@@ -192,6 +194,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // Use lists are maintained and validated by the inliner.
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
+
+      guarded_fields = flow_graph->FieldDependencies();
 
       // Propagate types and eliminate more type tests.
       if (FLAG_propagate_types) {
@@ -221,6 +225,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
       // Propagate types and eliminate even more type tests.
       if (FLAG_propagate_types) {
+        // Recompute types after constant propagation to infer more precise
+        // types for uses that were previously reached by now eliminated phis.
         FlowGraphTypePropagator propagator(flow_graph);
         propagator.Propagate();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -303,12 +309,18 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       graph_compiler.FinalizeExceptionHandlers(code);
       graph_compiler.FinalizeComments(code);
       graph_compiler.FinalizeStaticCallTargetsTable(code);
+
       if (optimized) {
         CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
         function.SetCode(code);
         if (FLAG_trace_compiler) {
           OS::Print("--> patching entry %#"Px"\n",
                     Code::Handle(function.unoptimized_code()).EntryPoint());
+        }
+
+        for (intptr_t i = 0; i < guarded_fields->length(); i++) {
+          const Field& field = *(*guarded_fields)[i];
+          field.RegisterDependentCode(code);
         }
       } else {
         function.set_unoptimized_code(code);

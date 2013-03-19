@@ -20,6 +20,7 @@ DECLARE_FLAG(bool, use_cha);
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
+      visited_blocks_(new BitVector(flow_graph->reverse_postorder().length())),
       types_(flow_graph->current_ssa_temp_index()),
       in_worklist_(new BitVector(flow_graph->current_ssa_temp_index())),
       asserts_(NULL),
@@ -74,9 +75,21 @@ void FlowGraphTypePropagator::Propagate() {
       for (Value::Iterator it(def->input_use_list());
            !it.Done();
            it.Advance()) {
-        Definition* use_defn = it.Current()->instruction()->AsDefinition();
+        Instruction* instr = it.Current()->instruction();
+
+        Definition* use_defn = instr->AsDefinition();
         if (use_defn != NULL) {
           AddToWorklist(use_defn);
+        }
+
+        // If the value flow into a branch recompute type constrained by the
+        // branch (if any). This ensures that correct non-nullable type will
+        // flow downwards from the branch on the comparison with the null
+        // constant.
+        BranchInstr* branch = instr->AsBranch();
+        if (branch != NULL) {
+          ConstrainedCompileType* constrained_type = branch->constrained_type();
+          if (constrained_type != NULL) constrained_type->Update();
         }
       }
     }
@@ -89,6 +102,11 @@ void FlowGraphTypePropagator::Propagate() {
 
 
 void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
+  if (visited_blocks_->Contains(block->postorder_number())) {
+    return;
+  }
+  visited_blocks_->Add(block->postorder_number());
+
   const intptr_t rollback_point = rollback_.length();
 
   if (FLAG_enable_type_checks) {
@@ -119,10 +137,50 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
     }
   }
 
+  HandleBranchOnNull(block);
+
   for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
     PropagateRecursive(block->dominated_blocks()[i]);
   }
 
+  RollbackTo(rollback_point);
+}
+
+
+void FlowGraphTypePropagator::HandleBranchOnNull(BlockEntryInstr* block) {
+  BranchInstr* branch = block->last_instruction()->AsBranch();
+  if (branch == NULL) {
+    return;
+  }
+
+  StrictCompareInstr* compare = branch->comparison()->AsStrictCompare();
+  if ((compare == NULL) || !compare->right()->BindsToConstantNull()) {
+    return;
+  }
+
+  const intptr_t rollback_point = rollback_.length();
+
+  Definition* defn = compare->left()->definition();
+
+  if (compare->kind() == Token::kEQ_STRICT) {
+    branch->set_constrained_type(MarkNonNullable(defn));
+    PropagateRecursive(branch->false_successor());
+
+    SetCid(defn, kNullCid);
+    PropagateRecursive(branch->true_successor());
+  } else if (compare->kind() == Token::kNE_STRICT) {
+    branch->set_constrained_type(MarkNonNullable(defn));
+    PropagateRecursive(branch->true_successor());
+
+    SetCid(defn, kNullCid);
+    PropagateRecursive(branch->false_successor());
+  }
+
+  RollbackTo(rollback_point);
+}
+
+
+void FlowGraphTypePropagator::RollbackTo(intptr_t rollback_point) {
   for (intptr_t i = rollback_.length() - 1; i >= rollback_point; i--) {
     types_[rollback_[i].index()] = rollback_[i].type();
   }
@@ -151,9 +209,22 @@ void FlowGraphTypePropagator::SetTypeOf(Definition* def, CompileType* type) {
 
 void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   CompileType* current = TypeOf(def);
-  if (current->ToCid() == cid) return;
+  if (current->IsNone() || (current->ToCid() != cid)) {
+    SetTypeOf(def, ZoneCompileType::Wrap(CompileType::FromCid(cid)));
+  }
+}
 
-  SetTypeOf(def, ZoneCompileType::Wrap(CompileType::FromCid(cid)));
+
+ConstrainedCompileType* FlowGraphTypePropagator::MarkNonNullable(
+    Definition* def) {
+  CompileType* current = TypeOf(def);
+  if (current->is_nullable()) {
+    ConstrainedCompileType* constrained_type =
+        new NotNullConstrainedCompileType(current);
+    SetTypeOf(def, constrained_type->ToCompileType());
+    return constrained_type;
+  }
+  return NULL;
 }
 
 
@@ -193,6 +264,24 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 
   SetCid(check->value()->definition(),
          check->unary_checks().GetReceiverClassIdAt(0));
+}
+
+
+void FlowGraphTypePropagator::VisitGuardField(GuardFieldInstr* guard) {
+  const intptr_t cid = guard->field().guarded_cid();
+  if ((cid == kIllegalCid) || (cid == kDynamicCid)) {
+    return;
+  }
+
+  Definition* def = guard->value()->definition();
+  CompileType* current = TypeOf(def);
+  if (current->IsNone() ||
+      (current->ToCid() != cid) ||
+      (current->is_nullable() && !guard->field().is_nullable())) {
+    const bool is_nullable =
+        guard->field().is_nullable() && current->is_nullable();
+    SetTypeOf(def, ZoneCompileType::Wrap(CompileType(is_nullable, cid, NULL)));
+  }
 }
 
 
@@ -789,6 +878,11 @@ CompileType LoadFieldInstr::ComputeType() const {
 
   if (FLAG_enable_type_checks) {
     return CompileType::FromAbstractType(type());
+  }
+
+  if (field_ != NULL) {
+    return CompileType::CreateNullable(field_->is_nullable(),
+                                       field_->guarded_cid());
   }
 
   return CompileType::FromCid(result_cid_);

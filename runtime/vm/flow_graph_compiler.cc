@@ -559,8 +559,10 @@ bool FlowGraphCompiler::TryIntrinsify() {
       ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
       const StoreInstanceFieldNode& store_node =
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-      GenerateInlinedSetter(store_node.field().Offset());
-      return true;
+      if (store_node.field().guarded_cid() == kDynamicCid) {
+        GenerateInlinedSetter(store_node.field().Offset());
+        return true;
+      }
     }
   }
   // Even if an intrinsified version of the function was successfully

@@ -224,6 +224,17 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* GuardFieldInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;

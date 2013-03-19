@@ -13,6 +13,7 @@
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
@@ -422,6 +423,25 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
 }
 
 
+static void LoadValueCid(FlowGraphCompiler* compiler,
+                         Register value_cid_reg,
+                         Register value_reg,
+                         Label* value_is_smi = NULL) {
+  Label done;
+  if (value_is_smi == NULL) {
+    __ movl(value_cid_reg, Immediate(kSmiCid));
+  }
+  __ testl(value_reg, Immediate(kSmiTagMask));
+  if (value_is_smi == NULL) {
+    __ j(ZERO, &done, Assembler::kNearJump);
+  } else {
+    __ j(ZERO, value_is_smi);
+  }
+  __ LoadClassId(value_cid_reg, value_reg);
+  __ Bind(&done);
+}
+
+
 static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           const ICData& orig_ic_data,
                                           LocationSummary* locs,
@@ -436,20 +456,9 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
   Register left = locs->in(0).reg();
   Register right = locs->in(1).reg();
-  __ testl(left, Immediate(kSmiTagMask));
   Register temp = locs->temp(0).reg();
-  if (ic_data.GetReceiverClassIdAt(0) == kSmiCid) {
-    Label done, load_class_id;
-    __ j(NOT_ZERO, &load_class_id, Assembler::kNearJump);
-    __ movl(temp, Immediate(kSmiCid));
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&load_class_id);
-    __ LoadClassId(temp, left);
-    __ Bind(&done);
-  } else {
-    __ j(ZERO, deopt);  // Smi deopts.
-    __ LoadClassId(temp, left);
-  }
+  LoadValueCid(compiler, temp, left,
+               (ic_data.GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
   // 'temp' contains class-id of the left argument.
   ObjectStore* object_store = Isolate::Current()->object_store();
   Condition cond = TokenKindToSmiCondition(kind);
@@ -949,13 +958,8 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Load class into EDI. Since this is a call, any register except
     // the fixed input registers would be ok.
     ASSERT((left != EDI) && (right != EDI));
-    Label done;
     const intptr_t kNumArguments = 2;
-    __ movl(EDI, Immediate(kSmiCid));
-    __ testl(left, Immediate(kSmiTagMask));
-    __ j(ZERO, &done);
-    __ LoadClassId(EDI, left);
-    __ Bind(&done);
+    LoadValueCid(compiler, EDI, left);
     compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
                               EDI,  // Class id register.
                               kNumArguments,
@@ -1510,6 +1514,154 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+}
+
+
+LocationSummary* GuardFieldInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, 0, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if ((value()->Type()->ToCid() == kDynamicCid) &&
+      (field().guarded_cid() != kSmiCid)) {
+    summary->AddTemp(Location::RequiresRegister());
+  }
+  if (field().guarded_cid() == kIllegalCid) {
+    summary->AddTemp(Location::RequiresRegister());
+  }
+  return summary;
+}
+
+
+void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t field_cid = field().guarded_cid();
+  const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
+
+  if (field_cid == kDynamicCid) {
+    ASSERT(!compiler->is_optimizing());
+    return;  // Nothing to emit.
+  }
+
+  const intptr_t value_cid = value()->Type()->ToCid();
+
+  Register value_reg = locs()->in(0).reg();
+
+  Register value_cid_reg = ((value_cid == kDynamicCid) &&
+      (field_cid != kSmiCid)) ? locs()->temp(0).reg() : kNoRegister;
+
+  Register field_reg = (field_cid == kIllegalCid) ?
+      locs()->temp(locs()->temp_count() - 1).reg() : kNoRegister;
+
+  Label ok, fail_label;
+
+  Label* deopt = compiler->is_optimizing() ?
+      compiler->AddDeoptStub(deopt_id(), kDeoptGuardField) : NULL;
+
+  Label* fail = (deopt != NULL) ? deopt : &fail_label;
+
+  const bool ok_is_fall_through = (deopt != NULL);
+
+  if (!compiler->is_optimizing() || (field_cid == kIllegalCid)) {
+    if (!compiler->is_optimizing()) {
+      // Currently we can't have different location summaries for optimized
+      // and non-optimized code. So instead we manually pick up a register
+      // that is known to be free because we know how non-optimizing compiler
+      // allocates registers.
+      field_reg = EBX;
+      ASSERT((field_reg != value_reg) && (field_reg != value_cid_reg));
+    }
+
+    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+
+    FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
+    FieldAddress field_nullability_operand(
+        field_reg, Field::is_nullable_offset());
+
+    if (value_cid == kDynamicCid) {
+      if (value_cid_reg == kNoRegister) {
+        ASSERT(!compiler->is_optimizing());
+        value_cid_reg = EDX;
+        ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
+      }
+
+      LoadValueCid(compiler, value_cid_reg, value_reg);
+
+      __ cmpl(value_cid_reg, field_cid_operand);
+      __ j(EQUAL, &ok);
+      __ cmpl(value_cid_reg, field_nullability_operand);
+    } else if (value_cid == kNullCid) {
+      __ cmpl(field_nullability_operand, Immediate(value_cid));
+    } else {
+      __ cmpl(field_cid_operand, Immediate(value_cid));
+    }
+    __ j(EQUAL, &ok);
+
+    __ cmpl(field_cid_operand, Immediate(kIllegalCid));
+    __ j(NOT_EQUAL, fail);
+
+    if (value_cid == kDynamicCid) {
+      __ movl(field_cid_operand, value_cid_reg);
+      __ movl(field_nullability_operand, value_cid_reg);
+    } else {
+      __ movl(field_cid_operand, Immediate(value_cid));
+      __ movl(field_nullability_operand, Immediate(value_cid));
+    }
+
+    if (!ok_is_fall_through) {
+      __ jmp(&ok);
+    }
+  } else {
+    if (value_cid == kDynamicCid) {
+      // Field's guarded class id is fixed by value's class id is not known.
+      __ testl(value_reg, Immediate(kSmiTagMask));
+
+      if (field_cid != kSmiCid) {
+        __ j(ZERO, fail);
+        __ LoadClassId(value_cid_reg, value_reg);
+        __ cmpl(value_cid_reg, Immediate(field_cid));
+      }
+
+      if (field().is_nullable() && (field_cid != kNullCid)) {
+        __ j(EQUAL, &ok);
+        const Immediate& raw_null =
+            Immediate(reinterpret_cast<intptr_t>(Object::null()));
+        __ cmpl(value_reg, raw_null);
+      }
+
+      if (ok_is_fall_through) {
+        __ j(NOT_EQUAL, fail);
+      } else {
+        __ j(EQUAL, &ok);
+      }
+    } else {
+      // Both value's and field's class id is known.
+      if ((value_cid != field_cid) && (value_cid != nullability)) {
+        if (ok_is_fall_through) {
+          __ jmp(fail);
+        }
+      } else {
+        // Nothing to emit.
+        ASSERT(!compiler->is_optimizing());
+        return;
+      }
+    }
+  }
+
+  if (deopt == NULL) {
+    ASSERT(!compiler->is_optimizing());
+    __ Bind(fail);
+
+    __ cmpl(FieldAddress(field_reg, Field::guarded_cid_offset()),
+            Immediate(kDynamicCid));
+    __ j(EQUAL, &ok);
+
+    __ pushl(field_reg);
+    __ pushl(value_reg);
+    __ CallRuntime(kUpdateFieldCidRuntimeEntry);
+    __ Drop(2);  // Drop the field and the value.
+  }
+
+  __ Bind(&ok);
 }
 
 
@@ -2801,17 +2953,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(EAX,
       Address(ESP, (instance_call()->ArgumentCount() - 1) * kWordSize));
 
-  Label done;
-  if (ic_data().GetReceiverClassIdAt(0) == kSmiCid) {
-    __ movl(EDI, Immediate(kSmiCid));
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(ZERO, &done, Assembler::kNearJump);
-  } else {
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);
-  }
-  __ LoadClassId(EDI, EAX);
-  __ Bind(&done);
+  LoadValueCid(compiler, EDI, EAX,
+               (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
 
   compiler->EmitTestAndCall(ic_data(),
                             EDI,  // Class id register.
@@ -2837,16 +2980,28 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CheckClassInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
+  if (!null_check()) {
+    summary->AddTemp(Location::RequiresRegister());
+  }
   return summary;
 }
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (null_check()) {
+    Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                          kDeoptCheckClass);
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(locs()->in(0).reg(), raw_null);
+    __ j(EQUAL, deopt);
+    return;
+  }
+
   ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
          (unary_checks().NumberOfChecks() > 1));
   Register value = locs()->in(0).reg();

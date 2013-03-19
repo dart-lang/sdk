@@ -39,8 +39,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SelectRepresentations();
 
-  void PropagateSminess();
-
   void InferSmiRanges();
 
   virtual void VisitStaticCall(StaticCallInstr* instr);

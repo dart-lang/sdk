@@ -1380,7 +1380,8 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 }
 
 
-static void DeoptimizeAt(const Code& optimized_code, uword pc) {
+void DeoptimizeAt(const Code& optimized_code, uword pc) {
+  ASSERT(optimized_code.is_optimized());
   intptr_t deopt_reason = kDeoptUnknown;
   const DeoptInfo& deopt_info =
       DeoptInfo::Handle(optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason));
@@ -1731,6 +1732,19 @@ double DartModulo(double left, double right) {
     }
   }
   return remainder;
+}
+
+
+// Update global type feedback recorded for a field recording the assignment
+// of the given value.
+//   Arg0: Field object;
+//   Arg1: Value that is being stored.
+DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
+  ASSERT(arguments.ArgCount() == kUpdateFieldCidRuntimeEntry.argument_count());
+  const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
+  const Object& value = Object::Handle(arguments.ArgAt(1));
+
+  field.UpdateCid(Class::Handle(value.clazz()).id());
 }
 
 }  // namespace dart

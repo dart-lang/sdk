@@ -3236,7 +3236,18 @@ void Function::SetCode(const Code& value) const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
+
   const Code& current_code = Code::Handle(CurrentCode());
+
+  // Optimized code object might have been actually fully produced by the
+  // intrinsifier in this case nothing has to be done. In fact an attempt to
+  // patch such code will cause crash.
+  // TODO(vegorov): if intrisifier can fully intrisify the function then we
+  // should not later try to optimize it.
+  if (PcDescriptors::Handle(current_code.pc_descriptors()).Length() == 0) {
+    return;
+  }
+
   if (FLAG_trace_disabling_optimized_code) {
     OS::Print("Disabling optimized code: '%s' entry: %#"Px"\n",
       ToFullyQualifiedCString(),
@@ -4696,6 +4707,9 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
+  result.set_guarded_cid(kIllegalCid);
+  result.set_is_nullable(false);
+  result.set_dependent_code(Array::Handle());
   return result.raw();
 }
 
@@ -4708,6 +4722,7 @@ RawField* Field::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
+  clone.set_dependent_code(Array::Handle());
   if (!clone.is_static()) {
     clone.SetOffset(0);
   }
@@ -4734,6 +4749,137 @@ const char* Field::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
+}
+
+
+RawArray* Field::dependent_code() const {
+  return raw_ptr()->dependent_code_;
+}
+
+
+void Field::set_dependent_code(const Array& array) const {
+  raw_ptr()->dependent_code_ = array.raw();
+}
+
+
+void Field::RegisterDependentCode(const Code& code) const {
+  const Array& dependent = Array::Handle(dependent_code());
+
+  if (!dependent.IsNull()) {
+    // Try to find and reuse cleared WeakProperty to avoid allocating new one.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    for (intptr_t i = 0; i < dependent.Length(); i++) {
+      weak_property ^= dependent.At(i);
+      if (weak_property.key() == Code::null()) {
+        // Empty property found. Reuse it.
+        weak_property.set_key(code);
+        return;
+      }
+    }
+  }
+
+  const WeakProperty& weak_property = WeakProperty::Handle(
+      WeakProperty::New(Heap::kOld));
+  weak_property.set_key(code);
+
+  intptr_t length = dependent.IsNull() ? 0 : dependent.Length();
+  const Array& new_dependent = Array::Handle(
+      Array::Grow(dependent, length + 1, Heap::kOld));
+  new_dependent.SetAt(length, weak_property);
+  set_dependent_code(new_dependent);
+}
+
+
+static bool IsDependentCode(const Array& dependent_code, const Code& code) {
+  if (!code.is_optimized()) {
+    return false;
+  }
+
+  WeakProperty& weak_property = WeakProperty::Handle();
+  for (intptr_t i = 0; i < dependent_code.Length(); i++) {
+    weak_property ^= dependent_code.At(i);
+    if (code.raw() == weak_property.key()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+void Field::DeoptimizeDependentCode() const {
+  const Array& code_objects = Array::Handle(dependent_code());
+
+  if (code_objects.IsNull()) {
+    return;
+  }
+  set_dependent_code(Array::Handle());
+
+  // Deoptimize all dependent code on the stack.
+  Code& code = Code::Handle();
+  {
+    DartFrameIterator iterator;
+    StackFrame* frame = iterator.NextFrame();
+    while (frame != NULL) {
+      code = frame->LookupDartCode();
+      if (IsDependentCode(code_objects, code)) {
+        DeoptimizeAt(code, frame->pc());
+      }
+      frame = iterator.NextFrame();
+    }
+  }
+
+  // Switch functions that use dependent code to unoptimized code.
+  WeakProperty& weak_property = WeakProperty::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < code_objects.Length(); i++) {
+    weak_property ^= code_objects.At(i);
+    code ^= weak_property.key();
+    if (code.IsNull()) {
+      // Code was garbage collected already.
+      continue;
+    }
+
+    function ^= code.function();
+    // If function uses dependent code switch it to unoptimized.
+    if (function.CurrentCode() == code.raw()) {
+      ASSERT(function.HasOptimizedCode());
+      function.SwitchToUnoptimizedCode();
+    }
+  }
+}
+
+
+void Field::UpdateCid(intptr_t cid) const {
+  if (guarded_cid() == kIllegalCid) {
+    // Field is assigned first time.
+    set_guarded_cid(cid);
+    set_is_nullable(cid == kNullCid);
+    return;
+  }
+
+  if ((cid == guarded_cid()) || ((cid == kNullCid) && is_nullable())) {
+    // Class id of the assigned value matches expected class id and nullability.
+    return;
+  }
+
+  if ((cid == kNullCid) && !is_nullable()) {
+    // Assigning null value to a non-nullable field makes it nullable.
+    set_is_nullable(true);
+  } else if ((cid != kNullCid) && (guarded_cid() == kNullCid)) {
+    // Assigning non-null value to a field that previously contained only null
+    // turns it into a nullable field with the given class id.
+    ASSERT(is_nullable());
+    set_guarded_cid(cid);
+  } else {
+    // Give up on tracking class id of values contained in this field.
+    ASSERT(guarded_cid() != cid);
+    set_guarded_cid(kDynamicCid);
+    set_is_nullable(true);
+  }
+
+  // Expected class id or nullability of the field changed.
+  DeoptimizeDependentCode();
 }
 
 

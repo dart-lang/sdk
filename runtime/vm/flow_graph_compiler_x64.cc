@@ -626,6 +626,11 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                            assert->deopt_id(),
                            assert->token_pos());
+    } else if (instr->IsGuardField()) {
+      GuardFieldInstr* guard = instr->AsGuardField();
+      AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                           guard->deopt_id(),
+                           Scanner::kDummyTokenIndex);
     }
     AllocateRegistersLocally(instr);
   }

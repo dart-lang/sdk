@@ -987,9 +987,9 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   LoadLocalNode* value =
       new LoadLocalNode(ident_pos, current_block_->scope->VariableAt(1));
 
+  EnsureExpressionTemp();
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
-
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(ident_pos));
   return CloseBlock();
@@ -1791,6 +1791,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   }
   CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
   AstNode* instance = new LoadLocalNode(field_pos, receiver);
+  EnsureExpressionTemp();
   return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
 }
 
@@ -1801,9 +1802,10 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
   SequenceNode* initializers = current_block_->statements;
   for (int field_num = 0; field_num < fields.Length(); field_num++) {
     field ^= fields.At(field_num);
-    if (field.is_static() || !field.is_final()) {
+    if (field.is_static()) {
       continue;
     }
+
     bool found = false;
     for (int i = 0; i < initializers->length(); i++) {
       found = false;
@@ -1816,9 +1818,14 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
         }
       }
     }
-    if (!found) {
+
+    if (found) continue;
+
+    if (field.is_final()) {
       ErrorMsg("final field '%s' not initialized",
                String::Handle(field.name()).ToCString());
+    } else {
+      field.UpdateCid(kNullCid);
     }
   }
 }
@@ -1866,6 +1873,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
       }
       ASSERT(init_expr != NULL);
       AstNode* instance = new LoadLocalNode(field.token_pos(), receiver);
+      EnsureExpressionTemp();
       AstNode* field_init =
           new StoreInstanceFieldNode(field.token_pos(),
                                      instance,
@@ -2118,6 +2126,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         // Thus, make the parameter invisible.
         p->set_invisible(true);
         AstNode* value = new LoadLocalNode(param.name_pos, p);
+        EnsureExpressionTemp();
         AstNode* initializer = new StoreInstanceFieldNode(
             param.name_pos, instance, field, value);
         current_block_->statements->Add(initializer);

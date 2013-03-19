@@ -669,9 +669,15 @@ class RawField : public RawObject {
                       // where this field is defined.
   RawAbstractType* type_;
   RawInstance* value_;  // Offset in words for instance and value for static.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
+  RawArray* dependent_code_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+  }
 
   intptr_t token_pos_;
+  intptr_t guarded_cid_;
+  intptr_t is_nullable_;  // kNullCid if field can contain null value and
+                          // any other value otherwise.
   uint8_t kind_bits_;  // static, final, const, has initializer.
 };
 

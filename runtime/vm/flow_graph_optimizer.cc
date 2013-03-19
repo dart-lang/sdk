@@ -1191,6 +1191,14 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       field.Offset(),
       AbstractType::ZoneHandle(field.type()),
       field.is_final());
+  if (field.guarded_cid() != kIllegalCid) {
+    if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
+      load->set_result_cid(field.guarded_cid());
+    }
+    load->set_field(&Field::ZoneHandle(field.raw()));
+  }
+  load->set_field_name(String::Handle(field.name()).ToCString());
+
   // Discard the environment from the original instruction because the load
   // can't deoptimize.
   call->RemoveEnvironment();
@@ -1952,6 +1960,17 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                  Definition::kEffect);
     needs_store_barrier = kNoStoreBarrier;
   }
+
+  if (field.guarded_cid() != kDynamicCid) {
+    InsertBefore(instr,
+                 new GuardFieldInstr(new Value(instr->ArgumentAt(1)),
+                                     field,
+                                     instr->deopt_id()),
+                 instr->env(),
+                 Definition::kEffect);
+  }
+
+  // Field guard was detached.
   StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
       field,
       new Value(instr->ArgumentAt(0)),
@@ -3720,6 +3739,7 @@ void ConstantPropagator::VisitCheckStackOverflow(
 
 void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
 
+void ConstantPropagator::VisitGuardField(GuardFieldInstr* instr) { }
 
 void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
 

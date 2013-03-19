@@ -403,6 +403,22 @@ void NativeCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void GuardFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const char* expected = "?";
+  if (field().guarded_cid() != kIllegalCid) {
+    const Class& cls = Class::Handle(
+            Isolate::Current()->class_table()->At(field().guarded_cid()));
+    expected = String::Handle(cls.Name()).ToCString();
+  }
+
+  f->Print("%s [%s %s], ",
+           String::Handle(field().name()).ToCString(),
+           field().is_nullable() ? "nullable" : "non-nullable",
+           expected);
+  value()->PrintTo(f);
+}
+
+
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s {%"Pd"}, ",
            String::Handle(field().name()).ToCString(),
@@ -489,7 +505,26 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %"Pd", immutable=%d", offset_in_bytes(), immutable_);
+  f->Print(", %"Pd, offset_in_bytes());
+
+  if (field_name_ != NULL) {
+    f->Print(" {%s}", field_name_);
+  }
+
+  if (field() != NULL) {
+    const char* expected = "?";
+    if (field()->guarded_cid() != kIllegalCid) {
+      const Class& cls = Class::Handle(
+            Isolate::Current()->class_table()->At(field()->guarded_cid()));
+      expected = String::Handle(cls.Name()).ToCString();
+    }
+
+    f->Print(" [%s %s]",
+             field()->is_nullable() ? "nullable" : "non-nullable",
+             expected);
+  }
+
+  f->Print(", immutable=%d", immutable_);
 }
 
 
@@ -581,6 +616,9 @@ void UnarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
   PrintICData(f, unary_checks());
+  if (null_check()) {
+    f->Print(" nullcheck");
+  }
 }
 
 

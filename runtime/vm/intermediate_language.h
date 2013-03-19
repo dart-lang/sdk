@@ -119,6 +119,8 @@ class CompileType : public ValueObject {
     return *this;
   }
 
+  bool is_nullable() const { return is_nullable_; }
+
   // Return type such that concrete value's type in runtime is guaranteed to
   // be subtype of it.
   const AbstractType* ToAbstractType();
@@ -152,6 +154,14 @@ class CompileType : public ValueObject {
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.
   static CompileType Create(intptr_t cid, const AbstractType& type);
+
+  CompileType CopyNonNullable() const {
+    return CompileType(kNonNullable, cid_, type_);
+  }
+
+  static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
+    return CompileType(is_nullable, cid, NULL);
+  }
 
   // Create a new CompileType representing given abstract type. By default
   // values as assumed to be nullable.
@@ -213,13 +223,48 @@ class ZoneCompileType : public ZoneAllocated {
  public:
   static CompileType* Wrap(const CompileType& type) {
     ZoneCompileType* zone_type = new ZoneCompileType(type);
-    return &zone_type->type_;
+    return zone_type->ToCompileType();
   }
 
- private:
+  CompileType* ToCompileType() {
+    return &type_;
+  }
+
+ protected:
   explicit ZoneCompileType(const CompileType& type) : type_(type) { }
 
   CompileType type_;
+};
+
+
+// ConstrainedCompileType represents a compile type that is computed from
+// another compile type.
+class ConstrainedCompileType : public ZoneCompileType {
+ public:
+  // Recompute compile type.
+  virtual void Update() = 0;
+
+ protected:
+  explicit ConstrainedCompileType(const CompileType& type)
+      : ZoneCompileType(type) { }
+};
+
+
+// NotNullConstrainedCompileType represents not-null constraint applied to
+// the source compile type. Result is non-nullable version of the incomming
+// compile type. It is used to represent compile type propagated downwards
+// from strict comparison with the null constant.
+class NotNullConstrainedCompileType : public ConstrainedCompileType {
+ public:
+  explicit NotNullConstrainedCompileType(CompileType* source)
+      : ConstrainedCompileType(source->CopyNonNullable()), source_(source) { }
+
+  virtual void Update() {
+    type_ = source_->CopyNonNullable();
+  }
+
+ private:
+  CompileType* source_;
 };
 
 
@@ -453,6 +498,7 @@ class EmbeddedArray<T, 0> {
   M(Constraint)                                                                \
   M(StringFromCharCode)                                                        \
   M(InvokeMathCFunction)                                                       \
+  M(GuardField)                                                                \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -702,6 +748,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
   friend class CheckClassInstr;
+  friend class GuardFieldInstr;
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
@@ -712,6 +759,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
+  friend class StoreInstanceFieldInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1765,11 +1813,25 @@ class BranchInstr : public ControlInstruction {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
+  // Set compile type constrained by the comparison of this branch.
+  // FlowGraphPropagator propagates it downwards into either true or false
+  // successor.
+  void set_constrained_type(ConstrainedCompileType* type) {
+    constrained_type_ = type;
+  }
+
+  // Return compile type constrained by the comparison of this branch.
+  ConstrainedCompileType* constrained_type() const {
+    return constrained_type_;
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
 
   ComparisonInstr* comparison_;
   const bool is_checked_;
+
+  ConstrainedCompileType* constrained_type_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
@@ -2745,9 +2807,15 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier)
-      : field_(field), emit_store_barrier_(emit_store_barrier) {
+      : field_(field),
+        emit_store_barrier_(emit_store_barrier) {
     SetInputAt(0, instance);
     SetInputAt(1, value);
+  }
+
+  void SetDeoptId(intptr_t deopt_id) {
+    ASSERT(CanDeoptimize());
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
@@ -2773,6 +2841,43 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   const StoreBarrierType emit_store_barrier_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
+};
+
+
+class GuardFieldInstr : public TemplateInstruction<1> {
+ public:
+  GuardFieldInstr(Value* value,
+                  const Field& field,
+                  intptr_t deopt_id)
+    : field_(field) {
+    deopt_id_ = deopt_id;
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(GuardField)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool AffectedBySideEffect() const;
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  const Field& field() const { return field_; }
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(GuardFieldInstr);
 };
 
 
@@ -3217,7 +3322,9 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         type_(type),
         result_cid_(kDynamicCid),
         immutable_(immutable),
-        recognized_kind_(MethodRecognizer::kUnknown) {
+        recognized_kind_(MethodRecognizer::kUnknown),
+        field_name_(NULL),
+        field_(NULL) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(0, value);
   }
@@ -3258,6 +3365,12 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
 
+  void set_field_name(const char* name) { field_name_ = name; }
+  const char* field_name() const { return field_name_; }
+
+  Field* field() const { return field_; }
+  void set_field(Field* field) { field_ = field; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -3265,6 +3378,9 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const bool immutable_;
 
   MethodRecognizer::Kind recognized_kind_;
+
+  const char* field_name_;
+  Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -4250,8 +4366,14 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  void set_null_check(bool flag) { null_check_ = flag; }
+
+  bool null_check() const { return null_check_; }
+
  private:
   const ICData& unary_checks_;
+
+  bool null_check_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
