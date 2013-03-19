@@ -21,9 +21,12 @@ import 'src/value_future.dart';
 /// If the test fails, this will automatically print out any stdout and stderr
 /// from the process to aid debugging.
 class ScheduledProcess {
-  // A description of the process. Used for error reporting.
+  /// A description of the process. Used for error reporting.
   String get description => _description;
   String _description;
+
+  /// Whether a description was passed explicitly by the user.
+  bool _explicitDescription;
 
   /// The encoding used for the process's input and output streams.
   final Encoding _encoding;
@@ -78,7 +81,9 @@ class ScheduledProcess {
   /// containing a mix of strings and [Future]s.
   ScheduledProcess.start(executable, arguments,
       {options, String description, Encoding encoding: Encoding.UTF_8})
-      : _encoding = encoding {
+      : _encoding = encoding,
+        _explicitDescription = description != null,
+        _description = description {
     assert(currentSchedule.state == ScheduleState.SET_UP);
 
     _updateDescription(executable, arguments);
@@ -105,6 +110,7 @@ class ScheduledProcess {
   /// Updates [_description] to reflect [executable] and [arguments], which are
   /// the same values as in [start].
   void _updateDescription(executable, arguments) {
+    if (_explicitDescription) return;
     if (executable is Future) {
       _description = "future process";
     } else if (arguments is Future || arguments.any((e) => e is Future)) {

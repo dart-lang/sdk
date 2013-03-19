@@ -48,6 +48,14 @@ class ScheduleError extends AsyncError {
       error = error.error;
     }
 
+    if (stackTrace == null) {
+      try {
+        throw '';
+      } catch (_, thrownStackTrace) {
+        stackTrace = thrownStackTrace;
+      }
+    }
+
     return new ScheduleError(schedule, error, stackTrace, cause);
   }
 

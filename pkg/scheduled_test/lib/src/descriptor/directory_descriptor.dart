@@ -18,11 +18,13 @@ final path.Builder _path = new path.Builder(style: path.Style.posix);
 
 /// A descriptor describing a directory containing multiple files.
 class DirectoryDescriptor extends Descriptor {
-  /// The entries contained within this directory.
-  final Iterable<Descriptor> contents;
+  /// The entries contained within this directory. This is intentionally
+  /// mutable.
+  final List<Descriptor> contents;
 
-  DirectoryDescriptor(String name, this.contents)
-      : super(name);
+  DirectoryDescriptor(String name, Iterable<Descriptor> contents)
+      : super(name),
+        contents = contents.toList();
 
   Future create([String parent]) => schedule(() {
     if (parent == null) parent = defaultRoot;

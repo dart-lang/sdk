@@ -92,24 +92,22 @@ Stream futureStream(Future<Stream> future) {
 /// Returns a [Future] that will complete to the first element of [stream].
 /// Unlike [Stream.first], this is safe to use with single-subscription streams.
 Future streamFirst(Stream stream) {
-  // TODO(nweiz): remove this when issue 8512 is fixed.
-  var cancelled = false;
+  var stackTrace;
+  try {
+    throw '';
+  } catch (_, thrownStackTrace) {
+    stackTrace = thrownStackTrace;
+  }
+
   var completer = new Completer();
   var subscription;
   subscription = stream.listen((value) {
-    if (!cancelled) {
-      cancelled = true;
-      subscription.cancel();
-      completer.complete(value);
-    }
+    subscription.cancel();
+    completer.complete(value);
   }, onError: (e) {
-    if (!cancelled) {
-      completer.completeError(e.error, e.stackTrace);
-    }
+    completer.completeError(e.error, e.stackTrace);
   }, onDone: () {
-    if (!cancelled) {
-      completer.completeError(new StateError("No elements"));
-    }
+    completer.completeError(new StateError("No elements"), stackTrace);
   }, unsubscribeOnError: true);
   return completer.future;
 }
