@@ -27,6 +27,9 @@ abstract class Timer {
    *       var duration = milliseconds == null ? TIMEOUT : ms * milliseconds;
    *       return new Timer(duration, handleTimeout);
    *     }
+   *
+   * Note: If Dart code using Timer is compiled to JavaScript, the finest
+   * granularity available in the browser is 4 milliseconds.
    */
   external factory Timer(Duration duration, void callback());
 
