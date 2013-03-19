@@ -20,6 +20,8 @@
 #include "platform/thread.h"
 
 
+static const int kBufferSize = 32 * 1024;
+
 static const int kInfinityTimeout = -1;
 static const int kTimeoutId = -1;
 static const int kShutdownId = -2;
@@ -234,7 +236,7 @@ bool Handle::IssueRead() {
   ScopedLock lock(this);
   ASSERT(type_ != kListenSocket);
   ASSERT(pending_read_ == NULL);
-  IOBuffer* buffer = IOBuffer::AllocateReadBuffer(1024);
+  IOBuffer* buffer = IOBuffer::AllocateReadBuffer(kBufferSize);
   if (SupportsOverlappedIO()) {
     ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
 
@@ -491,7 +493,7 @@ int Handle::Write(const void* buffer, int num_bytes) {
   if (SupportsOverlappedIO()) {
     if (pending_write_ != NULL) return 0;
     if (completion_port_ == INVALID_HANDLE_VALUE) return 0;
-    if (num_bytes > 4096) num_bytes = 4096;
+    if (num_bytes > kBufferSize) num_bytes = kBufferSize;
     pending_write_ = IOBuffer::AllocateWriteBuffer(num_bytes);
     pending_write_->Write(buffer, num_bytes);
     if (!IssueWrite()) return -1;
