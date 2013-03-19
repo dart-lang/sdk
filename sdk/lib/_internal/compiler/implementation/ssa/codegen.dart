@@ -1721,10 +1721,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       String name = _fieldPropertyName(element);
       push(new js.PropertyAccess.field(pop(), name), node);
-      DartType type = node.receiver.instructionType.computeType(compiler);
-      if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
-        world.registerFieldGetter(element);
-      }
+      world.registerFieldGetter(element);
     }
   }
 
@@ -1766,8 +1763,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // instantiated. We should find a way of using something along the
     // lines of the NativeEnqueuerBase.processNativeBehavior method.
     if (type.isUnknown()) return;
-    DartType dartType = type.computeType(compiler);
-    world.registerInstantiatedClass(dartType.element, work.resolutionTree);
+    TypeMask mask = type.computeMask(compiler);
+    world.registerInstantiatedClass(mask.base.element, work.resolutionTree);
   }
 
   visitForeign(HForeign node) {

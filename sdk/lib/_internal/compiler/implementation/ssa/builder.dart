@@ -10,11 +10,11 @@ part of ssa;
  * optimizers may look at its declared type.
  */
 class InterceptedElement extends ElementX {
-  final HType ssaType;
-  InterceptedElement(this.ssaType, SourceString name, Element enclosing)
+  final DartType type;
+  InterceptedElement(this.type, SourceString name, Element enclosing)
       : super(name, ElementKind.PARAMETER, enclosing);
 
-  DartType computeType(Compiler compiler) => ssaType.computeType(compiler);
+  DartType computeType(Compiler compiler) => type;
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -293,41 +293,23 @@ class LocalsHandler {
     // parameter to it, that is the actual receiver for intercepted
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
-    if (builder.backend.isInterceptedMethod(element)) {
-      HType type = builder.getTypeOfThis();
-      SourceString name = const SourceString('receiver');
-      if (cls == builder.backend.jsArrayClass) {
-        type = HType.READABLE_ARRAY;
-      } else if (cls == builder.backend.jsStringClass) {
-        type = HType.STRING;
-      } else if (cls == builder.backend.jsNumberClass) {
-        type = HType.NUMBER;
-      } else if (cls == builder.backend.jsIntClass) {
-        type = HType.INTEGER;
-      } else if (cls == builder.backend.jsDoubleClass) {
-        type = HType.DOUBLE;
-      } else if (cls == builder.backend.jsNullClass) {
-        type = HType.NULL;
-      } else if (cls == builder.backend.jsBoolClass) {
-        type = HType.BOOLEAN;
-      } else if (cls == builder.backend.jsFunctionClass) {
-        type = HType.UNKNOWN;
-      } else if (cls != compiler.objectClass) {
-        JavaScriptBackend backend = compiler.backend;
-        if (!backend.isInterceptorClass(cls)) {
-          name = const SourceString('_');
-        }
-      }
-      Element parameter = new InterceptedElement(type, name, element);
+    JavaScriptBackend backend = compiler.backend;
+    if (backend.isInterceptedMethod(element)) {
+      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
+      SourceString name = (cls == compiler.objectClass || isInterceptorClass)
+          ? const SourceString('receiver')
+          : const SourceString('_');
+      Element parameter = new InterceptedElement(
+          cls.computeType(compiler), name, element);
       HParameterValue value = new HParameterValue(parameter);
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
-      if (builder.backend.isInterceptorClass(cls.declaration)) {
+      if (isInterceptorClass) {
         // Only use the extra parameter in intercepted classes.
         directLocals[closureData.thisElement] = value;
       }
-      value.instructionType = type;
+      value.instructionType = builder.getTypeOfThis();
     }
   }
 

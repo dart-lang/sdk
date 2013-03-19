@@ -469,13 +469,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node;
     } else if (element.isTypedef()) {
       return node;
+    } else if (element == compiler.functionClass) {
+      return node;
+    }
+
+    if (element == compiler.objectClass || element == compiler.dynamicClass) {
+      return graph.addConstantBool(true, constantSystem);
     }
 
     HType expressionType = node.expression.instructionType;
-    if (identical(element, compiler.objectClass)
-        || identical(element, compiler.dynamicClass)) {
-      return graph.addConstantBool(true, constantSystem);
-    } else if (expressionType.isInteger()) {
+    if (expressionType.isInteger()) {
       if (identical(element, compiler.intClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -521,22 +524,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         return graph.addConstantBool(false, constantSystem);
       }
-    // Wee need the [:hasTypeArguments:] check because we don't have
+    // We need the [:hasTypeArguments:] check because we don't have
     // the notion of generics in the backend. For example, [:this:] in
     // a class [:A<T>:], is currently always considered to have the
     // raw type.
-    } else if (expressionType.isUseful()
-               && !expressionType.canBeNull()
-               && !RuntimeTypes.hasTypeArguments(type)) {
-      var receiverType = expressionType.computeType(compiler);
-      if (receiverType != null) {
-        if (!receiverType.isMalformed &&
-            !type.isMalformed &&
-            compiler.types.isSubtype(receiverType.element.rawType, type)) {
-          return graph.addConstantBool(true, constantSystem);
-        } else if (expressionType.isExact()) {
-          return graph.addConstantBool(false, constantSystem);
-        }
+    } else if (!RuntimeTypes.hasTypeArguments(type) && !type.isMalformed) {
+      TypeMask expressionMask = expressionType.computeMask(compiler);
+      TypeMask typeMask = new TypeMask.nonNullSubtype(type);
+      if (expressionMask.union(typeMask, compiler) == typeMask) {
+        return graph.addConstantBool(true, constantSystem);
+      } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
+        return graph.addConstantBool(false, constantSystem);
       }
     }
     return node;
