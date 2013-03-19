@@ -86,7 +86,7 @@ class InstanceCall : public DartCallPattern {
 
 
 // The expected pattern of a dart static call:
-//  mov R10, arguments_descriptor_array (10 bytes)
+//  mov R10, arguments_descriptor_array (10 bytes) (optional in polym. calls)
 //  mov R11, target_address (10 bytes)
 //  call R11  (3 bytes)
 //  <- return address
@@ -95,28 +95,27 @@ class StaticCall : public ValueObject {
   explicit StaticCall(uword return_address)
       : start_(return_address - kCallPatternSize) {
     ASSERT(IsValid(return_address));
-    ASSERT((kCallPatternSize - 10) == Assembler::kCallExternalLabelSize);
+    ASSERT(kCallPatternSize == Assembler::kCallExternalLabelSize);
   }
 
-  static const int kCallPatternSize = 23;
+  static const int kCallPatternSize = 13;
 
   static bool IsValid(uword return_address) {
     uint8_t* code_bytes =
         reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
-    return (code_bytes[00] == 0x49) && (code_bytes[01] == 0xBA) &&
-           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBB) &&
-           (code_bytes[20] == 0x41) && (code_bytes[21] == 0xFF) &&
-           (code_bytes[22] == 0xD3);
+    return (code_bytes[00] == 0x49) && (code_bytes[01] == 0xBB) &&
+           (code_bytes[10] == 0x41) && (code_bytes[11] == 0xFF) &&
+           (code_bytes[12] == 0xD3);
   }
 
   uword target() const {
-    return *reinterpret_cast<uword*>(start_ + 10 + 2);
+    return *reinterpret_cast<uword*>(start_ + 2);
   }
 
   void set_target(uword target) const {
-    uword* target_addr = reinterpret_cast<uword*>(start_ + 10 + 2);
+    uword* target_addr = reinterpret_cast<uword*>(start_ + 2);
     *target_addr = target;
-    CPU::FlushICache(start_ + 10, 2 + 8);
+    CPU::FlushICache(start_, 2 + 8);
   }
 
  private:

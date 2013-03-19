@@ -1386,8 +1386,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
-                                        intptr_t arg_count,
-                                        const Array& arg_names,
+                                        intptr_t argument_count,
+                                        const Array& argument_names,
                                         Label* deopt,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
@@ -1397,6 +1397,12 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);
   SortICDataByCount(ic_data, &sorted);
+  ASSERT(class_id_reg != EDX);
+  ASSERT(len > 0);  // Why bother otherwise.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
+  __ LoadObject(EDX, arguments_descriptor);
   for (intptr_t i = 0; i < len; i++) {
     const bool is_last_check = (i == (len - 1));
     Label next_test;
@@ -1406,12 +1412,16 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     } else {
       assembler()->j(NOT_EQUAL, &next_test);
     }
-    GenerateStaticCall(deopt_id,
-                       token_index,
-                       *sorted[i].target,
-                       arg_count,
-                       arg_names,
-                       locs);
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &StubCode::CallStaticFunctionLabel(),
+                     PcDescriptors::kFuncCall,
+                     locs);
+    const Function& function = *sorted[i].target;
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
     if (!is_last_check) {
       assembler()->jmp(&match_found);
     }
