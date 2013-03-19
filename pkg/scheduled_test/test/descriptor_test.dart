@@ -295,7 +295,7 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.first.error.toString(),
           matches(r"^Directory not found: '[^']+[\\/]dir[\\/]subdir'\.$"));
     });
   }, passing: ['test 2']);
@@ -337,8 +337,55 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.first.error.toString(),
           matches(r"^File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("directory().validate() fails if multiple children aren't "
+      "found or have the wrong contents", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        var dirPath = path.join(sandbox, 'dir');
+        var subdirPath = path.join(dirPath, 'subdir');
+        return new Directory(subdirPath).create(recursive: true).then((_) {
+          return Future.wait([
+            new File(path.join(dirPath, 'file1.txt'))
+                .writeAsString('contents1'),
+            new File(path.join(subdirPath, 'subfile2.txt'))
+                .writeAsString('subwrongtents2')
+          ]);
+        });
+      });
+
+      d.dir('dir', [
+        d.dir('subdir', [
+          d.file('subfile1.txt', 'subcontents1'),
+          d.file('subfile2.txt', 'subcontents2')
+        ]),
+        d.file('file1.txt', 'contents1'),
+        d.file('file2.txt', 'contents2')
+      ]).validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error.toString(), matches(
+          r"^\* File not found: '[^']+[\\/]dir[\\/]subdir[\\/]subfile1\.txt'\."
+              r"\n"
+          r"\* File 'subfile2\.txt' should contain:\n"
+          r"  \| subcontents2\n"
+          r"  but actually contained:\n"
+          r"  X subwrongtents2\n"
+          r"\* File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -381,7 +428,7 @@ void main() {
 
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
+      expect(errors.map((e) => e.error.toString()), equals([
         "File 'subfile1.txt' should contain:\n"
         "| subcontents1\n"
         "but actually contained:\n"

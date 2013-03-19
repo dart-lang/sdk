@@ -45,8 +45,15 @@ class DirectoryDescriptor extends Descriptor {
       throw "Directory not found: '$fullPath'.";
     }
 
-    return Future.wait(
-        contents.map((entry) => entry.validateNow(fullPath)).toList());
+    return Future.wait(contents.map((entry) {
+      return new Future.of(() => entry.validateNow(fullPath))
+          .then((_) => null)
+          .catchError((e) => e.error);
+    })).then((results) {
+      var errors = results.where((e) => e != null);
+      if (errors.isEmpty) return;
+      throw _DirectoryValidationError.merge(errors);
+    });
   }
 
   Stream<List<int>> load(String pathToLoad) {
@@ -96,5 +103,28 @@ class DirectoryDescriptor extends Descriptor {
         .replaceFirst('    ', "'-- ");
     buffer.write(lastEntryString);
     return buffer.toString();
+  }
+}
+
+/// A class for formatting errors thrown by [DirectoryDescriptor].
+class _DirectoryValidationError {
+  final Collection<String> errors;
+
+  /// Flatten nested [_DirectoryValidationError]s in [errors] to create a single
+  /// list of errors.
+  static _DirectoryValidationError merge(Iterable errors) {
+    return new _DirectoryValidationError(errors.expand((error) {
+      if (error is _DirectoryValidationError) return error.errors;
+      return [error];
+    }));
+  }
+
+  _DirectoryValidationError(Iterable errors)
+      : errors = errors.map((e) => e.toString()).toList();
+
+  String toString() {
+    if (errors.length == 1) return errors.single;
+    return errors.map((e) => prefixLines(e, prefix: '  ', firstPrefix: '* '))
+        .join('\n');
   }
 }
