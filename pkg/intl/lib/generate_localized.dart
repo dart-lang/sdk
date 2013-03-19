@@ -19,6 +19,28 @@ import 'dart:io';
 import 'package:pathos/path.dart' as path;
 
 /**
+ * If the import path following package: is something else, modify the
+ * [intlImportPath] variable to change the import directives in the generated
+ * code.
+ */
+var intlImportPath = 'intl';
+
+/**
+ * If the path to the generated files is something other than the current
+ * directory, update the [generatedImportPath] variable to change the import
+ * directives in the generated code.
+ */
+var generatedImportPath = '';
+
+/**
+ * Given a base file, return the file prefixed with the path to import it.
+ * By default, that is in the current directory, but if [generatedImportPath]
+ * has been set, then use that as a prefix.
+ */
+String importForGeneratedFile(String file) =>
+    generatedImportPath.isEmpty ? file : "$generatedImportPath/$file";
+
+/**
  * A list of all the locales for which we have translations. Code that does
  * the reading of translations should add to this.
  */
@@ -96,8 +118,8 @@ String prologue(String locale) => """
  */
 
 library messages_${locale.replaceAll('-','_')};
-import 'package:intl/intl.dart';
-import 'package:intl/message_lookup_by_library.dart';
+import 'package:$intlImportPath/intl.dart';
+import 'package:$intlImportPath/message_lookup_by_library.dart';
 
 final messages = new MessageLookup();
 
@@ -114,7 +136,9 @@ String generateMainImportFile() {
   var output = new StringBuffer();
   output.write(mainPrologue);
   for (var each in allLocales) {
-    output.write("import 'messages_$each.dart' as ${asLibraryName(each)};\n");
+    var baseFile = 'messages_$each.dart';
+    var file = importForGeneratedFile(baseFile);
+    output.write("import '$file' as ${asLibraryName(each)};\n");
   }
   output.write(
     "\nMessageLookupByLibrary _findExact(localeName) {\n"
@@ -131,7 +155,7 @@ String generateMainImportFile() {
  * Constant string used in [generateMainImportFile] for the beginning of the
  * file.
  */
-const mainPrologue = """
+var mainPrologue = """
 /**
  * DO NOT EDIT. This is code generated via pkg/intl/generate_localized.dart
  * This is a library that looks up messages for specific locales by
@@ -141,9 +165,9 @@ const mainPrologue = """
 library messages_all;
 
 import 'dart:async';
-import 'package:intl/message_lookup_by_library.dart';
-import 'package:intl/src/intl_helpers.dart';
-import 'package:intl/intl.dart';
+import 'package:$intlImportPath/message_lookup_by_library.dart';
+import 'package:$intlImportPath/src/intl_helpers.dart';
+import 'package:$intlImportPath/intl.dart';
 
 """;
 

@@ -55,7 +55,7 @@ main() {
   test("Test round trip message extraction, translation, code generation, "
       "and printing", () {
     deleteGeneratedFiles();
-    extractMessages(null).then((result) {
+    return extractMessages(null).then((result) {
       return generateTranslationFiles(result);
     }).then((result) {
       return generateCodeFromTranslation(result);
@@ -124,7 +124,7 @@ Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
 Future<ProcessResult> runGeneratedCode(ProcessResult previousResult) =>
     run(previousResult, ['sample_with_messages.dart']);
 
-void verifyResult(results) {
+verifyResult(results) {
   var lineIterator;
   verify(String s) {
     lineIterator.moveNext();
