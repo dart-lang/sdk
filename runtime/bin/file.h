@@ -127,6 +127,7 @@ class File {
   static bool Delete(const char* path);
   static off_t LengthFromPath(const char* path);
   static time_t LastModified(const char* path);
+  static char* LinkTarget(const char* pathname);
   static bool IsAbsolutePath(const char* path);
   static char* GetCanonicalPath(const char* path);
   static char* GetContainingDirectory(char* path);

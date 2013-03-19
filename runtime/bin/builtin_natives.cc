@@ -42,6 +42,7 @@
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \
   V(File_CreateLink, 2)                                                        \
+  V(File_LinkTarget, 1)                                                        \
   V(File_Delete, 1)                                                            \
   V(File_Directory, 1)                                                         \
   V(File_FullPath, 1)                                                          \

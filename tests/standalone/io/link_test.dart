@@ -28,6 +28,8 @@ testCreateSync() {
   Expect.isTrue(new Directory(target).existsSync());
   Expect.isTrue(new Link(link).existsSync());
   Expect.isFalse(new Link(target).existsSync());
+  Expect.equals(target, new Link(link).targetSync());
+  Expect.throws(() => new Link(target).targetSync());
 
   String createdThroughLink =
       base.append('link/createdThroughLink').toNativePath();

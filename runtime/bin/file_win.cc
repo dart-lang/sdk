@@ -167,6 +167,7 @@ typedef struct _REPARSE_DATA_BUFFER {
             USHORT  SubstituteNameLength;
             USHORT  PrintNameOffset;
             USHORT  PrintNameLength;
+            ULONG   Flags;
             WCHAR   PathBuffer[1];
         } SymbolicLinkReparseBuffer;
 
@@ -276,6 +277,103 @@ off_t File::LengthFromPath(const char* name) {
     return st.st_size;
   }
   return -1;
+}
+
+
+char* File::LinkTarget(const char* pathname) {
+  const wchar_t* name = StringUtils::Utf8ToWide(pathname);
+  HANDLE dir_handle = CreateFileW(
+      name,
+      GENERIC_READ,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      NULL,
+      OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+      NULL);
+  free(const_cast<wchar_t*>(name));
+  if (dir_handle == INVALID_HANDLE_VALUE) {
+    return NULL;
+  }
+
+  int buffer_size =
+      sizeof REPARSE_DATA_BUFFER + 2 * (MAX_PATH + 1) * sizeof WCHAR;
+  REPARSE_DATA_BUFFER* buffer =
+      static_cast<REPARSE_DATA_BUFFER*>(calloc(buffer_size, 1));
+  DWORD received_bytes;  // Value is not used.
+  int result = DeviceIoControl(
+      dir_handle,
+      FSCTL_GET_REPARSE_POINT,
+      NULL,
+      0,
+      buffer,
+      buffer_size,
+      &received_bytes,
+      NULL);
+  if (result == 0) {
+    DWORD error = GetLastError();
+    CloseHandle(dir_handle);
+    free(buffer);
+    SetLastError(error);
+    return NULL;
+  }
+  if (CloseHandle(dir_handle) == 0) {
+    DWORD error = GetLastError();
+    free(buffer);
+    SetLastError(error);
+    return NULL;
+  }
+
+  wchar_t* target;
+  size_t target_offset;
+  size_t target_length;
+  if (buffer->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
+    target = buffer->MountPointReparseBuffer.PathBuffer;
+    target_offset = buffer->MountPointReparseBuffer.SubstituteNameOffset;
+    target_length = buffer->MountPointReparseBuffer.SubstituteNameLength;
+  } else if (buffer->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
+    target = buffer->SymbolicLinkReparseBuffer.PathBuffer;
+    target_offset = buffer->SymbolicLinkReparseBuffer.SubstituteNameOffset;
+    target_length = buffer->SymbolicLinkReparseBuffer.SubstituteNameLength;
+  } else {  // Not a junction or a symbolic link.
+    free(buffer);
+    SetLastError(ERROR_NOT_A_REPARSE_POINT);
+    return NULL;
+  }
+
+  target_offset /= sizeof(wchar_t);  // Offset and length are in bytes.
+  target_length /= sizeof(wchar_t);
+  target += target_offset;
+  // Remove "\??\" from beginning of target.
+  if (target_length > 4 && wcsncmp(L"\\??\\", target, 4) == 0) {
+    target += 4;
+    target_length -=4;
+  }
+  int utf8_length = WideCharToMultiByte(CP_UTF8,
+                                        0,
+                                        target,
+                                        target_length,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        NULL);
+  char* utf8_target = reinterpret_cast<char*>(malloc(utf8_length + 1));
+  if (0 == WideCharToMultiByte(CP_UTF8,
+                               0,
+                               target,
+                               target_length,
+                               utf8_target,
+                               utf8_length,
+                               NULL,
+                               NULL)) {
+    DWORD error = GetLastError();
+    free(buffer);
+    free(utf8_target);
+    SetLastError(error);
+    return NULL;
+  }
+  utf8_target[utf8_length] = '\0';
+  free(buffer);
+  return utf8_target;
 }
 
 

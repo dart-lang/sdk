@@ -69,6 +69,9 @@ patch class _File {
   patch static _createLink(String path, String target) {
     throw new UnsupportedError("File._createLink");
   }
+  patch static _linkTarget(String path) {
+    throw new UnsupportedError("File._linkTarget");
+  }
   patch static _delete(String path) {
     throw new UnsupportedError("File._delete");
   }

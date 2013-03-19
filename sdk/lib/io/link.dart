@@ -10,30 +10,30 @@ part of dart.io;
  */
 abstract class Link extends FileSystemEntity {
   /**
-   * Create a Link object.
+   * Creates a Link object.
    */
   factory Link(String path) => new _Link(path);
 
   /**
-   * Create a Link object from a Path object.
+   * Creates a Link object from a Path object.
    */
   factory Link.fromPath(Path path) => new _Link.fromPath(path);
 
   /**
-   * Check if the link exists. The link may exist, even if its target
+   * Checks if the link exists. The link may exist, even if its target
    * is missing or deleted.
    * Returns a [:Future<bool>:] that completes when the answer is known.
    */
   Future<bool> exists();
 
   /**
-   * Synchronously check if the link exists. The link may exist, even if
+   * Synchronously checks if the link exists. The link may exist, even if
    * its target is missing or deleted.
    */
   bool existsSync();
 
   /**
-   * Create a symbolic link. Returns a [:Future<Link>:] that completes with
+   * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
    * the link when it has been created. If the link exists, the function
    * the future will complete with an error.
    *
@@ -56,7 +56,7 @@ abstract class Link extends FileSystemEntity {
   void createSync(String target);
 
   /**
-   * Synchronously update the link. Calling [updateSync] on a non-existing link
+   * Synchronously updates the link. Calling [updateSync] on a non-existing link
    * will throw an exception.
    *
    * If [linkRelative] is true, the target argument should be a relative path,
@@ -69,17 +69,39 @@ abstract class Link extends FileSystemEntity {
   void updateSync(String target, {bool linkRelative: false });
 
   /**
-   * Delete the link. Returns a [:Future<Link>:] that completes with
+   * Deletes the link. Returns a [:Future<Link>:] that completes with
    * the link when it has been deleted.  This does not delete, or otherwise
    * affect, the target of the link.
    */
   Future<Link> delete();
 
   /**
-   * Synchronously delete the link. This does not delete, or otherwise
+   * Synchronously deletes the link. This does not delete, or otherwise
    * affect, the target of the link.
    */
   void deleteSync();
+
+  /**
+   * Gets the target of the link. Returns a future that completes with
+   * the path to the target.
+   *
+   * If the returned target is a relative path, it is relative to the
+   * directory containing the link.
+   *
+   * If the link does not exist, or is not a link, the future completes with
+   * a LinkIOException.
+   */
+  Future<String> target();
+
+  /**
+   * Synchronously gets the target of the link. Returns the path to the target.
+   *
+   * If the returned target is a relative path, it is relative to the
+   * directory containing the link.
+   *
+   * If the link does not exist, or is not a link, throws a LinkIOException.
+   */
+  String targetSync();
 }
 
 
@@ -110,7 +132,7 @@ class _Link extends FileSystemEntity implements Link {
       target = _makeWindowsLinkTarget(target);
     }
     var result = _File._createLink(path, target);
-    if (result is Error) {
+    if (result is OSError) {
       throw new LinkIOException("Error in Link.createSync", result);
     }
   }
@@ -145,6 +167,19 @@ class _Link extends FileSystemEntity implements Link {
 
   void deleteSync() {
     new File(path).deleteSync();
+  }
+
+  Future<String> target() {
+    // TODO(whesse): Replace with asynchronous version.
+    return new Future.of(targetSync);
+  }
+
+  String targetSync() {
+    var result = _File._linkTarget(path);
+    if (result is OSError) {
+      throw new LinkIOException("Error in Link.targetSync", result);
+    }
+    return result;
   }
 }
 

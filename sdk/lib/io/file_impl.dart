@@ -301,6 +301,8 @@ class _File extends _FileBase implements File {
 
   external static _createLink(String path, String target);
 
+  external static _linkTarget(String path);
+
   void createSync() {
     var result = _create(_path);
     throwIfError(result, "Cannot create file '$_path'");
