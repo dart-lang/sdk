@@ -1258,6 +1258,56 @@ class _HttpClient implements HttpClient {
       _credentials.removeAt(index);
     }
   }
+
+  static String _findProxyFromEnvironment(Uri url,
+                                          Map<String, String> environment) {
+    checkNoProxy(String option) {
+      if (option == null) return null;
+      Iterator<String> names = option.split(",").map((s) => s.trim()).iterator;
+      while (names.moveNext()) {
+        if (url.domain.endsWith(names.current)) {
+          return "DIRECT";
+        }
+      }
+      return null;
+    }
+
+    checkProxy(String option) {
+      if (option == null) return null;
+      int pos = option.indexOf("://");
+      if (pos >= 0) {
+        option = option.substring(pos + 3);
+      }
+      if (option.indexOf(":") == -1) option = "$option:1080";
+      return "PROXY $option";
+    }
+
+    // Default to using the process current environment.
+    if (environment == null) environment = Platform.environment;
+
+    String proxyCfg;
+
+    String noProxy = environment["no_proxy"];
+    if (noProxy == null) noProxy = environment["NO_PROXY"];
+    if ((proxyCfg = checkNoProxy(noProxy)) != null) {
+      return proxyCfg;
+    }
+
+    if (url.scheme == "http") {
+      String proxy = environment["http_proxy"];
+      if (proxy == null) proxy = environment["HTTP_PROXY"];
+      if ((proxyCfg = checkProxy(proxy)) != null) {
+        return proxyCfg;
+      }
+    } else if (url.scheme == "https") {
+      String proxy = environment["https_proxy"];
+      if (proxy == null) proxy = environment["HTTPS_PROXY"];
+      if ((proxyCfg = checkProxy(proxy)) != null) {
+        return proxyCfg;
+      }
+    }
+    return "DIRECT";
+  }
 }
 
 

@@ -232,6 +232,7 @@ void testProxy() {
               testProxyDoneCount++;
               if (testProxyDoneCount == proxy.length * 2) {
                 Expect.equals(proxy.length, server.requestCount);
+                Expect.equals(proxy.length, secureServer.requestCount);
                 proxyServer.shutdown();
                 server.shutdown();
                 secureServer.shutdown();
@@ -311,6 +312,56 @@ void testProxyChain() {
   });
 }
 
+int testProxyFromEnviromentDoneCount = 0;
+void testProxyFromEnviroment() {
+  setupProxyServer().then((proxyServer) {
+  setupServer(1).then((server) {
+  setupServer(1, secure: true).then((secureServer) {
+    HttpClient client = new HttpClient();
+
+    client.findProxy = (Uri uri) {
+      return HttpClient.findProxyFromEnvironment(
+          uri,
+          environment: {"http_proxy": "localhost:${proxyServer.port}",
+                        "https_proxy": "localhost:${proxyServer.port}"});
+    };
+
+    const int loopCount = 5;
+    for (int i = 0; i < loopCount; i++) {
+      test(bool secure) {
+        String url = secure
+            ? "https://localhost:${secureServer.port}/$i"
+            : "http://127.0.0.1:${server.port}/$i";
+
+        client.postUrl(Uri.parse(url))
+          .then((HttpClientRequest clientRequest) {
+            String content = "$i$i$i";
+            clientRequest.write(content);
+            return clientRequest.close();
+          })
+          .then((HttpClientResponse response) {
+            response.listen((_) {}, onDone: () {
+              testProxyFromEnviromentDoneCount++;
+              if (testProxyFromEnviromentDoneCount == loopCount * 2) {
+                Expect.equals(loopCount, server.requestCount);
+                Expect.equals(loopCount, secureServer.requestCount);
+                proxyServer.shutdown();
+                server.shutdown();
+                secureServer.shutdown();
+                client.close();
+              }
+            });
+          });
+      }
+
+      test(false);
+      test(true);
+    }
+  });
+  });
+  });
+}
+
 int testRealProxyDoneCount = 0;
 void testRealProxy() {
   setupServer(1).then((server) {
@@ -363,6 +414,7 @@ main() {
   testDirectProxy();
   testProxy();
   testProxyChain();
+  testProxyFromEnviroment();
   // This test is not normally run. It can be used for locally testing
   // with a real proxy server (e.g. Apache).
   //testRealProxy();
