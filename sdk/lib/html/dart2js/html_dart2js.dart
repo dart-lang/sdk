@@ -1191,14 +1191,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @Experimental
   bool imageSmoothingEnabled;
 
-  @JSName('webkitLineDash')
-  @DomName('CanvasRenderingContext2D.webkitLineDash')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List lineDash;
-
   @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable

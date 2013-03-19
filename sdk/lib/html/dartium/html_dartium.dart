@@ -1461,20 +1461,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental
   void set imageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
 
-  @DomName('CanvasRenderingContext2D.webkitLineDash')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List get lineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
-
-  @DomName('CanvasRenderingContext2D.webkitLineDash')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set lineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
-
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
   void $dom_arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
