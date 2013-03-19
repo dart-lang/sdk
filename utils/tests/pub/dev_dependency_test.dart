@@ -4,113 +4,114 @@
 
 import '../../../pkg/pathos/lib/path.dart' as path;
 
+import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
 main() {
   initConfig();
   integration("includes root package's dev dependencies", () {
-    dir('foo', [
-      libDir('foo'),
-      libPubspec('foo', '0.0.1')
-    ]).scheduleCreate();
+    d.dir('foo', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '0.0.1')
+    ]).create();
 
-    dir('bar', [
-      libDir('bar'),
-      libPubspec('bar', '0.0.1')
-    ]).scheduleCreate();
+    d.dir('bar', [
+      d.libDir('bar'),
+      d.libPubspec('bar', '0.0.1')
+    ]).create();
 
-    dir(appPath, [
-      pubspec({
+    d.dir(appPath, [
+      d.pubspec({
         "name": "myapp",
         "dev_dependencies": {
           "foo": {"path": "../foo"},
           "bar": {"path": "../bar"},
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
     schedulePub(args: ["install"],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir("foo", [
-        file("foo.dart", 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir("foo", [
+        d.file("foo.dart", 'main() => "foo";')
       ]),
-      dir("bar", [
-        file("bar.dart", 'main() => "bar";')
+      d.dir("bar", [
+        d.file("bar.dart", 'main() => "bar";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 
   integration("includes dev dependency's transitive dependencies", () {
-    dir('foo', [
-      libDir('foo'),
-      libPubspec('foo', '0.0.1', deps: [
+    d.dir('foo', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '0.0.1', deps: [
         {"path": "../bar"}
       ])
-    ]).scheduleCreate();
+    ]).create();
 
-    dir('bar', [
-      libDir('bar'),
-      libPubspec('bar', '0.0.1')
-    ]).scheduleCreate();
+    d.dir('bar', [
+      d.libDir('bar'),
+      d.libPubspec('bar', '0.0.1')
+    ]).create();
 
-    dir(appPath, [
-      pubspec({
+    d.dir(appPath, [
+      d.pubspec({
         "name": "myapp",
         "dev_dependencies": {
           "foo": {"path": "../foo"}
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
     schedulePub(args: ["install"],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir("foo", [
-        file("foo.dart", 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir("foo", [
+        d.file("foo.dart", 'main() => "foo";')
       ]),
-      dir("bar", [
-        file("bar.dart", 'main() => "bar";')
+      d.dir("bar", [
+        d.file("bar.dart", 'main() => "bar";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 
   integration("ignores transitive dependency's dev dependencies", () {
-    dir('foo', [
-      libDir('foo'),
-      pubspec({
+    d.dir('foo', [
+      d.libDir('foo'),
+      d.pubspec({
         "name": "foo",
         "version": "0.0.1",
         "dev_dependencies": {
           "bar": {"path": "../bar"}
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
-    dir('bar', [
-      libDir('bar'),
-      libPubspec('bar', '0.0.1')
-    ]).scheduleCreate();
+    d.dir('bar', [
+      d.libDir('bar'),
+      d.libPubspec('bar', '0.0.1')
+    ]).create();
 
-    dir(appPath, [
-      pubspec({
+    d.dir(appPath, [
+      d.pubspec({
         "name": "myapp",
         "dependencies": {
           "foo": {"path": "../foo"}
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
     schedulePub(args: ["install"],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir("foo", [
-        file("foo.dart", 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir("foo", [
+        d.file("foo.dart", 'main() => "foo";')
       ]),
-      nothing("bar")
-    ]).scheduleValidate();
+      d.nothing("bar")
+    ]).validate();
   });
 }

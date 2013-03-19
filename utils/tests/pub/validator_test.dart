@@ -12,9 +12,8 @@ import 'dart:math' as math;
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/pathos/lib/path.dart' as path;
-import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
 
-import 'test_pub.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
@@ -27,27 +26,31 @@ import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
 import '../../pub/validator/size.dart';
 import '../../pub/validator/utf8_readme.dart';
+import 'descriptor.dart' as d;
+import 'test_pub.dart';
 
 void expectNoValidationError(ValidatorCreator fn) {
-  expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isEmpty));
+  expect(schedulePackageValidation(fn), completion(pairOf(isEmpty, isEmpty)));
 }
 
 void expectValidationError(ValidatorCreator fn) {
-  expectLater(schedulePackageValidation(fn), pairOf(isNot(isEmpty), anything));
+  expect(schedulePackageValidation(fn),
+      completion(pairOf(isNot(isEmpty), anything)));
 }
 
 void expectValidationWarning(ValidatorCreator fn) {
-  expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
+  expect(schedulePackageValidation(fn),
+      completion(pairOf(isEmpty, isNot(isEmpty))));
 }
 
 expectDependencyValidationError(String error) {
-  expectLater(schedulePackageValidation(dependency),
-      pairOf(someElement(contains(error)), isEmpty));
+  expect(schedulePackageValidation(dependency),
+      completion(pairOf(someElement(contains(error)), isEmpty)));
 }
 
 expectDependencyValidationWarning(String warning) {
-  expectLater(schedulePackageValidation(dependency),
-      pairOf(isEmpty, someElement(contains(warning))));
+  expect(schedulePackageValidation(dependency),
+      completion(pairOf(isEmpty, someElement(contains(warning)))));
 }
 
 Validator compiledDartdoc(Entrypoint entrypoint) =>
@@ -76,7 +79,9 @@ Function size(int size) {
 Validator utf8Readme(Entrypoint entrypoint) =>
   new Utf8ReadmeValidator(entrypoint);
 
-void scheduleNormalPackage() => normalPackage.scheduleCreate();
+void scheduleNormalPackage() {
+  d.validPackage.create();
+}
 
 /// Sets up a test package with dependency [dep] and mocks a server with
 /// [hostedVersions] of the package available.
@@ -96,9 +101,9 @@ setUpDependency(Map dep, {List<String> hostedVersions}) {
     }
   }));
 
-  dir(appPath, [
-    libPubspec("test_pkg", "1.0.0", deps: [dep])
-  ]).scheduleCreate();
+  d.dir(appPath, [
+    d.libPubspec("test_pkg", "1.0.0", deps: [dep])
+  ]).create();
 }
 
 main() {
@@ -107,7 +112,7 @@ main() {
     setUp(scheduleNormalPackage);
 
     integration('looks normal', () {
-      dir(appPath, [libPubspec("test_pkg", "1.0.0")]).scheduleCreate();
+      d.dir(appPath, [d.libPubspec("test_pkg", "1.0.0")]).create();
       expectNoValidationError(dependency);
       expectNoValidationError(lib);
       expectNoValidationError(license);
@@ -116,55 +121,55 @@ main() {
     });
 
     integration('has a COPYING file', () {
-      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(path.join(appPath, 'COPYING'), '').scheduleCreate();
+      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      d.file(path.join(appPath, 'COPYING'), '').create();
       expectNoValidationError(license);
     });
 
     integration('has a prefixed LICENSE file', () {
-      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(path.join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
+      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      d.file(path.join(appPath, 'MIT_LICENSE'), '').create();
       expectNoValidationError(license);
     });
 
     integration('has a suffixed LICENSE file', () {
-      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
-      file(path.join(appPath, 'LICENSE.md'), '').scheduleCreate();
+      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      d.file(path.join(appPath, 'LICENSE.md'), '').create();
       expectNoValidationError(license);
     });
 
     integration('has "authors" instead of "author"', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg["authors"] = [pkg.remove("author")];
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
       expectNoValidationError(pubspecField);
     });
 
     integration('has a badly-named library in lib/src', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [
-          file("test_pkg.dart", "int i = 1;"),
-          dir("src", [file("8ball.dart", "int j = 2;")])
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0"),
+        d.dir("lib", [
+          d.file("test_pkg.dart", "int i = 1;"),
+          d.dir("src", [d.file("8ball.dart", "int j = 2;")])
         ])
-      ]).scheduleCreate();
+      ]).create();
       expectNoValidationError(name);
     });
 
     integration('has a non-Dart file in lib', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [
-          file("thing.txt", "woo hoo")
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0"),
+        d.dir("lib", [
+          d.file("thing.txt", "woo hoo")
         ])
-      ]).scheduleCreate();
+      ]).create();
       expectNoValidationError(lib);
     });
 
     integration('has a nested directory named "tools"', () {
-      dir(appPath, [
-        dir("foo", [dir("tools")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.dir("foo", [d.dir("tools")])
+      ]).create();
       expectNoValidationError(directory);
     });
 
@@ -174,22 +179,22 @@ main() {
     });
 
     integration('has most but not all files from compiling dartdoc', () {
-      dir(appPath, [
-        dir("doc-out", [
-          file("nav.json", ""),
-          file("index.html", ""),
-          file("styles.css", ""),
-          file("dart-logo-small.png", "")
+      d.dir(appPath, [
+        d.dir("doc-out", [
+          d.file("nav.json", ""),
+          d.file("index.html", ""),
+          d.file("styles.css", ""),
+          d.file("dart-logo-small.png", "")
         ])
-      ]).scheduleCreate();
+      ]).create();
       expectNoValidationError(compiledDartdoc);
     });
 
     integration('has a non-primary readme with invalid utf-8', () {
-      dir(appPath, [
-        file("README", "Valid utf-8"),
-        binaryFile("README.invalid", [192])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.file("README", "Valid utf-8"),
+        d.binaryFile("README.invalid", [192])
+      ]).create();
       expectNoValidationError(utf8Readme);
     });
   });
@@ -198,158 +203,161 @@ main() {
     setUp(scheduleNormalPackage);
 
     integration('is missing the "homepage" field', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg.remove("homepage");
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationError(pubspecField);
     });
 
     integration('is missing the "description" field', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg.remove("description");
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationError(pubspecField);
     });
 
     integration('is missing the "author" field', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg.remove("author");
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationError(pubspecField);
     });
 
     integration('has a single author without an email', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg["author"] = "Nathan Weizenbaum";
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has one of several authors without an email', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg.remove("author");
       pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
         "Nathan Weizenbaum",
         "John Messerly <jmesserly@google.com>"
       ];
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has a single author without a name', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg["author"] = "<nweiz@google.com>";
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has one of several authors without a name', () {
-      var pkg = package("test_pkg", "1.0.0");
+      var pkg = packageMap("test_pkg", "1.0.0");
       pkg.remove("author");
       pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
         "<nweiz@google.com>",
         "John Messerly <jmesserly@google.com>"
       ];
-      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+      d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationWarning(pubspecField);
     });
 
     integration('has no LICENSE file', () {
-      file(path.join(appPath, 'LICENSE'), '').scheduleDelete();
+      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
       expectValidationError(license);
     });
 
     integration('has an empty package name', () {
-      dir(appPath, [libPubspec("", "1.0.0")]).scheduleCreate();
+      d.dir(appPath, [d.libPubspec("", "1.0.0")]).create();
       expectValidationError(name);
     });
 
     integration('has a package name with an invalid character', () {
-      dir(appPath, [libPubspec("test-pkg", "1.0.0")]).scheduleCreate();
+      d.dir(appPath, [d.libPubspec("test-pkg", "1.0.0")]).create();
       expectValidationError(name);
     });
 
     integration('has a package name that begins with a number', () {
-      dir(appPath, [libPubspec("8ball", "1.0.0")]).scheduleCreate();
+      d.dir(appPath, [d.libPubspec("8ball", "1.0.0")]).create();
       expectValidationError(name);
     });
 
     integration('has a package name that contains upper-case letters', () {
-      dir(appPath, [libPubspec("TestPkg", "1.0.0")]).scheduleCreate();
+      d.dir(appPath, [d.libPubspec("TestPkg", "1.0.0")]).create();
       expectValidationWarning(name);
     });
 
     integration('has a package name that is a Dart reserved word', () {
-      dir(appPath, [libPubspec("final", "1.0.0")]).scheduleCreate();
+      d.dir(appPath, [d.libPubspec("final", "1.0.0")]).create();
       expectValidationError(name);
     });
 
     integration('has a library name with an invalid character', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [file("test-pkg.dart", "int i = 0;")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0"),
+        d.dir("lib", [d.file("test-pkg.dart", "int i = 0;")])
+      ]).create();
       expectValidationWarning(name);
     });
 
     integration('has a library name that begins with a number', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [file("8ball.dart", "int i = 0;")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0"),
+        d.dir("lib", [d.file("8ball.dart", "int i = 0;")])
+      ]).create();
       expectValidationWarning(name);
     });
 
     integration('has a library name that contains upper-case letters', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [file("TestPkg.dart", "int i = 0;")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0"),
+        d.dir("lib", [d.file("TestPkg.dart", "int i = 0;")])
+      ]).create();
       expectValidationWarning(name);
     });
 
     integration('has a library name that is a Dart reserved word', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0"),
-        dir("lib", [file("for.dart", "int i = 0;")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0"),
+        d.dir("lib", [d.file("for.dart", "int i = 0;")])
+      ]).create();
       expectValidationWarning(name);
     });
 
     integration('has a single library named differently than the package', () {
-      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
-      dir(appPath, [
-        dir("lib", [file("best_pkg.dart", "int i = 0;")])
-      ]).scheduleCreate();
+      schedule(() =>
+          deleteFile(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
+      d.dir(appPath, [
+        d.dir("lib", [d.file("best_pkg.dart", "int i = 0;")])
+      ]).create();
       expectValidationWarning(name);
     });
 
     integration('has no lib directory', () {
-      dir(path.join(appPath, "lib")).scheduleDelete();
+      schedule(() => deleteDir(path.join(sandboxDir, appPath, "lib")));
       expectValidationError(lib);
     });
 
     integration('has an empty lib directory', () {
-      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
+      schedule(() =>
+          deleteFile(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
       expectValidationError(lib);
     });
 
     integration('has a lib directory containing only src', () {
-      file(path.join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
-      dir(appPath, [
-        dir("lib", [
-          dir("src", [file("test_pkg.dart", "int i = 0;")])
+      schedule(() =>
+          deleteFile(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
+      d.dir(appPath, [
+        d.dir("lib", [
+          d.dir("src", [d.file("test_pkg.dart", "int i = 0;")])
         ])
-      ]).scheduleCreate();
+      ]).create();
       expectValidationError(lib);
     });
 
@@ -442,23 +450,23 @@ main() {
     group('has an unconstrained dependency', () {
       group('and it should not suggest a version', () {
         integration("if there's no lockfile", () {
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
+          d.dir(appPath, [
+            d.libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ])
-          ]).scheduleCreate();
+          ]).create();
 
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, everyElement(isNot(contains("\n  foo:")))));
+          expect(schedulePackageValidation(dependency), completion(
+              pairOf(isEmpty, everyElement(isNot(contains("\n  foo:"))))));
         });
 
         integration("if the lockfile doesn't have an entry for the "
             "dependency", () {
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
+          d.dir(appPath, [
+            d.libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ]),
-            file("pubspec.lock", json.stringify({
+            d.file("pubspec.lock", json.stringify({
               'packages': {
                 'bar': {
                   'version': '1.2.3',
@@ -470,21 +478,21 @@ main() {
                 }
               }
             }))
-          ]).scheduleCreate();
+          ]).create();
 
-          expectLater(schedulePackageValidation(dependency),
-              pairOf(isEmpty, everyElement(isNot(contains("\n  foo:")))));
+          expect(schedulePackageValidation(dependency), completion(
+              pairOf(isEmpty, everyElement(isNot(contains("\n  foo:"))))));
         });
       });
 
       group('with a lockfile', () {
         integration('and it should suggest a constraint based on the locked '
             'version', () {
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
+          d.dir(appPath, [
+            d.libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ]),
-            file("pubspec.lock", json.stringify({
+            d.file("pubspec.lock", json.stringify({
               'packages': {
                 'foo': {
                   'version': '1.2.3',
@@ -496,18 +504,18 @@ main() {
                 }
               }
             }))
-          ]).scheduleCreate();
+          ]).create();
 
           expectDependencyValidationWarning('  foo: ">=1.2.3 <2.0.0"');
         });
 
         integration('and it should suggest a concrete constraint if the locked '
             'version is pre-1.0.0', () {
-          dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", deps: [
+          d.dir(appPath, [
+            d.libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ]),
-            file("pubspec.lock", json.stringify({
+            d.file("pubspec.lock", json.stringify({
               'packages': {
                 'foo': {
                   'version': '0.1.2',
@@ -519,7 +527,7 @@ main() {
                 }
               }
             }))
-          ]).scheduleCreate();
+          ]).create();
 
           expectDependencyValidationWarning('  foo: ">=0.1.2 <0.1.3"');
         });
@@ -527,11 +535,11 @@ main() {
     });
 
     integration('has a hosted dependency on itself', () {
-      dir(appPath, [
-        libPubspec("test_pkg", "1.0.0", deps: [
+      d.dir(appPath, [
+        d.libPubspec("test_pkg", "1.0.0", deps: [
           {'hosted': {'name': 'test_pkg', 'version': '>=1.0.0'}}
         ])
-      ]).scheduleCreate();
+      ]).create();
 
       expectValidationWarning(dependency);
     });
@@ -542,7 +550,7 @@ main() {
       var names = ["tools", "tests", "docs", "examples", "sample", "samples"];
       for (var name in names) {
         integration('"$name"', () {
-          dir(appPath, [dir(name)]).scheduleCreate();
+          d.dir(appPath, [d.dir(name)]).create();
           expectValidationWarning(directory);
         });
       }
@@ -553,23 +561,23 @@ main() {
     });
 
     integration('contains compiled dartdoc', () {
-      dir(appPath, [
-        dir('doc-out', [
-          file('nav.json', ''),
-          file('index.html', ''),
-          file('styles.css', ''),
-          file('dart-logo-small.png', ''),
-          file('client-live-nav.js', '')
+      d.dir(appPath, [
+        d.dir('doc-out', [
+          d.file('nav.json', ''),
+          d.file('index.html', ''),
+          d.file('styles.css', ''),
+          d.file('dart-logo-small.png', ''),
+          d.file('client-live-nav.js', '')
         ])
-      ]).scheduleCreate();
+      ]).create();
 
       expectValidationWarning(compiledDartdoc);
     });
 
     integration('has a README with invalid utf-8', () {
-      dir(appPath, [
-        binaryFile("README", [192])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.binaryFile("README", [192])
+      ]).create();
       expectValidationWarning(utf8Readme);
     });
   });

@@ -6,6 +6,7 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -13,27 +14,27 @@ main() {
       'pubspec', () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('weirdname'),
-      libPubspec('weirdname', '1.0.0')
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('weirdname'),
+      d.libPubspec('weirdname', '1.0.0')
+    ]).create();
 
-    dir(appPath, [
-      pubspec({
+    d.dir(appPath, [
+      d.pubspec({
         "name": "myapp",
         "dependencies": {
           "weirdname": {"git": "../foo.git"}
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir('weirdname', [
-        file('weirdname.dart', 'main() => "weirdname";')
+    d.dir(packagesPath, [
+      d.dir('weirdname', [
+        d.file('weirdname.dart', 'main() => "weirdname";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }

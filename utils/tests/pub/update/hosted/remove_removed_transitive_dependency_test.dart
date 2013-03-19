@@ -6,43 +6,44 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("removes a transitive dependency that's no longer depended "
       "on", () {
     servePackages([
-      package("foo", "1.0.0", [dependency("shared-dep")]),
-      package("bar", "1.0.0", [
-        dependency("shared-dep"),
-        dependency("bar-dep")
+      packageMap("foo", "1.0.0", [dependencyMap("shared-dep")]),
+      packageMap("bar", "1.0.0", [
+        dependencyMap("shared-dep"),
+        dependencyMap("bar-dep")
       ]),
-      package("shared-dep", "1.0.0"),
-      package("bar-dep", "1.0.0")
+      packageMap("shared-dep", "1.0.0"),
+      packageMap("bar-dep", "1.0.0")
     ]);
 
-    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
+    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": "1.0.0",
       "shared-dep": "1.0.0",
       "bar-dep": "1.0.0",
-    }).scheduleValidate();
+    }).validate();
 
-    appDir([dependency("foo")]).scheduleCreate();
+    d.appDir([dependencyMap("foo")]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": null,
       "shared-dep": "1.0.0",
       "bar-dep": null,
-    }).scheduleValidate();
+    }).validate();
   });
 }

@@ -6,14 +6,16 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../../../pkg/unittest/lib/unittest.dart';
+import '../../../../pkg/scheduled_test/lib/scheduled_test.dart';
+
+import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
   initConfig();
   group('requires', () {
     integration('a pubspec', () {
-      dir(appPath, []).scheduleCreate();
+      d.dir(appPath, []).create();
 
       schedulePub(args: ['update'],
           error: new RegExp(r'^Could not find a file named "pubspec.yaml"'),
@@ -21,9 +23,9 @@ main() {
     });
 
     integration('a pubspec with a "name" key', () {
-      dir(appPath, [
-        pubspec({"dependencies": {"foo": null}})
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.pubspec({"dependencies": {"foo": null}})
+      ]).create();
 
       schedulePub(args: ['update'],
           error: new RegExp(r'^pubspec.yaml is missing the required "name" '
@@ -35,51 +37,51 @@ main() {
   integration('adds itself to the packages', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
-    dir(appPath, [
-      pubspec({"name": "myapp_name"}),
-      libDir('myapp_name')
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp_name"}),
+      d.libDir('myapp_name')
+    ]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    dir(packagesPath, [
-      dir("myapp_name", [
-        file('myapp_name.dart', 'main() => "myapp_name";')
+    d.dir(packagesPath, [
+      d.dir("myapp_name", [
+        d.file('myapp_name.dart', 'main() => "myapp_name";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 
   integration('does not adds itself to the packages if it has no "lib" '
       'directory', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
-    dir(appPath, [
-      pubspec({"name": "myapp_name"}),
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp_name"}),
+    ]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    dir(packagesPath, [
-      nothing("myapp_name")
-    ]).scheduleValidate();
+    d.dir(packagesPath, [
+      d.nothing("myapp_name")
+    ]).validate();
   });
 
   integration('does not add a package if it does not have a "lib" '
       'directory', () {
     // Using a path source, but this should be true of all sources.
-    dir('foo', [
-      libPubspec('foo', '0.0.0-not.used')
-    ]).scheduleCreate();
+    d.dir('foo', [
+      d.libPubspec('foo', '0.0.0-not.used')
+    ]).create();
 
-    dir(appPath, [
-      pubspec({"name": "myapp", "dependencies": {"foo": {"path": "../foo"}}})
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp", "dependencies": {"foo": {"path": "../foo"}}})
+    ]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    packagesDir({"foo": null}).scheduleValidate();
+    d.packagesDir({"foo": null}).validate();
   });
 }

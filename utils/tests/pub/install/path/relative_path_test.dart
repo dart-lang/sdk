@@ -1,72 +1,73 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS d.file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// BSD-style license that can be found in the LICENSE d.file.
 
 import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../../../pub/exit_codes.dart' as exit_codes;
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   initConfig();
   integration("can use relative path", () {
-    dir("foo", [
-      libDir("foo"),
-      libPubspec("foo", "0.0.1")
-    ]).scheduleCreate();
+    d.dir("foo", [
+      d.libDir("foo"),
+      d.libPubspec("foo", "0.0.1")
+    ]).create();
 
-    dir(appPath, [
-      pubspec({
+    d.dir(appPath, [
+      d.pubspec({
         "name": "myapp",
         "dependencies": {
           "foo": {"path": "../foo"}
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
     schedulePub(args: ["install"],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir("foo", [
-        file("foo.dart", 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir("foo", [
+        d.file("foo.dart", 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 
-  integration("path is relative to containing pubspec", () {
-    dir("relative", [
-      dir("foo", [
-        libDir("foo"),
-        libPubspec("foo", "0.0.1", deps: [
+  integration("path is relative to containing d.pubspec", () {
+    d.dir("relative", [
+      d.dir("foo", [
+        d.libDir("foo"),
+        d.libPubspec("foo", "0.0.1", deps: [
           {"path": "../bar"}
         ])
       ]),
-      dir("bar", [
-        libDir("bar"),
-        libPubspec("bar", "0.0.1")
+      d.dir("bar", [
+        d.libDir("bar"),
+        d.libPubspec("bar", "0.0.1")
       ])
-    ]).scheduleCreate();
+    ]).create();
 
-    dir(appPath, [
-      pubspec({
+    d.dir(appPath, [
+      d.pubspec({
         "name": "myapp",
         "dependencies": {
           "foo": {"path": "../relative/foo"}
         }
       })
-    ]).scheduleCreate();
+    ]).create();
 
     schedulePub(args: ["install"],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir("foo", [
-        file("foo.dart", 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir("foo", [
+        d.file("foo.dart", 'main() => "foo";')
       ]),
-      dir("bar", [
-        file("bar.dart", 'main() => "bar";')
+      d.dir("bar", [
+        d.file("bar.dart", 'main() => "bar";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }
