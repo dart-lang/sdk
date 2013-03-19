@@ -1227,7 +1227,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
                 node,
                 analyzedElement,
                 element.fieldElement,
-                inferrer.dynamicType);
+                parameterType);
           } else {
             locals.updateField(element.fieldElement, parameterType);
             inferrer.recordNonFinalFieldElementType(

@@ -10,13 +10,16 @@ const String TEST = """
 class A {
   final intField;
   final giveUpField;
+  final fieldParameter;
   A() : intField = 42, giveUpField = 'foo';
   A.bar() : intField = 54, giveUpField = 42;
+  A.foo(this.fieldParameter);
 }
 
 main() {
   new A();
   new A.bar();
+  new A.foo(42);
 }
 """;
 
@@ -34,4 +37,5 @@ void main() {
 
   checkFieldTypeInClass('A', 'intField', typesInferrer.intType);
   checkFieldTypeInClass('A', 'giveUpField', typesInferrer.dynamicType);
+  checkFieldTypeInClass('A', 'fieldParameter', typesInferrer.intType);
 }
