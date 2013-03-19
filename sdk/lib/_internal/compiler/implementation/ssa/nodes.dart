@@ -1318,7 +1318,7 @@ abstract class HInvokeDynamic extends HInvoke {
   /**
    * Returns whether this call is on an intercepted method.
    */
-  bool get isInterceptorCall {
+  bool get isInterceptedCall {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
@@ -1334,7 +1334,7 @@ abstract class HInvokeDynamic extends HInvoke {
     // actual receiver.
     // TODO(ngeoffray): This is very fragile and we should inspect the
     // receiver instead.
-    return isInterceptorCall && inputs[0] != inputs[1];
+    return isInterceptedCall && inputs[0] != inputs[1];
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
@@ -1362,7 +1362,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
   bool isIndexOperatorOnIndexablePrimitive() {
-    return isInterceptorCall
+    return isInterceptedCall
         && selector.kind == SelectorKind.INDEX
         && selector.name == const SourceString('[]')
         && inputs[1].isIndexablePrimitive();
