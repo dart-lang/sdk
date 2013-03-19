@@ -154,7 +154,7 @@ class World {
     ClassElement enclosing = result.getEnclosingClass();
     // TODO(kasperl): Move this code to the type mask.
     ti.TypeMask mask = selector.mask;
-    ClassElement receiverTypeElement = (mask == null)
+    ClassElement receiverTypeElement = (mask == null || mask.base == null)
         ? compiler.objectClass
         : mask.base.element;
     // We only return the found element if it is guaranteed to be

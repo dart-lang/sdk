@@ -318,6 +318,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (selector.applies(backend.jsArrayLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
+      } else {
+        Element field = findConcreteFieldForDynamicAccess(input, node.selector);
+        if (field != null) return directFieldGet(input, field);
       }
     }
 
@@ -580,11 +583,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     if (node.isCallOnInterceptor) return handleInterceptorCall(node);
-
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field == null) return node;
+    return directFieldGet(node.inputs[0], field);
+  }
 
+  HInstruction directFieldGet(HInstruction receiver, Element field) {
     Modifiers modifiers = field.modifiers;
     bool isAssignable = !(modifiers.isFinal() || modifiers.isConst());
     if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
@@ -600,7 +605,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       isAssignable = true;
     }
     HFieldGet result = new HFieldGet(
-        field, node.inputs[0], isAssignable: isAssignable);
+        field, receiver, isAssignable: isAssignable);
 
     if (field.getEnclosingClass().isNative()) {
       result.instructionType =
