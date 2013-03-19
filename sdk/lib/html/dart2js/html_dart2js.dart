@@ -17144,7 +17144,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   Point get offset {
     if (JS('bool', '!!#.offsetX', this)) {
       var x = JS('int', '#.offsetX', this);
-      var y = JS('int', '#.offsetX', this);
+      var y = JS('int', '#.offsetY', this);
       return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
