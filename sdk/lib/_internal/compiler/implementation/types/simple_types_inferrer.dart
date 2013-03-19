@@ -1293,7 +1293,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       });
       // TODO(ngeoffray): Re-analyze method if [changed]?
     }
-
     return returnType;
   }
 
@@ -1535,12 +1534,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       // [: foo = 42 :] or [: foo.bar = 42 :].
       ArgumentsTypes arguments =  new ArgumentsTypes([rhsType], null);
       if (Elements.isStaticOrTopLevelField(element)) {
-        if (element.isSetter()) {
-          handleStaticSend(node, setterSelector, element, arguments);
-        } else {
-          assert(element.isField());
-          inferrer.recordNonFinalFieldElementType(node, element, rhsType);
-        }
+        handleStaticSend(node, setterSelector, element, arguments);
       } else if (Elements.isUnresolved(element) || element.isSetter()) {
         handleDynamicSend(node, setterSelector, receiverType, arguments);
       } else if (element.isField()) {
@@ -1588,29 +1582,17 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         getterType = getterElement.isField()
             ? inferrer.typeOfElement(element)
             : inferrer.returnTypeOfElement(element);
-        if (getterElement.isGetter()) {
-          handleStaticSend(node, getterSelector, getterElement, null);
-        }
+        handleStaticSend(node, getterSelector, getterElement, null);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
-        if (element.isField()) {
-          inferrer.recordNonFinalFieldElementType(node, element, newType);
-        } else {
-          assert(element.isSetter());
-          handleStaticSend(
-              node, setterSelector, element,
-              new ArgumentsTypes([newType], null));
-        }
-      } else if (Elements.isUnresolved(element) || element.isSetter()) {
+        handleStaticSend(
+            node, setterSelector, element,
+            new ArgumentsTypes([newType], null));
+      } else if (Elements.isUnresolved(element)
+                 || element.isSetter()
+                 || element.isField()) {
         getterType = handleDynamicSend(
             node, getterSelector, receiverType, null);
-        newType = handleDynamicSend(
-            node, operatorSelector, getterType, operatorArguments);
-        handleDynamicSend(node, setterSelector, receiverType,
-                          new ArgumentsTypes([newType], null));
-      } else if (element.isField()) {
-        assert(!element.modifiers.isFinal());
-        getterType = inferrer.dynamicType; // The type of the field.
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
         handleDynamicSend(node, setterSelector, receiverType,
@@ -1861,7 +1843,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
                         Selector selector,
                         Element element,
                         ArgumentsTypes arguments) {
-    return inferrer.registerCalledElement(
+    if (Elements.isUnresolved(element)) return;
+    inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments, inLoop);
   }
 
