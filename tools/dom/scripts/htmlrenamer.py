@@ -604,6 +604,13 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Document.hasFocus',
     ])
 
+# Manual dart: library name lookup.
+_library_names = monitored.Dict('htmlrenamer._library_names', {
+  'DOMWindow': 'html',
+  'Navigator': 'html',
+  'WorkerContext': 'html',
+})
+
 class HtmlRenamer(object):
   def __init__(self, database):
     self._database = database
@@ -668,6 +675,10 @@ class HtmlRenamer(object):
         return member_name
 
   def GetLibraryName(self, interface):
+    # Some types have attributes merged in from many other interfaces.
+    if interface.id in _library_names:
+      return _library_names[interface.id]
+
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
         return 'web_audio'
@@ -676,9 +687,7 @@ class HtmlRenamer(object):
       if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
         return 'indexed_db'
       if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
-        # WorkerContext has attributes merged in from many other interfaces.
-        if interface.id != 'WorkerContext':
-          return 'web_sql'
+        return 'web_sql'
 
     return 'html'
 
