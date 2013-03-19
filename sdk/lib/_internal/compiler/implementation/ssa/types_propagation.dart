@@ -126,7 +126,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
   }
 
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
-    int receiverIndex = instruction.isInterceptedCall ? 1 : 0;
+    int receiverIndex = instruction.isInterceptorCall ? 1 : 0;
     HType receiverType = instruction.inputs[receiverIndex].instructionType;
     Selector refined = receiverType.refine(instruction.selector, compiler);
     HType type = new HType.inferredTypeForSelector(refined, compiler);
