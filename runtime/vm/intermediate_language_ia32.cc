@@ -2209,7 +2209,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        __ imull(left, Immediate(value));
+        if (value == 2) {
+          __ shll(left, Immediate(1));
+        } else {
+          __ imull(left, Immediate(value));
+        }
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }

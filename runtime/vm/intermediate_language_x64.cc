@@ -1834,7 +1834,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   if (locs.in(1).IsConstant()) {
     const Object& constant = locs.in(1).constant();
     ASSERT(constant.IsSmi());
-    // shll operation masks the count to 6 bits.
+    // shlq operation masks the count to 6 bits.
     const intptr_t kCountLimit = 0x3F;
     const intptr_t value = Smi::Cast(constant).Value();
     if (value == 0) {
@@ -2055,7 +2055,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        __ imulq(left, Immediate(value));
+        if (value == 2) {
+          __ shlq(left, Immediate(1));
+        } else {
+          __ imulq(left, Immediate(value));
+        }
         if (deopt != NULL) __ j(OVERFLOW, deopt);
         break;
       }
