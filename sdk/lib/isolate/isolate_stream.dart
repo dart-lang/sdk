@@ -23,25 +23,11 @@ class MessageBox {
   final IsolateStream stream;
   final IsolateSink sink;
 
-  MessageBox.oneShot() : this._oneShot(new ReceivePort());
-  MessageBox._oneShot(ReceivePort receivePort)
-      : stream = new IsolateStream._fromOriginalReceivePortOneShot(receivePort),
-        sink = new IsolateSink._fromPort(receivePort.toSendPort());
-
-  MessageBox() : this._(new ReceivePort());
-  MessageBox._(ReceivePort receivePort)
-      : stream = new IsolateStream._fromOriginalReceivePort(receivePort),
-        sink = new IsolateSink._fromPort(receivePort.toSendPort());
+  external MessageBox.oneShot();
+  external MessageBox();
 }
 
-// Used for mangling.
-const int _ISOLATE_STREAM_TOKEN = 132421119;
-
-class _CloseToken {
-  /// This token is sent from [IsolateSink]s to [IsolateStream]s to ask them to
-  /// close themselves.
-  const _CloseToken();
-}
+external bool _isCloseToken(var object);
 
 /**
  * [IsolateStream]s, together with [IsolateSink]s, are the only means of
@@ -70,8 +56,7 @@ class IsolateStream extends Stream<dynamic> {
   }
 
   void _add(var message) {
-    message = _unmangleMessage(message);
-    if (identical(message, const _CloseToken())) {
+    if (_isCloseToken(message)) {
       close();
     } else {
       _controller.sink.add(message);
@@ -100,22 +85,6 @@ class IsolateStream extends Stream<dynamic> {
                                        onDone: onDone,
                                        unsubscribeOnError: unsubscribeOnError);
   }
-
-  dynamic _unmangleMessage(var message) {
-    _IsolateDecoder decoder = new _IsolateDecoder(
-        _ISOLATE_STREAM_TOKEN,
-        (data) {
-          if (data is! List) return data;
-          if (data.length == 2 && data[0] == "Sink" && data[1] is SendPort) {
-            return new IsolateSink._fromPort(data[1]);
-          }
-          if (data.length == 1 && data[0] == "Close") {
-            return const _CloseToken();
-          }
-          return data;
-        });
-    return decoder.decode(message);
-  }
 }
 
 /**
@@ -125,11 +94,10 @@ class IsolateStream extends Stream<dynamic> {
  *
  * [IsolateSink]s can be transmitted to other isolates.
  */
-class IsolateSink extends StreamSink<dynamic> {
+abstract class IsolateSink extends StreamSink<dynamic> {
   // TODO(8997): Implement EventSink instead.
-  bool _isClosed = false;
-  final SendPort _port;
-  IsolateSink._fromPort(this._port);
+  // TODO(floitsch): Actually it should be a StreamSink (being able to flow-
+  // control).
 
   /**
    * Sends an asynchronous [message] to the linked [IsolateStream]. The message
@@ -145,41 +113,18 @@ class IsolateSink extends StreamSink<dynamic> {
    * process). This is currently only supported by the dartvm.  For now, the
    * dart2js compiler only supports the restricted messages described above.
    */
-  void add(dynamic message) {
-    var mangled = _mangleMessage(message);
-    _port.send(mangled);
-  }
+  void add(dynamic message);
 
-  void addError(AsyncError errorEvent) {
-    throw new UnimplementedError("signalError on isolate streams");
-  }
+  void addError(AsyncError errorEvent);
 
-  dynamic _mangleMessage(var message) {
-    _IsolateEncoder encoder = new _IsolateEncoder(
-        _ISOLATE_STREAM_TOKEN,
-        (data) {
-          if (data is IsolateSink) return ["Sink", data._port];
-          if (identical(data, const _CloseToken())) return ["Close"];
-          return data;
-        });
-    return encoder.encode(message);
-  }
-
-  void close() {
-    if (_isClosed) throw new StateError("Sending on closed stream");
-    add(const _CloseToken());
-    _isClosed = true;
-  }
+  /** Closing multiple times is allowed. */
+  void close();
 
   /**
    * Tests whether [other] is an [IsolateSink] feeding into the same
    * [IsolateStream] as this one.
    */
-  bool operator==(var other) {
-    return other is IsolateSink && _port == other._port;
-  }
-
-  int get hashCode => _port.hashCode + 499;
+  bool operator==(var other);
 }
 
 
@@ -203,22 +148,6 @@ class IsolateSink extends StreamSink<dynamic> {
  *
  * See comments at the top of this library for more details.
  */
-IsolateSink streamSpawnFunction(
+external IsolateSink streamSpawnFunction(
     void topLevelFunction(),
-    [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
-  SendPort sendPort = spawnFunction(topLevelFunction,
-                                    unhandledExceptionCallback);
-  return new IsolateSink._fromPort(sendPort);
-}
-
-/**
- * Creates and spawns an isolate whose code is available at [uri].  Like with
- * [streamSpawnFunction], the child isolate will have a default [IsolateStream],
- * and a this function returns an [IsolateSink] feeding into it.
- *
- * See comments at the top of this library for more details.
- */
-IsolateSink streamSpawnUri(String uri) {
-  SendPort sendPort = spawnUri(uri);
-  return new IsolateSink._fromPort(sendPort);
-}
+    [bool unhandledExceptionCallback(IsolateUnhandledException e)]);

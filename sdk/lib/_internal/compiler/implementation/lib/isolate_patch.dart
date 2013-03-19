@@ -6,7 +6,9 @@
 
 import 'dart:_isolate_helper' show IsolateNatives,
                                    lazyPort,
-                                   ReceivePortImpl;
+                                   ReceivePortImpl,
+                                   CloseToken,
+                                   JsIsolateSink;
 
 patch class _Isolate {
   patch static ReceivePort get port {
@@ -31,9 +33,33 @@ patch class _Isolate {
   }
 }
 
+patch bool _isCloseToken(var object) {
+  return identical(object, const CloseToken());
+}
+
 /** Default factory for receive ports. */
 patch class ReceivePort {
   patch factory ReceivePort() {
     return new ReceivePortImpl();
   }
+}
+
+patch class MessageBox {
+  patch MessageBox.oneShot() : this._oneShot(new ReceivePort());
+  MessageBox._oneShot(ReceivePort receivePort)
+      : stream = new IsolateStream._fromOriginalReceivePortOneShot(receivePort),
+        sink = new JsIsolateSink.fromPort(receivePort.toSendPort());
+
+  patch MessageBox() : this._(new ReceivePort());
+  MessageBox._(ReceivePort receivePort)
+      : stream = new IsolateStream._fromOriginalReceivePort(receivePort),
+        sink = new JsIsolateSink.fromPort(receivePort.toSendPort());
+}
+
+patch IsolateSink streamSpawnFunction(
+    void topLevelFunction(),
+    [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
+  SendPort sendPort = spawnFunction(topLevelFunction,
+                                    unhandledExceptionCallback);
+  return new JsIsolateSink.fromPort(sendPort);
 }

@@ -2,6 +2,63 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _CloseToken {
+  /// This token is sent from [IsolateSink]s to [IsolateStream]s to ask them to
+  /// close themselves.
+  const _CloseToken();
+}
+
+patch bool _isCloseToken(var object) {
+  // TODO(floitsch): can we compare against const _CloseToken()?
+  return object is _CloseToken;
+}
+
+patch class MessageBox {
+  /* patch */ MessageBox.oneShot() : this._oneShot(new ReceivePort());
+  MessageBox._oneShot(ReceivePort receivePort)
+      : stream = new IsolateStream._fromOriginalReceivePortOneShot(receivePort),
+        sink = new _IsolateSink._fromPort(receivePort.toSendPort());
+
+  /* patch */ MessageBox() : this._(new ReceivePort());
+  MessageBox._(ReceivePort receivePort)
+      : stream = new IsolateStream._fromOriginalReceivePort(receivePort),
+        sink = new _IsolateSink._fromPort(receivePort.toSendPort());
+}
+
+class _IsolateSink implements IsolateSink {
+  bool _isClosed = false;
+  final SendPort _port;
+  _IsolateSink._fromPort(this._port);
+
+  void add(dynamic message) {
+    _port.send(message);
+  }
+
+  void addError(AsyncError errorEvent) {
+    throw new UnimplementedError("signalError on isolate streams");
+  }
+
+  void close() {
+    if (_isClosed) return;
+    add(const _CloseToken());
+    _isClosed = true;
+  }
+
+  bool operator==(var other) {
+    return other is IsolateSink && _port == other._port;
+  }
+
+  int get hashCode => _port.hashCode + 499;
+}
+
+patch IsolateSink streamSpawnFunction(
+    void topLevelFunction(),
+    [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
+  SendPort sendPort = spawnFunction(topLevelFunction,
+                                    unhandledExceptionCallback);
+  return new _IsolateSink._fromPort(sendPort);
+}
+
 patch class ReceivePort {
   /* patch */ factory ReceivePort() {
     return new _ReceivePortImpl();
