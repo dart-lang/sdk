@@ -27,15 +27,22 @@ bool globalErrorHandler(IsolateUnhandledException e) {
 }
 
 main() {
+  var keepRunningBox = new MessageBox();
   // Make sure this test doesn't last longer than 2 seconds.
   var timer = new Timer(const Duration(seconds: 2), () { throw "failed"; });
 
   var box = new MessageBox();
   IsolateSink otherIsolate = streamSpawnFunction(runTest, globalErrorHandler);
   otherIsolate.add(box.sink);
-  otherIsolate.close();
+  // The previous event should have been handled entirely, but the current
+  // implementations don't guarantee that and might mix the done event with
+  // the handling of the previous event. We therefore delay the closing.
+  // Note: if the done is sent too early it won't lead to failing tests, but
+  // just won't make sure that the globalErrorHandler works.
+  new Timer(const Duration(milliseconds: 10), otherIsolate.close);
   box.stream.single.then((msg) {
     Expect.equals("received done", msg);
     timer.cancel();
+    keepRunningBox.stream.close();
   });
 }

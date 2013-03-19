@@ -21,7 +21,7 @@ void runFunctions() {
 
 void startTest(StreamSink finishSink) {
   firstFunction = () { throw new RuntimeError("ignore exception"); };
-  finishFunction = () { finishSink.add("done"); finishPort.close(); };
+  finishFunction = () { finishSink.add("done"); finishSink.close(); };
   new Timer(Duration.ZERO, runFunctions);
 }
 
