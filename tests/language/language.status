@@ -98,6 +98,8 @@ import_private_test/01: Fail # Issue 8365.
 list_literal1_negative_test: Fail
 map_literal1_negative_test: Fail
 
+mixin_type_parameters_errors_test/03: Fail
+mixin_type_parameters_errors_test/04: Fail
 
 # test issue 8129
 redirecting_factory_infinite_steps_test/01: Fail
@@ -353,6 +355,9 @@ many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, te
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
 on_catch_malformed_type_test: Fail # Issue 8601
+
+# False positive compile-time error is masking expected compile-time error
+mixin_type_parameters_errors_test/*: Skip
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail                      # VM issue
