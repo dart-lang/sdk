@@ -6,46 +6,45 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('checks out packages transitively from Git', () {
     ensureGit();
 
-    d.git('foo.git', [
-      d.libDir('foo'),
-      d.libPubspec('foo', '1.0.0', deps: [{"git": "../bar.git"}])
-    ]).create();
+    git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0', deps: [{"git": "../bar.git"}])
+    ]).scheduleCreate();
 
-    d.git('bar.git', [
-      d.libDir('bar'),
-      d.libPubspec('bar', '1.0.0')
-    ]).create();
+    git('bar.git', [
+      libDir('bar'),
+      libPubspec('bar', '1.0.0')
+    ]).scheduleCreate();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp("Dependencies installed!\$"));
 
-    d.dir(cachePath, [
-      d.dir('git', [
-        d.dir('cache', [
-          d.gitPackageRepoCacheDir('foo'),
-          d.gitPackageRepoCacheDir('bar')
+    dir(cachePath, [
+      dir('git', [
+        dir('cache', [
+          gitPackageRepoCacheDir('foo'),
+          gitPackageRepoCacheDir('bar')
         ]),
-        d.gitPackageRevisionCacheDir('foo'),
-        d.gitPackageRevisionCacheDir('bar')
+        gitPackageRevisionCacheDir('foo'),
+        gitPackageRevisionCacheDir('bar')
       ])
-    ]).validate();
+    ]).scheduleValidate();
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
       ]),
-      d.dir('bar', [
-        d.file('bar.dart', 'main() => "bar";')
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";')
       ])
-    ]).validate();
+    ]).scheduleValidate();
   });
 }

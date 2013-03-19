@@ -1,30 +1,28 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS d.file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE d.file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
 
 import '../../../../../pkg/pathos/lib/path.dart' as path;
-import '../../../../../pkg/scheduled_test/lib/scheduled_test.dart';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   initConfig();
   integration('path dependency to non-package directory', () {
     // Make an empty directory.
-    d.dir('foo').create();
+    dir('foo').scheduleCreate();
     var fooPath = path.join(sandboxDir, "foo");
 
-    d.dir(appPath, [
-      d.pubspec({
+    dir(appPath, [
+      pubspec({
         "name": "myapp",
         "dependencies": {
           "foo": {"path": fooPath}
         }
       })
-    ]).create();
+    ]).scheduleCreate();
 
     schedulePub(args: ['install'],
         error: new RegExp('Package "foo" doesn\'t have a pubspec.yaml file.'),

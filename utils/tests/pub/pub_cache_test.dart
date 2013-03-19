@@ -6,12 +6,8 @@ library pub_cache_test;
 
 import 'dart:io';
 import 'dart:json' as json;
-
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-
-import '../../pub/io.dart';
-import 'descriptor.dart' as d;
 import 'test_pub.dart';
+import '../../pub/io.dart';
 
 main() {
   initConfig();
@@ -44,36 +40,34 @@ main() {
   
   integration('running pub cache list on empty cache', () {      
     // Set up a cache.
-    d.dir(cachePath, [
-      d.dir('hosted', [
-         d.dir('pub.dartlang.org', [
+    dir(cachePath, [
+      dir('hosted', [
+         dir('pub.dartlang.org', [
         ])
       ])
-    ]).create();
+    ]).scheduleCreate();
     
     schedulePub(args: ['cache', 'list'], output: '{"packages":{}}');
   });
   
   integration('running pub cache list', () {
     // Set up a cache.
-    d.dir(cachePath, [
-      d.dir('hosted', [
-         d.dir('pub.dartlang.org', [
-          d.dir("foo-1.2.3", [
-            d.libPubspec("foo", "1.2.3"),
-            d.libDir("foo")
+    dir(cachePath, [
+      dir('hosted', [
+         dir('pub.dartlang.org', [
+          dir("foo-1.2.3", [
+            libPubspec("foo", "1.2.3"),
+            libDir("foo")
           ]),
-          d.dir("bar-2.0.0", [
-            d.libPubspec("bar", "2.0.0"),
-            d.libDir("bar") ])
+          dir("bar-2.0.0", [
+            libPubspec("bar", "2.0.0"),
+            libDir("bar") ])
         ])
       ])
-    ]).create();
+    ]).scheduleCreate();
     
     schedulePub(args: ['cache', 'list'], output: 
-      new RegExp(r'\{"packages":\{"bar":\{"version":"2\.0\.0","location":'
-          r'"[^"]+bar-2\.0\.0"\},"foo":\{"version":"1\.2\.3","location":'
-          r'"[^"]+foo-1\.2\.3"\}\}\}$'));
+      new RegExp(r'\{"packages":\{"bar":\{"version":"2\.0\.0","location":"[^"]+bar-2\.0\.0"\},"foo":\{"version":"1\.2\.3","location":"[^"]+foo-1\.2\.3"\}\}\}$'));
   });
   
 }

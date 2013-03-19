@@ -6,9 +6,7 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../../../../pkg/scheduled_test/lib/scheduled_test.dart';
-
-import '../../descriptor.dart' as d;
+import '../../../../../pkg/unittest/lib/unittest.dart';
 import '../../test_pub.dart';
 
 main() {
@@ -16,28 +14,28 @@ main() {
     integration('checks out a package from Git with a trailing slash', () {
       ensureGit();
 
-      d.git('foo.git', [
-        d.libDir('foo'),
-        d.libPubspec('foo', '1.0.0')
-      ]).create();
+      git('foo.git', [
+        libDir('foo'),
+        libPubspec('foo', '1.0.0')
+      ]).scheduleCreate();
 
-      d.appDir([{"git": "../foo.git/"}]).create();
+      appDir([{"git": "../foo.git/"}]).scheduleCreate();
 
       schedulePub(args: ['install'],
           output: new RegExp(r"Dependencies installed!$"));
 
-      d.dir(cachePath, [
-        d.dir('git', [
-          d.dir('cache', [d.gitPackageRepoCacheDir('foo')]),
-          d.gitPackageRevisionCacheDir('foo')
+      dir(cachePath, [
+        dir('git', [
+          dir('cache', [gitPackageRepoCacheDir('foo')]),
+          gitPackageRevisionCacheDir('foo')
         ])
-      ]).validate();
+      ]).scheduleValidate();
 
-      d.dir(packagesPath, [
-        d.dir('foo', [
-          d.file('foo.dart', 'main() => "foo";')
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
         ])
-      ]).validate();
+      ]).scheduleValidate();
     });
   });
 }

@@ -6,34 +6,33 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('checks out a package at a specific revision from Git', () {
     ensureGit();
 
-    var repo = d.git('foo.git', [
-      d.libDir('foo', 'foo 1'),
-      d.libPubspec('foo', '1.0.0')
+    var repo = git('foo.git', [
+      libDir('foo', 'foo 1'),
+      libPubspec('foo', '1.0.0')
     ]);
-    repo.create();
+    repo.scheduleCreate();
     var commit = repo.revParse('HEAD');
 
-    d.git('foo.git', [
-      d.libDir('foo', 'foo 2'),
-      d.libPubspec('foo', '1.0.0')
-    ]).commit();
+    git('foo.git', [
+      libDir('foo', 'foo 2'),
+      libPubspec('foo', '1.0.0')
+    ]).scheduleCommit();
 
-    d.appDir([{"git": {"url": "../foo.git", "ref": commit}}]).create();
+    appDir([{"git": {"url": "../foo.git", "ref": commit}}]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo 1";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1";')
       ])
-    ]).validate();
+    ]).scheduleValidate();
   });
 }

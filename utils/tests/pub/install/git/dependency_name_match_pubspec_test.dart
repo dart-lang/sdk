@@ -6,7 +6,6 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -14,19 +13,19 @@ main() {
       'name', () {
     ensureGit();
 
-    d.git('foo.git', [
-      d.libDir('foo'),
-      d.libPubspec('foo', '1.0.0')
-    ]).create();
+    git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
+    ]).scheduleCreate();
 
-    d.dir(appPath, [
-      d.pubspec({
+    dir(appPath, [
+      pubspec({
         "name": "myapp",
         "dependencies": {
           "weirdname": {"git": "../foo.git"}
         }
       })
-    ]).create();
+    ]).scheduleCreate();
 
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.

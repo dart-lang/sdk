@@ -6,7 +6,6 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -14,36 +13,36 @@ main() {
       "constraint", () {
     ensureGit();
 
-    d.git('foo.git', [
-      d.libDir('foo', 'foo 1.0.0'),
-      d.libPubspec("foo", "1.0.0")
-    ]).create();
+    git('foo.git', [
+      libDir('foo', 'foo 1.0.0'),
+      libPubspec("foo", "1.0.0")
+    ]).scheduleCreate();
 
-    d.appDir([{"git": "../foo.git"}]).create();
-
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
-
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo 1.0.0";')
-      ])
-    ]).validate();
-
-    d.git('foo.git', [
-      d.libDir('foo', 'foo 1.0.1'),
-      d.libPubspec("foo", "1.0.1")
-    ]).commit();
-
-    d.appDir([{"git": "../foo.git", "version": ">=1.0.0"}]).create();
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo 1.0.0";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1.0.0";')
       ])
-    ]).validate();
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      libDir('foo', 'foo 1.0.1'),
+      libPubspec("foo", "1.0.1")
+    ]).scheduleCommit();
+
+    appDir([{"git": "../foo.git", "version": ">=1.0.0"}]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: new RegExp(r"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1.0.0";')
+      ])
+    ]).scheduleValidate();
   });
 }

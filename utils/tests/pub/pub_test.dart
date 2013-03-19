@@ -6,10 +6,8 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-
-import 'descriptor.dart' as d;
 import 'test_pub.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 final USAGE_STRING = """
     Pub is a package manager for Dart.
@@ -132,9 +130,9 @@ main() {
     });
 
     integration('parses a release-style version', () {
-      d.dir(sdkPath, [
-        d.file('version', '0.1.2.0_r17645'),
-      ]).create();
+      dir(sdkPath, [
+        file('version', '0.1.2.0_r17645'),
+      ]).scheduleCreate();
 
       schedulePub(args: ['version'], output: "Pub 0.1.2+0.r17645\n");
     });
@@ -142,9 +140,9 @@ main() {
     integration('parses a dev-only style version', () {
       // The "version" file generated on developer builds is a little funky and
       // we need to make sure we don't choke on it.
-      d.dir(sdkPath, [
-        d.file('version', '0.1.2.0_r16279_bobross'),
-      ]).create();
+      dir(sdkPath, [
+        file('version', '0.1.2.0_r16279_bobross'),
+      ]).scheduleCreate();
 
       schedulePub(args: ['version'], output: "Pub 0.1.2+0.r16279.bobross\n");
     });

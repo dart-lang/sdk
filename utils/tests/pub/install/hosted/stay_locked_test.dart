@@ -6,36 +6,31 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../../../../pkg/pathos/lib/path.dart' as path;
-import '../../../../../pkg/scheduled_test/lib/scheduled_test.dart';
-
-import '../../../../pub/io.dart';
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('keeps a pub server package locked to the version in the '
       'lockfile', () {
-    servePackages([packageMap("foo", "1.0.0")]);
+    servePackages([package("foo", "1.0.0")]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    appDir([dependency("foo")]).scheduleCreate();
 
     // This install should lock the foo dependency to version 1.0.0.
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.packagesDir({"foo": "1.0.0"}).validate();
+    packagesDir({"foo": "1.0.0"}).scheduleValidate();
 
     // Delete the packages path to simulate a new checkout of the application.
-    schedule(() => deleteDir(path.join(sandboxDir, packagesPath)));
+    dir(packagesPath).scheduleDelete();
 
     // Start serving a newer package as well.
-    servePackages([packageMap("foo", "1.0.1")]);
+    servePackages([package("foo", "1.0.1")]);
 
     // This install shouldn't update the foo dependency due to the lockfile.
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.packagesDir({"foo": "1.0.0"}).validate();
+    packagesDir({"foo": "1.0.0"}).scheduleValidate();
   });
 }

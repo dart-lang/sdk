@@ -6,42 +6,41 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("updates Git packages to a nonexistent pubspec", () {
     ensureGit();
 
-    var repo = d.git('foo.git', [
-      d.libDir('foo'),
-      d.libPubspec('foo', '1.0.0')
+    var repo = git('foo.git', [
+      libDir('foo'),
+      libPubspec('foo', '1.0.0')
     ]);
-    repo.create();
+    repo.scheduleCreate();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
       ])
-    ]).validate();
+    ]).scheduleValidate();
 
-    repo.runGit(['rm', 'pubspec.yaml']);
-    repo.runGit(['commit', '-m', 'delete']);
+    repo.scheduleGit(['rm', 'pubspec.yaml']);
+    repo.scheduleGit(['commit', '-m', 'delete']);
 
     schedulePub(args: ['update'],
         error: new RegExp(r'Package "foo" doesn' "'" r't have a '
             r'pubspec.yaml file.'),
         exitCode: 1);
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
       ])
-    ]).validate();
+    ]).scheduleValidate();
   });
 }

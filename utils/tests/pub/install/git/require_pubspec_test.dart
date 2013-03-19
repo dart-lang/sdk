@@ -6,18 +6,17 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('requires the dependency to have a pubspec', () {
     ensureGit();
 
-    d.git('foo.git', [
-      d.libDir('foo')
-    ]).create();
+    git('foo.git', [
+      libDir('foo')
+    ]).scheduleCreate();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.

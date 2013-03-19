@@ -6,38 +6,37 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("updates dependencies whose constraints have been removed", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("shared-dep")]),
-      packageMap("bar", "1.0.0", [dependencyMap("shared-dep", "<2.0.0")]),
-      packageMap("shared-dep", "1.0.0"),
-      packageMap("shared-dep", "2.0.0")
+      package("foo", "1.0.0", [dependency("shared-dep")]),
+      package("bar", "1.0.0", [dependency("shared-dep", "<2.0.0")]),
+      package("shared-dep", "1.0.0"),
+      package("shared-dep", "2.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
+    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    d.packagesDir({
+    packagesDir({
       "foo": "1.0.0",
       "bar": "1.0.0",
       "shared-dep": "1.0.0"
-    }).validate();
+    }).scheduleValidate();
 
-    d.appDir([dependencyMap("foo")]).create();
+    appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    d.packagesDir({
+    packagesDir({
       "foo": "1.0.0",
       "bar": null,
       "shared-dep": "2.0.0"
-    }).validate();
+    }).scheduleValidate();
   });
 }

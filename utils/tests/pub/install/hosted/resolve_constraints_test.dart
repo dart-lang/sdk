@@ -6,34 +6,33 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('resolves version constraints from a pub server', () {
     servePackages([
-      packageMap("foo", "1.2.3", [dependencyMap("baz", ">=2.0.0")]),
-      packageMap("bar", "2.3.4", [dependencyMap("baz", "<3.0.0")]),
-      packageMap("baz", "2.0.3"),
-      packageMap("baz", "2.0.4"),
-      packageMap("baz", "3.0.1")
+      package("foo", "1.2.3", [dependency("baz", ">=2.0.0")]),
+      package("bar", "2.3.4", [dependency("baz", "<3.0.0")]),
+      package("baz", "2.0.3"),
+      package("baz", "2.0.4"),
+      package("baz", "3.0.1")
     ]);
 
-    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
+    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp("Dependencies installed!\$"));
 
-    d.cacheDir({
+    cacheDir({
       "foo": "1.2.3",
       "bar": "2.3.4",
       "baz": "2.0.4"
-    }).validate();
+    }).scheduleValidate();
 
-    d.packagesDir({
+    packagesDir({
       "foo": "1.2.3",
       "bar": "2.3.4",
       "baz": "2.0.4"
-    }).validate();
+    }).scheduleValidate();
   });
 }

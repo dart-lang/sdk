@@ -6,38 +6,37 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("updates one locked pub server package's dependencies if it's "
       "necessary", () {
     servePackages([
-      packageMap("foo", "1.0.0", [dependencyMap("foo-dep")]),
-      packageMap("foo-dep", "1.0.0")
+      package("foo", "1.0.0", [dependency("foo-dep")]),
+      package("foo-dep", "1.0.0")
     ]);
 
-    d.appDir([dependencyMap("foo")]).create();
+    appDir([dependency("foo")]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.packagesDir({
+    packagesDir({
       "foo": "1.0.0",
       "foo-dep": "1.0.0"
-    }).validate();
+    }).scheduleValidate();
 
     servePackages([
-      packageMap("foo", "2.0.0", [dependencyMap("foo-dep", ">1.0.0")]),
-      packageMap("foo-dep", "2.0.0")
+      package("foo", "2.0.0", [dependency("foo-dep", ">1.0.0")]),
+      package("foo-dep", "2.0.0")
     ]);
 
     schedulePub(args: ['update', 'foo'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    d.packagesDir({
+    packagesDir({
       "foo": "2.0.0",
       "foo-dep": "2.0.0"
-    }).validate();
+    }).scheduleValidate();
   });
 }

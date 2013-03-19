@@ -6,7 +6,6 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -14,50 +13,50 @@ main() {
       "not necessary", () {
     ensureGit();
 
-    d.git('foo.git', [
-      d.libDir('foo'),
-      d.libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
-    ]).create();
+    git('foo.git', [
+      libDir('foo'),
+      libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
+    ]).scheduleCreate();
 
-    d.git('foo-dep.git', [
-      d.libDir('foo-dep'),
-      d.libPubspec('foo-dep', '1.0.0')
-    ]).create();
+    git('foo-dep.git', [
+      libDir('foo-dep'),
+      libPubspec('foo-dep', '1.0.0')
+    ]).scheduleCreate();
 
-    d.appDir([{"git": "../foo.git"}]).create();
+    appDir([{"git": "../foo.git"}]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
       ]),
-      d.dir('foo-dep', [
-        d.file('foo-dep.dart', 'main() => "foo-dep";')
+      dir('foo-dep', [
+        file('foo-dep.dart', 'main() => "foo-dep";')
       ])
-    ]).validate();
+    ]).scheduleValidate();
 
-    d.git('foo.git', [
-      d.libDir('foo', 'foo 2'),
-      d.libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
-    ]).create();
+    git('foo.git', [
+      libDir('foo', 'foo 2'),
+      libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
+    ]).scheduleCreate();
 
-    d.git('foo-dep.git', [
-      d.libDir('foo-dep', 'foo-dep 2'),
-      d.libPubspec('foo-dep', '1.0.0')
-    ]).commit();
+    git('foo-dep.git', [
+      libDir('foo-dep', 'foo-dep 2'),
+      libPubspec('foo-dep', '1.0.0')
+    ]).scheduleCommit();
 
     schedulePub(args: ['update', 'foo'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    d.dir(packagesPath, [
-      d.dir('foo', [
-        d.file('foo.dart', 'main() => "foo 2";')
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 2";')
       ]),
-      d.dir('foo-dep', [
-        d.file('foo-dep.dart', 'main() => "foo-dep";')
+      dir('foo-dep', [
+        file('foo-dep.dart', 'main() => "foo-dep";')
       ]),
-    ]).validate();
+    ]).scheduleValidate();
   });
 }

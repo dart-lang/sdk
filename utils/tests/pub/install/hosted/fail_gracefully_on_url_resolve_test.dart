@@ -6,13 +6,12 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('fails gracefully if the url does not resolve', () {
-    d.dir(appPath, [
-      d.pubspec({
+    dir(appPath, [
+      pubspec({
         "name": "myapp",
         "dependencies": {
           "foo": {
@@ -23,7 +22,7 @@ main() {
           }
          }
       })
-    ]).create();
+    ]).scheduleCreate();
 
     schedulePub(args: ['install'],
         error: new RegExp('Could not resolve URL "http://pub.invalid".'),

@@ -7,57 +7,58 @@ library pub_tests;
 import '../../../../../pkg/pathos/lib/path.dart' as path;
 
 import '../../../../pub/io.dart';
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   initConfig();
   integration('re-installs a package if it has an empty "lib" directory', () {
-    servePackages([packageMap("foo", "1.2.3")]);
+
+    servePackages([package("foo", "1.2.3")]);
 
     // Set up a cache with a broken foo package.
-    d.dir(cachePath, [
-      d.dir('hosted', [
-        d.async(port.then((p) => d.dir('localhost%58$p', [
-          d.dir("foo-1.2.3", [
-            d.libPubspec("foo", "1.2.3"),
+    dir(cachePath, [
+      dir('hosted', [
+        async(port.then((p) => dir('localhost%58$p', [
+          dir("foo-1.2.3", [
+            libPubspec("foo", "1.2.3"),
             // Note: empty "lib" directory.
-            d.dir("lib", [])
+            dir("lib", [])
           ])
         ])))
       ])
-    ]).create();
+    ]).scheduleCreate();
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    appDir([dependency("foo", "1.2.3")]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp("Dependencies installed!\$"));
 
-    d.cacheDir({"foo": "1.2.3"}).validate();
-    d.packagesDir({"foo": "1.2.3"}).validate();
+    cacheDir({"foo": "1.2.3"}).scheduleValidate();
+    packagesDir({"foo": "1.2.3"}).scheduleValidate();
   });
 
   integration('re-installs a package if it has no pubspec', () {
-    servePackages([packageMap("foo", "1.2.3")]);
+
+    servePackages([package("foo", "1.2.3")]);
 
     // Set up a cache with a broken foo package.
-    d.dir(cachePath, [
-      d.dir('hosted', [
-        d.async(port.then((p) => d.dir('localhost%58$p', [
-          d.dir("foo-1.2.3", [
-            d.libDir("foo")
+    dir(cachePath, [
+      dir('hosted', [
+        async(port.then((p) => dir('localhost%58$p', [
+          dir("foo-1.2.3", [
+            libDir("foo")
             // Note: no pubspec.
           ])
         ])))
       ])
-    ]).create();
+    ]).scheduleCreate();
 
-    d.appDir([dependencyMap("foo", "1.2.3")]).create();
+    appDir([dependency("foo", "1.2.3")]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp("Dependencies installed!\$"));
 
-    d.cacheDir({"foo": "1.2.3"}).validate();
-    d.packagesDir({"foo": "1.2.3"}).validate();
+    cacheDir({"foo": "1.2.3"}).scheduleValidate();
+    packagesDir({"foo": "1.2.3"}).scheduleValidate();
   });
 }

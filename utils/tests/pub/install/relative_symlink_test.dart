@@ -6,9 +6,7 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../../../pkg/scheduled_test/lib/scheduled_test.dart';
-
-import '../descriptor.dart' as d;
+import '../../../../pkg/unittest/lib/unittest.dart';
 import '../test_pub.dart';
 
 main() {
@@ -20,45 +18,45 @@ main() {
 
   initConfig();
   integration('uses a relative symlink for the self link', () {
-    d.dir(appPath, [
-      d.appPubspec([]),
-      d.libDir('foo')
-    ]).create();
+    dir(appPath, [
+      appPubspec([]),
+      libDir('foo')
+    ]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
     scheduleRename(appPath, "moved");
 
-    d.dir("moved", [
-      d.dir("packages", [
-        d.dir("myapp", [
-          d.file('foo.dart', 'main() => "foo";')
+    dir("moved", [
+      dir("packages", [
+        dir("myapp", [
+          file('foo.dart', 'main() => "foo";')
         ])
       ])
-    ]).validate();
+    ]).scheduleValidate();
   });
 
   integration('uses a relative symlink for secondary packages directory', () {
-    d.dir(appPath, [
-      d.appPubspec([]),
-      d.libDir('foo'),
-      d.dir("bin")
-    ]).create();
+    dir(appPath, [
+      appPubspec([]),
+      libDir('foo'),
+      dir("bin")
+    ]).scheduleCreate();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
     scheduleRename(appPath, "moved");
 
-    d.dir("moved", [
-      d.dir("bin", [
-        d.dir("packages", [
-          d.dir("myapp", [
-            d.file('foo.dart', 'main() => "foo";')
+    dir("moved", [
+      dir("bin", [
+        dir("packages", [
+          dir("myapp", [
+            file('foo.dart', 'main() => "foo";')
           ])
         ])
       ])
-    ]).validate();
+    ]).scheduleValidate();
   });
 }

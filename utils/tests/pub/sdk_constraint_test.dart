@@ -4,10 +4,8 @@
 
 library check_sdk_test;
 
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-
-import 'descriptor.dart' as d;
 import "test_pub.dart";
+import "../../../pkg/unittest/lib/unittest.dart";
 
 main() {
   initConfig();
@@ -19,20 +17,20 @@ main() {
     }
 
     integration("gives a friendly message if there are no constraints", () {
-      d.dir(appPath, [
-        d.pubspec({"name": "myapp"}),
-      ]).create();
+      dir(appPath, [
+        pubspec({"name": "myapp"}),
+      ]).scheduleCreate();
 
       schedulePub(args: [command], output: success);
     });
 
     integration("gives an error if the root package does not match", () {
-      d.dir(appPath, [
-        d.pubspec({
+      dir(appPath, [
+        pubspec({
           "name": "myapp",
           "environment": {"sdk": ">2.0.0"}
         })
-      ]).create();
+      ]).scheduleCreate();
 
       schedulePub(args: [command],
           error:
@@ -47,17 +45,17 @@ main() {
 
     integration("gives an error if some dependencies do not match", () {
       // Using a path source, but this should be true of all sources.
-      d.dir("foo", [
-        d.libPubspec("foo", "0.0.1", sdk: ">0.1.3"),
-        d.libDir("foo")
-      ]).create();
-      d.dir("bar", [
-        d.libPubspec("bar", "0.0.1", sdk: ">0.1.1"),
-        d.libDir("bar")
-      ]).create();
+      dir("foo", [
+        libPubspec("foo", "0.0.1", sdk: ">0.1.3"),
+        libDir("foo")
+      ]).scheduleCreate();
+      dir("bar", [
+        libPubspec("bar", "0.0.1", sdk: ">0.1.1"),
+        libDir("bar")
+      ]).scheduleCreate();
 
-      d.dir(appPath, [
-        d.pubspec({
+      dir(appPath, [
+        pubspec({
           "name": "myapp",
           "dependencies": {
             "foo": {"path": "../foo"},
@@ -65,7 +63,7 @@ main() {
           },
           "environment": {"sdk": ">2.0.0"}
         })
-      ]).create();
+      ]).scheduleCreate();
 
       schedulePub(args: [command],
           error:
@@ -81,25 +79,25 @@ main() {
 
     integration("gives an error if a transitive dependency doesn't match", () {
       // Using a path source, but this should be true of all sources.
-      d.dir("foo", [
-        d.libPubspec("foo", "0.0.1", deps: [
+      dir("foo", [
+        libPubspec("foo", "0.0.1", deps: [
           {"path": "../bar"}
         ]),
-        d.libDir("foo")
-      ]).create();
-      d.dir("bar", [
-        d.libPubspec("bar", "0.0.1", sdk: "<0.1.1"),
-        d.libDir("bar")
-      ]).create();
+        libDir("foo")
+      ]).scheduleCreate();
+      dir("bar", [
+        libPubspec("bar", "0.0.1", sdk: "<0.1.1"),
+        libDir("bar")
+      ]).scheduleCreate();
 
-      d.dir(appPath, [
-        d.pubspec({
+      dir(appPath, [
+        pubspec({
           "name": "myapp",
           "dependencies": {
             "foo": {"path": "../foo"}
           }
         })
-      ]).create();
+      ]).scheduleCreate();
 
       schedulePub(args: [command],
           error:
@@ -114,22 +112,22 @@ main() {
 
     integration("handles a circular dependency on the root package", () {
       // Using a path source, but this should be true of all sources.
-      d.dir("foo", [
-        d.libPubspec("foo", "0.0.1", sdk: ">3.0.0", deps: [
+      dir("foo", [
+        libPubspec("foo", "0.0.1", sdk: ">3.0.0", deps: [
           {"path": "../myapp"}
         ]),
-        d.libDir("foo")
-      ]).create();
+        libDir("foo")
+      ]).scheduleCreate();
 
-      d.dir(appPath, [
-        d.pubspec({
+      dir(appPath, [
+        pubspec({
           "name": "myapp",
           "dependencies": {
             "foo": {"path": "../foo"}
           },
           "environment": {"sdk": ">2.0.0"}
         })
-      ]).create();
+      ]).scheduleCreate();
 
       schedulePub(args: [command],
           error:
