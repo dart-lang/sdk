@@ -774,6 +774,11 @@ CompileType AllocateObjectInstr::ComputeType() const {
 }
 
 
+CompileType LoadUntaggedInstr::ComputeType() const {
+  return CompileType::Dynamic();
+}
+
+
 CompileType LoadFieldInstr::ComputeType() const {
   // Type may be null if the field is a VM field, e.g. context parent.
   // Keep it as null for debug purposes and do not return dynamic in production

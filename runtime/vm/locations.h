@@ -14,6 +14,17 @@ namespace dart {
 class BufferFormatter;
 class Value;
 
+
+enum Representation {
+  kNoRepresentation,
+  kTagged,
+  kUntagged,
+  kUnboxedDouble,
+  kUnboxedMint,
+  kNumRepresentations
+};
+
+
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
 // LocationSummary object which specifies expected location for every input
@@ -160,10 +171,10 @@ class Location : public ValueObject {
   }
 
   // Register locations.
-  static Location RegisterLocation(Register reg) {
+  static Location RegisterLocation(Register reg, Representation rep = kTagged) {
     uword payload =
         RegisterField::encode(reg) |
-        RepresentationField::encode(kDouble);  // Unused for Register.
+        RepresentationField::encode(rep);
     return Location(kRegister, payload);
   }
 
@@ -176,15 +187,7 @@ class Location : public ValueObject {
     return RegisterField::decode(payload());
   }
 
-  // FPU registers and double spill slots can contain either doubles
-  // or 64-bit integers.
-  enum Representation {
-    kDouble,
-    kMint
-  };
-
   Representation representation() const {
-    ASSERT(IsFpuRegister() || IsDoubleStackSlot());
     return RepresentationField::decode(payload());
   }
 
@@ -230,7 +233,7 @@ class Location : public ValueObject {
 
   // Spill slots.
   static Location StackSlot(intptr_t stack_index,
-                            Representation rep = kDouble) {
+                            Representation rep = kTagged) {
     ASSERT((-kStackIndexBias <= stack_index) &&
            (stack_index < kStackIndexBias));
     uword payload =
@@ -310,9 +313,10 @@ class Location : public ValueObject {
   // Layout for kUnallocated locations payload.
   typedef BitField<Policy, 0, 3> PolicyField;
 
-  // Layout for register locations payload. The representation bit is only used
-  // for FpuRegister and unused for Register.
-  static const intptr_t kBitsForRepresentation = 1;
+  // Layout for register locations payload.
+  static const intptr_t kBitsForRepresentation = 3;
+  COMPILE_ASSERT(kNumRepresentations <= (1 << kBitsForRepresentation),
+                 invalid_enum);
   static const intptr_t kBitsForRegister =
       kBitsForPayload - kBitsForRepresentation;
   typedef BitField<Representation,
@@ -325,8 +329,7 @@ class Location : public ValueObject {
                    kBitsForRepresentation,
                    kBitsForRegister> FpuRegisterField;
 
-  // Layout for stack slots. The representation bit is only used for
-  // DoubleStackSlot and unused for StackSlot.
+  // Layout for stack slots.
   static const intptr_t kBitsForIndex =
       kBitsForPayload - kBitsForRepresentation;
   typedef BitField<uword,

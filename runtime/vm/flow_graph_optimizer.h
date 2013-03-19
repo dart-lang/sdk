@@ -68,7 +68,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                             Definition** array,
                             Definition** index);
   bool TryReplaceWithStoreIndexed(InstanceCallInstr* call);
-  bool TryInlineByteArraySetIndexed(InstanceCallInstr* call);
   void BuildStoreIndexed(InstanceCallInstr* call,
                          const ICData& value_check,
                          intptr_t class_id);
@@ -95,7 +94,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                intptr_t view_cid);
   void PrepareByteArrayViewOp(InstanceCallInstr* call,
                               intptr_t receiver_cid,
-                              intptr_t view_cid);
+                              intptr_t view_cid,
+                              Definition** array);
 
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization

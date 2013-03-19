@@ -215,8 +215,7 @@ DEFINE_NATIVE_ENTRY(Strings_concatAll, 1) {
 
 
 DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Uint16Array, codeUnits,
-                               arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedData, codeUnits, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, isLatin1, arguments->NativeArgAt(2));
   intptr_t array_length = codeUnits.Length();
@@ -231,7 +230,7 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
       : String::Handle(TwoByteString::New(length_value, Heap::kNew));
   NoGCScope no_gc;
 
-  uint16_t* data_position = reinterpret_cast<uint16_t*>(codeUnits.ByteAddr(0));
+  uint16_t* data_position = reinterpret_cast<uint16_t*>(codeUnits.DataAddr(0));
   String::Copy(result, 0, data_position, length_value);
   return result.raw();
 }

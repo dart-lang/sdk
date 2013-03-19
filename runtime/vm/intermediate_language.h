@@ -38,47 +38,22 @@ class Range;
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
   V(_TypedList, get:length, TypedDataLength, 231908172)                        \
-  V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
-  V(_ByteArrayBase, _getInt8, ByteArrayBaseGetInt8, 261365835)                 \
-  V(_ByteArrayBase, _getUint8, ByteArrayBaseGetUint8, 261365835)               \
-  V(_ByteArrayBase, _getInt16, ByteArrayBaseGetInt16, 261365835)               \
-  V(_ByteArrayBase, _getUint16, ByteArrayBaseGetUint16, 261365835)             \
-  V(_ByteArrayBase, _getInt32, ByteArrayBaseGetInt32, 261365835)               \
-  V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
-  V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
-  V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
-  V(_ByteArrayBase, _setInt8, ByteArrayBaseSetInt8, 501962848)                 \
-  V(_ByteArrayBase, _setUint8, ByteArrayBaseSetUint8, 501962848)               \
-  V(_ByteArrayBase, _setInt16, ByteArrayBaseSetInt16, 501962848)               \
-  V(_ByteArrayBase, _setUint16, ByteArrayBaseSetUint16, 501962848)             \
-  V(_ByteArrayBase, _setInt32, ByteArrayBaseSetInt32, 501962848)               \
-  V(_ByteArrayBase, _setUint32, ByteArrayBaseSetUint32, 501962848)             \
-  V(_ByteArrayBase, _setFloat32, ByteArrayBaseSetFloat32, 864506525)           \
-  V(_ByteArrayBase, _setFloat64, ByteArrayBaseSetFloat64, 864506525)           \
-  V(_Float32Array, _getIndexed, Float32ArrayGetIndexed, 734006846)             \
-  V(_Float64Array, _getIndexed, Float64ArrayGetIndexed, 498074772)             \
-  V(_Int8Array, _getIndexed, Int8ArrayGetIndexed, 712069760)                   \
-  V(_Uint8Array, _getIndexed, Uint8ArrayGetIndexed, 535849990)                 \
-  V(_Uint8ClampedArray, _getIndexed, Uint8ClampedArrayGetIndexed, 873344956)   \
-  V(_ExternalUint8Array, _getIndexed, ExternalUint8ArrayGetIndexed, 402720239) \
-  V(_ExternalUint8ClampedArray, _getIndexed,                                   \
-    ExternalUint8ClampedArrayGetIndexed, 682839007)                            \
-  V(_Int16Array, _getIndexed, Int16ArrayGetIndexed, 313999108)                 \
-  V(_Uint16Array, _getIndexed, Uint16ArrayGetIndexed, 539701175)               \
-  V(_Int32Array, _getIndexed, Int32ArrayGetIndexed, 655321526)                 \
-  V(_Uint32Array, _getIndexed, Uint32ArrayGetIndexed, 1060443550)              \
-  V(_Float32Array, _setIndexed, Float32ArraySetIndexed, 1040992157)            \
-  V(_Float64Array, _setIndexed, Float64ArraySetIndexed, 330158324)             \
-  V(_Int8Array, _setIndexed, Int8ArraySetIndexed, 680713569)                   \
-  V(_Uint8Array, _setIndexed, Uint8ArraySetIndexed, 785627791)                 \
-  V(_Uint8ClampedArray, _setIndexed, Uint8ClampedArraySetIndexed, 464766374)   \
-  V(_ExternalUint8Array, _setIndexed, ExternalUint8ArraySetIndexed, 159706697) \
-  V(_ExternalUint8ClampedArray, _setIndexed,                                   \
-    ExternalUint8ClampedArraySetIndexed, 335716123)                            \
-  V(_Int16Array, _setIndexed, Int16ArraySetIndexed, 12169534)                  \
-  V(_Uint16Array, _setIndexed, Uint16ArraySetIndexed, 36054302)                \
-  V(_Int32Array, _setIndexed, Int32ArraySetIndexed, 306194131)                 \
-  V(_Uint32Array, _setIndexed, Uint32ArraySetIndexed, 410753485)               \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 380843687)                     \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 380843687)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 380843687)                   \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 380843687)                 \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 380843687)                   \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 380843687)                 \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 979971573)               \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 979971573)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 287047804)                     \
+  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 287047804)                   \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 287047804)                   \
+  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 287047804)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 287047804)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 287047804)                 \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1032541114)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1032541114)              \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
@@ -350,13 +325,6 @@ class Value : public ZoneAllocated {
 };
 
 
-enum Representation {
-  kTagged,
-  kUnboxedDouble,
-  kUnboxedMint
-};
-
-
 // An embedded container with N elements of type T.  Used (with partial
 // specialization for N=0) because embedded arrays cannot have size 0.
 template<typename T, intptr_t N>
@@ -453,6 +421,7 @@ class EmbeddedArray<T, 0> {
   M(AllocateObjectWithBoundsCheck)                                             \
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
+  M(LoadUntagged)                                                          \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -2875,6 +2844,17 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(LoadIndexed)
   virtual CompileType ComputeType() const;
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0 || idx == 1);
+    // The array may be tagged or untagged (for external arrays).
+    if (idx == 0) return kNoRepresentation;
+    return kTagged;
+  }
+
+  bool IsExternal() const {
+    return array()->definition()->representation() == kUntagged;
+  }
+
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
   intptr_t index_scale() const { return index_scale_; }
@@ -2968,6 +2948,10 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   virtual bool HasSideEffect() const { return true; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+
+  bool IsExternal() const {
+    return array()->definition()->representation() == kUntagged;
+  }
 
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
@@ -3187,6 +3171,39 @@ class CreateClosureInstr : public TemplateDefinition<0> {
   intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureInstr);
+};
+
+
+class LoadUntaggedInstr : public TemplateDefinition<1> {
+ public:
+  explicit LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
+    SetInputAt(0, object);
+  }
+
+  virtual Representation representation() const {
+    return kUntagged;
+  }
+  DECLARE_INSTRUCTION(LoadUntagged)
+  virtual CompileType ComputeType() const;
+
+  Value* object() const { return inputs_[0]; }
+  intptr_t offset() const { return offset_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  // This instruction must not be moved without the indexed access that
+  // depends on it (e.g. out of loops). GC may cause collect
+  // the array while the external data-array is still accessed.
+  virtual bool AffectedBySideEffect() const { return true; }
+
+ private:
+  intptr_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
 };
 
 

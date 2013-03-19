@@ -63,7 +63,7 @@ static intptr_t ToInstructionEnd(intptr_t pos) {
 FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   : flow_graph_(flow_graph),
     reaching_defs_(flow_graph),
-    mint_values_(NULL),
+    value_representations_(flow_graph.max_virtual_register_number()),
     block_order_(flow_graph.reverse_postorder()),
     postorder_(flow_graph.postorder()),
     live_out_(block_order_.length()),
@@ -77,6 +77,9 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     blocked_fpu_registers_(),
     cpu_spill_slot_count_(0) {
   for (intptr_t i = 0; i < vreg_count_; i++) live_ranges_.Add(NULL);
+  for (intptr_t i = 0; i < vreg_count_; i++) {
+    value_representations_.Add(kNoRepresentation);
+  }
 
   // All registers are marked as "not blocked" (array initialized to false).
   // Mark the unavailable ones as "blocked" (true).
@@ -385,8 +388,8 @@ void LiveRange::DefineAt(intptr_t pos) {
 
 LiveRange* FlowGraphAllocator::GetLiveRange(intptr_t vreg) {
   if (live_ranges_[vreg] == NULL) {
-    Location::Representation rep =
-        mint_values_->Contains(vreg) ? Location::kMint : Location::kDouble;
+    Representation rep = value_representations_[vreg];
+    ASSERT(rep != kNoRepresentation);
     live_ranges_[vreg] = new LiveRange(vreg, rep);
   }
   return live_ranges_[vreg];
@@ -394,7 +397,8 @@ LiveRange* FlowGraphAllocator::GetLiveRange(intptr_t vreg) {
 
 
 LiveRange* FlowGraphAllocator::MakeLiveRangeForTemporary() {
-  Location::Representation ignored = Location::kDouble;
+  // Representation does not matter for temps.
+  Representation ignored = kNoRepresentation;
   LiveRange* range = new LiveRange(kTempVirtualRegister, ignored);
 #if defined(DEBUG)
   temporaries_.Add(range);
@@ -413,7 +417,7 @@ void FlowGraphAllocator::BlockRegisterLocation(Location loc,
   }
 
   if (blocking_ranges[loc.register_code()] == NULL) {
-    Location::Representation ignored = Location::kDouble;
+    Representation ignored = kNoRepresentation;
     LiveRange* range = new LiveRange(kNoVirtualRegister, ignored);
     blocking_ranges[loc.register_code()] = range;
     range->set_assigned_location(loc);
@@ -953,7 +957,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
 
     for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
-      Location::Representation ignored = Location::kDouble;
+      Representation ignored = kNoRepresentation;
       BlockLocation(
           Location::FpuRegisterLocation(static_cast<FpuRegister>(reg), ignored),
           pos,
@@ -1592,7 +1596,7 @@ void FlowGraphAllocator::Spill(LiveRange* range) {
   LiveRange* parent = GetLiveRange(range->vreg());
   if (parent->spill_slot().IsInvalid()) {
     AllocateSpillSlotFor(parent);
-    if (register_kind_ == Location::kRegister) {
+    if (range->representation() == kTagged) {
       MarkAsObjectAtSafepoints(parent);
     }
   }
@@ -1748,7 +1752,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       TRACE_ALLOC(OS::Print(
           "considering %s for v%"Pd": has interference on the back edge"
           " {loop [%"Pd", %"Pd")}\n",
-          MakeRegisterLocation(candidate, Location::kDouble).Name(),
+          MakeRegisterLocation(candidate, kUnboxedDouble).Name(),
           unallocated->vreg(),
           loop_header->entry()->start_pos(),
           loop_header->last_block()->end_pos()));
@@ -1766,7 +1770,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
           free_until = intersection;
           TRACE_ALLOC(OS::Print(
               "found %s for v%"Pd" with no interference on the back edge\n",
-              MakeRegisterLocation(candidate, Location::kDouble).Name(),
+              MakeRegisterLocation(candidate, kUnboxedDouble).Name(),
               candidate));
           break;
         }
@@ -1792,7 +1796,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   if (free_until <= unallocated->Start()) return false;
 
   TRACE_ALLOC(OS::Print("assigning free register "));
-  TRACE_ALLOC(MakeRegisterLocation(candidate, Location::kDouble).Print());
+  TRACE_ALLOC(MakeRegisterLocation(candidate, kUnboxedDouble).Print());
   TRACE_ALLOC(OS::Print(" to v%"Pd"\n", unallocated->vreg()));
 
   if (free_until != kMaxPosition) {
@@ -1895,7 +1899,7 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
   }
 
   TRACE_ALLOC(OS::Print("assigning blocked register "));
-  TRACE_ALLOC(MakeRegisterLocation(candidate, Location::kDouble).Print());
+  TRACE_ALLOC(MakeRegisterLocation(candidate, kUnboxedDouble).Print());
   TRACE_ALLOC(OS::Print(" to live range v%"Pd" until %"Pd"\n",
                         unallocated->vreg(), blocked_at));
 
@@ -2397,21 +2401,34 @@ void FlowGraphAllocator::ResolveControlFlow() {
 
 
 void FlowGraphAllocator::CollectRepresentations() {
-  mint_values_ = new BitVector(flow_graph_.max_virtual_register_number());
+  // Parameters.
+  GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); ++i) {
+    Definition* def = (*graph_entry->initial_definitions())[i];
+    value_representations_[def->ssa_temp_index()] = def->representation();
+  }
 
   for (BlockIterator it = flow_graph_.reverse_postorder_iterator();
        !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
-    // TODO(fschneider): Support unboxed mint representation for phis.
+    // Phis.
+    if (block->IsJoinEntry()) {
+      JoinEntryInstr* join = block->AsJoinEntry();
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        if ((phi != NULL) && (phi->ssa_temp_index() >= 0)) {
+          value_representations_[phi->ssa_temp_index()] = phi->representation();
+        }
+      }
+    }
+    // Normal instructions.
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {
-      Definition* defn = instr_it.Current()->AsDefinition();
-      if ((defn != NULL) &&
-          (defn->ssa_temp_index() >= 0) &&
-          (defn->representation() == kUnboxedMint)) {
-        mint_values_->Add(defn->ssa_temp_index());
+      Definition* def = instr_it.Current()->AsDefinition();
+      if ((def != NULL) && (def->ssa_temp_index() >= 0)) {
+        value_representations_[def->ssa_temp_index()] = def->representation();
       }
     }
   }

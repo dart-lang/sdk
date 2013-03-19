@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:scalarlist";
+import "dart:typeddata";
 
 // A VM patch of the dart:math library.
 patch num pow(num x, num exponent) {

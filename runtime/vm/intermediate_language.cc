@@ -271,8 +271,7 @@ static bool IsRecognizedLibrary(const Library& library) {
   // List of libraries where methods can be recognized.
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
-      || (library.raw() == Library::TypedDataLibrary())
-      || (library.raw() == Library::ScalarlistLibrary());
+      || (library.raw() == Library::TypedDataLibrary());
 }
 
 
@@ -1112,7 +1111,6 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (recognized_kind()) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kByteArrayBaseLength:
     case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kStringBaseLength:
       return true;
@@ -1135,20 +1133,6 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
       return MethodRecognizer::kImmutableArrayLength;
     case kGrowableObjectArrayCid:
       return MethodRecognizer::kGrowableArrayLength;
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
-      return MethodRecognizer::kByteArrayBaseLength;
     default:
       UNREACHABLE();
       return MethodRecognizer::kUnknown;
@@ -1160,17 +1144,17 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       return true;
     default:
       return false;
@@ -1930,8 +1914,7 @@ void LoadFieldInstr::InferRange() {
     return;
   }
   if ((range_ == NULL) &&
-      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength ||
-       recognized_kind() == MethodRecognizer::kTypedDataLength)) {
+      (recognized_kind() == MethodRecognizer::kTypedDataLength)) {
     range_ = new Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
     return;
   }

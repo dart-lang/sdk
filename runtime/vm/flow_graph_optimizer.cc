@@ -375,7 +375,7 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
     Value* use = it.Current();
     const Representation to_rep =
         use->instruction()->RequiredInputRepresentation(use->use_index());
-    if (from_rep == to_rep) {
+    if (from_rep == to_rep || to_rep == kNoRepresentation) {
       continue;
     }
 
@@ -688,6 +688,13 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
     *array = elements;
     return kArrayCid;
   }
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+    LoadUntaggedInstr* elements =
+        new LoadUntaggedInstr(new Value(*array),
+                              ExternalTypedData::data_offset());
+    InsertBefore(call, elements, NULL, Definition::kValue);
+    *array = elements;
+  }
   return class_id;
 }
 
@@ -709,13 +716,6 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       }
       break;
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
@@ -730,8 +730,6 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         return false;
       }
       break;
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       if (!CanUnboxInt32()) return false;
@@ -750,8 +748,6 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       }
       break;
     }
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
@@ -767,58 +763,6 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       return false;
   }
 
-  BuildStoreIndexed(call, value_check, class_id);
-  return true;
-}
-
-
-bool FlowGraphOptimizer::TryInlineByteArraySetIndexed(InstanceCallInstr* call) {
-  const intptr_t class_id = ReceiverClassId(call);
-  ICData& value_check = ICData::ZoneHandle();
-  switch (class_id) {
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid: {
-      // Check that value is always smi.
-      value_check = ICData::New(Function::Handle(),
-                                String::Handle(),
-                                Isolate::kNoDeoptId,
-                                1);
-      value_check.AddReceiverCheck(kSmiCid, Function::Handle());
-      break;
-    }
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-      if (!CanUnboxInt32()) return false;
-
-      // We don't have ICData for the value stored, so we optimistically assume
-      // smis first. If we ever deoptimized here, we require to unbox the value
-      // before storing to handle the mint case, too.
-      if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
-        value_check = ICData::New(Function::Handle(),
-                                  String::Handle(),
-                                  Isolate::kNoDeoptId,
-                                  1);
-        value_check.AddReceiverCheck(kSmiCid, Function::Handle());
-      }
-      break;
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid: {
-      // Check that value is always double.
-      value_check = ICData::New(Function::Handle(),
-                                String::Handle(),
-                                Isolate::kNoDeoptId,
-                                1);
-      value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
-      break;
-    }
-    default:
-      return false;
-  }
   BuildStoreIndexed(call, value_check, class_id);
   return true;
 }
@@ -855,15 +799,6 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
         type_args = load_type_args;
         break;
       }
-      case kInt8ArrayCid:
-      case kUint8ArrayCid:
-      case kUint8ClampedArrayCid:
-      case kExternalUint8ArrayCid:
-      case kExternalUint8ClampedArrayCid:
-      case kInt16ArrayCid:
-      case kUint16ArrayCid:
-      case kInt32ArrayCid:
-      case kUint32ArrayCid:
       case kTypedDataInt8ArrayCid:
       case kTypedDataUint8ArrayCid:
       case kTypedDataUint8ClampedArrayCid:
@@ -875,8 +810,6 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
       case kTypedDataUint32ArrayCid:
         ASSERT(value_type.IsIntType());
         // Fall through.
-      case kFloat32ArrayCid:
-      case kFloat64ArrayCid:
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid: {
         type_args = instantiator = flow_graph_->constant_null();
@@ -941,15 +874,6 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
     case kTypedDataInt8ArrayCid:
@@ -960,8 +884,6 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
       break;
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
         if (!CanUnboxInt32()) return false;
@@ -1361,8 +1283,6 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
       return Array::length_offset();
-    case MethodRecognizer::kByteArrayBaseLength:
-      return ByteArray::length_offset();
     case MethodRecognizer::kTypedDataLength:
       // .length is defined in _TypedList which is the base class for internal
       // and external typed data.
@@ -1405,7 +1325,6 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   switch (recognized_kind) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kByteArrayBaseLength:
     case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kGrowableArrayLength: {
       if (!ic_data.HasOneTarget()) {
@@ -1415,7 +1334,6 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       const bool is_immutable =
           (recognized_kind == MethodRecognizer::kObjectArrayLength) ||
           (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
-          (recognized_kind == MethodRecognizer::kByteArrayBaseLength) ||
           (recognized_kind == MethodRecognizer::kTypedDataLength);
       InlineArrayLengthGetter(call,
                               OffsetForLengthGetter(recognized_kind),
@@ -1504,15 +1422,17 @@ void FlowGraphOptimizer::ReplaceWithMathCFunction(
 
 static bool IsSupportedByteArrayViewCid(intptr_t cid) {
   switch (cid) {
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       return true;
     default:
       return false;
@@ -1534,38 +1454,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ic_data.GetCheckAt(0, &class_ids, &target);
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
-
-  // Byte array access.
-  switch (recognized_kind) {
-    case MethodRecognizer::kFloat32ArrayGetIndexed:
-    case MethodRecognizer::kFloat64ArrayGetIndexed:
-    case MethodRecognizer::kInt8ArrayGetIndexed:
-    case MethodRecognizer::kUint8ArrayGetIndexed:
-    case MethodRecognizer::kUint8ClampedArrayGetIndexed:
-    case MethodRecognizer::kExternalUint8ArrayGetIndexed:
-    case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
-    case MethodRecognizer::kInt16ArrayGetIndexed:
-    case MethodRecognizer::kUint16ArrayGetIndexed:
-    case MethodRecognizer::kInt32ArrayGetIndexed:
-    case MethodRecognizer::kUint32ArrayGetIndexed:
-      return TryReplaceWithLoadIndexed(call);
-
-    case MethodRecognizer::kFloat32ArraySetIndexed:
-    case MethodRecognizer::kFloat64ArraySetIndexed:
-    case MethodRecognizer::kInt8ArraySetIndexed:
-    case MethodRecognizer::kUint8ArraySetIndexed:
-    case MethodRecognizer::kUint8ClampedArraySetIndexed:
-    case MethodRecognizer::kExternalUint8ArraySetIndexed:
-    case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
-    case MethodRecognizer::kInt16ArraySetIndexed:
-    case MethodRecognizer::kUint16ArraySetIndexed:
-    case MethodRecognizer::kInt32ArraySetIndexed:
-    case MethodRecognizer::kUint32ArraySetIndexed:
-      return TryInlineByteArraySetIndexed(call);
-
-    default:
-      break;
-  }
 
   if ((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) &&
       (ic_data.NumberOfChecks() == 1) &&
@@ -1655,39 +1543,55 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     switch (recognized_kind) {
       // ByteArray getters.
       case MethodRecognizer::kByteArrayBaseGetInt8:
-        return BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint8:
-        return BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt16:
-        return BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint16:
-        return BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt32:
-        return BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint32:
-        return BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32:
-        return BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat64:
-        return BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataFloat64ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
-        return BuildByteArrayViewStore(call, class_ids[0], kInt8ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint8:
-        return BuildByteArrayViewStore(call, class_ids[0], kUint8ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt16:
-        return BuildByteArrayViewStore(call, class_ids[0], kInt16ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint16:
-        return BuildByteArrayViewStore(call, class_ids[0], kUint16ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetInt32:
-        return BuildByteArrayViewStore(call, class_ids[0], kInt32ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetUint32:
-        return BuildByteArrayViewStore(call, class_ids[0], kUint32ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32:
-        return BuildByteArrayViewStore(call, class_ids[0], kFloat32ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat64:
-        return BuildByteArrayViewStore(call, class_ids[0], kFloat64ArrayCid);
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataFloat64ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -1701,10 +1605,8 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
     intptr_t view_cid) {
-  PrepareByteArrayViewOp(call, receiver_cid, view_cid);
-
   Definition* array = call->ArgumentAt(0);
-  Definition* byte_index = call->ArgumentAt(1);
+  PrepareByteArrayViewOp(call, receiver_cid, view_cid, &array);
 
   // Optimistically build a smi-checked load for Int32 and Uint32
   // loads on ia32 like we do for normal array loads, and only revert to
@@ -1714,6 +1616,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(
       call->ic_data()->deopt_reason() == kDeoptUnknown) {
     deopt_id = call->deopt_id();
   }
+  Definition* byte_index = call->ArgumentAt(1);
   LoadIndexedInstr* array_op = new LoadIndexedInstr(new Value(array),
                                                     new Value(byte_index),
                                                     1,  // Index scale.
@@ -1728,16 +1631,17 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
     intptr_t view_cid) {
-  PrepareByteArrayViewOp(call, receiver_cid, view_cid);
+  Definition* array = call->ArgumentAt(0);
+  PrepareByteArrayViewOp(call, receiver_cid, view_cid, &array);
   ICData& value_check = ICData::ZoneHandle();
   switch (view_cid) {
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid: {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid: {
       // Check that value is always smi.
       value_check = ICData::New(Function::Handle(),
                                 String::Handle(),
@@ -1746,8 +1650,8 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       value_check.AddReceiverCheck(kSmiCid, Function::Handle());
       break;
     }
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
       // We don't have ICData for the value stored, so we optimistically assume
       // smis first. If we ever deoptimized here, we require to unbox the value
       // before storing to handle the mint case, too.
@@ -1759,8 +1663,8 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
         value_check.AddReceiverCheck(kSmiCid, Function::Handle());
       }
       break;
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid: {
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
       value_check = ICData::New(Function::Handle(),
                                 String::Handle(),
@@ -1775,7 +1679,6 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       return NULL;
   }
 
-  Definition* array = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
   Definition* stored_value = call->ArgumentAt(2);
   if (!value_check.IsNull()) {
@@ -1783,20 +1686,6 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
                   call);
   }
   StoreBarrierType needs_store_barrier = kNoStoreBarrier;
-
-
-  // result = index + bytesPerElement.
-  intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
-  ConstantInstr* bytes_per_element =
-      new ConstantInstr(Smi::Handle(Smi::New(element_size)));
-  InsertBefore(call, bytes_per_element, NULL, Definition::kValue);
-  BinarySmiOpInstr* result =
-      new BinarySmiOpInstr(Token::kADD,
-                           call,
-                           new Value(index),
-                           new Value(bytes_per_element));
-  InsertBefore(call, result, call->env(), Definition::kValue);
-
   StoreIndexedInstr* array_op = new StoreIndexedInstr(new Value(array),
                                                       new Value(index),
                                                       new Value(stored_value),
@@ -1804,9 +1693,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
                                                       1,  // Index scale
                                                       view_cid,
                                                       call->deopt_id());
-  call->ReplaceUsesWith(result);  // Fix uses of the call's return value.
   ReplaceCall(call, array_op);
-  array_op->ClearSSATempIndex();  // Store has no uses.
   return true;
 }
 
@@ -1814,14 +1701,14 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
 void FlowGraphOptimizer::PrepareByteArrayViewOp(
     InstanceCallInstr* call,
     intptr_t receiver_cid,
-    intptr_t view_cid) {
-  Definition* array = call->ArgumentAt(0);
+    intptr_t view_cid,
+    Definition** array) {
   Definition* byte_index = call->ArgumentAt(1);
 
   AddReceiverCheck(call);
   const bool is_immutable = true;
   LoadFieldInstr* length = new LoadFieldInstr(
-      new Value(array),
+      new Value(*array),
       CheckArrayBoundInstr::LengthOffsetFor(receiver_cid),
       Type::ZoneHandle(Type::SmiType()),
       is_immutable);
@@ -1850,6 +1737,15 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
                                         call),
                call->env(),
                Definition::kEffect);
+
+  // Insert load of elements for external typed arrays.
+  if (RawObject::IsExternalTypedDataClassId(receiver_cid)) {
+    LoadUntaggedInstr* elements =
+        new LoadUntaggedInstr(new Value(*array),
+                              ExternalTypedData::data_offset());
+    InsertBefore(call, elements, NULL, Definition::kValue);
+    *array = elements;
+  }
 }
 
 
@@ -4086,6 +3982,11 @@ void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
 
 void ConstantPropagator::VisitAllocateObjectWithBoundsCheck(
     AllocateObjectWithBoundsCheckInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

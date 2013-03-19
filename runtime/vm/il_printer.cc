@@ -172,7 +172,11 @@ static void PrintUse(BufferFormatter* f, const Definition& definition) {
 
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+  if (GetDeoptId() != Isolate::kNoDeoptId) {
+    f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+  } else {
+    f->Print("%s(", DebugName());
+  }
   PrintOperandsTo(f);
   f->Print(")");
 }
@@ -191,7 +195,11 @@ void Definition::PrintTo(BufferFormatter* f) const {
   if (is_used()) {
     if (HasSSATemp() || (temp_index() != -1)) f->Print(" <- ");
   }
-  f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+  if (GetDeoptId() != Isolate::kNoDeoptId) {
+    f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
+  } else {
+    f->Print("%s(", DebugName());
+  }
   PrintOperandsTo(f);
   f->Print(")");
   if (range_ != NULL) {
@@ -676,7 +684,11 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  f->Print("goto:%"Pd" %"Pd"", GetDeoptId(), successor()->block_id());
+  if (GetDeoptId() != Isolate::kNoDeoptId) {
+    f->Print("goto:%"Pd" %"Pd"", GetDeoptId(), successor()->block_id());
+  } else {
+    f->Print("goto: %"Pd"", successor()->block_id());
+  }
 }
 
 
