@@ -16,7 +16,7 @@ def main():
     print >>sys.stderr, stdout
     print >>sys.stderr, stderr
     raise Exception('Error %d running xcodebuild!' % job.returncode)
-  matches = re.findall('^Xcode (\d+)\.(\d+)\.(\d+)$', stdout, re.MULTILINE)
+  matches = re.findall('^Xcode (\d+)\.(\d+)(\.(\d+))?$', stdout, re.MULTILINE)
   if len(matches) > 0:
     major = int(matches[0][0])
     minor = int(matches[0][1])
