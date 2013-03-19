@@ -260,10 +260,6 @@ class MiniJsParser {
       '=', '!=', '==', '!==', '===', '<', '<=', '>=', '>'].toSet();
   static final UNARY_OPERATORS = ['++', '--', '+', '-', '~', '!'].toSet();
 
-  // For sanity we only allow \\, \', \" and \n in string literals.
-  static final STRING_LITERAL_PATTERN =
-      new RegExp('^[\'"](?:[^\\\\]|\\\\[\\\\n\'"])*[\'"]\$');
-
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;
     return CATEGORIES[code];
@@ -294,16 +290,21 @@ class MiniJsParser {
           if (++position >= src.length) {
             throw new MiniJsParserError(this, "Unterminated string");
           }
+          int escapedCode = src.codeUnitAt(position);
+          if (!(escapedCode == charCodes.$BACKSLASH ||
+                escapedCode == charCodes.$SQ ||
+                escapedCode == charCodes.$DQ ||
+                escapedCode == charCodes.$n)) {
+            throw new MiniJsParserError(
+                this,
+                'Only escapes allowed in string literals are '
+                r'''\\, \', \" and \n''');
+          }
         }
       } while (currentCode != code);
       lastCategory = STRING;
       position++;
       lastToken = src.substring(lastPosition, position);
-      if (!STRING_LITERAL_PATTERN.hasMatch(lastToken)) {
-        throw new MiniJsParserError(
-            this,
-            "Only escapes allowed in string literals are \\, \', \" and \n");
-      }
     } else {
       int cat = category(src.codeUnitAt(position));
       int newCat;
