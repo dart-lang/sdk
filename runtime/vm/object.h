@@ -4306,7 +4306,7 @@ class String : public Instance {
                    intptr_t src_offset,
                    intptr_t len);
 
-  static RawString* EscapeSpecialCharacters(const String& str, bool raw_str);
+  static RawString* EscapeSpecialCharacters(const String& str);
 
   static RawString* Concat(const String& str1,
                            const String& str2,
@@ -4381,8 +4381,7 @@ class OneByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static RawOneByteString* EscapeSpecialCharacters(const String& str,
-                                                   bool raw_str);
+  static RawOneByteString* EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
@@ -4484,8 +4483,7 @@ class TwoByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static RawTwoByteString* EscapeSpecialCharacters(const String& str,
-                                                   bool raw_str);
+  static RawTwoByteString* EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 2;

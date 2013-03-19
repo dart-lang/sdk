@@ -251,7 +251,9 @@ static bool IsSpecialCharacter(type value) {
           (value == '\b') ||
           (value == '\t') ||
           (value == '\v') ||
-          (value == '\r'));
+          (value == '\r') ||
+          (value == '\\') ||
+          (value == '$'));
 }
 
 
@@ -271,6 +273,10 @@ static type SpecialCharacter(type value) {
     return 'v';
   } else if (value == '\r') {
     return 'r';
+  } else if (value == '\\') {
+    return '\\';
+  } else if (value == '$') {
+    return '$';
   }
   UNREACHABLE();
   return '\0';
@@ -4990,37 +4996,17 @@ RawString* TokenStream::GenerateSource() const {
 
     // Handle the current token.
     if (curr == Token::kSTRING) {
-      bool is_raw_string = false;
       bool escape_characters = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
         if (IsSpecialCharacter(literal.CharAt(i))) {
           escape_characters = true;
         }
-        // TODO(4995): Temp solution for raw strings, this will break
-        // if we saw a string that is not a raw string but has back slashes
-        // in it.
-        if ((literal.CharAt(i) == '\\')) {
-          if ((next != Token::kINTERPOL_VAR) &&
-              (next != Token::kINTERPOL_START) &&
-              (prev != Token::kINTERPOL_VAR) &&
-              (prev != Token::kINTERPOL_END)) {
-            is_raw_string = true;
-          } else {
-            escape_characters = true;
-          }
-        }
-        if ((literal.CharAt(i) == '$')) {
-          escape_characters = true;
-        }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
-        if (is_raw_string) {
-          literals.Add(Symbols::LowercaseR());
-        }
         literals.Add(Symbols::DoubleQuotes());
       }
       if (escape_characters) {
-        literal = String::EscapeSpecialCharacters(literal, is_raw_string);
+        literal = String::EscapeSpecialCharacters(literal);
         literals.Add(literal);
       } else {
         literals.Add(literal);
@@ -11282,12 +11268,12 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 }
 
 
-RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
+RawString* String::EscapeSpecialCharacters(const String& str) {
   if (str.IsOneByteString()) {
-    return OneByteString::EscapeSpecialCharacters(str, raw_str);
+    return OneByteString::EscapeSpecialCharacters(str);
   }
   ASSERT(str.IsTwoByteString());
-  return TwoByteString::EscapeSpecialCharacters(str, raw_str);
+  return TwoByteString::EscapeSpecialCharacters(str);
 }
 
 
@@ -11675,16 +11661,13 @@ bool String::CodePointIterator::Next() {
 }
 
 
-RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
-                                                         bool raw_str) {
+RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i)) ||
-          (!raw_str && (*CharAddr(str, i) == '$')) ||
-          (!raw_str && (*CharAddr(str, i) == '\\'))) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
       }
     }
@@ -11694,14 +11677,6 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
         *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
-        index += 2;
-      } else if (!raw_str && (*CharAddr(str, i) == '$')) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = '$';
-        index += 2;
-      } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = '\\';
         index += 2;
       } else {
         *(CharAddr(dststr, index)) = *CharAddr(str, i);
@@ -11864,15 +11839,13 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
 }
 
 
-RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
-                                                         bool raw_str) {
+RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i)) ||
-          (!raw_str && (*CharAddr(str, i) == '\\'))) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
       }
     }
@@ -11882,10 +11855,6 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
         *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
-        index += 2;
-      } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = '\\';
         index += 2;
       } else {
         *(CharAddr(dststr, index)) = *CharAddr(str, i);
