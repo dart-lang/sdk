@@ -6,8 +6,10 @@ part of html;
 
 /**
  * An object that can be drawn to a [CanvasRenderingContext2D] object with
- * [CanvasRenderingContext2D.drawImage] or
- * [CanvasRenderingContext2D.drawImageAtScale].
+ * [CanvasRenderingContext2D.drawImage],
+ * [CanvasRenderingContext2D.drawImageRect],
+ * [CanvasRenderingContext2D.drawImageScaled], or
+ * [CanvasRenderingContext2D.drawImageScaledFromSource].
  *
  * If the CanvasImageSource is an [ImageElement] then the element's image is
  * used. If the [ImageElement] is an animated image, then the poster frame is
@@ -22,6 +24,8 @@ part of html;
  * See also:
  *
  *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
+ * from the WHATWG.
+ *  * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
  * from the WHATWG.
  */
 abstract class CanvasImageSource {}

@@ -1868,11 +1868,73 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image will be drawn to an area of this canvas defined by
+   * [destRect]. [sourceRect] defines the region of the source image that is
+   * drawn.
+   * If [sourceRect] is not provided, then
+   * the entire rectangular image from [source] will be drawn to this context.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     ImageElement img = document.query('img');
+   *     img.width = 100;
+   *     img.height = 100;
+   *
+   *     // Scale the image to 20x20.
+   *     ctx.drawImageToRect(img, new Rect(50, 50, 20, 20));
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageToRect(video, new Rect(50, 50, 100, 100),
+   *         sourceRect: new Rect(40, 40, 20, 20));
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageToRect(otherCanvas, new Rect(0, 0, 100, 20),
+   *         sourceRect: new Rect(0, 0, 100, 20));
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImageToRect(CanvasImageSource source, Rect destRect,
+      {Rect sourceRect}) {
+    if (sourceRect == null) {
+      $dom_drawImage(source,
+          destRect.left,
+          destRect.top,
+          destRect.width,
+          destRect.height);
+    } else {
+      $dom_drawImage(source,
+          sourceRect.left,
+          sourceRect.top,
+          sourceRect.width,
+          sourceRect.height,
+          destRect.left,
+          destRect.top,
+          destRect.width,
+          destRect.height);
+    }
+  }
+
+  /**
    * Draws an image from a CanvasImageSource to this canvas.
    *
    * The entire image from [source] will be drawn to this context with its top
-   * left corner at the point ([destinationX], [destinationY]). If the image is
-   * larger than canvas will allow, the image will be cropped to fit the
+   * left corner at the point ([destX], [destY]). If the image is
+   * larger than canvas will allow, the image will be clipped to fit the
    * available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
@@ -1887,7 +1949,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    *     CanvasElement otherCanvas = document.query('canvas');
    *     otherCanvas.width = 100;
    *     otherCanvas.height = 100;
-   *     ctx.drawImage(otherCanvas, 590, 590); // will get cropped
+   *     ctx.drawImage(otherCanvas, 590, 590); // will get clipped
    *
    * See also:
    *
@@ -1897,20 +1959,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImage(CanvasImageSource source, num destinationX, num destinationY) {
-    $dom_drawImage(source, destinationX, destinationY);
+  void drawImage(CanvasImageSource source, num destX, num destY) {
+    $dom_drawImage(source, destX, destY);
   }
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
    *
-   * The image will be drawn to an area of this canvas defined by
-   * [destinationRect]. If [sourceRect] is not provided, then
-   * the entire rectangular image from [source] will be drawn to this context.
-   * If the dimensions of [source] or [sourceRect]
-   * differ from [destinationRect], then the image will be scaled to fit.
+   * The image will be drawn to this context with its top left corner at the
+   * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
+   * [destHeight] tall.
+   *
    * If the image is larger than canvas
-   * will allow, the image will be cropped to fit the available space.
+   * will allow, the image will be clipped to fit the available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
    *     CanvasRenderingContext2D ctx = canvas.context2d;
@@ -1918,20 +1979,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    *     img.width = 100;
    *     img.height = 100;
    *
-   *     // Scale the image to 20x20.
-   *     ctx.drawImageAtScale(img, new Rect(50, 50, 20, 20));
-   *
-   *     VideoElement video = document.query('video');
-   *     video.width = 100;
-   *     video.height = 100;
-   *     // Take the middle 20x20 pixels from the video and stretch them.
-   *     ctx.drawImageAtScale(video, new Rect(50, 50, 100, 100),
-   *         sourceRect: new Rect(40, 40, 20, 20));
-   *
-   *     // Draw the top 100x20 pixels from the otherCanvas.
-   *     CanvasElement otherCanvas = document.query('canvas');
-   *     ctx.drawImageAtScale(otherCanvas, new Rect(0, 0, 100, 20),
-   *         sourceRect: new Rect(0, 0, 100, 20));
+   *     // Scale the image to 300x50 at the point (20, 20)
+   *     ctx.drawImageScaled(img, 20, 20, 300, 50);
    *
    * See also:
    *
@@ -1941,28 +1990,52 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImageAtScale(CanvasImageSource source, Rect destinationRect,
-      {Rect sourceRect}) {
-    if (sourceRect == null) {
-      $dom_drawImage(source,
-          destinationRect.left,
-          destinationRect.top,
-          destinationRect.width,
-          destinationRect.height);
-    } else {
-      $dom_drawImage(source,
-          sourceRect.left,
-          sourceRect.top,
-          sourceRect.width,
-          sourceRect.height,
-          destinationRect.left,
-          destinationRect.top,
-          destinationRect.width,
-          destinationRect.height);
-    }
+  void drawImageScaled(CanvasImageSource source,
+      num destX, num destY, num destWidth, num destHeight) {
+    $dom_drawImage(source, destX, destY, destWidth, destHeight);
   }
 
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image is a region of [source] that is [sourceWidth] wide and
+   * [destHeight] tall with top left corner at ([sourceX], [sourceY]).
+   * The image will be drawn to this context with its top left corner at the
+   * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
+   * [destHeight] tall.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageScaledFromSource(video, 40, 40, 20, 20, 50, 50, 100, 100);
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas to this one.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageScaledFromSource(otherCanvas, 0, 0, 100, 20, 0, 0, 100, 20);
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImageScaledFromSource(CanvasImageSource source,
+      num sourceX, num sourceY, num sourceWidth, num sourceHeight,
+      num destX, num destY, num destWidth, num destHeight) {
+    $dom_drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
+        destX, destY, destWidth, destHeight);
+  }
+
+  // TODO(amouravski): Add Dartium native methods for drawImage once we figure
+  // out how to not break native bindings.
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32834,8 +32907,10 @@ class _DataAttributeMap implements Map<String, String> {
 
 /**
  * An object that can be drawn to a [CanvasRenderingContext2D] object with
- * [CanvasRenderingContext2D.drawImage] or
- * [CanvasRenderingContext2D.drawImageAtScale].
+ * [CanvasRenderingContext2D.drawImage],
+ * [CanvasRenderingContext2D.drawImageRect],
+ * [CanvasRenderingContext2D.drawImageScaled], or
+ * [CanvasRenderingContext2D.drawImageScaledFromSource].
  *
  * If the CanvasImageSource is an [ImageElement] then the element's image is
  * used. If the [ImageElement] is an animated image, then the poster frame is
@@ -32850,6 +32925,8 @@ class _DataAttributeMap implements Map<String, String> {
  * See also:
  *
  *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
+ * from the WHATWG.
+ *  * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
  * from the WHATWG.
  */
 abstract class CanvasImageSource {}

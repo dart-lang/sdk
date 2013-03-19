@@ -18,6 +18,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
+    'CanvasRenderingContext2D.drawImage',
     'CanvasRenderingContext2D.lineDashOffset',
     'Console.memory',
     'Console.profiles',
