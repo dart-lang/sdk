@@ -172,6 +172,17 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 CompileType LoadIndexedInstr::ComputeType() const {
   UNIMPLEMENTED();
   return CompileType::Dynamic();
