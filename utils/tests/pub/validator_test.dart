@@ -552,7 +552,7 @@ main() {
       expectValidationError(size(10 * math.pow(2, 20) + 1));
     });
 
-    test('contains compiled dartdoc', () {
+    integration('contains compiled dartdoc', () {
       dir(appPath, [
         dir('doc-out', [
           file('nav.json', ''),
@@ -566,7 +566,7 @@ main() {
       expectValidationWarning(compiledDartdoc);
     });
 
-    test('has a README with invalid utf-8', () {
+    integration('has a README with invalid utf-8', () {
       dir(appPath, [
         binaryFile("README", [192])
       ]).scheduleCreate();
