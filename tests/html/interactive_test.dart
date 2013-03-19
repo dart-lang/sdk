@@ -15,7 +15,7 @@ main() {
   useHtmlIndividualConfiguration();
 
   group('Geolocation', () {
-    futureTest('getCurrentPosition', () {
+    test('getCurrentPosition', () {
       return window.navigator.geolocation.getCurrentPosition().then(
         (position) {
           expect(position.coords.latitude, isNotNull);
@@ -24,7 +24,7 @@ main() {
         });
     });
 
-    futureTest('watchPosition', () {
+    test('watchPosition', () {
       return window.navigator.geolocation.watchPosition().first.then(
         (position) {
           expect(position.coords.latitude, isNotNull);
@@ -36,8 +36,39 @@ main() {
 
   group('MediaStream', () {
     if (MediaStream.supported) {
-      futureTest('getUserMedia', () {
+      test('getUserMedia', () {
         return window.navigator.getUserMedia(video: true).then((stream) {
+          expect(stream,  isNotNull);
+
+          var url = Url.createObjectUrl(stream);
+          expect(url,  isNotNull);
+
+          var video = new VideoElement()
+            ..autoplay = true;
+
+          var completer = new Completer();
+          video.onError.listen((e) {
+            completer.completeError(e);
+          });
+          video.onPlaying.first.then((e) {
+            completer.complete(video);
+          });
+
+          document.body.append(video);
+          video.src = url;
+
+          return completer.future;
+        });
+      });
+
+      test('getUserMediaComplexConstructor', () {
+        return window.navigator.getUserMedia(
+            video: {'mandatory':
+                      { 'minAspectRatio': 1.333, 'maxAspectRatio': 1.334 },
+                    'optional':
+                      [{ 'minFrameRate': 60 },
+                       { 'maxWidth': 640 }]
+            }).then((stream) {
           expect(stream,  isNotNull);
 
           var url = Url.createObjectUrl(stream);

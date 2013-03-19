@@ -17378,15 +17378,32 @@ class Navigator native "*Navigator" {
    * Gets a stream (video and or audio) from the local computer.
    *
    * Use [MediaStream.supported] to check if this is supported by the current
-   * platform.
+   * platform. The arguments `audio` and `video` default to `false` (stream does
+   * not use audio or video, respectively).
    *
-   * Example use:
+   * Simple example usage:
    *
-   *     window.navigator.getUserMedia(audio:true, video: true).then((stream) {
+   *     window.navigator.getUserMedia(audio: true, video: true).then((stream) {
    *       var video = new VideoElement()
    *         ..autoplay = true
    *         ..src = Url.createObjectUrl(stream);
    *       document.body.append(video);
+   *     });
+   *
+   * The user can also pass in Maps to the audio or video parameters to specify 
+   * mandatory and optional constraints for the media stream. Not passing in a 
+   * map, but passing in `true` will provide a LocalMediaStream with audio or 
+   * video capabilities, but without any additional constraints. The particular
+   * constraint names for audio and video are still in flux, but as of this 
+   * writing, here is an example providing more constraints.
+   *
+   *     window.navigator.getUserMedia(
+   *         audio: true, 
+   *         video: {'mandatory': 
+   *                    { 'minAspectRatio': 1.333, 'maxAspectRatio': 1.334 },
+   *                 'optional': 
+   *                    [{ 'minFrameRate': 60 },
+   *                     { 'maxWidth': 640 }]
    *     });
    *
    * See also:
@@ -17395,15 +17412,14 @@ class Navigator native "*Navigator" {
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<LocalMediaStream> getUserMedia({bool audio: false,
-      bool video: false}) {
+  Future<LocalMediaStream> getUserMedia({audio: false, video: false}) {
     var completer = new Completer<LocalMediaStream>();
     var options = {
       'audio': audio,
       'video': video
     };
     _ensureGetUserMedia();
-    this._getUserMedia(convertDartToNative_Dictionary(options),
+    this._getUserMedia(convertDartToNative_SerializedScriptValue(options),
       (stream) {
         completer.complete(stream);
       },
