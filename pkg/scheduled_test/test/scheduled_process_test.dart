@@ -383,7 +383,7 @@ ScheduledProcess startDartProcess(String script) {
   currentSchedule.onComplete.schedule(() {
     return tempDir.catchError((_) => null).then((dir) {
       if (dir == null) return;
-      return new Directory(dir).delete(recursive: true);
+      return deleteDir(dir);
     });
   }, 'clean up temp dir');
 

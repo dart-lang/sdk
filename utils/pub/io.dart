@@ -128,6 +128,7 @@ String createTempDir([dir = '']) {
   return tempDir.path;
 }
 
+// TODO(nweiz): Remove this when issue 9252 is fixed.
 /// Asynchronously recursively deletes [dir]. Returns a [Future] that completes
 /// when the deletion is done.
 Future<String> deleteDir(String dir) {
@@ -227,6 +228,7 @@ Future<String> cleanDir(String dir) {
   });
 }
 
+// TODO(nweiz): remove this when issue 9253 is fixed.
 /// Renames (i.e. moves) the directory [from] to [to]. Returns a [Future] with
 /// the destination directory.
 Future<String> renameDir(String from, String to) {
