@@ -23,6 +23,13 @@ async/slow_consumer3_test: Fail # Timer interface not supported; dartbug.com/772
 async/slow_consumer_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_from_iterable_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/stream_state_nonzero_timer_test: Fail # Timer interface not supported; dartbug.com/7728.
+async/multiple_timer_test: Fail,OK # Needs Timer to run.
+async/timer_cancel_test: Fail,OK # Needs Timer to run.
+async/timer_cancel1_test: Fail,OK # Needs Timer to run.
+async/timer_cancel2_test: Fail,OK # Needs Timer to run.
+async/timer_isolate_test: Fail, OK # Needs Timer to run.
+async/timer_repeat_test: Fail,OK # Needs Timer to run.
+async/timer_test: Fail,OK # Needs Timer to run.
 
 [ $compiler == dart2js && ($jscl || $runtime == d8) ]
 async/stream_periodic_test: Fail # Timer interface not supported; dartbug.com/7728.
@@ -34,6 +41,8 @@ async/stream_periodic5_test: Fail # Timer interface not supported; dartbug.com/7
 [ $compiler == dart2js && $browser ]
 crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
+async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
+                                         # implement timer (currently only in d8)
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
@@ -48,6 +57,23 @@ crypto/hmac_sha256_test: Fail
  # Bug in JSC: the test only passes when being debugged.
 crypto/hmac_md5_test: Fail, Pass
 
+[ $runtime == ff ]
+# FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
+multiple_timer_test: Pass, Fail
+timer_isolate_test: Pass, Fail
+timer_test: Pass, Fail
+
+[ $runtime == opera ]
+async/multiple_timer_test: Pass, Fail
+
+[ $runtime == opera && $system == windows]
+# TODO(efortuna): Investigate.
+async/timer_test: Fail, Pass
+
+[ $runtime == vm ]
+async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
+                                         # implement timer (currently only in d8)
+async/timer_isolate_test: Skip # See Issue 4997
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
@@ -55,6 +81,9 @@ async/run_async4_test: Pass, Fail # http://dartbug.com/9013
 
 [ $compiler == none && $runtime == drt ]
 async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
+async/timer_isolate_test: Skip # See Issue 4997
+async/timer_not_available_test: Skip # only meant to test when there is no way to
+                                     # implement timer (currently only in d8)
 
 [ $arch == arm ]
 *: Skip

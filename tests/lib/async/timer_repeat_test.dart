@@ -5,7 +5,7 @@
 library timer_repeat_test;
 
 import 'dart:async';
-import '../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/unittest/lib/unittest.dart';
 
 const Duration TIMEOUT = const Duration(milliseconds: 500);
 const int ITERATIONS = 5;
