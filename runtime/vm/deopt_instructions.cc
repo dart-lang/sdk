@@ -277,7 +277,9 @@ class DeoptRetAfterAddressInstr : public DeoptInstr {
     function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    ASSERT(!code.IsNull());
     uword continue_at_pc = code.GetDeoptAfterPcAtDeoptId(deopt_id_);
+    ASSERT(continue_at_pc != 0);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
   }
@@ -332,7 +334,9 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
     function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    ASSERT(!code.IsNull());
     uword continue_at_pc = code.GetDeoptBeforePcAtDeoptId(deopt_id_);
+    ASSERT(continue_at_pc != 0);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
 
@@ -585,7 +589,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // function occurring in the optimized frame.
     function.set_deoptimization_counter(function.deoptimization_counter() + 1);
     if (FLAG_trace_deoptimization) {
-      OS::PrintErr("Deoptimizing inlined %s (count %d)\n",
+      OS::PrintErr("Deoptimizing %s (count %d)\n",
           function.ToFullyQualifiedCString(),
           function.deoptimization_counter());
     }
@@ -719,7 +723,10 @@ uword DeoptInstr::GetRetAfterAddress(DeoptInstr* instr,
   ASSERT(func != NULL);
   *func ^= object_table.At(ret_after_instr->object_table_index());
   const Code& code = Code::Handle(func->unoptimized_code());
-  return code.GetDeoptAfterPcAtDeoptId(ret_after_instr->deopt_id());
+  ASSERT(!code.IsNull());
+  uword res = code.GetDeoptAfterPcAtDeoptId(ret_after_instr->deopt_id());
+  ASSERT(res != 0);
+  return res;
 }
 
 
