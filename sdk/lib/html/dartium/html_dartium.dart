@@ -13797,38 +13797,65 @@ class HtmlDocument extends Document {
   }
 
   @DomName('Document.webkitCancelFullScreen')
-  void webkitCancelFullScreen() {
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void cancelFullScreen() {
     document.$dom_webkitCancelFullScreen();
   }
 
   @DomName('Document.webkitExitFullscreen')
-  void webkitExitFullscreen() {
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitFullscreen() {
     document.$dom_webkitExitFullscreen();
   }
 
   @DomName('Document.webkitExitPointerLock')
-  void webkitExitPointerLock() {
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitPointerLock() {
     document.$dom_webkitExitPointerLock();
   }
 
   @DomName('Document.webkitFullscreenElement')
-  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Element get fullscreenElement => document.$dom_webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
-  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool get fullscreenEnabled => document.$dom_webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
-  bool get webkitHidden => document.$dom_webkitHidden;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool get hidden => document.$dom_webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
-  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool get isFullScreen => document.$dom_webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
-  Element get webkitPointerLockElement =>
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Element get pointerLockElement =>
       document.$dom_webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
-  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String get visibilityState => document.$dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
