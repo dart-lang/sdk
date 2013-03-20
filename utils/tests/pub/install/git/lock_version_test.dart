@@ -6,45 +6,50 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../../../../pkg/pathos/lib/path.dart' as path;
+import '../../../../../pkg/scheduled_test/lib/scheduled_test.dart';
+
+import '../../../../pub/io.dart';
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('keeps a Git package locked to the version in the lockfile', () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('foo'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '1.0.0')
+    ]).create();
 
-    appDir([{"git": "../foo.git"}]).scheduleCreate();
+    d.appDir([{"git": "../foo.git"}]).create();
 
     // This install should lock the foo.git dependency to the current revision.
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
 
     // Delete the packages path to simulate a new checkout of the application.
-    dir(packagesPath).scheduleDelete();
+    schedule(() => deleteDir(path.join(sandboxDir, packagesPath)));
 
-    git('foo.git', [
-      libDir('foo', 'foo 2'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCommit();
+    d.git('foo.git', [
+      d.libDir('foo', 'foo 2'),
+      d.libPubspec('foo', '1.0.0')
+    ]).commit();
 
     // This install shouldn't update the foo.git dependency due to the lockfile.
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }

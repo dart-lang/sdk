@@ -337,3 +337,28 @@ void mapAddAll(Map destination, Map source) =>
 /// replacing `+` with ` `.
 String urlDecode(String encoded) =>
   decodeUriComponent(encoded.replaceAll("+", " "));
+
+/// Takes a simple data structure (composed of [Map]s, [List]s, scalar objects,
+/// and [Future]s) and recursively resolves all the [Future]s contained within.
+/// Completes with the fully resolved structure.
+Future awaitObject(object) {
+  // Unroll nested futures.
+  if (object is Future) return object.then(awaitObject);
+  if (object is Collection) {
+    return Future.wait(object.map(awaitObject).toList());
+  }
+  if (object is! Map) return new Future.immediate(object);
+
+  var pairs = <Future<Pair>>[];
+  object.forEach((key, value) {
+    pairs.add(awaitObject(value)
+        .then((resolved) => new Pair(key, resolved)));
+  });
+  return Future.wait(pairs).then((resolvedPairs) {
+    var map = {};
+    for (var pair in resolvedPairs) {
+      map[pair.first] = pair.last;
+    }
+    return map;
+  });
+}

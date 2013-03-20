@@ -7,18 +7,18 @@ library pub_tests;
 import 'dart:io';
 
 import '../../../../pkg/pathos/lib/path.dart' as path;
-import '../../../../pkg/unittest/lib/unittest.dart';
 
+import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
   initConfig();
   integration('replaces a broken "packages" symlink', () {
-    dir(appPath, [
-      appPubspec([]),
-      libDir('foo'),
-      dir("bin")
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.appPubspec([]),
+      d.libDir('foo'),
+      d.dir("bin")
+    ]).create();
 
     // Create a broken "packages" symlink in "bin".
     scheduleSymlink("nonexistent", path.join(appPath, "packages"));
@@ -26,23 +26,23 @@ main() {
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(appPath, [
-      dir("bin", [
-        dir("packages", [
-          dir("myapp", [
-            file('foo.dart', 'main() => "foo";')
+    d.dir(appPath, [
+      d.dir("bin", [
+        d.dir("packages", [
+          d.dir("myapp", [
+            d.file('foo.dart', 'main() => "foo";')
           ])
         ])
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 
   integration('replaces a broken secondary "packages" symlink', () {
-    dir(appPath, [
-      appPubspec([]),
-      libDir('foo'),
-      dir("bin")
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.appPubspec([]),
+      d.libDir('foo'),
+      d.dir("bin")
+    ]).create();
 
     // Create a broken "packages" symlink in "bin".
     scheduleSymlink("nonexistent", path.join(appPath, "bin", "packages"));
@@ -50,14 +50,14 @@ main() {
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(appPath, [
-      dir("bin", [
-        dir("packages", [
-          dir("myapp", [
-            file('foo.dart', 'main() => "foo";')
+    d.dir(appPath, [
+      d.dir("bin", [
+        d.dir("packages", [
+          d.dir("myapp", [
+            d.file('foo.dart', 'main() => "foo";')
           ])
         ])
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }

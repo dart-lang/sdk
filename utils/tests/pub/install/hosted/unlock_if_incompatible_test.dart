@@ -6,27 +6,28 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('updates a locked pub server package with a new incompatible '
       'constraint', () {
-    servePackages([package("foo", "1.0.0")]);
+    servePackages([packageMap("foo", "1.0.0")]);
 
-    appDir([dependency("foo")]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
-
-    packagesDir({"foo": "1.0.0"}).scheduleValidate();
-
-    servePackages([package("foo", "1.0.1")]);
-
-    appDir([dependency("foo", ">1.0.0")]).scheduleCreate();
+    d.appDir([dependencyMap("foo")]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    packagesDir({"foo": "1.0.1"}).scheduleValidate();
+    d.packagesDir({"foo": "1.0.0"}).validate();
+
+    servePackages([packageMap("foo", "1.0.1")]);
+
+    d.appDir([dependencyMap("foo", ">1.0.0")]).create();
+
+    schedulePub(args: ['install'],
+        output: new RegExp(r"Dependencies installed!$"));
+
+    d.packagesDir({"foo": "1.0.1"}).validate();
   });
 }

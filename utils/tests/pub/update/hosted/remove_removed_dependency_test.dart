@@ -6,33 +6,34 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("removes a dependency that's been removed from the pubspec", () {
     servePackages([
-      package("foo", "1.0.0"),
-      package("bar", "1.0.0")
+      packageMap("foo", "1.0.0"),
+      packageMap("bar", "1.0.0")
     ]);
 
-    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
+    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": "1.0.0"
-    }).scheduleValidate();
+    }).validate();
 
-    appDir([dependency("foo")]).scheduleCreate();
+    d.appDir([dependencyMap("foo")]).create();
 
     schedulePub(args: ['update'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": null
-    }).scheduleValidate();
+    }).validate();
   });
 }

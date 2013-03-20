@@ -1,12 +1,14 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS d.file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// BSD-style license that can be found in the LICENSE d.file.
 
 library pub_tests;
 
 import 'dart:io';
 
-import '../../../../pkg/unittest/lib/unittest.dart';
+import '../../../../pkg/scheduled_test/lib/scheduled_test.dart';
+
+import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
@@ -14,7 +16,7 @@ main() {
 
   group('requires', () {
     integration('a pubspec', () {
-      dir(appPath, []).scheduleCreate();
+      d.dir(appPath, []).create();
 
       schedulePub(args: ['install'],
           error: new RegExp(r'^Could not find a file named "pubspec\.yaml"'),
@@ -22,9 +24,9 @@ main() {
     });
 
     integration('a pubspec with a "name" key', () {
-      dir(appPath, [
-        pubspec({"dependencies": {"foo": null}})
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.pubspec({"dependencies": {"foo": null}})
+      ]).create();
 
       schedulePub(args: ['install'],
           error: new RegExp(r'^pubspec.yaml is missing the required "name" '
@@ -36,45 +38,45 @@ main() {
   integration('adds itself to the packages', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
-    dir(appPath, [
-      pubspec({"name": "myapp_name"}),
-      libDir('foo'),
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp_name"}),
+      d.libDir('foo'),
+    ]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir("myapp_name", [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir("myapp_name", [
+        d.file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 
   integration('does not adds itself to the packages if it has no "lib" directory', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
-    dir(appPath, [
-      pubspec({"name": "myapp_name"}),
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp_name"}),
+    ]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      nothing("myapp_name")
-    ]).scheduleValidate();
+    d.dir(packagesPath, [
+      d.nothing("myapp_name")
+    ]).validate();
   });
 
   integration('does not add a package if it does not have a "lib" directory', () {
     // Using a path source, but this should be true of all sources.
-    dir('foo', [
-      libPubspec('foo', '0.0.0-not.used')
-    ]).scheduleCreate();
+    d.dir('foo', [
+      d.libPubspec('foo', '0.0.0-not.used')
+    ]).create();
 
-    dir(appPath, [
-      pubspec({"name": "myapp", "dependencies": {"foo": {"path": "../foo"}}})
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp", "dependencies": {"foo": {"path": "../foo"}}})
+    ]).create();
 
     schedulePub(args: ['install'],
         error: new RegExp(r'Warning: Package "foo" does not have a "lib" '
@@ -84,166 +86,166 @@ main() {
   });
 
   integration('does not warn if the root package lacks a "lib" directory', () {
-    dir(appPath, [
-      appPubspec([])
-    ]).scheduleCreate();
+    d.dir(appPath, [
+      d.appPubspec([])
+    ]).create();
 
     schedulePub(args: ['install'],
-        error: '',
+        error: new RegExp(r'^\s*$'),
         output: new RegExp(r"Dependencies installed!$"));
   });
 
   integration('overwrites the existing packages directory', () {
-    dir(appPath, [
-      appPubspec([]),
-      dir('packages', [
-        dir('foo'),
-        dir('myapp'),
+    d.dir(appPath, [
+      d.appPubspec([]),
+      d.dir('packages', [
+        d.dir('foo'),
+        d.dir('myapp'),
       ]),
-      libDir('myapp')
-    ]).scheduleCreate();
+      d.libDir('myapp')
+    ]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      nothing('foo'),
-      dir('myapp', [file('myapp.dart', 'main() => "myapp";')])
-    ]).scheduleValidate();
+    d.dir(packagesPath, [
+      d.nothing('foo'),
+      d.dir('myapp', [d.file('myapp.dart', 'main() => "myapp";')])
+    ]).validate();
   });
 
   group('creates a packages directory in', () {
     integration('"test/" and its subdirectories', () {
-      dir(appPath, [
-        appPubspec([]),
-        libDir('foo'),
-        dir("test", [dir("subtest")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.appPubspec([]),
+        d.libDir('foo'),
+        d.dir("test", [d.dir("subtest")])
+      ]).create();
 
       schedulePub(args: ['install'],
           output: new RegExp(r"Dependencies installed!$"));
 
-      dir(appPath, [
-        dir("test", [
-          dir("packages", [
-            dir("myapp", [
-              file('foo.dart', 'main() => "foo";')
+      d.dir(appPath, [
+        d.dir("test", [
+          d.dir("packages", [
+            d.dir("myapp", [
+              d.file('foo.dart', 'main() => "foo";')
             ])
           ]),
-          dir("subtest", [
-            dir("packages", [
-              dir("myapp", [
-                file('foo.dart', 'main() => "foo";')
+          d.dir("subtest", [
+            d.dir("packages", [
+              d.dir("myapp", [
+                d.file('foo.dart', 'main() => "foo";')
               ])
             ])
           ])
         ])
-      ]).scheduleValidate();
+      ]).validate();
     });
 
     integration('"example/" and its subdirectories', () {
-      dir(appPath, [
-        appPubspec([]),
-        libDir('foo'),
-        dir("example", [dir("subexample")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.appPubspec([]),
+        d.libDir('foo'),
+        d.dir("example", [d.dir("subexample")])
+      ]).create();
 
       schedulePub(args: ['install'],
           output: new RegExp(r"Dependencies installed!$"));
 
-      dir(appPath, [
-        dir("example", [
-          dir("packages", [
-            dir("myapp", [
-              file('foo.dart', 'main() => "foo";')
+      d.dir(appPath, [
+        d.dir("example", [
+          d.dir("packages", [
+            d.dir("myapp", [
+              d.file('foo.dart', 'main() => "foo";')
             ])
           ]),
-          dir("subexample", [
-            dir("packages", [
-              dir("myapp", [
-                file('foo.dart', 'main() => "foo";')
+          d.dir("subexample", [
+            d.dir("packages", [
+              d.dir("myapp", [
+                d.file('foo.dart', 'main() => "foo";')
               ])
             ])
           ])
         ])
-      ]).scheduleValidate();
+      ]).validate();
     });
 
     integration('"tool/" and its subdirectories', () {
-      dir(appPath, [
-        appPubspec([]),
-        libDir('foo'),
-        dir("tool", [dir("subtool")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.appPubspec([]),
+        d.libDir('foo'),
+        d.dir("tool", [d.dir("subtool")])
+      ]).create();
 
       schedulePub(args: ['install'],
           output: new RegExp(r"Dependencies installed!$"));
 
-      dir(appPath, [
-        dir("tool", [
-          dir("packages", [
-            dir("myapp", [
-              file('foo.dart', 'main() => "foo";')
+      d.dir(appPath, [
+        d.dir("tool", [
+          d.dir("packages", [
+            d.dir("myapp", [
+              d.file('foo.dart', 'main() => "foo";')
             ])
           ]),
-          dir("subtool", [
-            dir("packages", [
-              dir("myapp", [
-                file('foo.dart', 'main() => "foo";')
+          d.dir("subtool", [
+            d.dir("packages", [
+              d.dir("myapp", [
+                d.file('foo.dart', 'main() => "foo";')
               ])
             ])
           ])
         ])
-      ]).scheduleValidate();
+      ]).validate();
     });
 
     integration('"web/" and its subdirectories', () {
-      dir(appPath, [
-        appPubspec([]),
-        libDir('foo'),
-        dir("web", [dir("subweb")])
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.appPubspec([]),
+        d.libDir('foo'),
+        d.dir("web", [d.dir("subweb")])
+      ]).create();
 
       schedulePub(args: ['install'],
           output: new RegExp(r"Dependencies installed!$"));
 
-      dir(appPath, [
-        dir("web", [
-          dir("packages", [
-            dir("myapp", [
-              file('foo.dart', 'main() => "foo";')
+      d.dir(appPath, [
+        d.dir("web", [
+          d.dir("packages", [
+            d.dir("myapp", [
+              d.file('foo.dart', 'main() => "foo";')
             ])
           ]),
-          dir("subweb", [
-            dir("packages", [
-              dir("myapp", [
-                file('foo.dart', 'main() => "foo";')
+          d.dir("subweb", [
+            d.dir("packages", [
+              d.dir("myapp", [
+                d.file('foo.dart', 'main() => "foo";')
               ])
             ])
           ])
         ])
-      ]).scheduleValidate();
+      ]).validate();
     });
 
     integration('"bin/"', () {
-      dir(appPath, [
-        appPubspec([]),
-        libDir('foo'),
-        dir("bin")
-      ]).scheduleCreate();
+      d.dir(appPath, [
+        d.appPubspec([]),
+        d.libDir('foo'),
+        d.dir("bin")
+      ]).create();
 
       schedulePub(args: ['install'],
           output: new RegExp(r"Dependencies installed!$"));
 
-      dir(appPath, [
-        dir("bin", [
-          dir("packages", [
-            dir("myapp", [
-              file('foo.dart', 'main() => "foo";')
+      d.dir(appPath, [
+        d.dir("bin", [
+          d.dir("packages", [
+            d.dir("myapp", [
+              d.file('foo.dart', 'main() => "foo";')
             ])
           ])
         ])
-      ]).scheduleValidate();
+      ]).validate();
     });
   });
 }
