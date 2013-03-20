@@ -30765,7 +30765,7 @@ abstract class CssClassSet implements Set<String> {
   }
 
   /**
-   * Adds the class [token] to the element if it is not on it, removes it if it
+   * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
    */
   bool toggle(String value) {
@@ -30819,14 +30819,33 @@ abstract class CssClassSet implements Set<String> {
   // interface Collection - END
 
   // interface Set - BEGIN
+  /**
+   * Determine if this element contains the class [value].
+   *
+   * This is the Dart equivalent of jQuery's
+   * [hasClass](http://api.jquery.com/hasClass/).
+   */
   bool contains(String value) => readClasses().contains(value);
 
+  /**
+   * Add the class [value] to element.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [addClass](http://api.jquery.com/addClass/).
+   */
   void add(String value) {
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough.
     _modify((s) => s.add(value));
   }
 
+  /**
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
   bool remove(Object value) {
     if (value is! String) return false;
     Set<String> s = readClasses();
@@ -30835,13 +30854,36 @@ abstract class CssClassSet implements Set<String> {
     return result;
   }
 
+  /**
+   * Add all classes specified in [iterable] to element.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [addClass](http://api.jquery.com/addClass/).
+   */
   void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation.
     _modify((s) => s.addAll(iterable));
   }
 
+  /**
+   * Remove all classes specified in [iterable] from element.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
   void removeAll(Iterable<String> iterable) {
     _modify((s) => s.removeAll(iterable));
+  }
+
+  /**
+   * Toggles all classes specified in [iterable] on element.
+   *
+   * Iterate through [iterable]'s items, and add it if it is not on it, or
+   * remove it if it is. This is the Dart equivalent of jQuery's
+   * [toggleClass](http://api.jquery.com/toggleClass/).
+   */
+  void toggleAll(Iterable<String> iterable) {
+    iterable.forEach(toggle);
   }
 
   void retainAll(Iterable<String> iterable) {
