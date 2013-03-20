@@ -958,7 +958,7 @@ void scheduleSandbox() {
     if (sandbox == null) return;
     var oldSandbox = sandbox;
     sandbox = null;
-    return deleteDir(oldSandbox);
+    return new Directory(oldSandbox).delete(recursive: true);
   });
 }
 

@@ -128,12 +128,10 @@ String createTempDir([dir = '']) {
   return tempDir.path;
 }
 
-// TODO(nweiz): Remove this when issue 9252 is fixed.
-/// Asynchronously recursively deletes [dir]. Returns a [Future] that completes
-/// when the deletion is done.
-Future<String> deleteDir(String dir) {
-  return _attemptRetryable(() => log.ioAsync("delete directory $dir",
-      new Directory(dir).delete(recursive: true).then((_) => dir)));
+/// Recursively deletes [dir].
+void deleteDir(String dir) {
+  log.io("Deleting directory $dir.");
+  new Directory(dir).deleteSync(recursive: true);
 }
 
 /// Asynchronously lists the contents of [dir]. If [recursive] is `true`, lists
@@ -208,66 +206,24 @@ Future<List<String>> listDir(String dir,
 bool dirExists(String dir) => new Directory(dir).existsSync();
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
-/// new empty directory will be created. Returns a [Future] that completes when
-/// the new clean directory is created.
-Future<String> cleanDir(String dir) {
-  return defer(() {
-    if (dirExists(dir)) {
-      // Delete it first.
-      return deleteDir(dir).then((_) => createDir(dir));
-    }
-
-    if (fileExists(dir)) {
-      // If there is a non-directory there (file or symlink), delete it.
-      deleteFile(dir);
-      return createDir(dir);
-    }
-
-    // Just create it.
-    return createDir(dir);
-  });
-}
-
-// TODO(nweiz): remove this when issue 9253 is fixed.
-/// Renames (i.e. moves) the directory [from] to [to]. Returns a [Future] with
-/// the destination directory.
-Future<String> renameDir(String from, String to) {
-  log.io("Renaming directory $from to $to.");
-
-  return _attemptRetryable(() => new Directory(from).rename(to)).then((dir) {
-    log.fine("Renamed directory $from to $to.");
-    return to;
-  });
-}
-
-/// On Windows, we sometimes get failures where the directory is still in use
-/// when we try to do something with it. This is usually because the OS hasn't
-/// noticed yet that a process using that directory has closed. To be a bit
-/// more resilient, we wait and retry a few times.
-///
-/// Takes a [callback] which returns a future for the operation being attempted.
-/// If that future completes with an error, it will slepp and then [callback]
-/// will be invoked again to retry the operation. It will try a few times before
-/// giving up.
-Future _attemptRetryable(Future callback()) {
-  // Only do lame retry logic on Windows.
-  if (Platform.operatingSystem != 'windows') return callback();
-
-  var attempts = 0;
-  makeAttempt(_) {
-    attempts++;
-    return callback().catchError((e) {
-      if (attempts >= 10) {
-        throw 'Could not complete operation. Gave up after $attempts attempts.';
-      }
-
-      // Wait a bit and try again.
-      log.fine("Operation failed, retrying (attempt $attempts).");
-      return sleep(500).then(makeAttempt);
-    });
+/// new empty directory will be created.
+void cleanDir(String dir) {
+  if (dirExists(dir)) {
+    // Delete it first.
+    deleteDir(dir);
+  } else if (fileExists(dir)) {
+    // If there is a non-directory there (file or symlink), delete it.
+    deleteFile(dir);
   }
 
-  return makeAttempt(null);
+  // Just create it.
+  createDir(dir);
+}
+
+/// Renames (i.e. moves) the directory [from] to [to].
+void renameDir(String from, String to) {
+  log.io("Renaming directory $from to $to.");
+  new Directory(from).renameSync(to);
 }
 
 /// Creates a new symlink at path [symlink] that points to [target]. Returns a
@@ -620,16 +576,16 @@ Future timeout(Future input, int milliseconds, String description) {
 
 /// Creates a temporary directory and passes its path to [fn]. Once the [Future]
 /// returned by [fn] completes, the temporary directory and all its contents
-/// will be deleted.
+/// will be deleted. [fn] can also return `null`, in which case the temporary
+/// directory is deleted immediately afterwards.
 ///
 /// Returns a future that completes to the value that the future returned from
 /// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
   return defer(() {
     var tempDir = createTempDir();
-    return fn(tempDir).whenComplete(() {
-      return deleteDir(tempDir);
-    });
+    return new Future.of(() => fn(tempDir))
+        .whenComplete(() => deleteDir(tempDir));
   });
 }
 

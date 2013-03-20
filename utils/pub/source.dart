@@ -119,7 +119,8 @@ abstract class Source {
         if (!isCorrupted) return true;
 
         // Busted, so wipe out the package and reinstall.
-        return deleteDir(packageDir).then((_) => false);
+        deleteDir(packageDir);
+        return false;
       });
     }).then((isInstalled) {
       if (isInstalled) return true;

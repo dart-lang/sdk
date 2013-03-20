@@ -73,13 +73,14 @@ class Entrypoint {
     var packageDir = path.join(packagesDir, id.name);
     var future = defer(() {
       ensureDir(path.dirname(packageDir));
-      if (!dirExists(packageDir)) return;
 
-      // TODO(nweiz): figure out when to actually delete the directory, and when
-      // we can just re-use the existing symlink.
-      log.fine("Deleting package directory for ${id.name} before install.");
-      return deleteDir(packageDir);
-    }).then((_) {
+      if (dirExists(packageDir)) {
+        // TODO(nweiz): figure out when to actually delete the directory, and
+        // when we can just re-use the existing symlink.
+        log.fine("Deleting package directory for ${id.name} before install.");
+        deleteDir(packageDir);
+      }
+
       if (id.source.shouldCache) {
         return cache.install(id).then(
             (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
@@ -130,7 +131,8 @@ class Entrypoint {
   /// Removes the old packages directory, installs all dependencies listed in
   /// [packageVersions], and writes a [LockFile].
   Future _installDependencies(List<PackageId> packageVersions) {
-    return cleanDir(packagesDir).then((_) {
+    return new Future.of(() {
+      cleanDir(packagesDir);
       return Future.wait(packageVersions.map((id) {
         if (id.isRoot) return new Future.immediate(id);
         return install(id);
@@ -296,13 +298,12 @@ class Entrypoint {
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
       var symlink = path.join(dir, 'packages');
-      return new Future.of(() {
-        if (fileExists(symlink)) {
-          deleteFile(symlink);
-        } else if (dirExists(symlink)) {
-          return deleteDir(symlink);
-        }
-      }).then((_) => createSymlink(packagesDir, symlink, relative: true));
+      if (fileExists(symlink)) {
+        deleteFile(symlink);
+      } else if (dirExists(symlink)) {
+        deleteDir(symlink);
+      }
+      return createSymlink(packagesDir, symlink, relative: true);
     });
   }
 }
