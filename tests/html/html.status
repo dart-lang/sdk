@@ -46,7 +46,6 @@ serialized_script_value_test: Fail
 storage_test: Fail, Pass
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
-indexeddb_1_test/functional: Pass, Timeout # http://dartbug.com/9269
 
 # IE10 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.

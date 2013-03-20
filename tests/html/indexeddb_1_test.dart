@@ -5,12 +5,16 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
 
-const String DB_NAME = 'Test';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
+var databaseNameIndex = 0;
+String nextDatabaseName() {
+  return 'Test1_${databaseNameIndex++}';
+}
+
 Future testUpgrade() {
-  var dbName = 'version_db';
+  var dbName = nextDatabaseName();
   var upgraded = false;
 
   // Delete any existing DBs.
@@ -34,7 +38,10 @@ Future testUpgrade() {
 }
 
 testReadWrite(key, value, matcher,
-    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) => () {
+    [dbName, storeName = STORE_NAME, version = VERSION]) => () {
+  if (dbName == null) {
+    dbName = nextDatabaseName();
+  }
   createObjectStore(e) {
     var store = e.target.result.createObjectStore(storeName);
     expect(store, isNotNull);
@@ -59,11 +66,15 @@ testReadWrite(key, value, matcher,
       if (db != null) {
         db.close();
       }
+      return html.window.indexedDB.deleteDatabase(dbName);
     });
 };
 
 testReadWriteTyped(key, value, matcher,
-    [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) => () {
+    [dbName, storeName = STORE_NAME, version = VERSION]) => () {
+  if (dbName == null) {
+    dbName = nextDatabaseName();
+  }
   void createObjectStore(e) {
     var store = e.target.result.createObjectStore(storeName);
     expect(store, isNotNull);
@@ -90,6 +101,7 @@ testReadWriteTyped(key, value, matcher,
       if (db != null) {
         db.close();
       }
+      return html.window.indexedDB.deleteDatabase(dbName);
     });
 };
 

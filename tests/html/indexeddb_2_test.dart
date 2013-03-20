@@ -9,7 +9,7 @@ import 'utils.dart';
 
 // Write and re-read Maps: simple Maps; Maps with DAGs; Maps with cycles.
 
-const String DB_NAME = 'Test';
+const String DB_NAME = 'Test2';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
