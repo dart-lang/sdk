@@ -351,7 +351,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
     var options = new ProcessOptions();
     options.workingDirectory = pathInSandbox(appPath);
     // TODO(nweiz): remove this when issue 9294 is fixed.
-    options.environment = new Map(Platform.environment);
+    options.environment = new Map.from(Platform.environment);
     options.environment['PUB_CACHE'] = pathInSandbox(cachePath);
     options.environment['DART_SDK'] = pathInSandbox(sdkPath);
     if (tokenEndpoint != null) {
