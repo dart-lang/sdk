@@ -9891,8 +9891,14 @@ void Parser::SkipPrimary() {
 
 void Parser::SkipSelectors() {
   while (true) {
-    if ((CurrentToken() == Token::kPERIOD) ||
-        (CurrentToken() == Token::kCASCADE)) {
+    if (CurrentToken() == Token::kCASCADE) {
+      ConsumeToken();
+      if (CurrentToken() == Token::kLBRACK) {
+        continue;  // Consume [ in next loop iteration.
+      } else {
+        ExpectIdentifier("identifier or [ expected after ..");
+      }
+    } else if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
       ExpectIdentifier("identifier expected");
     } else if (CurrentToken() == Token::kLBRACK) {

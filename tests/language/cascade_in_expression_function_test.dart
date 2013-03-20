@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing throw statement
 
+makeMap() => new Map()..[3] = 4 ..[0] = 11;
+
 class MyClass {
   foo() => this..bar(3)..baz(4);
   bar(x) => x;
@@ -12,4 +14,7 @@ class MyClass {
 main() {
   var o = new MyClass();
   Expect.equals(o.foo(), o);
+  var g = makeMap();
+  Expect.equals(g[3], 4);
+  Expect.equals(g[0], 11);
 }
