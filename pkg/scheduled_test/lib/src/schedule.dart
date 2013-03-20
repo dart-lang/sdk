@@ -87,7 +87,10 @@ class Schedule {
   TaskQueue _currentQueue;
 
   /// The time to wait before terminating a task queue for inactivity. Defaults
-  /// to 30 seconds. This can be set to `null` to disable timeouts entirely.
+  /// to 5 seconds. This can be set to `null` to disable timeouts entirely. Note
+  /// that the timeout is the maximum time a task is allowed between
+  /// interactions with the schedule, *not* the maximum time an entire test is
+  /// allowed. See also [heartbeat].
   ///
   /// If a task queue times out, an error will be raised that can be handled as
   /// usual in the [onException] and [onComplete] queues. If [onException] times
@@ -97,7 +100,7 @@ class Schedule {
   /// If a task times out and then later completes with an error, that error
   /// cannot be handled. The user will still be notified of it.
   Duration get timeout => _timeout;
-  Duration _timeout = new Duration(seconds: 30);
+  Duration _timeout = new Duration(seconds: 5);
   set timeout(Duration duration) {
     _timeout = duration;
     heartbeat();
