@@ -371,7 +371,14 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 /// git is installed and skip the test if not. This way, users don't need to
 /// have git installed to run the tests locally (unless they actually care
 /// about the pub git tests).
+///
+/// This will also increase the [Schedule] timeout to 30 seconds on Windows,
+/// where Git runs really slowly.
 void ensureGit() {
+  if (Platform.operatingSystem == "windows") {
+    currentSchedule.timeout = new Duration(seconds: 30);
+  }
+
   schedule(() {
     return gitlib.isInstalled.then((installed) {
       if (installed) return;
