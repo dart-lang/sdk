@@ -2265,13 +2265,13 @@ RawFloat32x4Array* Float32x4Array::ReadFrom(SnapshotReader* reader,
   result.set_tags(tags);
 
   // Setup the array elements.
-  float v[4];
+  simd128_value_t v;
   for (intptr_t i = 0; i < len; ++i) {
-    v[0] = reader->Read<float>();
-    v[1] = reader->Read<float>();
-    v[2] = reader->Read<float>();
-    v[3] = reader->Read<float>();
-    result.SetAt(i, simd_value_safe_load(&v[0]));
+    v.storage[0] = reader->Read<float>();
+    v.storage[1] = reader->Read<float>();
+    v.storage[2] = reader->Read<float>();
+    v.storage[3] = reader->Read<float>();
+    result.SetAt(i, v);
   }
   return result.raw();
 }
@@ -2297,7 +2297,7 @@ RawExternal##name##Array* External##name##Array::ReadFrom(                     \
 }                                                                              \
 
 BYTEARRAY_TYPE_LIST(EXTERNALARRAY_READ_FROM)
-EXTERNALARRAY_READ_FROM(Float32x4, Float32x4, simd_value_t)
+EXTERNALARRAY_READ_FROM(Float32x4, Float32x4, simd128_value_t)
 #undef EXTERNALARRAY_READ_FROM
 
 

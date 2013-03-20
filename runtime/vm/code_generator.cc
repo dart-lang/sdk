@@ -1450,11 +1450,13 @@ void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
 
 // Copy saved registers into the isolate buffer.
 static void CopySavedRegisters(uword saved_registers_address) {
-  double* fpu_registers_copy = new double[kNumberOfFpuRegisters];
+  fpu_register_t* fpu_registers_copy =
+      new fpu_register_t[kNumberOfFpuRegisters];
   ASSERT(fpu_registers_copy != NULL);
   for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
-    fpu_registers_copy[i] = *reinterpret_cast<double*>(saved_registers_address);
-    saved_registers_address += kDoubleSize;
+    fpu_registers_copy[i] =
+        *reinterpret_cast<fpu_register_t*>(saved_registers_address);
+    saved_registers_address += kFpuRegisterSize;
   }
   Isolate::Current()->set_deopt_fpu_registers_copy(fpu_registers_copy);
 
@@ -1506,7 +1508,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // All registers have been saved below last-fp.
   const uword last_fp = saved_registers_address +
-      kNumberOfCpuRegisters * kWordSize + kNumberOfFpuRegisters * kDoubleSize;
+                        kNumberOfCpuRegisters * kWordSize +
+                        kNumberOfFpuRegisters * kFpuRegisterSize;
   CopySavedRegisters(saved_registers_address);
 
   // Get optimized code and frame that need to be deoptimized.
@@ -1608,7 +1611,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
 
   intptr_t* frame_copy = isolate->deopt_frame_copy();
   intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
-  double* fpu_registers_copy = isolate->deopt_fpu_registers_copy();
+  fpu_register_t* fpu_registers_copy = isolate->deopt_fpu_registers_copy();
 
   intptr_t deopt_reason = kDeoptUnknown;
   const DeoptInfo& deopt_info = DeoptInfo::Handle(
@@ -1634,42 +1637,17 @@ END_LEAF_RUNTIME_ENTRY
 
 // This is the last step in the deoptimization, GC can occur.
 DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
-  DeferredDouble* deferred_double = Isolate::Current()->DetachDeferredDoubles();
+  DeferredObject* deferred_object = Isolate::Current()->DetachDeferredObjects();
 
-  while (deferred_double != NULL) {
-    DeferredDouble* current = deferred_double;
-    deferred_double = deferred_double->next();
+  while (deferred_object != NULL) {
+    DeferredObject* current = deferred_object;
+    deferred_object  = deferred_object->next();
 
-    RawDouble** slot = current->slot();
-    *slot = Double::New(current->value());
-
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("materializing double at %"Px": %g\n",
-                reinterpret_cast<uword>(current->slot()),
-                current->value());
-    }
+    current->Materialize();
 
     delete current;
   }
 
-  DeferredMint* deferred_mint = Isolate::Current()->DetachDeferredMints();
-
-  while (deferred_mint != NULL) {
-    DeferredMint* current = deferred_mint;
-    deferred_mint = deferred_mint->next();
-
-    RawMint** slot = current->slot();
-    ASSERT(!Smi::IsValid64(current->value()));
-    *slot = Mint::New(current->value());
-
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("materializing mint at %"Px": %"Pd64"\n",
-                reinterpret_cast<uword>(current->slot()),
-                current->value());
-    }
-
-    delete current;
-  }
   // Since this is the only step where GC can occur during deoptimization,
   // use it to report the source line where deoptimization occured.
   if (FLAG_trace_deoptimization) {

@@ -170,6 +170,78 @@ class DeoptInt64StackSlotInstr : public DeoptInstr {
 };
 
 
+class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
+ public:
+  explicit DeoptFloat32x4StackSlotInstr(intptr_t from_index)
+      : stack_slot_index_(from_index) {
+    ASSERT(stack_slot_index_ >= 0);
+  }
+
+  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual DeoptInstr::Kind kind() const { return kFloat32x4StackSlot; }
+
+  virtual const char* ToCString() const {
+    const char* format = "f32x4s%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, stack_slot_index_);
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, format, stack_slot_index_);
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t from_index =
+       deopt_context->from_frame_size() - stack_slot_index_ - 1;
+    simd128_value_t* from_addr = reinterpret_cast<simd128_value_t*>(
+        deopt_context->GetFromFrameAddressAt(from_index));
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    Isolate::Current()->DeferFloat32x4Materialization(
+        *from_addr, reinterpret_cast<RawFloat32x4**>(to_addr));
+  }
+
+ private:
+  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptFloat32x4StackSlotInstr);
+};
+
+
+class DeoptUint32x4StackSlotInstr : public DeoptInstr {
+ public:
+  explicit DeoptUint32x4StackSlotInstr(intptr_t from_index)
+      : stack_slot_index_(from_index) {
+    ASSERT(stack_slot_index_ >= 0);
+  }
+
+  virtual intptr_t from_index() const { return stack_slot_index_; }
+  virtual DeoptInstr::Kind kind() const { return kUint32x4StackSlot; }
+
+  virtual const char* ToCString() const {
+    const char* format = "ui32x4s%"Pd"";
+    intptr_t len = OS::SNPrint(NULL, 0, format, stack_slot_index_);
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, format, stack_slot_index_);
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t from_index =
+       deopt_context->from_frame_size() - stack_slot_index_ - 1;
+    simd128_value_t* from_addr = reinterpret_cast<simd128_value_t*>(
+        deopt_context->GetFromFrameAddressAt(from_index));
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    Isolate::Current()->DeferUint32x4Materialization(
+        *from_addr, reinterpret_cast<RawUint32x4**>(to_addr));
+  }
+
+ private:
+  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptUint32x4StackSlotInstr);
+};
+
+
 // Deoptimization instruction creating return address using function and
 // deopt-id stored at 'object_table_index'. Uses the deopt-after
 // continuation point.
@@ -413,6 +485,72 @@ class DeoptInt64FpuRegisterInstr: public DeoptInstr {
 };
 
 
+// Deoptimization instruction moving an XMM register.
+class DeoptFloat32x4FpuRegisterInstr: public DeoptInstr {
+ public:
+  explicit DeoptFloat32x4FpuRegisterInstr(intptr_t reg_as_int)
+      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
+
+  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual DeoptInstr::Kind kind() const { return kFloat32x4FpuRegister; }
+
+  virtual const char* ToCString() const {
+    const char* format = "%s(f32x4)";
+    intptr_t len =
+        OS::SNPrint(NULL, 0, format, Assembler::FpuRegisterName(reg_));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, format, Assembler::FpuRegisterName(reg_));
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    Isolate::Current()->DeferFloat32x4Materialization(
+        value, reinterpret_cast<RawFloat32x4**>(to_addr));
+  }
+
+ private:
+  const FpuRegister reg_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptFloat32x4FpuRegisterInstr);
+};
+
+
+// Deoptimization instruction moving an XMM register.
+class DeoptUint32x4FpuRegisterInstr: public DeoptInstr {
+ public:
+  explicit DeoptUint32x4FpuRegisterInstr(intptr_t reg_as_int)
+      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
+
+  virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
+  virtual DeoptInstr::Kind kind() const { return kFloat32x4FpuRegister; }
+
+  virtual const char* ToCString() const {
+    const char* format = "%s(f32x4)";
+    intptr_t len =
+        OS::SNPrint(NULL, 0, format, Assembler::FpuRegisterName(reg_));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    OS::SNPrint(chars, len + 1, format, Assembler::FpuRegisterName(reg_));
+    return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
+    Isolate::Current()->DeferUint32x4Materialization(
+        value, reinterpret_cast<RawUint32x4**>(to_addr));
+  }
+
+ private:
+  const FpuRegister reg_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptUint32x4FpuRegisterInstr);
+};
+
+
 // Deoptimization instruction creating a PC marker for the code of
 // function at 'object_table_index'.
 class DeoptPcMarkerInstr : public DeoptInstr {
@@ -591,12 +729,20 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
     case kStackSlot: return new DeoptStackSlotInstr(from_index);
     case kDoubleStackSlot: return new DeoptDoubleStackSlotInstr(from_index);
     case kInt64StackSlot: return new DeoptInt64StackSlotInstr(from_index);
+    case kFloat32x4StackSlot:
+        return new DeoptFloat32x4StackSlotInstr(from_index);
+    case kUint32x4StackSlot:
+        return new DeoptUint32x4StackSlotInstr(from_index);
     case kRetAfterAddress: return new DeoptRetAfterAddressInstr(from_index);
     case kRetBeforeAddress: return new DeoptRetBeforeAddressInstr(from_index);
     case kConstant: return new DeoptConstantInstr(from_index);
     case kRegister: return new DeoptRegisterInstr(from_index);
     case kFpuRegister: return new DeoptFpuRegisterInstr(from_index);
     case kInt64FpuRegister: return new DeoptInt64FpuRegisterInstr(from_index);
+    case kFloat32x4FpuRegister:
+        return new DeoptFloat32x4FpuRegisterInstr(from_index);
+    case kUint32x4FpuRegister:
+        return new DeoptUint32x4FpuRegisterInstr(from_index);
     case kPcMarker: return new DeoptPcMarkerInstr(from_index);
     case kCallerFp: return new DeoptCallerFpInstr();
     case kCallerPc: return new DeoptCallerPcInstr();
@@ -726,6 +872,7 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
     UNREACHABLE();
   }
   ASSERT(to_index == instructions_.length());
+  ASSERT(deopt_instr != NULL);
   instructions_.Add(deopt_instr);
 }
 

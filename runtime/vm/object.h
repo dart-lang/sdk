@@ -4944,7 +4944,8 @@ class Float32x4 : public Instance {
  public:
   static RawFloat32x4* New(float value0, float value1, float value2,
                            float value3, Heap::Space space = Heap::kNew);
-  static RawFloat32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+  static RawFloat32x4* New(simd128_value_t value,
+                           Heap::Space space = Heap::kNew);
 
   float x() const;
   float y() const;
@@ -4956,8 +4957,8 @@ class Float32x4 : public Instance {
   void set_z(float z) const;
   void set_w(float w) const;
 
-  simd_value_t value() const;
-  void set_value(simd_value_t value) const;
+  simd128_value_t value() const;
+  void set_value(simd128_value_t value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFloat32x4));
@@ -4977,7 +4978,8 @@ class Uint32x4 : public Instance {
  public:
   static RawUint32x4* New(uint32_t value0, uint32_t value1, uint32_t value2,
                           uint32_t value3, Heap::Space space = Heap::kNew);
-  static RawUint32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+  static RawUint32x4* New(simd128_value_t value,
+                          Heap::Space space = Heap::kNew);
 
   uint32_t x() const;
   uint32_t y() const;
@@ -4989,8 +4991,8 @@ class Uint32x4 : public Instance {
   void set_z(uint32_t z) const;
   void set_w(uint32_t w) const;
 
-  simd_value_t value() const;
-  void set_value(simd_value_t value) const;
+  simd128_value_t value() const;
+  void set_value(simd128_value_t value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUint32x4));
@@ -5743,16 +5745,14 @@ class Float32x4Array : public ByteArray {
     return Length() * kBytesPerElement;
   }
 
-  simd_value_t At(intptr_t index) const {
+  simd128_value_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* load_ptr = &raw_ptr()->data_[index];
-    return simd_value_safe_load(load_ptr);
+    return raw_ptr()->data_[index];
   }
 
-  void SetAt(intptr_t index, simd_value_t value) const {
+  void SetAt(intptr_t index, simd128_value_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* store_ptr = &raw_ptr()->data_[index];
-    simd_value_safe_store(store_ptr, value);
+    raw_ptr()->data_[index] = value;
   }
 
   static const intptr_t kBytesPerElement = 16;
@@ -5776,7 +5776,7 @@ class Float32x4Array : public ByteArray {
 
   static RawFloat32x4Array* New(intptr_t len,
                                      Heap::Space space = Heap::kNew);
-  static RawFloat32x4Array* New(const simd_value_t* data,
+  static RawFloat32x4Array* New(const simd128_value_t* data,
                                      intptr_t len,
                                      Heap::Space space = Heap::kNew);
 
@@ -6397,20 +6397,18 @@ class ExternalFloat32x4Array : public ByteArray {
     return Length() * kBytesPerElement;
   }
 
-  simd_value_t At(intptr_t index) const {
+  simd128_value_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* load_ptr = &raw_ptr()->data_[index];
-    return simd_value_safe_load(load_ptr);
+    return raw_ptr()->data_[index];
   }
 
-  void SetAt(intptr_t index, simd_value_t value) const {
+  void SetAt(intptr_t index, simd128_value_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* store_ptr = &raw_ptr()->data_[index];
-    simd_value_safe_store(store_ptr, value);
+    raw_ptr()->data_[index] = value;
   }
 
 
-  simd_value_t* GetData() const {
+  simd128_value_t* GetData() const {
     return raw_ptr()->data_;
   }
 
@@ -6428,9 +6426,8 @@ class ExternalFloat32x4Array : public ByteArray {
     return RoundedAllocationSize(sizeof(RawExternalFloat32x4Array));
   }
 
-  static RawExternalFloat32x4Array* New(simd_value_t* data,
-                                             intptr_t len,
-                                             Heap::Space space = Heap::kNew);
+  static RawExternalFloat32x4Array* New(simd128_value_t* data, intptr_t len,
+                                        Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
@@ -6439,7 +6436,7 @@ class ExternalFloat32x4Array : public ByteArray {
     return data + byte_offset;
   }
 
-  void SetData(simd_value_t* data) const {
+  void SetData(simd128_value_t* data) const {
     raw_ptr()->data_ = data;
   }
 

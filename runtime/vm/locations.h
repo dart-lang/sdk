@@ -21,6 +21,8 @@ enum Representation {
   kUntagged,
   kUnboxedDouble,
   kUnboxedMint,
+  kUnboxedFloat32x4,
+  kUnboxedUint32x4,
   kNumRepresentations
 };
 
@@ -38,7 +40,7 @@ class Location : public ValueObject {
  private:
   enum {
     // Number of bits required to encode Kind value.
-    kBitsForKind = 3,
+    kBitsForKind = 4,
     kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind,
   };
 
@@ -69,6 +71,8 @@ class Location : public ValueObject {
     // a spill index.
     kStackSlot = 3,
     kDoubleStackSlot = 4,
+    kFloat32x4StackSlot = 8,
+    kUint32x4StackSlot = 10,
 
     // Register location represents a fixed register.  Payload contains
     // register code.
@@ -187,6 +191,7 @@ class Location : public ValueObject {
     return RegisterField::decode(payload());
   }
 
+
   Representation representation() const {
     return RepresentationField::decode(payload());
   }
@@ -231,14 +236,19 @@ class Location : public ValueObject {
     return static_cast<intptr_t>(RegisterField::decode(payload()));
   }
 
+  static uword make_stack_index_payload(intptr_t stack_index,
+                                        Representation rep) {
+    ASSERT((-kStackIndexBias <= stack_index) &&
+       (stack_index < kStackIndexBias));
+    uword payload =
+      IndexField::encode(static_cast<uword>(kStackIndexBias + stack_index));
+    return payload | RepresentationField::encode(rep);
+  }
+
   // Spill slots.
   static Location StackSlot(intptr_t stack_index,
                             Representation rep = kTagged) {
-    ASSERT((-kStackIndexBias <= stack_index) &&
-           (stack_index < kStackIndexBias));
-    uword payload =
-        IndexField::encode(static_cast<uword>(kStackIndexBias + stack_index))
-      | RepresentationField::encode(rep);
+    uword payload = make_stack_index_payload(stack_index, rep);
     Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -250,11 +260,7 @@ class Location : public ValueObject {
   }
 
   static Location DoubleStackSlot(intptr_t stack_index, Representation rep) {
-    ASSERT((-kStackIndexBias <= stack_index) &&
-           (stack_index < kStackIndexBias));
-    uword payload =
-        IndexField::encode(static_cast<uword>(kStackIndexBias + stack_index))
-      | RepresentationField::encode(rep);
+    uword payload = make_stack_index_payload(stack_index, rep);
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -265,9 +271,34 @@ class Location : public ValueObject {
     return kind() == kDoubleStackSlot;
   }
 
+  static Location Float32x4StackSlot(intptr_t stack_index, Representation rep) {
+    uword payload = make_stack_index_payload(stack_index, rep);
+    Location loc(kFloat32x4StackSlot, payload);
+    // Ensure that sign is preserved.
+    ASSERT(loc.stack_index() == stack_index);
+    return loc;
+  }
+
+  bool IsFloat32x4StackSlot() const {
+    return kind() == kFloat32x4StackSlot;
+  }
+
+  static Location Uint32x4StackSlot(intptr_t stack_index, Representation rep) {
+    uword payload = make_stack_index_payload(stack_index, rep);
+    Location loc(kUint32x4StackSlot, payload);
+    // Ensure that sign is preserved.
+    ASSERT(loc.stack_index() == stack_index);
+    return loc;
+  }
+
+  bool IsUint32x4StackSlot() const {
+    return kind() == kUint32x4StackSlot;
+  }
+
 
   intptr_t stack_index() const {
-    ASSERT(IsStackSlot() || IsDoubleStackSlot());
+    ASSERT(IsStackSlot() || IsDoubleStackSlot() || IsFloat32x4StackSlot() ||
+           IsUint32x4StackSlot());
     // Decode stack index manually to preserve sign.
     return IndexField::decode(payload()) - kStackIndexBias;
   }

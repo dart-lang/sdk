@@ -1332,18 +1332,18 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
   if (xmm_regs_count > 0) {
-    __ subq(RSP, Immediate(xmm_regs_count * kDoubleSize));
+    __ subq(RSP, Immediate(xmm_regs_count * kFpuRegisterSize));
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movsd(Address(RSP, offset), xmm_reg);
-        offset += kDoubleSize;
+        __ movups(Address(RSP, offset), xmm_reg);
+        offset += kFpuRegisterSize;
       }
     }
-    ASSERT(offset == (xmm_regs_count * kDoubleSize));
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
   }
 
   // Store general purpose registers with the highest register number at the
@@ -1374,11 +1374,11 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movsd(xmm_reg, Address(RSP, offset));
-        offset += kDoubleSize;
+        __ movups(xmm_reg, Address(RSP, offset));
+        offset += kFpuRegisterSize;
       }
     }
-    ASSERT(offset == (xmm_regs_count * kDoubleSize));
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
     __ addq(RSP, Immediate(offset));
   }
 }

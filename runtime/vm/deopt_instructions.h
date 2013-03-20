@@ -53,11 +53,16 @@ class DeoptimizationContext : public ValueObject {
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
-    return fpu_registers_copy_[reg];
+    return *reinterpret_cast<double*>(&fpu_registers_copy_[reg]);
   }
 
   int64_t FpuRegisterValueAsInt64(FpuRegister reg) const {
-    return (reinterpret_cast<int64_t*>(fpu_registers_copy_))[reg];
+    return *reinterpret_cast<int64_t*>(&fpu_registers_copy_[reg]);
+  }
+
+  simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
+    const float* address = reinterpret_cast<float*>(&fpu_registers_copy_[reg]);
+    return simd128_value_t().readFrom(address);
   }
 
   Isolate* isolate() const { return isolate_; }
@@ -73,7 +78,7 @@ class DeoptimizationContext : public ValueObject {
   intptr_t* from_frame_;
   intptr_t from_frame_size_;
   intptr_t* registers_copy_;
-  double* fpu_registers_copy_;
+  fpu_register_t* fpu_registers_copy_;
   const intptr_t num_args_;
   const DeoptReasonId deopt_reason_;
   intptr_t caller_fp_;
@@ -96,9 +101,13 @@ class DeoptInstr : public ZoneAllocated {
     kRegister,
     kFpuRegister,
     kInt64FpuRegister,
+    kFloat32x4FpuRegister,
+    kUint32x4FpuRegister,
     kStackSlot,
     kDoubleStackSlot,
     kInt64StackSlot,
+    kFloat32x4StackSlot,
+    kUint32x4StackSlot,
     kPcMarker,
     kCallerFp,
     kCallerPc,

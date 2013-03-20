@@ -12333,7 +12333,7 @@ const char* GrowableObjectArray::ToCString() const {
 
 
 RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
-                                       Heap::Space space) {
+                             Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
@@ -12352,7 +12352,7 @@ RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
 }
 
 
-RawFloat32x4* Float32x4::New(simd_value_t value, Heap::Space space) {
+RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
 ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
@@ -12368,13 +12368,13 @@ ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
 }
 
 
-simd_value_t Float32x4::value() const {
-  return simd_value_safe_load(&raw_ptr()->value_[0]);
+simd128_value_t Float32x4::value() const {
+  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
 }
 
 
-void Float32x4::set_value(simd_value_t value) const {
-  simd_value_safe_store(&raw_ptr()->value_[0], value);
+void Float32x4::set_value(simd128_value_t value) const {
+  value.writeTo(&raw_ptr()->value_[0]);
 }
 
 
@@ -12452,7 +12452,7 @@ RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
 }
 
 
-RawUint32x4* Uint32x4::New(simd_value_t value, Heap::Space space) {
+RawUint32x4* Uint32x4::New(simd128_value_t value, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Uint32x4& result = Uint32x4::Handle();
@@ -12508,13 +12508,13 @@ uint32_t Uint32x4::w() const {
 }
 
 
-simd_value_t Uint32x4::value() const {
-  return simd_value_safe_load(&raw_ptr()->value_[0]);
+simd128_value_t Uint32x4::value() const {
+  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
 }
 
 
-void Uint32x4::set_value(simd_value_t value) const {
-  simd_value_safe_store(&raw_ptr()->value_[0], value);
+void Uint32x4::set_value(simd128_value_t value) const {
+  value.writeTo(&raw_ptr()->value_[0]);
 }
 
 
@@ -12984,7 +12984,7 @@ const char* Uint64Array::ToCString() const {
 
 
 RawFloat32x4Array* Float32x4Array::New(intptr_t len,
-                                                 Heap::Space space) {
+                                       Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_array_class() !=
          Class::null());
   return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, len,
@@ -12992,9 +12992,9 @@ RawFloat32x4Array* Float32x4Array::New(intptr_t len,
 }
 
 
-RawFloat32x4Array* Float32x4Array::New(const simd_value_t* data,
-                                                 intptr_t len,
-                                                 Heap::Space space) {
+RawFloat32x4Array* Float32x4Array::New(const simd128_value_t* data,
+                                       intptr_t len,
+                                       Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
          Class::null());
   return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, data,
@@ -13187,16 +13187,15 @@ const char* ExternalUint64Array::ToCString() const {
 }
 
 
-RawExternalFloat32x4Array* ExternalFloat32x4Array::New(
-    simd_value_t* data,
-    intptr_t len,
-    Heap::Space space) {
+RawExternalFloat32x4Array* ExternalFloat32x4Array::New(simd128_value_t* data,
+                                                       intptr_t len,
+                                                       Heap::Space space) {
   RawClass* cls =
      Isolate::Current()->object_store()->external_float32x4_array_class();
   ASSERT(cls != Class::null());
   return NewExternalImpl<ExternalFloat32x4Array,
                          RawExternalFloat32x4Array>(kClassId, data, len,
-                                                         space);
+                                                    space);
 }
 
 

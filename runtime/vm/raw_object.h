@@ -1389,6 +1389,11 @@ class RawFloat32x4 : public RawInstance {
   float value_[4];
 
   friend class SnapshotReader;
+ public:
+  float x() const { return value_[0]; }
+  float y() const { return value_[1]; }
+  float z() const { return value_[2]; }
+  float w() const { return value_[3]; }
 };
 
 
@@ -1398,6 +1403,11 @@ class RawUint32x4 : public RawInstance {
   uint32_t value_[4];
 
   friend class SnapshotReader;
+ public:
+  uint32_t x() const { return value_[0]; }
+  uint32_t y() const { return value_[1]; }
+  uint32_t z() const { return value_[2]; }
+  uint32_t w() const { return value_[3]; }
 };
 
 
@@ -1531,7 +1541,7 @@ class RawFloat32x4Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4Array);
 
   // Variable length data follows here.
-  simd_value_t data_[0];
+  simd128_value_t data_[0];
 };
 
 class RawFloat32Array : public RawByteArray {
@@ -1626,7 +1636,7 @@ class RawExternalUint64Array : public RawByteArray {
 class RawExternalFloat32x4Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32x4Array);
 
-  simd_value_t* data_;
+  simd128_value_t* data_;
   void* peer_;
 };
 
