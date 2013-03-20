@@ -21427,6 +21427,93 @@ class RtcDataChannelEvent extends Event {
 
 
 @DocsEditable
+@DomName('RTCDTMFSender')
+class RtcDtmfSender extends EventTarget {
+  RtcDtmfSender.internal() : super.internal();
+
+  @DomName('RTCDTMFSender.canInsertDTMF')
+  @DocsEditable
+  bool get canInsertDtmf native "RTCDTMFSender_canInsertDTMF_Getter";
+
+  @DomName('RTCDTMFSender.duration')
+  @DocsEditable
+  int get duration native "RTCDTMFSender_duration_Getter";
+
+  @DomName('RTCDTMFSender.interToneGap')
+  @DocsEditable
+  int get interToneGap native "RTCDTMFSender_interToneGap_Getter";
+
+  @DomName('RTCDTMFSender.toneBuffer')
+  @DocsEditable
+  String get toneBuffer native "RTCDTMFSender_toneBuffer_Getter";
+
+  @DomName('RTCDTMFSender.track')
+  @DocsEditable
+  MediaStreamTrack get track native "RTCDTMFSender_track_Getter";
+
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native "RTCDTMFSender_dispatchEvent_Callback";
+
+  void insertDtmf(String tones, [int duration, int interToneGap]) {
+    if (?interToneGap) {
+      _insertDTMF_1(tones, duration, interToneGap);
+      return;
+    }
+    if (?duration) {
+      _insertDTMF_2(tones, duration);
+      return;
+    }
+    _insertDTMF_3(tones);
+    return;
+  }
+
+  @DomName('RTCDTMFSender._insertDTMF_1')
+  @DocsEditable
+  void _insertDTMF_1(tones, duration, interToneGap) native "RTCDTMFSender__insertDTMF_1_Callback";
+
+  @DomName('RTCDTMFSender._insertDTMF_2')
+  @DocsEditable
+  void _insertDTMF_2(tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
+
+  @DomName('RTCDTMFSender._insertDTMF_3')
+  @DocsEditable
+  void _insertDTMF_3(tones) native "RTCDTMFSender__insertDTMF_3_Callback";
+
+  @DomName('RTCDTMFSender.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('RTCDTMFToneChangeEvent')
+class RtcDtmfToneChangeEvent extends Event {
+  RtcDtmfToneChangeEvent.internal() : super.internal();
+
+  @DomName('RTCDTMFToneChangeEvent.tone')
+  @DocsEditable
+  String get tone native "RTCDTMFToneChangeEvent_tone_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('RTCIceCandidate')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
@@ -21591,7 +21678,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable
-  RtcdtmfSender createDtmfSender(MediaStreamTrack track) native "RTCPeerConnection_createDTMFSender_Callback";
+  RtcDtmfSender createDtmfSender(MediaStreamTrack track) native "RTCPeerConnection_createDTMFSender_Callback";
 
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable
@@ -21789,93 +21876,6 @@ class RtcStatsResponse extends NativeFieldWrapperClass1 {
   @DomName('RTCStatsResponse.result')
   @DocsEditable
   List<RtcStatsReport> result() native "RTCStatsResponse_result_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('RTCDTMFSender')
-class RtcdtmfSender extends EventTarget {
-  RtcdtmfSender.internal() : super.internal();
-
-  @DomName('RTCDTMFSender.canInsertDTMF')
-  @DocsEditable
-  bool get canInsertDtmf native "RTCDTMFSender_canInsertDTMF_Getter";
-
-  @DomName('RTCDTMFSender.duration')
-  @DocsEditable
-  int get duration native "RTCDTMFSender_duration_Getter";
-
-  @DomName('RTCDTMFSender.interToneGap')
-  @DocsEditable
-  int get interToneGap native "RTCDTMFSender_interToneGap_Getter";
-
-  @DomName('RTCDTMFSender.toneBuffer')
-  @DocsEditable
-  String get toneBuffer native "RTCDTMFSender_toneBuffer_Getter";
-
-  @DomName('RTCDTMFSender.track')
-  @DocsEditable
-  MediaStreamTrack get track native "RTCDTMFSender_track_Getter";
-
-  @DomName('RTCDTMFSender.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
-
-  @DomName('RTCDTMFSender.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native "RTCDTMFSender_dispatchEvent_Callback";
-
-  void insertDtmf(String tones, [int duration, int interToneGap]) {
-    if (?interToneGap) {
-      _insertDTMF_1(tones, duration, interToneGap);
-      return;
-    }
-    if (?duration) {
-      _insertDTMF_2(tones, duration);
-      return;
-    }
-    _insertDTMF_3(tones);
-    return;
-  }
-
-  @DomName('RTCDTMFSender._insertDTMF_1')
-  @DocsEditable
-  void _insertDTMF_1(tones, duration, interToneGap) native "RTCDTMFSender__insertDTMF_1_Callback";
-
-  @DomName('RTCDTMFSender._insertDTMF_2')
-  @DocsEditable
-  void _insertDTMF_2(tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
-
-  @DomName('RTCDTMFSender._insertDTMF_3')
-  @DocsEditable
-  void _insertDTMF_3(tones) native "RTCDTMFSender__insertDTMF_3_Callback";
-
-  @DomName('RTCDTMFSender.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_removeEventListener_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('RTCDTMFToneChangeEvent')
-class RtcdtmfToneChangeEvent extends Event {
-  RtcdtmfToneChangeEvent.internal() : super.internal();
-
-  @DomName('RTCDTMFToneChangeEvent.tone')
-  @DocsEditable
-  String get tone native "RTCDTMFToneChangeEvent_tone_Getter";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file

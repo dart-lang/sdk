@@ -34,6 +34,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'PositionErrorCallback': '_PositionErrorCallback',
     'Rect': 'CssRect',
     'RGBColor': 'CssRgbColor',
+    'RTCDTMFSender': 'RtcDtmfSender',
+    'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
     'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
     'StorageInfoErrorCallback': '_StorageInfoErrorCallback',

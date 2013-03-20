@@ -19729,6 +19729,68 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
   @DocsEditable
   final RtcDataChannel channel;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RTCDTMFSender')
+class RtcDtmfSender extends EventTarget native "*RTCDTMFSender" {
+
+  @JSName('canInsertDTMF')
+  @DomName('RTCDTMFSender.canInsertDTMF')
+  @DocsEditable
+  final bool canInsertDtmf;
+
+  @DomName('RTCDTMFSender.duration')
+  @DocsEditable
+  final int duration;
+
+  @DomName('RTCDTMFSender.interToneGap')
+  @DocsEditable
+  final int interToneGap;
+
+  @DomName('RTCDTMFSender.toneBuffer')
+  @DocsEditable
+  final String toneBuffer;
+
+  @DomName('RTCDTMFSender.track')
+  @DocsEditable
+  final MediaStreamTrack track;
+
+  @JSName('addEventListener')
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @JSName('insertDTMF')
+  @DomName('RTCDTMFSender.insertDTMF')
+  @DocsEditable
+  void insertDtmf(String tones, [int duration, int interToneGap]) native;
+
+  @JSName('removeEventListener')
+  @DomName('RTCDTMFSender.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RTCDTMFToneChangeEvent')
+class RtcDtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
+
+  @DomName('RTCDTMFToneChangeEvent.tone')
+  @DocsEditable
+  final String tone;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19934,7 +19996,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @JSName('createDTMFSender')
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable
-  RtcdtmfSender createDtmfSender(MediaStreamTrack track) native;
+  RtcDtmfSender createDtmfSender(MediaStreamTrack track) native;
 
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable
@@ -20171,68 +20233,6 @@ class RtcStatsResponse native "*RTCStatsResponse" {
   @DomName('RTCStatsResponse.result')
   @DocsEditable
   List<RtcStatsReport> result() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RTCDTMFSender')
-class RtcdtmfSender extends EventTarget native "*RTCDTMFSender" {
-
-  @JSName('canInsertDTMF')
-  @DomName('RTCDTMFSender.canInsertDTMF')
-  @DocsEditable
-  final bool canInsertDtmf;
-
-  @DomName('RTCDTMFSender.duration')
-  @DocsEditable
-  final int duration;
-
-  @DomName('RTCDTMFSender.interToneGap')
-  @DocsEditable
-  final int interToneGap;
-
-  @DomName('RTCDTMFSender.toneBuffer')
-  @DocsEditable
-  final String toneBuffer;
-
-  @DomName('RTCDTMFSender.track')
-  @DocsEditable
-  final MediaStreamTrack track;
-
-  @JSName('addEventListener')
-  @DomName('RTCDTMFSender.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('RTCDTMFSender.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native;
-
-  @JSName('insertDTMF')
-  @DomName('RTCDTMFSender.insertDTMF')
-  @DocsEditable
-  void insertDtmf(String tones, [int duration, int interToneGap]) native;
-
-  @JSName('removeEventListener')
-  @DomName('RTCDTMFSender.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RTCDTMFToneChangeEvent')
-class RtcdtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
-
-  @DomName('RTCDTMFToneChangeEvent.tone')
-  @DocsEditable
-  final String tone;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
