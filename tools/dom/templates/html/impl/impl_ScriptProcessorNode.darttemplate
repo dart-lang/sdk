@@ -26,16 +26,18 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$NATIVESPEC {
             controller.add(audioData);
           }
         };
-$if DART2JS
-      JS('void', '#.onaudioprocess = #', this,
-          convertDartClosureToJS(callback, 1));
-$else
-      // TODO(podivilov): Implement on Dartium.
-$endif
-
+      _setEventListener(callback);
       _eventStream = controller.stream;
     }
     return _eventStream;
   }
+
+$if DART2JS
+    _setEventListener(callback) {
+      JS('void', '#.onaudioprocess = #', this,
+          convertDartClosureToJS(callback, 1));
+    }
+$endif
+
 $!MEMBERS
 }

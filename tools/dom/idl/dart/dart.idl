@@ -12,8 +12,8 @@ interface Document {
 
 [Supplemental]
 interface ScriptProcessorNode {
-  // FIXME(antonm): provide proper support.
   [Suppressed] attribute EventListener onaudioprocess;
+  [Custom] void _setEventListener(EventListener eventListener);
 };
 
 // Force ElementTraversal. WebKit defines these directly.

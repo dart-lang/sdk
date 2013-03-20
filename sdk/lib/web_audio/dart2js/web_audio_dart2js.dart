@@ -844,13 +844,17 @@ class ScriptProcessorNode extends AudioNode native "*ScriptProcessorNode" {
             controller.add(audioData);
           }
         };
-      JS('void', '#.onaudioprocess = #', this,
-          convertDartClosureToJS(callback, 1));
-
+      _setEventListener(callback);
       _eventStream = controller.stream;
     }
     return _eventStream;
   }
+
+    _setEventListener(callback) {
+      JS('void', '#.onaudioprocess = #', this,
+          convertDartClosureToJS(callback, 1));
+    }
+
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable

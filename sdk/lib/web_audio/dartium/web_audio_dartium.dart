@@ -1117,17 +1117,22 @@ class ScriptProcessorNode extends AudioNode {
             controller.add(audioData);
           }
         };
-      // TODO(podivilov): Implement on Dartium.
-
+      _setEventListener(callback);
       _eventStream = controller.stream;
     }
     return _eventStream;
   }
+
+
   ScriptProcessorNode.internal() : super.internal();
 
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
+
+  @DomName('ScriptProcessorNode._setEventListener')
+  @DocsEditable
+  void _setEventListener(EventListener eventListener) native "ScriptProcessorNode__setEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

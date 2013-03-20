@@ -57,6 +57,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'MouseEvent.offsetY',
     'Navigator.language',
     'Navigator.webkitGetUserMedia',
+    'ScriptProcessorNode._setEventListener',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
     'WheelEvent.deltaMode',
