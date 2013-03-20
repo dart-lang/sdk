@@ -1,0 +1,6 @@
+name: source_maps
+author: "Dart Team <misc@dartlang.org>"
+homepage: https://github.com/dart-lang/source-maps
+description: Library to programmatically manipulate source map files.
+dev_dependencies:
+  unittest: any

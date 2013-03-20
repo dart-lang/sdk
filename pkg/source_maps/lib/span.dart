@@ -1,0 +1,330 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// Dart classes representing the souce spans and source files.
+library source_maps.span;
+
+import 'dart:utf' show stringToCodepoints, codepointsToString;
+import 'dart:math' show min;
+
+import 'src/utils.dart';
+
+/// A simple class that describe a segment of source text.
+abstract class Span implements Comparable {
+  /// The start location of this span.
+  final Location start;
+
+  /// The end location of this span, exclusive.
+  final Location end;
+
+  /// Url of the source (typically a file) containing this span.
+  String get sourceUrl => start.sourceUrl;
+
+  /// The length of this span, in characters.
+  int get length => end.offset - start.offset;
+
+  /// The source text for this span, if available.
+  String get text;
+
+  /// Whether [text] corresponds to an identifier symbol.
+  final bool isIdentifier;
+
+  Span(this.start, this.end, bool isIdentifier)
+      : isIdentifier = isIdentifier != null ? isIdentifier : false {
+    _checkRange();
+  }
+
+  /// Creates a new span that is the union of two existing spans [start] and
+  /// [end]. Note that the resulting span might contain some positions that were
+  /// not in either of the original spans if [start] and [end] are disjoint.
+  Span.union(Span start, Span end)
+      : start = start.start, end = end.end, isIdentifier = false {
+    _checkRange();
+  }
+
+  void _checkRange() {
+    if (start.offset < 0) throw new ArgumentError('start $start must be >= 0');
+    if (end.offset < start.offset) {
+      throw new ArgumentError('end $end must be >= start $start');
+    }
+  }
+
+  /// Compares two spans. If the spans are not in the same source, this method
+  /// generates an error.
+  int compareTo(Span other) {
+    int d = start.compareTo(other.start);
+    return d == 0 ? end.compareTo(other.end) : d;
+  }
+
+  /// Gets the location in standard printed form `filename:line:column`, where
+  /// line and column are adjusted by 1 to match the convention in editors.
+  String get formatLocation => start.formatString;
+
+  String getLocationMessage(String message,
+      {bool useColors: false, String color}) {
+    return '$formatLocation: $message';
+  }
+
+  bool operator ==(Span other) =>
+    sourceUrl == other.sourceUrl && start == other.start && end == other.end;
+
+  String toString() => '<$runtimeType: $start $end $formatLocation $text>';
+}
+
+/// A location in the source text
+abstract class Location implements Comparable {
+  /// Url of the source containing this span.
+  String get sourceUrl;
+
+  /// The offset of this location, 0-based.
+  final int offset;
+
+  /// The 0-based line in the source of this location.
+  int get line;
+
+  /// The 0-based column in the source of this location.
+  int get column;
+
+  Location(this.offset);
+
+  /// Compares two locations. If the locations are not in the same source, this
+  /// method generates an error.
+  int compareTo(Location other) {
+    if (sourceUrl != other.sourceUrl) {
+      throw new ArgumentError('can only compare locations of the same source');
+    }
+    return offset - other.offset;
+  }
+
+  String toString() => '(Location $offset)';
+  String get formatString => '$sourceUrl:${line + 1}:${column + 1}';
+}
+
+/// Implementation of [Location] with fixed values given at allocation time.
+class FixedLocation extends Location {
+  final String sourceUrl;
+  final int line;
+  final int column;
+
+  FixedLocation(int offset, this.sourceUrl, this.line, this.column)
+      : super(offset);
+}
+
+/// Implementation of [Span] where all the values are given at allocation time.
+class FixedSpan extends Span {
+  /// The source text for this span, if available.
+  final String text;
+
+  /// Creates a span which starts and end in the same line.
+  FixedSpan(String sourceUrl, int start, int line, int column,
+            {String text: '', bool isIdentifier: false})
+      : text = text, super(new FixedLocation(start, sourceUrl, line, column),
+            new FixedLocation(start + text.length, sourceUrl, line,
+                column + text.length),
+            isIdentifier);
+}
+
+/// [Location] with values computed from an underling [SourceFile].
+class FileLocation extends Location {
+  /// The source file containing this location.
+  final SourceFile file;
+
+  String get sourceUrl => file.url;
+  int get line => file.getLine(offset);
+  int get column => file.getColumn(line, offset);
+
+  FileLocation(this.file, int offset): super(offset);
+}
+
+/// [Span] where values are computed from an underling [SourceFile].
+class FileSpan extends Span {
+  /// The source file containing this span.
+  final SourceFile file;
+
+  /// The source text for this span, if available.
+  String get text => file.getText(start.offset, end.offset);
+
+  factory FileSpan(SourceFile file, int start,
+      [int end, bool isIdentifier = false]) {
+    var startLoc = new FileLocation(file, start);
+    var endLoc = end == null ? startLoc : new FileLocation(file, end);
+    return new FileSpan.locations(startLoc, endLoc, isIdentifier);
+  }
+
+  FileSpan.locations(FileLocation start, FileLocation end,
+      bool isIdentifier)
+      : file = start.file, super(start, end, isIdentifier);
+
+  /// Creates a new span that is the union of two existing spans [start] and
+  /// [end]. Note that the resulting span might contain some positions that were
+  /// not in either of the original spans if [start] and [end] are disjoint.
+  FileSpan.union(FileSpan start, FileSpan end)
+      : file = start.file, super.union(start, end) {
+    if (start.file != end.file) {
+      throw new ArgumentError('start and end must be from the same file');
+    }
+  }
+
+  String getLocationMessage(String message,
+      {bool useColors: false, String color}) {
+    return file.getLocationMessage(message, start.offset, end.offset,
+        useColors: useColors, color: color);
+  }
+}
+
+// Constants to determine end-of-lines.
+const int _LF = 10;
+const int _CR = 13;
+
+// Color constants used for generating messages.
+const String _RED_COLOR = '\u001b[31m';
+const String _NO_COLOR = '\u001b[0m';
+
+/// Stores information about a source file, to permit computation of the line
+/// and column. Also contains a nice default error message highlighting the code
+/// location.
+class SourceFile {
+  /// Url where the source file is located.
+  final String url;
+  final List<int> _lineStarts;
+  final List<int> _decodedChars;
+
+  SourceFile(this.url, this._lineStarts, this._decodedChars);
+
+  SourceFile.text(this.url, String text)
+      : _lineStarts = <int>[0],
+        _decodedChars = stringToCodepoints(text) {
+    for (int i = 0; i < _decodedChars.length; i++) {
+      var c = _decodedChars[i];
+      if (c == _CR) {
+        // Return not followed by newline is treated as a newline
+        int j = i + 1;
+        if (j >= _decodedChars.length || _decodedChars[j] != _LF) {
+          c = _LF;
+        }
+      }
+      if (c == _LF) _lineStarts.add(i + 1);
+    }
+  }
+
+  /// Returns a span in this [SourceFile] with the given offsets.
+  Span span(int start, [int end, bool isIdentifier = false]) =>
+      new FileSpan(this, start, end, isIdentifier);
+
+  /// Returns a location in this [SourceFile] with the given offset.
+  Location location(int offset) => new FileLocation(this, offset);
+
+  /// Gets the 0-based line corresponding to an offset.
+  int getLine(int offset) {
+    return binarySearch(_lineStarts, (o) => o > offset) - 1;
+  }
+
+  /// Gets the 0-based column corresponding to an offset.
+  int getColumn(int line, int offset) {
+    return offset - _lineStarts[line];
+  }
+
+  /// Get the offset for a given line and column
+  int getOffset(int line, int column) {
+    return _lineStarts[min(line, _lineStarts.length - 1)] + column;
+  }
+
+  /// Gets the text at the given offsets.
+  String getText(int start, [int end]) {
+    return codepointsToString(_decodedChars.sublist(start, end));
+  }
+
+  /// Create a pretty string representation from a span.
+  String getLocationMessage(String message, int start, int end,
+      {bool useColors: false, String color}) {
+    // TODO(jmesserly): it would be more useful to pass in an object that
+    // controls how the errors are printed. This method is a bit too smart.
+    var line = getLine(start);
+    var column = getColumn(line, start);
+
+    var src = url == null ? '' : url;
+    var msg = '$src:${line + 1}:${column + 1}: $message';
+
+    if (_decodedChars == null) {
+      // We don't have any text to include, so exit.
+      return msg;
+    }
+
+    var buf = new StringBuffer(msg);
+    buf.write('\n');
+    var textLine;
+
+    // +1 for 0-indexing, +1 again to avoid the last line
+    if ((line + 2) < _lineStarts.length) {
+      textLine = getText(_lineStarts[line], _lineStarts[line + 1]);
+    } else {
+      textLine = getText(_lineStarts[line]);
+      textLine = '$textLine\n';
+    }
+
+    int toColumn = min(column + end - start, textLine.length);
+    if (useColors) {
+      if (color == null) {
+        color = _RED_COLOR;
+      }
+      buf.write(textLine.substring(0, column));
+      buf.write(color);
+      buf.write(textLine.substring(column, toColumn));
+      buf.write(_NO_COLOR);
+      buf.write(textLine.substring(toColumn));
+    } else {
+      buf.write(textLine);
+    }
+
+    int i = 0;
+    for (; i < column; i++) {
+      buf.write(' ');
+    }
+
+    if (useColors) buf.write(color);
+    for (; i < toColumn; i++) {
+      buf.write('^');
+    }
+    if (useColors) buf.write(_NO_COLOR);
+    return buf.toString();
+  }
+}
+
+/// A convenience type to treat a code segment as if it were a separate
+/// [SourceFile]. A [SourceFileSegment] shifts all locations by an offset, which
+/// allows you to set source-map locations based on the locations relative to
+/// the start of the segment, but that get translated to absolute locations in
+/// the original source file.
+class SourceFileSegment extends SourceFile {
+  final int _baseOffset;
+  final int _baseLine;
+  final int _baseColumn;
+
+  SourceFileSegment(String url, String textSegment, Location startOffset)
+      : _baseOffset = startOffset.offset,
+        _baseLine = startOffset.line,
+        _baseColumn = startOffset.column,
+        super.text(url, textSegment);
+
+  Span span(int start, [int end, bool isIdentifier = false]) =>
+      super.span(start + _baseOffset,
+          end == null ? null : end + _baseOffset, isIdentifier);
+
+  Location location(int offset) => super.location(offset + _baseOffset);
+
+  int getLine(int offset) =>
+      super.getLine(offset - _baseOffset) + _baseLine;
+
+  int getColumn(int line, int offset) {
+    var col = super.getColumn(line - _baseLine, offset - _baseOffset);
+    return line == _baseLine ? col + _baseColumn : col;
+  }
+
+  int getOffset(int line, int column) =>
+      super.getOffset(line - _baseLine,
+         line == _baseLine ? column - _baseColumn : column) + _baseOffset;
+
+  String getText(int start, [int end]) =>
+      super.getText(start - _baseOffset, end - _baseOffset);
+}

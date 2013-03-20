@@ -31,6 +31,9 @@ pathos/test/*: Skip
 # Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
 scheduled_test/test/*: Skip
+source_maps/test/vlq_test: Fail # A VLQ test checks for large numbers that
+                                # overflow in JS (numbers slightly larger than
+                                # 32 bits where we do bitwise operations).
 
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
