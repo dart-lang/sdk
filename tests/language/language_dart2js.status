@@ -36,7 +36,7 @@ stacktrace_test: Skip # Stack trace interface is not implemented yet.
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
-#mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
+mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
