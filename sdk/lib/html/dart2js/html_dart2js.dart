@@ -10432,6 +10432,9 @@ class Event native "*Event" {
 
   @DomName('Event.clipboardData')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final DataTransfer clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);

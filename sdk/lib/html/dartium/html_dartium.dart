@@ -11081,6 +11081,9 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.clipboardData')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   DataTransfer get clipboardData native "Event_clipboardData_Getter";
 
   @DomName('Event.currentTarget')
