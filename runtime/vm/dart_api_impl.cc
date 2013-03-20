@@ -4247,44 +4247,9 @@ static void CompileSource(Isolate* isolate,
 
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle source) {
-  TIMERSCOPE(time_script_loading);
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& url_str = Api::UnwrapStringHandle(isolate, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, url, String);
-  }
-  const String& source_str = Api::UnwrapStringHandle(isolate, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, source, String);
-  }
-  Library& library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
-  if (!library.IsNull()) {
-    const String& library_url = String::Handle(isolate, library.url());
-    return Api::NewError("%s: A script has already been loaded from '%s'.",
-                         CURRENT_FUNC, library_url.ToCString());
-  }
-  CHECK_CALLBACK_STATE(isolate);
-
-  library = Library::New(url_str);
-  library.set_debuggable(true);
-  library.Register();
-  isolate->object_store()->set_root_library(library);
-
-  const Script& script = Script::Handle(
-      isolate, Script::New(url_str, source_str, RawScript::kScriptTag));
-  Dart_Handle result;
-  CompileSource(isolate, library, script, &result);
-  return result;
-}
-
-
-DART_EXPORT Dart_Handle Dart_LoadEmbeddedScript(Dart_Handle url,
-                                                Dart_Handle source,
-                                                intptr_t line_offset,
-                                                intptr_t col_offset) {
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t col_offset) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);

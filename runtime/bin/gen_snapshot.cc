@@ -335,7 +335,7 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadScript(resolved_script_uri, source);
+  return Dart_LoadScript(resolved_script_uri, source, 0, 0);
 }
 
 

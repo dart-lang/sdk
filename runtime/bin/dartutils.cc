@@ -349,7 +349,7 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadEmbeddedScript(resolved_script_uri, source, 0, 0);
+  return Dart_LoadScript(resolved_script_uri, source, 0, 0);
 }
 
 

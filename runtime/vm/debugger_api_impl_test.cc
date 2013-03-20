@@ -1050,7 +1050,7 @@ TEST_CASE(GetLibraryURLs) {
   // Load a script.
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle source = NewString(kScriptChars);
-  EXPECT_VALID(Dart_LoadScript(url, source));
+  EXPECT_VALID(Dart_LoadScript(url, source, 0, 0));
 
   lib_list = Dart_GetLibraryURLs();
   EXPECT_VALID(lib_list);
