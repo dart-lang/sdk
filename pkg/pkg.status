@@ -21,6 +21,7 @@ webdriver/test/webdriver_test: Skip
 
 [$compiler == none && $runtime == vm]
 intl/test/date_time_format_file_even_test: Pass, Crash # Issue 9342
+intl/test/date_time_format_file_odd_test: Pass, Crash # Issue 9342
 
 [$compiler == dart2dart]
 *: Skip
