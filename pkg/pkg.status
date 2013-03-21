@@ -19,6 +19,9 @@ scheduled_test/test/scheduled_test_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
+[$compiler == none && $runtime == vm]
+intl/test/date_time_format_file_even_test: Pass, Crash # Issue 9342
+
 [$compiler == dart2dart]
 *: Skip
 
