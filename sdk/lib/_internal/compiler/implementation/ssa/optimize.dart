@@ -562,6 +562,28 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
             && call.inputs[1].isInteger()) {
           return call.inputs[1];
         }
+      } else if (node.receiver.isConstantList()) {
+        var instruction = node.receiver;
+        return graph.addConstantInt(
+            instruction.constant.length, backend.constantSystem);
+      }
+    } else if (node.element == backend.jsStringLength
+               && node.receiver.isConstantString()) {
+        var instruction = node.receiver;
+        return graph.addConstantInt(
+            instruction.constant.length, backend.constantSystem);
+    }
+    return node;
+  }
+
+  HInstruction visitIndex(HIndex node) {
+    if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
+      var instruction = node.receiver;
+      List<Constant> entries = instruction.constant.entries;
+      instruction = node.index;
+      int index = instruction.constant.value;
+      if (index >= 0 && index < entries.length) {
+        return graph.addConstant(entries[index]);
       }
     }
     return node;
@@ -794,9 +816,12 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(HInstruction node,
                                  HInstruction receiver,
                                  HInstruction index) {
-    bool isAssignable = !receiver.isFixedArray();
+    bool isAssignable = !receiver.isFixedArray() && !receiver.isString();
+    Element element = receiver.isString()
+        ? backend.jsStringLength
+        : backend.jsArrayLength;
     HFieldGet length = new HFieldGet(
-        backend.jsArrayLength, receiver, isAssignable: isAssignable);
+        element, receiver, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;
     length.instructionType = HType.INTEGER;
     node.block.addBefore(node, length);
