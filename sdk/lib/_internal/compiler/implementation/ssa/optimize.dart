@@ -268,7 +268,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     // Try converting the instruction to a builtin instruction.
     HInstruction instruction =
-        node.specializer.tryConvertToBuiltin(node);
+        node.specializer.tryConvertToBuiltin(node, compiler);
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;

@@ -655,6 +655,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringSplit;
   Element jsStringConcat;
   Element jsStringToString;
+  Element objectEquals;
 
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;
@@ -896,6 +897,9 @@ class JavaScriptBackend extends Backend {
         compiler.coreLibrary.find(const SourceString('LinkedHashMap'));
     constMapLiteralClass =
         compiler.findHelper(const SourceString('ConstantMap'));
+
+    objectEquals = compiler.lookupElementIn(
+        compiler.objectClass, const SourceString('=='));
 
     specialOperatorEqClasses
         ..add(jsNullClass)

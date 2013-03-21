@@ -24,7 +24,8 @@ class InvokeDynamicSpecializer {
     return instruction.instructionType;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     return null;
   }
 
@@ -96,7 +97,8 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     if (instruction.inputs[1].isMutableArray()) {
       return new HIndexAssign(instruction.inputs[1],
                               instruction.inputs[2],
@@ -124,7 +126,8 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     if (instruction.inputs[1].isIndexablePrimitive()) {
       return new HIndex(instruction.inputs[1], instruction.inputs[2]);
     }
@@ -159,7 +162,8 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return instruction.instructionType;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber()) return new HBitNot(input);
     return null;
@@ -194,7 +198,8 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     return instruction.instructionType;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber()) return new HNegate(input);
     return null;
@@ -249,7 +254,8 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
         && instruction.inputs[2].isNumber();
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     if (isBuiltin(instruction)) {
       HInstruction builtin =
           newBuiltinVariant(instruction.inputs[1], instruction.inputs[2]);
@@ -392,7 +398,8 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.shiftLeft;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (!left.isNumber() || !right.isConstantInteger()) return null;
@@ -487,7 +494,8 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber() && right.isNumber()) {
@@ -528,10 +536,21 @@ class EqualsSpecializer extends RelationalSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction) {
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.instructionType.isPrimitiveOrNull() || right.isConstantNull()) {
+    HType instructionType = left.instructionType;
+    if (right.isConstantNull() || instructionType.isPrimitiveOrNull()) {
+      return newBuiltinVariant(left, right);
+    }
+    // Make the mask non-nullable to avoid finding a potential
+    // JSNull::operator==.
+    TypeMask mask = instructionType.computeMask(compiler).nonNullable();
+    Selector selector = new TypedSelector(mask, instruction.selector);
+    World world = compiler.world;
+    JavaScriptBackend backend = compiler.backend;
+    if (world.locateSingleElement(selector) == backend.objectEquals) {
       return newBuiltinVariant(left, right);
     }
     return null;
