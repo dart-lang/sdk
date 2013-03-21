@@ -256,7 +256,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return null;
   }
 
-  HInstruction handleInterceptorCall(HInvokeDynamic node) {
+  HInstruction handleInterceptedCall(HInvokeDynamic node) {
     // Try constant folding the instruction.
     Operation operation = node.specializer.operation(constantSystem);
     if (operation != null) {
@@ -272,7 +272,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
-    var interceptor = node.inputs[0];
     HInstruction input = node.inputs[1];
 
     if (selector.isCall()) {
@@ -318,30 +317,19 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (selector.applies(backend.jsArrayLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
-      } else {
-        Element field = findConcreteFieldForDynamicAccess(input, node.selector);
-        if (field != null) return directFieldGet(input, field);
       }
     }
 
-    // If the intercepted call is through a constant interceptor, we
-    // know which element to call.
-    if (node is !HOneShotInterceptor
-        && interceptor.isConstant()
-        && selector.isCall()) {
-      assert(interceptor.constant.isInterceptor());
-      ClassElement cls = interceptor.constant.dispatchedType.element;
-      Element target = cls.lookupSelector(selector);
-      if (target != null && selector.applies(target, compiler)) {
-        node.element = target;
-      }
-    }
     return node;
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
-    HType receiverType = node.receiver.instructionType;
+    if (node.isInterceptedCall) {
+      HInstruction folded = handleInterceptedCall(node);
+      if (folded != node) return folded;
+    }
+
+    HType receiverType = node.dartReceiver.instructionType;
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
@@ -580,11 +568,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
-    Element field =
-        findConcreteFieldForDynamicAccess(node.receiver, node.selector);
+    if (node.isInterceptedCall) {
+      HInstruction folded = handleInterceptedCall(node);
+      if (folded != node) return folded;
+    }
+    Element field = findConcreteFieldForDynamicAccess(
+        node.dartReceiver, node.selector);
     if (field == null) return node;
-    return directFieldGet(node.inputs[0], field);
+    return directFieldGet(node.dartReceiver, field);
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
@@ -625,10 +616,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
+    if (node.isInterceptedCall) {
+      HInstruction folded = handleInterceptedCall(node);
+      if (folded != node) return folded;
+    }
 
-    Element field =
-        findConcreteFieldForDynamicAccess(node.receiver, node.selector);
+    Element field = findConcreteFieldForDynamicAccess(
+        node.dartReceiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
@@ -743,7 +737,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    HInstruction newInstruction = handleInterceptorCall(node);
+    HInstruction newInstruction = handleInterceptedCall(node);
     if (newInstruction != node) return newInstruction;
 
     HInstruction constant = tryComputeConstantInterceptor(
@@ -846,7 +840,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     Element element = node.element;
-    if (node.isInterceptorCall) return;
+    if (node.isInterceptedCall) return;
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     insertBoundsCheck(

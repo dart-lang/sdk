@@ -101,7 +101,7 @@ class HTypeList {
     int argumentsCount = node.inputs.length - 1;
     int startInvokeIndex = HInvoke.ARGUMENTS_OFFSET;
 
-    if (node.isInterceptorCall) {
+    if (node.isInterceptedCall) {
       argumentsCount--;
       startInvokeIndex++;
     }
