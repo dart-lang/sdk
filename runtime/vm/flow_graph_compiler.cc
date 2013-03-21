@@ -236,7 +236,10 @@ void FlowGraphCompiler::CompactBlocks() {
   for (intptr_t i = block_order().length() - 1; i >= 1; --i) {
     BlockEntryInstr* block = block_order()[i];
 
-    CompactBlock(block);
+    // Unoptimized code must emit all possible deoptimization points.
+    if (is_optimizing()) {
+      CompactBlock(block);
+    }
 
     if (!WasCompacted(block)) {
       BlockInfo* block_info = block_info_[block->postorder_number()];

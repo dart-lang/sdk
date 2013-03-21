@@ -817,6 +817,9 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 void DeoptInfoBuilder::AddReturnAddressBefore(const Function& function,
                                               intptr_t deopt_id,
                                               intptr_t to_index) {
+  // Check that deopt_id exists.
+  ASSERT(Code::Handle(function.unoptimized_code()).
+      GetDeoptBeforePcAtDeoptId(deopt_id) != 0);
   const intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(to_index == instructions_.length());
   instructions_.Add(new DeoptRetBeforeAddressInstr(object_table_index,
