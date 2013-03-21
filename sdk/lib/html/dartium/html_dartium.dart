@@ -32789,8 +32789,8 @@ class _ElementAttributeMap extends _AttributeMap {
     return _element.$dom_getAttribute(key);
   }
 
-  void operator []=(String key, value) {
-    _element.$dom_setAttribute(key, '$value');
+  void operator []=(String key, String value) {
+    _element.$dom_setAttribute(key, value);
   }
 
   String remove(String key) {
@@ -32826,8 +32826,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
     return _element.$dom_getAttributeNS(_namespace, key);
   }
 
-  void operator []=(String key, value) {
-    _element.$dom_setAttributeNS(_namespace, key, '$value');
+  void operator []=(String key, String value) {
+    _element.$dom_setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {
@@ -32866,8 +32866,8 @@ class _DataAttributeMap implements Map<String, String> {
 
   String operator [](String key) => $dom_attributes[_attr(key)];
 
-  void operator []=(String key, value) {
-    $dom_attributes[_attr(key)] = '$value';
+  void operator []=(String key, String value) {
+    $dom_attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) =>

@@ -280,13 +280,6 @@ main() {
   });
 
   group('attributes', () {
-      test('coercion', () {
-        final element = new Element.tag('div');
-        element.attributes['foo'] = 42;
-        element.attributes['bar'] = 3.1;
-        expect(element.attributes['foo'], '42');
-        expect(element.attributes['bar'], '3.1');
-      });
       test('manipulation', () {
         final element = new Element.html(
             '''<div class="foo" style="overflow: hidden" data-foo="bar"
