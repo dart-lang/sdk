@@ -129,7 +129,23 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   static bool get supportsProgressEvent {
 $if DART2JS
     var xhr = new HttpRequest();
-    return JS('bool', '"onprogress" in #', xhr);
+    return JS('bool', '("onprogress" in #)', xhr);
+$else
+    return true;
+$endif
+  }
+
+  /**
+   * Checks to see if the current platform supports making cross origin
+   * requests.
+   *
+   * Note that even if cross origin requests are supported, they still may fail
+   * if the destination server does not support CORS requests.
+   */
+  static bool get supportsCrossOrigin {
+$if DART2JS
+    var xhr = new HttpRequest();
+    return JS('bool', '("withCredentials" in #)', xhr);
 $else
     return true;
 $endif
@@ -141,7 +157,7 @@ $endif
   static bool get supportsLoadEndEvent {
 $if DART2JS
     var xhr = new HttpRequest();
-    return JS('bool', '"onloadend" in #', xhr);
+    return JS('bool', '("onloadend" in #)', xhr);
 $else
     return true;
 $endif
