@@ -757,6 +757,28 @@ void Simulator::DecodeSpecial(Instr* instr) {
       set_hi_register(rs_val % rt_val);
       break;
     }
+    case JALR: {
+      ASSERT(instr->RtField() == R0);
+      ASSERT(instr->RsField() != instr->RdField());
+      ASSERT(!delay_slot_);
+      // Format(instr, "jalr'hint 'rd, rs");
+      uword next_pc = get_register(instr->RsField());
+      ExecuteDelaySlot();
+      // Set return address to be the instruction after the delay slot.
+      set_register(instr->RdField(), pc_ + Instr::kInstrSize);
+      pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
+      break;
+    }
+    case JR: {
+      ASSERT(instr->RtField() == R0);
+      ASSERT(instr->RdField() == R0);
+      ASSERT(!delay_slot_);
+      // Format(instr, "jr'hint 'rs");
+      uword next_pc = get_register(instr->RsField());
+      ExecuteDelaySlot();
+      pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
+      break;
+    }
     case MFHI: {
       ASSERT(instr->RsField() == 0);
       ASSERT(instr->RtField() == 0);
@@ -773,6 +795,64 @@ void Simulator::DecodeSpecial(Instr* instr) {
       set_register(instr->RdField(), get_lo_register());
       break;
     }
+    case MOVN: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "movn 'rd, 'rs, 'rt");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      if (rt_val != 0) {
+        set_register(instr->RdField(), rs_val);
+      }
+      break;
+    }
+    case MOVZ: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "movz 'rd, 'rs, 'rt");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      if (rt_val == 0) {
+        set_register(instr->RdField(), rs_val);
+      }
+      break;
+    }
+    case MULT: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "mult 'rs, 'rt");
+      int64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
+      int64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      int64_t res = rs * rt;
+      set_hi_register(Utils::High32Bits(res));
+      set_lo_register(Utils::Low32Bits(res));
+      break;
+    }
+    case MULTU: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "multu 'rs, 'rt");
+      uint64_t rs = static_cast<uint64_t>(get_register(instr->RsField()));
+      uint64_t rt = static_cast<uint64_t>(get_register(instr->RtField()));
+      uint64_t res = rs * rt;
+      set_hi_register(Utils::High32Bits(res));
+      set_lo_register(Utils::Low32Bits(res));
+      break;
+    }
+    case NOR: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "nor 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), ~(rs_val | rt_val));
+      break;
+    }
+    case OR: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "or 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val | rt_val);
+      break;
+    }
     case SLL: {
       ASSERT(instr->RsField() == 0);
       if ((instr->RdField() == R0) &&
@@ -787,14 +867,76 @@ void Simulator::DecodeSpecial(Instr* instr) {
       }
       break;
     }
-    case JR: {
-      ASSERT(instr->RtField() == R0);
-      ASSERT(instr->RdField() == R0);
-      ASSERT(!delay_slot_);
-      // Format(instr, "jr'hint 'rs");
-      uword next_pc = get_register(instr->RsField());
-      ExecuteDelaySlot();
-      pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
+    case SLLV: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "sllv 'rd, 'rt, 'rs");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RdField(), rt_val << (rs_val & 0x1f));
+      break;
+    }
+    case SLT: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "slt 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val < rt_val ? 1 : 0);
+      break;
+    }
+    case SLTU: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "sltu 'rd, 'rs, 'rt");
+      uint32_t rs_val = static_cast<uint32_t>(get_register(instr->RsField()));
+      uint32_t rt_val = static_cast<uint32_t>(get_register(instr->RtField()));
+      set_register(instr->RdField(), rs_val < rt_val ? 1 : 0);
+      break;
+    }
+    case SRA: {
+      ASSERT(instr->RsField() == 0);
+      // Format(instr, "sra 'rd, 'rt, 'sa");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t sa = instr->SaField();
+      set_register(instr->RdField(), rt_val >> sa);
+      break;
+    }
+    case SRAV: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "srav 'rd, 'rt, 'rs");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RdField(), rt_val >> (rs_val & 0x1f));
+      break;
+    }
+    case SRL: {
+      ASSERT(instr->RsField() == 0);
+      // Format(instr, "srl 'rd, 'rt, 'sa");
+      uint32_t rt_val = get_register(instr->RtField());
+      uint32_t sa = instr->SaField();
+      set_register(instr->RdField(), rt_val >> sa);
+      break;
+    }
+    case SRLV: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "srlv 'rd, 'rt, 'rs");
+      uint32_t rt_val = get_register(instr->RtField());
+      uint32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RdField(), rt_val >> (rs_val & 0x1f));
+      break;
+    }
+    case SUBU: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "subu 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val - rt_val);
+      break;
+    }
+    case XOR: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "xor 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val ^ rt_val);
       break;
     }
     default: {

@@ -14,6 +14,17 @@ namespace dart {
 
 #define __ assembler->
 
+ASSEMBLER_TEST_GENERATE(Simple, assembler) {
+  __ LoadImmediate(V0, 42);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Simple, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
 
 ASSEMBLER_TEST_GENERATE(Addiu, assembler) {
   __ addiu(V0, ZR, Immediate(42));
@@ -322,13 +333,327 @@ ASSEMBLER_TEST_RUN(Lui, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(Simple, assembler) {
+ASSEMBLER_TEST_GENERATE(Sll, assembler) {
+  __ LoadImmediate(R1, 21);
+  __ sll(V0, R1, 1);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Sll, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Srl, assembler) {
+  __ LoadImmediate(R1, 84);
+  __ srl(V0, R1, 1);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Srl, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LShifting, assembler) {
+  __ LoadImmediate(R1, 1);
+  __ sll(R1, R1, 31);
+  __ srl(V0, R1, 31);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(LShifting, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(RShifting, assembler) {
+  __ LoadImmediate(R1, 1);
+  __ sll(R1, R1, 31);
+  __ sra(V0, R1, 31);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(RShifting, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sllv, assembler) {
+  __ LoadImmediate(R1, 21);
+  __ LoadImmediate(R2, 1);
+  __ sllv(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Sllv, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Srlv, assembler) {
+  __ LoadImmediate(R1, 84);
+  __ LoadImmediate(R2, 1);
+  __ srlv(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Srlv, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
+  __ LoadImmediate(R1, 1);
+  __ LoadImmediate(R2, 31);
+  __ sllv(R1, R1, R2);
+  __ srlv(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(LShiftingV, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
+  __ LoadImmediate(R1, 1);
+  __ LoadImmediate(R2, 31);
+  __ sllv(R1, R1, R2);
+  __ srav(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(RShiftingV, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
+  __ LoadImmediate(R1, 6);
+  __ LoadImmediate(R2, 7);
+  __ mult(R1, R2);
+  __ mflo(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_pos, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
+  __ LoadImmediate(R1, -6);
+  __ LoadImmediate(R2, 7);
+  __ mult(R1, R2);
+  __ mflo(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_neg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Mult_neg_hi, assembler) {
+  __ LoadImmediate(R1, -6);
+  __ LoadImmediate(R2, 7);
+  __ mult(R1, R2);
+  __ mfhi(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Mult_neg_hi, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Multu_lo, assembler) {
+  __ LoadImmediate(R1, 6);
+  __ LoadImmediate(R2, 7);
+  __ multu(R1, R2);
+  __ mflo(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Multu_lo, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Multu_hi, assembler) {
+  __ LoadImmediate(R1, 65536);
+  __ LoadImmediate(R2, 65536);
+  __ multu(R1, R2);
+  __ mfhi(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Multu_hi, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Subu, assembler) {
+  __ LoadImmediate(R1, 737);
+  __ LoadImmediate(R2, 695);
+  __ subu(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Subu, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Or, assembler) {
+  __ LoadImmediate(R1, 34);
+  __ LoadImmediate(R2, 8);
+  __ or_(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Or, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Nor, assembler) {
+  __ LoadImmediate(R1, -47);
+  __ LoadImmediate(R2, -60);
+  __ nor(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Nor, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Xor, assembler) {
+  __ LoadImmediate(R1, 51);
+  __ LoadImmediate(R2, 25);
+  __ xor_(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Xor, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Slt, assembler) {
+  __ LoadImmediate(R1, -1);
+  __ LoadImmediate(R2, 0);
+  __ slt(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Slt, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sltu, assembler) {
+  __ LoadImmediate(R1, -1);
+  __ LoadImmediate(R2, 0);
+  __ sltu(V0, R1, R2);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Sltu, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Movz, assembler) {
+  __ LoadImmediate(R1, 42);
+  __ LoadImmediate(R2, 23);
+  __ slt(R3, R1, R2);
+  __ movz(V0, R1, R3);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Movz, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Movn, assembler) {
+  __ LoadImmediate(R1, 42);
+  __ LoadImmediate(R2, 23);
+  __ slt(R3, R2, R1);
+  __ movn(V0, R1, R3);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Movn, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Jr_delay, assembler) {
   __ jr(RA);
   __ delay_slot()->ori(V0, ZR, Immediate(42));
 }
 
 
-ASSEMBLER_TEST_RUN(Simple, test) {
+ASSEMBLER_TEST_RUN(Jr_delay, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Jalr_delay, assembler) {
+  __ Move(R2, RA);
+  __ jalr(R2, RA);
+  __ delay_slot()->ori(V0, ZR, Immediate(42));
+}
+
+
+ASSEMBLER_TEST_RUN(Jalr_delay, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }

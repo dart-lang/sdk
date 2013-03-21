@@ -229,12 +229,52 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       Format(instr, "divu 'rs, 'rt");
       break;
     }
+    case JALR: {
+      Format(instr, "jalr'hint 'rd, 'rs");
+      break;
+    }
+    case JR: {
+      Format(instr, "jr'hint 'rs");
+      break;
+    }
     case MFHI: {
       Format(instr, "mfhi 'rd");
       break;
     }
     case MFLO: {
       Format(instr, "mflo 'rd");
+      break;
+    }
+    case MOVN: {
+      Format(instr, "movn 'rd, 'rs, 'rt");
+      break;
+    }
+    case MOVZ: {
+      Format(instr, "movz 'rd, 'rs, 'rt");
+      break;
+    }
+    case MULT: {
+      Format(instr, "mult 'rs, 'rt");
+      break;
+    }
+    case MULTU: {
+      Format(instr, "multu 'rs, 'rt");
+      break;
+    }
+    case NOR: {
+      Format(instr, "nor 'rd, 'rs, 'rt");
+      break;
+    }
+    case OR: {
+      if (instr->RsField() == 0 && instr->RtField() == 0) {
+        Format(instr, "mov 'rd, 0");
+      } else if (instr->RsField() == R0) {
+        Format(instr, "mov 'rd, 'rt");
+      } else if (instr->RtField() == R0) {
+        Format(instr, "mov 'rd, 'rs");
+      } else {
+        Format(instr, "or 'rd, 'rs, 'rt");
+      }
       break;
     }
     case SLL: {
@@ -247,8 +287,56 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       }
       break;
     }
-    case JR: {
-      Format(instr, "jr'hint 'rs");
+    case SLLV: {
+      Format(instr, "sllv 'rd, 'rt, 'rs");
+      break;
+    }
+    case SLT: {
+      Format(instr, "slt 'rd, 'rs, 'rt");
+      break;
+    }
+    case SLTU: {
+      Format(instr, "sltu 'rd, 'rs, 'rt");
+      break;
+    }
+    case SRA: {
+      if (instr->RsField() == 0) {
+        Format(instr, "sra 'rd, 'rt, 'sa");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SRAV: {
+      Format(instr, "srav 'rd, 'rt, 'rs");
+      break;
+    }
+    case SRL: {
+      if (instr->RsField() == 0) {
+        Format(instr, "srl 'rd, 'rt, 'sa");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SRLV: {
+      if (instr->SaField() == 0) {
+        Format(instr, "srlv 'rd, 'rt, 'rs");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SUB: {
+      Format(instr, "sub 'rd, 'rs, 'rt");
+      break;
+    }
+    case SUBU: {
+      Format(instr, "subu 'rd, 'rs, 'rt");
+      break;
+    }
+    case XOR: {
+      Format(instr, "xor 'rd, 'rs, 'rt");
       break;
     }
     default: {

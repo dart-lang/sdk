@@ -224,7 +224,7 @@ class Assembler : public ValueObject {
     return this;
   }
 
-  // CPU instructions.
+  // CPU instructions in alphabetical order.
   void addiu(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsInt(16, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
@@ -268,6 +268,18 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, R0, 0, DIVU);
   }
 
+  void jalr(Register rs, Register rd = RA) {
+    ASSERT(rs != rd);
+    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
+    EmitRType(SPECIAL, rs, R0, rd, 0, JALR);
+    EmitBranchDelayNop();
+  }
+
+  void jr(Register rs) {
+    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
+    EmitRType(SPECIAL, rs, R0, R0, 0, JR);
+    EmitBranchDelayNop();
+  }
 
   void lb(Register rt, const Address& addr) {
     EmitLoadStore(LB, rt, addr);
@@ -303,17 +315,34 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, R0, R0, rd, 0, MFLO);
   }
 
+  void movn(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, MOVN);
+  }
+
+  void movz(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, MOVZ);
+  }
+
+  void mult(Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, R0, 0, MULT);
+  }
+
+  void multu(Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, R0, 0, MULTU);
+  }
+
+  void nor(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, NOR);
+  }
+
+  void or_(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, OR);
+  }
+
   void ori(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsUint(16, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ORI, rs, rt, imm_value);
-  }
-
-  void jr(Register rs) {
-    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
-    EmitRType(SPECIAL, rs, R0, R0, 0, JR);
-    Emit(Instr::kNopInstruction);  // Branch delay NOP.
-    delay_slot_available_ = true;
   }
 
   void sb(Register rt, const Address& addr) {
@@ -324,18 +353,66 @@ class Assembler : public ValueObject {
     EmitLoadStore(SH, rt, addr);
   }
 
-  void sw(Register rt, const Address& addr) {
-    EmitLoadStore(SW, rt, addr);
-  }
-
   void sll(Register rd, Register rt, int sa) {
     EmitRType(SPECIAL, R0, rt, rd, sa, SLL);
   }
 
-  // Macros.
+  void sllv(Register rd, Register rt, Register rs) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SLLV);
+  }
+
+  void slt(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SLT);
+  }
+
+  void sltu(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SLTU);
+  }
+
+  void sra(Register rd, Register rt, int sa) {
+    EmitRType(SPECIAL, R0, rt, rd, sa, SRA);
+  }
+
+  void srav(Register rd, Register rt, Register rs) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SRAV);
+  }
+
+  void srl(Register rd, Register rt, int sa) {
+    EmitRType(SPECIAL, R0, rt, rd, sa, SRL);
+  }
+
+  void srlv(Register rd, Register rt, Register rs) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SRLV);
+  }
+
+  void sub(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SUB);
+  }
+
+  void subu(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, SUBU);
+  }
+
+  void sw(Register rt, const Address& addr) {
+    EmitLoadStore(SW, rt, addr);
+  }
+
+  void xor_(Register rd, Register rs, Register rt) {
+    EmitRType(SPECIAL, rs, rt, rd, 0, XOR);
+  }
+
+  // Macros in alphabetical order.
   void LoadImmediate(Register rd, int32_t value) {
-    lui(rd, Immediate((value >> 16) & 0xffff));
-    ori(rd, rd, Immediate(value & 0xffff));
+    if (Utils::IsInt(16, value)) {
+      addiu(rd, ZR, Immediate(value));
+    } else {
+      lui(rd, Immediate((value >> 16) & 0xffff));
+      ori(rd, rd, Immediate(value & 0xffff));
+    }
+  }
+
+  void Move(Register rd, Register rs) {
+    or_(rd, rs, ZR);
   }
 
  private:
@@ -417,6 +494,11 @@ class Assembler : public ValueObject {
          rd << kRdShift |
          sa << kSaShift |
          func << kFunctionShift);
+  }
+
+  void EmitBranchDelayNop() {
+    Emit(Instr::kNopInstruction);  // Branch delay NOP.
+    delay_slot_available_ = true;
   }
 
   DISALLOW_ALLOCATION();

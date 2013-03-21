@@ -253,7 +253,7 @@ enum SpecialFunction {
   MFLO = 18,
   MTLO = 19,
   MULT = 24,
-  MUTLU = 25,
+  MULTU = 25,
   DIV = 26,
   DIVU = 27,
   ADD = 32,
