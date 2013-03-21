@@ -9659,37 +9659,15 @@ abstract class Element extends Node implements ElementTraversal {
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
-  @deprecated
-  int get clientHeight => client.height;
-  @deprecated
-  int get clientLeft => client.left;
-  @deprecated
-  int get clientTop => client.top;
-  @deprecated
-  int get clientWidth => client.width;
+  /**
+   * Gets the position of this element relative to the client area of the page.
+   */
+  Rect get client => new Rect(clientLeft, clientTop, clientWidth, clientHeight);
 
-  @DomName('Element.clientHeight')
-  @DomName('Element.clientLeft')
-  @DomName('Element.clientTop')
-  @DomName('Element.clientWidth')
-  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
-      $dom_clientHeight);
-
-  @deprecated
-  int get offsetHeight => offset.height;
-  @deprecated
-  int get offsetLeft => offset.left;
-  @deprecated
-  int get offsetTop => offset.top;
-  @deprecated
-  int get offsetWidth => offset.width;
-
-  @DomName('Element.offsetHeight')
-  @DomName('Element.offsetLeft')
-  @DomName('Element.offsetTop')
-  @DomName('Element.offsetWidth')
-  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
-      $dom_offsetHeight);
+  /**
+   * Gets the offset of this element relative to its offsetParent.
+   */
+  Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
   /**
    * Adds the specified text as a text node after the last child of this
@@ -10032,19 +10010,19 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.clientHeight')
   @DocsEditable
-  int get $dom_clientHeight native "Element_clientHeight_Getter";
+  int get clientHeight native "Element_clientHeight_Getter";
 
   @DomName('Element.clientLeft')
   @DocsEditable
-  int get $dom_clientLeft native "Element_clientLeft_Getter";
+  int get clientLeft native "Element_clientLeft_Getter";
 
   @DomName('Element.clientTop')
   @DocsEditable
-  int get $dom_clientTop native "Element_clientTop_Getter";
+  int get clientTop native "Element_clientTop_Getter";
 
   @DomName('Element.clientWidth')
   @DocsEditable
-  int get $dom_clientWidth native "Element_clientWidth_Getter";
+  int get clientWidth native "Element_clientWidth_Getter";
 
   @DomName('Element.firstElementChild')
   @DocsEditable
@@ -10060,11 +10038,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.offsetHeight')
   @DocsEditable
-  int get $dom_offsetHeight native "Element_offsetHeight_Getter";
+  int get offsetHeight native "Element_offsetHeight_Getter";
 
   @DomName('Element.offsetLeft')
   @DocsEditable
-  int get $dom_offsetLeft native "Element_offsetLeft_Getter";
+  int get offsetLeft native "Element_offsetLeft_Getter";
 
   @DomName('Element.offsetParent')
   @DocsEditable
@@ -10072,11 +10050,11 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.offsetTop')
   @DocsEditable
-  int get $dom_offsetTop native "Element_offsetTop_Getter";
+  int get offsetTop native "Element_offsetTop_Getter";
 
   @DomName('Element.offsetWidth')
   @DocsEditable
-  int get $dom_offsetWidth native "Element_offsetWidth_Getter";
+  int get offsetWidth native "Element_offsetWidth_Getter";
 
   @DomName('Element.previousElementSibling')
   @DocsEditable

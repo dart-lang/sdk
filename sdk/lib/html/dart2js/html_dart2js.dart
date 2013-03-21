@@ -8921,37 +8921,15 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
-  @deprecated
-  int get clientHeight => client.height;
-  @deprecated
-  int get clientLeft => client.left;
-  @deprecated
-  int get clientTop => client.top;
-  @deprecated
-  int get clientWidth => client.width;
+  /**
+   * Gets the position of this element relative to the client area of the page.
+   */
+  Rect get client => new Rect(clientLeft, clientTop, clientWidth, clientHeight);
 
-  @DomName('Element.clientHeight')
-  @DomName('Element.clientLeft')
-  @DomName('Element.clientTop')
-  @DomName('Element.clientWidth')
-  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
-      $dom_clientHeight);
-
-  @deprecated
-  int get offsetHeight => offset.height;
-  @deprecated
-  int get offsetLeft => offset.left;
-  @deprecated
-  int get offsetTop => offset.top;
-  @deprecated
-  int get offsetWidth => offset.width;
-
-  @DomName('Element.offsetHeight')
-  @DomName('Element.offsetLeft')
-  @DomName('Element.offsetTop')
-  @DomName('Element.offsetWidth')
-  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
-      $dom_offsetHeight);
+  /**
+   * Gets the offset of this element relative to its offsetParent.
+   */
+  Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
   /**
    * Adds the specified text as a text node after the last child of this
@@ -9459,25 +9437,21 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   String $dom_className;
 
-  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable
-  final int $dom_clientHeight;
+  final int clientHeight;
 
-  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable
-  final int $dom_clientLeft;
+  final int clientLeft;
 
-  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable
-  final int $dom_clientTop;
+  final int clientTop;
 
-  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable
-  final int $dom_clientWidth;
+  final int clientWidth;
 
   @JSName('firstElementChild')
   @DomName('Element.firstElementChild')
@@ -9493,29 +9467,25 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   final Element nextElementSibling;
 
-  @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable
-  final int $dom_offsetHeight;
+  final int offsetHeight;
 
-  @JSName('offsetLeft')
   @DomName('Element.offsetLeft')
   @DocsEditable
-  final int $dom_offsetLeft;
+  final int offsetLeft;
 
   @DomName('Element.offsetParent')
   @DocsEditable
   final Element offsetParent;
 
-  @JSName('offsetTop')
   @DomName('Element.offsetTop')
   @DocsEditable
-  final int $dom_offsetTop;
+  final int offsetTop;
 
-  @JSName('offsetWidth')
   @DomName('Element.offsetWidth')
   @DocsEditable
-  final int $dom_offsetWidth;
+  final int offsetWidth;
 
   @DomName('Element.previousElementSibling')
   @DocsEditable
