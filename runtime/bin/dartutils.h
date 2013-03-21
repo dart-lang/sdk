@@ -163,8 +163,10 @@ class DartUtils {
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
   // the return value is an updated pointer to the text_buffer pointing past
-  // the magic number value.
+  // the magic number value. The 'buffer_len' parameter is also appropriately
+  // adjusted.
   static const uint8_t* SniffForMagicNumber(const uint8_t* text_buffer,
+                                            intptr_t* buffer_len,
                                             bool* is_snapshot);
 
   // Write a magic number to indicate a script snapshot file.

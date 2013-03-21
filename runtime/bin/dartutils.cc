@@ -342,6 +342,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 
 
 const uint8_t* DartUtils::SniffForMagicNumber(const uint8_t* text_buffer,
+                                              intptr_t* buffer_len,
                                               bool* is_snapshot) {
   intptr_t len = sizeof(magic_number);
   for (intptr_t i = 0; i < len; i++) {
@@ -351,6 +352,8 @@ const uint8_t* DartUtils::SniffForMagicNumber(const uint8_t* text_buffer,
     }
   }
   *is_snapshot = true;
+  ASSERT(*buffer_len > len);
+  *buffer_len -= len;
   return text_buffer + len;
 }
 
@@ -383,7 +386,7 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
     return Dart_Error(error_msg);
   }
   bool is_snapshot = false;
-  text_buffer = SniffForMagicNumber(text_buffer, &is_snapshot);
+  text_buffer = SniffForMagicNumber(text_buffer, &len, &is_snapshot);
   if (is_snapshot) {
     return Dart_LoadScriptFromSnapshot(text_buffer, len);
   } else {
