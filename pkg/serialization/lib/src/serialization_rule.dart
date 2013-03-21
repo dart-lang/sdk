@@ -398,8 +398,9 @@ class MirrorRule extends NamedObjectRule {
     var qualifiedName = r.resolveReference(state.first);
     var lookupFull = r.objectNamed(qualifiedName, (x) => null);
     if (lookupFull != null) return lookupFull;
-    var lib = qualifiedName.substring(0, qualifiedName.indexOf("."));
-    var type = qualifiedName.substring(qualifiedName.indexOf(".") + 1);
+    var separatorIndex = qualifiedName.lastIndexOf(".");
+    var lib = qualifiedName.substring(0, separatorIndex);
+    var type = qualifiedName.substring(separatorIndex + 1);
     var lookup = r.objectNamed(type, (x) => null);
     if (lookup != null) return lookup;
     var libMirror = currentMirrorSystem().libraries[lib];
@@ -541,6 +542,7 @@ class _LazyList extends Iterable implements List {
   Iterator get iterator => _inflated.iterator;
   indexOf(x, [pos = 0]) => _inflated.toList().indexOf(x);
   lastIndexOf(x, [pos]) => _inflated.toList().lastIndexOf(x);
+  sublist(start, [end]) => _inflated.sublist(start, end);
 
   Map<int, dynamic> asMap() => IterableMixinWorkaround.asMapList(this);
 

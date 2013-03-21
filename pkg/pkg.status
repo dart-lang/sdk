@@ -86,7 +86,8 @@ intl/test/date_time_format_http_request_test: Skip
 [ $compiler == dart2js ]
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
-serialization/test/serialization_test: Skip
+serialization/test/serialization_test: Skip # Issue 6490
+serialization/test/no_library_test: Skip # Issue 6490
 analyzer_experimental/test/generated/ast_test: Skip
 analyzer_experimental/test/generated/element_test: Skip
 analyzer_experimental/test/generated/parser_test: Skip
