@@ -597,7 +597,7 @@ main() {
       expect(imageData.width, 15);
       expect(imageData.height, 15);
 
-      var other = context.createImageDataFromData(imageData);
+      var other = context.createImageDataFromImageData(imageData);
       expect(other.width, 15);
       expect(other.height, 15);
     });
