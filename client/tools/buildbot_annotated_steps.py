@@ -207,10 +207,10 @@ def main():
       name = 'dart-editor' + match.group(1)
       is_fyi = True
     # Run the old annotated steps script first.
-    status = ProcessTools('release', name, version) or status
+    status = ProcessTools('release', name, version)
     # In case we're an FYI builder, run 'tools/bots/editor.py' as well
     if is_fyi:
-      status = ProcessBot(name, 'editor')
+      status = ProcessBot(name, 'editor') or status
   elif name.startswith('pub-'):
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):
