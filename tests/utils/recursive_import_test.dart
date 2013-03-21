@@ -10,7 +10,9 @@ import 'dart:uri';
 
 const CORE_LIB = """
 library core;
-class Object{}
+class Object{
+  operator==(other) {}
+}
 class bool {}
 class num {}
 class int {}
