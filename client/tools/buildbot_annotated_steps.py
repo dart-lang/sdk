@@ -1,8 +1,7 @@
+#!/usr/bin/python
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
-#!/usr/bin/python
 
 # Copyright (c) 2011 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
@@ -100,12 +99,6 @@ def ProcessTools(mode, name, version):
   # get the latest changed revision from the current repository sub-tree
   version = GetLatestChangedRevision()
 
-  #TODO: debug statements to be removed in the future.
-  print "mode = " + mode
-  print "name = " + name
-  print "version = " + version
-  print "toolsBuildScript = " + os.path.abspath(toolsBuildScript)
-
   utils = GetUtils()
   outdir = GetOutDir(utils, mode)
   cmds = [sys.executable, toolsBuildScript,
@@ -184,8 +177,6 @@ def GetLatestChangedRevision():
   return svnRev
 
 def main():
-  print 'main'
-
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
     return 1
@@ -208,7 +199,18 @@ def main():
   # root directory, set JAVA_HOME based on that.
   FixJavaHome()
   if name.startswith('dart-editor'):
-    status = ProcessTools('release', name, version)
+    # TODO(kustermann,ricow): This is a temporary hack until we can safely
+    # enable it on main waterfall. We need to remove this eventually
+    is_fyi = False
+    if name.startswith('dart-editor-fyi'):
+      match = re.search('dart-editor-fyi(.*)', name)
+      name = 'dart-editor' + match.group(1)
+      is_fyi = True
+    # Run the old annotated steps script first.
+    status = ProcessTools('release', name, version) or status
+    # In case we're an FYI builder, run 'tools/bots/editor.py' as well
+    if is_fyi:
+      status = ProcessBot(name, 'editor')
   elif name.startswith('pub-'):
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):

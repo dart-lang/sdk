@@ -86,10 +86,12 @@ class BuildStep(object):
 
   def __enter__(self):
     print '@@@BUILD_STEP %s@@@' % self.name
+    sys.stdout.flush()
 
   def __exit__(self, type, value, traceback):
     if value:
       print '@@@STEP_FAILURE@@@'
+      sys.stdout.flush()
       if self.swallow_error and isinstance(value, OSError):
         return True
 
