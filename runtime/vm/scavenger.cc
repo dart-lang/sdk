@@ -319,7 +319,9 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
 
   // Allocate the virtual memory for this scavenge heap.
   space_ = VirtualMemory::Reserve(max_capacity);
-  ASSERT(space_ != NULL);
+  if (space_ == NULL) {
+    FATAL("Out of memory.\n");
+  }
 
   // Allocate the entire space at the beginning.
   space_->Commit(false);
