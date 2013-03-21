@@ -21,10 +21,6 @@ part of html;
  * If the CanvasImageSource is a [CanvasElement] then the element's bitmap is
  * used.
  *
- * ** Note: ** Currently, all versions of Internet Explorer do not support
- * drawing a VideoElement to a canvas. Also, you may experience problems drawing
- * a video to a canvas in Firefox if the source of the video is a data URL.
- *
  * See also:
  *
  *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
