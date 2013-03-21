@@ -4,7 +4,7 @@
 
 [ ($runtime == drt || $runtime == dartium) && $checked ]
 # Issue 9345. We are getting out of memory situations on the dartium buildbot in checked mode.
-async/slow_consumer3_test: Pass, Crash
+async/slow_consumer3_test: Pass, Fail
 
 # The scalarlist library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
