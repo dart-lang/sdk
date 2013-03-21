@@ -4292,7 +4292,8 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 }
 
 
-DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
+                                                    intptr_t buffer_len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(time_script_loading);
@@ -4303,6 +4304,11 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   if (!snapshot->IsScriptSnapshot()) {
     return Api::NewError("%s expects parameter 'buffer' to be a script type"
                          " snapshot.", CURRENT_FUNC);
+  }
+  if (snapshot->length() != buffer_len) {
+    return Api::NewError("%s: 'buffer_len' of %"Pd" is not equal to %d which"
+                         " is the expected length in the snapshot.",
+                         CURRENT_FUNC, buffer_len, snapshot->length());
   }
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());

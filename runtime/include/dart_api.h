@@ -2378,11 +2378,13 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
  * Loads the root script for current isolate from a snapshot.
  *
  * \param buffer A buffer which contains a snapshot of the script.
+ * \param length Length of the passed in buffer.
  *
  * \return If no error occurs, the Library object corresponding to the root
  *   script is returned. Otherwise an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer);
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
+                                                    intptr_t buffer_len);
 
 /**
  * Gets the library for the root script for the current isolate.

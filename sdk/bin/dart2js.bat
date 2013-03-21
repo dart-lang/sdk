@@ -9,7 +9,8 @@ REM Does the path have a trailing slash? If so, remove it.
 if %SCRIPTPATH:~-1%== set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
+set SCRIPTNAME="%SCRIPTPATH%..\lib\_internal\compiler\implementation\dart2js.dart"
 set SNAPSHOTNAME="%SCRIPTPATH%dart2js.snapshot"
-if exist %SNAPSHOTNAME% set SNAPSHOT=--use-script-snapshot=%SNAPSHOTNAME%
+if exist %SNAPSHOTNAME% set SCRIPTNAME=%SNAPSHOTNAME%
 
-"%SCRIPTPATH%dart" --heap_growth_rate=512 %SNAPSHOT% "%SCRIPTPATH%..\lib\_internal\compiler\implementation\dart2js.dart" %arguments%
+"%SCRIPTPATH%dart" --heap_growth_rate=512 %SCRIPTNAME% %arguments%

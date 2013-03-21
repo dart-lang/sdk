@@ -25,6 +25,7 @@ const char* DartUtils::kUtfLibURL = "dart:utf";
 
 const char* DartUtils::kIdFieldName = "_id";
 
+uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
 static bool IsWindowsHost() {
 #if defined(TARGET_OS_WINDOWS)
@@ -187,31 +188,46 @@ Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
 }
 
 
-Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
+static const uint8_t* ReadFile(const char* filename,
+                               intptr_t* file_len,
+                               const char** error_msg) {
   File* file = File::Open(filename, File::kRead);
   if (file == NULL) {
     const char* format = "Unable to open file: %s";
     intptr_t len = snprintf(NULL, 0, format, filename);
     // TODO(iposva): Allocate from the zone instead of leaking error string
     // here. On the other hand the binary is about the exit anyway.
-    char* error_msg = reinterpret_cast<char*>(malloc(len + 1));
-    snprintf(error_msg, len + 1, format, filename);
-    return Dart_Error(error_msg);
+    char* msg = reinterpret_cast<char*>(malloc(len + 1));
+    snprintf(msg, len + 1, format, filename);
+    *error_msg = msg;
+    return NULL;
   }
-  intptr_t len = file->Length();
-  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(len));
+  *file_len = file->Length();
+  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*file_len));
   if (text_buffer == NULL) {
     delete file;
-    return Dart_Error("Unable to allocate buffer");
+    *error_msg = "Unable to allocate buffer";
+    return NULL;
   }
-  if (!file->ReadFully(text_buffer, len)) {
+  if (!file->ReadFully(text_buffer, *file_len)) {
     delete file;
     free(text_buffer);
-    return Dart_Error("Unable to fully read contents");
+    *error_msg = "Unable to fully read contents";
+    return NULL;
   }
   delete file;
+  return text_buffer;
+}
+
+
+Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
+  const char* error_msg = NULL;
+  intptr_t len;
+  const uint8_t* text_buffer = ReadFile(filename, &len, &error_msg);
+  if (text_buffer == NULL) {
+    return Dart_Error(error_msg);
+  }
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
-  free(text_buffer);
   return str;
 }
 
@@ -325,16 +341,24 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-static Dart_Handle ReadSource(Dart_Handle script_uri,
-                              Dart_Handle builtin_lib) {
-  Dart_Handle script_path = DartUtils::FilePathFromUri(script_uri, builtin_lib);
-  if (Dart_IsError(script_path)) {
-    return script_path;
+const uint8_t* DartUtils::SniffForMagicNumber(const uint8_t* text_buffer,
+                                              bool* is_snapshot) {
+  intptr_t len = sizeof(magic_number);
+  for (intptr_t i = 0; i < len; i++) {
+    if (text_buffer[i] != magic_number[i]) {
+      *is_snapshot = false;
+      return text_buffer;
+    }
   }
-  const char* script_path_cstr;
-  Dart_StringToCString(script_path, &script_path_cstr);
-  Dart_Handle source = DartUtils::ReadStringFromFile(script_path_cstr);
-  return source;
+  *is_snapshot = true;
+  return text_buffer + len;
+}
+
+
+void DartUtils::WriteMagicNumber(File* file) {
+  // Write a magic number and version information into the snapshot file.
+  bool bytes_written = file->WriteFully(magic_number, sizeof(magic_number));
+  ASSERT(bytes_written);
 }
 
 
@@ -345,11 +369,27 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   if (Dart_IsError(resolved_script_uri)) {
     return resolved_script_uri;
   }
-  Dart_Handle source = ReadSource(resolved_script_uri, builtin_lib);
-  if (Dart_IsError(source)) {
-    return source;
+  Dart_Handle script_path = DartUtils::FilePathFromUri(resolved_script_uri,
+                                                       builtin_lib);
+  if (Dart_IsError(script_path)) {
+    return script_path;
   }
-  return Dart_LoadScript(resolved_script_uri, source, 0, 0);
+  const char* script_path_cstr;
+  Dart_StringToCString(script_path, &script_path_cstr);
+  const char* error_msg = NULL;
+  intptr_t len;
+  const uint8_t* text_buffer = ReadFile(script_path_cstr, &len, &error_msg);
+  if (text_buffer == NULL) {
+    return Dart_Error(error_msg);
+  }
+  bool is_snapshot = false;
+  text_buffer = SniffForMagicNumber(text_buffer, &is_snapshot);
+  if (is_snapshot) {
+    return Dart_LoadScriptFromSnapshot(text_buffer, len);
+  } else {
+    Dart_Handle source = Dart_NewStringFromUTF8(text_buffer, len);
+    return Dart_LoadScript(resolved_script_uri, source, 0, 0);
+  }
 }
 
 

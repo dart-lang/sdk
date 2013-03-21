@@ -29,7 +29,6 @@ extern const uint8_t* snapshot_buffer;
 
 
 // Global state that stores a pointer to the application script snapshot.
-static bool use_script_snapshot = false;
 static bool generate_script_snapshot = false;
 static File* snapshot_file = NULL;
 
@@ -154,25 +153,6 @@ static bool ProcessDebugOption(const char* port) {
 }
 
 
-static bool ProcessUseScriptSnapshotOption(const char* filename) {
-  if (filename != NULL && strlen(filename) != 0) {
-    use_script_snapshot = true;
-    if (generate_script_snapshot) {
-      Log::PrintErr("Incompatible options specified --generate-script-snapshot "
-                    "and --use-script-snapshot\n");
-      return false;
-    }
-    snapshot_file = File::Open(filename, File::kRead);
-    if (snapshot_file == NULL) {
-      Log::PrintErr("Unable to open file %s for reading the snapshot\n",
-                    filename);
-      return false;
-    }
-  }
-  return true;
-}
-
-
 static bool ProcessVmStatsOption(const char* port) {
   ASSERT(port != NULL);
   if (*port == '\0') {
@@ -216,11 +196,6 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
                     " dart\n");
       return false;
     }
-    if (use_script_snapshot) {
-      Log::PrintErr("Incompatible options specified --use-script-snapshot "
-                    "and --generate-script-snapshot\n");
-      return false;
-    }
     snapshot_file = File::Open(filename, File::kWriteTruncate);
     if (snapshot_file == NULL) {
       Log::PrintErr("Unable to open file %s for writing the snapshot\n",
@@ -249,7 +224,6 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
-  { "--use-script-snapshot=", ProcessUseScriptSnapshotOption },
   { "--generate-script-snapshot=", ProcessGenScriptSnapshotOption },
   { "--stats-root=", ProcessVmStatsRootOption },
   { "--stats", ProcessVmStatsOption },
@@ -476,54 +450,23 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
   CHECK_RESULT(result);
 
   // Load the specified application script into the newly created isolate.
-  Dart_Handle library;
-  if (use_script_snapshot) {
-    if (snapshot_file == NULL) {
-      use_script_snapshot = false;
-      *error = strdup("Invalid script snapshot file name specified");
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      return false;
-    }
-    size_t len = snapshot_file->Length();
-    uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(len));
-    if (buffer == NULL) {
-      delete snapshot_file;
-      snapshot_file = NULL;
-      use_script_snapshot = false;
-      *error = strdup("Unable to read contents of script snapshot file");
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      return false;
-    }
-    // Prepare for script loading by setting up the 'print' and 'timer'
-    // closures and setting up 'package root' for URI resolution.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
 
-    snapshot_file->ReadFully(buffer, len);
-    library = Dart_LoadScriptFromSnapshot(buffer);
-    free(buffer);
-    delete snapshot_file;
-    snapshot_file = NULL;
-    use_script_snapshot = false;  // No further usage of script snapshots.
-  } else {
-    // Prepare builtin and its dependent libraries for use to resolve URIs.
-    Dart_Handle uri_url = DartUtils::NewString(DartUtils::kUriLibURL);
-    Dart_Handle uri_lib = Dart_LookupLibrary(uri_url);
-    CHECK_RESULT(uri_lib);
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
+  // Prepare builtin and its dependent libraries for use to resolve URIs.
+  // The builtin library is part of the core snapshot and would already be
+  // available here in the case of script snapshot loading.
+  Dart_Handle uri_url = DartUtils::NewString(DartUtils::kUriLibURL);
+  Dart_Handle uri_lib = Dart_LookupLibrary(uri_url);
+  CHECK_RESULT(uri_lib);
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  CHECK_RESULT(builtin_lib);
 
-    // Prepare for script loading by setting up the 'print' and 'timer'
-    // closures and setting up 'package root' for URI resolution.
-    result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
-    CHECK_RESULT(result);
+  // Prepare for script loading by setting up the 'print' and 'timer'
+  // closures and setting up 'package root' for URI resolution.
+  result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+  CHECK_RESULT(result);
 
-    library = DartUtils::LoadScript(script_uri, builtin_lib);
-  }
+  Dart_Handle library = DartUtils::LoadScript(script_uri, builtin_lib);
   CHECK_RESULT(library);
   if (!Dart_IsLibrary(library)) {
     char errbuf[256];
@@ -824,6 +767,9 @@ int main(int argc, char** argv) {
       Dart_ShutdownIsolate();
       return kErrorExitCode;  // Indicates we encountered an error.
     }
+
+    // Write the magic number to indicate file is a script snapshot.
+    DartUtils::WriteMagicNumber(snapshot_file);
 
     // Now write the snapshot out to specified file.
     bool bytes_written = snapshot_file->WriteFully(buffer, size);

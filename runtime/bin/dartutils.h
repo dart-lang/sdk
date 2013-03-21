@@ -10,6 +10,9 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
+// Forward declarations.
+class File;
+
 /* Handles error handles returned from Dart API functions.  If a value
  * is an error, uses Dart_PropagateError to throw it to the enclosing
  * Dart activation.  Otherwise, returns the original handle.
@@ -157,6 +160,16 @@ class DartUtils {
                                 Dart_Handle url,
                                 Dart_Handle builtin_lib);
 
+  // Sniffs the specified text_buffer to see if it contains the magic number
+  // representing a script snapshot. If the text_buffer is a script snapshot
+  // the return value is an updated pointer to the text_buffer pointing past
+  // the magic number value.
+  static const uint8_t* SniffForMagicNumber(const uint8_t* text_buffer,
+                                            bool* is_snapshot);
+
+  // Write a magic number to indicate a script snapshot file.
+  static void WriteMagicNumber(File* file);
+
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 
@@ -174,6 +187,8 @@ class DartUtils {
   static const char* kWebLibURL;
 
   static const char* kIdFieldName;
+
+  static uint8_t magic_number[];
 
  private:
   static const char* GetCanonicalPath(const char* reference_dir,
