@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library canvas_rendering_context_2d_test;
-import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+library canvas_rendering_context_2d_test; import '../../pkg/unittest/lib/unittest.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 import 'dart:math';
 
@@ -16,68 +15,74 @@ checkPixel(List<int> pixel, List<int> expected) {
   expect(pixel[3], closeTo(expected[3], 2));
 }
 
+var canvas;
+var context;
+var otherCanvas;
+var otherContext;
+var video;
+
+void createCanvas() {
+  canvas = new CanvasElement();
+  canvas.width = 100;
+  canvas.height = 100;
+
+  context = canvas.context2d;
+}
+
+void createOtherCanvas() {
+  otherCanvas = new CanvasElement();
+  otherCanvas.width = 10;
+  otherCanvas.height = 10;
+  otherContext = otherCanvas.context2d;
+  otherContext.fillStyle = "red";
+  otherContext.fillRect(0, 0, otherCanvas.width, otherCanvas.height);
+}
+
+void setupFunc() {
+  createCanvas();
+  createOtherCanvas();
+  video = new VideoElement();
+}
+
+void tearDownFunc() {
+  canvas = null;
+  context = null;
+  otherCanvas = null;
+  otherContext = null;
+  video = null;
+}
+
+List<int> readPixel(int x, int y) {
+  var imageData = context.getImageData(x, y, 1, 1);
+  return imageData.data;
+}
+
+/// Returns true if the pixel has some data in it, false otherwise.
+bool isPixelFilled(int x, int y) => readPixel(x,y).any((p) => p != 0);
+
+String pixelDataToString(List<int> data, int x, int y) {
+  return '[${data.join(", ")}]';
+}
+
+String _filled(bool v) => v ? "filled" : "unfilled";
+
+void expectPixelFilled(int x, int y, [bool filled = true]) {
+  expect(isPixelFilled(x, y), filled, reason:
+      'Pixel at ($x, $y) was expected to'
+      ' be: <${_filled(filled)}> but was: <${_filled(!filled)}> with data: '
+      '${pixelDataToString(readPixel(x, y), x, y)}');
+}
+
+void expectPixelUnfilled(int x, int y) {
+  expectPixelFilled(x, y, false);
+}
+
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
-  group('canvasRenderingContext2d', () {
-    var canvas;
-    var context;
-    var otherCanvas;
-    var otherContext;
-
-    void createOtherCanvas() {
-      otherCanvas = new CanvasElement();
-      otherCanvas.width = 10;
-      otherCanvas.height = 10;
-      otherContext = otherCanvas.context2d;
-      otherContext.fillStyle = "red";
-      otherContext.fillRect(0, 0, otherCanvas.width, otherCanvas.height);
-    }
-
-    setUp(() {
-      canvas = new CanvasElement();
-      canvas.width = 100;
-      canvas.height = 100;
-
-      context = canvas.context2d;
-
-      createOtherCanvas();
-    });
-
-    tearDown(() {
-      canvas = null;
-      context = null;
-      otherCanvas = null;
-      otherContext = null;
-    });
-
-    List<int> readPixel(int x, int y) {
-      var imageData = context.getImageData(x, y, 1, 1);
-      return imageData.data;
-    }
-
-    /// Returns true if the pixel has some data in it, false otherwise.
-    bool isPixelFilled(int x, int y) => readPixel(x,y).any((p) => p != 0);
-
-    String pixelDataToString(int x, int y) {
-      var data = readPixel(x, y);
-
-      return '[${data.join(", ")}]';
-    }
-
-    String _filled(bool v) => v ? "filled" : "unfilled";
-
-    void expectPixelFilled(int x, int y, [bool filled = true]) {
-      expect(isPixelFilled(x, y), filled, reason:
-          'Pixel at ($x, $y) was expected to'
-          ' be: <${_filled(filled)}> but was: <${_filled(!filled)}> with data: '
-          '${pixelDataToString(x,y)}');
-    }
-
-    void expectPixelUnfilled(int x, int y) {
-      expectPixelFilled(x, y, false);
-    }
-
+  group('pixel_manipulation', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
 
     test('setFillColorRgb', () {
       context.setFillColorRgb(255, 0, 255, 1);
@@ -169,6 +174,11 @@ main() {
       // Make sure that we read back what we wrote.
       expect(resultingData.data, expectedData.data);
     });
+  });
+
+  group('arc', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
 
     test('default arc should be clockwise', () {
       context.beginPath();
@@ -252,9 +262,13 @@ main() {
       // (cx - r/SQRT2, cy - r/SQRT2) should be filled.
       expectPixelFilled((cx + r/SQRT2).toInt(), (cy - r/SQRT2).toInt(), true);
     });
+  });
 
+  group('drawImage_image_element', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
     // Draw an image to the canvas from an image element.
-    test('drawImage from img element with 3 params', () {
+    test('with 3 params', () {
       var dataUrl = otherCanvas.toDataUrl('image/gif');
       var img = new ImageElement();
 
@@ -277,7 +291,7 @@ main() {
     });
 
     // Draw an image to the canvas from an image element and scale it.
-    test('drawImage from img element with 5 params', () {
+    test('with 5 params', () {
       var dataUrl = otherCanvas.toDataUrl('image/gif');
       var img = new ImageElement();
 
@@ -302,7 +316,7 @@ main() {
     });
 
     // Draw an image to the canvas from an image element and scale it.
-    test('drawImage from img element with 9 params', () {
+    test('with 9 params', () {
       otherContext.fillStyle = "blue";
       otherContext.fillRect(5, 5, 5, 5);
       var dataUrl = otherCanvas.toDataUrl('image/gif');
@@ -310,8 +324,8 @@ main() {
 
       img.onLoad.listen(expectAsync1((_) {
         // This will take a 6x6 square from the first canvas from position 2,2
-        // and then scale it to a 20x20 square and place it to the second canvas
-        // at 50,50.
+        // and then scale it to a 20x20 square and place it to the second
+        // canvas at 50,50.
         context.drawImageToRect(img, new Rect(50, 50, 20, 20),
           sourceRect: new Rect(2, 2, 6, 6));
 
@@ -337,155 +351,202 @@ main() {
       });
       img.src = dataUrl;
     });
+  });
 
-    // These base64 strings are the same video, representing 2 frames of 8x8 red
-    // pixels.
-    // The videos were created with:
-    //   convert -size 8x8 xc:red blank1.jpg
-    //   convert -size 8x8 xc:red blank2.jpg
-    //   avconv -f image2  -i "blank%d.jpg" -c:v libx264 small.mp4
-    //   python -m base64 -e small.mp4
-    //   avconv -i small.mp4 small.webm
-    //   python -m base64 -e small.webm
-    var mp4VideoUrl =
-      'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZn'
-      'JlZQAAAsdtZGF0AAACmwYF//+X3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDEyMCByMj'
-      'E1MSBhM2Y0NDA3IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMj'
-      'AxMSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYm'
-      'FjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDExMSBtZT1oZXggc3VibW'
-      'U9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0wIG1lX3JhbmdlPTE2IGNocm'
-      '9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3'
-      'Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTE4IHNsaWNlZF90aHJlYWRzPT'
-      'AgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYW'
-      'luZWRfaW50cmE9MCBiZnJhbWVzPTMgYl9weXJhbWlkPTAgYl9hZGFwdD0xIGJfYmlhcz0wIG'
-      'RpcmVjdD0xIHdlaWdodGI9MCBvcGVuX2dvcD0xIHdlaWdodHA9MiBrZXlpbnQ9MjUwIGtleW'
-      'ludF9taW49MjUgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MC'
-      'ByYz1jcmYgbWJ0cmVlPTEgY3JmPTUxLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IH'
-      'Fwc3RlcD00IGlwX3JhdGlvPTEuMjUgYXE9MToxLjAwAIAAAAARZYiEB//3aoK5/tP9+8yeuI'
-      'EAAAAHQZoi2P/wgAAAAzxtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAUAABAAABAA'
-      'AAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAA'
-      'AAAAAAAAAAAAAAAAAAAAAAAAACAAAAGGlvZHMAAAAAEICAgAcAT/////7/AAACUHRyYWsAAA'
-      'BcdGtoZAAAAA8AAAAAAAAAAAAAAAEAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAA'
-      'AAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAACAAAAAgAAAAAACRlZHRzAAAAHGVsc3QAAA'
-      'AAAAAAAQAAAFAAAAABAAEAAAAAAchtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAAAAZAAAAAl'
-      'XEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAAFzbW'
-      'luZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybC'
-      'AAAAABAAABM3N0YmwAAACXc3RzZAAAAAAAAAABAAAAh2F2YzEAAAAAAAAAAQAAAAAAAAAAAA'
-      'AAAAAAAAAACAAIAEgAAABIAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-      'AAAAAY//8AAAAxYXZjQwFNQAr/4QAYZ01ACuiPyy4C2QAAAwABAAADADIPEiUSAQAGaOvAZS'
-      'yAAAAAGHN0dHMAAAAAAAAAAQAAAAIAAAABAAAAFHN0c3MAAAAAAAAAAQAAAAEAAAAYY3R0cw'
-      'AAAAAAAAABAAAAAgAAAAEAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAEAAAABAAAAHHN0c3oAAA'
-      'AAAAAAAAAAAAIAAAK0AAAACwAAABhzdGNvAAAAAAAAAAIAAAAwAAAC5AAAAGB1ZHRhAAAAWG'
-      '1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAAK2lsc3QAAAAjqX'
-      'RvbwAAABtkYXRhAAAAAQAAAABMYXZmNTMuMjEuMQ==';
-    var webmVideoUrl =
-      'data:video/webm;base64,GkXfowEAAAAAAAAfQoaBAUL3gQFC8oEEQvOBCEKChHdlYm1Ch'
-      '4ECQoWBAhhTgGcBAAAAAAAB/hFNm3RALE27i1OrhBVJqWZTrIHfTbuMU6uEFlSua1OsggEsT'
-      'buMU6uEHFO7a1OsggHk7AEAAAAAAACkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmAQAAAAAAAEEq17GDD0JATYCLTGF2ZjUzL'
-      'jIxLjFXQYtMYXZmNTMuMjEuMXOkkJatuHwTJ7cvFLSzBSmxbp5EiYhAVAAAAAAAABZUrmsBA'
-      'AAAAAAAR64BAAAAAAAAPteBAXPFgQGcgQAitZyDdW5khoVWX1ZQOIOBASPjg4QCYloA4AEAA'
-      'AAAAAASsIEIuoEIVLCBCFS6gQhUsoEDH0O2dQEAAAAAAABZ54EAo72BAACA8AIAnQEqCAAIA'
-      'ABHCIWFiIWEiAICAnWqA/gD+gINTRgA/v0hRf/kb+PnRv/I4//8WE8DijI//FRAo5WBACgAs'
-      'QEAARAQABgAGFgv9AAIAAAcU7trAQAAAAAAAA67jLOBALeH94EB8YIBfw==';
+  // These videos and base64 strings are the same video, representing 2
+  // frames of 8x8 red pixels.
+  // The videos were created with:
+  //   convert -size 8x8 xc:red blank1.jpg
+  //   convert -size 8x8 xc:red blank2.jpg
+  //   avconv -f image2  -i "blank%d.jpg" -c:v libx264 small.mp4
+  //   avconv -i small.mp4 small.webm
+  //   python -m base64 -e small.mp4
+  //   python -m base64 -e small.webm
+  var mp4VideoUrl = '/root_dart/tests/html/small.mp4';
+  var webmVideoUrl = '/root_dart/tests/html/small.webm';
+  var mp4VideoDataUrl =
+      'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAA'
+      'AIZnJlZQAAAsdtZGF0AAACmwYF//+X3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlID'
+      'EyMCByMjE1MSBhM2Y0NDA3IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZW'
+      'Z0IDIwMDMtMjAxMSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG'
+      '9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweD'
+      'ExMSBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj'
+      '0wIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MCBjcW09MC'
+      'BkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aH'
+      'JlYWRzPTE4IHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZW'
+      'Q9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTMgYl'
+      '9weXJhbWlkPTAgYl9hZGFwdD0xIGJfYmlhcz0wIGRpcmVjdD0xIHdlaWdodGI9MCBvcG'
+      'VuX2dvcD0xIHdlaWdodHA9MiBrZXlpbnQ9MjUwIGtleWludF9taW49MjUgc2NlbmVjdX'
+      'Q9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPT'
+      'EgY3JmPTUxLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3'
+      'JhdGlvPTEuMjUgYXE9MToxLjAwAIAAAAARZYiEB//3aoK5/tP9+8yeuIEAAAAHQZoi2P'
+      '/wgAAAAzxtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAUAABAAABAAAAAAAAAA'
+      'AAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA'
+      'AAAAAAAAAAAAAAAAAAAAACAAAAGGlvZHMAAAAAEICAgAcAT/////7/AAACUHRyYWsAAA'
+      'BcdGtoZAAAAA8AAAAAAAAAAAAAAAEAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAAAAAQAAAA'
+      'AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAACAAAAAgAAAAAACRlZHRzAAAAHG'
+      'Vsc3QAAAAAAAAAAQAAAFAAAAABAAEAAAAAAchtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAA'
+      'AAAAAZAAAAAlXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSG'
+      'FuZGxlcgAAAAFzbWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZg'
+      'AAAAAAAAABAAAADHVybCAAAAABAAABM3N0YmwAAACXc3RzZAAAAAAAAAABAAAAh2F2Yz'
+      'EAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAACAAIAEgAAABIAAAAAAAAAAEAAAAAAAAAAA'
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY//8AAAAxYXZjQwFNQAr/4QAYZ01ACuiPyy'
+      '4C2QAAAwABAAADADIPEiUSAQAGaOvAZSyAAAAAGHN0dHMAAAAAAAAAAQAAAAIAAAABAA'
+      'AAFHN0c3MAAAAAAAAAAQAAAAEAAAAYY3R0cwAAAAAAAAABAAAAAgAAAAEAAAAcc3RzYw'
+      'AAAAAAAAABAAAAAQAAAAEAAAABAAAAHHN0c3oAAAAAAAAAAAAAAAIAAAK0AAAACwAAAB'
+      'hzdGNvAAAAAAAAAAIAAAAwAAAC5AAAAGB1ZHRhAAAAWG1ldGEAAAAAAAAAIWhkbHIAAA'
+      'AAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAAK2lsc3QAAAAjqXRvbwAAABtkYXRhAAAAAQ'
+      'AAAABMYXZmNTMuMjEuMQ==';
+  var webmVideoDataUrl =
+      'data:video/webm;base64,GkXfowEAAAAAAAAfQoaBAUL3gQFC8oEEQvOBCEKChHdlY'
+      'm1Ch4ECQoWBAhhTgGcBAAAAAAAB/hFNm3RALE27i1OrhBVJqWZTrIHfTbuMU6uEFlSua'
+      '1OsggEsTbuMU6uEHFO7a1OsggHk7AEAAAAAAACkAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmAQAAAAAAA'
+      'EEq17GDD0JATYCLTGF2ZjUzLjIxLjFXQYtMYXZmNTMuMjEuMXOkkJatuHwTJ7cvFLSzB'
+      'Smxbp5EiYhAVAAAAAAAABZUrmsBAAAAAAAAR64BAAAAAAAAPteBAXPFgQGcgQAitZyDd'
+      'W5khoVWX1ZQOIOBASPjg4QCYloA4AEAAAAAAAASsIEIuoEIVLCBCFS6gQhUsoEDH0O2d'
+      'QEAAAAAAABZ54EAo72BAACA8AIAnQEqCAAIAABHCIWFiIWEiAICAnWqA/gD+gINTRgA/'
+      'v0hRf/kb+PnRv/I4//8WE8DijI//FRAo5WBACgAsQEAARAQABgAGFgv9AAIAAAcU7trA'
+      'QAAAAAAAA67jLOBALeH94EB8YIBfw==';
+  group('drawImage_video_element', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
 
-//    test('drawImage from video element with 3 params', () {
-//      var video = new VideoElement();
-//
-//      video.onLoadedData.listen(expectAsync1((_) {
-//        context.drawImage(video, 50, 50);
-//
-//        expectPixelFilled(50, 50);
-//        expectPixelFilled(54, 54);
-//        expectPixelFilled(57, 57);
-//        expectPixelUnfilled(58, 58);
-//        expectPixelUnfilled(0, 0);
-//        expectPixelUnfilled(70, 70);
-//      }));
-//      video.onError.listen((_) {
-//        guardAsync(() {
-//          fail('URL failed to load.');
-//        });
-//      });
-//
-//      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
-//        video.src = webmVideoUrl;
-//      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-//            null) != '') {
-//        video.src = mp4VideoUrl;
-//      } else {
-//        logMessage('Video is not supported on this system.');
-//      }
-//    });
-//
-//    test('drawImage from video element with 5 params', () {
-//      var video = new VideoElement();
-//
-//      video.onLoadedData.listen(expectAsync1((_) {
-//        context.drawImageToRect(video, new Rect(50, 50, 20, 20));
-//
-//        expectPixelFilled(50, 50);
-//        expectPixelFilled(55, 55);
-//        expectPixelFilled(59, 59);
-//        expectPixelFilled(60, 60);
-//        expectPixelFilled(69, 69);
-//        expectPixelUnfilled(70, 70);
-//        expectPixelUnfilled(0, 0);
-//        expectPixelUnfilled(80, 80);
-//      }));
-//      video.onError.listen((_) {
-//        guardAsync(() {
-//          fail('URL failed to load.');
-//        });
-//      });
-//
-//      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
-//        video.src = webmVideoUrl;
-//      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-//            null) != '') {
-//        video.src = mp4VideoUrl;
-//      } else {
-//        // TODO(amouravski): Better fallback?
-//        logMessage('Video is not supported on this system.');
-//      }
-//    });
-//
-//    test('drawImage from video element with 9 params', () {
-//      var video = new VideoElement();
-//
-//      video.onLoadedData.listen(expectAsync1((_) {
-//        context.drawImageToRect(video, new Rect(50, 50, 20, 20),
-//          sourceRect: new Rect(2, 2, 6, 6));
-//
-//        expectPixelFilled(50, 50);
-//        expectPixelFilled(55, 55);
-//        expectPixelFilled(59, 59);
-//        expectPixelFilled(60, 60);
-//        expectPixelFilled(69, 69);
-//        expectPixelUnfilled(70, 70);
-//        expectPixelUnfilled(0, 0);
-//        expectPixelUnfilled(80, 80);
-//      }));
-//      video.onError.listen((_) {
-//        guardAsync(() {
-//          fail('URL failed to load.');
-//        });
-//      });
-//
-//      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
-//        video.src = webmVideoUrl;
-//      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
-//            null) != '') {
-//        video.src = mp4VideoUrl;
-//      } else {
-//        // TODO(amouravski): Better fallback?
-//        logMessage('Video is not supported on this system.');
-//      }
-//    });
+    test('with 3 params', () {
+      video.onCanPlay.listen(expectAsync1((_) {
+        context.drawImage(video, 50, 50);
 
-    test('drawImage from canvas element with 3 params', () {
+        expectPixelFilled(50, 50);
+        expectPixelFilled(54, 54);
+        expectPixelFilled(57, 57);
+        expectPixelUnfilled(58, 58);
+        expectPixelUnfilled(0, 0);
+        expectPixelUnfilled(70, 70);
+      }));
+
+      video.onError.listen((_) {
+        guardAsync(() {
+          fail('URL failed to load.');
+        });
+      });
+
+      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+        video.src = webmVideoUrl;
+      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+            null) != '') {
+        video.src = mp4VideoUrl;
+      } else {
+        window.console.log('Video is not supported on this system.');
+      }
+    });
+
+    test('with 5 params', () {
+      video.onCanPlay.listen(expectAsync1((_) {
+        context.drawImageToRect(video, new Rect(50, 50, 20, 20));
+
+        expectPixelFilled(50, 50);
+        expectPixelFilled(55, 55);
+        expectPixelFilled(59, 59);
+        expectPixelFilled(60, 60);
+        expectPixelFilled(69, 69);
+        expectPixelUnfilled(70, 70);
+        expectPixelUnfilled(0, 0);
+        expectPixelUnfilled(80, 80);
+      }));
+      video.onError.listen((_) {
+        guardAsync(() {
+          fail('URL failed to load.');
+        });
+      });
+
+      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+        video.src = webmVideoUrl;
+      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+            null) != '') {
+        video.src = mp4VideoUrl;
+      } else {
+        // TODO(amouravski): Better fallback?
+        window.console.log('Video is not supported on this system.');
+      }
+    });
+
+    test('with 9 params', () {
+      video.onCanPlay.listen(expectAsync1((_) {
+        context.drawImageToRect(video, new Rect(50, 50, 20, 20),
+          sourceRect: new Rect(2, 2, 6, 6));
+
+        expectPixelFilled(50, 50);
+        expectPixelFilled(55, 55);
+        expectPixelFilled(59, 59);
+        expectPixelFilled(60, 60);
+        expectPixelFilled(69, 69);
+        expectPixelUnfilled(70, 70);
+        expectPixelUnfilled(0, 0);
+        expectPixelUnfilled(80, 80);
+      }));
+      video.onError.listen((_) {
+        guardAsync(() {
+          fail('URL failed to load.');
+        });
+      });
+
+      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+        video.src = webmVideoUrl;
+      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+            null) != '') {
+        video.src = mp4VideoUrl;
+      } else {
+        // TODO(amouravski): Better fallback?
+        window.console.log('Video is not supported on this system.');
+      }
+    });
+  });
+
+  group('drawImage_video_element_dataUrl', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
+
+    test('with 9 params', () {
+      video = new VideoElement();
+      canvas = new CanvasElement();
+      video.onCanPlay.listen(expectAsync1((_) {
+        context.drawImageToRect(video, new Rect(50, 50, 20, 20),
+          sourceRect: new Rect(2, 2, 6, 6));
+
+        expectPixelFilled(50, 50);
+        expectPixelFilled(55, 55);
+        expectPixelFilled(59, 59);
+        expectPixelFilled(60, 60);
+        expectPixelFilled(69, 69);
+        expectPixelUnfilled(70, 70);
+        expectPixelUnfilled(0, 0);
+        expectPixelUnfilled(80, 80);
+      }));
+      video.onError.listen((_) {
+        guardAsync(() {
+          fail('URL failed to load.');
+        });
+      });
+
+      if(video.canPlayType('video/webm; codecs="vp8.0, vorbis"', '') != '') {
+        video.src = webmVideoDataUrl;
+      } else if(video.canPlayType('video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+            null) != '') {
+        video.src = mp4VideoDataUrl;
+      } else {
+        // TODO(amouravski): Better fallback?
+        window.console.log('Video is not supported on this system.');
+      }
+    });
+  });
+
+  group('drawImage_canvas_element', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
+
+    test('with 3 params', () {
       // Draw an image to the canvas from a canvas element.
       context.drawImage(otherCanvas, 50, 50);
 
@@ -496,7 +557,7 @@ main() {
       expectPixelUnfilled(0, 0);
       expectPixelUnfilled(70, 70);
     });
-    test('drawImage from canvas element with 5 params', () {
+    test('with 5 params', () {
       // Draw an image to the canvas from a canvas element.
       context.drawImageToRect(otherCanvas, new Rect(50, 50, 20, 20));
 
@@ -509,7 +570,7 @@ main() {
       expectPixelUnfilled(0, 0);
       expectPixelUnfilled(80, 80);
     });
-    test('drawImage from canvas element with 9 params', () {
+    test('with 9 params', () {
       // Draw an image to the canvas from a canvas element.
       otherContext.fillStyle = "blue";
       otherContext.fillRect(5, 5, 5, 5);
