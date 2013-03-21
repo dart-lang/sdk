@@ -43,6 +43,12 @@ class File {
     kDoesNotExist = 3
   };
 
+  enum Identical {
+    kIdentical = 0,
+    kDifferent = 1,
+    kError = 2
+  };
+
   enum StdioHandleType {
     kTerminal = 0,
     kPipe = 1,
@@ -134,6 +140,7 @@ class File {
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static Type GetType(const char* path, bool follow_links);
+  static Identical AreIdentical(const char* file_1, const char* file_2);
   static StdioHandleType GetStdioHandleType(int fd);
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);

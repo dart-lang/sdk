@@ -49,6 +49,7 @@
   V(File_OpenStdio, 1)                                                         \
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \
+  V(File_AreIdentical, 2)                                                      \
   V(File_NewServicePort, 0)                                                    \
   V(Logger_PrintString, 1)
 

@@ -288,4 +288,18 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   return File::kDoesNotExist;
 }
 
+
+File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
+  struct stat file_1_info;
+  struct stat file_2_info;
+  if (TEMP_FAILURE_RETRY(lstat(file_1, &file_1_info)) == -1 ||
+      TEMP_FAILURE_RETRY(lstat(file_2, &file_2_info)) == -1) {
+    return File::kError;
+  }
+  return (file_1_info.st_ino == file_2_info.st_ino &&
+          file_1_info.st_dev == file_2_info.st_dev) ?
+      File::kIdentical :
+      File::kDifferent;
+}
+
 #endif  // defined(TARGET_OS_LINUX)

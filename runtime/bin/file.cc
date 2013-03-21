@@ -555,8 +555,34 @@ void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
     File::Type type = File::GetType(str, follow_links);
     Dart_SetReturnValue(args, Dart_NewInteger(static_cast<int>(type)));
   } else  {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
+    Dart_Handle err = DartUtils::NewDartArgumentError(
+        "Non-string argument to FileSystemEntity.type");
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
+      Dart_IsString(Dart_GetNativeArgument(args, 1))) {
+    const char* path_1 =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+    const char* path_2 =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+    File::Identical result = File::AreIdentical(path_1, path_2);
+    if (result == File::kError) {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    } else {
+      Dart_SetReturnValue(args, Dart_NewBoolean(result == File::kIdentical));
+    }
+  } else  {
+    Dart_Handle err = DartUtils::NewDartArgumentError(
+        "Non-string argument to FileSystemEntity.identical");
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
   }

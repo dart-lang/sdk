@@ -514,4 +514,45 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   }
 }
 
+
+File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
+  BY_HANDLE_FILE_INFORMATION file_info[2];
+  const char* file_names[2] = { file_1, file_2 };
+  for (int i = 0; i < 2; ++i) {
+    const wchar_t* wide_name = StringUtils::Utf8ToWide(file_names[i]);
+    HANDLE file_handle = CreateFileW(
+        wide_name,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+        NULL);
+    if (file_handle == INVALID_HANDLE_VALUE) {
+      DWORD error = GetLastError();
+      free(const_cast<wchar_t*>(wide_name));
+      SetLastError(error);
+      return File::kError;
+    }
+    free(const_cast<wchar_t*>(wide_name));
+    int result = GetFileInformationByHandle(file_handle, &file_info[i]);
+    if (result == 0) {
+      DWORD error = GetLastError();
+      CloseHandle(file_handle);
+      SetLastError(error);
+      return File::kError;
+    }
+    if (CloseHandle(file_handle) == 0) {
+      return File::kError;
+    }
+  }
+  if (file_info[0].dwVolumeSerialNumber == file_info[1].dwVolumeSerialNumber &&
+      file_info[0].nFileIndexHigh == file_info[1].nFileIndexHigh &&
+      file_info[0].nFileIndexLow == file_info[1].nFileIndexLow) {
+    return kIdentical;
+  } else {
+    return kDifferent;
+  }
+}
+
 #endif  // defined(TARGET_OS_WINDOWS)

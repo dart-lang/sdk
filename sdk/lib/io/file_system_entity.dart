@@ -35,10 +35,27 @@ abstract class FileSystemEntity {
   String get path;
 
   external static int _getType(String path, bool followLinks);
+  external static bool _identical(String path1, String path2);
 
   static int _getTypeSync(String path, bool followLinks) {
     var result = _getType(path, followLinks);
     _throwIfError(result, 'Error getting type of FileSystemEntity');
+    return result;
+  }
+
+  /**
+   * Do two paths refer to the same object in the file system?
+   * Links are not identical to their targets, and two links
+   * are not identical just because they point to identical targets.
+   * Links in intermediate directories in the paths are followed, though.
+   *
+   * Throws an error if one of the paths points to an object that does not
+   * exist.
+   * The target of a link can be compared by first getting it with Link.target.
+   */
+  static bool identicalSync(String path1, String path2) {
+    var result = _identical(path1, path2);
+    _throwIfError(result, 'Error in FileSystemEntity.identical');
     return result;
   }
 
@@ -57,6 +74,8 @@ abstract class FileSystemEntity {
   static _throwIfError(Object result, String msg) {
     if (result is OSError) {
       throw new FileIOException(msg, result);
+    } else if (result is ArgumentError) {
+      throw result;
     }
   }
 }

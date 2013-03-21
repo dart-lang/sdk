@@ -48,6 +48,34 @@ testCreateSync() {
   Expect.equals(FileSystemEntityType.DIRECTORY,
                 FileSystemEntity.typeSync(createdDirectly, followLinks: false));
 
+  // Test FileSystemEntity.identical on files, directories, and links,
+  // reached by different paths.
+  Expect.isTrue(FileSystemEntity.identicalSync(createdDirectly,
+                                               createdDirectly));
+  Expect.isFalse(FileSystemEntity.identicalSync(createdDirectly,
+                                                createdThroughLink));
+  Expect.isTrue(FileSystemEntity.identicalSync(createdDirectly,
+      base.append('link/createdDirectly').toNativePath()));
+  Expect.isTrue(FileSystemEntity.identicalSync(createdThroughLink,
+      base.append('target/createdThroughLink').toNativePath()));
+
+  Expect.isFalse(FileSystemEntity.identicalSync(target, link));
+  Expect.isTrue(FileSystemEntity.identicalSync(link, link));
+  Expect.isTrue(FileSystemEntity.identicalSync(target, target));
+  Expect.isTrue(FileSystemEntity.identicalSync(target,
+                                               new Link(link).targetSync()));
+  String absolutePath = new File(".").fullPathSync();
+  Expect.isTrue(FileSystemEntity.identicalSync(".", absolutePath));
+
+  String createdFile = base.append('target/createdFile').toNativePath();
+  new File(createdFile).createSync();
+  Expect.isTrue(FileSystemEntity.identicalSync(createdFile, createdFile));
+  Expect.isFalse(FileSystemEntity.identicalSync(createdFile, createdDirectly));
+  Expect.isTrue(FileSystemEntity.identicalSync(createdFile,
+      base.append('link/createdFile').toNativePath()));
+  Expect.throws(() => FileSystemEntity.identicalSync(createdFile,
+      base.append('link/foo').toNativePath()));
+
   new Directory.fromPath(base).deleteSync(recursive: true);
 }
 

@@ -57,6 +57,9 @@ patch class FileSystemEntity {
   patch static int _getType(String path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
+  patch static bool _identical(String path1, String path2) {
+    throw new UnsupportedError("FileSystemEntity._identical");
+  }
 }
 
 patch class _File {
