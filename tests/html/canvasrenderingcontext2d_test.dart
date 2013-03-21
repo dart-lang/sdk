@@ -591,5 +591,15 @@ main() {
       expectPixelUnfilled(0, 0);
       expectPixelUnfilled(80, 80);
     });
+
+    test('createImageData', () {
+      var imageData = context.createImageData(15, 15);
+      expect(imageData.width, 15);
+      expect(imageData.height, 15);
+
+      var other = context.createImageDataFromData(imageData);
+      expect(other.width, 15);
+      expect(other.height, 15);
+    });
   });
 }

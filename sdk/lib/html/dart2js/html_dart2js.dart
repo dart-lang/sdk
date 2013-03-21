@@ -1223,26 +1223,27 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
   @Creates('ImageData|=Object')
-  ImageData createImageData(imagedata_OR_sw, [num sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
-      return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
-    }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw == null)) {
-      return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+  ImageData createImageData(num sw, num sh) {
+    return _convertNativeToDart_ImageData(_createImageData_1(sw, sh));
   }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
   @Creates('ImageData|=Object')
-  _createImageData_1(imagedata) native;
+  _createImageData_1(sw, sh) native;
+
+  @DomName('CanvasRenderingContext2D.createImageData')
+  @DocsEditable
+  @Creates('ImageData|=Object')
+  ImageData createImageDataFromImageData(ImageData imagedata) {
+    var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+    return _convertNativeToDart_ImageData(_createImageDataFromImageData_1(imagedata_1));
+  }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
   @Creates('ImageData|=Object')
-  _createImageData_2(num sw, sh) native;
+  _createImageDataFromImageData_1(imagedata) native;
 
   @DomName('CanvasRenderingContext2D.createLinearGradient')
   @DocsEditable
@@ -2491,6 +2492,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   @DocsEditable
   final CssRule parentRule;
 
+  @JSName('getPropertyValue')
+  @DomName('CSSStyleDeclaration.getPropertyValue')
+  @DocsEditable
+  String _getPropertyValue(String propertyName) native;
+
   @JSName('getPropertyCSSValue')
   @DomName('CSSStyleDeclaration.getPropertyCSSValue')
   @DocsEditable
@@ -2503,11 +2509,6 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
   String getPropertyShorthand(String propertyName) native;
-
-  @JSName('getPropertyValue')
-  @DomName('CSSStyleDeclaration.getPropertyValue')
-  @DocsEditable
-  String _getPropertyValue(String propertyName) native;
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
@@ -17301,10 +17302,6 @@ class MutationEvent extends Event native "*MutationEvent" {
 @Experimental
 class MutationObserver native "*MutationObserver" {
 
-  @DomName('MutationObserver.disconnect')
-  @DocsEditable
-  void disconnect() native;
-
   @DomName('MutationObserver.observe')
   @DocsEditable
   void _observe(Node target, Map options) {
@@ -17316,6 +17313,10 @@ class MutationObserver native "*MutationObserver" {
   @DomName('MutationObserver.observe')
   @DocsEditable
   void __observe_1(Node target, options) native;
+
+  @DomName('MutationObserver.disconnect')
+  @DocsEditable
+  void disconnect() native;
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable

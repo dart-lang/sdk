@@ -179,15 +179,15 @@ class Cursor native "*IDBCursor" {
   @DocsEditable
   void advance(int count) native;
 
-  @JSName('continue')
-  @DomName('IDBCursor.continue')
-  @DocsEditable
-  void next([Object key]) native;
-
   @JSName('delete')
   @DomName('IDBCursor.delete')
   @DocsEditable
   Request $dom_delete() native;
+
+  @JSName('continue')
+  @DomName('IDBCursor.continue')
+  @DocsEditable
+  void next([Object key]) native;
 
   @DomName('IDBCursor.update')
   @DocsEditable
@@ -766,10 +766,10 @@ class ObjectStore native "*IDBObjectStore" {
     }
   }
 
-  @DomName('IDBObjectStore.getObject')
+  @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
-      var request = $dom_getObject(key);
+      var request = $dom_get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -949,7 +949,7 @@ class ObjectStore native "*IDBObjectStore" {
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request $dom_getObject(key) native;
+  Request $dom_get(key) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable

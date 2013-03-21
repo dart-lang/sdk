@@ -80,6 +80,10 @@ class Cursor extends NativeFieldWrapperClass1 {
   @DocsEditable
   void advance(int count) native "IDBCursor_advance_Callback";
 
+  @DomName('IDBCursor.delete')
+  @DocsEditable
+  Request $dom_delete() native "IDBCursor_delete_Callback";
+
   void next([Object key]) {
     if (?key) {
       _continue_1(key);
@@ -96,10 +100,6 @@ class Cursor extends NativeFieldWrapperClass1 {
   @DomName('IDBCursor._continue_2')
   @DocsEditable
   void _continue_2() native "IDBCursor__continue_2_Callback";
-
-  @DomName('IDBCursor.delete')
-  @DocsEditable
-  Request $dom_delete() native "IDBCursor_delete_Callback";
 
   @DomName('IDBCursor.update')
   @DocsEditable
@@ -801,10 +801,10 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     }
   }
 
-  @DomName('IDBObjectStore.getObject')
+  @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
-      var request = $dom_getObject(key);
+      var request = $dom_get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
@@ -975,7 +975,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
-  Request $dom_getObject(key) {
+  Request $dom_get(key) {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }

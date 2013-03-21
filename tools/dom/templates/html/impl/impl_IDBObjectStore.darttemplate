@@ -69,10 +69,10 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
-  @DomName('IDBObjectStore.getObject')
+  @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
-      var request = $dom_getObject(key);
+      var request = $dom_get(key);
 
       return _completeRequest(request);
     } catch (e, stacktrace) {

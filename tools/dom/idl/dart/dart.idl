@@ -32,6 +32,11 @@ interface TimeoutHandler {
 };
 
 [Supplemental]
+interface CanvasRenderingContext2D {
+  [DartName=createImageDataFromImageData] ImageData createImageData(in ImageData imagedata) raises (DOMException);
+};
+
+[Supplemental]
 interface Console {
   [Suppressed] void assert(in boolean condition);
   [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
@@ -240,15 +245,6 @@ interface IDBDatabase {
       raises (IDBDatabaseException);
   [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode)
       raises (IDBDatabaseException);
-};
-[Supplemental]
-interface IDBIndex {
-  [DartName=getObject] IDBRequest get(in any key);
-};
-[Supplemental]
-interface IDBObjectStore {
-  [DartName=getObject] IDBRequest get(in any key);
-  [DartName=getObject] IDBRequest get(in IDBKeyRange key);
 };
 
 [Supplemental]

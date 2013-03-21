@@ -1502,23 +1502,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
-  ImageData createImageData(imagedata_OR_sw, [num sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
-      return _createImageData_1(imagedata_OR_sw);
-    }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw == null) && (sh is num || sh == null)) {
-      return _createImageData_2(imagedata_OR_sw, sh);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('CanvasRenderingContext2D._createImageData_1')
+  @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
-  ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D__createImageData_1_Callback";
+  ImageData createImageData(num sw, num sh) native "CanvasRenderingContext2D_createImageData_Callback";
 
-  @DomName('CanvasRenderingContext2D._createImageData_2')
+  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
   @DocsEditable
-  ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D__createImageData_2_Callback";
+  ImageData createImageDataFromImageData(ImageData imagedata) native "CanvasRenderingContext2D_createImageDataFromImageData_Callback";
 
   @DomName('CanvasRenderingContext2D.createLinearGradient')
   @DocsEditable
@@ -3078,6 +3068,10 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DocsEditable
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
+  @DomName('CSSStyleDeclaration._getPropertyValue')
+  @DocsEditable
+  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
+
   @DomName('CSSStyleDeclaration.getPropertyCSSValue')
   @DocsEditable
   CssValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
@@ -3089,10 +3083,6 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
-
-  @DomName('CSSStyleDeclaration._getPropertyValue')
-  @DocsEditable
-  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
@@ -18783,13 +18773,13 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   @DocsEditable
   static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
 
-  @DomName('MutationObserver.disconnect')
-  @DocsEditable
-  void disconnect() native "MutationObserver_disconnect_Callback";
-
   @DomName('MutationObserver._observe')
   @DocsEditable
   void _observe(Node target, Map options) native "MutationObserver__observe_Callback";
+
+  @DomName('MutationObserver.disconnect')
+  @DocsEditable
+  void disconnect() native "MutationObserver_disconnect_Callback";
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable

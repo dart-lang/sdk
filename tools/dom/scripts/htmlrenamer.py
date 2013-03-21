@@ -217,7 +217,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'IDBObjectStore.count',
   'IDBObjectStore.createIndex',
   'IDBObjectStore.delete',
-  'IDBObjectStore.getObject',
+  'IDBObjectStore.get',
   'IDBObjectStore.openCursor',
   'IDBObjectStore.put',
   'KeyboardEvent.initKeyboardEvent',

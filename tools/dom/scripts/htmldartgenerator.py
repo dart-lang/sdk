@@ -82,16 +82,12 @@ class HtmlDartGenerator(object):
           self.AmendIndexer(parent_type_info.list_item_type())
           break
 
-    # Group overloaded operations by id.
-    operationsById = {}
-    for operation in interface.operations:
-      if operation.id not in operationsById:
-        operationsById[operation.id] = []
-      operationsById[operation.id].append(operation)
+    # Group overloaded operations by name.
+    operationsByName = self._OperationsByName(interface)
 
     # Generate operations.
-    for id in sorted(operationsById.keys()):
-      operations = operationsById[id]
+    for id in sorted(operationsByName.keys()):
+      operations = operationsByName[id]
       info = AnalyzeOperation(interface, operations)
       self.AddOperation(info, declare_only)
       if ('%s.%s' % (interface.id, info.declared_name) in
@@ -112,20 +108,23 @@ class HtmlDartGenerator(object):
           self.SecondaryContext(parent_interface)
           self.AddAttribute(attr)
 
-      # Group overloaded operations by id.
-      operationsById = {}
-      for operation in parent_interface.operations:
-        if operation.id not in operationsById:
-          operationsById[operation.id] = []
-        operationsById[operation.id].append(operation)
+      # Group overloaded operations by name.
+      operationsByName =self._OperationsByName(parent_interface)
 
       # Generate operations.
-      for id in sorted(operationsById.keys()):
+      for id in sorted(operationsByName.keys()):
         if not any(op.id == id for op in interface.operations):
-          operations = operationsById[id]
+          operations = operationsByName[id]
           info = AnalyzeOperation(interface, operations)
           self.SecondaryContext(parent_interface)
           self.AddOperation(info)
+
+  def _OperationsByName(self, interface):
+    operationsByName = {}
+    for operation in interface.operations:
+      name = operation.ext_attrs.get('DartName', operation.id)
+      operationsByName.setdefault(name, []).append(operation)
+    return operationsByName
 
   def AddConstant(self, constant):
     const_name = self._renamer.RenameMember(
