@@ -14,8 +14,9 @@ part of $LIBRARYNAME;
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
  *
- *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
- *         (request) => print(request.responseText));
+ *     HttpRequest.getString('http://api.dartlang.org').then((response) {
+ *       print(response);
+ *     });
  *
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
