@@ -22,6 +22,8 @@ webdriver/test/webdriver_test: Skip
 [$compiler == none && $runtime == vm]
 intl/test/date_time_format_file_even_test: Pass, Crash # Issue 9342
 intl/test/date_time_format_file_odd_test: Pass, Crash # Issue 9342
+intl/test/date_time_format_local_even_test: Pass, Crash # Issue 9342
+intl/test/date_time_format_local_odd_test: Pass, Crash # Issue 9342
 
 [$compiler == dart2dart]
 *: Skip
@@ -129,4 +131,4 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
-serialization/test/no_library_test: Skip
+serialization/test/no_library_test: Skip # Expected Failure
