@@ -510,6 +510,19 @@ static bool HasOnlyUnconstrainedUsesInLoop(LiveRange* range,
 }
 
 
+// Returns true if all uses of the given range have Any allocation policy.
+static bool HasOnlyUnconstrainedUses(LiveRange* range) {
+  UsePosition* use = range->first_use();
+  while (use != NULL) {
+    if (!use->location_slot()->Equals(Location::Any())) {
+      return false;
+    }
+    use = use->next();
+  }
+  return true;
+}
+
+
 void FlowGraphAllocator::BuildLiveRanges() {
   const intptr_t block_count = postorder_.length();
   ASSERT(postorder_.Last()->IsGraphEntry());
@@ -532,6 +545,10 @@ void FlowGraphAllocator::BuildLiveRanges() {
       current_interference_set =
           new BitVector(flow_graph_.max_virtual_register_number());
       ASSERT(loop_header->backedge_interference() == NULL);
+      // All values flowing into the loop header are live at the back-edge and
+      // can interfere with phi moves.
+      current_interference_set->AddAll(
+          live_in_[loop_header->entry()->postorder_number()]);
       loop_header->set_backedge_interference(
           current_interference_set);
     }
@@ -828,13 +845,30 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   LocationSummary* locs = current->locs();
 
   Definition* def = current->AsDefinition();
-  if ((def != NULL) &&
-      (def->AsConstant() != NULL) &&
-      ((def->ssa_temp_index() == -1) ||
-       (GetLiveRange(def->ssa_temp_index())->first_use() == NULL))) {
+  if ((def != NULL) && (def->AsConstant() != NULL)) {
+    LiveRange* range = (def->ssa_temp_index() != -1) ?
+        GetLiveRange(def->ssa_temp_index()) : NULL;
+
     // Drop definitions of constants that have no uses.
-    locs->set_out(Location::NoLocation());
-    return;
+    if ((range == NULL) || (range->first_use() == NULL)) {
+      locs->set_out(Location::NoLocation());
+      return;
+    }
+
+    // If this constant has only unconstrained uses convert them all
+    // to use the constant directly and drop this definition.
+    // TODO(vegorov): improve allocation when we have enough registers to keep
+    // constants used in the loop in them.
+    if (HasOnlyUnconstrainedUses(range)) {
+      const Object& value = def->AsConstant()->value();
+      range->set_assigned_location(Location::Constant(value));
+      range->set_spill_slot(Location::Constant(value));
+      range->finger()->Initialize(range);
+      ConvertAllUses(range);
+
+      locs->set_out(Location::NoLocation());
+      return;
+    }
   }
 
   const intptr_t pos = current->lifetime_position();
@@ -1709,7 +1743,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
                           hint.Name(),
                           unallocated->vreg(),
                           free_until));
-  } else if (free_until != kMaxPosition) {
+  } else {
     for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
       if (!blocked_registers_[reg] && (registers_[reg].length() == 0)) {
         candidate = reg;
@@ -1718,6 +1752,23 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       }
     }
   }
+
+  ASSERT(0 <= kMaxPosition);
+  if (free_until != kMaxPosition) {
+    for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
+      if (blocked_registers_[reg] || (reg == candidate)) continue;
+      const intptr_t intersection =
+          FirstIntersectionWithAllocated(reg, unallocated);
+      if (intersection > free_until) {
+        candidate = reg;
+        free_until = intersection;
+        if (free_until == kMaxPosition) break;
+      }
+    }
+  }
+
+  // All registers are blocked by active ranges.
+  if (free_until <= unallocated->Start()) return false;
 
   // We have a very good candidate (either hinted to us or completely free).
   // If we are in a loop try to reduce number of moves on the back edge by
@@ -1777,23 +1828,6 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       }
     }
   }
-
-  ASSERT(0 <= kMaxPosition);
-  if (free_until != kMaxPosition) {
-    for (intptr_t reg = 0; reg < NumberOfRegisters(); ++reg) {
-      if (blocked_registers_[reg] || (reg == candidate)) continue;
-      const intptr_t intersection =
-          FirstIntersectionWithAllocated(reg, unallocated);
-      if (intersection > free_until) {
-        candidate = reg;
-        free_until = intersection;
-        if (free_until == kMaxPosition) break;
-      }
-    }
-  }
-
-  // All registers are blocked by active ranges.
-  if (free_until <= unallocated->Start()) return false;
 
   TRACE_ALLOC(OS::Print("assigning free register "));
   TRACE_ALLOC(MakeRegisterLocation(candidate, kUnboxedDouble).Print());
