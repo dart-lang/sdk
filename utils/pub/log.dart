@@ -6,7 +6,9 @@
 library log;
 
 import 'dart:async';
+
 import 'io.dart';
+import 'utils.dart';
 
 typedef LogFn(Entry entry);
 final Map<Level, LogFn> _loggers = new Map<Level, LogFn>();
@@ -73,7 +75,7 @@ void fine(message) => write(Level.FINE, message);
 void write(Level level, message) {
   if (_loggers.isEmpty) showNormal();
 
-  var lines = message.toString().split(NEWLINE_PATTERN);
+  var lines = splitLines(message.toString());
   var entry = new Entry(level, lines);
 
   var logFn = _loggers[level];

@@ -218,9 +218,14 @@ Pair<Stream, Stream> tee(Stream stream) {
   return new Pair<Stream, Stream>(controller1.stream, controller2.stream);
 }
 
-/// A regular expression matching a line termination character or character
-/// sequence.
-final RegExp _lineRegexp = new RegExp(r"\r\n|\r|\n");
+/// A regular expression matching a trailing CR character.
+final _trailingCR = new RegExp(r"\r$");
+
+// TODO(nweiz): Use `text.split(new RegExp("\r\n?|\n\r?"))` when issue 9360 is
+// fixed.
+/// Splits [text] on its line breaks in a Windows-line-break-friendly way.
+List<String> splitLines(String text) =>
+  text.split("\n").map((line) => line.replaceFirst(_trailingCR, "")).toList();
 
 /// Converts a stream of arbitrarily chunked strings into a line-by-line stream.
 /// The lines don't include line termination characters. A single trailing
@@ -229,7 +234,7 @@ Stream<String> streamToLines(Stream<String> stream) {
   var buffer = new StringBuffer();
   return stream.transform(new StreamTransformer(
       handleData: (chunk, sink) {
-        var lines = chunk.split(_lineRegexp);
+        var lines = splitLines(chunk);
         var leftover = lines.removeLast();
         for (var line in lines) {
           if (!buffer.isEmpty) {

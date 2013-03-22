@@ -20,8 +20,6 @@ import 'utils.dart';
 
 export '../../pkg/http/lib/http.dart' show ByteStream;
 
-final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
-
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
 bool isBeneath(String entry, String dir) {
@@ -409,7 +407,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
       .then((result) {
     // TODO(rnystrom): Remove this and change to returning one string.
     List<String> toLines(String output) {
-      var lines = output.split(NEWLINE_PATTERN);
+      var lines = splitLines(output);
       if (!lines.isEmpty && lines.last == "") lines.removeLast();
       return lines;
     }
